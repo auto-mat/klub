@@ -145,7 +145,7 @@ class Payment(models.Model):
     """
 
     TYPE_OF_PAYMENT = (
-        ('account', _('Bank transfer'))
+        ('account', _('Bank transfer')),
         ('cash', _('In cash')),
         ('expected', _('Expected payment')),
         )
@@ -346,16 +346,23 @@ class AccountStatements(models.Model):
                 d,m,y = payment['date'].split('.')
                 payment['date'] = "%04d-%02d-%02d" % (int(y),int(m),int(d))
                 payment['amount'] = int(round(float(payment['amount'].replace(',','.').replace(' ',''))))
+                if payment['amount'] < 0:
+                    continue # Skip transfers from the club account, only process contributions
                 #print str(payment)
                 p = Payment(**payment)
-                # Payments pairing
-                users_with_vs = User.objects.filter(variable_symbol=p.VS)
-                #print str(p.VS)
-                #print str(users_with_vs)
-                if len(users_with_vs) == 1:
-                    p.user = users_with_vs[0]
-                elif len(users_with_vs) > 1:
-                    raise Exception("Duplicit variable symbol detected!")
+                # Payments pairing'
+                if p.VS != '':
+                    users_with_vs = User.objects.filter(variable_symbol=p.VS)
+                    #print str(p.VS)
+                    #print str(users_with_vs)
+                    if len(users_with_vs) == 1:
+                        p.user = users_with_vs[0]
+                    elif len(users_with_vs) > 1:
+                        raise Exception("Duplicit variable symbol (%s) detected for users: %s!" %
+                                        (p.VS,
+                                         ",".join([str(user) for user in users_with_vs])))
+                else:
+                    p.VS = None
                 p.save()
 
 class UserImports(models.Model):
