@@ -47,26 +47,37 @@ class UserAdmin(admin.ModelAdmin):
 
     fieldsets = [
         ('Basic personal', {
-                'fields': ['firstname', 'surname',  'sex', 'language']}),
+                'fields': [('firstname', 'surname'),
+                           ('sex', 'language')]}),
         ('Titles and addressments', {
-                'fields': ['title_before', 'title_after', 'addressment',
-                           'addressment_on_envelope',],
+                'fields': [('title_before', 'title_after'),
+                           ('addressment', 'addressment_on_envelope')],
+                'classes': ['collapse']
+                }),
+        ('Contacts', {
+                'fields': [('email', 'telephone'),
+                           ('street', 'city', 'country'),
+                           'zip_code'],
                 'classes': ['collapse']}),
-        ('Contacts', {'fields': ['email', 'telephone', 'street',
-                                 'city', 'country', 'zip_code'],
-                      'classes': ['collapse']}),
-        ('Additional', {'fields': ['age', 'knows_us_from',  'why_supports', 'field_of_work',
-                                   'source', 'additional_information'],
-                        'classes': ['collapse']}),
-        ('Support', {'fields': ['variable_symbol',
-                                'registered_support', 'exceptional_membership', 'regular_payments',
-                                'other_support', 'monthly_payment']}),
-        ('Communication', {'fields': ['wished_information'],
-                           'classes': ['collapse']}),
-        ('Benefits', {'fields': ['club_card_available', 'club_card_dispatched', 'other_benefits'],
-                      'classes': ['collapse']}),
-        ('Note', {'fields': ['note',],
-                  'classes': ['collapse']}),
+        ('Additional', {
+                'fields': ['age', 'knows_us_from',  'why_supports', 'field_of_work',
+                           'source', 'additional_information'],
+                'classes': ['collapse']}),
+        ('Support', {
+                'fields': ['variable_symbol',
+                           'registered_support',                           
+                           ('regular_payments', 'monthly_payment', 'exceptional_membership'),
+                           'other_support']}),
+        ('Communication', {
+                'fields': ['wished_information'],
+                'classes': ['collapse']}),
+        ('Benefits', {
+                'fields': [('club_card_available', 'club_card_dispatched'),
+                           'other_benefits'],
+                'classes': ['collapse']}),
+        ('Note', {
+                'fields': ['note',],
+                'classes': ['collapse']}),
         ]
 
 class PaymentAdmin(admin.ModelAdmin):
