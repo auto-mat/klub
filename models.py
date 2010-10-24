@@ -32,6 +32,10 @@ import autocom
 class User(models.Model):
     """Club user model and DB table"""
 
+    class Meta:
+        verbose_name = _("User")
+        verbose_name_plural = _("Users")
+
     GENDER = (
         ('male', _('Male')),
         ('female', _('Female')),
@@ -233,6 +237,11 @@ class Payment(models.Model):
     expected indefinitely in case the user doesn't actually make the payment.
     """
 
+    class Meta:
+        verbose_name = _("Payment")
+        verbose_name_plural = _("Payments")
+
+
     TYPE_OF_PAYMENT = (
         ('bank-transfer', _('Bank transfer')),
         ('cash', _('In cash')),
@@ -326,6 +335,11 @@ class Communication(models.Model):
     dispatched automatically, others on confirmation or entirely
     manually by the club administration.
     """
+
+    class Meta:
+        verbose_name = _("Communication")
+        verbose_name_plural = _("Communications")
+
     user = models.ForeignKey(User)
     method = models.CharField(
         _("Method"),
@@ -405,6 +419,10 @@ class Condition(models.Model):
     only work on other conditions on both sides)
     """
 
+    class Meta:
+        verbose_name = _("Condition")
+        verbose_name_plural = _("Conditions")
+
     OPERATORS = (
         ('and', 'and'),
         ('or', 'or'),
@@ -454,6 +472,10 @@ class AutomaticCommunication(models.Model):
     dispatched, based on the configuration. See the 'Communication'
     model and the 'autocom' module."""
 
+    class Meta:
+        verbose_name = _("Automatic Communication")
+        verbose_name_plural = _("Automatic Communications")
+
     name = models.CharField(max_length=50, blank=False, null=True)
     condition = models.ForeignKey(Condition)
     method = models.CharField(max_length=30, choices=COMMUNICATION_METHOD)
@@ -472,6 +494,11 @@ class AccountStatements(models.Model):
     Account statements serve primarily to load data into the Payments
     table. The loaded files are then archived for later evidence.
     """
+
+    class Meta:
+        verbose_name = _("Account Statement")
+        verbose_name_plural = _("Account Statements")
+
     import_date = models.DateField()
     csv_file = models.FileField(upload_to='account-statements')
     
@@ -534,6 +561,11 @@ class UserImports(models.Model):
 
     TODO: Remove when the old database is definitely shut down.
     """
+
+    class Meta:
+        verbose_name = _("User import")
+        verbose_name_plural = _("Users imports")
+
     import_date = models.DateField()
     csv_file = models.FileField(upload_to='kp-test/')
     
