@@ -62,7 +62,8 @@ class User(models.Model):
         max_length=15, blank=True)
     sex = models.CharField(
         _("Gender"),
-        choices=GENDER)
+        choices=GENDER,
+        max_length=50)
     addressment = models.CharField(
         _("Addressment in letter"),
         max_length=40, blank=True)
@@ -76,7 +77,8 @@ class User(models.Model):
                     "emails in this language and administrators will use "
                     "this language in phone calls and personal contacts."),
         choices=LANGUAGE,
-        default="czech")
+        default="czech",
+        max_length=50)
     # -- Contacts
     email = models.CharField(
         _("Email"),
