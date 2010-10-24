@@ -42,41 +42,71 @@ class User(models.Model):
     LANGUAGE = (('czech', _('Czech')), 
                 ('english', _('English')))
 
+    SOURCE = (('web', _("Web form")),
+              ('direct-dialogue-event', _("Direct dialogue on one of our events")),
+              ('direct-dialogue-street', _("Direct dialogue on the street/other")),
+              ('personal', _('Personal recommendation')),
+              ('other', _('Another form of contact')))
+              
+
     # Basic personal information
-    title_before = models.CharField(max_length=15, blank=True)
-    firstname = models.CharField(max_length=80, blank=False) # TODO AFTER DB CLEANUP: null=False
-    surname = models.CharField(max_length=80, blank=False) # TODO AFTER DB CLEANUP: null=False
-    title_after = models.CharField(max_length=15, blank=True)
-    sex = models.CharField(max_length=15, choices=GENDER)
-    addressment = models.CharField(max_length=40, blank=True)
-    addressment_on_envelope = models.CharField(max_length=40, blank=True)
-    language = models.CharField(max_length=40, choices=LANGUAGE, default="czech")
+    title_before = models.CharField(max_length=15, blank=True,
+                                    verbose_name=_("Title before name"))
+    firstname = models.CharField(max_length=80, blank=False,
+                                 verbose_name=_("First name")) # TODO AFTER DB CLEANUP: null=False
+    surname = models.CharField(max_length=80, blank=False,
+                               verbose_name=_("Surname")) # TODO AFTER DB CLEANUP: null=False
+    title_after = models.CharField(max_length=15, blank=True,
+                                   verbose_name=_("Title after name"))
+    sex = models.CharField(max_length=15, choices=GENDER, verbose_name=_("Gender"))
+    addressment = models.CharField(max_length=40, blank=True, verbose_name=_("Addressment in letter"))
+    addressment_on_envelope = models.CharField(max_length=40, blank=True,
+                                               verbose_name=_("Addressment on envelope"))
+    language = models.CharField(max_length=40, choices=LANGUAGE, default="czech",
+                                verbose_name=_("Language"),
+                                help_text=_("This is the language which will be used to "
+                                            "communicate with this user. The system will send "
+                                            "emails in this language and administrators will use "
+                                            "this language in phone calls and personal contacts."))
 
     # Contacts
-    email = models.CharField(max_length=40, blank=True)
-    telephone = models.CharField(max_length=30, blank=True)
-    street = models.CharField(max_length=80, blank=True)
+    email = models.CharField(max_length=40, blank=True, verbose_name=_("email"))
+    telephone = models.CharField(max_length=30, blank=True, verbose_name=_("Telephone"))
+    street = models.CharField(max_length=80, blank=True, verbose_name=_("Street"))
     # TODO: Default city and country should come from app settings
-    city = models.CharField(max_length=40, default="Praha", blank=True)
-    country = models.CharField(max_length=40, default="Ceska Republika", blank=True)
-    zip_code = models.CharField(max_length=20, blank=True)
+    city = models.CharField(max_length=40, default="Praha", blank=True, verbose_name=_("City"))
+    country = models.CharField(max_length=40, default="Ceska Republika", blank=True, verbose_name=_("Country"))
+    zip_code = models.CharField(max_length=20, blank=True, verbose_name=_("ZIP Code"))
 
     # Additional Info
-    age = models.PositiveIntegerField(max_length=5, null=True, blank=True)
-    knows_us_from = models.CharField(max_length=80, blank=True)
-    why_supports = models.TextField(max_length=200, blank=True)
-    field_of_work = models.CharField(max_length=40, blank=True) # also of study or interest
-    source = models.CharField(max_length=80, blank=True)
-    additional_information = models.CharField(max_length=500, blank=True)
+    age = models.PositiveIntegerField(max_length=5, null=True, blank=True, verbose_name=_("Age"))
+    knows_us_from = models.CharField(max_length=80, blank=True, verbose_name=_("Where does he/she know us from?"))
+    why_supports = models.TextField(max_length=500, blank=True, verbose_name=_("Why does he/she support us?"))
+    field_of_work = models.CharField(max_length=80, blank=True, verbose_name=_("Field of work"),
+                                     help_text="His/her area of expertise and/or interest")
+    source = models.CharField(max_length=80, choices=SOURCE, blank=False,
+                              verbose_name=_("Source"), help_text=_("How did he contact us / became a member?"))
+    additional_information = models.TextField(max_length=500, blank=True, verbose_name=_("Additional information"))
 
     # Support
-    variable_symbol = models.CharField(max_length=30, default="unknown", blank=False)
-    registered_support = models.DateTimeField(null=True, default=datetime.datetime.now())
-    exceptional_membership = models.BooleanField(default=False)
-    regular_payments = models.BooleanField(default=False)
-    monthly_payment = models.PositiveIntegerField(blank=True, null=True)
-    other_support = models.TextField(max_length=500, blank=True)
-    public = models.BooleanField(default=True)
+    variable_symbol = models.CharField(max_length=30, default="---", blank=False)
+    registered_support = models.DateTimeField(null=True, default=datetime.datetime.now(),
+                                              verbose_name=_("Registered support"),
+                                              help_text=_("When did this user register to support us"))
+    exceptional_membership = models.BooleanField(default=False, verbose_name=_("Exceptional membership"),
+                                                 help_text=_("In special cases, people can become members of "
+                                                             "the club even if they do not pay any money. This should "
+                                                             "be justified in the note."))
+    regular_payments = models.BooleanField(default=False, verbose_name=_("Regular payments"),
+                                           help_text=_("Is this user registered for regular payments?"))
+    # TODO: This needs to be replaced by amount and periodicity fields to account also for
+    # quaterly and annual payments
+    monthly_payment = models.PositiveIntegerField(blank=True, null=True, verbose_name=_("Amount of monthly payment"))
+    other_support = models.TextField(max_length=500, blank=True, verbose_name=_("Other support"),
+                                     help_text=_("If the user supports us in other ways, please specify here."))
+    public = models.BooleanField(default=True, verbose_name=_("Public"),
+                                 help_text=("Does he wish his name to appear publicly in the list of supporters "
+                                            "of our organization?"))
 
     # Communication
     # TODO: wished_information should be a set (0 or more) of references into
@@ -85,12 +115,16 @@ class User(models.Model):
     wished_information = models.CharField(max_length=200, blank=True, null=True) 
 
     # Benefits
-    club_card_available = models.BooleanField(default=False) # Whether he is entitled to posses a club card
-    club_card_dispatched = models.BooleanField(default=False) # Whether we have already sent him the club card
-    other_benefits = models.TextField(max_length=500, blank=True)
+    club_card_available = models.BooleanField(default=False, verbose_name=_("Club card available"),
+                                              help_text=_("Is he entitled to posses a club card?"))
+    club_card_dispatched = models.BooleanField(default=False, verbose_name=_("Club card dispatched?"),
+                                               help_text=_("Did we send him the club card already?"))
+    other_benefits = models.TextField(max_length=500, blank=True, verbose_name=_("Other benefits"),
+                                      help_text=_("Did he receive some other benefits?"))
 
     # Notes (club administrators private notes)
-    note = models.TextField(max_length=2000, blank=True)
+    note = models.TextField(max_length=2000, blank=True, verbose_name=_("Notes"),
+                            help_text=_("Private notes of the club administrators"))
 
     def __unicode__(self):
         return self.person_name()
@@ -158,7 +192,7 @@ class Payment(models.Model):
     VS = models.CharField(max_length=30, blank=True, null=True)
     SS = models.CharField(max_length=30, blank=True, null=True)
     user_identification = models.CharField(max_length=30, blank=True, null=True)
-    type = models.CharField(max_length=200, blank=True, null=True)
+    type = models.CharField(max_length=200, choices=TYPE_OF_PAYMENT, blank=True, null=True)
     done_by = models.CharField(max_length=500, blank=True, null=True)
     account_name = models.CharField(max_length=200, blank=True, null=True)
     bank_name = models.CharField(max_length=500, blank=True, null=True)    
@@ -222,7 +256,7 @@ class Communication(models.Model):
             orig = Communication.objects.get(pk=self.pk)
             if orig.dispatched == False and self.dispatched == True:
                 self.dispatch()
-        super(Communication, self).save(*args, **kwargs) # Call the "real" save() method
+        super(Communication, self).save(*args, **kwargs)
 
     def dispatch(self):
         """Dispatch the communication
@@ -281,6 +315,7 @@ class Condition(models.Model):
     def __unicode__(self):
         return self.name
 
+
 class AutomaticCommunication(models.Model):
     """AutomaticCommunication entry and DB model
 
@@ -312,8 +347,7 @@ class AccountStatements(models.Model):
     csv_file = models.FileField(upload_to='account-statements')
     
     def save(self, *args, **kwargs):
-        super(AccountStatements, self).save(*args, **kwargs) # Call the "real" save() method first
-
+        super(AccountStatements, self).save(*args, **kwargs)
         # Read and parse the account statement
         # TODO: This should be separated into a dedicated module
         win1250_contents = open(self.csv_file.path).read()
@@ -321,10 +355,6 @@ class AccountStatements(models.Model):
         splitted = unicode_contents.encode('utf-8').split('\n\n')
         header = splitted[0]
         data = splitted[1]
-
-        #print header
-        #print "-----------"
-        #print data
 
         payments_reader = csv.DictReader(data.split("\n"), delimiter=';',
                                  fieldnames = [
@@ -342,19 +372,15 @@ class AccountStatements(models.Model):
             else:
                 del payment['transfer']
                 del payment['unknown']
-                #print payment['date']
                 d,m,y = payment['date'].split('.')
                 payment['date'] = "%04d-%02d-%02d" % (int(y),int(m),int(d))
                 payment['amount'] = int(round(float(payment['amount'].replace(',','.').replace(' ',''))))
                 if payment['amount'] < 0:
                     continue # Skip transfers from the club account, only process contributions
-                #print str(payment)
                 p = Payment(**payment)
                 # Payments pairing'
                 if p.VS != '':
                     users_with_vs = User.objects.filter(variable_symbol=p.VS)
-                    #print str(p.VS)
-                    #print str(users_with_vs)
                     if len(users_with_vs) == 1:
                         p.user = users_with_vs[0]
                     elif len(users_with_vs) > 1:
@@ -377,7 +403,7 @@ class UserImports(models.Model):
     csv_file = models.FileField(upload_to='kp-test/')
     
     def save(self, *args, **kwargs):
-        super(UserImports, self).save(*args, **kwargs) # Call the "real" save() method first
+        super(UserImports, self).save(*args, **kwargs)
 
         data = open(self.csv_file.path).read()
         user_reader = csv.DictReader(data.split("\n"), delimiter=';',
