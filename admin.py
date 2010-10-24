@@ -112,7 +112,7 @@ class CommunicationAdmin(admin.ModelAdmin):
     list_filter = ['dispatched']
 
 class AutomaticCommunicationAdmin(admin.ModelAdmin):
-    list_display = ('name', 'condition', 'method', 'subject')
+    list_display = ('name', 'method', 'subject')
     ordering = ('name',)
 
 class ConditionAdmin(admin.ModelAdmin):
