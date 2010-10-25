@@ -35,24 +35,35 @@ def get_val(spec, user):
     # DB objects
     if '.' in spec:
         obj, attr = spec.split('.')
-        if obj == 'u':
-            return getattr(user, attr)
-        if obj == 'datetime':
+        if obj == 'user':
+            attr_val = getattr(user, attr)
+            if attr[-2:] == '()':
+                return attr_val()
+            else:
+                return attr_val
+        elif obj == 'datetime':
             return datetime.datetime.strptime(attr, '%Y-%m-%d %H:%M')
+        elif obj == 'timedelta':
+            return datetime.timedelta(days=int(attr))
     else:
         return spec
 
-def is_true(condition, user):
+def is_true(condition, user, simple=False):
     # Composed conditions
     if condition.operation == 'and':
-        return is_true(condition.cond1, user) and is_true(condition.cond2, user)
+        for cond in [condition.cond1] + list(condition.conds2.all()):
+            if not is_true(cond, user):
+                return False
+        return True
     if condition.operation == 'or':
-        return is_true(condition.cond1, user) or is_true(condition.cond2, user)
+        for cond in [condition.cond1] + list(condition.conds2.all()):
+            if is_true(condition.cond1, user):
+                return True
+        return False
 
     # Elementary conditions
     left = get_val(condition.variable, user)
     right = get_val(condition.value, user)
-
     #print "left: %s" % left
     #print "right: %s" % right
 

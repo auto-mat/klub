@@ -200,13 +200,56 @@ class User(models.Model):
             return False
 
     def payments(self):
+        return Payment.objects.filter(user=self)
+
+    def number_of_payments(self):
         """Return number of payments made by this user"""
-        return len(Payment.objects.filter(user=self)) 
+        p = self.payments()
+        return p and len(p) or 0 
+    
+    def last_payment(self):
+        """Return last payment"""
+        user_payments = self.payments().order_by('-date')
+        if len(user_payments):
+            return user_payments[0]
+        else:
+            return None
+
+    def last_payment_date(self):
+        """Return date of last payment"""
+        try:
+            return self.last_payment().date
+        except AttributeError:
+            return None
+
+    def expected_regular_payment_date(self):
+        last_payment = self.last_payment()
+        if last_payment:
+            return last_payment.date+datetime.timedelta(days=31)
+        else:
+            return self.registered_support.date()+datetime.timedelta(days=14)
+
+    def regular_payments_ok(self):
+        """Check if his payments are OK
+
+        Return True if so, otherwise return the delay in payment as dattime.timedelta
+        """
+
+        if self.regular_payments:
+            # Check for regular payments
+            # (Allow 7 days for payment processing)
+            if ((self.expected_regular_payment_date() + datetime.timedelta(days=7))
+                < datetime.date.today()):
+                return (self.expected_regular_payment_date() - datetime.today())
+            else:
+                return True
+        else:
+            return True
 
     def total_contrib(self):
         """Return the sum of all money received from this user"""
         total = 0
-        for payment in Payment.objects.filter(user=self):
+        for payment in self.payments():
             total += int(payment.amount)
         return total
 
@@ -444,7 +487,7 @@ class Condition(models.Model):
         'self',
         related_name='cond1_rel',
         verbose_name=_("Condition"),
-        blank=True)
+        blank=True, null=True)
     operation = models.CharField(
         _("Operation"),
         choices=OPERATORS,
@@ -454,10 +497,12 @@ class Condition(models.Model):
         _("Value"),
         help_text=_("Value or variable on right-hand side"),
         max_length=50, blank=True, null=True)
-    cond2 = models.ForeignKey('self',
-                              related_name='cond2_rel',
-                              verbose_name=_("Condition"),
-                              blank=True)
+    conds2 = models.ManyToManyField('self',
+                                    related_name='conds_rel',
+                                    symmetrical=False,
+                                    verbose_name=_("Conditions"),
+                                    blank=True, null=True)
+
 
     def __unicode__(self):
         return self.name

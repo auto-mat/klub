@@ -41,7 +41,7 @@ class CommunicationInline(admin.TabularInline):
 class UserAdmin(admin.ModelAdmin):
     list_display = ('surname', 'person_name', 'variable_symbol',
                     'regular_payments', 'registered_support', 
-                    'payments', 'total_contrib', 'monthly_payment',
+                    'number_of_payments', 'total_contrib', 'monthly_payment',
                     'requires_action')
     list_filter = ['regular_payments', 'language']
     search_fields = ['firstname', 'surname']
