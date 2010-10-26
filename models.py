@@ -190,6 +190,7 @@ class User(models.Model):
 
     def person_name(self):
         return " ".join((self.firstname, self.surname))
+    person_name.short_description = _("Full name") 
 
     def requires_action(self):
         """Return true if the user requires some action from
