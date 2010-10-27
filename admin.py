@@ -21,9 +21,11 @@
 # Django imports
 from django.contrib import admin
 from django.utils.translation import ugettext as _
+from django.contrib.admin.filterspecs import RelatedFilterSpec
 # Local models
 from aklub.models import User, Payment, Communication, AutomaticCommunication, \
     Condition, AccountStatements, UserImports 
+from aklub.filters import NullFilterSpec
 
 # -- INLINE FORMS --
 class PaymentsInline(admin.TabularInline):
@@ -89,7 +91,7 @@ class PaymentAdmin(admin.ModelAdmin):
                     'VS', 'user_identification', 'type', 'paired_with_expected')
     fieldsets = [
         (_("Basic"), {
-                'fields' : ['date', 'amount',
+                'fields' : ['user', 'date', 'amount',
                             ('type', )]
                 }),
         (_("Details"), {
@@ -103,6 +105,9 @@ class PaymentAdmin(admin.ModelAdmin):
     ordering = ('date',)
     list_filter = ['user',]
     search_fields = ['user', 'amount', 'VS']
+
+# Register our custom filter for field 'user' on model 'Payment'
+RelatedFilterSpec.register(lambda f,m: bool(f.name=='user' and issubclass(m, Payment)), NullFilterSpec)
 
 class CommunicationAdmin(admin.ModelAdmin):
     list_display = ('subject', 'dispatched', 'user', 'method', 'handled_by',
