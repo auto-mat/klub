@@ -103,7 +103,7 @@ class PaymentAdmin(admin.ModelAdmin):
         ]
     raw_id_fields = ('user',)
     ordering = ('date',)
-    list_filter = ['user',]
+    list_filter = ['user', 'date']
     search_fields = ['user', 'amount', 'VS']
 
 # Register our custom filter for field 'user' on model 'Payment'
