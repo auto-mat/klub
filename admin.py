@@ -114,7 +114,7 @@ class CommunicationAdmin(admin.ModelAdmin):
                     'date')
     raw_id_fields = ('user',)
     ordering = ('-date',)
-    list_filter = ['dispatched']
+    list_filter = ['dispatched', 'date', 'method']
 
 class AutomaticCommunicationAdmin(admin.ModelAdmin):
     list_display = ('name', 'method', 'subject')
