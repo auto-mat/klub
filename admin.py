@@ -104,6 +104,7 @@ class PaymentAdmin(admin.ModelAdmin):
     raw_id_fields = ('user',)
     ordering = ('date',)
     list_filter = ['user', 'date']
+    date_hierarchy = 'date'
     search_fields = ['user__surname', 'user__firstname', 'amount', 'VS', 'user_identification']
 
 # Register our custom filter for field 'user' on model 'Payment'
