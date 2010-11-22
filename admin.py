@@ -113,8 +113,14 @@ class CommunicationAdmin(admin.ModelAdmin):
     list_display = ('subject', 'dispatched', 'user', 'method', 'handled_by',
                     'date')
     raw_id_fields = ('user',)
+    readonly_fields = ('handled_by',)
     ordering = ('-date',)
     list_filter = ['dispatched', 'date', 'method']
+
+    def save_model(self, request, obj, form, change):
+        if not obj.pk:
+            obj.handled_by = request.user
+        obj.save()
 
 class AutomaticCommunicationAdmin(admin.ModelAdmin):
     list_display = ('name', 'method', 'subject')

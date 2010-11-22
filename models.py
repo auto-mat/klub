@@ -403,10 +403,10 @@ class Communication(models.Model):
         help_text=_("Internal notes about this communication"),
         max_length=3000, blank=True)
     # TODO: This needs to be a foreign key to table of Django users
-    handled_by = models.CharField(
-        _("Handled by"),
-        default="Klubovy Admin",
-        max_length=30, null=True)
+    handled_by = models.ForeignKey(
+        'auth.User',
+        verbose_name=_("Handled by"),
+        null=True, blank=True)
     dispatched = models.BooleanField(
         _("Dispatched"),
         _("Was this message already sent/communicated to the client? In case "
