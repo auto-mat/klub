@@ -47,7 +47,7 @@ class UserAdmin(admin.ModelAdmin):
                     'requires_action')
     list_filter = ['regular_payments', 'language']
     search_fields = ['firstname', 'surname']
-    ordering = ('-surname',)
+    ordering = ('surname',)
     save_as = True
     inlines = [PaymentsInline, CommunicationInline]
     fieldsets = [
@@ -104,7 +104,7 @@ class PaymentAdmin(admin.ModelAdmin):
     raw_id_fields = ('user',)
     ordering = ('date',)
     list_filter = ['user', 'date']
-    search_fields = ['user', 'amount', 'VS']
+    search_fields = ['user__surname', 'user__firstname', 'amount', 'VS', 'user_identification']
 
 # Register our custom filter for field 'user' on model 'Payment'
 RelatedFilterSpec.register(lambda f,m: bool(f.name=='user' and issubclass(m, Payment)), NullFilterSpec)
