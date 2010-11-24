@@ -284,6 +284,7 @@ class Payment(models.Model):
     class Meta:
         verbose_name = _("Payment")
         verbose_name_plural = _("Payments")
+	ordering = ['-date']
 
 
     TYPE_OF_PAYMENT = (
@@ -383,6 +384,7 @@ class Communication(models.Model):
     class Meta:
         verbose_name = _("Communication")
         verbose_name_plural = _("Communications")
+	ordering = ['-date']
 
     user = models.ForeignKey(User)
     method = models.CharField(
@@ -544,6 +546,7 @@ class AccountStatements(models.Model):
     class Meta:
         verbose_name = _("Account Statement")
         verbose_name_plural = _("Account Statements")
+	ordering = ['-import_date']
 
     import_date = models.DateField()
     csv_file = models.FileField(upload_to='account-statements')
@@ -567,13 +570,17 @@ class AccountStatements(models.Model):
 
         first_line = True
         for payment in payments_reader:
+	    print payment
             if first_line:
                 first_line = False
+		print "found first_line"
             elif payment['date'] == 'Suma':
                 break
             else:
                 del payment['transfer']
                 del payment['unknown']
+		print "PAYMENT", payment
+		print payment['date']
                 d,m,y = payment['date'].split('.')
                 payment['date'] = "%04d-%02d-%02d" % (int(y),int(m),int(d))
                 payment['amount'] = int(round(float(
@@ -611,6 +618,7 @@ class UserImports(models.Model):
     class Meta:
         verbose_name = _("User import")
         verbose_name_plural = _("Users imports")
+	ordering = ['-import_date']
 
     import_date = models.DateField()
     csv_file = models.FileField(upload_to='kp-test/')

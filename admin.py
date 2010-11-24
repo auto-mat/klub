@@ -31,13 +31,11 @@ from aklub.filters import NullFilterSpec
 class PaymentsInline(admin.TabularInline):
     model = Payment
     list_display = ('amount', 'person_name', 'date', 'paired_with_expected')
-    ordering = ('date',)
     extra = 5
 
 class CommunicationInline(admin.TabularInline):
     model = Communication
     extra = 1
-    ordering = ('date',)
 
 # -- ADMIN FORMS --
 class UserAdmin(admin.ModelAdmin):
@@ -102,7 +100,6 @@ class PaymentAdmin(admin.ModelAdmin):
                 }),
         ]
     raw_id_fields = ('user',)
-    ordering = ('date',)
     list_filter = ['user', 'date']
     date_hierarchy = 'date'
     search_fields = ['user__surname', 'user__firstname', 'amount', 'VS', 'user_identification']
@@ -115,7 +112,6 @@ class CommunicationAdmin(admin.ModelAdmin):
                     'date')
     raw_id_fields = ('user',)
     readonly_fields = ('handled_by',)
-    ordering = ('-date',)
     list_filter = ['dispatched', 'date', 'method']
     date_hierarchy = 'date'
 
@@ -134,11 +130,9 @@ class ConditionAdmin(admin.ModelAdmin):
 
 class AccountStatementsAdmin(admin.ModelAdmin):
     list_display = ('import_date', 'csv_file')
-    ordering = ('import_date',)
 
 class UserImportsAdmin(admin.ModelAdmin):
     list_display = ('import_date', 'csv_file')
-    ordering = ('import_date',)
 
 
 admin.site.register(User, UserAdmin)
