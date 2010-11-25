@@ -36,6 +36,7 @@ class PaymentsInline(admin.TabularInline):
 class CommunicationInline(admin.TabularInline):
     model = Communication
     extra = 1
+    readonly_fields = ('handled_by',)
 
 # -- ADMIN FORMS --
 class UserAdmin(admin.ModelAdmin):
@@ -83,6 +84,20 @@ class UserAdmin(admin.ModelAdmin):
                 'fields': ['note',],
                 'classes': ['collapse']}),
         ]
+
+    def save_formset(self, request, form, formset, change):
+	# We need to save the request.user to inline Communication
+	# the same as we do in CommunicationAdmin.save_model().
+	# Unfortunatelly, save_model() doesn't work on CommunicationInline
+	# so we need to workaround it using save_formset here.
+        if not issubclass(formset.model, Communication):
+            return super(UserAdmin, self).save_formset(request, form, formset, change)
+        instances = formset.save(commit=False)
+        for instance in instances:
+            if not instance.pk:
+                instance.handled_by = request.user
+            instance.save()
+        formset.save_m2m()
 
 class PaymentAdmin(admin.ModelAdmin):
     list_display = ('date', 'amount', 'person_name', 'account', 'bank_code',
