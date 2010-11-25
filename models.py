@@ -161,6 +161,11 @@ class User(models.Model):
         help_text=("Does he wish his name to appear publicly in the list of "
                    "supporters of our organization?"),
         default=True)
+    active = models.BooleanField(
+        _("Active"),
+        help_text=("Is the user active member? Use this field to disable old "
+                   "or temporary users."),
+        default=True)
     # --- Communication
     # TODO: wished_information should be a set (0 or more) of references into the
     # table of available information types (regular emailing about our causes,

@@ -39,11 +39,11 @@ class CommunicationInline(admin.TabularInline):
 
 # -- ADMIN FORMS --
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('surname', 'person_name', 'variable_symbol',
+    list_display = ('surname', 'person_name', 'active', 'variable_symbol',
                     'regular_payments', 'registered_support', 
                     'number_of_payments', 'total_contrib', 'monthly_payment',
                     'requires_action')
-    list_filter = ['regular_payments', 'language']
+    list_filter = ['regular_payments', 'language', 'active']
     search_fields = ['firstname', 'surname']
     ordering = ('surname',)
     save_as = True
@@ -51,7 +51,7 @@ class UserAdmin(admin.ModelAdmin):
     fieldsets = [
         ('Basic personal', {
                 'fields': [('firstname', 'surname'),
-                           ('sex', 'language')]}),
+                           ('sex', 'language', 'active')]}),
         ('Titles and addressments', {
                 'fields': [('title_before', 'title_after'),
                            ('addressment', 'addressment_on_envelope')],
