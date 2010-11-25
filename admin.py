@@ -129,6 +129,7 @@ class CommunicationAdmin(admin.ModelAdmin):
     readonly_fields = ('handled_by',)
     list_filter = ['dispatched', 'date', 'method']
     date_hierarchy = 'date'
+    ordering = ('-date',)
 
     def save_model(self, request, obj, form, change):
         if not obj.pk:

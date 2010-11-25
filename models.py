@@ -389,7 +389,7 @@ class Communication(models.Model):
     class Meta:
         verbose_name = _("Communication")
         verbose_name_plural = _("Communications")
-	ordering = ['-date']
+	ordering = ['date']
 
     user = models.ForeignKey(User)
     method = models.CharField(
