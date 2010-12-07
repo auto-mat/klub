@@ -445,7 +445,7 @@ class Communication(models.Model):
         """
         if self.method == 'email':
             send_mail(self.subject, self.summary, 'kp@auto-mat.cz',
-                      [self.user.email, 'klub-registrace@auto-mat.cz'],
+                      [self.user.email, 'kp@auto-mat.cz'],
                       # Above, a copy is sent back home for feedback and
                       # monitoring
                       fail_silently=False)
