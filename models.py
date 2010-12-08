@@ -575,17 +575,17 @@ class AccountStatements(models.Model):
 
         first_line = True
         for payment in payments_reader:
-	    print payment
+	    #print payment
             if first_line:
                 first_line = False
-		print "found first_line"
+		#print "found first_line"
             elif payment['date'] == 'Suma':
                 break
             else:
                 del payment['transfer']
                 del payment['unknown']
-		print "PAYMENT", payment
-		print payment['date']
+		#print "PAYMENT", payment
+		#print payment['date']
                 d,m,y = payment['date'].split('.')
                 payment['date'] = "%04d-%02d-%02d" % (int(y),int(m),int(d))
                 payment['amount'] = int(round(float(
