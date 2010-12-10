@@ -21,6 +21,7 @@
 # Django imports
 import django
 from django.db import models
+from django.db.models import Sum
 from django.core.mail import send_mail
 from django.utils.translation import ugettext as _
 # External dependencies
@@ -28,6 +29,10 @@ import datetime
 import csv
 # Local modules
 import autocom
+
+class UserManager(models.Manager):
+    def get_query_set(self):
+        return super(UserManager,self).get_query_set().annotate(payment_total=Sum('payment__amount'))
 
 class User(models.Model):
     """Club user model and DB table"""
@@ -190,6 +195,8 @@ class User(models.Model):
         help_text=_("Private notes of the club administrators"),
         max_length=2000, blank=True)
 
+    objects = UserManager()
+
     def __unicode__(self):
         return self.person_name()
 
@@ -254,10 +261,8 @@ class User(models.Model):
 
     def total_contrib(self):
         """Return the sum of all money received from this user"""
-        total = 0
-        for payment in self.payments():
-            total += int(payment.amount)
-        return total
+	return self.payment_total
+    total_contrib.admin_order_field = 'payment_total'
 
     def save(self, *args, **kwargs):
         """Record save hook
