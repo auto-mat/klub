@@ -56,7 +56,11 @@ class User(models.Model):
         ('direct-dialogue-street', _("Direct dialogue on the street/other")),
         ('personal', _('Personal recommendation')),
         ('other', _('Another form of contact')))
-              
+    REGULAR_PAYMENT_FREQUENCIES = (
+        ('monthly', _('Monthly')),
+        ('quaterly', _('Quaterly')),
+        ('annually', _('Anually')))
+             
     # -- Basic personal information
     title_before = models.CharField(
         _("Title before name"),
@@ -154,9 +158,13 @@ class User(models.Model):
         default=False)
     # TODO: This needs to be replaced by amount and periodicity fields to
     # account also for quaterly and annual payments
-    monthly_payment = models.PositiveIntegerField(
-        _("Amount of monthly payment"),
-        blank=True)
+    regular_amount = models.PositiveIntegerField(
+        _("Amount of regular payment"),
+        blank=True, null=True)
+    regular_frequency = models.CharField(
+        _("Frequency of regular payments"),
+        choices=REGULAR_PAYMENT_FREQUENCIES,
+        max_length=20, blank=True, null=True)
     other_support = models.TextField(
         _("Other support"),
         help_text=
@@ -653,9 +661,11 @@ class UserImports(models.Model):
 
             note = user['note']
             if int(user['stable_payment']):
-                monthly_payment = int(user['amount'])
+                regular_amount = int(user['amount'])
+                regular_frequency = 'monthly'
             else:
-                monthly_payment = 0
+                regular_amount = 0
+                regular_frequency = None
                 note += "Once paid %s as a single donation" % user['amount']
 
             u = User(firstname = user['name'],
@@ -667,7 +677,8 @@ class UserImports(models.Model):
                      zip_code = user['psc'],
                      registered_support = regdate,
                      regular_payments = int(user['stable_payment']),
-                     monthly_payment = monthly_payment,
+                     regular_amount = regular_amount,
+                     regular_frequency = regular_frequency,
                      exceptional_membership = False,
                      public = user['public'],
                      wished_information = user['information'],

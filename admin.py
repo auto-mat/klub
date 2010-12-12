@@ -42,7 +42,7 @@ class CommunicationInline(admin.TabularInline):
 class UserAdmin(admin.ModelAdmin):
     list_display = ('surname', 'person_name', 'active', 'variable_symbol',
                     'regular_payments', 'registered_support', 
-                    'number_of_payments', 'total_contrib', 'monthly_payment',
+                    'number_of_payments', 'total_contrib', 'regular_amount',
                     'requires_action')
     list_filter = ['regular_payments', 'language', 'active']
     search_fields = ['firstname', 'surname']
@@ -70,8 +70,8 @@ class UserAdmin(admin.ModelAdmin):
         ('Support', {
                 'fields': ['variable_symbol',
                            'registered_support',                           
-                           ('regular_payments', 'monthly_payment',
-                            'exceptional_membership'),
+                           ('regular_payments', 'regular_frequency',
+                            'regular_amount', 'exceptional_membership'),
                            'other_support']}),
         ('Communication', {
                 'fields': ['wished_information'],

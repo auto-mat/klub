@@ -89,7 +89,8 @@ def process_template(template_string, user):
         zipcode = user.zip_code,
         email = user.email,
         telephone = user.telephone,
-        monthly_donation = user.monthly_payment,
+        regular_amount = user.regular_amount,
+        regular_frequency = user.regular_frequency,
         var_symbol = user.variable_symbol,
         )
     return text
