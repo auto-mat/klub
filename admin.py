@@ -120,7 +120,8 @@ class PaymentAdmin(admin.ModelAdmin):
     search_fields = ['user__surname', 'user__firstname', 'amount', 'VS', 'user_identification']
 
 # Register our custom filter for field 'user' on model 'Payment'
-RelatedFilterSpec.register(lambda f,m: bool(f.name=='user' and issubclass(m, Payment)), NullFilterSpec)
+RelatedFilterSpec.register(lambda f,m: bool(f.name=='user' and issubclass(m, Payment)),
+                           NullFilterSpec)
 
 class CommunicationAdmin(admin.ModelAdmin):
     list_display = ('subject', 'dispatched', 'user', 'method', 'handled_by',

@@ -32,7 +32,8 @@ import autocom
 
 class UserManager(models.Manager):
     def get_query_set(self):
-        return super(UserManager,self).get_query_set().annotate(payment_total=Sum('payment__amount'))
+        return super(UserManager,self).get_query_set().annotate(
+            payment_total=Sum('payment__amount'))
 
 class User(models.Model):
     """Club user model and DB table"""
