@@ -35,7 +35,7 @@ def get_val(spec, user):
     # DB objects
     if '.' in spec:
         obj, attr = spec.split('.')
-        if obj == 'user':
+        if obj == 'User':
             attr_val = getattr(user, attr)
             if attr[-2:] == '()':
                 return attr_val()

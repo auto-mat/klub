@@ -467,6 +467,45 @@ class Communication(models.Model):
                 self.dispatched = True
                 self.save()
 
+class ConditionValues(object):
+    """Iterator that returns values available for Klub Conditions
+    
+    Returns tuples (val, val) where val is a string of the form
+    model.cid where model is the name of the model in lower case
+    and cid is the database column id (name).
+
+    This class is needed to be able to dynamically generate
+    a list of values selectable in the Condition forms by
+    dynamically introspecting the User and Payment models.
+    """
+
+    def __init__(self, model_names):
+        self._columns = []
+        for name in model_names:
+            model = {'User': User,
+                     'Payment': Payment}[name]
+            # DB fields
+            self._columns += [(name, field.name) for field in model._meta.fields]
+            # Public methods
+            # TODO: This really lists all attributes, we should
+            # for callable attributes
+            self._columns += [(name, method) for method in dir(model)
+                              if (not method.startswith("_")
+                                  and method not in dir(models.Model))]
+
+        self._index = 0
+
+    def __iter__(self):
+        return self
+ 
+    def next(self):
+        try:
+            val = ".".join(self._columns[self._index])
+            self._index = self._index + 1
+            return (val, val)
+        except IndexError:
+            raise StopIteration
+
 class Condition(models.Model):
     """A condition entry and DB model
 
@@ -503,6 +542,7 @@ class Condition(models.Model):
     # One of variable or cond1 must be non-null
     variable = models.CharField(
         _("Value"),
+        choices=ConditionValues(('User',)),
         help_text=_("Value or variable on left-hand side"),
         max_length=30, blank=True, null=True)
     cond1 = models.ForeignKey(
@@ -685,4 +725,4 @@ class UserImports(models.Model):
                      note = note,
                      variable_symbol = user['vsymbol'])
             u.save()
-                     
+
