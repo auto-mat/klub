@@ -144,6 +144,24 @@ class AutomaticCommunicationAdmin(admin.ModelAdmin):
 
 class ConditionAdmin(admin.ModelAdmin):
     list_display = ('name',)
+    fieldsets = [
+        (_("Description"), {
+                'fields' : ['name']
+                }),
+        (_("Operator"), {
+                'fields' : ['operation']
+                }),
+        (_("Comparing conditions operands"), {
+                'fields': [('variable', 'value')]
+                }),
+        (_("Logical conditions operands"), {
+                'fields': ['conds']
+                }),
+        (_("Usage"), {
+                'fields': ['as_filter']
+                }),
+        ]
+
     ordering = ('name',)
 
 class AccountStatementsAdmin(admin.ModelAdmin):

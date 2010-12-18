@@ -35,7 +35,7 @@ class ConditionFilterSpec(FilterSpec):
 
     def choices(self, cl):
         choices = [(_("All"), 0, None)]
-        for cond in Condition.objects.all():
+        for cond in Condition.objects.filter(as_filter=True):
             choices += [(cond.name, cond.id,
                          # Hack: This is gross, we are going to
                          # compute results of many filters that might

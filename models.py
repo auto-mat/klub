@@ -528,42 +528,44 @@ class Condition(models.Model):
         verbose_name_plural = _("Conditions")
 
     OPERATORS = (
-        ('and', 'and'),
-        ('or', 'or'),
-        ('=', 'is equal to'),
-        ('!=', 'is not equal to'),
-        ('like', 'is like'), # in SQL sense
-        ('>', 'greater than'),
-        ('<', 'less than'))
+        ('Logical', (
+                ('and', 'and'),
+                ('or', 'or'))),
+        ('Comparison', (
+                ('=', 'is equal to'),
+                ('!=', 'is not equal to'),
+                ('like', 'is like'), # in SQL sense
+                ('>', 'greater than'),
+                ('<', 'less than'))))
 
     name = models.CharField(
         _("Name of condition"),
         max_length=200, blank=False, null=True)
-    # One of variable or cond1 must be non-null
+    # One of variable or conds must be non-null
+    operation = models.CharField(
+        _("Operation"),
+        choices=OPERATORS,
+        max_length=30)
     variable = models.CharField(
         _("Value"),
         choices=ConditionValues(('User',)),
         help_text=_("Value or variable on left-hand side"),
         max_length=30, blank=True, null=True)
-    cond1 = models.ForeignKey(
-        'self',
-        related_name='cond1_rel',
-        verbose_name=_("Condition"),
-        blank=True, null=True)
-    operation = models.CharField(
-        _("Operation"),
-        choices=OPERATORS,
-        max_length=30)
-    # One of value or cond2 must be non-null
+    # One of value or conds must be non-null
     value = models.CharField(
         _("Value"),
         help_text=_("Value or variable on right-hand side"),
         max_length=50, blank=True, null=True)
-    conds2 = models.ManyToManyField('self',
-                                    related_name='conds_rel',
-                                    symmetrical=False,
-                                    verbose_name=_("Conditions"),
-                                    blank=True, null=True)
+    conds = models.ManyToManyField('self',
+                                   related_name='conds_rel',
+                                   symmetrical=False,
+                                   verbose_name=_("Conditions"),
+                                   blank=True, null=True)
+    as_filter = models.BooleanField(
+        _("Display as filter?"),
+        help_text=_("Determines whether this condition is available as a filter"
+                    "in the table of Users"),
+        default=False)
 
     def __unicode__(self):
         return self.name
@@ -598,12 +600,12 @@ class Condition(models.Model):
                     return spec
         # Composed conditions
         if self.operation == 'and':
-            for cond in [self.cond1] + list(self.conds2.all()):
+            for cond in self.conds.all():
                 if not cond.is_true(user):
                     return False
             return True
         if self.operation == 'or':
-            for cond in [self.cond1] + list(self.conds2.all()):
+            for cond in self.conds.all():
                 if cond.is_true(user):
                     return True
             return False
