@@ -23,64 +23,6 @@ from models import User, Payment, Communication, AutomaticCommunication
 import sys, datetime
 import string
 
-def get_val(spec, user):
-    # Symbolic names
-    if spec == 'month_ago':
-        return datetime.datetime.now()-datetime.timedelta(days=30)
-    if spec == 'true':
-        return True
-    if spec == 'false':
-        return False
-
-    # DB objects
-    if '.' in spec:
-        obj, attr = spec.split('.')
-        if obj == 'User':
-            attr_val = getattr(user, attr)
-            if callable(attr_val):
-                return attr_val()
-            else:
-                return attr_val
-        elif obj == 'datetime':
-            return datetime.datetime.strptime(attr, '%Y-%m-%d %H:%M')
-        elif obj == 'timedelta':
-            return datetime.timedelta(days=int(attr))
-    else:
-        try:
-            return int(spec)
-        except TypeError:
-            return spec
-
-def is_true(condition, user, simple=False):
-    # Composed conditions
-    if condition.operation == 'and':
-        for cond in [condition.cond1] + list(condition.conds2.all()):
-            if not is_true(cond, user):
-                return False
-        return True
-    if condition.operation == 'or':
-        for cond in [condition.cond1] + list(condition.conds2.all()):
-            if is_true(condition.cond1, user):
-                return True
-        return False
-
-    # Elementary conditions
-    left = get_val(condition.variable, user)
-    right = get_val(condition.value, user)
-    #print "left: %s" % left
-    #print "right: %s" % right
-
-    if left == None or right == None:
-        return False
-
-    if condition.operation == '=':
-        return left == right
-    if condition.operation == '<':
-        return left < right
-    if condition.operation == '>':
-        return left > right
-    raise NotImplementedError("Unknown operation %s" % condition.operation)
-    
 def process_template(template_string, user):
     #TODO: Substitute variables
     template = string.Template(template_string)

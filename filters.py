@@ -41,7 +41,7 @@ class ConditionFilterSpec(FilterSpec):
                          # compute results of many filters that might
                          # not be even used
                          [user.id for user in User.objects.all()
-                          if autocom.is_true(cond, user)])]
+                          if cond.is_true(user)])]
         for k, v, ids in choices:
             query = {}
             if ids:

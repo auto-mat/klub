@@ -565,10 +565,65 @@ class Condition(models.Model):
                                     verbose_name=_("Conditions"),
                                     blank=True, null=True)
 
-
     def __unicode__(self):
         return self.name
 
+    def is_true(self, user):
+        def get_val(spec, user):
+            # Symbolic names
+            if spec == 'month_ago':
+                return datetime.datetime.now()-datetime.timedelta(days=30)
+            if spec == 'true':
+                return True
+            if spec == 'false':
+                return False
+        
+            # DB objects
+            if '.' in spec:
+                obj, attr = spec.split('.')
+                if obj == 'User':
+                    attr_val = getattr(user, attr)
+                    if callable(attr_val):
+                        return attr_val()
+                    else:
+                        return attr_val
+                elif obj == 'datetime':
+                    return datetime.datetime.strptime(attr, '%Y-%m-%d %H:%M')
+                elif obj == 'timedelta':
+                    return datetime.timedelta(days=int(attr))
+            else:
+                try:
+                    return int(spec)
+                except TypeError:
+                    return spec
+        # Composed conditions
+        if self.operation == 'and':
+            for cond in [self.cond1] + list(self.conds2.all()):
+                if not cond.is_true(user):
+                    return False
+            return True
+        if self.operation == 'or':
+            for cond in [self.cond1] + list(self.conds2.all()):
+                if cond.is_true(user):
+                    return True
+            return False
+        
+        # Elementary conditions
+        left = get_val(self.variable, user)
+        right = get_val(self.value, user)
+        #print "left: %s" % left
+        #print "right: %s" % right
+        
+        if left == None or right == None:
+            return False
+        
+        if self.operation == '=':
+            return left == right
+        if self.operation == '<':
+            return left < right
+        if self.operation == '>':
+            return left > right
+        raise NotImplementedError("Unknown operation %s" % self.operation)
 
 class AutomaticCommunication(models.Model):
     """AutomaticCommunication entry and DB model
