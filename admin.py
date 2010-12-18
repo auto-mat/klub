@@ -33,6 +33,9 @@ class PaymentsInline(admin.TabularInline):
     list_display = ('amount', 'person_name', 'date', 'paired_with_expected')
     extra = 5
 
+class PaymentsInlineNoExtra(PaymentsInline):
+    extra = 0
+
 class CommunicationInline(admin.TabularInline):
     model = Communication
     extra = 1
@@ -111,9 +114,11 @@ class PaymentAdmin(admin.ModelAdmin):
                 'fields': [('account', 'bank_code'),
                            ('account_name', 'bank_name'),
                            ('VS', 'KS', 'SS'),                           
-                           'user_identification']
+                           'user_identification',
+                           'account_statement']
                 }),
         ]
+    readonly_fields = ('account_statement',)
     raw_id_fields = ('user',)
     list_filter = ['user', 'date']
     date_hierarchy = 'date'
@@ -166,6 +171,7 @@ class ConditionAdmin(admin.ModelAdmin):
 
 class AccountStatementsAdmin(admin.ModelAdmin):
     list_display = ('import_date', 'csv_file')
+    inlines = [PaymentsInlineNoExtra]
 
 class UserImportsAdmin(admin.ModelAdmin):
     list_display = ('import_date', 'csv_file')

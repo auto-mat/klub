@@ -1,0 +1,1 @@
+ALTER TABLE aklub_payment ADD COLUMN "account_statement_id" integer REFERENCES "aklub_accountstatements" ("id") DEFERRABLE INITIALLY DEFERRED;

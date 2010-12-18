@@ -283,6 +283,77 @@ class User(models.Model):
         super(User, self).save(*args, **kwargs)
         autocom.check()
 
+class AccountStatements(models.Model):
+    """AccountStatemt entry and DB model
+
+    Account statements serve primarily to load data into the Payments
+    table. The loaded files are then archived for later evidence.
+    """
+
+    class Meta:
+        verbose_name = _("Account Statement")
+        verbose_name_plural = _("Account Statements")
+	ordering = ['-import_date']
+
+    import_date = models.DateField()
+    csv_file = models.FileField(upload_to='account-statements')
+    
+    def save(self, *args, **kwargs):
+        super(AccountStatements, self).save(*args, **kwargs)
+        # Read and parse the account statement
+        # TODO: This should be separated into a dedicated module
+        win1250_contents = open(self.csv_file.path).read()
+        unicode_contents = win1250_contents.decode('windows-1250')
+        splitted = unicode_contents.encode('utf-8').split('\n\n')
+        header = splitted[0]
+        data = splitted[1]
+
+        payments_reader = csv.DictReader(data.split("\n"), delimiter=';',
+                                 fieldnames = [
+                'transfer', 'date', 'amount', 'account', 'bank_code', 'KS', 'VS',
+                'SS', 'user_identification', 'type', 'done_by', 'account_name',
+                'bank_name', 'unknown'
+                ])
+
+        first_line = True
+        for payment in payments_reader:
+	    #print payment
+            if first_line:
+                first_line = False
+		#print "found first_line"
+            elif payment['date'] == 'Suma':
+                break
+            else:
+                del payment['transfer']
+                del payment['unknown']
+		#print "PAYMENT", payment
+		#print payment['date']
+                d,m,y = payment['date'].split('.')
+                payment['date'] = "%04d-%02d-%02d" % (int(y),int(m),int(d))
+                payment['amount'] = int(round(float(
+                            payment['amount'].replace(',','.').replace(' ',''))))
+                if payment['amount'] < 0:
+                    # Skip transfers from the club account,
+                    # only process contributions
+                    continue                 
+                p = Payment(**payment)
+                # Payments pairing'
+                if p.VS != '':
+                    users_with_vs = User.objects.filter(variable_symbol=p.VS)
+                    if len(users_with_vs) == 1:
+                        p.user = users_with_vs[0]
+                    elif len(users_with_vs) > 1:
+                        raise Exception("Duplicit variable symbol (%s) detected "
+                                        "for users: %s!" %
+                                        (p.VS,
+                                         ",".join(
+                                    [str(user) for user in users_with_vs])))
+                else:
+                    p.VS = None
+                p.type = 'bank-transfer'
+                p.account_statement = self
+                p.save()
+
 class Payment(models.Model):
     """Payment model and DB table
 
@@ -359,6 +430,8 @@ class Payment(models.Model):
         max_length=500, blank=True)    
     # Pairing of payments with a specific club system user
     user = models.ForeignKey(User, blank=True, null=True)
+    # Origin of payment from bank account statement
+    account_statement = models.ForeignKey(AccountStatements, blank=True, null=True)
 
     def person_name(self):
         """Return name of the payer"""
@@ -651,76 +724,6 @@ class AutomaticCommunication(models.Model):
 
     def __unicode__(self):
         return self.name
-
-class AccountStatements(models.Model):
-    """AccountStatemt entry and DB model
-
-    Account statements serve primarily to load data into the Payments
-    table. The loaded files are then archived for later evidence.
-    """
-
-    class Meta:
-        verbose_name = _("Account Statement")
-        verbose_name_plural = _("Account Statements")
-	ordering = ['-import_date']
-
-    import_date = models.DateField()
-    csv_file = models.FileField(upload_to='account-statements')
-    
-    def save(self, *args, **kwargs):
-        super(AccountStatements, self).save(*args, **kwargs)
-        # Read and parse the account statement
-        # TODO: This should be separated into a dedicated module
-        win1250_contents = open(self.csv_file.path).read()
-        unicode_contents = win1250_contents.decode('windows-1250')
-        splitted = unicode_contents.encode('utf-8').split('\n\n')
-        header = splitted[0]
-        data = splitted[1]
-
-        payments_reader = csv.DictReader(data.split("\n"), delimiter=';',
-                                 fieldnames = [
-                'transfer', 'date', 'amount', 'account', 'bank_code', 'KS', 'VS',
-                'SS', 'user_identification', 'type', 'done_by', 'account_name',
-                'bank_name', 'unknown'
-                ])
-
-        first_line = True
-        for payment in payments_reader:
-	    #print payment
-            if first_line:
-                first_line = False
-		#print "found first_line"
-            elif payment['date'] == 'Suma':
-                break
-            else:
-                del payment['transfer']
-                del payment['unknown']
-		#print "PAYMENT", payment
-		#print payment['date']
-                d,m,y = payment['date'].split('.')
-                payment['date'] = "%04d-%02d-%02d" % (int(y),int(m),int(d))
-                payment['amount'] = int(round(float(
-                            payment['amount'].replace(',','.').replace(' ',''))))
-                if payment['amount'] < 0:
-                    # Skip transfers from the club account,
-                    # only process contributions
-                    continue                 
-                p = Payment(**payment)
-                # Payments pairing'
-                if p.VS != '':
-                    users_with_vs = User.objects.filter(variable_symbol=p.VS)
-                    if len(users_with_vs) == 1:
-                        p.user = users_with_vs[0]
-                    elif len(users_with_vs) > 1:
-                        raise Exception("Duplicit variable symbol (%s) detected "
-                                        "for users: %s!" %
-                                        (p.VS,
-                                         ",".join(
-                                    [str(user) for user in users_with_vs])))
-                else:
-                    p.VS = None
-                p.type = 'bank-transfer'
-                p.save()
 
 class UserImports(models.Model):
     """CSV imports of users
