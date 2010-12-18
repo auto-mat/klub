@@ -18,6 +18,7 @@
 
 """Definition of administration interface for club management application"""
 
+import copy
 # Django imports
 from django.contrib import admin
 from django.utils.translation import ugettext as _
@@ -170,8 +171,10 @@ class ConditionAdmin(admin.ModelAdmin):
     ordering = ('name',)
 
 class AccountStatementsAdmin(admin.ModelAdmin):
-    list_display = ('import_date', 'csv_file')
+    list_display = ('import_date', 'csv_file', 'date_from', 'date_to')
     inlines = [PaymentsInlineNoExtra]
+    readonly_fields = ('import_date', 'date_from', 'date_to')
+    fields = copy.copy(list_display)
 
 class UserImportsAdmin(admin.ModelAdmin):
     list_display = ('import_date', 'csv_file')

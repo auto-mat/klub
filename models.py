@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Author: Hynek Hanke <hynek.hanke@auto-mat.cz>
 #
 # Copyright (C) 2010 o.s. Auto*Mat
@@ -295,8 +296,14 @@ class AccountStatements(models.Model):
         verbose_name_plural = _("Account Statements")
 	ordering = ['-import_date']
 
-    import_date = models.DateField()
-    csv_file = models.FileField(upload_to='account-statements')
+    import_date = models.DateField(
+        default = datetime.date.today())
+    csv_file = models.FileField(
+        upload_to='account-statements')
+    date_from = models.DateField(
+        blank=True, null=True)
+    date_to = models.DateField(
+        blank=True, null=True)
     
     def save(self, *args, **kwargs):
         super(AccountStatements, self).save(*args, **kwargs)
@@ -307,6 +314,17 @@ class AccountStatements(models.Model):
         splitted = unicode_contents.encode('utf-8').split('\n\n')
         header = splitted[0]
         data = splitted[1]
+
+        term_line = [line for line in header.split('\n')
+                     if line.startswith("Období:")]
+        name, date_start, dash, date_end = term_line[0].split()
+        def str_to_datetime(date):
+            return datetime.date(**dict(
+                    zip(['day', 'month', 'year'],
+                        [int(val) for val in date.split('.')])))
+        self.date_from = str_to_datetime(date_start)
+        self.date_to = str_to_datetime(date_end)
+        super(AccountStatements, self).save()
 
         payments_reader = csv.DictReader(data.split("\n"), delimiter=';',
                                  fieldnames = [
