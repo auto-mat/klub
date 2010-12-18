@@ -37,7 +37,7 @@ def get_val(spec, user):
         obj, attr = spec.split('.')
         if obj == 'User':
             attr_val = getattr(user, attr)
-            if attr[-2:] == '()':
+            if callable(attr_val):
                 return attr_val()
             else:
                 return attr_val
@@ -46,7 +46,10 @@ def get_val(spec, user):
         elif obj == 'timedelta':
             return datetime.timedelta(days=int(attr))
     else:
-        return spec
+        try:
+            return int(spec)
+        except TypeError:
+            return spec
 
 def is_true(condition, user, simple=False):
     # Composed conditions

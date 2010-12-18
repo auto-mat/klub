@@ -21,11 +21,11 @@
 # Django imports
 from django.contrib import admin
 from django.utils.translation import ugettext as _
-from django.contrib.admin.filterspecs import RelatedFilterSpec
+from django.contrib.admin.filterspecs import FilterSpec, RelatedFilterSpec
 # Local models
 from aklub.models import User, Payment, Communication, AutomaticCommunication, \
     Condition, AccountStatements, UserImports 
-from aklub.filters import NullFilterSpec
+from aklub.filters import NullFilterSpec, ConditionFilterSpec
 
 # -- INLINE FORMS --
 class PaymentsInline(admin.TabularInline):
@@ -44,7 +44,7 @@ class UserAdmin(admin.ModelAdmin):
                     'regular_payments', 'registered_support', 
                     'number_of_payments', 'total_contrib', 'regular_amount',
                     'requires_action')
-    list_filter = ['regular_payments', 'language', 'active']
+    list_filter = ['regular_payments', 'language', 'active', 'firstname']
     search_fields = ['firstname', 'surname']
     ordering = ('surname',)
     save_as = True
@@ -120,6 +120,7 @@ class PaymentAdmin(admin.ModelAdmin):
     search_fields = ['user__surname', 'user__firstname', 'amount', 'VS', 'user_identification']
 
 # Register our custom filter for field 'user' on model 'Payment'
+# (Note by HH: I believe this does nothing, see filterspec.py RelatedFilterSpec.insert( etc.
 RelatedFilterSpec.register(lambda f,m: bool(f.name=='user' and issubclass(m, Payment)),
                            NullFilterSpec)
 
