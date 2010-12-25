@@ -532,9 +532,10 @@ class Communication(models.Model):
         If state of the dispatched field changes to True, call
         the automated dispatch() method.
         """
-        if self.pk is not None:
-            orig = Communication.objects.get(pk=self.pk)
-            if orig.dispatched == False and self.dispatched == True:
+        if self.dispatched == True:
+            if ((self.pk is not None
+                 and Communication.objects.get(pk=self.pk).dispatched == False)
+                or self.dispatched == True):
                 self.dispatch()
         super(Communication, self).save(*args, **kwargs)
 
@@ -742,6 +743,24 @@ class AutomaticCommunication(models.Model):
 
     def __unicode__(self):
         return self.name
+
+class MassCommunication(models.Model):
+    """MassCommunication entry and DB model"""
+
+    class Meta:
+        verbose_name = _("Mass Communication")
+        verbose_name_plural = _("Mass Communications")
+
+    name = models.CharField(max_length=50, blank=False, null=True)
+    method = models.CharField(max_length=30, choices=COMMUNICATION_METHOD)
+    subject = models.CharField(max_length=30)
+    template = models.TextField(max_length=10000)
+    dispatch_auto = models.BooleanField(default=False)
+    send_to_users = models.ManyToManyField(User, blank=True)
+
+    def __unicode__(self):
+        return self.name
+
 
 class UserImports(models.Model):
     """CSV imports of users

@@ -19,12 +19,15 @@
 """Definition of administration interface for club management application"""
 
 import copy
+import datetime
 # Django imports
 from django.contrib import admin
 from django.utils.translation import ugettext as _
 from django.contrib.admin.filterspecs import FilterSpec, RelatedFilterSpec
+from django.http import HttpResponseRedirect
 # Local models
-from aklub.models import User, Payment, Communication, AutomaticCommunication, \
+from aklub.models import User, Payment, \
+    Communication, AutomaticCommunication, MassCommunication, \
     Condition, AccountStatements, UserImports 
 from aklub.filters import NullFilterSpec, ConditionFilterSpec
 
@@ -51,6 +54,7 @@ class UserAdmin(admin.ModelAdmin):
     list_filter = ['regular_payments', 'language', 'active', 'firstname']
     search_fields = ['firstname', 'surname']
     ordering = ('surname',)
+    actions = ('send_mass_communication',)
     save_as = True
     inlines = [PaymentsInline, CommunicationInline]
     fieldsets = [
@@ -103,6 +107,19 @@ class UserAdmin(admin.ModelAdmin):
             instance.save()
         formset.save_m2m()
 
+    def send_mass_communication(self, req, queryset):
+        """Mass communication action
+
+        Determine the list of user ids from the associated
+        queryset and redirect us to insert form for mass communications
+        with the send_to_users M2M field prefilled with these
+        users."""
+        selected = [str(e.pk) for e in queryset.all()]
+        return HttpResponseRedirect("/aklub/masscommunication/add/?send_to_users=%s" %
+                                    (",".join(selected),))
+    send_mass_communication.short_description = _("Send mass communication")
+
+
 class PaymentAdmin(admin.ModelAdmin):
     list_display = ('date', 'amount', 'person_name', 'account', 'bank_code',
                     'VS', 'user_identification', 'type', 'paired_with_expected')
@@ -148,6 +165,22 @@ class AutomaticCommunicationAdmin(admin.ModelAdmin):
     list_display = ('name', 'method', 'subject')
     ordering = ('name',)
 
+class MassCommunicationAdmin(admin.ModelAdmin):
+    list_display = ('name', 'method', 'subject')
+    ordering = ('name',)
+
+    def save_form(self, request, form, change):
+        super(MassCommunicationAdmin, self).save_form(request, form, change)
+        obj = form.save()
+        for user in obj.send_to_users.all():
+            c = Communication(user=user, method=obj.method, date=datetime.datetime.now(),
+                              subject=obj.subject, summary=obj.template, # TODO: Process template
+                              note="Prepared by auto*mated mass communications at %s" % datetime.datetime.now(),
+                              dispatched=obj.dispatch_auto, handled_by = request.user)
+            c.save()
+        # TODO: Generate some summary info message into request about the result
+        return obj
+
 class ConditionAdmin(admin.ModelAdmin):
     list_display = ('name',)
     fieldsets = [
@@ -185,5 +218,6 @@ admin.site.register(Communication, CommunicationAdmin)
 admin.site.register(Payment, PaymentAdmin)
 admin.site.register(AccountStatements, AccountStatementsAdmin)
 admin.site.register(AutomaticCommunication, AutomaticCommunicationAdmin)
+admin.site.register(MassCommunication, MassCommunicationAdmin)
 admin.site.register(Condition, ConditionAdmin)
 admin.site.register(UserImports, UserImportsAdmin)
