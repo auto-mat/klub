@@ -23,11 +23,12 @@
 import django
 from django.db import models
 from django.db.models import Sum
-from django.core.mail import send_mail
+from django.core.mail import EmailMessage
 from django.utils.translation import ugettext as _
 # External dependencies
 import datetime
 import csv
+import os.path
 # Local modules
 import autocom
 
@@ -510,6 +511,11 @@ class Communication(models.Model):
         _("Text"),
         help_text=_("Text or summary of this communication"),
         max_length=10000)
+    attachment = models.FileField(
+        _("Attachment"),
+        upload_to='communication-attachments',
+        blank=True, null=True
+        )
     note = models.TextField(
         _("Notes"),
         help_text=_("Internal notes about this communication"),
@@ -550,11 +556,15 @@ class Communication(models.Model):
         filling on the envelope should be displayed to the admin.
         """
         if self.method == 'email':
-            send_mail(self.subject, self.summary, 'kp@auto-mat.cz',
-                      [self.user.email, 'kp@auto-mat.cz'],
-                      # Above, a copy is sent back home for feedback and
-                      # monitoring
-                      fail_silently=False)
+            email = EmailMessage(subject=self.subject, body=self.summary,
+                                 from_email = 'kp@auto-mat.cz',
+                                 to = [self.user.email],
+                                 bcc = ['kp@auto-mat.cz'])
+            if self.attachment:
+                att = self.attachment
+                email.attach(os.path.basename(att.name), att.read())
+            email.send(fail_silently=False)
+
             if not self.dispatched:
                 self.dispatched = True
                 self.save()
@@ -755,6 +765,10 @@ class MassCommunication(models.Model):
     method = models.CharField(max_length=30, choices=COMMUNICATION_METHOD)
     subject = models.CharField(max_length=30)
     template = models.TextField(max_length=10000)
+    attachment = models.FileField(
+        _("Attachment"),
+        upload_to='mass-communication-attachments',
+        blank=True, null=True)
     dispatch_auto = models.BooleanField(default=False)
     send_to_users = models.ManyToManyField(User, blank=True)
 

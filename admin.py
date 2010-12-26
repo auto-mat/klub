@@ -175,6 +175,7 @@ class MassCommunicationAdmin(admin.ModelAdmin):
         for user in obj.send_to_users.all():
             c = Communication(user=user, method=obj.method, date=datetime.datetime.now(),
                               subject=obj.subject, summary=obj.template, # TODO: Process template
+                              attachment=copy.copy(obj.attachment),
                               note="Prepared by auto*mated mass communications at %s" % datetime.datetime.now(),
                               dispatched=obj.dispatch_auto, handled_by = request.user)
             c.save()
