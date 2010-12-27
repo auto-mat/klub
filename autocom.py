@@ -48,7 +48,7 @@ def check():
         #print "    Users newly satisfying condition:"
         for user in User.objects.all():
             if user not in auto_comm.sent_to_users.all():
-                if is_true(auto_comm.condition, user):
+                if auto_comm.condition.is_true(user):
                     #print "      %s" % user
                     c = Communication(user=user, method=auto_comm.method, date=datetime.datetime.now(),
                                       subject=auto_comm.subject, summary=process_template(auto_comm.template, user),
