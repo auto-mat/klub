@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: AKlub\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-12-27 00:37+0100\n"
-"PO-Revision-Date: 2010-12-27 00:42+0100\n"
+"POT-Creation-Date: 2010-12-27 01:01+0100\n"
+"PO-Revision-Date: 2010-12-27 01:06+0100\n"
 "Last-Translator: Hynek Hanke <hanke@brailcom.org>\n"
 "Language-Team: Auto*Mat <hynek.hanke@auto-mat.cz>\n"
 "MIME-Version: 1.0\n"
@@ -430,6 +430,8 @@ msgid "Communications"
 msgstr "Komunikace"
 
 #: models.py:502
+#: models.py:751
+#: models.py:793
 msgid "Method"
 msgstr "Metoda"
 
@@ -438,6 +440,8 @@ msgid "Date"
 msgstr "Datum"
 
 #: models.py:507
+#: models.py:755
+#: models.py:797
 msgid "Subject"
 msgstr "Předmět"
 
@@ -454,7 +458,7 @@ msgid "Text or summary of this communication"
 msgstr "Text nebo shrnutí této komunikace"
 
 #: models.py:515
-#: models.py:769
+#: models.py:805
 msgid "Attachment"
 msgstr "Příloha"
 
@@ -520,19 +524,63 @@ msgstr "Automatická komunikace"
 msgid "Automatic Communications"
 msgstr "Automatické komunikace"
 
-#: models.py:761
+#: models.py:746
+#: models.py:789
+msgid "Name"
+msgstr "Jméno"
+
+#: models.py:758
+#: models.py:800
+msgid "Template"
+msgstr "Šablona"
+
+#: models.py:759
+#: models.py:801
+msgid "Template can contain variable substitutions like addressment, name, variable symbol etc."
+msgstr "Šablona může obsahovat nahrazované proměnné, jako oslovení, jméno, variabilní symbol atd."
+
+#: models.py:763
+msgid "Only once"
+msgstr "Pouze jednou"
+
+#: models.py:764
+msgid "If checked, never send this communication twice to one user"
+msgstr "Pokud je zaškrtnuto, nikdy neposílat tuto komunikaci témuž uživateli dvakrát"
+
+#: models.py:767
+#: models.py:809
+msgid "Dispatch auto"
+msgstr "Odeslat automaticky"
+
+#: models.py:768
+msgid "If checked, the communication might be dispatched by the system (e.g. an email sent) as soon as condition becomes true, without any further action from the administrator. If not, the communication is created, but the administrator must send it manually."
+msgstr "Pokud je zaškrtnuto, může systém komunikaci vyřídit (např. odeslat email) jakmile se podmínka stane pravdivou bez jakéhokoliv dalšího zásahu administrátora. Jinak je komunikace založena, ale administrátor ji musí odeslat ručně."
+
+#: models.py:775
+msgid "List of users to whom this communication was already sent"
+msgstr "Seznam uživatelů, kterým již byla tato komunikace odeslána"
+
+#: models.py:785
 msgid "Mass Communication"
 msgstr "Hromadná komunikace"
 
-#: models.py:762
+#: models.py:786
 msgid "Mass Communications"
 msgstr "Hromadné komunikace"
 
-#: models.py:789
+#: models.py:810
+msgid "If checked, the communication might be dispatched by the system (e.g. an email sent) immediatelly without any further action from the administrator. If not, the communication is created, but the administrator must send it manually."
+msgstr "Pokud je zaškrtnuto, může systém komunikaci vyřídit (např. odeslat email) okamžitě bez jakékoliv další akce administrátora. Jinak je komunikace založena, ale administrátor ji musí odeslat ručně."
+
+#: models.py:817
+msgid "All users who should receive the communication"
+msgstr "Všichni uživatelé, kteří by měli tuto komunikaci obdržet"
+
+#: models.py:834
 msgid "User import"
 msgstr "Import uživatelů"
 
-#: models.py:790
+#: models.py:835
 msgid "Users imports"
 msgstr "Importy uživatelů"
 

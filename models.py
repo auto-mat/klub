@@ -742,14 +742,38 @@ class AutomaticCommunication(models.Model):
         verbose_name = _("Automatic Communication")
         verbose_name_plural = _("Automatic Communications")
 
-    name = models.CharField(max_length=50, blank=False, null=True)
+    name = models.CharField(
+        _("Name"),
+        max_length=50,
+        blank=False, null=True)
     condition = models.ForeignKey(Condition)
-    method = models.CharField(max_length=30, choices=COMMUNICATION_METHOD)
-    subject = models.CharField(max_length=30)
-    template = models.TextField(max_length=10000)
-    only_once = models.BooleanField(default=True)
-    dispatch_auto = models.BooleanField(default=False)
-    sent_to_users = models.ManyToManyField(User, blank=True)
+    method = models.CharField(
+        _("Method"),
+        max_length=30,
+        choices=COMMUNICATION_METHOD)
+    subject = models.CharField(
+        _("Subject"),
+        max_length=30)
+    template = models.TextField(
+        _("Template"),
+        help_text = _("Template can contain variable substitutions like addressment, name, "
+                      "variable symbol etc."),
+        max_length=10000)
+    only_once = models.BooleanField(
+        _("Only once"),
+        help_text = _("If checked, never send this communication twice to one user"),
+        default=True)
+    dispatch_auto = models.BooleanField(
+        _("Dispatch auto"),
+        help_text = _("If checked, the communication might be dispatched by the system "
+                      "(e.g. an email sent) as soon as condition becomes true, without "
+                      "any further action from the administrator. If not, the communication "
+                      "is created, but the administrator must send it manually."),
+        default=False)
+    sent_to_users = models.ManyToManyField(User, 
+                                           help_text = _(
+            "List of users to whom this communication was already sent"),
+                                           blank=True)
 
     def __unicode__(self):
         return self.name
@@ -761,16 +785,37 @@ class MassCommunication(models.Model):
         verbose_name = _("Mass Communication")
         verbose_name_plural = _("Mass Communications")
 
-    name = models.CharField(max_length=50, blank=False, null=True)
-    method = models.CharField(max_length=30, choices=COMMUNICATION_METHOD)
-    subject = models.CharField(max_length=30)
-    template = models.TextField(max_length=10000)
+    name = models.CharField(
+        _("Name"),
+        max_length=50,
+        blank=False, null=True)
+    method = models.CharField(
+        _("Method"),
+        max_length=30,
+        choices=COMMUNICATION_METHOD)
+    subject = models.CharField(
+        _("Subject"),
+        max_length=30)
+    template = models.TextField(
+        _("Template"),
+        help_text = _("Template can contain variable substitutions like addressment, name, "
+                      "variable symbol etc."),
+        max_length=10000)
     attachment = models.FileField(
         _("Attachment"),
         upload_to='mass-communication-attachments',
         blank=True, null=True)
-    dispatch_auto = models.BooleanField(default=False)
-    send_to_users = models.ManyToManyField(User, blank=True)
+    dispatch_auto = models.BooleanField(
+        _("Dispatch auto"),
+        help_text = _("If checked, the communication might be dispatched by the system "
+                      "(e.g. an email sent) immediatelly without any further action from "
+                      "the administrator. If not, the communication is created, but the "
+                      "administrator must send it manually."),
+        default=False)
+    send_to_users = models.ManyToManyField(User, 
+                                           help_text = _(
+            "All users who should receive the communication"),
+                                           blank=True)
 
     def __unicode__(self):
         return self.name
