@@ -542,7 +542,7 @@ class Communication(models.Model):
             if ((self.pk is not None    # this is an existing entry and the state of dispatched changes from False to True
                  and Communication.objects.get(pk=self.pk).dispatched == False)
                 or self.dispatched == True):  # or this is a new entry and state dispatched is true
-                self.dispatch() # then try to dispatch this email automatically
+                self.dispatch(save=False) # then try to dispatch this email automatically
         super(Communication, self).save(*args, **kwargs)
 
     def dispatch(self, save = True):
@@ -558,7 +558,8 @@ class Communication(models.Model):
         if self.method == 'email':
             email = EmailMessage(subject=self.subject, body=self.summary,
                                  from_email = 'kp@auto-mat.cz',
-                                 to = [self.user.email])
+                                 to = [self.user.email],
+                                 bcc = ['kp@auto-mat.cz'])
             if self.attachment:
                 att = self.attachment
                 email.attach(os.path.basename(att.name), att.read())
