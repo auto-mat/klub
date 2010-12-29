@@ -539,13 +539,13 @@ class Communication(models.Model):
         the automated dispatch() method.
         """
         if self.dispatched == True:
-            if ((self.pk is not None
+            if ((self.pk is not None    # this is an existing entry and the state of dispatched changes from False to True
                  and Communication.objects.get(pk=self.pk).dispatched == False)
-                or self.dispatched == True):
-                self.dispatch()
+                or self.dispatched == True):  # or this is a new entry and state dispatched is true
+                self.dispatch() # then try to dispatch this email automatically
         super(Communication, self).save(*args, **kwargs)
 
-    def dispatch(self):
+    def dispatch(self, save = True):
         """Dispatch the communication
 
         Currently only method 'email' is implemented. For these messages, the
@@ -562,10 +562,13 @@ class Communication(models.Model):
             if self.attachment:
                 att = self.attachment
                 email.attach(os.path.basename(att.name), att.read())
-            email.send(fail_silently=False)
-
-            if not self.dispatched:
+            try:
+                email.send(fail_silently=False)
+            except:
+                self.dispatched = False
+            else:
                 self.dispatched = True
+            if save:
                 self.save()
 
 class ConditionValues(object):

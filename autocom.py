@@ -53,9 +53,7 @@ def check():
                     c = Communication(user=user, method=auto_comm.method, date=datetime.datetime.now(),
                                       subject=auto_comm.subject, summary=process_template(auto_comm.template, user),
                                       note="Prepared by auto*mated mailer at %s" % datetime.datetime.now(),
-                                      dispatched=False)
+                                      dispatched=auto_comm.dispatch_auto)
                     auto_comm.sent_to_users.add(user)
                     c.save()
-                    if auto_comm.dispatch_auto:
-                        c.dispatch()
 
