@@ -539,8 +539,8 @@ class Communication(models.Model):
         the automated dispatch() method.
         """
         if self.dispatched == True:
-            if ((self.pk is not None    # this is an existing entry and the state of dispatched changes from False to True
-                 and Communication.objects.get(pk=self.pk).dispatched == False)
+            if (((self.pk is not None)    # this is an existing entry and the state of dispatched changes from False to True
+                 and (Communication.objects.get(pk=self.pk).dispatched == False))
                 or self.dispatched == True):  # or this is a new entry and state dispatched is true
                 self.dispatch(save=False) # then try to dispatch this email automatically
         super(Communication, self).save(*args, **kwargs)
