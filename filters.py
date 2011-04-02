@@ -27,9 +27,10 @@ class NullFilterSpec(RelatedFilterSpec):
 
 class ConditionFilterSpec(FilterSpec):
     """Filters using computed dynamic conditions from DB"""
-    def __init__(self, f, request, params, model, model_admin):
-        super(ConditionFilterSpec, self).__init__(f, request, params, model,
-                                                  model_admin)
+    def __init__(self, f, request, params, model, model_admin,
+                 field_path=None):
+        super(ConditionFilterSpec, self).__init__(
+            f, request, params, model, model_admin, field_path=field_path)
         self.lookup_kwarg = 'id__in'
         self.lookup_val = request.GET.get(self.lookup_kwarg, None)
 
