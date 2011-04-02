@@ -12,8 +12,10 @@ class NullFilterSpec(RelatedFilterSpec):
            'Empty' (field__isnull=True filter)
            'Filled in' (not null).
        You need to register the filter for each model you want to apply it to."""
-    def __init__(self, f, request, params, model, model_admin):
-        super(NullFilterSpec, self).__init__(f, request, params, model, model_admin)
+    def __init__(self, f, request, params, model, model_admin,
+                 field_path=None):
+        super(NullFilterSpec, self).__init__(
+            f, request, params, model, model_admin, field_path=field_path)
         self.lookup_kwarg = '%s__isnull' % f.name
         self.lookup_val = request.GET.get(self.lookup_kwarg, None)
     
