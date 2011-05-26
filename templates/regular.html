@@ -7,6 +7,22 @@
 <title>  Trvalý příkaz | Auto*Mat</title>
 <link rel="stylesheet" href="http://www.auto-mat.cz/wp-content/themes/atm/style.css" type="text/css" media="screen" />
 <link rel="stylesheet" href="/upload/forms.css" type="text/css" media="screen" />
+<style type="text/css">
+#content ul li {
+    list-style: none;
+    padding: 1px 0;
+}
+.errorlist li {
+    font-size: 12px !important;
+    display: block;
+    padding: 4px 5px 4px 25px;
+    margin: 0 0 3px 0;
+    border: 1px solid red;
+    color: white;
+    background: red url(../img/admin/icon_alert.gif) 5px .3em no-repeat;
+}
+
+</style>
 </head>
 
 <body>
@@ -25,8 +41,15 @@ a celková výše daru činila alespoň 1200 Kč ročně.)</em>
 <form action="/regular/" method="post">
     {% for field in form %}
         <div class="fieldWrapper">
-            {{ field.errors }}
+            {% if field.field.required %}
+                <img src="http://www.auto-mat.cz/wp-content/themes/atm/img/odrazka.gif" />
+                <strong>
+            {% endif %}
             {{ field.label_tag }}:<br/>
+            {% if field.field.required %}
+                </strong>
+            {% endif %}
+            {{ field.errors }}
 	    {{ field }}
         </div>
     {% endfor %}

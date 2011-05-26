@@ -1,22 +1,27 @@
 # Create your views here.
 from django import forms, http
+from django.db import models
 from django.shortcuts import render_to_response
+from django.utils.translation import ugettext as _
 
 from models import User
 
 class RegularUserForm(forms.ModelForm):
+        required_css_class = 'required' 
+
+        # the fields defined here will override those defined on the model
+        regular_frequency = forms.ChoiceField(choices=User.REGULAR_PAYMENT_FREQUENCIES, required=True, widget=forms.RadioSelect())
+ 
 	class Meta:
 		model = User
 		fields = ('title_before', 'firstname', 'surname', 'title_after',
-			  'sex', 
 			  'street', 'city', 'country', 'zip_code',
 			  'language', 'email', 'telephone',
 			  'regular_frequency', 'regular_amount',
+                          'public',
 		)
 		widgets = {
-			'sex': forms.RadioSelect,
-			'language': forms.RadioSelect,
-			'regular_frequency': forms.RadioSelect,
+			'language': forms.RadioSelect, # should be set automatically
 		}
 
 	

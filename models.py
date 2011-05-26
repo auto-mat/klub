@@ -107,12 +107,11 @@ class User(models.Model):
         max_length=80, blank=True)
     city = models.CharField(
         _("City"),
-        default="Praha", # TODO: Default city should come from app settings
         max_length=40, blank=True)
     country = models.CharField(
         _("Country"),
         # TODO: Default country should come from app settings
-        default="Ceska Republika",
+        default=u"Česká republika",
         max_length=40, blank=True)
     zip_code = models.CharField(
         _("ZIP Code"),
