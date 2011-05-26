@@ -10,7 +10,7 @@ class RegularUserForm(forms.ModelForm):
         required_css_class = 'required' 
 
         # the fields defined here will override those defined on the model
-        regular_frequency = forms.ChoiceField(choices=User.REGULAR_PAYMENT_FREQUENCIES, required=True, widget=forms.RadioSelect())
+        regular_frequency = forms.ChoiceField(label=_("Regular payments"), choices=User.REGULAR_PAYMENT_FREQUENCIES, required=True, widget=forms.RadioSelect())
  
 	class Meta:
 		model = User
