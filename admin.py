@@ -82,7 +82,7 @@ class UserAdmin(admin.ModelAdmin):
                             'regular_amount', 'exceptional_membership'),
                            'other_support']}),
         ('Communication', {
-                'fields': ['wished_information'],
+                'fields': ['wished_information', 'wished_tax_confirmation', 'wished_welcome_letter'],
                 'classes': ['collapse']}),
         ('Benefits', {
                 'fields': [('club_card_available', 'club_card_dispatched'),

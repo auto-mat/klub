@@ -103,7 +103,7 @@ class User(models.Model):
         _("Telephone"),
         max_length=30, blank=True)
     street = models.CharField(
-        _("Street"),
+        _("Street and number"),
         max_length=80, blank=True)
     city = models.CharField(
         _("City"),
@@ -172,9 +172,20 @@ class User(models.Model):
         _("If the user supports us in other ways, please specify here."),
         max_length=500, blank=True)
     public = models.BooleanField(
-        _("Public"),
-        help_text=("Does he wish his name to appear publicly in the list of "
-                   "supporters of our organization?"),
+        _("Publish my name in the list of supporters"),
+        help_text=("Uncheck if you don't want your name to appear in the lists of supporters."),
+        default=True)
+    wished_tax_confirmation = models.BooleanField(
+        _("Send tax confirmation"),
+        help_text=("If you wish to receive tax confirmation at the end of year, check this field."),
+        default=True)
+    wished_welcome_letter = models.BooleanField(
+        _("Send welcome letter"),
+        help_text=("If you wish to receive welcome letter with your club card."),
+        default=True)
+    wished_information = models.BooleanField(
+        _("Send regular news via email"),
+        help_text=("If you wish to receive regular news about our activities."),
         default=True)
     active = models.BooleanField(
         _("Active"),
@@ -182,11 +193,7 @@ class User(models.Model):
                    "or temporary users."),
         default=True)
     # --- Communication
-    # TODO: wished_information should be a set (0 or more) of references into the
-    # table of available information types (regular emailing about our causes,
-    # Auto*Journal, invitations etc.)
-    wished_information = models.CharField(
-        max_length=200, blank=True) 
+    
     # Benefits
     club_card_available = models.BooleanField(
         _("Club card available"),
@@ -775,8 +782,8 @@ class AutomaticCommunication(models.Model):
     sent_to_users = models.ManyToManyField(User, 
                                            help_text = _(
             "List of users to whom this communication was already sent"),
-                                           blank=True)
-
+                                           blank=True,
+                                           editable=False)
     def __unicode__(self):
         return self.name
 

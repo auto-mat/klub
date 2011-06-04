@@ -17,8 +17,8 @@ class RegularUserForm(forms.ModelForm):
 		fields = ('title_before', 'firstname', 'surname', 'title_after',
 			  'street', 'city', 'country', 'zip_code',
 			  'language', 'email', 'telephone',
-			  'regular_frequency', 'regular_amount',
-                          'public',
+			  'regular_frequency', 'regular_amount', 'wished_tax_confirmation',
+			  'wished_welcome_letter', 'wished_information', 'public',
 		)
 		widgets = {
 			'language': forms.RadioSelect, # should be set automatically
