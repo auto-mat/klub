@@ -15,7 +15,7 @@ class NullFilterSpec(RelatedFilterSpec):
     def __init__(self, f, request, params, model, model_admin,
                  field_path=None):
         super(NullFilterSpec, self).__init__(
-            f, request, params, model, model_admin, field_path=field_path)
+            f, request, params, model, model_admin)
         self.lookup_kwarg = '%s__isnull' % f.name
         self.lookup_val = request.GET.get(self.lookup_kwarg, None)
     
@@ -32,7 +32,7 @@ class ConditionFilterSpec(FilterSpec):
     def __init__(self, f, request, params, model, model_admin,
                  field_path=None):
         super(ConditionFilterSpec, self).__init__(
-            f, request, params, model, model_admin, field_path=field_path)
+            f, request, params, model, model_admin)
         self.lookup_kwarg = 'id__in'
         self.lookup_val = request.GET.get(self.lookup_kwarg, None)
 
