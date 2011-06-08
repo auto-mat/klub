@@ -57,6 +57,35 @@ class Campaign(models.Model):
         help_text=_("Description of this campaign"),
         max_length=3000, blank=True)
 
+class Recruiter(models.Model):
+    """Recruiter -- person that recruits new club members"""
+
+    class Meta:
+        verbose_name = _("Recruiter")
+        verbose_name_plural = _("Recruiters")
+
+    registered = models.DateField(
+        _("Registered"),
+        default=datetime.datetime.now())
+    recruiter_id = models.PositiveIntegerField(
+        _("Recruiter ID"),
+        blank=True)
+    firstname = models.CharField(
+        _("First name"),
+        max_length=40, blank=False)
+    surname = models.CharField(
+        _("Surname"),
+        max_length=40, blank=False)
+    email = models.CharField(
+        _("Email"),
+        max_length=40, blank=True)
+    telephone = models.CharField(
+        _("Telephone"),
+        max_length=30, blank=True)
+    note = models.TextField(
+        _("Note"),
+        max_length=3000, blank=True)
+
 class User(models.Model):
     """Club user model and DB table"""
 
@@ -235,6 +264,7 @@ class User(models.Model):
                                        help_text = _("Associated campaigns"),
                                        blank=True,
                                        editable=True)
+    recruiter = models.ForeignKey(Recruiter, blank=True, null=True)
     objects = UserManager()
 
     def __unicode__(self):

@@ -28,7 +28,7 @@ from django.http import HttpResponseRedirect
 # Local models
 from aklub.models import User, Payment, \
     Communication, AutomaticCommunication, MassCommunication, \
-    Condition, AccountStatements, UserImports, Campaign 
+    Condition, AccountStatements, UserImports, Campaign, Recruiter 
 from aklub.filters import NullFilterSpec, ConditionFilterSpec
 
 # -- INLINE FORMS --
@@ -89,7 +89,7 @@ class UserAdmin(admin.ModelAdmin):
                            'other_benefits'],
                 'classes': ['collapse']}),
         ('Note', {
-                'fields': ['note', 'campaigns',],
+                'fields': ['note', 'campaigns', 'recruiter',],
                 'classes': ['collapse']}),
         ]
 
@@ -216,6 +216,8 @@ class UserImportsAdmin(admin.ModelAdmin):
 class CampaignAdmin(admin.ModelAdmin):
     list_display = ('created', 'name')
 
+class RecruiterAdmin(admin.ModelAdmin):
+    list_display = ('recruiter_id', 'firstname', 'surname', 'email', 'telephone')
 
 admin.site.register(User, UserAdmin)
 admin.site.register(Communication, CommunicationAdmin)
@@ -226,3 +228,4 @@ admin.site.register(MassCommunication, MassCommunicationAdmin)
 admin.site.register(Condition, ConditionAdmin)
 admin.site.register(UserImports, UserImportsAdmin)
 admin.site.register(Campaign, CampaignAdmin)
+admin.site.register(Recruiter, RecruiterAdmin)
