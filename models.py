@@ -37,6 +37,26 @@ class UserManager(models.Manager):
         return super(UserManager,self).get_query_set().annotate(
             payment_total=Sum('payment__amount'))
 
+class Campaign(models.Model):
+    """Campaign -- abstract event with description
+
+    These events can be associated to a user."""
+
+    class Meta:
+        verbose_name = _("Campaign")
+        verbose_name_plural = _("Campaigns")
+
+    created = models.DateField(
+        _("Created"))
+    name = models.CharField(
+        _("Name"),
+        help_text=_("Choose some unique name for this campaign"),
+        max_length=100, blank=True)
+    description = models.TextField(
+        _("Description"),
+        help_text=_("Description of this campaign"),
+        max_length=3000, blank=True)
+
 class User(models.Model):
     """Club user model and DB table"""
 
@@ -211,7 +231,10 @@ class User(models.Model):
         _("Notes"),
         help_text=_("Private notes of the club administrators"),
         max_length=2000, blank=True)
-
+    campaigns = models.ManyToManyField(Campaign, 
+                                       help_text = _("Associated campaigns"),
+                                       blank=True,
+                                       editable=True)
     objects = UserManager()
 
     def __unicode__(self):
