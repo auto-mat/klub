@@ -42,9 +42,9 @@ def regular(request):
             reg_n_today = len(User.objects.filter(
 			    registered_support__gt = (
 				    now-datetime.timedelta(days=1))))
-	    for i in range(reg_n_today+1, 499):
+	    for i in range(reg_n_today+1, 299):
                 variable_symbol = '%s%02d%02d%03d' % (
-			str(now.year)[-2:], now.month, now.day, 500+i)
+			str(now.year)[-2:], now.month, now.day, i)
 		if len(User.objects.filter(variable_symbol=variable_symbol)) == 0:
                    break
 	    else:
