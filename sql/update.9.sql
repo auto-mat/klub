@@ -9,4 +9,4 @@ CREATE TABLE "aklub_recruiter" (
     "note" text NOT NULL
 );
 
-ALTER TABLE aklub_user ADD COLUMN "recruiter_id" integer REFERENCES "aklub_recruiter" ("id") DEFERRABLE INITIALLY DEFERRED;
+ALTER TABLE aklub_user ADD COLUMN "recruiter_id" integer REFERENCES "aklub_recruiter" ("id");
