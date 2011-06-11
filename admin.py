@@ -47,16 +47,17 @@ class CommunicationInline(admin.TabularInline):
 
 # -- ADMIN FORMS --
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('surname', 'person_name', 'active', 'variable_symbol',
+    list_display = ('person_name', 'active', 'variable_symbol',
                     'regular_payments', 'registered_support', 
                     'number_of_payments', 'total_contrib', 'regular_amount',
-                    'requires_action')
+                    'requires_action', 'recruiter')
     list_filter = ['regular_payments', 'language', 'active', 'firstname']
     search_fields = ['firstname', 'surname']
     ordering = ('surname',)
     actions = ('send_mass_communication',)
     save_as = True
     inlines = [PaymentsInline, CommunicationInline]
+    raw_id_fields = ('recruiter',)
     fieldsets = [
         ('Basic personal', {
                 'fields': [('firstname', 'surname'),
@@ -217,7 +218,7 @@ class CampaignAdmin(admin.ModelAdmin):
     list_display = ('created', 'name')
 
 class RecruiterAdmin(admin.ModelAdmin):
-    list_display = ('recruiter_id', 'firstname', 'surname', 'email', 'telephone')
+    list_display = ('recruiter_id', 'person_name', 'email', 'telephone')
 
 admin.site.register(User, UserAdmin)
 admin.site.register(Communication, CommunicationAdmin)

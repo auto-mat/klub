@@ -86,6 +86,13 @@ class Recruiter(models.Model):
         _("Note"),
         max_length=3000, blank=True)
 
+    def __unicode__(self):
+        return self.person_name()
+
+    def person_name(self):
+        return " ".join(("%03d" % self.recruiter_id, self.firstname, self.surname))
+    person_name.short_description = _("Name") 
+
 class User(models.Model):
     """Club user model and DB table"""
 
@@ -271,7 +278,7 @@ class User(models.Model):
         return self.person_name()
 
     def person_name(self):
-        return " ".join((self.firstname, self.surname))
+        return " ".join((self.surname, self.firstname))
     person_name.short_description = _("Full name") 
 
     def requires_action(self):
