@@ -110,8 +110,8 @@ class User(models.Model):
         ('english', _('English')))
     SOURCE = (
         ('web', _("Web form")),
-        ('direct-dialogue-event', _("Direct dialogue on one of our events")),
-        ('direct-dialogue-street', _("Direct dialogue on the street/other")),
+        ('direct-dialogue-partial-form', _("Direct dialogue -- partial form (not automatic in bank")),
+        ('direct-dialogue-full-form', _("Direct dialogue -- full form (automatic in bank)")),
         ('personal', _('Personal recommendation')),
         ('other', _('Another form of contact')))
     REGULAR_PAYMENT_FREQUENCIES = (
