@@ -222,6 +222,10 @@ class User(models.Model):
         _("Frequency of regular payments"),
         choices=REGULAR_PAYMENT_FREQUENCIES,
         max_length=20, blank=True, null=True)
+    expected_date_of_first_payment = models.DateField(
+        _("Expected date of first payment"),
+        help_text = ("When should the first payment arrive on our account"),
+        blank=True, null=True)
     other_support = models.TextField(
         _("Other support"),
         help_text=

@@ -5,6 +5,21 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
 <title>  Trvalý příkaz | Auto*Mat</title>
+
+{% load i18n admin_modify adminmedia %}
+{% block extrahead %}{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% admin_media_prefix %}css/base.css" />
+<link rel="stylesheet" type="text/css" href="{% admin_media_prefix %}css/widgets.css" />
+<script type="text/javascript" src="/jsi18n/"></script>
+<script type="text/javascript" src="{% admin_media_prefix %}js/core.js"></script>
+{{ form.media }}
+{% endblock %}
+{% load adminmedia %}
+
+<script type="text/javascript">
+window.__admin_media_prefix__ = "{% filter escapejs %}{% admin_media_prefix %}{% endfilter %}";
+</script>
+
 <link rel="stylesheet" href="http://www.auto-mat.cz/wp-content/themes/atm/style.css" type="text/css" media="screen" />
 <link rel="stylesheet" href="/upload/forms.css" type="text/css" media="screen" />
 <style type="text/css">
@@ -21,7 +36,6 @@
     color: white;
     background: red url(../img/admin/icon_alert.gif) 5px .3em no-repeat;
 }
-
 </style>
 </head>
 

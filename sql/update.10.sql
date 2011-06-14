@@ -1,0 +1,1 @@
+ALTER TABLE aklub_user ADD COLUMN "expected_date_of_first_payment" date;

@@ -80,7 +80,8 @@ class UserAdmin(admin.ModelAdmin):
                 'fields': ['variable_symbol',
                            'registered_support',                           
                            ('regular_payments', 'regular_frequency',
-                            'regular_amount', 'exceptional_membership'),
+                            'regular_amount', 'expected_date_of_first_payment',
+                            'exceptional_membership'),
                            'other_support']}),
         ('Communication', {
                 'fields': ['wished_information', 'wished_tax_confirmation', 'wished_welcome_letter'],

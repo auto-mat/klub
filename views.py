@@ -4,6 +4,7 @@ from django import forms, http
 from django.db import models
 from django.shortcuts import render_to_response
 from django.utils.translation import ugettext as _
+from django.contrib.admin import widgets
 
 from models import User
 
@@ -12,13 +13,15 @@ class RegularUserForm(forms.ModelForm):
 
         # the fields defined here will override those defined on the model
         regular_frequency = forms.ChoiceField(label=_("Regular payments"), choices=User.REGULAR_PAYMENT_FREQUENCIES, required=True, widget=forms.RadioSelect())
+        expected_date_of_first_payment = forms.DateField(label=_("Expected date of first payment"), required=True, widget=widgets.AdminDateWidget())
  
 	class Meta:
 		model = User
 		fields = ('title_before', 'firstname', 'surname', 'title_after',
 			  'street', 'city', 'country', 'zip_code',
 			  'language', 'email', 'telephone',
-			  'regular_frequency', 'regular_amount', 'wished_tax_confirmation',
+			  'regular_frequency', 'regular_amount', 'expected_date_of_first_payment',
+			  'wished_tax_confirmation',
 			  'wished_welcome_letter', 'wished_information', 'public', 'note'
 		)
 		required = ('firstname', 'surname', 'street', 'city', 'country', 'zip_code',
