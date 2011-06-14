@@ -264,8 +264,7 @@ class User(models.Model):
         max_length=500, blank=True)
     # -- Notes (club administrators private notes)
     note = models.TextField(
-        _("Notes"),
-        help_text=_("Private notes of the club administrators"),
+        _("Note for making a boring form more lively"),
         max_length=2000, blank=True)
     campaigns = models.ManyToManyField(Campaign, 
                                        help_text = _("Associated campaigns"),

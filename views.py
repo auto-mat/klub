@@ -19,7 +19,7 @@ class RegularUserForm(forms.ModelForm):
 			  'street', 'city', 'country', 'zip_code',
 			  'language', 'email', 'telephone',
 			  'regular_frequency', 'regular_amount', 'wished_tax_confirmation',
-			  'wished_welcome_letter', 'wished_information', 'public',
+			  'wished_welcome_letter', 'wished_information', 'public', 'note'
 		)
 		required = ('firstname', 'surname', 'street', 'city', 'country', 'zip_code',
 			    'language', 'email', 'telephone', 'regular_frequency', 'regular_amount')
