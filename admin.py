@@ -74,7 +74,7 @@ class UserAdmin(admin.ModelAdmin):
                 'classes': ['collapse']}),
         ('Additional', {
                 'fields': ['age', 'knows_us_from',  'why_supports',
-                           'field_of_work', 'source', 'additional_information'],
+                           'field_of_work', 'additional_information'],
                 'classes': ['collapse']}),
         ('Support', {
                 'fields': ['variable_symbol',
@@ -91,7 +91,7 @@ class UserAdmin(admin.ModelAdmin):
                            'other_benefits'],
                 'classes': ['collapse']}),
         ('Note', {
-                'fields': ['note', 'campaigns', 'recruiter',],
+                'fields': ['note', 'source', 'campaigns', 'recruiter',],
                 'classes': ['collapse']}),
         ]
 

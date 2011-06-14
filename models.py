@@ -110,7 +110,7 @@ class User(models.Model):
         ('english', _('English')))
     SOURCE = (
         ('web', _("Web form")),
-        ('direct-dialogue-partial-form', _("Direct dialogue -- partial form (not automatic in bank")),
+        ('direct-dialogue-partial-form', _("Direct dialogue -- partial form (not automatic in bank)")),
         ('direct-dialogue-full-form', _("Direct dialogue -- full form (automatic in bank)")),
         ('personal', _('Personal recommendation')),
         ('other', _('Another form of contact')))
@@ -188,7 +188,10 @@ class User(models.Model):
         max_length=80, blank=True)
     source = models.CharField(
         _("Source"),
-        help_text=_("How did he contact us / became a member?"),
+        help_text=_("How did he contact us / became a member? In direct dialog, please distinguish "
+                    "between partial form (he still needs to send a permanent order into his bank) "
+                    "and full form (we are going to submit his form directly into bank, no further "
+                    "action is needed from him)."),
         choices=SOURCE,
         max_length=80, blank=False)
     additional_information = models.TextField(
