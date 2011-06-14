@@ -22,7 +22,7 @@
 # Django imports
 import django
 from django.db import models
-from django.db.models import Sum
+from django.db.models import Sum, Count
 from django.core.mail import EmailMessage
 from django.utils.translation import ugettext as _
 # External dependencies
@@ -35,7 +35,8 @@ import autocom
 class UserManager(models.Manager):
     def get_query_set(self):
         return super(UserManager,self).get_query_set().annotate(
-            payment_total=Sum('payment__amount'))
+            payment_total=Sum('payment__amount'),
+            payments_number=Count('id'))
 
 class Campaign(models.Model):
     """Campaign -- abstract event with description
@@ -300,8 +301,8 @@ class User(models.Model):
 
     def number_of_payments(self):
         """Return number of payments made by this user"""
-        p = self.payments()
-        return p and len(p) or 0 
+	return self.payments_number
+    number_of_payments.admin_order_field = 'payments_number'
     
     def last_payment(self):
         """Return last payment"""
