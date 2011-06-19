@@ -1,3 +1,4 @@
+# 
 #!/usr/bin/env python
 # Author: Hynek Hanke <hynek.hanke@auto-mat.cz>
 #
@@ -24,8 +25,9 @@ import sys, datetime
 import string
 
 def process_template(template_string, user):
-    #TODO: Substitute variables
     template = string.Template(template_string)
+
+    # Make variable substitutions
     text = template.substitute(
         name = user.firstname,
         surname = user.surname,
@@ -38,7 +40,34 @@ def process_template(template_string, user):
         regular_frequency = user.regular_frequency,
         var_symbol = user.variable_symbol,
         )
-    return text
+
+    # Modify text according to gender
+    # Example: Vazeny{y|a} {pane|pani} -> [male] -> Vazeny pane
+    gender_text = ""
+    o = 0
+    i = 0
+    while i < len(text):
+        if text[i] == '{':
+            gender_text += text[o:i]
+            sep_pos = text.find('|', i)
+            end_pos = text.find('}', i)
+            assert sep_pos > i
+            assert end_pos > sep_pos, "Wrong format of template, no separator | or after end mark }"
+            male_variant = text[i+1:sep_pos]
+            female_variant = text[sep_pos+1:end_pos]
+            if user.sex == 'male':
+                gender_text += male_variant;
+            elif user.sex == 'female':
+                gender_text += female_variant;
+            else:
+                gender_text += male_variant+"/"+female_variant;
+            o = end_pos+1
+            i = end_pos
+        i+=1
+    if o == 0:
+        gender_text = text
+
+    return gender_text
 
 def check():
     for auto_comm in AutomaticCommunication.objects.all():
