@@ -291,7 +291,7 @@ class User(models.Model):
     def requires_action(self):
         """Return true if the user requires some action from
         the club manager, otherwise return False"""
-        if len(Communication.objects.filter(user=self)) > 0:
+        if len(Communication.objects.filter(user=self, dispatched=False)) > 0:
             return True
         else:
             return False
@@ -322,26 +322,35 @@ class User(models.Model):
     def expected_regular_payment_date(self):
         last_payment = self.last_payment()
         if last_payment:
-            return last_payment.date+datetime.timedelta(days=31)
+            # Exactly a month after last payment or whatever
+            # expectation record for the given user is set to
+            expected = last_payment.date+datetime.timedelta(days=31)
+            if self.expected_date_of_first_payment:
+                expected = max(expected, self.expected_date_of_first_payment)
+        elif self.expected_date_of_first_payment:
+            # Expected date + 3 days tolerance on user side
+            expected = self.expected_date_of_first_payment+datetime.timedelta(days=3)
         else:
-            return self.registered_support.date()+datetime.timedelta(days=14)
+            # Registration + month
+            expected = self.registered_support.date()+datetime.timedelta(days=31)
+        return expected
 
-    def regular_payments_ok(self):
+    def regular_payments_delay(self):
         """Check if his payments are OK
 
         Return True if so, otherwise return the delay in payment as dattime.timedelta
         """
-
         if self.regular_payments:
             # Check for regular payments
             # (Allow 7 days for payment processing)
-            if ((self.expected_regular_payment_date() + datetime.timedelta(days=7))
+            expected_with_tolerance = self.expected_regular_payment_date() + datetime.timedelta(days=10)
+            if (expected_with_tolerance
                 < datetime.date.today()):
-                return (self.expected_regular_payment_date() - datetime.today())
+                return datetime.date.today()-expected_with_tolerance
             else:
-                return True
+                return datetime.timedelta(days=0)
         else:
-            return True
+            return datetime.timedelta(days=0)
 
     def total_contrib(self):
         """Return the sum of all money received from this user"""
@@ -753,6 +762,14 @@ class Condition(models.Model):
             # Symbolic names
             if spec == 'month_ago':
                 return datetime.datetime.now()-datetime.timedelta(days=30)
+            if spec == 'one_day':
+                return datetime.timedelta(days=1)
+            if spec == 'one_week':
+                return datetime.timedelta(days=1)
+            if spec == 'two_weeks':
+                return datetime.timedelta(days=1)
+            if spec == 'one_month':
+                return datetime.timedelta(days=1)
             if spec == 'true':
                 return True
             if spec == 'false':
