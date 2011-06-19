@@ -47,10 +47,11 @@ class CommunicationInline(admin.TabularInline):
 
 # -- ADMIN FORMS --
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('person_name', 'active', 'variable_symbol',
-                    'regular_payments', 'registered_support', 
+    list_display = ('person_name', 'requires_action',
+                    'variable_symbol', 'regular_payments', 'registered_support',
+                    'regular_payments_delay', 'expected_regular_payment_date',
                     'number_of_payments', 'total_contrib', 'regular_amount',
-                    'requires_action', 'recruiter')
+                    'recruiter', 'active')
     list_filter = ['regular_payments', 'language', 'active', 'firstname']
     search_fields = ['firstname', 'surname']
     ordering = ('surname',)
@@ -119,8 +120,7 @@ class UserAdmin(admin.ModelAdmin):
         selected = [str(e.pk) for e in queryset.all()]
         return HttpResponseRedirect("/aklub/masscommunication/add/?send_to_users=%s" %
                                     (",".join(selected),))
-    send_mass_communication.short_description = _("Send mass communication")
-
+    send_mass_communication.short_description = _("Send mass communication")    
 
 class PaymentAdmin(admin.ModelAdmin):
     list_display = ('date', 'amount', 'person_name', 'account', 'bank_code',
