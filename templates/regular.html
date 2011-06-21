@@ -7,13 +7,11 @@
 <title>  Trvalý příkaz | Auto*Mat</title>
 
 {% load i18n admin_modify adminmedia %}
-{% block extrahead %}{{ block.super }}
 <link rel="stylesheet" type="text/css" href="{% admin_media_prefix %}css/base.css" />
 <link rel="stylesheet" type="text/css" href="{% admin_media_prefix %}css/widgets.css" />
 <script type="text/javascript" src="/jsi18n/"></script>
 <script type="text/javascript" src="{% admin_media_prefix %}js/core.js"></script>
 {{ form.media }}
-{% endblock %}
 {% load adminmedia %}
 
 <script type="text/javascript">
