@@ -59,6 +59,7 @@ class UserAdmin(admin.ModelAdmin):
     save_as = True
     inlines = [PaymentsInline, CommunicationInline]
     raw_id_fields = ('recruiter',)
+    filter_horizontal = ('campaigns',)
     fieldsets = [
         ('Basic personal', {
                 'fields': [('firstname', 'surname'),
