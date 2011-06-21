@@ -1,0 +1,1 @@
+ALTER TABLE aklub_masscommunication ALTER COLUMN subject TYPE varchar(100);
