@@ -58,6 +58,9 @@ class Campaign(models.Model):
         help_text=_("Description of this campaign"),
         max_length=3000, blank=True)
 
+    def __unicode__(self):
+        return self.name
+
 class Recruiter(models.Model):
     """Recruiter -- person that recruits new club members"""
 
