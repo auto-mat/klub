@@ -846,7 +846,7 @@ class AutomaticCommunication(models.Model):
         choices=COMMUNICATION_METHOD)
     subject = models.CharField(
         _("Subject"),
-        max_length=30)
+        max_length=100)
     template = models.TextField(
         _("Template"),
         help_text = _("Template can contain variable substitutions like addressment, name, "
