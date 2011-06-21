@@ -30,6 +30,7 @@ def process_template(template_string, user):
     # Make variable substitutions
     text = template.substitute(
         name = user.firstname,
+        firstname = user.firstname,
         surname = user.surname,
         street = user.street,
         city = user.city,
