@@ -768,11 +768,11 @@ class Condition(models.Model):
             if spec == 'one_day':
                 return datetime.timedelta(days=1)
             if spec == 'one_week':
-                return datetime.timedelta(days=1)
+                return datetime.timedelta(days=7)
             if spec == 'two_weeks':
-                return datetime.timedelta(days=1)
+                return datetime.timedelta(days=14)
             if spec == 'one_month':
-                return datetime.timedelta(days=1)
+                return datetime.timedelta(days=31)
             if spec == 'true':
                 return True
             if spec == 'false':
