@@ -6,17 +6,17 @@
 
 <title>  Trvalý příkaz | Auto*Mat</title>
 
-{% load i18n admin_modify adminmedia %}
-<link rel="stylesheet" type="text/css" href="{% admin_media_prefix %}css/base.css" />
-<link rel="stylesheet" type="text/css" href="{% admin_media_prefix %}css/widgets.css" />
-<script type="text/javascript" src="/jsi18n/"></script>
-<script type="text/javascript" src="{% admin_media_prefix %}js/core.js"></script>
-{{ form.media }}
-{% load adminmedia %}
+<script src="/resources/js/jquery.js"/></script>
+<script src="/resources/js/jquery-ui.js"></script>
+<script src="/resources/js/jquery.ui.datepicker-cs.js"></script>
+
+<link rel="stylesheet" href="/resources/css/jquery-ui.css" type="text/css" media="screen" />
 
 <script type="text/javascript">
-window.__admin_media_prefix__ = "{% filter escapejs %}{% admin_media_prefix %}{% endfilter %}";
-</script>
+jQuery(function() {
+   jQuery("#id_expected_date_of_first_payment").datepicker({ dateFormat: 'dd/mm/yy' });
+});
+</script>     
 
 <link rel="stylesheet" href="http://www.auto-mat.cz/wp-content/themes/atm/style.css" type="text/css" media="screen" />
 <link rel="stylesheet" href="/upload/forms.css" type="text/css" media="screen" />

@@ -13,7 +13,7 @@ class RegularUserForm(forms.ModelForm):
 
         # the fields defined here will override those defined on the model
         regular_frequency = forms.ChoiceField(label=_("Regular payments"), choices=User.REGULAR_PAYMENT_FREQUENCIES, required=True, widget=forms.RadioSelect())
-        expected_date_of_first_payment = forms.DateField(label=_("Expected date of first payment"), required=True, widget=widgets.AdminDateWidget())
+        expected_date_of_first_payment = forms.DateField(label=_("Expected date of first payment"), required=True)
  
 	class Meta:
 		model = User
