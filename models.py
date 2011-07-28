@@ -777,6 +777,8 @@ class Condition(models.Model):
                 return True
             if spec == 'false':
                 return False
+            if spec == 'None':
+                return None
         
             # DB objects
             if '.' in spec:
