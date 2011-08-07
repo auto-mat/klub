@@ -151,11 +151,11 @@ RelatedFilterSpec.register(lambda f,m: bool(f.name=='user' and issubclass(m, Pay
                            NullFilterSpec)
 
 class CommunicationAdmin(admin.ModelAdmin):
-    list_display = ('subject', 'dispatched', 'user', 'method', 'handled_by',
+    list_display = ('subject', 'dispatched', 'send', 'user', 'method',  'handled_by',
                     'date')
     raw_id_fields = ('user',)
     readonly_fields = ('handled_by',)
-    list_filter = ['dispatched', 'date', 'method']
+    list_filter = ['dispatched', 'send', 'date', 'method']
     date_hierarchy = 'date'
     ordering = ('-date',)
 
@@ -180,7 +180,7 @@ class MassCommunicationAdmin(admin.ModelAdmin):
                               subject=obj.subject, summary=obj.template, # TODO: Process template
                               attachment=copy.copy(obj.attachment),
                               note="Prepared by auto*mated mass communications at %s" % datetime.datetime.now(),
-                              dispatched=obj.dispatch_auto, handled_by = request.user)
+                              send=obj.dispatch_auto, handled_by = request.user)
             c.save()
         # TODO: Generate some summary info message into request about the result
         return obj

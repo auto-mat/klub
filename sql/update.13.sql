@@ -1,0 +1,1 @@
+ALTER TABLE aklub_communication ADD COLUMN "send" boolean NOT NULL DEFAULT FALSE;

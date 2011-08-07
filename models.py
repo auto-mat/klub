@@ -610,11 +610,19 @@ class Communication(models.Model):
         'auth.User',
         verbose_name=_("Handled by"),
         null=True, blank=True)
+
+    send = models.BooleanField(
+        _("Send"),
+        help_text=_("Request sending this communication to the user. For emails, this means that "
+                     "the email will be immediatelly sent. In other types of communications, "
+                     "someone must handle this manually."),
+        default=False)
     dispatched = models.BooleanField(
         _("Dispatched"),
-        _("Was this message already sent/communicated to the client? In case "
-          "of emails, changing this field to 'checked' will result in automatic "
-          "sending of the email to the client."),
+        help_text=_("Was this message already sent/communicated to the client? Only check this "
+                    "field when you are sure this communication was already send. Only uncheck "
+                    "this field if you are sure the recipient didn't get this communication "
+                    "(such as due to lost mail)."),
         default=True)
 
     def save(self, *args, **kwargs):
@@ -623,11 +631,8 @@ class Communication(models.Model):
         If state of the dispatched field changes to True, call
         the automated dispatch() method.
         """
-        if self.dispatched == True:
-            if (((self.pk is not None)    # this is an existing entry and the state of dispatched changes from False to True
-                 and (Communication.objects.get(pk=self.pk).dispatched == False))
-                or self.dispatched == True):  # or this is a new entry and state dispatched is true
-                self.dispatch(save=False) # then try to dispatch this email automatically
+        if self.send == True:
+            self.dispatch(save=False) # then try to dispatch this email automatically
         super(Communication, self).save(*args, **kwargs)
 
     def dispatch(self, save = True):
@@ -651,9 +656,10 @@ class Communication(models.Model):
             try:
                 email.send(fail_silently=False)
             except:
-                self.dispatched = False
+                pass
             else:
                 self.dispatched = True
+            self.send = False
             if save:
                 self.save()
 
