@@ -43,7 +43,7 @@ class PaymentsInlineNoExtra(PaymentsInline):
 class CommunicationInline(admin.TabularInline):
     model = Communication
     extra = 1
-    readonly_fields = ('handled_by',)
+    readonly_fields = ('created_by', 'handled_by',)
 
 # -- ADMIN FORMS --
 class UserAdmin(admin.ModelAdmin):
@@ -107,7 +107,8 @@ class UserAdmin(admin.ModelAdmin):
         instances = formset.save(commit=False)
         for instance in instances:
             if not instance.pk:
-                instance.handled_by = request.user
+                instance.created_by = request.user
+            instance.handled_by = request.user
             instance.save()
         formset.save_m2m()
 
@@ -151,17 +152,18 @@ RelatedFilterSpec.register(lambda f,m: bool(f.name=='user' and issubclass(m, Pay
                            NullFilterSpec)
 
 class CommunicationAdmin(admin.ModelAdmin):
-    list_display = ('subject', 'dispatched', 'send', 'user', 'method',  'handled_by',
+    list_display = ('subject', 'dispatched', 'send', 'user', 'method',  'created_by', 'handled_by',
                     'date')
     raw_id_fields = ('user',)
-    readonly_fields = ('handled_by',)
+    readonly_fields = ('created_by', 'handled_by',)
     list_filter = ['dispatched', 'send', 'date', 'method']
     date_hierarchy = 'date'
     ordering = ('-date',)
 
     def save_model(self, request, obj, form, change):
         if not obj.pk:
-            obj.handled_by = request.user
+            obj.created_by = request.user
+        obj.handled_by = request.user
         obj.save()
 
 class AutomaticCommunicationAdmin(admin.ModelAdmin):
@@ -179,8 +181,8 @@ class MassCommunicationAdmin(admin.ModelAdmin):
             c = Communication(user=user, method=obj.method, date=datetime.datetime.now(),
                               subject=obj.subject, summary=obj.template, # TODO: Process template
                               attachment=copy.copy(obj.attachment),
-                              note="Prepared by auto*mated mass communications at %s" % datetime.datetime.now(),
-                              send=obj.dispatch_auto, handled_by = request.user)
+                              note=_("Prepared by auto*mated mass communications at %s") % datetime.datetime.now(),
+                              send=obj.dispatch_auto, created_by = request.user, handled_by=request.user)
             c.save()
         # TODO: Generate some summary info message into request about the result
         return obj

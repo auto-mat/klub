@@ -605,12 +605,16 @@ class Communication(models.Model):
         _("Notes"),
         help_text=_("Internal notes about this communication"),
         max_length=3000, blank=True)
-    # TODO: This needs to be a foreign key to table of Django users
+    created_by = models.ForeignKey(
+        'auth.User',
+        verbose_name=_("Created by"),
+        related_name='created_by_communication',
+        null=True, blank=True)
     handled_by = models.ForeignKey(
         'auth.User',
-        verbose_name=_("Handled by"),
+        verbose_name=_("Last handled by"),
+        related_name='handled_by_communication',
         null=True, blank=True)
-
     send = models.BooleanField(
         _("Send"),
         help_text=_("Request sending this communication to the user. For emails, this means that "
@@ -623,7 +627,7 @@ class Communication(models.Model):
                     "field when you are sure this communication was already send. Only uncheck "
                     "this field if you are sure the recipient didn't get this communication "
                     "(such as due to lost mail)."),
-        default=True)
+        default=False)
 
     def save(self, *args, **kwargs):
         """Record save hook
