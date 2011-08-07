@@ -43,7 +43,7 @@ class PaymentsInlineNoExtra(PaymentsInline):
 class CommunicationInline(admin.TabularInline):
     model = Communication
     extra = 1
-    readonly_fields = ('created_by', 'handled_by',)
+    readonly_fields = ('type', 'created_by', 'handled_by',)
 
 # -- ADMIN FORMS --
 class UserAdmin(admin.ModelAdmin):
@@ -153,10 +153,10 @@ RelatedFilterSpec.register(lambda f,m: bool(f.name=='user' and issubclass(m, Pay
 
 class CommunicationAdmin(admin.ModelAdmin):
     list_display = ('subject', 'dispatched', 'send', 'user', 'method',  'created_by', 'handled_by',
-                    'date')
+                    'date', 'type')
     raw_id_fields = ('user',)
-    readonly_fields = ('created_by', 'handled_by',)
-    list_filter = ['dispatched', 'send', 'date', 'method']
+    readonly_fields = ('type', 'created_by', 'handled_by',)
+    list_filter = ['type', 'dispatched', 'send', 'date', 'method',]
     date_hierarchy = 'date'
     ordering = ('-date',)
 
@@ -182,7 +182,8 @@ class MassCommunicationAdmin(admin.ModelAdmin):
                               subject=obj.subject, summary=obj.template, # TODO: Process template
                               attachment=copy.copy(obj.attachment),
                               note=_("Prepared by auto*mated mass communications at %s") % datetime.datetime.now(),
-                              send=obj.dispatch_auto, created_by = request.user, handled_by=request.user)
+                              send=obj.dispatch_auto, created_by = request.user, handled_by=request.user,
+                              type='mass')
             c.save()
         # TODO: Generate some summary info message into request about the result
         return obj

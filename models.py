@@ -567,6 +567,12 @@ COMMUNICATION_METHOD = (
     ('personal', _("Personal")),
 )
 
+COMMUNICATION_TYPE = (
+    ('mass', _("Mass")),
+    ('auto', _("Automatic")),
+    ('individual', _("Individual")),
+)
+
 class Communication(models.Model):
     """Communication entry and DB Model
 
@@ -586,6 +592,10 @@ class Communication(models.Model):
     method = models.CharField(
         _("Method"),
         max_length=30, choices=COMMUNICATION_METHOD)
+    type = models.CharField(
+        _("Type of communication"),
+        max_length=30, choices=COMMUNICATION_TYPE,
+        default='individual')
     date = models.DateTimeField(
         _("Date"))
     subject = models.CharField(
