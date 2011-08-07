@@ -327,14 +327,18 @@ class User(models.Model):
         if last_payment:
             # Exactly a month after last payment or whatever
             # expectation record for the given user is set to
-            expected = last_payment.date+datetime.timedelta(days=31)
+            interval_in_days = {'monthly': 31,
+                                'quaterly': 92,
+                                'annually': 366}
+            expected = last_payment.date+datetime.timedelta(
+                days=interval_in_days[self.regular_frequency])
             if self.expected_date_of_first_payment:
                 expected = max(expected, self.expected_date_of_first_payment)
         elif self.expected_date_of_first_payment:
             # Expected date + 3 days tolerance on user side
             expected = self.expected_date_of_first_payment+datetime.timedelta(days=3)
         else:
-            # Registration + month
+            # Registration + month (always, even for quaterly and annual payments)
             expected = self.registered_support.date()+datetime.timedelta(days=31)
         return expected
 
