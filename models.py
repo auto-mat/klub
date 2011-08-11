@@ -299,6 +299,11 @@ class User(models.Model):
         else:
             return False
 
+    def is_direct_dialogue(self):
+        if self.source in ['direct-dialogue-full-form', 'direct-dialogue-partial-form']:
+            return True
+        return False
+
     def payments(self):
         return Payment.objects.filter(user=self)
 

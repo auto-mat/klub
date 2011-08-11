@@ -47,7 +47,7 @@ class CommunicationInline(admin.TabularInline):
 
 # -- ADMIN FORMS --
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('person_name', 'requires_action',
+    list_display = ('person_name', 'requires_action', 'is_direct_dialogue',
                     'variable_symbol', 'regular_payments', 'registered_support',
                     'regular_payments_delay', 'expected_regular_payment_date',
                     'number_of_payments', 'total_contrib', 'regular_amount',
