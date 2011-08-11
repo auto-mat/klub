@@ -329,6 +329,8 @@ class User(models.Model):
 
     def expected_regular_payment_date(self):
         last_payment = self.last_payment()
+        if not self.regular_payments:
+            return None
         if last_payment:
             # Exactly a month after last payment or whatever
             # expectation record for the given user is set to
