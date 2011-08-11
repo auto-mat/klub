@@ -65,6 +65,7 @@ FilterSpec.filter_specs.insert(0, (lambda f: bool(f.name=='firstname'),
 # THIS DOESN'T WORK YET
 class ActionFilterSpec(FilterSpec):
         def __init__(self, f, request, params, model, model_admin):
+                # HH: shouldn't 'f' be first in the following?!?
                 super(ActionFilterSpec, self).__init__(request, params, model, model_admin, f)
                 self.lookup_kwarg = 'communication__isnull'
                 self.lookup_val = request.GET.get(self.lookup_kwarg, None)

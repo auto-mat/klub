@@ -332,14 +332,18 @@ class User(models.Model):
         if last_payment:
             # Exactly a month after last payment or whatever
             # expectation record for the given user is set to
-            expected = last_payment.date+datetime.timedelta(days=31)
+            interval_in_days = {'monthly': 31,
+                                'quaterly': 92,
+                                'annually': 366}
+            expected = last_payment.date+datetime.timedelta(
+                days=interval_in_days[self.regular_frequency])
             if self.expected_date_of_first_payment:
                 expected = max(expected, self.expected_date_of_first_payment)
         elif self.expected_date_of_first_payment:
             # Expected date + 3 days tolerance on user side
             expected = self.expected_date_of_first_payment+datetime.timedelta(days=3)
         else:
-            # Registration + month
+            # Registration + month (always, even for quaterly and annual payments)
             expected = self.registered_support.date()+datetime.timedelta(days=31)
         return expected
 
@@ -572,6 +576,12 @@ COMMUNICATION_METHOD = (
     ('personal', _("Personal")),
 )
 
+COMMUNICATION_TYPE = (
+    ('mass', _("Mass")),
+    ('auto', _("Automatic")),
+    ('individual', _("Individual")),
+)
+
 class Communication(models.Model):
     """Communication entry and DB Model
 
@@ -591,6 +601,10 @@ class Communication(models.Model):
     method = models.CharField(
         _("Method"),
         max_length=30, choices=COMMUNICATION_METHOD)
+    type = models.CharField(
+        _("Type of communication"),
+        max_length=30, choices=COMMUNICATION_TYPE,
+        default='individual')
     date = models.DateTimeField(
         _("Date"))
     subject = models.CharField(
@@ -610,17 +624,29 @@ class Communication(models.Model):
         _("Notes"),
         help_text=_("Internal notes about this communication"),
         max_length=3000, blank=True)
-    # TODO: This needs to be a foreign key to table of Django users
+    created_by = models.ForeignKey(
+        'auth.User',
+        verbose_name=_("Created by"),
+        related_name='created_by_communication',
+        null=True, blank=True)
     handled_by = models.ForeignKey(
         'auth.User',
-        verbose_name=_("Handled by"),
+        verbose_name=_("Last handled by"),
+        related_name='handled_by_communication',
         null=True, blank=True)
+    send = models.BooleanField(
+        _("Send"),
+        help_text=_("Request sending this communication to the user. For emails, this means that "
+                     "the email will be immediatelly sent. In other types of communications, "
+                     "someone must handle this manually."),
+        default=False)
     dispatched = models.BooleanField(
         _("Dispatched"),
-        _("Was this message already sent/communicated to the client? In case "
-          "of emails, changing this field to 'checked' will result in automatic "
-          "sending of the email to the client."),
-        default=True)
+        help_text=_("Was this message already sent/communicated to the client? Only check this "
+                    "field when you are sure this communication was already send. Only uncheck "
+                    "this field if you are sure the recipient didn't get this communication "
+                    "(such as due to lost mail)."),
+        default=False)
 
     def save(self, *args, **kwargs):
         """Record save hook
@@ -628,11 +654,8 @@ class Communication(models.Model):
         If state of the dispatched field changes to True, call
         the automated dispatch() method.
         """
-        if self.dispatched == True:
-            if (((self.pk is not None)    # this is an existing entry and the state of dispatched changes from False to True
-                 and (Communication.objects.get(pk=self.pk).dispatched == False))
-                or self.dispatched == True):  # or this is a new entry and state dispatched is true
-                self.dispatch(save=False) # then try to dispatch this email automatically
+        if self.send == True:
+            self.dispatch(save=False) # then try to dispatch this email automatically
         super(Communication, self).save(*args, **kwargs)
 
     def dispatch(self, save = True):
@@ -656,9 +679,10 @@ class Communication(models.Model):
             try:
                 email.send(fail_silently=False)
             except:
-                self.dispatched = False
+                pass
             else:
                 self.dispatched = True
+            self.send = False
             if save:
                 self.save()
 
