@@ -379,7 +379,7 @@ class User(models.Model):
         situation. See module 'autocom'.
         """
         super(User, self).save(*args, **kwargs)
-        autocom.check()
+        autocom.check(users=[self])
 
 class AccountStatements(models.Model):
     """AccountStatemt entry and DB model

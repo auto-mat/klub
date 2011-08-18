@@ -70,13 +70,13 @@ def process_template(template_string, user):
 
     return gender_text
 
-def check():
+def check(users=None):
     for auto_comm in AutomaticCommunication.objects.all():
         #print "Processing"
         #print "  %s:  %s" % (auto_comm.condition, auto_comm)
         #print "    Action: %s" % auto_comm.method
         #print "    Users newly satisfying condition:"
-        for user in User.objects.all():
+        for user in (users or User.objects.all()):
             if user not in auto_comm.sent_to_users.all():
                 if auto_comm.condition.is_true(user):
                     #print "      %s" % user
