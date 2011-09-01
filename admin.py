@@ -30,6 +30,7 @@ from aklub.models import User, Payment, \
     Communication, AutomaticCommunication, MassCommunication, \
     Condition, AccountStatements, UserImports, Campaign, Recruiter 
 from aklub.filters import NullFilterSpec, ConditionFilterSpec
+import autocom
 
 # -- INLINE FORMS --
 class PaymentsInline(admin.TabularInline):
@@ -179,7 +180,8 @@ class MassCommunicationAdmin(admin.ModelAdmin):
         obj = form.save()
         for user in obj.send_to_users.all():
             c = Communication(user=user, method=obj.method, date=datetime.datetime.now(),
-                              subject=obj.subject, summary=obj.template, # TODO: Process template
+                              subject=obj.subject,
+                              summary=autocom.process_template(obj.template, user),
                               attachment=copy.copy(obj.attachment),
                               note=_("Prepared by auto*mated mass communications at %s") % datetime.datetime.now(),
                               send=obj.dispatch_auto, created_by = request.user, handled_by=request.user,
