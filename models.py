@@ -674,7 +674,7 @@ class Communication(models.Model):
             email = EmailMessage(subject=self.subject, body=self.summary,
                                  from_email = 'kp@auto-mat.cz',
                                  to = [self.user.email],
-                                 bcc = ['kp@auto-mat.cz'])
+                                 bcc = (self.type == 'auto' and [] or ['kp@auto-mat.cz']))
             if self.attachment:
                 att = self.attachment
                 email.attach(os.path.basename(att.name), att.read())
