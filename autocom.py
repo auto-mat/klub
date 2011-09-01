@@ -1,4 +1,4 @@
-# 
+# -*- coding: utf-8 -*-
 #!/usr/bin/env python
 # Author: Hynek Hanke <hynek.hanke@auto-mat.cz>
 #
@@ -27,8 +27,17 @@ import string
 def process_template(template_string, user):
     template = string.Template(template_string)
 
+    if user.addressment and user.addressment != '':
+        addressment = user.addressment
+    else:
+        if user.sex == 'male':
+            addressment = u'člene Klubu přátel Auto*Matu'
+        else:
+            addressment = u'členko Klubu přátel Auto*Matu'
+
     # Make variable substitutions
     text = template.substitute(
+        addressment = addressment,
         name = user.firstname,
         firstname = user.firstname,
         surname = user.surname,
@@ -65,8 +74,7 @@ def process_template(template_string, user):
             o = end_pos+1
             i = end_pos
         i+=1
-    if o == 0:
-        gender_text = text
+    gender_text += text[o:]
 
     return gender_text
 
