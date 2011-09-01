@@ -32,9 +32,10 @@ def process_template(template_string, user):
     else:
         if user.sex == 'male':
             addressment = u'člene Klubu přátel Auto*Matu'
-        else:
+        elif user.sex == 'female':
             addressment = u'členko Klubu přátel Auto*Matu'
-
+        else:
+            addressment = u'člene/členko Klubu přátel Auto*Matu';
     # Make variable substitutions
     text = template.substitute(
         addressment = addressment,
