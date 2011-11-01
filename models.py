@@ -381,6 +381,11 @@ class User(models.Model):
         super(User, self).save(*args, **kwargs)
         autocom.check(users=[self])
 
+class ProxyUser(User):
+    class Meta:
+        proxy = True
+        verbose_name = "Proxy user"
+
 class AccountStatements(models.Model):
     """AccountStatemt entry and DB model
 

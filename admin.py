@@ -26,7 +26,7 @@ from django.utils.translation import ugettext as _
 from django.contrib.admin.filterspecs import FilterSpec, RelatedFilterSpec
 from django.http import HttpResponseRedirect
 # Local models
-from aklub.models import User, Payment, \
+from aklub.models import User, ProxyUser, Payment, \
     Communication, AutomaticCommunication, MassCommunication, \
     Condition, AccountStatements, UserImports, Campaign, Recruiter 
 from aklub.filters import NullFilterSpec, ConditionFilterSpec
@@ -147,6 +147,11 @@ class PaymentAdmin(admin.ModelAdmin):
     date_hierarchy = 'date'
     search_fields = ['user__surname', 'user__firstname', 'amount', 'VS', 'user_identification']
 
+class ProxyUserAdmin(UserAdmin):
+    list_display = ('person_name', 'requires_action', 'is_direct_dialogue',
+                    'variable_symbol', 'regular_payments', 'registered_support',
+                    'recruiter', 'active')
+
 # Register our custom filter for field 'user' on model 'Payment'
 # (Note by HH: I believe this does nothing, see filterspec.py RelatedFilterSpec.insert( etc.
 RelatedFilterSpec.register(lambda f,m: bool(f.name=='user' and issubclass(m, Payment)),
@@ -228,6 +233,7 @@ class RecruiterAdmin(admin.ModelAdmin):
     list_display = ('recruiter_id', 'person_name', 'email', 'telephone')
 
 admin.site.register(User, UserAdmin)
+admin.site.register(ProxyUser, ProxyUserAdmin)
 admin.site.register(Communication, CommunicationAdmin)
 admin.site.register(Payment, PaymentAdmin)
 admin.site.register(AccountStatements, AccountStatementsAdmin)
