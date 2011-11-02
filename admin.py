@@ -162,7 +162,7 @@ class CommunicationAdmin(admin.ModelAdmin):
                     'date', 'type')
     raw_id_fields = ('user',)
     readonly_fields = ('type', 'created_by', 'handled_by',)
-    list_filter = ['type', 'dispatched', 'send', 'date', 'method',]
+    list_filter = [ 'dispatched', 'send', 'date', 'method', 'type',]
     date_hierarchy = 'date'
     ordering = ('-date',)
 
@@ -171,6 +171,15 @@ class CommunicationAdmin(admin.ModelAdmin):
             obj.created_by = request.user
         obj.handled_by = request.user
         obj.save()
+
+    def queryset(self, request):
+        # Filter out mass communications which are already dispatched
+        # There is no use in displaying the many repetitive rows that
+        # arrise from mass communications once they are dispatched. If
+        # however not dispatched yet, these communications
+        # still require admin action and should be visible.
+        qs = super(CommunicationAdmin, self).queryset(request)
+        return qs.exclude(type='mass', dispatched='true')
 
 class AutomaticCommunicationAdmin(admin.ModelAdmin):
     list_display = ('name', 'method', 'subject')
