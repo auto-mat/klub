@@ -671,10 +671,14 @@ class Communication(models.Model):
         filling on the envelope should be displayed to the admin.
         """
         if self.method == 'email':
+            if self.type == 'mass':
+                bcc = []
+            else:
+                bcc = ['kp@auto-mat.cz']
             email = EmailMessage(subject=self.subject, body=self.summary,
                                  from_email = 'kp@auto-mat.cz',
                                  to = [self.user.email],
-                                 bcc = (self.type == 'auto' and [] or ['kp@auto-mat.cz']))
+                                 bcc = bcc)
             if self.attachment:
                 att = self.attachment
                 email.attach(os.path.basename(att.name), att.read())
