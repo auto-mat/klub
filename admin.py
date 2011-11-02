@@ -200,14 +200,15 @@ class MassCommunicationAdmin(admin.ModelAdmin):
         obj = form.save()
         if obj.send:
             for user in obj.send_to_users.all():
-                c = Communication(user=user, method=obj.method, date=datetime.datetime.now(),
-                                  subject=obj.subject,
-                                  summary=autocom.process_template(obj.template, user),
-                                  attachment=copy.copy(obj.attachment),
-                                  note=_("Prepared by auto*mated mass communications at %s") % datetime.datetime.now(),
-                                  send=True, created_by = request.user, handled_by=request.user,
-                                  type='mass')
-                c.save()
+                if user.active:
+                    c = Communication(user=user, method=obj.method, date=datetime.datetime.now(),
+                                      subject=obj.subject,
+                                      summary=autocom.process_template(obj.template, user),
+                                      attachment=copy.copy(obj.attachment),
+                                      note=_("Prepared by auto*mated mass communications at %s") % datetime.datetime.now(),
+                                      send=True, created_by = request.user, handled_by=request.user,
+                                      type='mass')
+                    c.save()
             # Sending was done, so revert the state of the 'send' checkbox back to False
             obj.send = False
             obj.save()
