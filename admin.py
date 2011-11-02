@@ -74,7 +74,7 @@ class UserAdmin(admin.ModelAdmin):
                 'fields': [('email', 'telephone'),
                            ('street', 'city', 'country'),
                            'zip_code'],
-                'classes': ['collapse']}),
+                }),
         ('Additional', {
                 'fields': ['age', 'knows_us_from',  'why_supports',
                            'field_of_work', 'additional_information'],
