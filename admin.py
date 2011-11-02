@@ -26,7 +26,7 @@ from django.utils.translation import ugettext as _
 from django.contrib.admin.filterspecs import FilterSpec, RelatedFilterSpec
 from django.http import HttpResponseRedirect
 # Local models
-from aklub.models import User, Payment, \
+from aklub.models import User, ProxyUser, Payment, \
     Communication, AutomaticCommunication, MassCommunication, \
     Condition, AccountStatements, UserImports, Campaign, Recruiter 
 from aklub.filters import NullFilterSpec, ConditionFilterSpec
@@ -74,7 +74,7 @@ class UserAdmin(admin.ModelAdmin):
                 'fields': [('email', 'telephone'),
                            ('street', 'city', 'country'),
                            'zip_code'],
-                'classes': ['collapse']}),
+                }),
         ('Additional', {
                 'fields': ['age', 'knows_us_from',  'why_supports',
                            'field_of_work', 'additional_information'],
@@ -147,6 +147,11 @@ class PaymentAdmin(admin.ModelAdmin):
     date_hierarchy = 'date'
     search_fields = ['user__surname', 'user__firstname', 'amount', 'VS', 'user_identification']
 
+class ProxyUserAdmin(UserAdmin):
+    list_display = ('person_name', 'requires_action', 'is_direct_dialogue',
+                    'variable_symbol', 'regular_payments', 'registered_support',
+                    'recruiter', 'active')
+
 # Register our custom filter for field 'user' on model 'Payment'
 # (Note by HH: I believe this does nothing, see filterspec.py RelatedFilterSpec.insert( etc.
 RelatedFilterSpec.register(lambda f,m: bool(f.name=='user' and issubclass(m, Payment)),
@@ -157,7 +162,7 @@ class CommunicationAdmin(admin.ModelAdmin):
                     'date', 'type')
     raw_id_fields = ('user',)
     readonly_fields = ('type', 'created_by', 'handled_by',)
-    list_filter = ['type', 'dispatched', 'send', 'date', 'method',]
+    list_filter = [ 'dispatched', 'send', 'date', 'method', 'type',]
     date_hierarchy = 'date'
     ordering = ('-date',)
 
@@ -166,6 +171,15 @@ class CommunicationAdmin(admin.ModelAdmin):
             obj.created_by = request.user
         obj.handled_by = request.user
         obj.save()
+
+    def queryset(self, request):
+        # Filter out mass communications which are already dispatched
+        # There is no use in displaying the many repetitive rows that
+        # arrise from mass communications once they are dispatched. If
+        # however not dispatched yet, these communications
+        # still require admin action and should be visible.
+        qs = super(CommunicationAdmin, self).queryset(request)
+        return qs.exclude(type='mass', dispatched='true')
 
 class AutomaticCommunicationAdmin(admin.ModelAdmin):
     list_display = ('name', 'method', 'subject')
@@ -178,15 +192,19 @@ class MassCommunicationAdmin(admin.ModelAdmin):
     def save_form(self, request, form, change):
         super(MassCommunicationAdmin, self).save_form(request, form, change)
         obj = form.save()
-        for user in obj.send_to_users.all():
-            c = Communication(user=user, method=obj.method, date=datetime.datetime.now(),
-                              subject=obj.subject,
-                              summary=autocom.process_template(obj.template, user),
-                              attachment=copy.copy(obj.attachment),
-                              note=_("Prepared by auto*mated mass communications at %s") % datetime.datetime.now(),
-                              send=obj.dispatch_auto, created_by = request.user, handled_by=request.user,
-                              type='mass')
-            c.save()
+        if obj.send:
+            for user in obj.send_to_users.all():
+                c = Communication(user=user, method=obj.method, date=datetime.datetime.now(),
+                                  subject=obj.subject,
+                                  summary=autocom.process_template(obj.template, user),
+                                  attachment=copy.copy(obj.attachment),
+                                  note=_("Prepared by auto*mated mass communications at %s") % datetime.datetime.now(),
+                                  send=True, created_by = request.user, handled_by=request.user,
+                                  type='mass')
+                c.save()
+            # Sending was done, so revert the state of the 'send' checkbox back to False
+            obj.send = False
+            obj.save()
         # TODO: Generate some summary info message into request about the result
         return obj
 
@@ -228,6 +246,7 @@ class RecruiterAdmin(admin.ModelAdmin):
     list_display = ('recruiter_id', 'person_name', 'email', 'telephone')
 
 admin.site.register(User, UserAdmin)
+admin.site.register(ProxyUser, ProxyUserAdmin)
 admin.site.register(Communication, CommunicationAdmin)
 admin.site.register(Payment, PaymentAdmin)
 admin.site.register(AccountStatements, AccountStatementsAdmin)

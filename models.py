@@ -73,7 +73,7 @@ class Recruiter(models.Model):
         default=datetime.datetime.now())
     recruiter_id = models.PositiveIntegerField(
         _("Recruiter ID"),
-        blank=False)
+        blank=False, unique=True)
     firstname = models.CharField(
         _("First name"),
         max_length=40, blank=False)
@@ -381,6 +381,11 @@ class User(models.Model):
         super(User, self).save(*args, **kwargs)
         autocom.check(users=[self])
 
+class ProxyUser(User):
+    class Meta:
+        proxy = True
+        verbose_name = "Proxy user"
+
 class AccountStatements(models.Model):
     """AccountStatemt entry and DB model
 
@@ -644,9 +649,10 @@ class Communication(models.Model):
         default=False)
     dispatched = models.BooleanField(
         _("Dispatched"),
-        help_text=_("Was this message already sent/communicated to the client? Only check this "
-                    "field when you are sure this communication was already send. Only uncheck "
-                    "this field if you are sure the recipient didn't get this communication "
+        help_text=_("Was this message already communicated with the client? Only check this "
+                    "field when you are sure this communication was already sent or if this is "
+                    " incomming communication. Only uncheck this field if you are sure the "
+                    "recipient didn't get this communication "
                     "(such as due to lost mail)."),
         default=False)
 
@@ -938,12 +944,11 @@ class MassCommunication(models.Model):
         _("Attachment"),
         upload_to='mass-communication-attachments',
         blank=True, null=True)
-    dispatch_auto = models.BooleanField(
-        _("Dispatch auto"),
-        help_text = _("If checked, the communication might be dispatched by the system "
-                      "(e.g. an email sent) immediatelly without any further action from "
-                      "the administrator. If not, the communication is created, but the "
-                      "administrator must send it manually."),
+    send = models.BooleanField(
+        _("Send"),
+        help_text = _("If checked, the communication will be created for every user "
+                      "on submitting this form. If possible (e.g. for emails), it will "
+                      "also be automatically dispatched."),
         default=False)
     send_to_users = models.ManyToManyField(User, 
                                            help_text = _(
