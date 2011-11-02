@@ -649,9 +649,10 @@ class Communication(models.Model):
         default=False)
     dispatched = models.BooleanField(
         _("Dispatched"),
-        help_text=_("Was this message already sent/communicated to the client? Only check this "
-                    "field when you are sure this communication was already send. Only uncheck "
-                    "this field if you are sure the recipient didn't get this communication "
+        help_text=_("Was this message already communicated with the client? Only check this "
+                    "field when you are sure this communication was already sent or if this is "
+                    " incomming communication. Only uncheck this field if you are sure the "
+                    "recipient didn't get this communication "
                     "(such as due to lost mail)."),
         default=False)
 
