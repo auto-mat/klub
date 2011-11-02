@@ -60,6 +60,7 @@ def regular(request):
             new_user = form.save(commit=False)
 	    new_user.regular_payments = True
             new_user.variable_symbol = variable_symbol
+	    new_user.source = 'web'
 	    # Save new user instance
 	    new_user.save()
 	    # TODO: Unlock DB access here
