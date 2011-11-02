@@ -940,12 +940,11 @@ class MassCommunication(models.Model):
         _("Attachment"),
         upload_to='mass-communication-attachments',
         blank=True, null=True)
-    dispatch_auto = models.BooleanField(
-        _("Dispatch auto"),
-        help_text = _("If checked, the communication might be dispatched by the system "
-                      "(e.g. an email sent) immediatelly without any further action from "
-                      "the administrator. If not, the communication is created, but the "
-                      "administrator must send it manually."),
+    send = models.BooleanField(
+        _("Send"),
+        help_text = _("If checked, the communication will be created for every user "
+                      "on submitting this form. If possible (e.g. for emails), it will "
+                      "also be automatically dispatched."),
         default=False)
     send_to_users = models.ManyToManyField(User, 
                                            help_text = _(
