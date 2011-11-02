@@ -1,0 +1,1 @@
+ALTER TABLE aklub_recruiter ADD UNIQUE("recruiter_id");

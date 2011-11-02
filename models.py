@@ -73,7 +73,7 @@ class Recruiter(models.Model):
         default=datetime.datetime.now())
     recruiter_id = models.PositiveIntegerField(
         _("Recruiter ID"),
-        blank=False)
+        blank=False, unique=True)
     firstname = models.CharField(
         _("First name"),
         max_length=40, blank=False)
