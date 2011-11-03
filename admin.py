@@ -53,7 +53,7 @@ class UserAdmin(admin.ModelAdmin):
                     'regular_payments_delay', 'expected_regular_payment_date',
                     'number_of_payments', 'total_contrib', 'regular_amount',
                     'recruiter', 'active')
-    list_filter = ['regular_payments', 'language', 'active',  'source', 'firstname']
+    list_filter = ['regular_payments', 'language', 'active',  'source', 'firstname', 'campaigns',]
     search_fields = ['firstname', 'surname']
     ordering = ('surname',)
     actions = ('send_mass_communication',)
