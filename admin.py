@@ -23,13 +23,12 @@ import datetime
 # Django imports
 from django.contrib import admin
 from django.utils.translation import ugettext as _
-from django.contrib.admin.filterspecs import FilterSpec, RelatedFilterSpec
 from django.http import HttpResponseRedirect
 # Local models
 from aklub.models import User, NewUser, Payment, \
     Communication, AutomaticCommunication, MassCommunication, \
     Condition, AccountStatements, UserImports, Campaign, Recruiter 
-from aklub.filters import NullFilterSpec, ConditionFilterSpec
+import filters
 import autocom
 
 # -- INLINE FORMS --
@@ -53,7 +52,7 @@ class UserAdmin(admin.ModelAdmin):
                     'regular_payments_info', 
                     'number_of_payments', 'total_contrib', 'regular_amount',
                     'active')
-    list_filter = ['regular_payments', 'language', 'active',  'source', 'firstname', 'campaigns',]
+    list_filter = ['regular_payments', 'language', 'active',  'source', 'campaigns', filters.UserConditionFilter]
     search_fields = ['firstname', 'surname']
     ordering = ('surname',)
     actions = ('send_mass_communication',)
@@ -149,7 +148,7 @@ class PaymentAdmin(admin.ModelAdmin):
         ]
     readonly_fields = ('account_statement',)
     raw_id_fields = ('user',)
-    list_filter = ['user', 'date']
+    list_filter = ['type', 'date', filters.PaymentsAssignmentsFilter]
     date_hierarchy = 'date'
     search_fields = ['user__surname', 'user__firstname', 'amount', 'VS', 'user_identification']
 
@@ -157,11 +156,6 @@ class NewUserAdmin(UserAdmin):
     list_display = ('person_name', 'is_direct_dialogue',
                     'variable_symbol', 'regular_payments', 'registered_support',
                     'recruiter', 'active')
-
-# Register our custom filter for field 'user' on model 'Payment'
-# (Note by HH: I believe this does nothing, see filterspec.py RelatedFilterSpec.insert( etc.
-RelatedFilterSpec.register(lambda f,m: bool(f.name=='user' and issubclass(m, Payment)),
-                           NullFilterSpec)
 
 class CommunicationAdmin(admin.ModelAdmin):
     list_display = ('subject', 'dispatched', 'send', 'user', 'method',  'created_by', 'handled_by',
