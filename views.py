@@ -1,12 +1,14 @@
 # Create your views here.
-import datetime
+import datetime, re
 from django import forms, http
 from django.db import models
 from django.shortcuts import render_to_response
 from django.utils.translation import ugettext as _
 from django.contrib.admin import widgets
+from django.contrib.formtools.wizard.views import SessionWizardView
+from django.core.mail import EmailMessage
 
-from models import User
+from models import User, Payment
 
 class RegularUserForm(forms.ModelForm):
         required_css_class = 'required' 
@@ -38,32 +40,36 @@ class RegularUserForm(forms.ModelForm):
 		for field in self.Meta.required:
 			f = self.fields[field].required = True
 
+def new_user(form, regular):
+	# Check number of registrations so far today
+	# TODO: Lock DB access here (to ensure uniqueness of VS)
+	now = datetime.datetime.now()
+	reg_n_today = len(User.objects.filter(
+			registered_support__gt = (
+				now-datetime.timedelta(days=1))))
+	for i in range(reg_n_today+1, 299):
+                variable_symbol = '%s%02d%02d%03d' % (
+			str(now.year)[-2:], now.month, now.day, i)
+		if len(User.objects.filter(variable_symbol=variable_symbol)) == 0:
+			break
+	else:
+		assert 0, "Out of free variable symbols, date %s, reg_n_today=%d" % (now, reg_n_today)
+	# variable_symbol is now unique in database
+	# Create new user instance and fill in additional data
+	new_user = form.save(commit=False)
+	new_user.regular_payments = regular
+	new_user.variable_symbol = variable_symbol
+	new_user.source = 'web'
+	# Save new user instance
+	new_user.save()
+	# TODO: Unlock DB access here
+	return new_user.id
+
 def regular(request):
     if request.method == 'POST': # If the form has been submitted...
         form = RegularUserForm(request.POST) # A form bound to the POST data
         if form.is_valid(): # All validation rules pass
-            # Check number of registrations so far today
-            # TODO: Lock DB access here (to ensure uniqueness of VS)
-            now = datetime.datetime.now()
-            reg_n_today = len(User.objects.filter(
-			    registered_support__gt = (
-				    now-datetime.timedelta(days=1))))
-	    for i in range(reg_n_today+1, 299):
-                variable_symbol = '%s%02d%02d%03d' % (
-			str(now.year)[-2:], now.month, now.day, i)
-		if len(User.objects.filter(variable_symbol=variable_symbol)) == 0:
-                   break
-	    else:
-		assert 0, "Out of free variable symbols, date %s, reg_n_today=%d" % (now, reg_n_today)
-	    # variable_symbol is now unique in database
-	    # Create new user instance and fill in additional data
-            new_user = form.save(commit=False)
-	    new_user.regular_payments = True
-            new_user.variable_symbol = variable_symbol
-	    new_user.source = 'web'
-	    # Save new user instance
-	    new_user.save()
-	    # TODO: Unlock DB access here
+	    new_user(form, regular=True)
             return http.HttpResponseRedirect('/thanks/') # Redirect after POST
     else:
         form = RegularUserForm() # An unbound form
@@ -74,3 +80,171 @@ def regular(request):
 
 def thanks(request):
 	return render_to_response('thanks.html') 
+
+
+class OneTimePaymentWizardFormBase(forms.Form):
+        required_css_class = 'required' 
+	firstname = forms.CharField(label=_("First name"), max_length=40, required=True)
+	surname = forms.CharField(label=_("Surname"), max_length=40, required=True)
+	email = forms.CharField(label=_("Email"), max_length=40, required=True)
+	amount = forms.IntegerField(label=_("Amount"), required=True)
+
+class OneTimePaymentWizardFormWhoIs(forms.Form):
+        required_css_class = 'required' 
+	uid = forms.CharField(label=_("Account"))
+
+class OneTimePaymentWizardFormConfirm(forms.Form):
+        required_css_class = 'required' 
+	# Type in variable symbol for verification (sent by mail)
+	vs_check = forms.CharField(
+		label=_("Variable symbol"),
+		max_length=40, required=False)
+
+class OneTimePaymentWizardFormKnown(forms.Form):
+        required_css_class = 'required' 
+	note = forms.CharField(max_length=40)
+
+class OneTimePaymentWizardFormUnknown(forms.ModelForm):
+        required_css_class = 'required' 
+
+	class Meta:
+		model = User
+		fields = ('title_before', 'firstname', 'surname', 'title_after',
+			  'street', 'city', 'country', 'zip_code',
+			  'language', 'email', 'telephone',
+			  'wished_tax_confirmation', 'wished_information',
+			  'public', 'note'
+		)
+		required = ('firstname', 'surname', 'street', 'city', 'country', 'zip_code',
+			    'language', 'email', 'telephone')
+		widgets = {
+			'language': forms.RadioSelect, # should be set automatically
+		}
+
+        def __init__(self, *args, **kwargs):
+		super(OneTimePaymentWizardFormUnknown, self).__init__(*args, **kwargs)
+		for field in self.Meta.required:
+			f = self.fields[field].required = True
+
+
+class OneTimePaymentWizard(SessionWizardView):
+
+    def is_possibly_known(self):
+        f = self._step_data(OneTimePaymentWizardFormBase)
+        if f:
+            return len(self._find_matching_users(f['email'], f['firstname'], f['surname'])) > 0
+	return True
+
+    def is_unknown(self):
+	    return not self.is_possibly_known()
+
+    def is_unknown_after_whois(self):
+        f = self._step_data(OneTimePaymentWizardFormWhoIs)
+	if f: 
+		return f['uid'] == 'None'
+	else:
+		return True
+
+    def is_unknown_after_confirm(self):
+	w = self._step_data(OneTimePaymentWizardFormWhoIs)
+        c = self._step_data(OneTimePaymentWizardFormConfirm)
+	if w and c:
+		return c['vs_check'] != User.objects.filter(id=w['uid'])[0].variable_symbol
+	else:
+		return True
+
+    FORMS = [['0', OneTimePaymentWizardFormBase, True, 'onetime_base.html'],
+	     ['1', OneTimePaymentWizardFormUnknown, is_unknown, 'onetime_unknown.html'],
+	     ['2', OneTimePaymentWizardFormWhoIs, is_possibly_known, 'onetime_whois.html'],
+	     ['3', OneTimePaymentWizardFormUnknown, is_unknown_after_whois, 'onetime_unknown.html'],
+	     ['4', OneTimePaymentWizardFormConfirm, is_possibly_known, 'onetime_confirm.html'],
+	     ['5', OneTimePaymentWizardFormUnknown, is_unknown_after_confirm, 'onetime_unknown.html']]
+
+    def _step_number(self, form):
+	for e in self.FORMS:
+		if e[1] == form or isinstance(form, e[1]):
+			return e[0]
+	else:
+		raise ValueError(("No such form as requested", form))
+
+    def _step_data(self, form):
+	stepn = self._step_number(form)
+	try:
+		return self.get_cleaned_data_for_step(stepn)
+	except TypeError:
+		return None
+
+    def get_template_names(self):
+        return self.FORMS[int(self.steps.current)][3]
+
+
+    def done(self, form_list, **kwargs):
+	    for form in form_list:
+		    if isinstance(form, OneTimePaymentWizardFormUnknown):
+			    uid = new_user(form, False)
+		    elif isinstance(form, OneTimePaymentWizardFormWhoIs):
+			    uid = form.cleaned_data['uid']
+	    user = User.objects.filter(id=uid)[0]
+	    payment = Payment(date=datetime.datetime.now(),
+			      amount=form_list[0].cleaned_data['amount'],
+			      VS=user.variable_symbol,
+			      type='expected',
+			      user=user)
+	    payment.save()
+	    return http.HttpResponseRedirect('/thanks/')
+
+    def send_vs_reminder(self, id):
+	    user = User.objects.filter(id=id)[0]
+	    mail_subject = _(
+		    "Auto*Mat: Reminder of variable symbol")
+	    mail_body = _(
+		    "Dear friend,\n\n"
+		    "if it is you who was just trying to let us know about his\n"
+		    "planned donation to us, thank you very much and for your\n"
+		    "convenience, here is your variable symbol:\n\n"
+		    "                %s\n\n"
+		    "If you do not know what this mean, it is possible that\n"
+		    "sombody else has entered your name into our system. In such\n"
+		    "a case, you can safely ignore this email, nothing will happen\n"
+		    "without your authorization, or if you receive it repeatedly,\n"
+		    "you can contact us on kp@auto-mat.cz.\n\n"
+		    "Best Regards,\n"
+		    "Auto*Mat\n" % user.variable_symbol)
+	    EmailMessage(subject=mail_subject, body=mail_body,
+			 from_email = 'kp@auto-mat.cz', to = [user.email]).send()
+
+    def _find_matching_users(self, email, firstname, surname):
+	    users = (set(User.objects.filter(email=email, active=True).all()) |
+		     set(User.objects.filter(firstname=firstname, surname=surname, active=True)))
+	    return list(users)
+
+    def get_form(self, step=None, data=None, files=None):
+	    form = super(OneTimePaymentWizard, self).get_form(step, data, files)
+	    if step == self._step_number(OneTimePaymentWizardFormUnknown):
+		    cd0 = self._step_data(OneTimePaymentWizardFormBase)
+		    if cd0:
+			    for f in ['firstname', 'surname', 'email']:
+				    form.fields[f].initial = cd0[f]
+	    elif step == self._step_number(OneTimePaymentWizardFormWhoIs):
+		    def obfuscate(email):
+			    m = re.match('(?P<b1>.).*(?P<b2>.)@(?P<a>.).*\.(?P<d>.+)', email)
+			    return m and ("%s***%s@%s***.%s" % m.groups()) or ""
+		    cd0 = self._step_data(OneTimePaymentWizardFormBase)
+		    if cd0:
+			    users = self._find_matching_users(*[cd0[key] for key in [
+						    'email', 'firstname', 'surname']])
+			    candidates = ([(u.id, "%s %s <%s>" % (u.firstname, u.surname, obfuscate(u.email))) for u in users]
+					  + [('None', _("None of these accounts"))])
+			    form.fields['uid'] = forms.ChoiceField(choices=candidates)
+	    elif step == self._step_number(OneTimePaymentWizardFormConfirm):
+		    d2 = self._step_data(OneTimePaymentWizardFormWhoIs)
+		    if d2['uid'] != 'None':
+			    self.send_vs_reminder(d2['uid'])
+	    return form
+
+def onetime (request):
+	forms = OneTimePaymentWizard.FORMS
+	cw = OneTimePaymentWizard.as_view(
+		[form[1] for form in forms],
+		condition_dict = {form[0]:form[2] for form in forms})
+	return cw(request)

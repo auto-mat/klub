@@ -1,0 +1,106 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+<title>{% block title %}{% endblock %}</title>
+
+<script src="/resources/js/jquery.js"/></script>
+<script src="/resources/js/jquery-ui.js"></script>
+<script src="/resources/js/jquery.ui.datepicker-cs.js"></script>
+
+<link rel="stylesheet" href="/resources/css/jquery-ui.css" type="text/css" media="screen" />
+
+<script type="text/javascript">
+jQuery(function() {
+   jQuery("#id_expected_date_of_first_payment").datepicker({ dateFormat: 'd.m.yy' });
+});
+</script>     
+
+<link rel="stylesheet" href="http://www.auto-mat.cz/wp-content/themes/atm/style.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="/upload/forms.css" type="text/css" media="screen" />
+<style type="text/css">
+#content ul li {
+    list-style: none;
+    padding: 1px 0;
+}
+.errorlist li {
+    font-size: 12px !important;
+    display: block;
+    padding: 4px 5px 4px 25px;
+    margin: 0 0 3px 0;
+    border: 1px solid red;
+    color: white;
+    background: red url(../img/admin/icon_alert.gif) 5px .3em no-repeat;
+}
+</style>
+
+{% if wizard %}
+{{ wizard.form.media }}
+{% endif %}
+</head>
+
+<body>
+<div id="container">
+<div id="content">
+
+<h1>{% block heading %}{% endblock %}</h1>
+
+{% block intro %}{% endblock %}
+
+{% block form_content %}
+
+<form action="" method="post">{% csrf_token %}
+{% if wizard %}
+  {{ wizard.management_form }}
+    {% for field in wizard.form %}
+        <div class="fieldWrapper">
+            {% if field.field.required %}
+                <img src="http://www.auto-mat.cz/wp-content/themes/atm/img/odrazka.gif" />
+                <strong>
+            {% endif %}
+            {{ field.label_tag }}:<br/>
+            {% if field.field.required %}
+                </strong>
+            {% endif %}
+            {{ field.errors }}
+	    {{ field }}
+        </div>
+      {% endfor %}
+  {% if wizard.steps.prev %}
+  <button name="wizard_prev_step" type="submit" value="{{ wizard.steps.prev }}">Zpět</button>
+  {% endif %}
+{% else %}
+    {% for field in form %}
+        <div class="fieldWrapper">
+            {% if field.field.required %}
+                <img src="http://www.auto-mat.cz/wp-content/themes/atm/img/odrazka.gif" />
+                <strong>
+            {% endif %}
+            {{ field.label_tag }}:<br/>
+            {% if field.field.required %}
+                </strong>
+            {% endif %}
+            {{ field.errors }}
+	    {{ field }}
+        </div>
+    {% endfor %}
+
+{% endif %}
+
+{% block agreement %}
+{% endblock %}
+<input type="submit" value="Odeslat"/>
+</form>
+{% endblock %}
+
+{% block outro %}{% endblock %}
+
+{% block warning %}
+{% endblock %}
+
+</div>
+</div>
+</body>
+</html>

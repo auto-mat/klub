@@ -1,71 +1,27 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+{% extends "registration_form.html" %}
 
-<head profile="http://gmpg.org/xfn/11">
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+{% block title %}
+Trvalý příkaz | Auto*Mat
+{% endblock %}
 
-<title>  Trvalý příkaz | Auto*Mat</title>
+{% block heading %}
+Trvalý příkaz
+{% endblock %}
 
-<script src="/resources/js/jquery.js"/></script>
-<script src="/resources/js/jquery-ui.js"></script>
-<script src="/resources/js/jquery.ui.datepicker-cs.js"></script>
-
-<link rel="stylesheet" href="/resources/css/jquery-ui.css" type="text/css" media="screen" />
-
-<script type="text/javascript">
-jQuery(function() {
-   jQuery("#id_expected_date_of_first_payment").datepicker({ dateFormat: 'd.m.yy' });
-});
-</script>     
-
-<link rel="stylesheet" href="http://www.auto-mat.cz/wp-content/themes/atm/style.css" type="text/css" media="screen" />
-<link rel="stylesheet" href="/upload/forms.css" type="text/css" media="screen" />
-<style type="text/css">
-#content ul li {
-    list-style: none;
-    padding: 1px 0;
-}
-.errorlist li {
-    font-size: 12px !important;
-    display: block;
-    padding: 4px 5px 4px 25px;
-    margin: 0 0 3px 0;
-    border: 1px solid red;
-    color: white;
-    background: red url(../img/admin/icon_alert.gif) 5px .3em no-repeat;
-}
-</style>
-</head>
-
-<body>
-<div id="container">
-<div id="content">
-Jestli se Vám naše aktivity líbí a chcete, abychom v nich pokračovali,
+{% block intro %}
+<p>Jestli se Vám naše aktivity líbí a chcete, abychom v nich pokračovali,
 podpořte nás finančně – posílejte nám na náš účet pravidelný příspěvek,
-abychom mohli i nadále prosazovat Vaše zájmy.
+abychom mohli i nadále prosazovat Vaše zájmy.</p>
 
-<em>(Platby mohou mít frekvenci měsíční, čtvrtletní nebo i roční – pro získání
+<p><em>(Platby mohou mít frekvenci měsíční, čtvrtletní nebo i roční – pro získání
 členské karty je rozhodující to, aby odcházely pomocí trvalého příkazu
-a celková výše daru činila alespoň 1200 Kč ročně.)</em>
+a celková výše daru činila alespoň 1200 Kč ročně.)</em></p>
 
-<p>Chci podporovat Auto*Mat. Jedu v tom s vámi!
+<p>Chci podporovat Auto*Mat. Jedu v tom s vámi!</p>
+{% endblock %}
 
-<form action="/regular/" method="post">
-    {% for field in form %}
-        <div class="fieldWrapper">
-            {% if field.field.required %}
-                <img src="http://www.auto-mat.cz/wp-content/themes/atm/img/odrazka.gif" />
-                <strong>
-            {% endif %}
-            {{ field.label_tag }}:<br/>
-            {% if field.field.required %}
-                </strong>
-            {% endif %}
-            {{ field.errors }}
-	    {{ field }}
-        </div>
-    {% endfor %}
 
+{% block agreement %}
 <p>
 Odesláním tohoto formuláře souhlasím s tím, aby poskytnuté údaje
 (osobní údaje ve smyslu paragrafu 4 pís. a zákona 101/200 Sb., O
@@ -74,13 +30,8 @@ sdružením Auto*Mat za účelem zasílání informačních materiálů
 o činnosti sdružení. Auto*Mat, o.s. se tímto zavazuje, že uvedené
 údaje neposkytne žádným jiným organizacím nebo firmám.
 </p>
+{% endblock %}
 
-<input type="submit" value="Odeslat" />
-</form>
-
+{% block warning %}
 <p>(Odeslání formuláře může malou chvilku trvat, prosíme o trpělivost.)</p>
-
-</div>
-</div>
-</body>
-</html>
+{% endblock %}
