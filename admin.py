@@ -26,7 +26,7 @@ from django.utils.translation import ugettext as _
 from django.contrib.admin.filterspecs import FilterSpec, RelatedFilterSpec
 from django.http import HttpResponseRedirect
 # Local models
-from aklub.models import User, ProxyUser, Payment, \
+from aklub.models import User, NewUser, Payment, \
     Communication, AutomaticCommunication, MassCommunication, \
     Condition, AccountStatements, UserImports, Campaign, Recruiter 
 from aklub.filters import NullFilterSpec, ConditionFilterSpec
@@ -48,11 +48,11 @@ class CommunicationInline(admin.TabularInline):
 
 # -- ADMIN FORMS --
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('person_name', 'requires_action', 'is_direct_dialogue',
+    list_display = ('person_name', 
                     'variable_symbol', 'regular_payments', 'registered_support',
-                    'regular_payments_delay', 'expected_regular_payment_date',
+                    'regular_payments_info', 
                     'number_of_payments', 'total_contrib', 'regular_amount',
-                    'recruiter', 'active')
+                    'active')
     list_filter = ['regular_payments', 'language', 'active',  'source', 'firstname', 'campaigns',]
     search_fields = ['firstname', 'surname']
     ordering = ('surname',)
@@ -147,10 +147,14 @@ class PaymentAdmin(admin.ModelAdmin):
     date_hierarchy = 'date'
     search_fields = ['user__surname', 'user__firstname', 'amount', 'VS', 'user_identification']
 
-class ProxyUserAdmin(UserAdmin):
+class NewUserAdmin(UserAdmin):
     list_display = ('person_name', 'requires_action', 'is_direct_dialogue',
                     'variable_symbol', 'regular_payments', 'registered_support',
                     'recruiter', 'active')
+    def queryset(self, request):
+        qs = super(NewUserAdmin, self).queryset(request)
+        #XXX: this should be filter by special flag, not by addressment
+        return qs.filter(addressment__isnull=True)
 
 # Register our custom filter for field 'user' on model 'Payment'
 # (Note by HH: I believe this does nothing, see filterspec.py RelatedFilterSpec.insert( etc.
@@ -246,7 +250,7 @@ class RecruiterAdmin(admin.ModelAdmin):
     list_display = ('recruiter_id', 'person_name', 'email', 'telephone')
 
 admin.site.register(User, UserAdmin)
-admin.site.register(ProxyUser, ProxyUserAdmin)
+admin.site.register(NewUser, NewUserAdmin)
 admin.site.register(Communication, CommunicationAdmin)
 admin.site.register(Payment, PaymentAdmin)
 admin.site.register(AccountStatements, AccountStatementsAdmin)

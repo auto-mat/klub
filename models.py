@@ -36,7 +36,7 @@ class UserManager(models.Manager):
     def get_query_set(self):
         return super(UserManager,self).get_query_set().annotate(
             payment_total=Sum('payment__amount'),
-            payments_number=Count('id'))
+            payments_number=Count('payment'))
 
 class Campaign(models.Model):
     """Campaign -- abstract event with description
@@ -366,6 +366,13 @@ class User(models.Model):
         else:
             return datetime.timedelta(days=0)
 
+    def regular_payments_info(self):
+        return u"<br>".join([
+                u"%s: %s" % (_(u"Excepted"), self.expected_regular_payment_date()), 
+                u"%s: %s" % (_(u"Delay"), self.regular_payments_delay()),
+            ])
+    regular_payments_info.allow_tags = True
+
     def total_contrib(self):
         """Return the sum of all money received from this user"""
 	return self.payment_total
@@ -381,10 +388,10 @@ class User(models.Model):
         super(User, self).save(*args, **kwargs)
         autocom.check(users=[self])
 
-class ProxyUser(User):
+class NewUser(User):
     class Meta:
         proxy = True
-        verbose_name = "Proxy user"
+        verbose_name = "New user"
 
 class AccountStatements(models.Model):
     """AccountStatemt entry and DB model
