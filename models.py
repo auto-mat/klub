@@ -368,7 +368,7 @@ class User(models.Model):
 
     def regular_payments_info(self):
         return u"<br>".join([
-                u"%s: %s" % (_(u"Excepted"), self.expected_regular_payment_date()), 
+                u"%s: %s" % (_(u"Expected"), self.expected_regular_payment_date()), 
                 u"%s: %s" % (_(u"Delay"), self.regular_payments_delay()),
             ])
     regular_payments_info.allow_tags = True
