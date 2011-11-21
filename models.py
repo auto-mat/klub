@@ -21,9 +21,11 @@
 
 # Django imports
 import django
+from django.contrib.admin.templatetags.admin_list import _boolean_icon
 from django.db import models
 from django.db.models import Sum, Count
 from django.core.mail import EmailMessage
+from django.utils.timesince import timesince
 from django.utils.translation import ugettext as _
 # External dependencies
 import datetime
@@ -367,11 +369,14 @@ class User(models.Model):
             return datetime.timedelta(days=0)
 
     def regular_payments_info(self):
-        return u"<br>".join([
-                u"%s: %s" % (_(u"Expected"), self.expected_regular_payment_date()), 
-                u"%s: %s" % (_(u"Delay"), self.regular_payments_delay()),
-            ])
+        if not self.regular_payments:
+            return _boolean_icon(False)
+        out = [ u"%s: %s" % (_(u"Expected"), self.expected_regular_payment_date()) ]
+        if self.regular_payments_delay():
+            out.append(u"%s: %s" % (_(u"Delay"), timesince(self.expected_regular_payment_date())))
+        return u"<br>".join(out)
     regular_payments_info.allow_tags = True
+    regular_payments_info.short_description = _(u"Regular payments")
 
     def total_contrib(self):
         """Return the sum of all money received from this user"""

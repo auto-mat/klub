@@ -49,7 +49,7 @@ class CommunicationInline(admin.TabularInline):
 # -- ADMIN FORMS --
 class UserAdmin(admin.ModelAdmin):
     list_display = ('person_name', 
-                    'variable_symbol', 'regular_payments', 'registered_support',
+                    'variable_symbol', 'registered_support',
                     'regular_payments_info', 
                     'number_of_payments', 'total_contrib', 'regular_amount',
                     'active')
