@@ -86,7 +86,7 @@ def check(users=None):
         #print "    Action: %s" % auto_comm.method
         #print "    Users newly satisfying condition:"
         for user in (users or User.objects.all()):
-            if user not in auto_comm.sent_to_users.all():
+            if user.id not in [u.id for u in auto_comm.sent_to_users.all()]:
                 if auto_comm.condition.is_true(user):
                     #print "      %s" % user
                     c = Communication(user=user, method=auto_comm.method, date=datetime.datetime.now(),
