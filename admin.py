@@ -60,6 +60,7 @@ class UserAdmin(admin.ModelAdmin):
     save_as = True
     inlines = [PaymentsInline, CommunicationInline]
     raw_id_fields = ('recruiter',)
+    readonly_fields = ('verified_by',)
     filter_horizontal = ('campaigns',)
     fieldsets = [
         ('Basic personal', {
@@ -94,7 +95,7 @@ class UserAdmin(admin.ModelAdmin):
                            'other_benefits'],
                 'classes': ['collapse']}),
         ('Note', {
-                'fields': ['note', 'source', 'campaigns', 'recruiter',],
+                'fields': ['note', 'source', 'campaigns', 'recruiter', 'verified', 'verified_by'],
                 'classes': ['collapse']}),
         ]
 
@@ -112,6 +113,11 @@ class UserAdmin(admin.ModelAdmin):
             instance.handled_by = request.user
             instance.save()
         formset.save_m2m()
+
+    def save_model(self, request, obj, form, change):
+        if obj.verified and not obj.verified_by:
+            obj.verified_by = request.user
+        obj.save()
 
     def send_mass_communication(self, req, queryset):
         """Mass communication action
@@ -148,13 +154,9 @@ class PaymentAdmin(admin.ModelAdmin):
     search_fields = ['user__surname', 'user__firstname', 'amount', 'VS', 'user_identification']
 
 class NewUserAdmin(UserAdmin):
-    list_display = ('person_name', 'requires_action', 'is_direct_dialogue',
+    list_display = ('person_name', 'is_direct_dialogue',
                     'variable_symbol', 'regular_payments', 'registered_support',
                     'recruiter', 'active')
-    def queryset(self, request):
-        qs = super(NewUserAdmin, self).queryset(request)
-        #XXX: this should be filter by special flag, not by addressment
-        return qs.filter(addressment__isnull=True)
 
 # Register our custom filter for field 'user' on model 'Payment'
 # (Note by HH: I believe this does nothing, see filterspec.py RelatedFilterSpec.insert( etc.

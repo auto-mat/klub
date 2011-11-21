@@ -284,6 +284,15 @@ class User(models.Model):
                                        blank=True,
                                        editable=True)
     recruiter = models.ForeignKey(Recruiter, blank=True, null=True)
+    verified = models.BooleanField(
+        _("Verified"),
+        help_text=("Was the the user information verified by a club administrator?"),
+        default=False)
+    verified_by = models.ForeignKey(
+        'auth.User',
+        verbose_name=_("Verified by"),
+        related_name='verified_users',
+        null=True, blank=True)
     objects = UserManager()
 
     def __unicode__(self):
@@ -393,10 +402,16 @@ class User(models.Model):
         super(User, self).save(*args, **kwargs)
         autocom.check(users=[self])
 
+class NewUserManager(models.Manager):
+    def get_query_set(self):
+        return super(NewUserManager,self).get_query_set().filter(verified=False)
+
 class NewUser(User):
+    objects = NewUserManager()
     class Meta:
         proxy = True
-        verbose_name = "New user"
+        verbose_name = _("new user")
+        verbose_name_plural = _("new users")
 
 class AccountStatements(models.Model):
     """AccountStatemt entry and DB model
