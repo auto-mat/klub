@@ -246,5 +246,5 @@ def onetime (request):
 	forms = OneTimePaymentWizard.FORMS
 	cw = OneTimePaymentWizard.as_view(
 		[form[1] for form in forms],
-		condition_dict = {form[0]:form[2] for form in forms})
+		condition_dict = dict([(form[0], form[2]) for form in forms]))
 	return cw(request)
