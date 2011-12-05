@@ -243,23 +243,23 @@ class User(models.Model):
         max_length=500, blank=True)
     public = models.BooleanField(
         verbose_name=_("Publish my name in the list of supporters"),
-        help_text=("Uncheck if you don't want your name to appear in the lists of supporters."),
+        help_text=_("Uncheck if you don't want your name to appear in the lists of supporters."),
         default=True)
     wished_tax_confirmation = models.BooleanField(
         verbose_name=_("Send tax confirmation"),
-        help_text=("If you wish to receive tax confirmation at the end of year, check this field."),
+        help_text=_("If you wish to receive tax confirmation at the end of year, check this field."),
         default=True)
     wished_welcome_letter = models.BooleanField(
         verbose_name=_("Send welcome letter"),
-        help_text=("If you wish to receive welcome letter with your club card."),
+        help_text=_("If you wish to receive welcome letter with your club card."),
         default=True)
     wished_information = models.BooleanField(
         verbose_name=_("Send regular news via email"),
-        help_text=("If you wish to receive regular news about our activities."),
+        help_text=_("If you wish to receive regular news about our activities."),
         default=True)
     active = models.BooleanField(
         verbose_name=_("Active"),
-        help_text=("Is the user active member? Use this field to disable old "
+        help_text=_("Is the user active member? Use this field to disable old "
                    "or temporary users."),
         default=True)
     # --- Communication
@@ -287,7 +287,7 @@ class User(models.Model):
     recruiter = models.ForeignKey(Recruiter, blank=True, null=True)
     verified = models.BooleanField(
         _("Verified"),
-        help_text=("Was the the user information verified by a club administrator?"),
+        help_text=_("Was the the user information verified by a club administrator?"),
         default=False)
     verified_by = models.ForeignKey(
         'auth.User',
