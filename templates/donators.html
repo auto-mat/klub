@@ -1,0 +1,30 @@
+{% extends "registration_form.html" %}
+
+{% block head %}
+{% endblock %}
+
+{% block title %}
+Podporovatelé Auto*Matu
+{% endblock %}
+
+{% block heading %}
+Podporovatelé Auto*Matu
+{% endblock %}
+
+{% block form_content %}
+<p>
+Celkem již podpořilo činnost Auto*Matu {{ n_donators }} lidí</br>
+Z toho {{ n_regular }} přispívá na jeho činnost pravidelně
+</p>
+
+<strong>Děkujeme!</strong>
+
+<ul>
+    {% for u in donators %}
+       <li>{{ u.firstname }}&nbsp;{{ u.surname }}</li>
+    {% endfor %}
+</ul>
+
+...a všem dalším, kteří si nepřáli své jméno zveřejnit.
+{% endblock %}
+

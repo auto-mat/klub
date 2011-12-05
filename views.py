@@ -2,6 +2,7 @@
 import datetime, re
 from django import forms, http
 from django.db import models
+from django.db.models import Sum
 from django.shortcuts import render_to_response
 from django.utils.translation import ugettext as _
 from django.contrib.admin import widgets
@@ -81,6 +82,16 @@ def regular(request):
 def thanks(request):
 	return render_to_response('thanks.html') 
 
+def donators(request):
+	donators = User.objects.annotate(
+		payment_total=Sum('payment__amount')
+		).filter(public=True, payment__amount__gt=0).order_by('surname')
+	n_donators = len(donators)
+	n_regular = len(donators.filter(active=True, regular_payments=True))
+	return render_to_response('donators.html', {
+			'n_donators': n_donators,
+			'n_regular': n_regular,
+			'donators': donators})
 
 class OneTimePaymentWizardFormBase(forms.Form):
         required_css_class = 'required' 
