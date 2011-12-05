@@ -158,7 +158,7 @@ class NewUserAdmin(UserAdmin):
                     'recruiter', 'active')
 
 class CommunicationAdmin(admin.ModelAdmin):
-    list_display = ('subject', 'dispatched', 'send', 'user', 'method',  'created_by', 'handled_by',
+    list_display = ('subject', 'dispatched', 'user', 'method',  'created_by', 'handled_by',
                     'date', 'type')
     raw_id_fields = ('user',)
     readonly_fields = ('type', 'created_by', 'handled_by',)

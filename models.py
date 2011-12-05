@@ -609,6 +609,7 @@ COMMUNICATION_METHOD = (
     ('phonecall', _("Phonecall")),
     ('mail', _("Mail")),
     ('personal', _("Personal")),
+    ('internal', _("Internal")),
 )
 
 COMMUNICATION_TYPE = (
@@ -670,18 +671,14 @@ class Communication(models.Model):
         related_name='handled_by_communication',
         null=True, blank=True)
     send = models.BooleanField(
-        verbose_name=_("Send"),
-        help_text=_("Request sending this communication to the user. For emails, this means that "
-                     "the email will be immediatelly sent. In other types of communications, "
-                     "someone must handle this manually."),
+        verbose_name=_("Send / Handle"),
+        help_text=_("Request sending or resolving this communication. For emails, this means that "
+                    "the email will be immediatelly sent to the user. In other types of "
+                    "communications, someone must handle this manually."),
         default=False)
     dispatched = models.BooleanField(
-        verbose_name=_("Dispatched"),
-        help_text=_("Was this message already communicated with the client? Only check this "
-                    "field when you are sure this communication was already sent or if this is "
-                    " incomming communication. Only uncheck this field if you are sure the "
-                    "recipient didn't get this communication "
-                    "(such as due to lost mail)."),
+        verbose_name=_("Dispatched / Done"),
+        help_text=_("Was this message already sent, communicated and/or resolved?"),
         default=False)
 
     def save(self, *args, **kwargs):
