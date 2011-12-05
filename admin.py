@@ -64,7 +64,7 @@ class UserAdmin(admin.ModelAdmin):
     fieldsets = [
         ('Basic personal', {
                 'fields': [('firstname', 'surname'),
-                           ('sex', 'language', 'active')]}),
+                           ('sex', 'language', 'active', 'public')]}),
         ('Titles and addressments', {
                 'fields': [('title_before', 'title_after'),
                            ('addressment', 'addressment_on_envelope')],
