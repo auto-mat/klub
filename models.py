@@ -112,8 +112,8 @@ class User(models.Model):
         ('unknown', _('Unknown')))
     LANGUAGE = (
         # TODO: List of languages used in the club should come from app settings
-        ('czech', _('Czech')), 
-        ('english', _('English')))
+        ('cs', _('Czech')), 
+        ('en', _('English')))
     SOURCE = (
         ('web', _("Web form")),
         ('direct-dialogue-partial-form', _("Direct dialogue -- partial form (not automatic in bank)")),
@@ -155,7 +155,7 @@ class User(models.Model):
                     "emails in this language and administrators will use "
                     "this language in phone calls and personal contacts."),
         choices=LANGUAGE,
-        default="czech",
+        default="cs",
         max_length=50)
     # -- Contacts
     email = models.CharField(
@@ -956,6 +956,9 @@ class MassCommunication(models.Model):
         verbose_name=_("Name"),
         max_length=50,
         blank=False, null=True)
+    date = models.DateField(
+        verbose_name=_("Date"), editable = False,
+        default=None, blank=True, null=True)
     method = models.CharField(
         verbose_name=_("Method"),
         max_length=30,
@@ -967,7 +970,12 @@ class MassCommunication(models.Model):
         verbose_name=_("Template"),
         help_text = _("Template can contain variable substitutions like addressment, name, "
                       "variable symbol etc."),
-        max_length=10000)
+        max_length=10000,
+        blank=True, null=True)
+    template_en = models.TextField(
+        verbose_name=_("English template"),
+        max_length=10000,
+        blank=True, null=True)
     attachment = models.FileField(
         verbose_name=_("Attachment"),
         upload_to='mass-communication-attachments',

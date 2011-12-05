@@ -186,18 +186,19 @@ class AutomaticCommunicationAdmin(admin.ModelAdmin):
     ordering = ('name',)
 
 class MassCommunicationAdmin(admin.ModelAdmin):
-    list_display = ('name', 'method', 'subject')
-    ordering = ('name',)
+    list_display = ('name', 'date', 'method', 'subject')
+    ordering = ('date',)
 
     def save_form(self, request, form, change):
         super(MassCommunicationAdmin, self).save_form(request, form, change)
         obj = form.save()
         if obj.send:
             for user in obj.send_to_users.all():
-                if user.active:
+                template = (user.language == 'en') and obj.template_en or obj.template
+                if user.active and template.strip() != '':
                     c = Communication(user=user, method=obj.method, date=datetime.datetime.now(),
                                       subject=obj.subject,
-                                      summary=autocom.process_template(obj.template, user),
+                                      summary=autocom.process_template(template, user),
                                       attachment=copy.copy(obj.attachment),
                                       note=_("Prepared by auto*mated mass communications at %s") % datetime.datetime.now(),
                                       send=True, created_by = request.user, handled_by=request.user,
@@ -205,6 +206,7 @@ class MassCommunicationAdmin(admin.ModelAdmin):
                     c.save()
             # Sending was done, so revert the state of the 'send' checkbox back to False
             obj.send = False
+            obj.date = datetime.datetime.now()
             obj.save()
         # TODO: Generate some summary info message into request about the result
         return obj
