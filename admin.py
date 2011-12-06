@@ -22,6 +22,7 @@ import copy
 import datetime
 # Django imports
 from django.contrib import admin
+from django.db.models import Sum, Count
 from django.utils.translation import ugettext as _
 from django.http import HttpResponseRedirect
 # Local models
@@ -97,6 +98,12 @@ class UserAdmin(admin.ModelAdmin):
                 'fields': ['note', 'source', 'campaigns', 'recruiter', 'verified', 'verified_by'],
                 'classes': ['collapse']}),
         ]
+
+    def queryset(self, request):
+        qs = super(UserAdmin, self).queryset(request)
+        return qs.annotate(
+            payment_total=Sum('payment__amount'),
+            payments_number=Count('payment'))
 
     def save_formset(self, request, form, formset, change):
 	# We need to save the request.user to inline Communication

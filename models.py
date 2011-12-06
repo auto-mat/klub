@@ -23,7 +23,6 @@
 import django
 from django.contrib.admin.templatetags.admin_list import _boolean_icon
 from django.db import models
-from django.db.models import Sum, Count
 from django.core.mail import EmailMessage
 from django.utils.timesince import timesince
 from django.utils.translation import ugettext as _
@@ -33,12 +32,6 @@ import csv
 import os.path
 # Local modules
 import autocom
-
-class UserManager(models.Manager):
-    def get_query_set(self):
-        return super(UserManager,self).get_query_set().annotate(
-            payment_total=Sum('payment__amount'),
-            payments_number=Count('payment'))
 
 class Campaign(models.Model):
     """Campaign -- abstract event with description
@@ -294,7 +287,6 @@ class User(models.Model):
         verbose_name=_("Verified by"),
         related_name='verified_users',
         null=True, blank=True)
-    objects = UserManager()
 
     def __unicode__(self):
         return self.person_name()

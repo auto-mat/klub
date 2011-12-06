@@ -83,9 +83,8 @@ def thanks(request):
 	return render_to_response('thanks.html') 
 
 def donators(request):
-	donators = User.objects.annotate(
-		payment_total=Sum('payment__amount')
-		).filter(public=True, payment__amount__gt=0).order_by('surname')
+        payed = Payment.objects.exclude(type='expected').values_list('user_id', flat=True)
+	donators = User.objects.filter(public=True, id__in=payed)
 	n_donators = len(donators)
 	n_regular = len(donators.filter(active=True, regular_payments=True))
 	return render_to_response('donators.html', {
