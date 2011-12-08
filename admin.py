@@ -61,7 +61,7 @@ class UserAdmin(admin.ModelAdmin):
     inlines = [PaymentsInline, CommunicationInline]
     raw_id_fields = ('recruiter',)
     readonly_fields = ('verified_by',)
-    filter_horizontal = ('campaigns',)
+    # filter_horizontal = ('campaigns',) # broken in django pre-1.4
     fieldsets = [
         ('Basic personal', {
                 'fields': [('firstname', 'surname'),
