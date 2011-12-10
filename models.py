@@ -23,7 +23,11 @@
 import django
 from django.contrib.admin.templatetags.admin_list import _boolean_icon
 from django.db import models
+from django.db.models import Sum
 from django.core.mail import EmailMessage
+from django.core.files import File
+from django.core.files.storage import FileSystemStorage
+from django.core.files.temp import NamedTemporaryFile
 from django.utils.timesince import timesince
 from django.utils.translation import ugettext as _
 # External dependencies
@@ -32,6 +36,7 @@ import csv
 import os.path
 # Local modules
 import autocom
+import confirmation
 
 class Campaign(models.Model):
     """Campaign -- abstract event with description
@@ -394,6 +399,23 @@ class User(models.Model):
         """
         super(User, self).save(*args, **kwargs)
         autocom.check(users=[self])
+
+    def make_tax_confirmation(self, year):
+	amount = self.payment_set.exclude(type='expected').filter(date__year=year).aggregate(Sum('amount'))['amount__sum']
+	if not amount:
+		return
+	temp = NamedTemporaryFile()
+	name = u"%s %s" % (self.firstname, self.surname)
+	addr_city = u"%s %s" % (self.zip_code, self.city)
+	confirmation.makepdf(temp, name, self.sex, self.street, addr_city, year, amount)
+	try:
+		conf = TaxConfirmation.objects.get(user=self,year=year)
+	except TaxConfirmation.DoesNotExist:
+		conf = TaxConfirmation(user=self,year=year)
+	conf.file = File(temp)
+	conf.save()
+	return conf
+
 
 class NewUserManager(models.Manager):
     def get_query_set(self):
@@ -1045,3 +1067,21 @@ class UserImports(models.Model):
                      variable_symbol = user['vsymbol'])
             u.save()
 
+class OverwriteStorage(FileSystemStorage):
+    def get_available_name(self, name):
+        """
+        Returns a filename that's free on the target storage system, and
+        available for new content to be written to.
+        """
+        # If the filename already exists, remove it as if it was a true file syste
+        if self.exists(name):
+                self.delete(name)
+        return name
+
+def confirmation_upload_to(instance, filename):
+	return "confirmations/%s_%s.pdf" % (instance.user.id, instance.year)
+
+class TaxConfirmation(models.Model):
+	user = models.ForeignKey(User)
+	year = models.PositiveIntegerField()
+	file = models.FileField(upload_to=confirmation_upload_to, storage=OverwriteStorage())
