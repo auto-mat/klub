@@ -1,5 +1,6 @@
 # coding=utf-8
 from datetime import datetime
+import os
 import reportlab
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image
 from reportlab.lib.enums import TA_CENTER
@@ -10,8 +11,9 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
 def makepdf(outfile, name, sex, street, city, year, amount):
+        DIR = os.path.dirname(__file__)
 	# CONFIGURATION
-	logo = "logo.jpg"
+	logo = os.path.join(DIR, "logo.jpg")
 	statutory_name = u"Jakub Stránský"
 	statutory_titles = [
 		u"člen výkonné rady o.s. Auto*Mat",
