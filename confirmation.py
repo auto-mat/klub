@@ -1,5 +1,6 @@
 # coding=utf-8
 from datetime import datetime
+import reportlab
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -41,6 +42,8 @@ def makepdf(outfile, name, sex, street, city, year, amount):
 	filename = "potvrzeni2011.pdf"
 	# END OF CONFIGURATION
 
+        folder = '/usr/share/fonts/truetype/ttf-dejavu'
+        reportlab.rl_config.TTFSearchPath.append(folder) 
 	pdfmetrics.registerFont(TTFont('DejaVu', 'DejaVuSans.ttf'))
 	pdfmetrics.registerFont(TTFont('DejaVuB', 'DejaVuSans-Bold.ttf'))
 
