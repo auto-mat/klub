@@ -14,6 +14,7 @@ def makepdf(outfile, name, sex, street, city, year, amount):
         DIR = os.path.dirname(__file__)
 	# CONFIGURATION
 	logo = os.path.join(DIR, "logo.jpg")
+	signature = os.path.join(DIR, "signature.jpg")
 	statutory_name = u"Jakub Stránský"
 	statutory_titles = [
 		u"člen výkonné rady o.s. Auto*Mat",
@@ -61,7 +62,7 @@ def makepdf(outfile, name, sex, street, city, year, amount):
 	styles['Heading1'].fontName = 'DejaVuB'
 	styles['Heading1'].fontSize = 12
 	styles['Heading1'].alignment = TA_CENTER
-	styles.add(ParagraphStyle(name='Indented', leftIndent=300))
+	styles.add(ParagraphStyle(name='Indented', leftIndent=290))
 	styles['Indented'].fontName = 'DejaVu'
 
 	# START OF THE DOCUMENT
@@ -96,13 +97,16 @@ def makepdf(outfile, name, sex, street, city, year, amount):
 
 	def firstPageGraphics(canvas, doc):
 		canvas.saveState()
+
+		im = Image(signature, 5.8*cm, 4.7*cm)
+		im.drawOn(canvas, 100, 100)
 		canvas.setLineWidth(.3)
-		canvas.line(50,70,550,70)
+		canvas.line(45,80,550,80)
 		canvas.setFont('DejaVuB', 9)
-		canvas.drawString(170,55,footer1)
+		canvas.drawString(145,65,footer1)
 		canvas.setFont('DejaVu', 9)
-		canvas.drawString(55,40,footer2)
-		canvas.drawString(65,25,footer3)
+		canvas.drawString(50,50,footer2)
+		canvas.drawString(60,35,footer3)
 		canvas.restoreState()
 
 	doc.build(Story, onFirstPage=firstPageGraphics)
