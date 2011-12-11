@@ -21,14 +21,15 @@
 import copy
 import datetime
 # Django imports
-from django.contrib import admin
+from django.contrib import admin, messages
+from django.core.urlresolvers import reverse
 from django.db.models import Sum, Count
 from django.utils.translation import ugettext as _
 from django.http import HttpResponseRedirect
 # Local models
 from aklub.models import User, NewUser, Payment, \
     Communication, AutomaticCommunication, MassCommunication, \
-    Condition, AccountStatements, UserImports, Campaign, Recruiter 
+    Condition, AccountStatements, UserImports, Campaign, Recruiter, TaxConfirmation
 import filters
 import autocom
 
@@ -255,6 +256,37 @@ class CampaignAdmin(admin.ModelAdmin):
 class RecruiterAdmin(admin.ModelAdmin):
     list_display = ('recruiter_id', 'person_name', 'email', 'telephone')
 
+class TaxConfirmationAdmin(admin.ModelAdmin):
+    list_display = ('user', 'year', 'file')
+    ordering = ('user__surname', 'user__firstname',)
+    list_filter = ['year',]
+    search_fields = ('user__surname', 'user__firstname', 'user__variable_symbol',)
+
+    def generate(self, request):
+	year = 2011
+	payed = Payment.objects.filter(date__year=year).exclude(type='expected').values_list('user_id', flat=True)
+	donors = User.objects.filter(id__in=payed).order_by('surname')
+	count = 0
+	for d in donors:
+	    c = d.make_tax_confirmation(year)
+	    if c:
+		count += 1
+        messages.info(request, 'Generated %d tax confirmations' % count)
+	return HttpResponseRedirect(reverse('admin:aklub_taxconfirmation_changelist'))
+
+    def get_urls(self):
+        from django.conf.urls import patterns, url
+        urls = super(TaxConfirmationAdmin, self).get_urls()
+        my_urls = patterns('',
+            url(
+                r'generate',
+                self.admin_site.admin_view(self.generate),
+                name='aklub_taxconfirmation_generate',
+            ),
+        )
+        return my_urls + urls
+    
+
 admin.site.register(User, UserAdmin)
 admin.site.register(NewUser, NewUserAdmin)
 admin.site.register(Communication, CommunicationAdmin)
@@ -266,3 +298,4 @@ admin.site.register(Condition, ConditionAdmin)
 admin.site.register(UserImports, UserImportsAdmin)
 admin.site.register(Campaign, CampaignAdmin)
 admin.site.register(Recruiter, RecruiterAdmin)
+admin.site.register(TaxConfirmation, TaxConfirmationAdmin)
