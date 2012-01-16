@@ -202,12 +202,24 @@ class MassCommunicationAdmin(admin.ModelAdmin):
         obj = form.save()
         if obj.send:
             for user in obj.send_to_users.all():
-                template = (user.language == 'en') and obj.template_en or obj.template
+                if user.language == 'cs':
+                    template = obj.template
+                else:
+                    template = obj.template_en
                 if user.active and template.strip() != '':
+                    if not obj.attach_tax_confirmation:
+                        attachment = copy.copy(obj.attachment)
+                    else:
+                        tax_confirmations = TaxConfirmation.objects.filter(
+                            user = user, year = datetime.datetime.now().year-1)
+                        if len(tax_confirmations) > 0:
+                            attachment = copy.copy(tax_confirmations[0].file)
+                        else:
+                            attachment = None
                     c = Communication(user=user, method=obj.method, date=datetime.datetime.now(),
                                       subject=obj.subject,
                                       summary=autocom.process_template(template, user),
-                                      attachment=copy.copy(obj.attachment),
+                                      attachment=attachment,
                                       note=_("Prepared by auto*mated mass communications at %s") % datetime.datetime.now(),
                                       send=True, created_by = request.user, handled_by=request.user,
                                       type='mass')

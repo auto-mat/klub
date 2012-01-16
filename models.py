@@ -730,6 +730,7 @@ class Communication(models.Model):
             try:
                 email.send(fail_silently=False)
             except:
+                # TODO: At least warn about it!
                 pass
             else:
                 self.dispatched = True
@@ -991,6 +992,12 @@ class MassCommunication(models.Model):
         verbose_name=_("Attachment"),
         upload_to='mass-communication-attachments',
         blank=True, null=True)
+    attach_tax_confirmation = models.BooleanField(
+        verbose_name=_("Attach tax confirmation"),
+        help_text=_("If this field is checked, the tax confirmation "
+                    "for last year is appended to the message."),
+        default=False
+        )
     send = models.BooleanField(
         verbose_name=_("Send"),
         help_text = _("If checked, the communication will be created for every user "
@@ -1085,3 +1092,6 @@ class TaxConfirmation(models.Model):
 	user = models.ForeignKey(User)
 	year = models.PositiveIntegerField()
 	file = models.FileField(upload_to=confirmation_upload_to, storage=OverwriteStorage())
+
+        class Meta:
+            unique_together = ('user', 'year',)
