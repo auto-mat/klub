@@ -938,6 +938,10 @@ class AutomaticCommunication(models.Model):
         help_text = _("Template can contain variable substitutions like addressment, name, "
                       "variable symbol etc."),
         max_length=10000)
+    template_en = models.TextField(
+        verbose_name=_("English template"),
+        max_length=10000,
+        blank=True, null=True)
     only_once = models.BooleanField(
         verbose_name=_("Only once"),
         help_text = _("If checked, never send this communication twice to one user"),

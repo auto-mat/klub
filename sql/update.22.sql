@@ -1,0 +1,1 @@
+alter table aklub_automaticcommunication add column "template_en" text;

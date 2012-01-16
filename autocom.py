@@ -30,12 +30,15 @@ def process_template(template_string, user):
     if user.addressment and user.addressment != '':
         addressment = user.addressment
     else:
-        if user.sex == 'male':
-            addressment = u'člene Klubu přátel Auto*Matu'
-        elif user.sex == 'female':
-            addressment = u'členko Klubu přátel Auto*Matu'
+        if user.language == 'cs':
+            if user.sex == 'male':
+                addressment = u'člene Klubu přátel Auto*Matu'
+            elif user.sex == 'female':
+                addressment = u'členko Klubu přátel Auto*Matu'
+            else:
+                addressment = u'člene/členko Klubu přátel Auto*Matu'
         else:
-            addressment = u'člene/členko Klubu přátel Auto*Matu';
+            addressment = u'member of the Auto*Mat friends club'
     # Make variable substitutions
     text = template.substitute(
         addressment = addressment,
@@ -88,11 +91,16 @@ def check(users=None):
         for user in (users or User.objects.all()):
             if user.id not in [u.id for u in auto_comm.sent_to_users.all()]:
                 if auto_comm.condition.is_true(user):
+                    if user.language == 'cs':
+                        template = auto_comm.template
+                    else:
+                        template = auto_comm.template_en;
                     #print "      %s" % user
-                    c = Communication(user=user, method=auto_comm.method, date=datetime.datetime.now(),
-                                      subject=auto_comm.subject, summary=process_template(auto_comm.template, user),
-                                      note="Prepared by auto*mated mailer at %s" % datetime.datetime.now(),
-                                      send=auto_comm.dispatch_auto, type='auto')
-                    auto_comm.sent_to_users.add(user)
-                    c.save()
+                    if template and template != '':
+                        c = Communication(user=user, method=auto_comm.method, date=datetime.datetime.now(),
+                                          subject=auto_comm.subject, summary=process_template(template, user),
+                                          note="Prepared by auto*mated mailer at %s" % datetime.datetime.now(),
+                                          send=auto_comm.dispatch_auto, type='auto')
+                        auto_comm.sent_to_users.add(user)
+                        c.save()
 
