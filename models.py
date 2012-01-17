@@ -923,7 +923,11 @@ class Condition(models.Model):
         
         if left == None or right == None:
             return False
-        
+
+        # Enable comparison of dates and datetimes by converting dates to datetimes as 00:00
+        if isinstance(left, datetime.date) and isinstance(right, datetime.datetime):
+            left = datetime.datetime.combine(left, datetime.time.min)
+
         if self.operation == '=':
             return left == right
         if self.operation == '<':
