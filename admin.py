@@ -26,10 +26,11 @@ from django.core.urlresolvers import reverse
 from django.db.models import Sum, Count
 from django.utils.translation import ugettext as _
 from django.http import HttpResponseRedirect
+import django.forms
 # Local models
 from aklub.models import User, NewUser, Payment, \
     Communication, AutomaticCommunication, MassCommunication, \
-    Condition, AccountStatements, UserImports, Campaign, Recruiter, TaxConfirmation
+    Condition, AccountStatements, Campaign, Recruiter, TaxConfirmation
 import filters
 import autocom
 
@@ -50,7 +51,7 @@ class CommunicationInline(admin.TabularInline):
 # -- ADMIN FORMS --
 class UserAdmin(admin.ModelAdmin):
     list_display = ('person_name', 
-                    'variable_symbol', 'registered_support',
+                    'variable_symbol', 'registered_support_date',
                     'regular_payments_info', 
                     'number_of_payments', 'total_contrib', 'regular_amount',
                     'active')
@@ -174,6 +175,21 @@ class CommunicationAdmin(admin.ModelAdmin):
     date_hierarchy = 'date'
     ordering = ('-date',)
 
+    fieldsets = [
+        (_("Header"), {
+                'fields' : [('user', 'method', 'date')]
+                }),
+        (_("Content"), {
+                'fields': ['subject',
+                           ('summary', 'attachment'),
+                           'note']
+                }),
+        (_("Sending"), {
+                'fields' : [('created_by', 'handled_by', 'send', 'dispatched')]
+                }),
+        ]
+
+    
     def save_model(self, request, obj, form, change):
         if not obj.pk:
             obj.created_by = request.user
@@ -196,6 +212,24 @@ class AutomaticCommunicationAdmin(admin.ModelAdmin):
 class MassCommunicationAdmin(admin.ModelAdmin):
     list_display = ('name', 'date', 'method', 'subject')
     ordering = ('date',)
+
+    formfield_overrides = {
+        django.db.models.CharField: {'widget': django.forms.TextInput(attrs={'size':'60'})},
+    }
+    
+    fieldsets = [
+        (_("Basic"), {
+                'fields' : [('name', 'method',)]
+                }),
+        (_("Content"), {
+                'fields': [('subject',),
+                           ('template', 'template_en'),
+                           ('attachment', 'attach_tax_confirmation')]
+                }),
+        (_("Sending"), {
+                'fields' : ['send_to_users', 'send']
+                }),
+        ]
 
     def save_form(self, request, form, change):
         super(MassCommunicationAdmin, self).save_form(request, form, change)
@@ -259,9 +293,6 @@ class AccountStatementsAdmin(admin.ModelAdmin):
     readonly_fields = ('import_date', 'date_from', 'date_to')
     fields = copy.copy(list_display)
 
-class UserImportsAdmin(admin.ModelAdmin):
-    list_display = ('import_date', 'csv_file')
-
 class CampaignAdmin(admin.ModelAdmin):
     list_display = ('created', 'name')
 
@@ -307,7 +338,9 @@ admin.site.register(AccountStatements, AccountStatementsAdmin)
 admin.site.register(AutomaticCommunication, AutomaticCommunicationAdmin)
 admin.site.register(MassCommunication, MassCommunicationAdmin)
 admin.site.register(Condition, ConditionAdmin)
-admin.site.register(UserImports, UserImportsAdmin)
 admin.site.register(Campaign, CampaignAdmin)
 admin.site.register(Recruiter, RecruiterAdmin)
 admin.site.register(TaxConfirmation, TaxConfirmationAdmin)
+
+from django.contrib.auth.models import Group
+admin.site.unregister(Group)

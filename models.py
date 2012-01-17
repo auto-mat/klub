@@ -221,7 +221,7 @@ class User(models.Model):
     # TODO: This needs to be replaced by amount and periodicity fields to
     # account also for quaterly and annual payments
     regular_amount = models.PositiveIntegerField(
-        verbose_name=_("Amount of regular payment"),
+        verbose_name=_("Regularly"),
         blank=True, null=True)
     regular_frequency = models.CharField(
         verbose_name=_("Frequency of regular payments"),
@@ -316,6 +316,7 @@ class User(models.Model):
     def number_of_payments(self):
         """Return number of payments made by this user"""
 	return self.payments_number
+    number_of_payments.short_description = _("# payments") 
     number_of_payments.admin_order_field = 'payments_number'
     
     def last_payment(self):
@@ -384,9 +385,18 @@ class User(models.Model):
 
     def total_contrib(self):
         """Return the sum of all money received from this user"""
-	return self.payment_total
+	if self.payment_total:
+            return str(self.payment_total) + " Kč"
+        else:
+            return "0 Kč"
+    total_contrib.short_description = _("Total")
     total_contrib.admin_order_field = 'payment_total'
 
+    def registered_support_date(self):
+        return self.registered_support.strftime('%d. %m. %Y')
+    registered_support_date.short_description = _("Registration")
+    registered_support_date.admin_order_field = 'date'
+    
     def save(self, *args, **kwargs):
         """Record save hook
 
@@ -572,6 +582,7 @@ class Payment(models.Model):
         help_text=_("Sender identification string on the account statement"),
         max_length=30, blank=True)
     type = models.CharField(
+        verbose_name=_("Type"),
         help_text=_("Type of payment"),
         choices=TYPE_OF_PAYMENT,
         max_length=200, blank=True)
@@ -1012,68 +1023,6 @@ class MassCommunication(models.Model):
 
     def __unicode__(self):
         return self.name
-
-
-class UserImports(models.Model):
-    """CSV imports of users
-
-    This is a one-purpose helper class for imports of users from the
-    old Auto*Mat club database.
-
-    TODO: Remove when the old database is definitely shut down.
-    """
-
-    class Meta:
-        verbose_name = _("User import")
-        verbose_name_plural = _("Users imports")
-	ordering = ['-import_date']
-
-    import_date = models.DateField()
-    csv_file = models.FileField(upload_to='kp-test/')
-    
-    def save(self, *args, **kwargs):
-        super(UserImports, self).save(*args, **kwargs)
-
-        data = open(self.csv_file.path).read()
-        user_reader = csv.DictReader(data.split("\n"), delimiter=';',
-                                 fieldnames = [
-                'uid', 'name', 'surname', 'city', 'psc', 'street', 'telephone',
-                'email', 'vsymbol', 'stable_payment', 'amount', 'payment_method',
-                'public', 'information', 'user_note', 'registration_date',
-                'nothing', 'note'
-                ])
-
-        for user in user_reader:
-            regdate = user['registration_date']
-            if regdate == "":
-                regdate = '1999-01-01 00:00'
-
-            note = user['note']
-            if int(user['stable_payment']):
-                regular_amount = int(user['amount'])
-                regular_frequency = 'monthly'
-            else:
-                regular_amount = 0
-                regular_frequency = None
-                note += "Once paid %s as a single donation" % user['amount']
-
-            u = User(firstname = user['name'],
-                     surname = user['surname'],
-                     sex = 'unknown',
-                     email = user['email'],
-                     telephone = user['telephone'],
-                     street = user['street'],
-                     zip_code = user['psc'],
-                     registered_support = regdate,
-                     regular_payments = int(user['stable_payment']),
-                     regular_amount = regular_amount,
-                     regular_frequency = regular_frequency,
-                     exceptional_membership = False,
-                     public = user['public'],
-                     wished_information = user['information'],
-                     note = note,
-                     variable_symbol = user['vsymbol'])
-            u.save()
 
 class OverwriteStorage(FileSystemStorage):
     def get_available_name(self, name):
