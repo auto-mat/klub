@@ -334,6 +334,13 @@ class User(models.Model):
         except AttributeError:
             return None
 
+    def regular_frequency_td(self):
+        """Return regular frequency as timedelta"""
+        interval_in_days = {'monthly': 31,
+                            'quaterly': 92,
+                            'annually': 366}
+        return datetime.timedelta(days=interval_in_days[self.regular_frequency])
+
     def expected_regular_payment_date(self):
         last_payment = self.last_payment()
         if not self.regular_payments:
@@ -341,11 +348,7 @@ class User(models.Model):
         if last_payment:
             # Exactly a month after last payment or whatever
             # expectation record for the given user is set to
-            interval_in_days = {'monthly': 31,
-                                'quaterly': 92,
-                                'annually': 366}
-            expected = last_payment.date+datetime.timedelta(
-                days=interval_in_days[self.regular_frequency])
+            expected = last_payment.date+self.regular_frequency_td()
             if self.expected_date_of_first_payment:
                 expected = max(expected, self.expected_date_of_first_payment)
         elif self.expected_date_of_first_payment:
@@ -373,12 +376,25 @@ class User(models.Model):
         else:
             return datetime.timedelta(days=0)
 
+    def extra_money(self):
+        """Check if we didn't receive more money than expected"""
+        total = 20
+        if self.regular_payments:
+            total = sum([p.amount for p in Payment.objects.filter(
+                        user=self, date__gt = datetime.date.today()-self.regular_frequency_td() + \
+                        + datetime.timedelta(days=3))])
+            if total and self.regular_amount and total > self.regular_amount:
+                return total - self.regular_amount
+        return None
+
     def regular_payments_info(self):
         if not self.regular_payments:
             return _boolean_icon(False)
         out = [ u"%s: %s" % (_(u"Expected"), self.expected_regular_payment_date()) ]
         if self.regular_payments_delay():
             out.append(u"%s: %s" % (_(u"Delay"), timesince(self.expected_regular_payment_date())))
+        if self.extra_money():
+            out.append(u"%s: %s" % (_(u"Extra"), self.extra_money()))
         return u"<br>".join(out)
     regular_payments_info.allow_tags = True
     regular_payments_info.short_description = _(u"Regular payments")
@@ -898,7 +914,7 @@ class Condition(models.Model):
                 if cond.is_true(user):
                     return True
             return False
-        
+
         # Elementary conditions
         left = get_val(self.variable, user)
         right = get_val(self.value, user)
