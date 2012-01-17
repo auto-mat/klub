@@ -177,9 +177,6 @@ class User(models.Model):
         verbose_name=_("ZIP Code"),
         max_length=10, blank=True)
     # -- Additional Info
-    age = models.PositiveIntegerField(
-        verbose_name=_("Age"),
-        max_length=5, blank=True)
     knows_us_from = models.CharField(
         verbose_name=_("Where does he/she know us from?"),
         max_length=80, blank=True)

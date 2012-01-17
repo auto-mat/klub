@@ -78,7 +78,7 @@ class UserAdmin(admin.ModelAdmin):
                            'zip_code'],
                 }),
         ('Additional', {
-                'fields': ['age', 'knows_us_from',  'why_supports',
+                'fields': ['knows_us_from',  'why_supports',
                            'field_of_work', 'additional_information'],
                 'classes': ['collapse']}),
         ('Support', {
