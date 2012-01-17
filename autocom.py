@@ -24,6 +24,21 @@ from models import User, Payment, Communication, AutomaticCommunication
 import sys, datetime
 import string
 
+def _localize_enum(descr, val, lang):
+    for t in descr:
+        if t[0] == val:
+            # Hack! Here we should use the Gettext localization
+            # based on the value of 'lang' -- this is however
+            # not easy due to lazy translations and t[1] already
+            # being wrapped by a foreign translator
+            if lang == 'cs':
+                return t[1].lower()
+            else:
+                # less wrong would be to retrieve the original untranslated version of t[1]...
+                return t[0]
+    # Translation not found
+    return val
+
 def process_template(template_string, user):
     template = string.Template(template_string)
 
@@ -51,7 +66,7 @@ def process_template(template_string, user):
         email = user.email,
         telephone = user.telephone,
         regular_amount = user.regular_amount,
-        regular_frequency = user.regular_frequency,
+        regular_frequency = _localize_enum(User.REGULAR_PAYMENT_FREQUENCIES, user.regular_frequency, user.language),
         var_symbol = user.variable_symbol,
         )
 
