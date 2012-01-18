@@ -219,7 +219,7 @@ class MassCommunicationAdmin(admin.ModelAdmin):
     
     fieldsets = [
         (_("Basic"), {
-                'fields' : [('name', 'method',)]
+                'fields' : [('name', 'method', 'date')]
                 }),
         (_("Content"), {
                 'fields': [('subject',),
