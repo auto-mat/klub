@@ -745,7 +745,7 @@ class Communication(models.Model):
             else:
                 bcc = ['kp@auto-mat.cz']
             email = EmailMessage(subject=self.subject, body=self.summary,
-                                 from_email = 'kp@auto-mat.cz',
+                                 from_email = 'Klub pratel Auto*Matu <kp@auto-mat.cz>',
                                  to = [self.user.email],
                                  bcc = bcc)
             if self.attachment:
