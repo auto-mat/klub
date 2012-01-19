@@ -108,12 +108,14 @@ def check(users=None):
                 if auto_comm.condition.is_true(user):
                     if user.language == 'cs':
                         template = auto_comm.template
+                        subject = auto_comm.subject
                     else:
-                        template = auto_comm.template_en;
+                        template = auto_comm.template_en
+                        subject = auto_comm.subject_en
                     #print "      %s" % user
                     if template and template != '':
                         c = Communication(user=user, method=auto_comm.method, date=datetime.datetime.now(),
-                                          subject=auto_comm.subject, summary=process_template(template, user),
+                                          subject=subject, summary=process_template(template, user),
                                           note="Prepared by auto*mated mailer at %s" % datetime.datetime.now(),
                                           send=auto_comm.dispatch_auto, type='auto')
                         auto_comm.sent_to_users.add(user)

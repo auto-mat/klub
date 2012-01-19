@@ -222,7 +222,7 @@ class MassCommunicationAdmin(admin.ModelAdmin):
                 'fields' : [('name', 'method', 'date')]
                 }),
         (_("Content"), {
-                'fields': [('subject',),
+                'fields': [('subject', 'subject_en'),
                            ('template', 'template_en'),
                            ('attachment', 'attach_tax_confirmation')]
                 }),
@@ -237,10 +237,12 @@ class MassCommunicationAdmin(admin.ModelAdmin):
         if obj.send:
             for user in obj.send_to_users.all():
                 if user.language == 'cs':
-                    template = obj.template
+                    template, subject = obj.template, obj.subject
                 else:
-                    template = obj.template_en
-                if user.active and template.strip() != '':
+                    template, subject = obj.template_en, obj.subject_en
+                if user.active and subject.strip() != '':
+                    if template.strip(''):
+                        raise Exception("Message template is empty for one of the language variants.")
                     if not obj.attach_tax_confirmation:
                         attachment = copy.copy(obj.attachment)
                     else:
@@ -251,7 +253,7 @@ class MassCommunicationAdmin(admin.ModelAdmin):
                         else:
                             attachment = None
                     c = Communication(user=user, method=obj.method, date=datetime.datetime.now(),
-                                      subject=obj.subject,
+                                      subject=subject,
                                       summary=autocom.process_template(template, user),
                                       attachment=attachment,
                                       note=_("Prepared by auto*mated mass communications at %s") % datetime.datetime.now(),

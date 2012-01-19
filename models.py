@@ -961,6 +961,10 @@ class AutomaticCommunication(models.Model):
     subject = models.CharField(
         verbose_name=_("Subject"),
         max_length=100)
+    subject_en = models.CharField(
+        verbose_name=_("English subject"),
+        max_length=100,
+        blank=True, null=True)
     template = models.TextField(
         verbose_name=_("Template"),
         help_text = _("Template can contain variable substitutions like addressment, name, "
@@ -1010,6 +1014,11 @@ class MassCommunication(models.Model):
     subject = models.CharField(
         verbose_name=_("Subject"),
         max_length=100)
+    subject_en = models.CharField(
+        verbose_name=_("English subject"),
+        help_text=_("English version of the subject. If empty, English speaking users will not receive this communication."),
+        max_length=100,
+        blank=True, null=True)
     template = models.TextField(
         verbose_name=_("Template"),
         help_text = _("Template can contain variable substitutions like addressment, name, "
