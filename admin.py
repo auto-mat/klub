@@ -241,7 +241,7 @@ class MassCommunicationAdmin(admin.ModelAdmin):
                 else:
                     template, subject = obj.template_en, obj.subject_en
                 if user.active and subject.strip() != '':
-                    if template.strip(''):
+                    if template.strip('') == '':
                         raise Exception("Message template is empty for one of the language variants.")
                     if not obj.attach_tax_confirmation:
                         attachment = copy.copy(obj.attachment)
