@@ -60,7 +60,7 @@ class UserAdmin(admin.ModelAdmin):
     inlines = [PaymentsInline, CommunicationInline]
     raw_id_fields = ('recruiter',)
     readonly_fields = ('verified_by',)
-    # filter_horizontal = ('campaigns',) # broken in django pre-1.4
+    filter_horizontal = ('campaigns',) # broken in django pre-1.4
     fieldsets = [
         ('Basic personal', {
                 'fields': [('firstname', 'surname'),
@@ -208,6 +208,8 @@ class MassCommunicationAdmin(admin.ModelAdmin):
     list_display = ('name', 'date', 'method', 'subject')
     ordering = ('date',)
 
+    filter_horizontal = ('send_to_users',)
+    
     formfield_overrides = {
         django.db.models.CharField: {'widget': django.forms.TextInput(attrs={'size':'60'})},
     }
@@ -264,6 +266,7 @@ class MassCommunicationAdmin(admin.ModelAdmin):
 
 class ConditionAdmin(admin.ModelAdmin):
     list_display = ('name',)
+    filter_horizontal = ('conds',)
     fieldsets = [
         (_("Description"), {
                 'fields' : ['name']
