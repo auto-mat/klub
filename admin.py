@@ -23,7 +23,6 @@ import datetime
 # Django imports
 from django.contrib import admin, messages
 from django.core.urlresolvers import reverse
-from django.db.models import Sum, Count
 from django.utils.translation import ugettext as _
 from django.http import HttpResponseRedirect
 import django.forms
@@ -103,9 +102,7 @@ class UserAdmin(admin.ModelAdmin):
 
     def queryset(self, request):
         qs = super(UserAdmin, self).queryset(request)
-        return qs.annotate(
-            payment_total=Sum('payment__amount'),
-            payments_number=Count('payment'))
+        return qs.annotate(**User.annotations)
 
     def save_formset(self, request, form, formset, change):
 	# We need to save the request.user to inline Communication

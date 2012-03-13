@@ -2,6 +2,7 @@
 
 from django.utils.translation import ugettext as _
 from django.contrib.admin import SimpleListFilter
+from django.db.models import Sum, Count
 
 from models import Condition, User
 import autocom
@@ -47,6 +48,7 @@ class UserConditionFilter(SimpleListFilter):
         # Hack: It would be better to work directly on the objects
         # of the queryset rather than extracting ids from another
         # DB query and then filtering the former queryset
-        user_ids = [user.id for user in User.objects.all()
-                    if cond.is_true(user)]
-        return queryset.filter(id__in=user_ids)
+        all_users = User.objects.all().annotate(**User.annotations)
+        filtered_ids = [user.id for user in all_users
+                        if cond.is_true(user)]
+        return queryset.filter(id__in=filtered_ids)

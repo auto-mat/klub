@@ -23,7 +23,7 @@
 import django
 from django.contrib.admin.templatetags.admin_list import _boolean_icon
 from django.db import models
-from django.db.models import Sum
+from django.db.models import Sum, Count
 from django.core.mail import EmailMessage
 from django.core.files import File
 from django.core.files.storage import FileSystemStorage
@@ -290,6 +290,11 @@ class User(models.Model):
         related_name='verified_users',
         null=True, blank=True)
 
+    # General annotation fields (some methods in this class rely on
+    # the queryset being annotated as follows)
+    annotations = {'payment_total': Sum('payment__amount'),
+                   'payments_number': Count('payment')}
+    
     def __unicode__(self):
         return self.person_name()
 
@@ -314,7 +319,11 @@ class User(models.Model):
         return Payment.objects.filter(user=self)
 
     def number_of_payments(self):
-        """Return number of payments made by this user"""
+        """Return number of payments made by this user
+
+        This depends on the query being previously annotated with
+        self.annotations
+        """
 	return self.payments_number
     number_of_payments.short_description = _("# payments") 
     number_of_payments.admin_order_field = 'payments_number'
@@ -400,7 +409,11 @@ class User(models.Model):
     regular_payments_info.short_description = _(u"Regular payments")
 
     def total_contrib(self):
-        """Return the sum of all money received from this user"""
+        """Return the sum of all money received from this user
+
+        This depends on the query being previously annotated with
+        self.annotations
+        """
 	if self.payment_total:
             return str(self.payment_total) + " Kč"
         else:
