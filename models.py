@@ -221,7 +221,7 @@ class User(models.Model):
     # TODO: This needs to be replaced by amount and periodicity fields to
     # account also for quaterly and annual payments
     regular_amount = models.PositiveIntegerField(
-        verbose_name=_("Regularly"),
+        verbose_name=_("Regularly (amount)"),
         blank=True, null=True)
     regular_frequency = models.CharField(
         verbose_name=_("Frequency of regular payments"),
