@@ -8,8 +8,9 @@ from django.utils.translation import ugettext as _
 from django.contrib.admin import widgets
 from django.contrib.formtools.wizard.views import SessionWizardView
 from django.core.mail import EmailMessage
+from django.db.models import Sum, Count, Q
 
-from models import User, Payment
+from models import *
 
 class RegularUserForm(forms.ModelForm):
         required_css_class = 'required' 
@@ -258,3 +259,19 @@ def onetime (request):
 		[form[1] for form in forms],
 		condition_dict = dict([(form[0], form[2]) for form in forms]))
 	return cw(request)
+
+def stat_members(request):
+	return render_to_response('stat-members.html',
+				  {'members_by_months': StatMemberCountsByMonths.objects.all(),
+				   'total_members': User.objects.all().filter(active=True).aggregate(Count('id'))['id__count']
+				   })
+
+def stat_payments(request):
+	return render_to_response('stat-payments.html',
+				  {'payments_by_months': StatPaymentsByMonths.objects.all(),
+				   'total_amount': Payment.objects.all().filter(~Q(type='expected')).aggregate(Sum('amount'))['amount__sum']
+				   })
+
+	return render_to_response('stat-finance.html',
+			      RequestContext(request, {}),)
+

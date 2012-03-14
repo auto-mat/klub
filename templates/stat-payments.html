@@ -1,0 +1,23 @@
+{% extends "admin/base_site.html" %}
+{% load humanize %}
+
+{% block title %}List of books by publisher{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <h1>Statistiky plateb</h1>
+
+  <h2>Celková schromážděná částka</h2>
+
+  {{ total_amount|intcomma}} Kč
+
+  <h2>Částky v jednotlivých měsících</h2>
+      <table>
+      <tr><td>Rok</td><td>Měsíc</td><td>Celkem za měsíc</td><td>Celkem</td></tr>
+      {% for m in payments_by_months %}
+      <tr><td>{{ m.year }}</td><td>{{ m.month }}</td><td>{{ m.total|intcomma}} Kč</td><td>{{ m.run_total|intcomma}} Kč</td></tr>
+      {% endfor %}
+      </table>
+
+</div>
+{% endblock %}

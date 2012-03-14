@@ -1087,3 +1087,32 @@ class TaxConfirmation(models.Model):
 
         class Meta:
             unique_together = ('user', 'year',)
+
+
+class StatMemberCountsByMonths(models.Model):
+
+    class Meta:
+        managed = False
+        db_table = 'aklub_v_member_counts_by_months'
+        verbose_name_plural = _("Members by months")
+
+    id = models.CharField(primary_key=True)
+    year = models.IntegerField()
+    month = models.IntegerField()
+    regular = models.IntegerField()
+    irregular = models.IntegerField()
+    total = models.IntegerField()
+    run_total = models.IntegerField()
+
+class StatPaymentsByMonths(models.Model):
+
+    class Meta:
+        managed = False
+        db_table = 'aklub_v_payments_by_months'
+        verbose_name_plural = _("Payments by months")
+
+    id = models.CharField(primary_key=True)
+    year = models.IntegerField()
+    month = models.IntegerField()
+    total = models.IntegerField()
+    run_total = models.IntegerField()

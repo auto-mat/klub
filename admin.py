@@ -27,9 +27,7 @@ from django.utils.translation import ugettext as _
 from django.http import HttpResponseRedirect
 import django.forms
 # Local models
-from aklub.models import User, NewUser, Payment, \
-    Communication, AutomaticCommunication, MassCommunication, \
-    Condition, AccountStatements, Campaign, Recruiter, TaxConfirmation
+from aklub.models import *
 import filters
 import autocom
 
