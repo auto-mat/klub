@@ -1,0 +1,12 @@
+{% extends "admin/aklub/change_form.html" %}
+{% load i18n %}
+
+{% block object-tools %}
+{% if change %}{% if not is_popup %}
+  <ul class="object-tools">
+    <li><a href="../../user/?recruiter__exact={{ object_id }}" class="historylink">{% trans "Recruited users" %}</a></li>
+    <li><a href="history/" class="historylink">{% trans "History" %}</a></li>
+  </ul>
+{% endif %}{% endif %}
+{% endblock %}
+
