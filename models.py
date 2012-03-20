@@ -23,7 +23,7 @@
 import django
 from django.contrib.admin.templatetags.admin_list import _boolean_icon
 from django.db import models
-from django.db.models import Sum, Count
+from django.db.models import Sum, Count, Max
 from django.core.mail import EmailMessage
 from django.core.files import File
 from django.core.files.storage import FileSystemStorage
@@ -293,7 +293,8 @@ class User(models.Model):
     # General annotation fields (some methods in this class rely on
     # the queryset being annotated as follows)
     annotations = {'payment_total': Sum('payment__amount'),
-                   'payments_number': Count('payment')}
+                   'payments_number': Count('payment'),
+                   'last_payment_date': Max('payment__date')}
     
     def __unicode__(self):
         return self.person_name()
@@ -337,11 +338,14 @@ class User(models.Model):
             return None
 
     def last_payment_date(self):
-        """Return date of last payment"""
-        try:
-            return self.last_payment().date
-        except AttributeError:
-            return None
+        """Return date of last payment or None
+
+        This depends on the query being previously annotated with
+        self.annotations
+        """
+	return self.last_payment_date
+    last_payment_date.short_description = _("Last payment")
+    last_payment_date.admin_order_field = 'last_payment_date'
 
     def regular_frequency_td(self):
         """Return regular frequency as timedelta"""

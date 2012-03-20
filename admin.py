@@ -51,7 +51,7 @@ class UserAdmin(admin.ModelAdmin):
                     'variable_symbol', 'registered_support_date',
                     'regular_payments_info', 
                     'number_of_payments', 'total_contrib', 'regular_amount',
-                    'active')
+                    'active', 'last_payment_date')
     list_filter = ['regular_payments', 'language', 'active',  'source', 'campaigns', filters.UserConditionFilter]
     search_fields = ['firstname', 'surname']
     ordering = ('surname',)
