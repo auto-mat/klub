@@ -150,16 +150,22 @@ class OneTimePaymentWizard(SessionWizardView):
 	    return not self.is_possibly_known()
 
     def is_unknown_after_whois(self):
-        f = self._step_data(OneTimePaymentWizardFormWhoIs)
-	if f: 
+	u = self._step_data(OneTimePaymentWizardFormUnknown)
+	f = self._step_data(OneTimePaymentWizardFormWhoIs)
+	if u:
+		return False
+	elif f:
 		return f['uid'] == 'None'
 	else:
 		return True
 
     def is_unknown_after_confirm(self):
+        u = self._step_data(OneTimePaymentWizardFormUnknown)
 	w = self._step_data(OneTimePaymentWizardFormWhoIs)
         c = self._step_data(OneTimePaymentWizardFormConfirm)
-	if w and c:
+	if u:
+		return False
+	elif w and c:
 		return c['vs_check'] != User.objects.filter(id=w['uid'])[0].variable_symbol
 	else:
 		return True
