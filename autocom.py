@@ -68,6 +68,7 @@ def process_template(template_string, user):
         regular_amount = user.regular_amount,
         regular_frequency = _localize_enum(User.REGULAR_PAYMENT_FREQUENCIES, user.regular_frequency, user.language),
         var_symbol = user.variable_symbol,
+        last_payment_amount = user.last_payment() and user.last_payment().amount or None
         )
 
     # Modify text according to gender
