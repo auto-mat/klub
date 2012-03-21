@@ -810,9 +810,14 @@ class ConditionValues(object):
 
     def __init__(self, model_names):
         self._columns = []
+        # Special attributes
+        self._columns += [('action', None)]
+        # Models attributes
         for name in model_names:
             model = {'User': User,
-                     'Payment': Payment}[name]
+                     'Payment': Payment,
+                     'User.last_payment': Payment,
+                     }[name]
             # DB fields
             self._columns += [(name, field.name) for field in model._meta.fields]
             # Public methods
@@ -881,7 +886,7 @@ class Condition(models.Model):
         max_length=30)
     variable = models.CharField(
         verbose_name=_("Variable"),
-        choices=ConditionValues(('User',)),
+        choices=ConditionValues(('User','User.last_payment')),
         help_text=_("Value or variable on left-hand side"),
         max_length=30, blank=True, null=True)
     # One of value or conds must be non-null
@@ -927,17 +932,22 @@ class Condition(models.Model):
         
             # DB objects
             if '.' in spec:
-                obj, attr = spec.split('.')
-                if obj == 'User':
-                    attr_val = getattr(user, attr)
-                    if callable(attr_val):
-                        return attr_val()
-                    else:
-                        return attr_val
-                elif obj == 'datetime':
-                    return datetime.datetime.strptime(attr, '%Y-%m-%d %H:%M')
-                elif obj == 'timedelta':
-                    return datetime.timedelta(days=int(attr))
+                spec_ = spec.split('.')
+                if spec_[0] == 'User':
+                    assert user
+                    obj = user
+                    for s in spec_[1:]:
+                        v = getattr(obj, s)
+                        if callable(v):
+                            v = v()
+                        if v is None:
+                            return None
+                        obj = v
+                    return v
+                elif spec_[0] == 'datetime':
+                    return datetime.datetime.strptime(spec_[1], '%Y-%m-%d %H:%M')
+                elif spec_[0] == 'timedelta':
+                    return datetime.timedelta(days=int(spec_[1]))
             else:
                 try:
                     return int(spec)
