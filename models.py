@@ -821,7 +821,7 @@ class ConditionValues(object):
             self._columns += [(name, method) for method in dir(model)
                               if (not method.startswith("_")
                                   and method not in dir(models.Model))]
-
+        self._columns.sort()
         self._index = 0
 
     def __iter__(self):
