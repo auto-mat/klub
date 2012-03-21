@@ -437,8 +437,12 @@ class User(models.Model):
         user was changed, a new communication might arrise from this
         situation. See module 'autocom'.
         """
+        if self.pk is None:
+            insert = True
+        else:
+            insert = False
         super(User, self).save(*args, **kwargs)
-        autocom.check(users=[self])
+        autocom.check(users=[self], action=(insert and 'new-user' or None))
 
     def make_tax_confirmation(self, year):
 	amount = self.payment_set.exclude(type='expected').filter(date__year=year).aggregate(Sum('amount'))['amount__sum']
@@ -656,6 +660,19 @@ class Payment(models.Model):
         else:
             return False
 
+    def save(self, *args, **kwargs):
+        if self.pk is None:
+            insert = True
+        else:
+            insert = False
+        super(Payment, self).save(*args, **kwargs)
+        if self.user:
+            # Evaluate autocom immediatelly only when the affected
+            # user is known, otherwise the bellow check would be too
+            # time-consuming (relying on Cron performing it in regular
+            # intervals anyway)
+            autocom.check(users=[self.user], action=(insert and 'new-payment' or None))
+
     def __unicode__(self):
         return str(self.amount)
 
@@ -812,7 +829,11 @@ class ConditionValues(object):
  
     def next(self):
         try:
-            val = ".".join(self._columns[self._index])
+            name, secondary_name = self._columns[self._index]
+            if secondary_name:
+                val = name+"."+secondary_name
+            else:
+                val = name
             self._index = self._index + 1
             return (val, val)
         except IndexError:
@@ -882,7 +903,7 @@ class Condition(models.Model):
     def __unicode__(self):
         return self.name
 
-    def is_true(self, user):
+    def is_true(self, user, action=None):
         def get_val(spec, user):
             # Symbolic names
             if spec == 'month_ago':
@@ -901,6 +922,8 @@ class Condition(models.Model):
                 return False
             if spec == 'None':
                 return None
+            if spec == 'action':
+                return action
         
             # DB objects
             if '.' in spec:
@@ -918,17 +941,17 @@ class Condition(models.Model):
             else:
                 try:
                     return int(spec)
-                except TypeError:
+                except (TypeError, ValueError):
                     return spec
         # Composed conditions
         if self.operation == 'and':
             for cond in self.conds.all():
-                if not cond.is_true(user):
+                if not cond.is_true(user, action):
                     return False
             return True
         if self.operation == 'or':
             for cond in self.conds.all():
-                if cond.is_true(user):
+                if cond.is_true(user, action):
                     return True
             return False
 

@@ -97,7 +97,7 @@ def process_template(template_string, user):
 
     return gender_text
 
-def check(users=None):
+def check(users=None, action=None):
     for auto_comm in AutomaticCommunication.objects.all():
         #print "Processing"
         #print "  %s:  %s" % (auto_comm.condition, auto_comm)
