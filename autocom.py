@@ -104,7 +104,12 @@ def check(users=None, action=None):
         #print "  %s:  %s" % (auto_comm.condition, auto_comm)
         #print "    Action: %s" % auto_comm.method
         #print "    Users newly satisfying condition:"
-        for user in (users or User.objects.all()):
+        if users:
+            annotated_users = User.objects.filter(id__in=[u.id for u in users]
+                                                  ).annotate(**User.annotations)
+        else:
+            annotated_users = User.objects.all().annotate(**User.annotations)
+        for user in annotated_users:
             if auto_comm.only_once and user.id in [u.id for u in auto_comm.sent_to_users.all()]:
                 continue
             if auto_comm.condition.is_true(user, action):
