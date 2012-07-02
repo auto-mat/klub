@@ -20,16 +20,55 @@
 
 import copy
 import datetime
+import csv
 # Django imports
 from django.contrib import admin, messages
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext as _
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 import django.forms
 # Local models
 from aklub.models import *
 import filters
 import autocom
+
+def export_as_csv_action(description="Export selected objects as CSV file",
+                         fields=None, exclude=None, header=True):
+    """
+    This function returns an export csv action
+    'fields' and 'exclude' work like in django ModelForm
+    'header' is whether or not to output the column names as the first row
+    """
+    def export_as_csv(modeladmin, request, queryset):
+        """
+        Generic csv export admin action.
+        based on http://djangosnippets.org/snippets/2020/
+        """
+        assert not (fields and exclude)
+        opts = modeladmin.model._meta
+        if fields:
+            field_names = fields
+        else:
+            field_names = set([field.name for field in opts.fields])
+            if exclude:
+                excludeset = set(exclude)
+                field_names = field_names - excludeset
+        response = HttpResponse(mimetype='text/csv')
+        response['Content-Disposition'] = 'attachment; filename=%s.csv' % unicode(opts).replace('.', '_')
+        writer = csv.writer(response)
+        if header:
+            writer.writerow(list(field_names))
+        for obj in queryset:
+            row = []
+            for field in field_names:
+                val = getattr(obj, field)
+                if callable(val):
+                    val = val()
+                row.append(unicode(val).encode('utf-8'))
+            writer.writerow(row)
+        return response
+    export_as_csv.short_description = description
+    return export_as_csv
 
 # -- INLINE FORMS --
 class PaymentsInline(admin.TabularInline):
@@ -55,7 +94,13 @@ class UserAdmin(admin.ModelAdmin):
     list_filter = ['regular_payments', 'language', 'active',  'source', 'campaigns', filters.UserConditionFilter]
     search_fields = ['firstname', 'surname', 'variable_symbol']
     ordering = ('surname',)
-    actions = ('send_mass_communication',)
+    actions = ('send_mass_communication',
+               export_as_csv_action(fields=(
+                'title_before', 'firstname', 'surname', 'title_after', 'sex', 'telephone', 'email',
+                'street', 'city', 'zip_code', 'variable_symbol', 'club_card_available',
+                'regular_payments', 'regular_frequency', 'registered_support',
+                'note', 'additional_information', 'active', 'language', 'recruiter')
+            ))
     save_as = True
     inlines = [PaymentsInline, CommunicationInline]
     raw_id_fields = ('recruiter',)
@@ -155,6 +200,7 @@ class PaymentAdmin(admin.ModelAdmin):
     list_filter = ['type', 'date', filters.PaymentsAssignmentsFilter]
     date_hierarchy = 'date'
     search_fields = ['user__surname', 'user__firstname', 'amount', 'VS', 'user_identification']
+    actions = (export_as_csv_action(fields=list_display),)
 
 class NewUserAdmin(UserAdmin):
     list_display = ('person_name', 'is_direct_dialogue',
@@ -299,6 +345,7 @@ class CampaignAdmin(admin.ModelAdmin):
 class RecruiterAdmin(admin.ModelAdmin):
     list_display = ('recruiter_id', 'person_name', 'email', 'telephone', 'problem', 'rating')
     list_filter = ('problem',)
+    actions = (export_as_csv_action(fields=list(list_display)+['note']),)
     
 class TaxConfirmationAdmin(admin.ModelAdmin):
     list_display = ('user', 'year', 'file')
