@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: AKlub\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-03-22 00:53+0100\n"
-"PO-Revision-Date: 2012-03-22 00:54+0100\n"
+"POT-Creation-Date: 2012-07-03 01:50+0200\n"
+"PO-Revision-Date: 2012-07-03 01:54+0100\n"
 "Last-Translator: Hynek Hanke <hanke@brailcom.org>\n"
 "Language-Team: Auto*Mat <hynek.hanke@auto-mat.cz>\n"
 "Language: \n"
@@ -19,56 +19,56 @@ msgstr ""
 "X-Poedit-Country: CZECH REPUBLIC\n"
 "X-Poedit-SourceCharset: utf-8\n"
 
-#: admin.py:135
+#: admin.py:180
 msgid "Send mass communication"
 msgstr "Odeslat hromadnou komunikaci"
 
-#: admin.py:141
-#: admin.py:218
+#: admin.py:186
+#: admin.py:264
 msgid "Basic"
 msgstr "Základní"
 
-#: admin.py:145
+#: admin.py:190
 msgid "Details"
 msgstr "Detaily"
 
-#: admin.py:174
+#: admin.py:220
 msgid "Header"
 msgstr "Hlavička"
 
-#: admin.py:177
-#: admin.py:221
+#: admin.py:223
+#: admin.py:267
 msgid "Content"
 msgstr "Obsah"
 
-#: admin.py:182
-#: admin.py:226
+#: admin.py:228
+#: admin.py:272
 msgid "Sending"
 msgstr "Odesílání"
 
-#: admin.py:256
+#: admin.py:302
 #, python-format
 msgid "Prepared by auto*mated mass communications at %s"
 msgstr "Připraveno auto*matickým hromadným rozesílačem, %s"
 
-#: admin.py:271
+#: admin.py:317
 #: models.py:57
 msgid "Description"
 msgstr "Popis"
 
-#: admin.py:274
+#: admin.py:320
 msgid "Operator"
 msgstr "Operátor"
 
-#: admin.py:277
+#: admin.py:323
 msgid "Comparing conditions operands"
 msgstr "Hodnoty pro srovnávací podmínky"
 
-#: admin.py:280
+#: admin.py:326
 msgid "Logical conditions operands"
 msgstr "Hodnoty pro logické podmínky"
 
-#: admin.py:283
+#: admin.py:329
 msgid "Usage"
 msgstr "Použití"
 
@@ -85,7 +85,7 @@ msgid "User assignment"
 msgstr "Přiřazení uživatele"
 
 #: filters.py:38
-#: models.py:865
+#: models.py:919
 msgid "Condition"
 msgstr "Podmínka"
 
@@ -102,9 +102,9 @@ msgid "Created"
 msgstr "Vytvořeno"
 
 #: models.py:53
-#: models.py:98
-#: models.py:1003
-#: models.py:1054
+#: models.py:127
+#: models.py:1064
+#: models.py:1115
 msgid "Name"
 msgstr "Jméno"
 
@@ -116,688 +116,706 @@ msgstr "Vyberte pro tuto kampaň nějaké unikátní jméno"
 msgid "Description of this campaign"
 msgstr "Popis kampaně"
 
-#: models.py:68
+#: models.py:80
 msgid "Recruiter"
 msgstr "Verbíř"
 
-#: models.py:69
+#: models.py:81
+#: templates/admin/aklub/campaign/change_form.html:7
 msgid "Recruiters"
 msgstr "Verbíři"
 
-#: models.py:72
+#: models.py:84
 msgid "Registered"
 msgstr "Zaregistrován"
 
-#: models.py:75
+#: models.py:87
 msgid "Recruiter ID"
 msgstr "ID verbíře"
 
-#: models.py:78
-#: models.py:131
+#: models.py:90
+#: models.py:160
 #: views.py:98
 msgid "First name"
 msgstr "Jméno"
 
-#: models.py:81
-#: models.py:134
+#: models.py:93
+#: models.py:163
 #: views.py:99
 msgid "Surname"
 msgstr "Příjmení"
 
-#: models.py:84
-#: models.py:160
-#: models.py:680
+#: models.py:96
+#: models.py:189
+#: models.py:734
 #: views.py:100
 msgid "Email"
 msgstr "Email"
 
-#: models.py:87
-#: models.py:163
+#: models.py:99
+#: models.py:192
 msgid "Telephone"
 msgstr "Telefon"
 
-#: models.py:90
+#: models.py:102
 msgid "Note"
 msgstr "Poznámka"
 
-#: models.py:104
+#: models.py:105
+msgid "Problem"
+msgstr "Problém"
+
+#: models.py:106
+msgid "Check this field if there is a problem with this recruiter which only be resolved later or by somebody else. Uncheck as soon as the problem is resolved. If the problem is of permanent nature and no further action is needed, leave it unchecked and lower the rating bellow accordingly."
+msgstr "Zaškrtněte, pokud je s tímto verbířem nějaký problém, který můžete vyřešit pouze později nebo jej může vyřešit pouze někdo jiný. Odškrtněte jakmile bude problém vyřešen. Pokud je problém trvalejší povahy a není třeba žádné další akce z naší strany, nechte políčko nezaškrtnuté a příslušným způsobem verbíři upravte hodnocení níže."
+
+#: models.py:112
+msgid "Rating"
+msgstr "Hodnocení"
+
+#: models.py:113
+msgid "5 = ordinary (modestly good), 0 = hopelessly bad 10 = excelent much above average"
+msgstr "5 = běžný (běžně dobrý), 0 = beznadějně špatný, 10 = výtečný, velmi nadprůměrný"
+
+#: models.py:119
+#: models.py:308
+msgid "Associated campaigns"
+msgstr "Přidružené kampaně"
+
+#: models.py:133
 msgid "User"
 msgstr "Uživatel"
 
-#: models.py:105
+#: models.py:134
 msgid "Users"
 msgstr "Uživatelé"
 
-#: models.py:108
+#: models.py:137
 msgid "Male"
 msgstr "Muž"
 
-#: models.py:109
+#: models.py:138
 msgid "Female"
 msgstr "Žena"
 
-#: models.py:110
+#: models.py:139
 msgid "Unknown"
 msgstr "Neznámé"
 
-#: models.py:113
+#: models.py:142
 msgid "Czech"
 msgstr "Čeština"
 
-#: models.py:114
+#: models.py:143
 msgid "English"
 msgstr "Angličtina"
 
-#: models.py:116
+#: models.py:145
 msgid "Web form"
 msgstr "Webový formulář"
 
-#: models.py:117
+#: models.py:146
 msgid "Direct dialogue -- partial form (not automatic in bank)"
 msgstr "Přímý dialog -- částečný formulář (nestačí pro banku)"
 
-#: models.py:118
+#: models.py:147
 msgid "Direct dialogue -- full form (automatic in bank)"
 msgstr "Přímý dialog -- plný formulář (automatický v bance)"
 
-#: models.py:119
+#: models.py:148
 msgid "Personal recommendation"
 msgstr "Osobní doporučení"
 
-#: models.py:120
+#: models.py:149
 msgid "Another form of contact"
 msgstr "Jiný způsob kontaktu"
 
-#: models.py:122
+#: models.py:151
 msgid "Monthly"
 msgstr "Měsíčně"
 
-#: models.py:123
+#: models.py:152
 msgid "Quaterly"
 msgstr "Čtvrtletně"
 
-#: models.py:124
+#: models.py:153
 msgid "Anually"
 msgstr "Ročně"
 
-#: models.py:128
+#: models.py:157
 msgid "Title before name"
 msgstr "Titul před jménem"
 
-#: models.py:137
+#: models.py:166
 msgid "Title after name"
 msgstr "Titul za jménem"
 
-#: models.py:140
+#: models.py:169
 msgid "Gender"
 msgstr "Pohlaví"
 
-#: models.py:144
+#: models.py:173
 msgid "Addressment in letter"
 msgstr "Oslovení v dopise"
 
-#: models.py:147
+#: models.py:176
 msgid "Addressment on envelope"
 msgstr "Oslovení na obálku"
 
-#: models.py:150
+#: models.py:179
 msgid "Language"
 msgstr "Jazyk"
 
-#: models.py:151
+#: models.py:180
 msgid "This is the language which will be used to communicate with this user. The system will send emails in this language and administrators will use this language in phone calls and personal contacts."
 msgstr "Toto je jazyk, kterým se bude komunikovat s uživatelem. Systém bude v tomto jazyce posílat emaily a administrátoři budou tento jazyk používat při telefonních hovorech a osobním kontaktu."
 
-#: models.py:166
+#: models.py:195
 msgid "Street and number"
 msgstr "Ulice a číslo domu (č.p./č.o.)"
 
-#: models.py:169
+#: models.py:198
 msgid "City"
 msgstr "Město"
 
-#: models.py:172
+#: models.py:201
 msgid "Country"
 msgstr "Země"
 
-#: models.py:177
+#: models.py:206
 msgid "ZIP Code"
 msgstr "PSČ"
 
-#: models.py:181
+#: models.py:210
 msgid "Where does he/she know us from?"
 msgstr "Odkud nás zná?"
 
-#: models.py:184
+#: models.py:213
 msgid "Why does he/she support us?"
 msgstr "Proč nás podporuje?"
 
-#: models.py:187
+#: models.py:216
 msgid "Field of work"
 msgstr "Pracovní oblast"
 
-#: models.py:191
+#: models.py:220
 msgid "Source"
 msgstr "Zdroj"
 
-#: models.py:192
+#: models.py:221
 msgid "How did he contact us / became a member? In direct dialog, please distinguish between partial form (he still needs to send a permanent order into his bank) and full form (we are going to submit his form directly into bank, no further action is needed from him)."
 msgstr "Jak nás kontaktoval / stal se členem? V případě přímého dialogu prosím rozlišujte mezi částečným formulářem (dárce musí ještě sám nastavit příkaz ve své bance) a plným formulářem (jeho formulář doneseme bance sami, on sám již nemusí nic dělat)"
 
-#: models.py:199
+#: models.py:228
 msgid "Additional information"
 msgstr "Rozšiřující informace"
 
-#: models.py:203
-#: models.py:607
+#: models.py:232
+#: models.py:661
 #: views.py:111
 msgid "Variable symbol"
 msgstr "Variabilní symbol"
 
-#: models.py:207
+#: models.py:236
 msgid "Registered support"
 msgstr "Registrace podpory"
 
-#: models.py:208
+#: models.py:237
 msgid "When did this user register to support us"
 msgstr "Kdy se tento uživatel zaregistroval k naší podpoře"
 
-#: models.py:212
+#: models.py:241
 msgid "Exceptional membership"
 msgstr "Výjimečné členství"
 
-#: models.py:213
+#: models.py:242
 msgid "In special cases, people can become members of the club even if they do not pay any money. This should be justified in the note."
 msgstr "Ve výjimečných případech se mohou lidé stát členy klubu i když neplatí žádné peníze. Zdůvodnění může být uvedeno v poznámce."
 
-#: models.py:218
-#: models.py:413
+#: models.py:247
+#: models.py:442
 #: views.py:19
 msgid "Regular payments"
 msgstr "Pravidelné platby"
 
-#: models.py:219
+#: models.py:248
 msgid "Is this user registered for regular payments?"
 msgstr "Je tento uživatel zaregistrován pro pravidelné platby?"
 
-#: models.py:224
+#: models.py:253
 msgid "Regularly (amount)"
 msgstr "Částka pravidelné platby"
 
-#: models.py:227
+#: models.py:256
 msgid "Frequency of regular payments"
 msgstr "Frekvence pravidelných plateb"
 
-#: models.py:231
+#: models.py:260
 #: views.py:20
 msgid "Expected date of first payment"
 msgstr "Očekávané datum první platby"
 
-#: models.py:235
+#: models.py:264
 msgid "Other support"
 msgstr "Jiná podpora"
 
-#: models.py:237
+#: models.py:266
 msgid "If the user supports us in other ways, please specify here."
 msgstr "Pokud nás klient podporuje jinak, uveďte zde."
 
-#: models.py:240
+#: models.py:269
 msgid "Publish my name in the list of supporters"
 msgstr "Zveřejnit mé jméno v seznamu podporovatelů"
 
-#: models.py:241
+#: models.py:270
 msgid "Uncheck if you don't want your name to appear in the lists of supporters."
 msgstr "Odškrtněte toto políčko, pokud nechcete, aby se vaše jméno zobrazovalo na veřejném seznamu podporovatelů."
 
-#: models.py:244
+#: models.py:273
 msgid "Send tax confirmation"
 msgstr "Zaslat daňové potvrzení (na konci roku)"
 
-#: models.py:245
+#: models.py:274
 msgid "If you wish to receive tax confirmation at the end of year, check this field."
 msgstr "Pokud chcete na konci roku dostat daňové potvrzení o svém daru, zaškrtněte toto políčko."
 
-#: models.py:248
+#: models.py:277
 msgid "Send welcome letter"
 msgstr "Odeslat uvítací dopis s členskou kartou"
 
-#: models.py:249
+#: models.py:278
 msgid "If you wish to receive welcome letter with your club card."
 msgstr "Zda chcete dostat uvítací dopis s klubovou kartou."
 
-#: models.py:252
+#: models.py:281
 msgid "Send regular news via email"
 msgstr "Zasílat pravidelné informace emailem"
 
-#: models.py:253
+#: models.py:282
 msgid "If you wish to receive regular news about our activities."
 msgstr "Zda chcete dostávat pravidelné zprávy o našich aktivitách."
 
-#: models.py:256
+#: models.py:285
 msgid "Active"
 msgstr "Aktivní"
 
-#: models.py:257
+#: models.py:286
 msgid "Is the user active member? Use this field to disable old or temporary users."
 msgstr "Je uživatel aktivním členem? Odškrtnutím lze vyřadit staré nebo dočasné uživatele."
 
-#: models.py:264
+#: models.py:293
 msgid "Club card available"
 msgstr "Nárok na klubovou kartu"
 
-#: models.py:265
+#: models.py:294
 msgid "Is he entitled to posses a club card?"
 msgstr "Má nárok na klubovou kartu?"
 
-#: models.py:267
+#: models.py:296
 msgid "Club card dispatched?"
 msgstr "Klubová karta odeslána?"
 
-#: models.py:268
+#: models.py:297
 msgid "Did we send him the club card already?"
 msgstr "Již jsme mu klubovou kartu zaslali?"
 
-#: models.py:271
+#: models.py:300
 msgid "Other benefits"
 msgstr "Další benefity"
 
-#: models.py:272
+#: models.py:301
 msgid "Did he receive some other benefits?"
 msgstr "Získal nějaké další benefity?"
 
-#: models.py:276
+#: models.py:305
 msgid "Note for making a boring form more lively"
 msgstr "Poznámka pro oživení nudného formuláře"
 
-#: models.py:279
-msgid "Associated campaigns"
-msgstr "Přidružené kampaně"
-
-#: models.py:284
+#: models.py:313
 msgid "Verified"
 msgstr "Ověřen"
 
-#: models.py:285
+#: models.py:314
 msgid "Was the the user information verified by a club administrator?"
 msgstr "Byly uživatelské údaje ověřeny správcem klubu?"
 
-#: models.py:289
+#: models.py:318
 msgid "Verified by"
 msgstr "Ověřil"
 
-#: models.py:304
+#: models.py:333
 msgid "Full name"
 msgstr "Celé jméno"
 
-#: models.py:329
+#: models.py:358
 msgid "# payments"
 msgstr "Plateb"
 
-#: models.py:347
+#: models.py:376
 msgid "Last payment"
 msgstr "Poslední platba"
 
-#: models.py:406
+#: models.py:435
 msgid "Expected"
 msgstr "Očekávaná"
 
-#: models.py:408
+#: models.py:437
 msgid "Delay"
 msgstr "Zpoždění"
 
-#: models.py:410
+#: models.py:439
 msgid "Extra"
 msgstr "Extra"
 
-#: models.py:425
+#: models.py:454
 msgid "Total"
 msgstr "Celkem"
 
-#: models.py:430
+#: models.py:459
 msgid "Registration"
 msgstr "Registrace"
 
-#: models.py:472
+#: models.py:526
 msgid "new user"
 msgstr "nový uživatel"
 
-#: models.py:473
+#: models.py:527
 msgid "new users"
 msgstr "noví uživatelé"
 
-#: models.py:483
+#: models.py:537
 msgid "Account Statement"
 msgstr "Výpis z účtu"
 
-#: models.py:484
+#: models.py:538
 msgid "Account Statements"
 msgstr "Výpisy z účtů"
 
-#: models.py:581
+#: models.py:635
 msgid "Payment"
 msgstr "Platba"
 
-#: models.py:582
+#: models.py:636
 msgid "Payments"
 msgstr "Platby"
 
-#: models.py:587
+#: models.py:641
 msgid "Bank transfer"
 msgstr "Bankovní převod"
 
-#: models.py:588
+#: models.py:642
 msgid "In cash"
 msgstr "V hotovosti"
 
-#: models.py:589
+#: models.py:643
 msgid "Expected payment"
 msgstr "Očekávaná platba"
 
-#: models.py:593
+#: models.py:647
 msgid "Date of payment"
 msgstr "Datum platby"
 
-#: models.py:595
+#: models.py:649
 #: views.py:101
 msgid "Amount"
 msgstr "Částka"
 
-#: models.py:596
+#: models.py:650
 msgid "Amount of money in the main used curency"
 msgstr "Peněžní částka v hlavní používané měně"
 
-#: models.py:599
+#: models.py:653
 msgid "Bank account from which money was received"
 msgstr "Bankovní účet ze kterého peníze přišly"
 
-#: models.py:602
+#: models.py:656
 msgid "Bank code"
 msgstr "Kód banky"
 
-#: models.py:603
+#: models.py:657
 msgid "Code of bank from which money was received"
 msgstr "Kód banky ze které peníze přišly"
 
-#: models.py:606
+#: models.py:660
 msgid "VS"
 msgstr "VS"
 
-#: models.py:610
+#: models.py:664
 msgid "SS"
 msgstr "SS"
 
-#: models.py:611
+#: models.py:665
 msgid "Specific symbol"
 msgstr "Specifický symbol"
 
-#: models.py:614
+#: models.py:668
 msgid "CS"
 msgstr "KS"
 
-#: models.py:615
+#: models.py:669
 msgid "Constant symbol"
 msgstr "Konstantní symbol"
 
-#: models.py:618
+#: models.py:672
 msgid "Sender identification"
 msgstr "Identifikace odesílatele"
 
-#: models.py:619
+#: models.py:673
 msgid "Sender identification string on the account statement"
 msgstr "Identifikace odesílatele z bankovního výpisu"
 
-#: models.py:622
+#: models.py:676
 msgid "Type"
 msgstr "Typ"
 
-#: models.py:623
+#: models.py:677
 msgid "Type of payment"
 msgstr "Typ platby"
 
-#: models.py:627
+#: models.py:681
 msgid "Done by"
 msgstr "Provedl"
 
-#: models.py:628
+#: models.py:682
 msgid "This is a column imported from the account statements. It's purpose is not clear. It has been usually blank on the account statement we have received so far."
 msgstr "Toto je kolonka importovaná z výpisů z účtu. Její účel není jasný. Na všech dosavadních výpisech bývala obyčejně prázdná."
 
-#: models.py:633
+#: models.py:687
 msgid "Account name"
 msgstr "Jméno účtu"
 
-#: models.py:636
+#: models.py:690
 msgid "Bank name"
 msgstr "Jméno banky"
 
-#: models.py:681
+#: models.py:735
 msgid "Phonecall"
 msgstr "Telefonní hovor"
 
-#: models.py:682
+#: models.py:736
 msgid "Mail"
 msgstr "Pošta"
 
-#: models.py:683
+#: models.py:737
 msgid "Personal"
 msgstr "Osobní"
 
-#: models.py:684
+#: models.py:738
 msgid "Internal"
 msgstr "Interní"
 
-#: models.py:688
+#: models.py:742
 msgid "Mass"
 msgstr "Hromadná"
 
-#: models.py:689
+#: models.py:743
 msgid "Automatic"
 msgstr "Automatická"
 
-#: models.py:690
+#: models.py:744
 msgid "Individual"
 msgstr "Individuální"
 
-#: models.py:704
+#: models.py:758
 msgid "Communication"
 msgstr "Komunikace"
 
-#: models.py:705
+#: models.py:759
 msgid "Communications"
 msgstr "Komunikace"
 
-#: models.py:710
-#: models.py:1008
-#: models.py:1061
+#: models.py:764
+#: models.py:1069
+#: models.py:1122
 msgid "Method"
 msgstr "Metoda"
 
-#: models.py:713
+#: models.py:767
 msgid "Type of communication"
 msgstr "Typ komunikace"
 
-#: models.py:717
-#: models.py:1058
+#: models.py:771
+#: models.py:1119
 msgid "Date"
 msgstr "Datum"
 
-#: models.py:719
-#: models.py:1012
-#: models.py:1065
+#: models.py:773
+#: models.py:1073
+#: models.py:1126
 msgid "Subject"
 msgstr "Předmět"
 
-#: models.py:720
+#: models.py:774
 msgid "The topic of this communication"
 msgstr "Téma této komunikace"
 
-#: models.py:723
+#: models.py:777
 msgid "Text"
 msgstr "Text"
 
-#: models.py:724
+#: models.py:778
 msgid "Text or summary of this communication"
 msgstr "Text nebo shrnutí této komunikace"
 
-#: models.py:727
-#: models.py:1083
+#: models.py:781
+#: models.py:1144
 msgid "Attachment"
 msgstr "Příloha"
 
-#: models.py:732
+#: models.py:786
 msgid "Notes"
 msgstr "Poznámky"
 
-#: models.py:733
+#: models.py:787
 msgid "Internal notes about this communication"
 msgstr "Interní poznámky o této komunikaci"
 
-#: models.py:737
+#: models.py:791
 msgid "Created by"
 msgstr "Vytvořil"
 
-#: models.py:742
+#: models.py:796
 msgid "Last handled by"
 msgstr "Naposledy vyřizoval"
 
-#: models.py:746
+#: models.py:800
 msgid "Send / Handle"
 msgstr "Odeslat / Vyřídit"
 
-#: models.py:747
+#: models.py:801
 msgid "Request sending or resolving this communication. For emails, this means that the email will be immediatelly sent to the user. In other types of communications, someone must handle this manually."
 msgstr "Požadavek na odeslání nebo vyřešení této komunikace.  U emailů to znamená, že bude zpráva okamžitě odeslána. U jiných druhů komunikací to bude muset někdo zařídit ručně."
 
-#: models.py:752
+#: models.py:806
 msgid "Dispatched / Done"
 msgstr "Odesláno / Hotovo"
 
-#: models.py:753
+#: models.py:807
 msgid "Was this message already sent, communicated and/or resolved?"
 msgstr "Byla již tato zpráva odeslána, komunikována a/nebo vyřešena?"
 
-#: models.py:866
-#: models.py:900
+#: models.py:920
+#: models.py:956
 msgid "Conditions"
 msgstr "Podmínky"
 
-#: models.py:880
+#: models.py:936
 msgid "Name of condition"
 msgstr "Jméno podmínky"
 
-#: models.py:884
+#: models.py:940
 msgid "Operation"
 msgstr "Operace"
 
-#: models.py:888
+#: models.py:944
 msgid "Variable"
 msgstr "Proměnná"
 
-#: models.py:890
+#: models.py:946
 msgid "Value or variable on left-hand side"
 msgstr "Hodnota nebo proměnná na levé straně"
 
-#: models.py:894
+#: models.py:950
 msgid "Value"
 msgstr "Hodnota"
 
-#: models.py:895
+#: models.py:951
 msgid "Value or variable on right-hand side"
 msgstr "Hodnota nebo proměnná na pravé straně"
 
-#: models.py:903
+#: models.py:959
 msgid "Display as filter?"
 msgstr "Zobrazit jako filtr?"
 
-#: models.py:904
+#: models.py:960
 msgid "Determines whether this condition is available as a filterin the table of Users"
 msgstr "Určuje zda se tato podmínka objevuje jako filtr v tabulce uživatelů"
 
-#: models.py:999
+#: models.py:1060
 msgid "Automatic Communication"
 msgstr "Automatická komunikace"
 
-#: models.py:1000
+#: models.py:1061
 msgid "Automatic Communications"
 msgstr "Automatické komunikace"
 
-#: models.py:1015
-#: models.py:1068
+#: models.py:1076
+#: models.py:1129
 msgid "English subject"
 msgstr "Anglický předmět"
 
-#: models.py:1019
-#: models.py:1073
+#: models.py:1080
+#: models.py:1134
 msgid "Template"
 msgstr "Šablona"
 
-#: models.py:1020
-#: models.py:1074
+#: models.py:1081
+#: models.py:1135
 msgid "Template can contain variable substitutions like addressment, name, variable symbol etc."
 msgstr "Šablona může obsahovat nahrazované proměnné, jako oslovení, jméno, variabilní symbol atd."
 
-#: models.py:1024
-#: models.py:1079
+#: models.py:1085
+#: models.py:1140
 msgid "English template"
 msgstr "Anglická šablona"
 
-#: models.py:1028
+#: models.py:1089
 msgid "Only once"
 msgstr "Pouze jednou"
 
-#: models.py:1029
+#: models.py:1090
 msgid "If checked, never send this communication twice to one user"
 msgstr "Pokud je zaškrtnuto, nikdy neposílat tuto komunikaci témuž uživateli dvakrát"
 
-#: models.py:1032
+#: models.py:1093
 msgid "Dispatch auto"
 msgstr "Odeslat automaticky"
 
-#: models.py:1033
+#: models.py:1094
 msgid "If checked, the communication might be dispatched by the system (e.g. an email sent) as soon as condition becomes true, without any further action from the administrator. If not, the communication is created, but the administrator must send it manually."
 msgstr "Pokud je zaškrtnuto, může systém komunikaci vyřídit (např. odeslat email) jakmile se podmínka stane pravdivou bez jakéhokoliv dalšího zásahu administrátora. Jinak je komunikace založena, ale administrátor ji musí odeslat ručně."
 
-#: models.py:1040
+#: models.py:1101
 msgid "List of users to whom this communication was already sent"
 msgstr "Seznam uživatelů, kterým již byla tato komunikace odeslána"
 
-#: models.py:1050
+#: models.py:1111
 msgid "Mass Communication"
 msgstr "Hromadná komunikace"
 
-#: models.py:1051
+#: models.py:1112
 msgid "Mass Communications"
 msgstr "Hromadné komunikace"
 
-#: models.py:1069
+#: models.py:1130
 msgid "English version of the subject. If empty, English speaking users will not receive this communication."
 msgstr "Anglická verze předmětu. Ponecháte-li prázdné, anglicky mluvící uživatelé tuto komunikaci nedostanou."
 
-#: models.py:1087
+#: models.py:1148
 msgid "Attach tax confirmation"
 msgstr "Připojit daňové potvrzení"
 
-#: models.py:1088
+#: models.py:1149
 msgid "If this field is checked, the tax confirmation for last year is appended to the message."
 msgstr "Pokud je toto políčko zaškrtnuto, bude ke zprávě připojeno daňové potvrzení za minulý rok."
 
-#: models.py:1093
+#: models.py:1154
 msgid "Send"
 msgstr "Odeslat"
 
-#: models.py:1094
+#: models.py:1155
 msgid "If checked, the communication will be created for every user on submitting this form. If possible (e.g. for emails), it will also be automatically dispatched."
 msgstr "Pokud je zaškrnuto, každému vybranému uživateli bude při odeslání tohoto formuláře založena komunikace. Pokud to je možné (např. pro emaily), bude zároveň okamžitě automaticky odeslána."
 
-#: models.py:1100
+#: models.py:1161
 msgid "All users who should receive the communication"
 msgstr "Všichni uživatelé, kteří by měli tuto komunikaci obdržet"
 
-#: models.py:1134
+#: models.py:1195
 msgid "Members by months"
 msgstr "Členové po měsících"
 
-#: models.py:1149
+#: models.py:1210
 msgid "Payments by months"
 msgstr "Platby po měsících"
 
@@ -896,13 +914,18 @@ msgstr "Nic dostupného"
 msgid "Unknown content"
 msgstr "Neznámý obsah"
 
-#: templates/admin/aklub/recruiter/change_form.html:7
-msgid "Recruited users"
-msgstr "Naverbovaní uživatelé"
+#: templates/admin/aklub/campaign/change_form.html:8
+msgid "Members"
+msgstr "Členové"
 
+#: templates/admin/aklub/campaign/change_form.html:9
 #: templates/admin/aklub/recruiter/change_form.html:8
 msgid "History"
 msgstr "Historie"
+
+#: templates/admin/aklub/recruiter/change_form.html:7
+msgid "Recruited users"
+msgstr "Naverbovaní uživatelé"
 
 #: templates/admin/aklub/taxconfirmation/change_list.html:7
 msgid "Generate"
