@@ -460,6 +460,31 @@ class User(models.Model):
 	conf.save()
 	return conf
 
+    def no_upgrade(self):
+        """Check for users without upgrade to payments
+
+        Returns true if:
+        1. user is regular at least for the last year
+        2. user didn't increase the amount of his payments during last year
+
+        This really only makes sense for monthly payments.
+        """
+        if self.regular_payments != True:
+            return False
+        payment_now = self.last_payment()
+        if ((not payment_now) or
+            (payment_now.date < (datetime.date.today()-datetime.timedelta(days=45)))):
+            return False
+        payments_year_before = Payment.objects.filter(
+            user=self,
+            date__lt=datetime.datetime.now()-datetime.timedelta(days=365)
+            ).order_by('-date')
+        if (len(payments_year_before) == 0):
+            return False
+        if (payment_now.amount == payments_year_before[0].amount):
+            return True
+        else:
+            return False
 
 class NewUserManager(models.Manager):
     def get_query_set(self):
