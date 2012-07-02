@@ -893,7 +893,9 @@ class Condition(models.Model):
     OPERATORS = (
         ('Logical', (
                 ('and', 'and'),
-                ('or', 'or'))),
+                ('or', 'or'),
+                ('nor', 'nor'),
+                )),
         ('Comparison', (
                 ('=', 'is equal to'),
                 ('!=', 'is not equal to'),
@@ -989,6 +991,11 @@ class Condition(models.Model):
                 if cond.is_true(user, action):
                     return True
             return False
+        if self.operation == 'nor':
+            for cond in self.conds.all():
+                if cond.is_true(user, action):
+                    return False
+            return True
 
         # Elementary conditions
         left = get_val(self.variable, user)
