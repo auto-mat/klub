@@ -194,7 +194,7 @@ msgstr "Webový formulář"
 
 #: models.py:117
 msgid "Direct dialogue -- partial form (not automatic in bank)"
-msgstr "Přímý dialog -- částečný formulář (nestačí pro banku)Přímý dialog -- částečný formulář (pro banku nestačí)"
+msgstr "Přímý dialog -- částečný formulář (nestačí pro banku)"
 
 #: models.py:118
 msgid "Direct dialogue -- full form (automatic in bank)"
