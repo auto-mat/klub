@@ -297,8 +297,9 @@ class CampaignAdmin(admin.ModelAdmin):
     list_display = ('created', 'name')
 
 class RecruiterAdmin(admin.ModelAdmin):
-    list_display = ('recruiter_id', 'person_name', 'email', 'telephone')
-
+    list_display = ('recruiter_id', 'person_name', 'email', 'telephone', 'problem', 'rating')
+    list_filter = ('problem',)
+    
 class TaxConfirmationAdmin(admin.ModelAdmin):
     list_display = ('user', 'year', 'file')
     ordering = ('user__surname', 'user__firstname',)

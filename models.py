@@ -89,7 +89,21 @@ class Recruiter(models.Model):
     note = models.TextField(
         verbose_name=_("Note"),
         max_length=3000, blank=True)
-
+    problem = models.BooleanField(
+        verbose_name=_("Problem"),
+        help_text=_("Check this field if there is a problem with this recruiter which "
+                    "only be resolved later or by somebody else. Uncheck as soon as the problem is "
+                    "resolved. If the problem is of permanent nature and no further action "
+                    "is needed, leave it unchecked and lower the rating bellow accordingly."),
+        default=False)
+    rating = models.IntegerField(
+        verbose_name=_("Rating"),
+        help_text=_("5 = ordinary (modestly good), 0 = hopelessly bad "
+                    "10 = excelent much above average"),
+        choices=[(i, str(i)) for i in range(0,11)],
+        default=5,
+        blank=False)
+    
     def __unicode__(self):
         return self.person_name()
 
@@ -1165,7 +1179,7 @@ class StatMemberCountsByMonths(models.Model):
         db_table = 'aklub_v_member_counts_by_months'
         verbose_name_plural = _("Members by months")
 
-    id = models.CharField(primary_key=True)
+    id = models.CharField(primary_key=True, max_length=20)
     year = models.IntegerField()
     month = models.IntegerField()
     regular = models.IntegerField()
@@ -1180,7 +1194,7 @@ class StatPaymentsByMonths(models.Model):
         db_table = 'aklub_v_payments_by_months'
         verbose_name_plural = _("Payments by months")
 
-    id = models.CharField(primary_key=True)
+    id = models.CharField(primary_key=True, max_length=20)
     year = models.IntegerField()
     month = models.IntegerField()
     total = models.IntegerField()
