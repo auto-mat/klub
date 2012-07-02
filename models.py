@@ -58,6 +58,18 @@ class Campaign(models.Model):
         help_text=_("Description of this campaign"),
         max_length=3000, blank=True)
 
+    def members(self):
+        return User.objects.filter(campaigns=self)
+
+    def number_of_members(self):
+        return len(self.members())
+
+    def recruiters(self):
+        return Recruiter.objects.filter(campaigns=self)
+
+    def number_of_recruiters(self):
+        return len(self.recruiters())
+
     def __unicode__(self):
         return self.name
 
@@ -103,7 +115,10 @@ class Recruiter(models.Model):
         choices=[(i, str(i)) for i in range(0,11)],
         default=5,
         blank=False)
-    
+    campaigns = models.ManyToManyField(Campaign,
+                                       help_text = _("Associated campaigns"),
+                                       blank=True,
+                                       editable=True)
     def __unicode__(self):
         return self.person_name()
 

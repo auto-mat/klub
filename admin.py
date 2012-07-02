@@ -340,13 +340,15 @@ class AccountStatementsAdmin(admin.ModelAdmin):
     fields = copy.copy(list_display)
 
 class CampaignAdmin(admin.ModelAdmin):
-    list_display = ('created', 'name')
+    list_display = ('created', 'name', 'number_of_members', 'number_of_recruiters')
+    fields = ('created', 'name')
 
 class RecruiterAdmin(admin.ModelAdmin):
     list_display = ('recruiter_id', 'person_name', 'email', 'telephone', 'problem', 'rating')
     list_filter = ('problem',)
     actions = (export_as_csv_action(fields=list(list_display)+['note']),)
-    
+    filter_horizontal = ('campaigns',)
+
 class TaxConfirmationAdmin(admin.ModelAdmin):
     list_display = ('user', 'year', 'file')
     ordering = ('user__surname', 'user__firstname',)
