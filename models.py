@@ -381,7 +381,10 @@ class User(models.Model):
         interval_in_days = {'monthly': 31,
                             'quaterly': 92,
                             'annually': 366}
-        return datetime.timedelta(days=interval_in_days[self.regular_frequency])
+        try:
+            return datetime.timedelta(days=interval_in_days[self.regular_frequency])
+        except KeyError:
+            return None
 
     def expected_regular_payment_date(self):
         last_payment = self.last_payment()
@@ -390,7 +393,10 @@ class User(models.Model):
         if last_payment:
             # Exactly a month after last payment or whatever
             # expectation record for the given user is set to
-            expected = last_payment.date+self.regular_frequency_td()
+            freq = self.regular_frequency_td()
+            if not freq:
+                return None
+            expected = last_payment.date+freq
             if self.expected_date_of_first_payment:
                 expected = max(expected, self.expected_date_of_first_payment)
         elif self.expected_date_of_first_payment:
@@ -422,8 +428,11 @@ class User(models.Model):
         """Check if we didn't receive more money than expected"""
         total = 20
         if self.regular_payments:
+            freq = self.regular_frequency_td()
+            if not freq:
+                return None
             total = sum([p.amount for p in Payment.objects.filter(
-                        user=self, date__gt = datetime.date.today()-self.regular_frequency_td() + \
+                        user=self, date__gt = datetime.date.today()-freq + \
                         + datetime.timedelta(days=3))])
             if total and self.regular_amount and total > self.regular_amount:
                 return total - self.regular_amount
@@ -1212,5 +1221,6 @@ class StatPaymentsByMonths(models.Model):
     id = models.CharField(primary_key=True, max_length=20)
     year = models.IntegerField()
     month = models.IntegerField()
+    donors = models.IntegerField()
     total = models.IntegerField()
     run_total = models.IntegerField()

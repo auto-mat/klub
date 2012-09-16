@@ -11,11 +11,11 @@
 
   {{ total_amount|intcomma}} Kč
 
-  <h2>Částky v jednotlivých měsících</h2>
+  <h2>Přispěvatelé a částky v jednotlivých měsících</h2>
       <table>
-      <tr><td>Rok</td><td>Měsíc</td><td>Celkem za měsíc</td><td>Celkem</td></tr>
+      <tr><td>Rok</td><td>Měsíc</td><td>Přispěvatelů</td><td>Celkem za měsíc</td><td>Celková vybraná částka od začátku Klubu</td></tr>
       {% for m in payments_by_months %}
-      <tr><td>{{ m.year }}</td><td>{{ m.month }}</td><td>{{ m.total|intcomma}} Kč</td><td>{{ m.run_total|intcomma}} Kč</td></tr>
+      <tr><td>{{ m.year }}</td><td>{{ m.month }}</td><td>{{ m.donors }}</td><td>{{ m.total|intcomma}} Kč</td><td>{{ m.run_total|intcomma}} Kč</td></tr>
       {% endfor %}
       </table>
 

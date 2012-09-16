@@ -40,11 +40,13 @@ create or replace view aklub_v_payments_by_months as
        (select p.y||'.'||p.m as id,
        p.y as year,
        p.m as month,
+       donors as donors,
        p.s as total
        from
        	    (select
 		floor(extract(year from date)) as y,
 	    	floor(extract(month from date)) as m,
+                count(user_id) as donors,
 		sum(amount) as s
 		from aklub_payment
 		where type != 'expected'
