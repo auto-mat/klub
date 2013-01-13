@@ -356,7 +356,7 @@ class TaxConfirmationAdmin(admin.ModelAdmin):
     search_fields = ('user__surname', 'user__firstname', 'user__variable_symbol',)
 
     def generate(self, request):
-	year = 2011
+	year = 2012
 	payed = Payment.objects.filter(date__year=year).exclude(type='expected').values_list('user_id', flat=True)
 	donors = User.objects.filter(id__in=payed).order_by('surname')
 	count = 0
