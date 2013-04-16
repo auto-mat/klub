@@ -353,10 +353,11 @@ class RecruiterAdmin(admin.ModelAdmin):
     filter_horizontal = ('campaigns',)
 
 class TaxConfirmationAdmin(admin.ModelAdmin):
-    list_display = ('user', 'year', 'file')
+    list_display = ('user', 'year', 'amount', 'file')
     ordering = ('user__surname', 'user__firstname',)
     list_filter = ['year',]
     search_fields = ('user__surname', 'user__firstname', 'user__variable_symbol',)
+    actions = (export_as_csv_action(fields=('user', 'amount')),)
 
     def generate(self, request):
 	year = 2012

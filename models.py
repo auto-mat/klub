@@ -505,6 +505,7 @@ class User(models.Model):
 	except TaxConfirmation.DoesNotExist:
 		conf = TaxConfirmation(user=self,year=year)
 	conf.file = File(temp)
+        conf.amount = amount
 	conf.save()
 	return conf
 
@@ -1200,6 +1201,7 @@ def confirmation_upload_to(instance, filename):
 class TaxConfirmation(models.Model):
 	user = models.ForeignKey(User)
 	year = models.PositiveIntegerField()
+        amount = models.PositiveIntegerField(default=0)
 	file = models.FileField(upload_to=confirmation_upload_to, storage=OverwriteStorage())
 
         class Meta:
