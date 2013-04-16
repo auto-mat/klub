@@ -286,6 +286,16 @@ class User(models.Model):
         help_text=_("Is the user active member? Use this field to disable old "
                    "or temporary users."),
         default=True)
+    profile_text = models.TextField(
+        verbose_name=_("About me"),
+        help_text=_("If you wish to tell others about you, do it here."),
+        max_length=3000, blank=True, null=True)
+    profile_picture = models.FileField(
+        verbose_name=_("Profile picture"),
+        upload_to='profile-images',
+        help_text=_("Your profile picture, which others will see."),
+        blank=True, null=True)
+
     # --- Communication
     
     # Benefits

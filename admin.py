@@ -141,6 +141,9 @@ class UserAdmin(admin.ModelAdmin):
         ('Note', {
                 'fields': ['note', 'source', 'campaigns', 'recruiter', 'verified', 'verified_by'],
                 'classes': ['collapse']}),
+        ('Profile', {
+                'fields': ['profile_text', 'profile_picture'],
+                'classes': ['collapse']}),
         ]
 
     def queryset(self, request):

@@ -9,7 +9,10 @@ from django.contrib.admin import widgets
 from django.contrib.formtools.wizard.views import SessionWizardView
 from django.core.mail import EmailMessage
 from django.db.models import Sum, Count, Q
+from django.utils import simplejson
 
+import settings
+from wp_urls import wp_reverse
 from models import *
 
 class RegularUserForm(forms.ModelForm):
@@ -42,6 +45,17 @@ class RegularUserForm(forms.ModelForm):
 		for field in self.Meta.required:
 			f = self.fields[field].required = True
 
+class RegularUserFormWithProfile(RegularUserForm):
+	class Meta (RegularUserForm.Meta):
+		fields = ('title_before', 'firstname', 'surname', 'title_after',
+			  'street', 'city', 'country', 'zip_code',
+			  'language', 'email', 'telephone',
+			  'regular_frequency', 'regular_amount', 'expected_date_of_first_payment',
+			  'wished_tax_confirmation',
+			  'wished_welcome_letter', 'wished_information', 'public',
+			  'profile_text', 'profile_picture',
+		)
+
 def new_user(form, regular):
 	# Check number of registrations so far today
 	# TODO: Lock DB access here (to ensure uniqueness of VS)
@@ -68,13 +82,14 @@ def new_user(form, regular):
 	return new_user.id
 
 def regular(request):
+    form_class = RegularUserForm
     if request.method == 'POST': # If the form has been submitted...
-        form = RegularUserForm(request.POST) # A form bound to the POST data
+        form = form_class(request.POST) # A form bound to the POST data
         if form.is_valid(): # All validation rules pass
 	    new_user(form, regular=True)
             return http.HttpResponseRedirect('/thanks/') # Redirect after POST
     else:
-        form = RegularUserForm() # An unbound form
+        form = form_class() # An unbound form
 
     return render_to_response('regular.html', {
         'form': form,
@@ -82,6 +97,20 @@ def regular(request):
 
 def thanks(request):
 	return render_to_response('thanks.html') 
+
+def regular_wp(request):
+    form_class = RegularUserFormWithProfile
+    if request.method == 'POST': # If the form has been submitted...
+        form = form_class(request.POST) # A form bound to the POST data
+        if form.is_valid(): # All validation rules pass
+            new_user(form, regular=True)
+            return http.HttpResponseRedirect(wp_reverse('thanks_wp')) # Redirect after POST
+    else:
+        form = form_class() # An unbound form
+
+    return render_to_response('regular-wp.html', {
+        'form': form,
+    })
 
 def donators(request):
         payed = Payment.objects.exclude(type='expected').values_list('user_id', flat=True)
@@ -281,3 +310,10 @@ def stat_payments(request):
 	return render_to_response('stat-finance.html',
 			      RequestContext(request, {}),)
 
+def profiles(request):
+	result = [{'firstname': u.public and u.firstname or '',
+		   'surname': u.public and u.surname or '',
+		   'text': u.profile_text or '',
+		   'picture': u.profile_picture and os.path.join(settings.UPLOAD_PATH, str(u.profile_picture)) or ''}
+		  for u in User.objects.all()]
+	return http.HttpResponse(simplejson.dumps(result), mimetype='application/json')

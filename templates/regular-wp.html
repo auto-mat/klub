@@ -1,0 +1,19 @@
+{% load i18n %}
+{% load bootstrap %}
+
+<script src="/resources/js/jquery.js"/></script>
+<script src="/resources/js/jquery-ui.js"></script>
+<script src="/resources/js/jquery.ui.datepicker-cs.js"></script>
+
+<link rel="stylesheet" href="/resources/css/jquery-ui.css" type="text/css" media="screen" />
+
+<script type="text/javascript">
+jQuery(function() {
+   jQuery("#id_expected_date_of_first_payment").datepicker({ dateFormat: 'd.m.yy' });
+});
+</script>
+
+<form method="post" class="form-horizontal">{% csrf_token %}
+   {{ form|bootstrap }}
+<button class="submit" type="button">{% trans "Odeslat" %}</button>
+</form>
