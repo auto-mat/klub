@@ -315,5 +315,5 @@ def profiles(request):
 		   'surname': u.public and u.surname or '',
 		   'text': u.profile_text or '',
 		   'picture': u.profile_picture and os.path.join(settings.UPLOAD_PATH, str(u.profile_picture)) or ''}
-		  for u in User.objects.all()]
+		  for u in User.objects.all().order_by('-registered_support')]
 	return http.HttpResponse(simplejson.dumps(result), mimetype='application/json')
