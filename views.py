@@ -103,13 +103,17 @@ def regular_wp(request):
         form = form_class(request.POST) # A form bound to the POST data
         if form.is_valid(): # All validation rules pass
             new_user(form, regular=True)
-            return http.HttpResponseRedirect('/thanks/') # Redirect after POST
+            return http.HttpResponseRedirect('/thanks-wp/') # Redirect after POST
     else:
         form = form_class() # An unbound form
 
     return render_to_response('regular-wp.html', {
         'form': form,
     })
+
+def thanks_wp(request):
+	return render_to_response('thanks-wp.html') 
+
 
 def donators(request):
         payed = Payment.objects.exclude(type='expected').values_list('user_id', flat=True)
