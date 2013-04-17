@@ -12,7 +12,6 @@ from django.db.models import Sum, Count, Q
 from django.utils import simplejson
 
 import settings
-from wp_urls import wp_reverse
 from models import *
 
 class RegularUserForm(forms.ModelForm):
@@ -104,7 +103,7 @@ def regular_wp(request):
         form = form_class(request.POST) # A form bound to the POST data
         if form.is_valid(): # All validation rules pass
             new_user(form, regular=True)
-            return http.HttpResponseRedirect(wp_reverse('thanks_wp')) # Redirect after POST
+            return http.HttpResponseRedirect('/thanks/') # Redirect after POST
     else:
         form = form_class() # An unbound form
 
