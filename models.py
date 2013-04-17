@@ -34,6 +34,7 @@ from django.utils.translation import ugettext as _
 import datetime
 import csv
 import os.path
+import stdimage
 # Local modules
 import autocom
 import confirmation
@@ -290,10 +291,12 @@ class User(models.Model):
         verbose_name=_("About me"),
         help_text=_("If you wish to tell others about you, do it here."),
         max_length=3000, blank=True, null=True)
-    profile_picture = models.FileField(
+    profile_picture = stdimage.StdImageField(
         verbose_name=_("Profile picture"),
-        upload_to='profile-images',
         help_text=_("Your profile picture, which others will see."),
+        upload_to='profile-images',
+        size=(2048, 2048),
+        thumbnail_size=(150, 150),
         blank=True, null=True)
 
     # --- Communication
