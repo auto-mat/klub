@@ -12,12 +12,7 @@
 
 <link rel="stylesheet" href="/resources/css/jquery-ui.css" type="text/css" media="screen" />
 
-<script type="text/javascript">
-jQuery(function() {
-   jQuery("#id_expected_date_of_first_payment").datepicker({ dateFormat: 'd.m.yy' });
-});
-</script>     
-
+{% block styles %}
 <link rel="stylesheet" href="http://www.auto-mat.cz/wp-content/themes/atmwhite/style.css" type="text/css" media="screen" />
 <link rel="stylesheet" href="/upload/forms.css" type="text/css" media="screen" />
 <style type="text/css">
@@ -35,6 +30,14 @@ jQuery(function() {
     background: red url(../img/admin/icon_alert.gif) 5px .3em no-repeat;
 }
 </style>
+{% endblock %}
+
+<script type="text/javascript">
+jQuery(function() {
+   jQuery("#id_expected_date_of_first_payment").datepicker({ dateFormat: 'd.m.yy' });
+});
+</script>     
+
 
 {% if wizard %}
 {{ wizard.form.media }}
