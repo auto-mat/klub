@@ -288,8 +288,8 @@ class User(models.Model):
                    "or temporary users."),
         default=True)
     profile_text = models.TextField(
-        verbose_name=_("About me"),
-        help_text=_("If you wish to tell others about you, do it here."),
+        verbose_name=_("What is your reason?"),
+        help_text=_("Tell others why you support Auto*Mat"),
         max_length=3000, blank=True, null=True)
     profile_picture = stdimage.StdImageField(
         verbose_name=_("Profile picture"),
