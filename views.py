@@ -46,10 +46,10 @@ class RegularUserForm(forms.ModelForm):
 
 class RegularUserFormWithProfile(RegularUserForm):
 	class Meta (RegularUserForm.Meta):
-		fields = ('title_before', 'firstname', 'surname', 'title_after',
+		fields = ('firstname', 'surname',
 			  'street', 'city', 'country', 'zip_code',
-			  'language', 'email', 'telephone',
-			  'regular_frequency', 'regular_amount', 'expected_date_of_first_payment',
+			  'email', 'telephone',
+			  'regular_frequency', 'regular_amount',
 			  'wished_tax_confirmation',
 			  'wished_welcome_letter', 'wished_information', 'public',
 			  'profile_text', 'profile_picture',
@@ -113,7 +113,6 @@ def regular_wp(request):
 
 def thanks_wp(request):
 	return render_to_response('thanks-wp.html') 
-
 
 def donators(request):
         payed = Payment.objects.exclude(type='expected').values_list('user_id', flat=True)
