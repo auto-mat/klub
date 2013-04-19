@@ -54,6 +54,9 @@ class RegularUserFormWithProfile(RegularUserForm):
 			  'wished_welcome_letter', 'wished_information', 'public',
 			  'profile_text', 'profile_picture',
 		)
+		required = ('firstname', 'surname', 'street', 'city', 'country', 'zip_code',
+			    'email', 'telephone', 'regular_frequency')
+		widgets = {}
 
 def new_user(form, regular):
 	# Check number of registrations so far today
