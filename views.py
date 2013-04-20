@@ -318,12 +318,16 @@ def stat_payments(request):
 def profiles(request):
 	from_date = request.GET.get('from') or '1970-1-1'
 	paying = request.GET.get('paying')
+
+	users = (User.objects.annotate(**User.annotations).filter(registered_support__gte=from_date).order_by('-registered_support')
+		 | User.objects.annotate(**User.annotations).filter(id__in=(493,89,98,921,33,886,1181,842,954,25)))
+
 	result = [{'firstname': u.public and u.firstname or '',
 		   'surname': u.public and u.surname or '',
 		   'text': u.profile_text or '',
 		   'picture': u.profile_picture and u.profile_picture.url or '',
 		   'picture_thumbnail': u.profile_picture and u.profile_picture.thumbnail.url() or '',
 		   }
-		  for u in User.objects.annotate(**User.annotations).filter(registered_support__gt=from_date).order_by('-registered_support')
+		  for u in users
 		  if ((not paying) or (u.payment_total > 0)) ]
 	return http.HttpResponse(simplejson.dumps(result), mimetype='application/json')
