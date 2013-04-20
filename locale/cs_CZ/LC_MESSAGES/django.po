@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: AKlub\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-04-18 01:02+0200\n"
-"PO-Revision-Date: 2013-04-18 01:03+0100\n"
+"PO-Revision-Date: 2013-04-20 12:57+0100\n"
 "Last-Translator: Hynek Hanke <hanke@brailcom.org>\n"
 "Language-Team: Auto*Mat <hynek.hanke@auto-mat.cz>\n"
 "Language: \n"
@@ -407,11 +407,11 @@ msgstr "Je uživatel aktivním členem? Odškrtnutím lze vyřadit staré nebo d
 
 #: models.py:291
 msgid "What is your reason?"
-msgstr "A jaký je váš důvod?"
+msgstr "A jaký je TA jaký je Tvůj důvod?"
 
 #: models.py:292
 msgid "Tell others why you support Auto*Mat"
-msgstr "Řekněte ostatním proč podporujete Auto*Mat"
+msgstr "Řekni ostatním, proč podporuješ Auto*Mat"
 
 #: models.py:295
 msgid "Profile picture"
@@ -419,7 +419,7 @@ msgstr "Profilová fotografie"
 
 #: models.py:296
 msgid "Your profile picture, which others will see."
-msgstr "Profilová fotografie, kterou uvidí ostatní."
+msgstr "Fotka, kterou uvidí ostatní."
 
 #: models.py:306
 msgid "Club card available"
