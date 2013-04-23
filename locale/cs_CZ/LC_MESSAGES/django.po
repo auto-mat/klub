@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: AKlub\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-04-18 01:02+0200\n"
-"PO-Revision-Date: 2013-04-20 12:57+0100\n"
+"PO-Revision-Date: 2013-04-24 00:59+0100\n"
 "Last-Translator: Hynek Hanke <hanke@brailcom.org>\n"
 "Language-Team: Auto*Mat <hynek.hanke@auto-mat.cz>\n"
 "Language: \n"
@@ -407,7 +407,7 @@ msgstr "Je uživatel aktivním členem? Odškrtnutím lze vyřadit staré nebo d
 
 #: models.py:291
 msgid "What is your reason?"
-msgstr "A jaký je TA jaký je Tvůj důvod?"
+msgstr "A jaký je Tvůj důvod?"
 
 #: models.py:292
 msgid "Tell others why you support Auto*Mat"
