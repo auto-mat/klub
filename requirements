@@ -1,0 +1,9 @@
+Django==1.5
+django-stdimage
+reportlab
+django-extensions
+psycopg2
+django-bootstrap-form
+pil
+pygraphviz
+

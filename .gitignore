@@ -2,4 +2,7 @@
 *.mo
 *.pyc
 *~
-
+env/
+project/settings_local.py
+data/
+trash/
