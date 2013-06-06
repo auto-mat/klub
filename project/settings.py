@@ -80,9 +80,6 @@ TEMPLATE_CONTEXT_PROCESSORS += (
      'django.contrib.messages.context_processors.messages',
 )
 
-# Make this unique, and don't share it with anybody.
-SECRET_KEY = 'm=w^c_hprf!j7^^i1&m8d_byl2d97zqnxgkwnasnwhytsm@l+9'
-
 MIDDLEWARE_CLASSES = (
 #    'johnny.middleware.LocalStoreClearMiddleware',  # disabled for django 1.4
 #    'johnny.middleware.QueryCacheMiddleware', # disabled for django 1.4
@@ -103,10 +100,14 @@ MIDDLEWARE_CLASSES = (
 #}
 #JOHNNY_MIDDLEWARE_KEY_PREFIX='jc_aklub'
 
+LOCALE_PATHS = [
+    normpath(PROJECT_ROOT, 'apps/aklub/locale'),
+]
+
 ROOT_URLCONF = 'urls'
 
 TEMPLATE_DIRS = (
-    '/home/aplikace/klub_django/aklub/templates'
+    normpath(PROJECT_ROOT, 'apps/aklub/templates'),
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
@@ -128,5 +129,3 @@ INSTALLED_APPS = (
 )
 
 UPLOAD_PATH = '/upload/'
-
-SECRET_KEY='asdfasfasdff'
