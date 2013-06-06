@@ -395,6 +395,3 @@ admin.site.register(Condition, ConditionAdmin)
 admin.site.register(Campaign, CampaignAdmin)
 admin.site.register(Recruiter, RecruiterAdmin)
 admin.site.register(TaxConfirmation, TaxConfirmationAdmin)
-
-from django.contrib.auth.models import Group
-admin.site.unregister(Group)
