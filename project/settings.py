@@ -123,6 +123,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'stdimage',
+    'south',
     'bootstrapform',
     'django_extensions',
     'aklub'
