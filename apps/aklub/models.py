@@ -74,8 +74,33 @@ class Campaign(models.Model):
     def number_of_recruiters(self):
         return len(self.recruiters())
 
+    def total_expenses(self):
+        return self.expenses.aggregate(Sum('amount'))['amount__sum']
+
     def __unicode__(self):
         return self.name
+
+class Expense(models.Model):
+    """Expense in campaign"""
+
+    class Meta:
+        verbose_name = _("expense")
+        verbose_name_plural = _("expenses")
+
+    amount = models.FloatField(
+        verbose_name=_("amount"),
+        blank=False, null=False)
+    item = models.CharField(
+        verbose_name=_("item"),
+        max_length=300, 
+        blank=True,
+        )
+    campaign = models.ForeignKey(
+        Campaign,
+        verbose_name=_("campaign"),
+        related_name='expenses',
+        null=False, blank=False)
+
 
 class Recruiter(models.Model):
     """Recruiter -- person that recruits new club members"""
@@ -1182,6 +1207,11 @@ class MassCommunication(models.Model):
                                            help_text = _(
             "All users who should receive the communication"),
                                            blank=True)
+    note = models.TextField(
+        verbose_name=_("note"),
+        help_text = _("Note"),
+        max_length=500,
+        blank=True, null=True)
 
     def __unicode__(self):
         return self.name

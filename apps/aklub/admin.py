@@ -84,6 +84,9 @@ class CommunicationInline(admin.TabularInline):
     extra = 1
     readonly_fields = ('type', 'created_by', 'handled_by',)
 
+class ExpenseInline(admin.TabularInline):
+    model = Expense
+
 # -- ADMIN FORMS --
 class UserAdmin(admin.ModelAdmin):
     list_display = ('person_name', 
@@ -265,7 +268,7 @@ class MassCommunicationAdmin(admin.ModelAdmin):
     
     fieldsets = [
         (_("Basic"), {
-                'fields' : [('name', 'method', 'date')]
+                'fields' : [('name', 'method', 'date', 'note')]
                 }),
         (_("Content"), {
                 'fields': [('subject', 'subject_en'),
@@ -343,8 +346,9 @@ class AccountStatementsAdmin(admin.ModelAdmin):
     fields = copy.copy(list_display)
 
 class CampaignAdmin(admin.ModelAdmin):
-    list_display = ('created', 'name', 'number_of_members', 'number_of_recruiters')
+    list_display = ('created', 'name', 'number_of_members', 'number_of_recruiters', 'total_expenses')
     fields = ('created', 'name')
+    inlines = (ExpenseInline, )
 
 class RecruiterAdmin(admin.ModelAdmin):
     list_display = ('recruiter_id', 'person_name', 'email', 'telephone', 'problem', 'rating')
