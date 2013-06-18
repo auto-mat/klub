@@ -29,8 +29,8 @@ from django.http import HttpResponseRedirect, HttpResponse
 import django.forms
 # Local models
 from aklub.models import *
+from aklub import mailing
 import filters
-import autocom
 
 def export_as_csv_action(description="Export selected objects as CSV file",
                          fields=None, exclude=None, header=True):
@@ -283,32 +283,31 @@ class MassCommunicationAdmin(admin.ModelAdmin):
     def save_form(self, request, form, change):
         super(MassCommunicationAdmin, self).save_form(request, form, change)
         obj = form.save()
+        if "_continue" in request.POST and request.POST["_continue"] == "test_mail":
+            #create fake values
+            def last_payment():
+                return Payment(amount = 12345)
+            user = User(
+                email = request.user.email,
+                language = 'cs',
+                active = True,
+                addressment = None,
+                sex = 'male',
+                firstname = request.user.first_name,
+                surname = request.user.last_name,
+                street = _('testing street'),
+                city = _('testing city'),
+                zip_code = 12345,
+                telephone = "123 456 789",
+                regular_amount = 123456,
+                regular_frequency = "monthly",
+                variable_symbol = 12345678,
+                )
+            user.last_payment = last_payment
+            mailing.send_mass_communication(obj, [user], request, False)
+
         if obj.send:
-            for user in obj.send_to_users.all():
-                if user.language == 'cs':
-                    template, subject = obj.template, obj.subject
-                else:
-                    template, subject = obj.template_en, obj.subject_en
-                if user.active and subject.strip() != '':
-                    if template.strip('') == '':
-                        raise Exception("Message template is empty for one of the language variants.")
-                    if not obj.attach_tax_confirmation:
-                        attachment = copy.copy(obj.attachment)
-                    else:
-                        tax_confirmations = TaxConfirmation.objects.filter(
-                            user = user, year = datetime.datetime.now().year-1)
-                        if len(tax_confirmations) > 0:
-                            attachment = copy.copy(tax_confirmations[0].file)
-                        else:
-                            attachment = None
-                    c = Communication(user=user, method=obj.method, date=datetime.datetime.now(),
-                                      subject=subject,
-                                      summary=autocom.process_template(template, user),
-                                      attachment=attachment,
-                                      note=_("Prepared by auto*mated mass communications at %s") % datetime.datetime.now(),
-                                      send=True, created_by = request.user, handled_by=request.user,
-                                      type='mass')
-                    c.save()
+            mailing.send_mass_communication(obj, obj.send_to_users.all(), request)
             # Sending was done, so revert the state of the 'send' checkbox back to False
             obj.send = False
             obj.date = datetime.datetime.now()

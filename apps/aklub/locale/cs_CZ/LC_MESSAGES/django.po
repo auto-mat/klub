@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: AKlub\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-06-15 18:38+0200\n"
+"POT-Creation-Date: 2013-06-18 18:24+0200\n"
 "PO-Revision-Date: 2013-04-24 00:59+0100\n"
 "Last-Translator: Hynek Hanke <hanke@brailcom.org>\n"
 "Language-Team: Auto*Mat <hynek.hanke@auto-mat.cz>\n"
@@ -43,28 +43,31 @@ msgstr "Obsah"
 msgid "Sending"
 msgstr "Odesílání"
 
-#: admin.py:308
-#, python-format
-msgid "Prepared by auto*mated mass communications at %s"
-msgstr "Připraveno auto*matickým hromadným rozesílačem, %s"
+#: admin.py:298
+msgid "testing street"
+msgstr "testovací ulice"
 
-#: admin.py:323 models.py:61
+#: admin.py:299
+msgid "testing city"
+msgstr "testovací město"
+
+#: admin.py:322 models.py:61
 msgid "Description"
 msgstr "Popis"
 
-#: admin.py:326
+#: admin.py:325
 msgid "Operator"
 msgstr "Operátor"
 
-#: admin.py:329
+#: admin.py:328
 msgid "Comparing conditions operands"
 msgstr "Hodnoty pro srovnávací podmínky"
 
-#: admin.py:332
+#: admin.py:331
 msgid "Logical conditions operands"
 msgstr "Hodnoty pro logické podmínky"
 
-#: admin.py:335
+#: admin.py:334
 msgid "Usage"
 msgstr "Použití"
 
@@ -83,6 +86,11 @@ msgstr "Přiřazení uživatele"
 #: filters.py:38 models.py:966
 msgid "Condition"
 msgstr "Podmínka"
+
+#: mailing.py:51
+#, python-format
+msgid "Prepared by auto*mated mass communications at %s"
+msgstr "Připraveno auto*matickým hromadným rozesílačem, %s"
 
 #: models.py:51
 msgid "Campaign"
@@ -162,7 +170,7 @@ msgstr "Email"
 msgid "Telephone"
 msgstr "Telefon"
 
-#: models.py:131 models.py:1212
+#: models.py:131 models.py:1213
 msgid "Note"
 msgstr "Poznámka"
 
@@ -868,19 +876,23 @@ msgstr ""
 "formuláře založena komunikace. Pokud to je možné (např. pro emaily), bude "
 "zároveň okamžitě automaticky odeslána."
 
-#: models.py:1208
+#: models.py:1207
+msgid "send to users"
+msgstr "uživatelé k obeslání"
+
+#: models.py:1209
 msgid "All users who should receive the communication"
 msgstr "Všichni uživatelé, kteří by měli tuto komunikaci obdržet"
 
-#: models.py:1211
+#: models.py:1212
 msgid "note"
 msgstr ""
 
-#: models.py:1248
+#: models.py:1249
 msgid "Members by months"
 msgstr "Členové po měsících"
 
-#: models.py:1263
+#: models.py:1264
 msgid "Payments by months"
 msgstr "Platby po měsících"
 
@@ -978,6 +990,10 @@ msgstr "Členové"
 #: templates/admin/aklub/recruiter/change_form.html:8
 msgid "History"
 msgstr "Historie"
+
+#: templates/admin/aklub/masscommunication/change_form.html:9
+msgid "Save and send testing email"
+msgstr "Uložit a odeslat testovací email"
 
 #: templates/admin/aklub/recruiter/change_form.html:7
 msgid "Recruited users"

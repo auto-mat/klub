@@ -1204,6 +1204,7 @@ class MassCommunication(models.Model):
                       "also be automatically dispatched."),
         default=False)
     send_to_users = models.ManyToManyField(User, 
+            verbose_name=_("send to users"),
                                            help_text = _(
             "All users who should receive the communication"),
                                            blank=True)
