@@ -1197,12 +1197,6 @@ class MassCommunication(models.Model):
                     "for last year is appended to the message."),
         default=False
         )
-    send = models.BooleanField(
-        verbose_name=_("Send"),
-        help_text = _("If checked, the communication will be created for every user "
-                      "on submitting this form. If possible (e.g. for emails), it will "
-                      "also be automatically dispatched."),
-        default=False)
     send_to_users = models.ManyToManyField(User, 
             verbose_name=_("send to users"),
                                            help_text = _(

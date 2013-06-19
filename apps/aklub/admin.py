@@ -276,7 +276,7 @@ class MassCommunicationAdmin(admin.ModelAdmin):
                            ('attachment', 'attach_tax_confirmation')]
                 }),
         (_("Sending"), {
-                'fields' : ['send_to_users', 'send']
+                'fields' : ['send_to_users']
                 }),
         ]
 
@@ -306,10 +306,9 @@ class MassCommunicationAdmin(admin.ModelAdmin):
             user.last_payment = last_payment
             mailing.send_mass_communication(obj, [user], request, False)
 
-        if obj.send:
+        if "_continue" in request.POST and request.POST["_continue"] == "send_mails":
             mailing.send_mass_communication(obj, obj.send_to_users.all(), request)
             # Sending was done, so revert the state of the 'send' checkbox back to False
-            obj.send = False
             obj.date = datetime.datetime.now()
             obj.save()
         # TODO: Generate some summary info message into request about the result

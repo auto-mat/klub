@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: AKlub\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-06-18 18:24+0200\n"
+"POT-Creation-Date: 2013-06-19 11:30+0200\n"
 "PO-Revision-Date: 2013-04-24 00:59+0100\n"
 "Last-Translator: Hynek Hanke <hanke@brailcom.org>\n"
 "Language-Team: Auto*Mat <hynek.hanke@auto-mat.cz>\n"
@@ -51,23 +51,23 @@ msgstr "testovací ulice"
 msgid "testing city"
 msgstr "testovací město"
 
-#: admin.py:322 models.py:61
+#: admin.py:321 models.py:61
 msgid "Description"
 msgstr "Popis"
 
-#: admin.py:325
+#: admin.py:324
 msgid "Operator"
 msgstr "Operátor"
 
-#: admin.py:328
+#: admin.py:327
 msgid "Comparing conditions operands"
 msgstr "Hodnoty pro srovnávací podmínky"
 
-#: admin.py:331
+#: admin.py:330
 msgid "Logical conditions operands"
 msgstr "Hodnoty pro logické podmínky"
 
-#: admin.py:334
+#: admin.py:333
 msgid "Usage"
 msgstr "Použití"
 
@@ -87,7 +87,7 @@ msgstr "Přiřazení uživatele"
 msgid "Condition"
 msgstr "Podmínka"
 
-#: mailing.py:51
+#: mailing.py:50
 #, python-format
 msgid "Prepared by auto*mated mass communications at %s"
 msgstr "Připraveno auto*matickým hromadným rozesílačem, %s"
@@ -170,7 +170,7 @@ msgstr "Email"
 msgid "Telephone"
 msgstr "Telefon"
 
-#: models.py:131 models.py:1213
+#: models.py:131 models.py:1207
 msgid "Note"
 msgstr "Poznámka"
 
@@ -863,36 +863,22 @@ msgstr ""
 "za minulý rok."
 
 #: models.py:1201
-msgid "Send"
-msgstr "Odeslat"
-
-#: models.py:1202
-msgid ""
-"If checked, the communication will be created for every user on submitting "
-"this form. If possible (e.g. for emails), it will also be automatically "
-"dispatched."
-msgstr ""
-"Pokud je zaškrnuto, každému vybranému uživateli bude při odeslání tohoto "
-"formuláře založena komunikace. Pokud to je možné (např. pro emaily), bude "
-"zároveň okamžitě automaticky odeslána."
-
-#: models.py:1207
 msgid "send to users"
 msgstr "uživatelé k obeslání"
 
-#: models.py:1209
+#: models.py:1203
 msgid "All users who should receive the communication"
 msgstr "Všichni uživatelé, kteří by měli tuto komunikaci obdržet"
 
-#: models.py:1212
+#: models.py:1206
 msgid "note"
 msgstr ""
 
-#: models.py:1249
+#: models.py:1243
 msgid "Members by months"
 msgstr "Členové po měsících"
 
-#: models.py:1264
+#: models.py:1258
 msgid "Payments by months"
 msgstr "Platby po měsících"
 
@@ -995,6 +981,11 @@ msgstr "Historie"
 msgid "Save and send testing email"
 msgstr "Uložit a odeslat testovací email"
 
+#: templates/admin/aklub/masscommunication/change_form.html:10
+#, fuzzy
+msgid "Save and send emails"
+msgstr "Uložit a odeslat emaily"
+
 #: templates/admin/aklub/recruiter/change_form.html:7
 msgid "Recruited users"
 msgstr "Naverbovaní uživatelé"
@@ -1007,6 +998,18 @@ msgstr "Generuj"
 #, python-format
 msgid "Add %(name)s"
 msgstr "Přidat %(name)s"
+
+#~ msgid "Send"
+#~ msgstr "Odeslat"
+
+#~ msgid ""
+#~ "If checked, the communication will be created for every user on "
+#~ "submitting this form. If possible (e.g. for emails), it will also be "
+#~ "automatically dispatched."
+#~ msgstr ""
+#~ "Pokud je zaškrnuto, každému vybranému uživateli bude při odeslání tohoto "
+#~ "formuláře založena komunikace. Pokud to je možné (např. pro emaily), bude "
+#~ "zároveň okamžitě automaticky odeslána."
 
 #~ msgid "Regularly"
 #~ msgstr "Pravidelně"
