@@ -24,5 +24,6 @@ urlpatterns = patterns('',
                            (r'^profiles/', 'aklub.views.profiles'),
                            (r'^admin/', include(admin.site.urls)),
                            (r'^jsi18n', 'django.views.i18n.javascript_catalog'),
+                           (r'^tinymce/', include('tinymce.urls')),
                            #(r'', include(admin.site.urls)),
 )

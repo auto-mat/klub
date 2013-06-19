@@ -126,7 +126,11 @@ INSTALLED_APPS = (
     'south',
     'bootstrapform',
     'django_extensions',
+    'django_wysiwyg',
+    'tinymce',
     'aklub'
 )
 
 UPLOAD_PATH = '/upload/'
+
+DJANGO_WYSIWYG_FLAVOR = "tinymce_advanced" 
