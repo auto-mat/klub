@@ -24,12 +24,13 @@ import django
 from django.contrib.admin.templatetags.admin_list import _boolean_icon
 from django.db import models
 from django.db.models import Sum, Count, Max
-from django.core.mail import EmailMessage
+from django.core.mail import EmailMultiAlternatives
 from django.core.files import File
 from django.core.files.storage import FileSystemStorage
 from django.core.files.temp import NamedTemporaryFile
 from django.utils.timesince import timesince
 from django.utils.translation import ugettext as _
+from django.utils.html import strip_tags
 # External dependencies
 import datetime
 import csv
@@ -879,10 +880,12 @@ class Communication(models.Model):
                 bcc = []
             else:
                 bcc = ['kp@auto-mat.cz']
-            email = EmailMessage(subject=self.subject, body=self.summary,
+            text_content = strip_tags(self.summary)
+            email = EmailMultiAlternatives(subject=self.subject, body=text_content,
                                  from_email = 'Klub pratel Auto*Matu <kp@auto-mat.cz>',
                                  to = [self.user.email],
                                  bcc = bcc)
+            email.attach_alternative(self.summary, "text/html")
             if self.attachment:
                 att = self.attachment
                 email.attach(os.path.basename(att.name), att.read())
