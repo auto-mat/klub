@@ -256,6 +256,14 @@ class AutomaticCommunicationAdmin(admin.ModelAdmin):
     list_display = ('name', 'method', 'subject')
     ordering = ('name',)
 
+    def save_form(self, request, form, change):
+        super(AutomaticCommunicationAdmin, self).save_form(request, form, change)
+        obj = form.save()
+        if "_continue" in request.POST and request.POST["_continue"] == "test_mail":
+            mailing.send_mass_communication(obj, ["fake_user"], request, False)
+        # TODO: Generate some summary info message into request about the result
+        return obj
+
 class MassCommunicationAdmin(admin.ModelAdmin):
     list_display = ('name', 'date', 'method', 'subject')
     ordering = ('date',)
@@ -284,27 +292,7 @@ class MassCommunicationAdmin(admin.ModelAdmin):
         super(MassCommunicationAdmin, self).save_form(request, form, change)
         obj = form.save()
         if "_continue" in request.POST and request.POST["_continue"] == "test_mail":
-            #create fake values
-            def last_payment():
-                return Payment(amount = 12345)
-            user = User(
-                email = request.user.email,
-                language = 'cs',
-                active = True,
-                addressment = None,
-                sex = 'male',
-                firstname = request.user.first_name,
-                surname = request.user.last_name,
-                street = _('testing street'),
-                city = _('testing city'),
-                zip_code = 12345,
-                telephone = "123 456 789",
-                regular_amount = 123456,
-                regular_frequency = "monthly",
-                variable_symbol = 12345678,
-                )
-            user.last_payment = last_payment
-            mailing.send_mass_communication(obj, [user], request, False)
+            mailing.send_mass_communication(obj, ["fake_user"], request, False)
 
         if "_continue" in request.POST and request.POST["_continue"] == "send_mails":
             mailing.send_mass_communication(obj, obj.send_to_users.all(), request)

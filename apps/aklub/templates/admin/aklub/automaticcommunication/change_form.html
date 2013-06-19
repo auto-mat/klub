@@ -1,0 +1,13 @@
+{% extends "admin/aklub/change_form.html" %}
+{% load i18n %}
+{% load url from future %}
+{% load i18n admin_static admin_modify %}
+{% load admin_urls %}
+
+{% block submit_buttons_bottom %}
+<div class="submit-row">
+   <button type="submit" value="test_mail" class="sendtestmail" name="_continue" {{ onclick_attrib }}>{% trans 'Save and send testing email' %}</button>
+</div>
+{% submit_row %}
+{% endblock %}
+

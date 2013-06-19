@@ -18,7 +18,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import copy
-from aklub.models import Communication
+from aklub.models import Communication, TaxConfirmation, User, Payment
 import datetime
 from aklub import autocom
 from django.utils.translation import ugettext as _
@@ -27,6 +27,27 @@ from django.utils.translation import ugettext as _
 
 def send_mass_communication(obj, users, request, save = True):
     for user in users:
+        if user == "fake_user":
+            #create fake values
+            def last_payment():
+                return Payment(amount = 12345)
+            user = User(
+                email = request.user.email,
+                language = 'cs',
+                active = True,
+                addressment = None,
+                sex = 'male',
+                firstname = request.user.first_name,
+                surname = request.user.last_name,
+                street = _('testing street'),
+                city = _('testing city'),
+                zip_code = 12345,
+                telephone = "123 456 789",
+                regular_amount = 123456,
+                regular_frequency = "monthly",
+                variable_symbol = 12345678,
+                )
+            user.last_payment = last_payment
         if user.language == 'cs':
             template, subject = obj.template, obj.subject
         else:
@@ -34,7 +55,7 @@ def send_mass_communication(obj, users, request, save = True):
         if user.active and subject.strip() != '':
             if template.strip('') == '':
                 raise Exception("Message template is empty for one of the language variants.")
-            if not obj.attach_tax_confirmation:
+            if hasattr(obj, "attach_tax_confirmation") and not obj.attach_tax_confirmation:
                 attachment = copy.copy(obj.attachment)
             else:
                 tax_confirmations = TaxConfirmation.objects.filter(
