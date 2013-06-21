@@ -134,3 +134,9 @@ INSTALLED_APPS = (
 UPLOAD_PATH = '/upload/'
 
 DJANGO_WYSIWYG_FLAVOR = "tinymce_advanced" 
+
+# import local settings
+try:
+    from settings_local import *
+except ImportError:
+    pass
