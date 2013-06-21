@@ -65,18 +65,23 @@ class Campaign(models.Model):
 
     def members(self):
         return User.objects.filter(campaigns=self)
+    members.short_description = _("members")
 
     def number_of_members(self):
         return len(self.members())
+    number_of_members.short_description = _("number of members")
 
     def recruiters(self):
         return Recruiter.objects.filter(campaigns=self)
+    recruiters.short_description = _("recruiters")
 
     def number_of_recruiters(self):
         return len(self.recruiters())
+    number_of_recruiters.short_description = _("number of recruiters")
 
     def total_expenses(self):
         return self.expenses.aggregate(Sum('amount'))['amount__sum']
+    total_expenses.short_description = _("total expenses")
 
     def __unicode__(self):
         return self.name
