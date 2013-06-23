@@ -9,3 +9,5 @@ pil
 pygraphviz
 django-wysiwyg
 django-tinymce
+django-admin-tools
+feedparser
