@@ -29,7 +29,7 @@ class PaymentChart(BaseChart):
     title = _('Payments')
     template = 'admin_user_stats/modules/chart.html'
     chart_size = "900x200"
-    values = 50
+    values_count = 50
     interval = 'months'
     queryset = Payment.objects
     date_field = 'date'
@@ -47,7 +47,7 @@ class UserChart(BaseChart):
     title = _(u'New users')
     template = 'admin_user_stats/modules/chart.html'
     chart_size = "900x200"
-    values = 50
+    values_count = 50
     interval = 'months'
     queryset = User.objects
     date_field = 'registered_support'
@@ -56,3 +56,14 @@ class UserCharts(BaseCharts):
     """ Group module with 3 default registration charts """
     title = _('Users')
     chart_model = UserChart
+
+    def get_charts(self):
+        """ Returns 3 basic chart modules (per-day, per-week and per-month) """
+        return [
+            self.chart_model(_('By Day'), interval='days'),
+            self.chart_model(_('By Week'), interval='weeks'),
+            self.chart_model(_('By Month'), interval='months'),
+            self.chart_model(_('Regular By Month'), interval='months', queryset = User.objects.filter(regular_payments = True)),
+            self.chart_model(_('Irregular By Month'), interval='months', queryset = User.objects.filter(regular_payments = False)),
+            self.chart_model(_('By Year'), interval='years'),
+        ]
