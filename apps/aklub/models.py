@@ -749,7 +749,8 @@ class Payment(models.Model):
 
     def person_name(self):
         """Return name of the payer"""
-        return self.user.person_name()
+        if self.user:
+            return self.user.person_name()
 
     def paired_with_expected(self):
         """Return if the payment is paired with an expected payment
