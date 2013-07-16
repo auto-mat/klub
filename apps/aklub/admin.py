@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Author: Hynek Hanke <hynek.hanke@auto-mat.cz>
 #
 # Copyright (C) 2010 o.s. Auto*Mat
@@ -332,8 +333,8 @@ class AccountStatementsAdmin(admin.ModelAdmin):
     fields = copy.copy(list_display)
 
 class CampaignAdmin(admin.ModelAdmin):
-    list_display = ('created', 'name', 'number_of_members', 'number_of_recruiters', 'total_expenses')
-    fields = ('created', 'name')
+    list_display = ('created', 'terminated', 'name', 'description', 'acquisition_campaign', 'real_yieald', 'number_of_members', 'number_of_recruiters', 'total_expenses')
+    fields = ('created', 'terminated', 'name', 'description', 'acquisition_campaign', 'real_yieald')
     inlines = (ExpenseInline, )
 
 class RecruiterAdmin(admin.ModelAdmin):

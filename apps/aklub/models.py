@@ -54,6 +54,11 @@ class Campaign(models.Model):
 
     created = models.DateField(
         verbose_name=_("Created"))
+    terminated = models.DateField(
+        verbose_name=_("Terminated"),
+        blank=True,
+        null=True,
+        )
     name = models.CharField(
         verbose_name=_("Name"),
         help_text=_("Choose some unique name for this campaign"),
@@ -62,6 +67,13 @@ class Campaign(models.Model):
         verbose_name=_("Description"),
         help_text=_("Description of this campaign"),
         max_length=3000, blank=True)
+    acquisition_campaign = models.BooleanField(
+        verbose_name=_("Acquisition campaign"),
+        default=False,
+        )
+    real_yieald = models.FloatField(
+        verbose_name=_("Real yieald"),
+        blank=True, null=True)
 
     def members(self):
         return User.objects.filter(campaigns=self)
