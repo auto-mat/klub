@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: AKlub\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-07-16 14:14+0200\n"
+"POT-Creation-Date: 2013-07-16 14:52+0200\n"
 "PO-Revision-Date: 2013-04-24 00:59+0100\n"
 "Last-Translator: Hynek Hanke <hanke@brailcom.org>\n"
 "Language-Team: Auto*Mat <hynek.hanke@auto-mat.cz>\n"
@@ -19,49 +19,57 @@ msgstr ""
 "X-Poedit-Country: CZECH REPUBLIC\n"
 "X-Poedit-SourceCharset: utf-8\n"
 
-#: admin.py:187
+#: admin.py:190
 msgid "Send mass communication"
 msgstr "Odeslat hromadnou komunikaci"
 
-#: admin.py:193 admin.py:279
+#: admin.py:196 admin.py:282
 msgid "Basic"
 msgstr "Základní"
 
-#: admin.py:197
+#: admin.py:200
 msgid "Details"
 msgstr "Detaily"
 
-#: admin.py:227
+#: admin.py:230
 msgid "Header"
 msgstr "Hlavička"
 
-#: admin.py:230 admin.py:282
+#: admin.py:233 admin.py:285
 msgid "Content"
 msgstr "Obsah"
 
-#: admin.py:235 admin.py:287
+#: admin.py:238 admin.py:290
 msgid "Sending"
 msgstr "Odesílání"
 
-#: admin.py:310 models.py:67
+#: admin.py:313 models.py:67
 msgid "Description"
 msgstr "Popis"
 
-#: admin.py:313
+#: admin.py:316
 msgid "Operator"
 msgstr "Operátor"
 
-#: admin.py:316
+#: admin.py:319
 msgid "Comparing conditions operands"
 msgstr "Hodnoty pro srovnávací podmínky"
 
-#: admin.py:319
+#: admin.py:322
 msgid "Logical conditions operands"
 msgstr "Hodnoty pro logické podmínky"
 
-#: admin.py:322
+#: admin.py:325
 msgid "Usage"
 msgstr "Použití"
+
+#: admin.py:344
+msgid "Yes"
+msgstr "Ano"
+
+#: admin.py:345
+msgid "No"
+msgstr "Ne"
 
 #: charts.py:53 dashboard.py:84 dashboard_charts.py:29 dashboard_charts.py:40
 #: models.py:701
@@ -179,7 +187,7 @@ msgstr "Vytvořeno"
 
 #: models.py:58
 msgid "Terminated"
-msgstr ""
+msgstr "Ukončeno"
 
 #: models.py:63 models.py:174 models.py:1132 models.py:1183
 msgid "Name"
