@@ -76,12 +76,8 @@ class Campaign(models.Model):
         help_text=_("Use if yield differs from counted value"),
         blank=True, null=True)
 
-    def members(self):
-        return User.objects.filter(campaigns=self)
-    members.short_description = _("members")
-
     def number_of_members(self):
-        return len(self.members())
+        return self.members.count()
     number_of_members.short_description = _("number of members")
 
     def recruiters(self):
@@ -91,6 +87,10 @@ class Campaign(models.Model):
     def number_of_recruiters(self):
         return len(self.recruiters())
     number_of_recruiters.short_description = _("number of recruiters")
+
+    def yield_total(self):
+        return User.objects.filter(campaigns=self).aggregate(yield_total = Sum('payment__amount'))['yield_total']
+    yield_total.short_description = _("total yield")
 
     def total_expenses(self):
         return self.expenses.aggregate(Sum('amount'))['amount__sum']
@@ -362,6 +362,7 @@ class User(models.Model):
         max_length=2000, blank=True)
     campaigns = models.ManyToManyField(Campaign, 
                                        help_text = _("Associated campaigns"),
+                                       related_name='members',
                                        blank=True,
                                        editable=True)
     recruiter = models.ForeignKey(Recruiter, blank=True, null=True)
