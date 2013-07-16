@@ -18,8 +18,8 @@ class Migration(SchemaMigration):
                       self.gf('django.db.models.fields.BooleanField')(default=False),
                       keep_default=False)
 
-        # Adding field 'Campaign.real_yieald'
-        db.add_column(u'aklub_campaign', 'real_yieald',
+        # Adding field 'Campaign.real_yield'
+        db.add_column(u'aklub_campaign', 'real_yield',
                       self.gf('django.db.models.fields.FloatField')(null=True, blank=True),
                       keep_default=False)
 
@@ -31,8 +31,8 @@ class Migration(SchemaMigration):
         # Deleting field 'Campaign.acquisition_campaign'
         db.delete_column(u'aklub_campaign', 'acquisition_campaign')
 
-        # Deleting field 'Campaign.real_yieald'
-        db.delete_column(u'aklub_campaign', 'real_yieald')
+        # Deleting field 'Campaign.real_yield'
+        db.delete_column(u'aklub_campaign', 'real_yield')
 
 
     models = {
@@ -65,7 +65,7 @@ class Migration(SchemaMigration):
             'description': ('django.db.models.fields.TextField', [], {'max_length': '3000', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100', 'blank': 'True'}),
-            'real_yieald': ('django.db.models.fields.FloatField', [], {'null': 'True', 'blank': 'True'}),
+            'real_yield': ('django.db.models.fields.FloatField', [], {'null': 'True', 'blank': 'True'}),
             'terminated': ('django.db.models.fields.DateField', [], {'null': 'True', 'blank': 'True'})
         },
         u'aklub.communication': {

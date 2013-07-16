@@ -206,7 +206,7 @@ msgid "Acquisition campaign"
 msgstr "Akviziční kampaň"
 
 #: models.py:75
-msgid "Real yieald"
+msgid "Real yield"
 msgstr "Reálné výnosy"
 
 #: models.py:80

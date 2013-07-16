@@ -71,8 +71,9 @@ class Campaign(models.Model):
         verbose_name=_("Acquisition campaign"),
         default=False,
         )
-    real_yieald = models.FloatField(
-        verbose_name=_("Real yieald"),
+    real_yield = models.FloatField(
+        verbose_name=_("Real yield"),
+        help_text=_("Use if yield differs from counted value"),
         blank=True, null=True)
 
     def members(self):
