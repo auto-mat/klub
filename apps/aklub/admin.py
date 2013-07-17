@@ -347,9 +347,9 @@ class ActiveCampaignFilter(SimpleListFilter):
 
     def queryset(self, request, queryset):
         if self.value() == 'yes':
-            return queryset.filter(Q(terminated__gt = date.today()) | Q(terminated = None), created__lte = date.today())
+            return queryset.filter(Q(terminated__gte = date.today()) | Q(terminated = None), created__lte = date.today())
         if self.value() == 'no':
-            return queryset.exclude(Q(terminated__gt = date.today()) | Q(terminated = None), created__lte = date.today())
+            return queryset.exclude(Q(terminated__gte = date.today()) | Q(terminated = None), created__lte = date.today())
 
 class CampaignAdmin(admin.ModelAdmin):
     list_display = ('name', 'created', 'terminated', 'description', 'number_of_members', 'number_of_recruiters', 'acquisition_campaign', 'yield_total', 'total_expenses', 'expected_monthly_income', 'return_of_investmensts', 'average_yield', 'average_expense')
