@@ -352,7 +352,7 @@ class ActiveCampaignFilter(SimpleListFilter):
             return queryset.exclude(Q(terminated__gt = date.today()) | Q(terminated = None), created__lte = date.today())
 
 class CampaignAdmin(admin.ModelAdmin):
-    list_display = ('created', 'terminated', 'name', 'description', 'acquisition_campaign', 'real_yield', 'number_of_members', 'number_of_recruiters', 'total_expenses', 'yield_total')
+    list_display = ('name', 'created', 'terminated', 'description', 'number_of_members', 'number_of_recruiters', 'acquisition_campaign', 'yield_total', 'total_expenses', 'expected_monthly_income', 'return_of_investmensts')
     fields = ('created', 'terminated', 'name', 'description', 'acquisition_campaign', 'real_yield')
     list_filter = ('acquisition_campaign', ActiveCampaignFilter)
     inlines = (ExpenseInline, )

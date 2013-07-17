@@ -89,8 +89,23 @@ class Campaign(models.Model):
     number_of_recruiters.short_description = _("number of recruiters")
 
     def yield_total(self):
-        return User.objects.filter(campaigns=self).aggregate(yield_total = Sum('payment__amount'))['yield_total']
+        if self.acquisition_campaign:
+            return User.objects.filter(campaigns=self).aggregate(yield_total = Sum('payment__amount'))['yield_total']
+        else:
+            return self.real_yield
     yield_total.short_description = _("total yield")
+
+    def expected_monthly_income(self):
+        income = 0.0
+        for campaign_member in User.objects.filter(campaigns=self):
+            income += campaign_member.monthly_regular_amount()
+        return income
+    yield_total.short_description = _("expected monthly income")
+
+    def return_of_investmensts(self):
+        if self.total_expenses() and self.expected_monthly_income():
+            return self.total_expenses() / self.expected_monthly_income()
+    return_of_investmensts.short_description = _("return of investmensts")
 
     def total_expenses(self):
         return self.expenses.aggregate(Sum('amount'))['amount__sum']
@@ -581,6 +596,16 @@ class User(models.Model):
             return True
         else:
             return False
+
+    def monthly_regular_amount(self):
+        months = {
+            'monthly': 1,
+            'quaterly': 3,
+            'annually': 12}
+        if self.regular_frequency and self.regular_amount:
+            return float(self.regular_amount) / months[self.regular_frequency]
+        else:
+            return 0
 
 class NewUserManager(models.Manager):
     def get_query_set(self):
