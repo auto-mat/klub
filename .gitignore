@@ -6,3 +6,4 @@ env/
 project/settings_local.py
 data/
 trash/
+aklub.log

@@ -22,3 +22,6 @@ DATABASES = {
 }
 
 SECRET_KEY=''
+
+#Make log in execution directory when testing
+LOGGING['handlers']['logfile']['filename'] = "aklub.log"
