@@ -100,7 +100,7 @@ class Campaign(models.Model):
         for campaign_member in User.objects.filter(campaigns=self):
             income += campaign_member.monthly_regular_amount()
         return income
-    yield_total.short_description = _("expected monthly income")
+    expected_monthly_income.short_description = _("expected monthly income")
 
     def return_of_investmensts(self):
         if self.total_expenses() and self.expected_monthly_income():
@@ -599,13 +599,13 @@ class User(models.Model):
 
     def monthly_regular_amount(self):
         months = {
-            'monthly': 1,
-            'quaterly': 3,
-            'annually': 12}
+            'monthly': 1.0,
+            'quaterly': 3.0,
+            'annually': 12.0}
         if self.regular_frequency and self.regular_amount:
             return float(self.regular_amount) / months[self.regular_frequency]
         else:
-            return 0
+            return 0.0
 
 class NewUserManager(models.Manager):
     def get_query_set(self):

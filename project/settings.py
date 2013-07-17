@@ -104,6 +104,8 @@ LOCALE_PATHS = [
     normpath(PROJECT_ROOT, 'apps/aklub/locale'),
 ]
 
+USE_L10N = True
+
 ROOT_URLCONF = 'urls'
 
 TEMPLATE_DIRS = (
