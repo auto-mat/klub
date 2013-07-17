@@ -111,6 +111,16 @@ class Campaign(models.Model):
         return self.expenses.aggregate(Sum('amount'))['amount__sum']
     total_expenses.short_description = _("total expenses")
 
+    def average_expense(self):
+        if self.total_expenses() and self.number_of_members():
+            return self.total_expenses() / self.number_of_members()
+    average_expense.short_description = _("average expense")
+
+    def average_yield(self):
+        if self.yield_total() and self.number_of_members():
+            return self.yield_total() / self.number_of_members()
+    average_yield.short_description = _("average yield")
+
     def __unicode__(self):
         return self.name
 
