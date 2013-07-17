@@ -523,7 +523,7 @@ class User(models.Model):
     def registered_support_date(self):
         return self.registered_support.strftime('%d. %m. %Y')
     registered_support_date.short_description = _("Registration")
-    registered_support_date.admin_order_field = 'date'
+    registered_support_date.admin_order_field = 'registered_support'
     
     def save(self, *args, **kwargs):
         """Record save hook
