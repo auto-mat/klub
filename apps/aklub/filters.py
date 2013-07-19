@@ -2,7 +2,8 @@
 
 from django.utils.translation import ugettext as _
 from django.contrib.admin import SimpleListFilter
-from django.db.models import Sum, Count
+from django.db.models import Sum, Count, Q
+from datetime import date
 
 from models import Condition, User
 import autocom
@@ -52,3 +53,20 @@ class UserConditionFilter(SimpleListFilter):
         filtered_ids = [user.id for user in all_users
                         if cond.is_true(user)]
         return queryset.filter(id__in=filtered_ids)
+
+class ActiveCampaignFilter(SimpleListFilter):
+    title = u"Active"
+    parameter_name = u'active'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('yes', _(u'Yes')),
+            ('no', _(u'No')),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == 'yes':
+            return queryset.filter(Q(terminated__gte = date.today()) | Q(terminated = None), created__lte = date.today())
+        if self.value() == 'no':
+            return queryset.exclude(Q(terminated__gte = date.today()) | Q(terminated = None), created__lte = date.today())
+

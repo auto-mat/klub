@@ -26,9 +26,6 @@ import csv
 from django.contrib import admin, messages
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext as _
-from datetime import date
-from django.contrib.admin import SimpleListFilter
-from django.db.models import Q
 from django.http import HttpResponseRedirect, HttpResponse
 import django.forms
 # Local models
@@ -335,26 +332,10 @@ class AccountStatementsAdmin(admin.ModelAdmin):
     readonly_fields = ('import_date', 'date_from', 'date_to')
     fields = copy.copy(list_display)
 
-class ActiveCampaignFilter(SimpleListFilter):
-    title = u"Active"
-    parameter_name = u'active'
-
-    def lookups(self, request, model_admin):
-        return (
-            ('yes', _(u'Yes')),
-            ('no', _(u'No')),
-        )
-
-    def queryset(self, request, queryset):
-        if self.value() == 'yes':
-            return queryset.filter(Q(terminated__gte = date.today()) | Q(terminated = None), created__lte = date.today())
-        if self.value() == 'no':
-            return queryset.exclude(Q(terminated__gte = date.today()) | Q(terminated = None), created__lte = date.today())
-
 class CampaignAdmin(admin.ModelAdmin):
     list_display = ('name', 'created', 'terminated', 'description', 'number_of_members', 'number_of_recruiters', 'acquisition_campaign', 'yield_total', 'total_expenses', 'expected_monthly_income', 'return_of_investmensts', 'average_yield', 'average_expense')
     fields = ('created', 'terminated', 'name', 'description', 'acquisition_campaign', 'real_yield')
-    list_filter = ('acquisition_campaign', ActiveCampaignFilter)
+    list_filter = ('acquisition_campaign', filters.ActiveCampaignFilter)
     inlines = (ExpenseInline, )
 
 class RecruiterAdmin(admin.ModelAdmin):
