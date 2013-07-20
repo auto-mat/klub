@@ -35,6 +35,8 @@ from django.core.urlresolvers import reverse
 from admin_tools.dashboard import modules, Dashboard, AppIndexDashboard
 from admin_tools.utils import get_admin_site_name
 from aklub.dashboard_charts import PaymentCharts, UserCharts
+from models import Condition, User
+import models
 
 class AklubIndexDashboard(Dashboard):
     """
@@ -90,6 +92,40 @@ class AklubIndexDashboard(Dashboard):
 
         self.children += [PaymentCharts()]
         self.children += [UserCharts()]
+
+        #Modules for conditions:
+        children = []
+        for cond in Condition.objects.filter(on_dashboard=True):
+            children.append(
+                {
+                    'title': _(u"%s: %s items") % (unicode(cond.name), models.filter_by_condition(User.objects, cond).count()),
+                    'url': "aklub/user/?user_condition=%i" % cond.id,
+                    'external': False,
+                }
+                )
+        self.children.append(modules.LinkList(
+            _('Conditions'),
+            children = children
+        ))
+
+        for cond in Condition.objects.filter(on_dashboard=True):
+            children = []
+            members = models.filter_by_condition(User.objects, cond)
+            for member in members[:10]:
+                children.append(
+                    {
+                        'title': member.person_name(),
+                        'url': "aklub/user/%i" % member.id,
+                        'external': False,
+                    }
+                    )
+            self.children.append(modules.LinkList(
+                title=cond.name,
+                title_url="aklub/user/?user_condition=%i" % cond.id,
+                children = children,
+                pre_content = _(u"Total number of items: %i") % members.count(),
+                ))
+
 
 class AklubAppIndexDashboard(AppIndexDashboard):
     """

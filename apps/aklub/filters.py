@@ -6,6 +6,7 @@ from django.db.models import Sum, Count, Q
 from datetime import date
 
 from models import Condition, User
+import models
 import autocom
 
 class NullFieldFilter(SimpleListFilter):
@@ -46,13 +47,8 @@ class UserConditionFilter(SimpleListFilter):
         if not self.value():
             return queryset
         cond = Condition.objects.filter(id=self.value())[0]
-        # Hack: It would be better to work directly on the objects
-        # of the queryset rather than extracting ids from another
-        # DB query and then filtering the former queryset
-        all_users = User.objects.all().annotate(**User.annotations)
-        filtered_ids = [user.id for user in all_users
-                        if cond.is_true(user)]
-        return queryset.filter(id__in=filtered_ids)
+
+        return models.filter_by_condition(queryset, cond)
 
 class ActiveCampaignFilter(SimpleListFilter):
     title = u"Active"

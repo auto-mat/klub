@@ -617,6 +617,15 @@ class User(models.Model):
         else:
             return 0.0
 
+def filter_by_condition(queryset, cond):
+    # Hack: It would be better to work directly on the objects
+    # of the queryset rather than extracting ids from another
+    # DB query and then filtering the former queryset
+    all_users = User.objects.all().annotate(**User.annotations)
+    filtered_ids = [user.id for user in all_users
+                    if cond.is_true(user)]
+    return queryset.filter(id__in=filtered_ids)
+
 class NewUserManager(models.Manager):
     def get_query_set(self):
         return super(NewUserManager,self).get_query_set().filter(verified=False)
@@ -1064,6 +1073,10 @@ class Condition(models.Model):
         verbose_name=_("Display as filter?"),
         help_text=_("Determines whether this condition is available as a filter"
                     "in the table of Users"),
+        default=False)
+    on_dashboard = models.BooleanField(
+        verbose_name=_("Display on dashboard?"),
+        help_text=_("Determines whether this condition is available on dashboard"),
         default=False)
 
     def __unicode__(self):

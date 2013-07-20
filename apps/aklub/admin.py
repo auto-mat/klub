@@ -304,7 +304,7 @@ class MassCommunicationAdmin(admin.ModelAdmin):
         return obj
 
 class ConditionAdmin(admin.ModelAdmin):
-    list_display = ('name',)
+    list_display = ('name', 'as_filter', 'on_dashboard',)
     filter_horizontal = ('conds',)
     fieldsets = [
         (_("Description"), {
@@ -320,7 +320,7 @@ class ConditionAdmin(admin.ModelAdmin):
                 'fields': ['conds']
                 }),
         (_("Usage"), {
-                'fields': ['as_filter']
+                'fields': ['as_filter', 'on_dashboard']
                 }),
         ]
 
