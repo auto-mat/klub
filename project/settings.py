@@ -136,6 +136,7 @@ INSTALLED_APPS = (
     'tinymce',
     'admin_user_stats',
     'chart_tools',
+    'massadmin',
     'aklub'
 )
 

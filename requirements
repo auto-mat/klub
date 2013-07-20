@@ -13,3 +13,4 @@ django-admin-tools
 feedparser
 -e git+git://github.com/PetrDlouhy/django-admin-user-stats.git#egg=django-admin-user-stats
 django-chart-tools
+django-mass-edit
