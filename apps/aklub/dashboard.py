@@ -98,7 +98,7 @@ class AklubIndexDashboard(Dashboard):
         for cond in Condition.objects.filter(on_dashboard=True):
             children.append(
                 {
-                    'title': _(u"%s: %s items") % (unicode(cond.name), models.filter_by_condition(User.objects, cond).count()),
+                    'title': _(u"%(name)s: %(items)s items") % {"name": unicode(cond.name), "items": models.filter_by_condition(User.objects, cond).count()},
                     'url': "aklub/user/?user_condition=%i" % cond.id,
                     'external': False,
                 }
