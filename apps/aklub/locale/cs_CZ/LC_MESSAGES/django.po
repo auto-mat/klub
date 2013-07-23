@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: AKlub\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-07-23 15:13+0200\n"
+"POT-Creation-Date: 2013-07-23 17:59+0200\n"
 "PO-Revision-Date: 2013-04-24 00:59+0100\n"
 "Last-Translator: Hynek Hanke <hanke@brailcom.org>\n"
 "Language-Team: Auto*Mat <hynek.hanke@auto-mat.cz>\n"
@@ -63,57 +63,67 @@ msgstr "Hodnoty pro logické podmínky"
 msgid "Usage"
 msgstr "Použití"
 
-#: charts.py:53 dashboard.py:86 dashboard_charts.py:29 dashboard_charts.py:40
+#: charts.py:53 dashboard.py:87 dashboard_charts.py:29 dashboard_charts.py:40
 #: models.py:748
 msgid "Payments"
 msgstr "Platby"
 
-#: dashboard.py:49
+#: dashboard.py:50
 msgid "Quick links"
 msgstr ""
 
-#: dashboard.py:55
+#: dashboard.py:56
 msgid "Return to site"
 msgstr ""
 
-#: dashboard.py:56
+#: dashboard.py:57
 msgid "Change password"
 msgstr ""
 
-#: dashboard.py:58
+#: dashboard.py:59
 msgid "Log out"
 msgstr ""
 
-#: dashboard.py:64
+#: dashboard.py:65
 msgid "Applications"
 msgstr "Aplikace"
 
-#: dashboard.py:70
+#: dashboard.py:71
 msgid "Administration"
 msgstr "Administrace"
 
-#: dashboard.py:75 dashboard.py:145
+#: dashboard.py:76 dashboard.py:160
 msgid "Recent Actions"
 msgstr "Nedávné akce"
 
-#: dashboard.py:78
+#: dashboard.py:79
 msgid "Statistics"
 msgstr "Statistiky"
 
-#: dashboard.py:81 templates/admin/aklub/campaign/change_form.html:8
+#: dashboard.py:82 templates/admin/aklub/campaign/change_form.html:8
 msgid "Members"
 msgstr "Členové"
 
 #: dashboard.py:101
 #, python-format
-msgid "%(name)s: %(items)s items"
-msgstr ""
+msgid "Days from last bill upload: %(days)s days"
+msgstr "Počet dní od posledního nahrání výpisu z účtu: %(days)s dní"
 
-#: dashboard.py:107 models.py:1035 models.py:1071
+#: dashboard.py:108
+#, python-format
+msgid "Days from last mass communication: %(days)s days"
+msgstr "Počet dní od poslední hromadné komunikace: %(days)s dní"
+
+#: dashboard.py:116
+#, python-format
+msgid "%(name)s: %(items)s items"
+msgstr "%(name)s: %(items)s položek"
+
+#: dashboard.py:122 models.py:1035 models.py:1071
 msgid "Conditions"
 msgstr "Podmínky"
 
-#: dashboard.py:126
+#: dashboard.py:141
 #, python-format
 msgid "Total number of items: %i"
 msgstr "Celkový počet položek: %i"

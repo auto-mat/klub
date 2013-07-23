@@ -35,7 +35,8 @@ from django.core.urlresolvers import reverse
 from admin_tools.dashboard import modules, Dashboard, AppIndexDashboard
 from admin_tools.utils import get_admin_site_name
 from aklub.dashboard_charts import PaymentCharts, UserCharts
-from models import Condition, User
+from models import Condition, User, AccountStatements, MassCommunication
+import datetime
 import models
 
 class AklubIndexDashboard(Dashboard):
@@ -95,6 +96,20 @@ class AklubIndexDashboard(Dashboard):
 
         #Modules for conditions:
         children = []
+        children.append(
+            {
+                'title': _(u"Days from last bill upload: %(days)s days") % {"days": (datetime.date.today() - AccountStatements.objects.all()[:1].get().import_date).days},
+                'url': "aklub/accountstatements/",
+                'external': False,
+            }
+            )
+        children.append(
+            {
+                'title': _(u"Days from last mass communication: %(days)s days") % {"days": (datetime.date.today() - MassCommunication.objects.order_by("-date").all()[:1].get().date).days},
+                'url': "aklub/masscommunication/",
+                'external': False,
+            }
+            )
         for cond in Condition.objects.filter(on_dashboard=True):
             children.append(
                 {
