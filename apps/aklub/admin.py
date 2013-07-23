@@ -182,7 +182,7 @@ class UserAdmin(admin.ModelAdmin):
         with the send_to_users M2M field prefilled with these
         users."""
         selected = [str(e.pk) for e in queryset.all()]
-        return HttpResponseRedirect("/aklub/masscommunication/add/?send_to_users=%s" %
+        return HttpResponseRedirect("/admin/aklub/masscommunication/add/?send_to_users=%s" %
                                     (",".join(selected),))
     send_mass_communication.short_description = _("Send mass communication")    
 
