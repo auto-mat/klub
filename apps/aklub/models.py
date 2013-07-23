@@ -218,6 +218,7 @@ class User(models.Model):
         ('web', _("Web form")),
         ('direct-dialogue-partial-form', _("Direct dialogue -- partial form (not automatic in bank)")),
         ('direct-dialogue-full-form', _("Direct dialogue -- full form (automatic in bank)")),
+        ('telephone-call', _("Telephonic call")),
         ('personal', _('Personal recommendation')),
         ('other', _('Another form of contact')))
     REGULAR_PAYMENT_FREQUENCIES = (
