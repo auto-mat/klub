@@ -535,6 +535,9 @@ class User(models.Model):
     regular_payments_info.allow_tags = True
     regular_payments_info.short_description = _(u"Regular payments")
 
+    def mail_communications_count(self):
+        return self.communications.filter(method = "mail").count()
+
     def total_contrib(self):
         """Return the sum of all money received from this user
 
@@ -874,7 +877,9 @@ class Communication(models.Model):
         verbose_name_plural = _("Communications")
 	ordering = ['date']
 
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User,
+        related_name="communications",
+        )
     method = models.CharField(
         verbose_name=_("Method"),
         max_length=30, choices=COMMUNICATION_METHOD)
