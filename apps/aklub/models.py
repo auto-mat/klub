@@ -1125,6 +1125,8 @@ class Condition(models.Model):
                     return datetime.datetime.strptime(spec_[1], '%Y-%m-%d %H:%M')
                 elif spec_[0] == 'timedelta':
                     return datetime.timedelta(days=int(spec_[1]))
+                elif spec_[0] == 'days_ago':
+                    return datetime.datetime.now() - datetime.timedelta(days=int(spec_[1]))
             else:
                 try:
                     return int(spec)
