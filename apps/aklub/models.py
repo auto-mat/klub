@@ -40,6 +40,8 @@ import stdimage
 import autocom
 import confirmation
 from south.modelsinspector import add_introspection_rules
+import logging
+logger = logging.getLogger(__name__)
 
 add_introspection_rules([], ['^stdimage\.fields\.StdImageField'])
 
@@ -1148,8 +1150,8 @@ class Condition(models.Model):
         # Elementary conditions
         left = get_val(self.variable, user)
         right = get_val(self.value, user)
-        #print "left: %s" % left
-        #print "right: %s" % right
+        logger.debug("Left condition operand: %s" % left)
+        logger.debug("Right condition operand: %s" % right)
         
         if left == None or right == None:
             return False

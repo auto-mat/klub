@@ -198,9 +198,9 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': False,
         },
-        'dpnk': {
+        'aklub': {
             'handlers': ['console', 'mail_admins', 'logfile'],
-            'level': 'INFO', 
+            'level': 'DEBUG', 
         }
     }
 }
