@@ -15,10 +15,11 @@ urlpatterns = patterns('',
     # Uncomment the next line to enable the admin:
                            (r'^admin/aklub/stat-members/$', 'aklub.views.stat_members'),
                            (r'^admin/aklub/stat-payments/$', 'aklub.views.stat_payments'),
-                           (r'^aklub/', include("aklub.urls")),
                            (r'^admin/', include(admin.site.urls)),
+                           (r'^$', include(admin.site.urls)),
                            (r'^admin/', include("massadmin.urls")),
                            (r'^jsi18n', 'django.views.i18n.javascript_catalog'),
                            (r'^tinymce/', include('tinymce.urls')),
                            (r'^admin_tools/', include('admin_tools.urls')),
+                           (r'', include("aklub.urls")),
 )
