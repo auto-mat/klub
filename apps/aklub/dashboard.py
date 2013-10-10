@@ -49,7 +49,9 @@ def get_users_by_condition_cached(cond):
     if items == None:
         items = models.filter_by_condition(User.objects, cond)
         now = datetime.datetime.now()
-        seconds_till_midnight = (now.replace(hour=23, minute=59, second=59, microsecond=999) - now).total_seconds()
+        td = now.replace(hour=23, minute=59, second=59, microsecond=999) - now
+        seconds_till_midnight = td.seconds + (td.days * 24 * 3600)
+        print seconds_till_midnight
         cache.set('condition_filter_%i' % cond.pk, items, seconds_till_midnight)
     return items
 
