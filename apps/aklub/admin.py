@@ -334,7 +334,8 @@ class AccountStatementsAdmin(admin.ModelAdmin):
 
 class CampaignAdmin(admin.ModelAdmin):
     list_display = ('name', 'created', 'terminated', 'number_of_members', 'number_of_recruiters', 'acquisition_campaign', 'yield_total', 'total_expenses', 'expected_monthly_income', 'return_of_investmensts', 'average_yield', 'average_expense')
-    fields = ('created', 'terminated', 'name', 'description', 'acquisition_campaign', 'real_yield')
+    fields = ('created', 'terminated', 'name', 'description', 'acquisition_campaign', 'real_yield', 'number_of_members', 'number_of_recruiters', 'yield_total', 'total_expenses', 'expected_monthly_income', 'return_of_investmensts', 'average_yield', 'average_expense')
+    readonly_fields = ('number_of_members', 'number_of_recruiters', 'yield_total', 'total_expenses', 'expected_monthly_income', 'return_of_investmensts', 'average_yield', 'average_expense')
     list_filter = ('acquisition_campaign', filters.ActiveCampaignFilter)
     inlines = (ExpenseInline, )
 
