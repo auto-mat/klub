@@ -22,6 +22,35 @@ from django.db.models import Sum, Count, Q
 from admin_user_stats.base_modules import BaseChart, BaseCharts
 from aklub.models import Payment, User
 
+class PaymentCountChart(BaseChart):
+    """
+    Dashboard module with Activity charts.
+    """
+    title = _('Payments count')
+    template = 'admin_user_stats/modules/chart.html'
+    chart_size = "900x200"
+    values_count = 50
+    interval = 'months'
+    queryset = Payment.objects
+    date_field = 'date'
+    aggregate = Count('pk')
+
+class PaymentCountCharts(BaseCharts):
+    """ Group module with 3 default registration charts """
+    title = _('Payments count')
+    chart_model = PaymentCountChart
+
+    def get_charts(self):
+        """ Returns 3 basic chart modules (per-day, per-week and per-month) """
+        return [
+            self.chart_model(_('By Day'), interval='days'),
+            self.chart_model(_('By Week'), interval='weeks'),
+            self.chart_model(_('By Month'), interval='months'),
+            self.chart_model(_('By Month from regular'), interval='months', queryset = Payment.objects.filter(user__regular_payments = True)),
+            self.chart_model(_('By Month from onetimers'), interval='months', queryset = Payment.objects.filter(user__regular_payments = False)),
+            self.chart_model(_('By Year'), interval='years'),
+        ]
+
 class PaymentChart(BaseChart):
     """
     Dashboard module with Activity charts.
@@ -40,6 +69,17 @@ class PaymentCharts(BaseCharts):
     title = _('Payments')
     chart_model = PaymentChart
 
+    def get_charts(self):
+        """ Returns 3 basic chart modules (per-day, per-week and per-month) """
+        return [
+            self.chart_model(_('By Day'), interval='days'),
+            self.chart_model(_('By Week'), interval='weeks'),
+            self.chart_model(_('By Month'), interval='months'),
+            self.chart_model(_('By Month from regular'), interval='months', queryset = Payment.objects.filter(user__regular_payments = True)),
+            self.chart_model(_('By Month from onetimers'), interval='months', queryset = Payment.objects.filter(user__regular_payments = False)),
+            self.chart_model(_('By Year'), interval='years'),
+        ]
+
 class UserChart(BaseChart):
     """
     Dashboard module with Activity charts.
@@ -54,7 +94,7 @@ class UserChart(BaseChart):
 
 class UserCharts(BaseCharts):
     """ Group module with 3 default registration charts """
-    title = _('Users')
+    title = _('New users')
     chart_model = UserChart
 
     def get_charts(self):
@@ -64,6 +104,6 @@ class UserCharts(BaseCharts):
             self.chart_model(_('By Week'), interval='weeks'),
             self.chart_model(_('By Month'), interval='months'),
             self.chart_model(_('Regular By Month'), interval='months', queryset = User.objects.filter(regular_payments = True)),
-            self.chart_model(_('Irregular By Month'), interval='months', queryset = User.objects.filter(regular_payments = False)),
+            self.chart_model(_('Onetime By Month'), interval='months', queryset = User.objects.filter(regular_payments = False)),
             self.chart_model(_('By Year'), interval='years'),
         ]

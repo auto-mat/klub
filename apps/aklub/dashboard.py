@@ -34,7 +34,7 @@ from django.core.urlresolvers import reverse
 
 from admin_tools.dashboard import modules, Dashboard, AppIndexDashboard
 from admin_tools.utils import get_admin_site_name
-from aklub.dashboard_charts import PaymentCharts, UserCharts
+from aklub.dashboard_charts import PaymentCharts, UserCharts, PaymentCountCharts
 from models import Condition, User, AccountStatements, MassCommunication
 import datetime
 import models
@@ -105,6 +105,7 @@ class AklubIndexDashboard(Dashboard):
             ]
         ))
 
+        self.children += [PaymentCountCharts()]
         self.children += [PaymentCharts()]
         self.children += [UserCharts()]
 
