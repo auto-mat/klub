@@ -418,7 +418,11 @@ msgstr "Měsíčně"
 msgid "Quaterly"
 msgstr "Čtvrtletně"
 
-#: models.py:227
+#: models.py:229
+msgid "Bianually"
+msgstr "Půlročně"
+
+#: models.py:230
 msgid "Anually"
 msgstr "Ročně"
 

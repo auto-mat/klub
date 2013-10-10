@@ -226,6 +226,7 @@ class User(models.Model):
     REGULAR_PAYMENT_FREQUENCIES = (
         ('monthly', _('Monthly')),
         ('quaterly', _('Quaterly')),
+        ('biannually', _('Bianually')),
         ('annually', _('Anually')))
              
     # -- Basic personal information
@@ -465,6 +466,7 @@ class User(models.Model):
         """Return regular frequency as timedelta"""
         interval_in_days = {'monthly': 31,
                             'quaterly': 92,
+                            'biannually': 183,
                             'annually': 366}
         try:
             return datetime.timedelta(days=interval_in_days[self.regular_frequency])
@@ -617,6 +619,7 @@ class User(models.Model):
         months = {
             'monthly': 1.0,
             'quaterly': 3.0,
+            'biannually': 6.0,
             'annually': 12.0}
         if self.regular_frequency and self.regular_amount:
             return float(self.regular_amount) / months[self.regular_frequency]
