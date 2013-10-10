@@ -90,15 +90,13 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.locale.LocaleMiddleware',
 )
 
-# some johnny settings
-#CACHES = {
-#    'default' : dict(
-#        BACKEND = 'johnny.backends.memcached.MemcachedCache',
-#        LOCATION = ['127.0.0.1:11211'],
-#        JOHNNY_CACHE = True,
-#    )
-#}
-#JOHNNY_MIDDLEWARE_KEY_PREFIX='jc_aklub'
+CACHES = {
+    'default' : dict(
+        BACKEND = 'django.core.cache.backends.memcached.MemcachedCache',
+        LOCATION = ['127.0.0.1:11211'],
+		KEY_PREFIX = 'aklub',
+    )
+}
 
 LOCALE_PATHS = [
     normpath(PROJECT_ROOT, 'apps/aklub/locale'),

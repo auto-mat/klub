@@ -38,6 +38,20 @@ from aklub.dashboard_charts import PaymentCharts, UserCharts
 from models import Condition, User, AccountStatements, MassCommunication
 import datetime
 import models
+from django.core.cache import get_cache
+cache = get_cache('django.core.cache.backends.memcached.MemcachedCache',
+        LOCATION = ['127.0.0.1:11211'],
+		KEY_PREFIX = 'aklub',
+        )
+
+def get_users_by_condition_cached(cond):
+    items = cache.get('condition_filter_%i' % cond.pk, None)
+    if items == None:
+        items = models.filter_by_condition(User.objects, cond)
+        now = datetime.datetime.now()
+        seconds_till_midnight = (now.replace(hour=23, minute=59, second=59, microsecond=999) - now).total_seconds()
+        cache.set('condition_filter_%i' % cond.pk, items, seconds_till_midnight)
+    return items
 
 class AklubIndexDashboard(Dashboard):
     """
@@ -113,7 +127,7 @@ class AklubIndexDashboard(Dashboard):
         for cond in Condition.objects.filter(on_dashboard=True):
             children.append(
                 {
-                    'title': _(u"%(name)s: %(items)s items") % {"name": unicode(cond.name), "items": models.filter_by_condition(User.objects, cond).count()},
+                    'title': _(u"%(name)s: %(items)s items") % {"name": unicode(cond.name), "items": get_users_by_condition_cached(cond).count()},
                     'url': "aklub/user/?user_condition=%i" % cond.id,
                     'external': False,
                 }
@@ -125,7 +139,7 @@ class AklubIndexDashboard(Dashboard):
 
         for cond in Condition.objects.filter(on_dashboard=True):
             children = []
-            members = models.filter_by_condition(User.objects, cond)
+            members = get_users_by_condition_cached(cond)
             for member in members[:10]:
                 children.append(
                     {

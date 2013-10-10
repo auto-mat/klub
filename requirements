@@ -14,3 +14,4 @@ feedparser
 django-admin-user-stats
 django-chart-tools
 django-mass-edit
+python-memcached
