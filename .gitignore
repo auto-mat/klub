@@ -7,3 +7,4 @@ project/settings_local.py
 data/
 trash/
 aklub.log
+db_backup
