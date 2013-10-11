@@ -135,6 +135,7 @@ INSTALLED_APPS = (
     'admin_user_stats',
     'chart_tools',
     'massadmin',
+    'import_export',
     'aklub'
 )
 

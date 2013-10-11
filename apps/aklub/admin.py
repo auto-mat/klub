@@ -27,6 +27,7 @@ from django.contrib import admin, messages
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext as _
 from django.http import HttpResponseRedirect, HttpResponse
+from import_export.admin import ImportExportModelAdmin
 import django.forms
 # Local models
 from aklub.models import *
@@ -303,7 +304,7 @@ class MassCommunicationAdmin(admin.ModelAdmin):
         # TODO: Generate some summary info message into request about the result
         return obj
 
-class ConditionAdmin(admin.ModelAdmin):
+class ConditionAdmin(ImportExportModelAdmin):
     list_display = ('name', 'as_filter', 'on_dashboard',)
     filter_horizontal = ('conds',)
     fieldsets = [
