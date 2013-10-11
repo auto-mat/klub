@@ -123,7 +123,7 @@ class UserAdmin(admin.ModelAdmin):
         ('Contacts', {
                 'fields': [('email', 'telephone'),
                            ('street', 'city', 'country'),
-                           'zip_code'],
+                           'zip_code', 'different_correspondence_address'],
                 }),
         ('Additional', {
                 'fields': ['knows_us_from',  'why_supports',
@@ -135,7 +135,7 @@ class UserAdmin(admin.ModelAdmin):
                            ('regular_payments', 'regular_frequency',
                             'regular_amount', 'expected_date_of_first_payment',
                             'exceptional_membership'),
-                           'other_support']}),
+                           'other_support', 'old_account']}),
         ('Communication', {
                 'fields': ['wished_information', 'wished_tax_confirmation', 'wished_welcome_letter'],
                 'classes': ['collapse']}),
@@ -144,7 +144,7 @@ class UserAdmin(admin.ModelAdmin):
                            'other_benefits'],
                 'classes': ['collapse']}),
         ('Note', {
-                'fields': ['note', 'source', 'campaigns', 'recruiter', 'verified', 'verified_by'],
+                'fields': ['note', 'source', 'campaigns', 'recruiter', 'verified', 'verified_by', 'activity_points'],
                 'classes': ['collapse']}),
         ('Profile', {
                 'fields': ['profile_text', 'profile_picture'],

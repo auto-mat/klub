@@ -282,6 +282,10 @@ class User(models.Model):
     zip_code = models.CharField(
         verbose_name=_("ZIP Code"),
         max_length=10, blank=True)
+    different_correspondence_address = models.BooleanField(
+        verbose_name=_("Different correspondence address"),
+        help_text=_("User has different correspondence address"),
+        default=False)
     # -- Additional Info
     knows_us_from = models.CharField(
         verbose_name=_("Where does he/she know us from?"),
@@ -323,6 +327,10 @@ class User(models.Model):
     regular_payments = models.BooleanField(
         verbose_name=_("Regular payments"),
         help_text=_("Is this user registered for regular payments?"),
+        default=False)
+    old_account = models.BooleanField(
+        verbose_name=_("Old account"),
+        help_text=_("User has old account"),
         default=False)
     # TODO: This needs to be replaced by amount and periodicity fields to
     # account also for quaterly and annual payments
@@ -404,6 +412,11 @@ class User(models.Model):
         verbose_name=_("Verified by"),
         related_name='verified_users',
         null=True, blank=True)
+    activity_points = models.IntegerField(
+        verbose_name=_("Activity points"),
+        help_text=_("Points for users activity"),
+        default=0,
+        blank=False)
 
     # General annotation fields (some methods in this class rely on
     # the queryset being annotated as follows)

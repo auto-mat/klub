@@ -488,7 +488,15 @@ msgstr "Země"
 msgid "ZIP Code"
 msgstr "PSČ"
 
-#: models.py:284
+#: models.py:286
+msgid "Different correspondence address"
+msgstr "Jiná korespondenční adresa"
+
+#: models.py:287
+msgid "User has different correspondence address"
+msgstr "Uživatel má jinou korespondenční adresu"
+
+#: models.py:291
 msgid "Where does he/she know us from?"
 msgstr "Odkud nás zná?"
 
@@ -552,7 +560,15 @@ msgstr "Pravidelné platby"
 msgid "Is this user registered for regular payments?"
 msgstr "Je tento uživatel zaregistrován pro pravidelné platby?"
 
-#: models.py:327
+#: models.py:332
+msgid "Old account"
+msgstr "Starý účet"
+
+#: models.py:333
+msgid "User has old account"
+msgstr "Uživatel má starý účet"
+
+#: models.py:338
 msgid "Regularly (amount)"
 msgstr "Částka pravidelné platby"
 
@@ -656,6 +672,14 @@ msgid "Verified by"
 msgstr "Ověřil"
 
 #: models.py:416
+msgid "Activity points"
+msgstr "Body za aktivitu"
+
+#: models.py:417
+msgid "Points for users activity"
+msgstr "Body za uživatelskou aktivitu"
+
+#: models.py:432
 msgid "Full name"
 msgstr "Celé jméno"
 
