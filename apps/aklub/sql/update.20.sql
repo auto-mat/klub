@@ -1,1 +1,0 @@
---- Run manage.py syncdb to create tables for TaxConfirmation model
