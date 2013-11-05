@@ -3,6 +3,7 @@
 {% load url from future %}
 {% load i18n admin_static admin_modify %}
 {% load admin_urls %}
+{% load wysiwyg %}
 
 {% block submit_buttons_bottom %}
 <div class="submit-row">
@@ -11,3 +12,13 @@
 {% submit_row %}
 {% endblock %}
 
+{% block extrahead %}
+	{{ block.super }}
+	{% wysiwyg_setup %}
+{% endblock %}
+
+{% block content %}
+	{{ block.super }}
+	{% wysiwyg_editor "id_template" %}
+	{% wysiwyg_editor "id_template_en" %}
+{% endblock %}
