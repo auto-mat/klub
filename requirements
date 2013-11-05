@@ -11,9 +11,12 @@ django-wysiwyg==0.5.1
 django-tinymce==1.5.1
 django-admin-tools==0.5.1
 feedparser==5.1.3
-django-admin-user-stats==0.2
+-e git+https://github.com/PetrDlouhy/django-admin-user-stats.git#egg=django-admin-user-stats
+#django-admin-user-stats==0.2
 django-chart-tools==0.2.1
 django-mass-edit==1.5.1
 python-memcached==1.53
 django-import-export==0.1.4
 
+django-qsstats-magic
+python-dateutil
