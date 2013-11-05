@@ -512,7 +512,7 @@ class User(models.Model):
 
         Return True if so, otherwise return the delay in payment as dattime.timedelta
         """
-        if self.regular_payments:
+        if self.regular_payments and self.expected_regular_payment_date():
             # Check for regular payments
             # (Allow 7 days for payment processing)
             expected_with_tolerance = self.expected_regular_payment_date() + datetime.timedelta(days=10)
