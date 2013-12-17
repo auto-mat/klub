@@ -107,6 +107,7 @@ class UserAdmin(admin.ModelAdmin):
                 'note', 'additional_information', 'active', 'language', 'recruiter')
             ))
     save_as = True
+    list_max_show_all = 10000
     inlines = [PaymentsInline, CommunicationInline]
     raw_id_fields = ('recruiter',)
     readonly_fields = ('verified_by',)
