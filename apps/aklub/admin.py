@@ -267,6 +267,7 @@ class AutomaticCommunicationAdmin(admin.ModelAdmin):
         return obj
 
 class MassCommunicationAdmin(admin.ModelAdmin):
+    save_as = True
     list_display = ('name', 'date', 'method', 'subject')
     ordering = ('date',)
 
