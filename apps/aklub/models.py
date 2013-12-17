@@ -1190,6 +1190,8 @@ class Condition(models.Model):
             return left < right
         if self.operation == '>':
             return left > right
+        if self.operation == '!=':
+            return not left == right
         raise NotImplementedError("Unknown operation %s" % self.operation)
 
 class AutomaticCommunication(models.Model):
