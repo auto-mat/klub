@@ -207,6 +207,7 @@ class User(models.Model):
     class Meta:
         verbose_name = _("User")
         verbose_name_plural = _("Users")
+        ordering = ("surname", "firstname")
 
     GENDER = (
         ('male', _('Male')),
