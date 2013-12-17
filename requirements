@@ -1,4 +1,4 @@
-Django==1.5.4
+Django==1.6
 south==0.8.2
 django-stdimage==0.2.2
 reportlab==2.7
