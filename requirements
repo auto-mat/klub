@@ -1,12 +1,12 @@
-Django==1.6
+Django<1.7
 south==0.8.2
 django-stdimage==0.2.2
 reportlab==2.7
 django-extensions==1.2.2
-psycopg2==2.5.1
+psycopg2
 django-bootstrap-form==3.0
 pil==1.1.7
-pygraphviz==1.2
+#pygraphviz
 django-wysiwyg==0.5.1
 django-tinymce==1.5.1
 django-admin-tools==0.5.1
@@ -17,6 +17,5 @@ django-chart-tools==0.2.1
 django-mass-edit==1.5.1
 python-memcached==1.53
 django-import-export==0.1.4
-
 django-qsstats-magic
 python-dateutil

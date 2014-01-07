@@ -357,7 +357,7 @@ class TaxConfirmationAdmin(admin.ModelAdmin):
     actions = (export_as_csv_action(fields=('user', 'amount')),)
 
     def generate(self, request):
-	year = 2012
+	year = datetime.datetime.now().year - 1
 	payed = Payment.objects.filter(date__year=year).exclude(type='expected').values_list('user_id', flat=True)
 	donors = User.objects.filter(id__in=payed).order_by('surname')
 	count = 0
