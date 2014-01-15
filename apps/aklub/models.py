@@ -1326,12 +1326,15 @@ def confirmation_upload_to(instance, filename):
 	return "confirmations/%s_%s.pdf" % (instance.user.id, instance.year)
 
 class TaxConfirmation(models.Model):
+
 	user = models.ForeignKey(User)
 	year = models.PositiveIntegerField()
         amount = models.PositiveIntegerField(default=0)
 	file = models.FileField(upload_to=confirmation_upload_to, storage=OverwriteStorage())
 
         class Meta:
+            verbose_name = _("Tax confirmation")
+            verbose_name_plural = _("Tax confirmations")
             unique_together = ('user', 'year',)
 
 
