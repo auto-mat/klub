@@ -96,7 +96,7 @@ class UserAdmin(admin.ModelAdmin):
                     'regular_payments_info', 
                     'number_of_payments', 'total_contrib', 'regular_amount',
                     'active', 'last_payment_date')
-    list_filter = ['regular_payments', 'language', 'active',  'source', 'campaigns', filters.UserConditionFilter]
+    list_filter = ['regular_payments', 'language', 'active', 'wished_information', 'source', 'campaigns', filters.UserConditionFilter]
     search_fields = ['firstname', 'surname', 'variable_symbol']
     ordering = ('surname',)
     actions = ('send_mass_communication',
