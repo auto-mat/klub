@@ -516,12 +516,13 @@ class User(models.Model):
         if self.regular_payments and self.expected_regular_payment_date():
             # Check for regular payments
             # (Allow 7 days for payment processing)
-            expected_with_tolerance = self.expected_regular_payment_date() + datetime.timedelta(days=10)
-            if (expected_with_tolerance
-                < datetime.date.today()):
-                return datetime.date.today()-expected_with_tolerance
-            else:
-                return datetime.timedelta(days=0)
+            if self.expected_regular_payment_date():
+               expected_with_tolerance = self.expected_regular_payment_date() + datetime.timedelta(days=10)
+               if (expected_with_tolerance
+                   < datetime.date.today()):
+                   return datetime.date.today()-expected_with_tolerance
+               else:
+                   return datetime.timedelta(days=0)
         else:
             return datetime.timedelta(days=0)
 
