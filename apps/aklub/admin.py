@@ -113,41 +113,41 @@ class UserAdmin(admin.ModelAdmin):
     readonly_fields = ('verified_by',)
     filter_horizontal = ('campaigns',) # broken in django pre-1.4
     fieldsets = [
-        ('Basic personal', {
+        (_('Basic personal'), {
                 'fields': [('firstname', 'surname'),
                            ('sex', 'language', 'active', 'public')]}),
-        ('Titles and addressments', {
+        (_('Titles and addressments'), {
                 'fields': [('title_before', 'title_after'),
                            ('addressment', 'addressment_on_envelope')],
                 'classes': ['collapse']
                 }),
-        ('Contacts', {
+        (_('Contacts'), {
                 'fields': [('email', 'telephone'),
                            ('street', 'city', 'country'),
                            'zip_code', 'different_correspondence_address'],
                 }),
-        ('Additional', {
+        (_('Additional'), {
                 'fields': ['knows_us_from',  'why_supports',
                            'field_of_work', 'additional_information'],
                 'classes': ['collapse']}),
-        ('Support', {
+        (_('Support'), {
                 'fields': ['variable_symbol',
                            'registered_support',                           
                            ('regular_payments', 'regular_frequency',
                             'regular_amount', 'expected_date_of_first_payment',
                             'exceptional_membership'),
                            'other_support', 'old_account']}),
-        ('Communication', {
+        (_('Communications'), {
                 'fields': ['wished_information', 'wished_tax_confirmation', 'wished_welcome_letter'],
                 'classes': ['collapse']}),
-        ('Benefits', {
+        (_('Benefits'), {
                 'fields': [('club_card_available', 'club_card_dispatched'),
                            'other_benefits'],
                 'classes': ['collapse']}),
-        ('Note', {
+        (_('Notes'), {
                 'fields': ['note', 'source', 'campaigns', 'recruiter', 'verified', 'verified_by', 'activity_points'],
                 'classes': ['collapse']}),
-        ('Profile', {
+        (_('Profile'), {
                 'fields': ['profile_text', 'profile_picture'],
                 'classes': ['collapse']}),
         ]

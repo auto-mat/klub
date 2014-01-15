@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: AKlub\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-01-15 10:04+0100\n"
+"POT-Creation-Date: 2014-01-15 11:40+0100\n"
 "PO-Revision-Date: 2013-04-24 00:59+0100\n"
 "Last-Translator: Hynek Hanke <hanke@brailcom.org>\n"
 "Language-Team: Auto*Mat <hynek.hanke@auto-mat.cz>\n"
@@ -18,6 +18,42 @@ msgstr ""
 "X-Poedit-Language: Czech\n"
 "X-Poedit-Country: CZECH REPUBLIC\n"
 "X-Poedit-SourceCharset: utf-8\n"
+
+#: admin.py:116
+msgid "Basic personal"
+msgstr "Základní informace"
+
+#: admin.py:119
+msgid "Titles and addressments"
+msgstr "Tituly a adresy"
+
+#: admin.py:124
+msgid "Contacts"
+msgstr "Kontakty"
+
+#: admin.py:129
+msgid "Additional"
+msgstr "Doplňkové informace"
+
+#: admin.py:133
+msgid "Support"
+msgstr "Podpora"
+
+#: admin.py:140 models.py:894
+msgid "Communications"
+msgstr "Komunikace"
+
+#: admin.py:143
+msgid "Benefits"
+msgstr "Benefity"
+
+#: admin.py:147 models.py:923
+msgid "Notes"
+msgstr "Poznámky"
+
+#: admin.py:150
+msgid "Profile"
+msgstr "Profil"
 
 #: admin.py:189
 msgid "Send mass communication"
@@ -119,7 +155,7 @@ msgstr "Počet dní od poslední hromadné komunikace: %(days)s dní"
 msgid "%(name)s: %(items)s items"
 msgstr "%(name)s: %(items)s položek"
 
-#: dashboard.py:139 models.py:1060 models.py:1096
+#: dashboard.py:139 models.py:1059 models.py:1095
 msgid "Conditions"
 msgstr "Podmínky"
 
@@ -188,7 +224,7 @@ msgstr "Prázdné"
 msgid "User assignment"
 msgstr "Přiřazení uživatele"
 
-#: filters.py:40 models.py:1059
+#: filters.py:40 models.py:1058
 msgid "Condition"
 msgstr "Podmínka"
 
@@ -229,7 +265,7 @@ msgstr "Vytvořeno"
 msgid "Terminated"
 msgstr "Ukončeno"
 
-#: models.py:65 models.py:202 models.py:1219 models.py:1270
+#: models.py:65 models.py:202 models.py:1218 models.py:1269
 msgid "Name"
 msgstr "Jméno"
 
@@ -341,7 +377,7 @@ msgstr "Email"
 msgid "Telephone"
 msgstr "Telefon"
 
-#: models.py:177 models.py:1315
+#: models.py:177 models.py:1314
 msgid "Note"
 msgstr "Poznámka"
 
@@ -864,11 +900,7 @@ msgstr "Individuální"
 msgid "Communication"
 msgstr "Komunikace"
 
-#: models.py:894
-msgid "Communications"
-msgstr "Komunikace"
-
-#: models.py:901 models.py:1224 models.py:1277
+#: models.py:901 models.py:1223 models.py:1276
 msgid "Method"
 msgstr "Metoda"
 
@@ -876,11 +908,11 @@ msgstr "Metoda"
 msgid "Type of communication"
 msgstr "Typ komunikace"
 
-#: models.py:908 models.py:1274
+#: models.py:908 models.py:1273
 msgid "Date"
 msgstr "Datum"
 
-#: models.py:910 models.py:1228 models.py:1281
+#: models.py:910 models.py:1227 models.py:1280
 msgid "Subject"
 msgstr "Předmět"
 
@@ -896,13 +928,9 @@ msgstr "Text"
 msgid "Text or summary of this communication"
 msgstr "Text nebo shrnutí této komunikace"
 
-#: models.py:918 models.py:1299
+#: models.py:918 models.py:1298
 msgid "Attachment"
 msgstr "Příloha"
-
-#: models.py:923
-msgid "Notes"
-msgstr "Poznámky"
 
 #: models.py:924
 msgid "Internal notes about this communication"
@@ -938,65 +966,65 @@ msgstr "Odesláno / Hotovo"
 msgid "Was this message already sent, communicated and/or resolved?"
 msgstr "Byla již tato zpráva odeslána, komunikována a/nebo vyřešena?"
 
-#: models.py:1076
+#: models.py:1075
 msgid "Name of condition"
 msgstr "Jméno podmínky"
 
-#: models.py:1080
+#: models.py:1079
 msgid "Operation"
 msgstr "Operace"
 
-#: models.py:1084
+#: models.py:1083
 msgid "Variable"
 msgstr "Proměnná"
 
-#: models.py:1086
+#: models.py:1085
 msgid "Value or variable on left-hand side"
 msgstr "Hodnota nebo proměnná na levé straně"
 
-#: models.py:1090
+#: models.py:1089
 msgid "Value"
 msgstr "Hodnota"
 
-#: models.py:1091
+#: models.py:1090
 msgid "Value or variable on right-hand side"
 msgstr "Hodnota nebo proměnná na pravé straně"
 
-#: models.py:1099
+#: models.py:1098
 msgid "Display as filter?"
 msgstr "Zobrazit jako filtr?"
 
-#: models.py:1100
+#: models.py:1099
 msgid ""
 "Determines whether this condition is available as a filterin the table of "
 "Users"
 msgstr "Určuje zda se tato podmínka objevuje jako filtr v tabulce uživatelů"
 
-#: models.py:1104
+#: models.py:1103
 msgid "Display on dashboard?"
 msgstr "Zobrazit na palubní desce?"
 
-#: models.py:1105
+#: models.py:1104
 msgid "Determines whether this condition is available on dashboard"
 msgstr "Určuje zda se tato podmínka objevuje na palubní desce"
 
-#: models.py:1215
+#: models.py:1214
 msgid "Automatic Communication"
 msgstr "Automatická komunikace"
 
-#: models.py:1216
+#: models.py:1215
 msgid "Automatic Communications"
 msgstr "Automatické komunikace"
 
-#: models.py:1231 models.py:1284
+#: models.py:1230 models.py:1283
 msgid "English subject"
 msgstr "Anglický předmět"
 
-#: models.py:1235 models.py:1289
+#: models.py:1234 models.py:1288
 msgid "Template"
 msgstr "Šablona"
 
-#: models.py:1236 models.py:1290
+#: models.py:1235 models.py:1289
 msgid ""
 "Template can contain variable substitutions like addressment, name, variable "
 "symbol etc."
@@ -1004,24 +1032,24 @@ msgstr ""
 "Šablona může obsahovat nahrazované proměnné, jako oslovení, jméno, "
 "variabilní symbol atd."
 
-#: models.py:1240 models.py:1295
+#: models.py:1239 models.py:1294
 msgid "English template"
 msgstr "Anglická šablona"
 
-#: models.py:1244
+#: models.py:1243
 msgid "Only once"
 msgstr "Pouze jednou"
 
-#: models.py:1245
+#: models.py:1244
 msgid "If checked, never send this communication twice to one user"
 msgstr ""
 "Pokud je zaškrtnuto, nikdy neposílat tuto komunikaci témuž uživateli dvakrát"
 
-#: models.py:1248
+#: models.py:1247
 msgid "Dispatch auto"
 msgstr "Odeslat automaticky"
 
-#: models.py:1249
+#: models.py:1248
 msgid ""
 "If checked, the communication might be dispatched by the system (e.g. an "
 "email sent) as soon as condition becomes true, without any further action "
@@ -1033,19 +1061,19 @@ msgstr ""
 "administrátora. Jinak je komunikace založena, ale administrátor ji musí "
 "odeslat ručně."
 
-#: models.py:1256
+#: models.py:1255
 msgid "List of users to whom this communication was already sent"
 msgstr "Seznam uživatelů, kterým již byla tato komunikace odeslána"
 
-#: models.py:1266
+#: models.py:1265
 msgid "Mass Communication"
 msgstr "Hromadná komunikace"
 
-#: models.py:1267
+#: models.py:1266
 msgid "Mass Communications"
 msgstr "Hromadné komunikace"
 
-#: models.py:1285
+#: models.py:1284
 msgid ""
 "English version of the subject. If empty, English speaking users will not "
 "receive this communication."
@@ -1053,11 +1081,11 @@ msgstr ""
 "Anglická verze předmětu. Ponecháte-li prázdné, anglicky mluvící uživatelé "
 "tuto komunikaci nedostanou."
 
-#: models.py:1303
+#: models.py:1302
 msgid "Attach tax confirmation"
 msgstr "Připojit daňové potvrzení"
 
-#: models.py:1304
+#: models.py:1303
 msgid ""
 "If this field is checked, the tax confirmation for last year is appended to "
 "the message."
@@ -1065,31 +1093,31 @@ msgstr ""
 "Pokud je toto políčko zaškrtnuto, bude ke zprávě připojeno daňové potvrzení "
 "za minulý rok."
 
-#: models.py:1309
+#: models.py:1308
 msgid "send to users"
 msgstr "uživatelé k obeslání"
 
-#: models.py:1311
+#: models.py:1310
 msgid "All users who should receive the communication"
 msgstr "Všichni uživatelé, kteří by měli tuto komunikaci obdržet"
 
-#: models.py:1314
+#: models.py:1313
 msgid "note"
 msgstr ""
 
-#: models.py:1344
+#: models.py:1343
 msgid "Tax confirmation"
 msgstr "Daňové potvrzení"
 
-#: models.py:1345
+#: models.py:1344
 msgid "Tax confirmations"
 msgstr "Daňová potvrzení"
 
-#: models.py:1354
+#: models.py:1353
 msgid "Members by months"
 msgstr "Členové po měsících"
 
-#: models.py:1369
+#: models.py:1368
 msgid "Payments by months"
 msgstr "Platby po měsících"
 
