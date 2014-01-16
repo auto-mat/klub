@@ -90,7 +90,7 @@ class ExpenseInline(admin.TabularInline):
     model = Expense
 
 # -- ADMIN FORMS --
-class UserAdmin(admin.ModelAdmin):
+class UserAdmin(ImportExportModelAdmin):
     list_display = ('person_name', 
                     'variable_symbol', 'registered_support_date',
                     'regular_payments_info', 
