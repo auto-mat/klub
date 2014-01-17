@@ -1334,6 +1334,9 @@ class TaxConfirmation(models.Model):
         amount = models.PositiveIntegerField(default=0)
 	file = models.FileField(upload_to=confirmation_upload_to, storage=OverwriteStorage())
 
+        def user__regular_payments(self):
+            return self.user.regular_payments
+
         class Meta:
             verbose_name = _("Tax confirmation")
             verbose_name_plural = _("Tax confirmations")

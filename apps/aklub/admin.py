@@ -349,10 +349,10 @@ class RecruiterAdmin(admin.ModelAdmin):
     actions = (export_as_csv_action(fields=list(list_display)+['note']),)
     filter_horizontal = ('campaigns',)
 
-class TaxConfirmationAdmin(admin.ModelAdmin):
-    list_display = ('user', 'year', 'amount', 'file')
+class TaxConfirmationAdmin(ImportExportModelAdmin):
+    list_display = ('user', 'year', 'amount', 'file', 'user__regular_payments')
     ordering = ('user__surname', 'user__firstname',)
-    list_filter = ['year',]
+    list_filter = ['year', 'user__regular_payments']
     search_fields = ('user__surname', 'user__firstname', 'user__variable_symbol',)
     actions = (export_as_csv_action(fields=('user', 'amount')),)
 
