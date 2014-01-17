@@ -355,6 +355,7 @@ class TaxConfirmationAdmin(ImportExportModelAdmin):
     list_filter = ['year', 'user__regular_payments']
     search_fields = ('user__surname', 'user__firstname', 'user__variable_symbol',)
     actions = (export_as_csv_action(fields=('user', 'amount')),)
+    list_max_show_all = 10000
 
     def generate(self, request):
 	year = datetime.datetime.now().year - 1
