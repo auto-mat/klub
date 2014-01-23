@@ -30,7 +30,7 @@ from django.core.files.storage import FileSystemStorage
 from django.core.files.temp import NamedTemporaryFile
 from django.utils.timesince import timesince
 from django.utils.translation import ugettext as _
-from django.utils.html import strip_tags
+import html2text
 # External dependencies
 import datetime
 import csv
@@ -970,8 +970,7 @@ class Communication(models.Model):
                 bcc = []
             else:
                 bcc = ['kp@auto-mat.cz']
-            text_content = strip_tags(self.summary)
-            email = EmailMultiAlternatives(subject=self.subject, body=text_content,
+            email = EmailMultiAlternatives(subject=self.subject, body=self.summary_txt(),
                                  from_email = 'Klub pratel Auto*Matu <kp@auto-mat.cz>',
                                  to = [self.user.email],
                                  bcc = bcc)
@@ -989,6 +988,9 @@ class Communication(models.Model):
             self.send = False
             if save:
                 self.save()
+
+    def summary_txt(self):
+        return html2text.html2text(self.summary)
 
 class ConditionValues(object):
     """Iterator that returns values available for Klub Conditions

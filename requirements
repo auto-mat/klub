@@ -20,3 +20,4 @@ django-import-export
 
 django-qsstats-magic
 python-dateutil
+html2text
