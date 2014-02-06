@@ -970,11 +970,13 @@ class Communication(models.Model):
                 bcc = []
             else:
                 bcc = ['kp@auto-mat.cz']
+
             email = EmailMultiAlternatives(subject=self.subject, body=self.summary_txt(),
                                  from_email = 'Klub pratel Auto*Matu <kp@auto-mat.cz>',
                                  to = [self.user.email],
                                  bcc = bcc)
-            email.attach_alternative(self.summary, "text/html")
+            if self.type != 'individual':
+                email.attach_alternative(self.summary, "text/html")
             if self.attachment:
                 att = self.attachment
                 email.attach(os.path.basename(att.name), att.read())
@@ -990,7 +992,10 @@ class Communication(models.Model):
                 self.save()
 
     def summary_txt(self):
-        return html2text.html2text(self.summary)
+        if self.type == 'individual':
+            return self.summary
+        else:
+            return html2text.html2text(self.summary)
 
 class ConditionValues(object):
     """Iterator that returns values available for Klub Conditions
