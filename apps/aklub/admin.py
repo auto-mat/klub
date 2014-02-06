@@ -84,8 +84,7 @@ class PaymentsInlineNoExtra(PaymentsInline):
 class CommunicationInline(admin.TabularInline):
     model = Communication
     extra = 1
-    fields = ('method', 'date', 'subject', 'summary_txt', 'attachment', 'note', 'send', 'type', 'created_by', 'handled_by',)
-    readonly_fields = ('summary_txt', 'note', 'type', 'created_by', 'handled_by',)
+    readonly_fields = ('type', 'created_by', 'handled_by',)
 
 class ExpenseInline(admin.TabularInline):
     model = Expense
