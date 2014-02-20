@@ -198,7 +198,7 @@ LOGGING = {
             'propagate': False,
         },
         'aklub': {
-            'handlers': ['console', 'mail_admins', 'logfile'],
+            'handlers': ['console', 'mail_admins'],
             'level': 'DEBUG', 
         }
     }
