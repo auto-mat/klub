@@ -1186,8 +1186,6 @@ class Condition(models.Model):
         # Elementary conditions
         left = get_val(self.variable, user)
         right = get_val(self.value, user)
-        logger.debug("Left condition operand: %s" % left)
-        logger.debug("Right condition operand: %s" % right)
         
         if left == None or right == None:
             return False
