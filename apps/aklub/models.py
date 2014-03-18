@@ -705,7 +705,7 @@ class AccountStatements(models.Model):
 
         payments_reader = csv.DictReader(data.split("\n"), delimiter=';',
                                  fieldnames = [
-                'transfer', 'date', 'amount', 'account', 'bank_code', 'KS', 'VS',
+                'transfer', 'date', 'amount', 'account', 'bank_code', 'BIC', 'KS', 'VS',
                 'SS', 'user_identification', 'type', 'done_by', 'account_name',
                 'bank_name', 'unknown'
                 ])
@@ -802,6 +802,10 @@ class Payment(models.Model):
     KS = models.CharField(
         verbose_name=_("CS"),
         help_text=_("Constant symbol"),
+        max_length=30, blank=True)
+    BIC = models.CharField(
+        verbose_name=_("BIC"),
+        help_text=_("BIC"),
         max_length=30, blank=True)
     user_identification = models.CharField(
         verbose_name=_("Sender identification"),
