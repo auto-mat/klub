@@ -1,6 +1,6 @@
 Django<1.7
 south
-django-stdimage
+django-stdimage==0.2.3
 reportlab
 django-extensions
 psycopg2
