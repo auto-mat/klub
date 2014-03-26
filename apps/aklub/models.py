@@ -30,7 +30,7 @@ from django.core.files.storage import FileSystemStorage
 from django.core.files.temp import NamedTemporaryFile
 from django.utils.timesince import timesince
 from django.utils.translation import ugettext as _
-from django.utils.html import strip_tags
+import html2text
 # External dependencies
 import datetime
 import csv
@@ -516,12 +516,13 @@ class User(models.Model):
         if self.regular_payments and self.expected_regular_payment_date():
             # Check for regular payments
             # (Allow 7 days for payment processing)
-            expected_with_tolerance = self.expected_regular_payment_date() + datetime.timedelta(days=10)
-            if (expected_with_tolerance
-                < datetime.date.today()):
-                return datetime.date.today()-expected_with_tolerance
-            else:
-                return datetime.timedelta(days=0)
+            if self.expected_regular_payment_date():
+               expected_with_tolerance = self.expected_regular_payment_date() + datetime.timedelta(days=10)
+               if (expected_with_tolerance
+                   < datetime.date.today()):
+                   return datetime.date.today()-expected_with_tolerance
+               else:
+                   return datetime.timedelta(days=0)
         else:
             return datetime.timedelta(days=0)
 
@@ -704,7 +705,7 @@ class AccountStatements(models.Model):
 
         payments_reader = csv.DictReader(data.split("\n"), delimiter=';',
                                  fieldnames = [
-                'transfer', 'date', 'amount', 'account', 'bank_code', 'KS', 'VS',
+                'transfer', 'date', 'amount', 'account', 'bank_code', 'BIC', 'KS', 'VS',
                 'SS', 'user_identification', 'type', 'done_by', 'account_name',
                 'bank_name', 'unknown'
                 ])
@@ -802,6 +803,13 @@ class Payment(models.Model):
         verbose_name=_("CS"),
         help_text=_("Constant symbol"),
         max_length=30, blank=True)
+    BIC = models.CharField(
+        verbose_name=_("BIC"),
+        help_text=_("BIC"),
+        max_length=30,
+        blank=True,
+        null=True,
+        )
     user_identification = models.CharField(
         verbose_name=_("Sender identification"),
         help_text=_("Sender identification string on the account statement"),
@@ -969,12 +977,13 @@ class Communication(models.Model):
                 bcc = []
             else:
                 bcc = ['kp@auto-mat.cz']
-            text_content = strip_tags(self.summary)
-            email = EmailMultiAlternatives(subject=self.subject, body=text_content,
+
+            email = EmailMultiAlternatives(subject=self.subject, body=self.summary_txt(),
                                  from_email = 'Klub pratel Auto*Matu <kp@auto-mat.cz>',
                                  to = [self.user.email],
                                  bcc = bcc)
-            email.attach_alternative(self.summary, "text/html")
+            if self.type != 'individual':
+                email.attach_alternative(self.summary, "text/html")
             if self.attachment:
                 att = self.attachment
                 email.attach(os.path.basename(att.name), att.read())
@@ -988,6 +997,12 @@ class Communication(models.Model):
             self.send = False
             if save:
                 self.save()
+
+    def summary_txt(self):
+        if self.type == 'individual':
+            return self.summary
+        else:
+            return html2text.html2text(self.summary)
 
 class ConditionValues(object):
     """Iterator that returns values available for Klub Conditions
@@ -1174,8 +1189,6 @@ class Condition(models.Model):
         # Elementary conditions
         left = get_val(self.variable, user)
         right = get_val(self.value, user)
-        logger.debug("Left condition operand: %s" % left)
-        logger.debug("Right condition operand: %s" % right)
         
         if left == None or right == None:
             return False
@@ -1301,6 +1314,7 @@ class MassCommunication(models.Model):
             verbose_name=_("send to users"),
                                            help_text = _(
             "All users who should receive the communication"),
+                                           limit_choices_to = {'active': 'True', 'wished_information': 'True'},
                                            blank=True)
     note = models.TextField(
         verbose_name=_("note"),
@@ -1326,12 +1340,18 @@ def confirmation_upload_to(instance, filename):
 	return "confirmations/%s_%s.pdf" % (instance.user.id, instance.year)
 
 class TaxConfirmation(models.Model):
+
 	user = models.ForeignKey(User)
 	year = models.PositiveIntegerField()
         amount = models.PositiveIntegerField(default=0)
 	file = models.FileField(upload_to=confirmation_upload_to, storage=OverwriteStorage())
 
+        def user__regular_payments(self):
+            return self.user.regular_payments
+
         class Meta:
+            verbose_name = _("Tax confirmation")
+            verbose_name_plural = _("Tax confirmations")
             unique_together = ('user', 'year',)
 
 

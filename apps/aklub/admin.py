@@ -90,13 +90,13 @@ class ExpenseInline(admin.TabularInline):
     model = Expense
 
 # -- ADMIN FORMS --
-class UserAdmin(admin.ModelAdmin):
+class UserAdmin(ImportExportModelAdmin):
     list_display = ('person_name', 
                     'variable_symbol', 'registered_support_date',
                     'regular_payments_info', 
                     'number_of_payments', 'total_contrib', 'regular_amount',
                     'active', 'last_payment_date')
-    list_filter = ['regular_payments', 'language', 'active',  'source', 'campaigns', filters.UserConditionFilter]
+    list_filter = ['regular_payments', 'language', 'active', 'wished_information', 'old_account', 'source', 'campaigns', filters.UserConditionFilter]
     search_fields = ['firstname', 'surname', 'variable_symbol']
     ordering = ('surname',)
     actions = ('send_mass_communication',
@@ -113,41 +113,41 @@ class UserAdmin(admin.ModelAdmin):
     readonly_fields = ('verified_by',)
     filter_horizontal = ('campaigns',) # broken in django pre-1.4
     fieldsets = [
-        ('Basic personal', {
+        (_('Basic personal'), {
                 'fields': [('firstname', 'surname'),
                            ('sex', 'language', 'active', 'public')]}),
-        ('Titles and addressments', {
+        (_('Titles and addressments'), {
                 'fields': [('title_before', 'title_after'),
                            ('addressment', 'addressment_on_envelope')],
                 'classes': ['collapse']
                 }),
-        ('Contacts', {
+        (_('Contacts'), {
                 'fields': [('email', 'telephone'),
                            ('street', 'city', 'country'),
                            'zip_code', 'different_correspondence_address'],
                 }),
-        ('Additional', {
+        (_('Additional'), {
                 'fields': ['knows_us_from',  'why_supports',
                            'field_of_work', 'additional_information'],
                 'classes': ['collapse']}),
-        ('Support', {
+        (_('Support'), {
                 'fields': ['variable_symbol',
                            'registered_support',                           
                            ('regular_payments', 'regular_frequency',
                             'regular_amount', 'expected_date_of_first_payment',
                             'exceptional_membership'),
                            'other_support', 'old_account']}),
-        ('Communication', {
+        (_('Communications'), {
                 'fields': ['wished_information', 'wished_tax_confirmation', 'wished_welcome_letter'],
                 'classes': ['collapse']}),
-        ('Benefits', {
+        (_('Benefits'), {
                 'fields': [('club_card_available', 'club_card_dispatched'),
                            'other_benefits'],
                 'classes': ['collapse']}),
-        ('Note', {
+        (_('Notes'), {
                 'fields': ['note', 'source', 'campaigns', 'recruiter', 'verified', 'verified_by', 'activity_points'],
                 'classes': ['collapse']}),
-        ('Profile', {
+        (_('Profile'), {
                 'fields': ['profile_text', 'profile_picture'],
                 'classes': ['collapse']}),
         ]
@@ -350,11 +350,12 @@ class RecruiterAdmin(admin.ModelAdmin):
     filter_horizontal = ('campaigns',)
 
 class TaxConfirmationAdmin(admin.ModelAdmin):
-    list_display = ('user', 'year', 'amount', 'file')
+    list_display = ('user', 'year', 'amount', 'file', 'user__regular_payments')
     ordering = ('user__surname', 'user__firstname',)
-    list_filter = ['year',]
+    list_filter = ['year', 'user__regular_payments']
     search_fields = ('user__surname', 'user__firstname', 'user__variable_symbol',)
     actions = (export_as_csv_action(fields=('user', 'amount')),)
+    list_max_show_all = 10000
 
     def generate(self, request):
 	year = datetime.datetime.now().year - 1

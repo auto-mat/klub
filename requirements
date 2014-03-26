@@ -19,3 +19,4 @@ python-memcached==1.53
 django-import-export==0.1.4
 django-qsstats-magic
 python-dateutil
+html2text

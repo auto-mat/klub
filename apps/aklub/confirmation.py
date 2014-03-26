@@ -30,7 +30,9 @@ def makepdf(outfile, name, sex, street, city, year, amount):
 	text1 = u"""
 	Potvrzujeme tímto, že %s %s za rok %d
 	na účet občanského sdružení Auto*Mat dar ve výši %d,- Kč,
-	určený na činnost sdružení.""" % (name, poukazal, year, amount)
+	určený na činnost sdružení. Dar byl použit na ekologické
+    účely, konkrétně na podporu veřejné, pěší a cyklistické
+    dopravy v Praze.""" % (name, poukazal, year, amount)
 
 	text2 = u"""
 	Potvrzení vydáváme pro uplatnění odpočtu hodnoty daru
