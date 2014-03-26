@@ -806,7 +806,10 @@ class Payment(models.Model):
     BIC = models.CharField(
         verbose_name=_("BIC"),
         help_text=_("BIC"),
-        max_length=30, blank=True)
+        max_length=30,
+        blank=True,
+        null=True,
+        )
     user_identification = models.CharField(
         verbose_name=_("Sender identification"),
         help_text=_("Sender identification string on the account statement"),
