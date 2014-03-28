@@ -1,15 +1,16 @@
 #!/bin/bash
+#version 0.1
 
 git pull
 source env/bin/activate
-pip install -r requirements
+env/bin/python env/binpip install -r requirements.txt
 if [ "$1" = "migrate" ]; then
    echo "Backuping db..."
    mkdir db_backup
-   ./manage.py dumpdata > db_backup/`date +"%y%m%d-%H:%M:%S"`-aklub.json
+   sudo -u postgres pg_dump  > db_backup/`date +"%y%m%d-%H:%M:%S"`-zmapa.sql
    echo "Migrating..."
-   ./manage.py migrate
+   env/bin/python ./manage.py migrate
 fi
 (cd apps/aklub/ && django-admin.py compilemessages)
-./manage.py collectstatic --noinput
+env/bin/python ./manage.py collectstatic --noinput
 touch wsgi.py
