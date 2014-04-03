@@ -1277,7 +1277,7 @@ class MassCommunication(models.Model):
         blank=False, null=True)
     date = models.DateField(
         verbose_name=_("Date"),
-        default=None, blank=True, null=True)
+        default=None, blank=False, null=False)
     method = models.CharField(
         verbose_name=_("Method"),
         max_length=30,
