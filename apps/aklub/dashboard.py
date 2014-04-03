@@ -115,14 +115,14 @@ class AklubIndexDashboard(Dashboard):
         children = []
         children.append(
             {
-                'title': _(u"Days from last bill upload: %(days)s days") % {"days": (datetime.date.today() - AccountStatements.objects.all()[:1].get().import_date).days},
+                'title': _(u"Days from last bill upload: %(days)s days") % {"days": (datetime.date.today() - AccountStatements.objects.first().import_date).days},
                 'url': "aklub/accountstatements/",
                 'external': False,
             }
             )
         children.append(
             {
-                'title': _(u"Days from last mass communication: %(days)s days") % {"days": (datetime.date.today() - MassCommunication.objects.order_by("-date").all()[:1].get().date).days},
+                'title': _(u"Days from last mass communication: %(days)s days") % {"days": (datetime.date.today() - MassCommunication.objects.order_by("-date").first().date).days},
                 'url': "aklub/masscommunication/",
                 'external': False,
             }
