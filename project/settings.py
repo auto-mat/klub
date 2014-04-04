@@ -144,7 +144,7 @@ ADMIN_TOOLS_APP_INDEX_DASHBOARD = 'aklub.dashboard.AklubAppIndexDashboard'
 
 UPLOAD_PATH = '/upload/'
 
-DJANGO_WYSIWYG_FLAVOR = "tinymce_advanced" 
+DJANGO_WYSIWYG_FLAVOR = "tinymce_advanced_noentities"
 
 LOGGING = {
     'version': 1,
