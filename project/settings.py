@@ -199,7 +199,7 @@ LOGGING = {
             'propagate': False,
         },
         'aklub': {
-            'handlers': ['console', 'mail_admins'],
+            'handlers': ['console', 'mail_admins', 'logfile'],
             'level': 'DEBUG', 
         }
     }
