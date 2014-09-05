@@ -348,4 +348,4 @@ def profiles(request):
 		   }
 		  for u in users
 		  if ((not paying) or (u.payment_total > 0)) ]
-	return http.HttpResponse(josn.dumps(result), mimetype='application/json')
+	return http.HttpResponse(json.dumps(result), content_type='application/json')
