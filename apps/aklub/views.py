@@ -344,7 +344,7 @@ def profiles(request):
 		   'surname': u.public and u.surname or '',
 		   'text': u.profile_text or '',
 		   'picture': u.profile_picture and u.profile_picture.url or '',
-		   'picture_thumbnail': u.profile_picture and u.profile_picture.thumbnail.url() or '',
+		   'picture_thumbnail': u.profile_picture and u.profile_picture.thumbnail.url or '',
 		   }
 		  for u in users
 		  if ((not paying) or (u.payment_total > 0)) ]
