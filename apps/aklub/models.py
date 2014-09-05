@@ -376,8 +376,9 @@ class User(models.Model):
         verbose_name=_("Profile picture"),
         help_text=_("Your profile picture, which others will see."),
         upload_to='profile-images',
-        size=(2048, 2048),
-        thumbnail_size=(150, 150),
+        variations={
+            'thumbnail': (100, 100, True),
+        },
         blank=True, null=True)
 
     # --- Communication

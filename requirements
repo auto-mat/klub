@@ -1,11 +1,10 @@
 Django<1.7
 south
-django-stdimage==0.2.3
+django-stdimage
 reportlab
 django-extensions
 psycopg2
 django-bootstrap-form
-pil
 #pygraphviz
 django-wysiwyg
 django-tinymce
