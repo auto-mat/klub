@@ -922,7 +922,7 @@ class Communication(models.Model):
     summary = models.TextField(
         verbose_name=_("Text"),
         help_text=_("Text or summary of this communication"),
-        max_length=10000)
+        max_length=50000)
     attachment = models.FileField(
         verbose_name=_("Attachment"),
         upload_to='communication-attachments',
@@ -1241,10 +1241,10 @@ class AutomaticCommunication(models.Model):
         verbose_name=_("Template"),
         help_text = _("Template can contain variable substitutions like addressment, name, "
                       "variable symbol etc."),
-        max_length=10000)
+        max_length=50000)
     template_en = models.TextField(
         verbose_name=_("English template"),
-        max_length=10000,
+        max_length=50000,
         blank=True, null=True)
     only_once = models.BooleanField(
         verbose_name=_("Only once"),
@@ -1295,11 +1295,11 @@ class MassCommunication(models.Model):
         verbose_name=_("Template"),
         help_text = _("Template can contain variable substitutions like addressment, name, "
                       "variable symbol etc."),
-        max_length=10000,
+        max_length=50000,
         blank=True, null=True)
     template_en = models.TextField(
         verbose_name=_("English template"),
-        max_length=10000,
+        max_length=50000,
         blank=True, null=True)
     attachment = models.FileField(
         verbose_name=_("Attachment"),
