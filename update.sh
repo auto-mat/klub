@@ -5,7 +5,7 @@ set -e
 
 git pull
 source env/bin/activate
-env/bin/python env/binpip install -r requirements --upgrade
+env/bin/python env/bin/pip install -r requirements --upgrade
 if [ "$1" = "migrate" ]; then
    echo "Backuping db..."
    mkdir -p db_backup
