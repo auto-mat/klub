@@ -27,7 +27,7 @@ from django.contrib.admin import widgets
 from django.contrib.formtools.wizard.views import SessionWizardView
 from django.core.mail import EmailMessage
 from django.db.models import Sum, Count, Q
-from django.utils import simplejson
+import json
 
 import settings
 from models import *
@@ -348,4 +348,4 @@ def profiles(request):
 		   }
 		  for u in users
 		  if ((not paying) or (u.payment_total > 0)) ]
-	return http.HttpResponse(simplejson.dumps(result), mimetype='application/json')
+	return http.HttpResponse(josn.dumps(result), mimetype='application/json')

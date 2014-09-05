@@ -29,7 +29,7 @@ from django.core.files import File
 from django.core.files.storage import FileSystemStorage
 from django.core.files.temp import NamedTemporaryFile
 from django.utils.timesince import timesince
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 import html2text
 # External dependencies
 import datetime

@@ -1,5 +1,4 @@
-Django<1.7
-south
+Django<1.8
 django-stdimage
 reportlab
 django-extensions
