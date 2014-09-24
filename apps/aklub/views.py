@@ -129,7 +129,6 @@ def regular_wp(request):
     if request.method == 'POST': # If the form has been submitted...
         form = form_class(request.POST) # A form bound to the POST data
         if form.is_valid(): # All validation rules pass
-            new_user(form, regular=True)
 	    user_id = new_user(form, regular=True)
             amount = User.objects.get(id= user_id).monthly_regular_amount()
             return http.HttpResponseRedirect('/thanks-wp/?amount=%s&user_id=%s' % (amount, user_id)) # Redirect after POST
