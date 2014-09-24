@@ -140,6 +140,8 @@ def regular_wp(request):
     })
 
 def thanks_wp(request):
+        amount = request.GET.get('amount', 0)
+        user_id = request.GET.get('user_id', 0)
 	return render_to_response('thanks-wp.html', {
             'amount': amount,
             'user_id': user_id,
