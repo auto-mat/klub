@@ -106,8 +106,9 @@ def regular(request):
     if request.method == 'POST': # If the form has been submitted...
         form = form_class(request.POST) # A form bound to the POST data
         if form.is_valid(): # All validation rules pass
-	    new_user(form, regular=True)
-            return http.HttpResponseRedirect('/thanks/') # Redirect after POST
+	    user_id = new_user(form, regular=True)
+            amount = User.objects.get(id= user_id).monthly_regular_amount()
+            return http.HttpResponseRedirect('/thanks/?amount=%s&user_id=%s' % (amount, user_id)) # Redirect after POST
     else:
         form = form_class() # An unbound form
 
@@ -116,7 +117,12 @@ def regular(request):
     })
 
 def thanks(request):
-	return render_to_response('thanks.html') 
+        amount = request.GET.get('amount', 0)
+        user_id = request.GET.get('user_id', 0)
+	return render_to_response('thanks.html', {
+            'amount': amount,
+            'user_id': user_id,
+            })
 
 def regular_wp(request):
     form_class = RegularUserFormWithProfile
@@ -124,7 +130,9 @@ def regular_wp(request):
         form = form_class(request.POST) # A form bound to the POST data
         if form.is_valid(): # All validation rules pass
             new_user(form, regular=True)
-            return http.HttpResponseRedirect('/thanks-wp/') # Redirect after POST
+	    user_id = new_user(form, regular=True)
+            amount = User.objects.get(id= user_id).monthly_regular_amount()
+            return http.HttpResponseRedirect('/thanks-wp/?amount=%s&user_id=%s' % (amount, user_id)) # Redirect after POST
     else:
         form = form_class() # An unbound form
 
@@ -133,7 +141,10 @@ def regular_wp(request):
     })
 
 def thanks_wp(request):
-	return render_to_response('thanks-wp.html') 
+	return render_to_response('thanks-wp.html', {
+            'amount': amount,
+            'user_id': user_id,
+            })
 
 def donators(request):
         payed = Payment.objects.exclude(type='expected').values_list('user_id', flat=True)
