@@ -350,7 +350,9 @@ def profiles(request):
 	paying = request.GET.get('paying')
 
 	users = (User.objects.annotate(**User.annotations).filter(registered_support__gte=from_date).order_by('-registered_support')
-		 | User.objects.annotate(**User.annotations).filter(id__in=(493,89,98,921,33,886,1181,842,954,25)))
+		 | User.objects.annotate(**User.annotations).filter(id__in=(493,89,98,921,33,886,1181,842,954,25))).exclude(
+                     ~Q(profile_text=u''), public=False, profile_picture__isnull=False)
+
 
 	result = [{'firstname': u.public and u.firstname or '',
 		   'surname': u.public and u.surname or '',
