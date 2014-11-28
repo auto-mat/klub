@@ -39,11 +39,8 @@ import stdimage
 # Local modules
 import autocom
 import confirmation
-from south.modelsinspector import add_introspection_rules
 import logging
 logger = logging.getLogger(__name__)
-
-add_introspection_rules([], ['^stdimage\.fields\.StdImageField'])
 
 class Campaign(models.Model):
     """Campaign -- abstract event with description
