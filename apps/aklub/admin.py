@@ -331,9 +331,9 @@ class ConditionAdmin(ImportExportModelAdmin):
     ordering = ('name',)
 
 class AccountStatementsAdmin(admin.ModelAdmin):
-    list_display = ('import_date', 'csv_file', 'date_from', 'date_to')
+    list_display = ('type', 'import_date', 'csv_file', 'date_from', 'date_to')
     inlines = [PaymentsInlineNoExtra]
-    readonly_fields = ('import_date', 'date_from', 'date_to')
+    readonly_fields = ('import_date',)
     fields = copy.copy(list_display)
 
 class CampaignAdmin(admin.ModelAdmin):

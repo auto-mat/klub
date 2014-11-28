@@ -659,6 +659,11 @@ class NewUser(User):
         verbose_name = _("new user")
         verbose_name_plural = _("new users")
 
+def str_to_datetime(date):
+    return datetime.date(**dict(
+        zip(['day', 'month', 'year'],
+        [int(val) for val in date.split('.')])))
+
 class AccountStatements(models.Model):
     """AccountStatemt entry and DB model
 
@@ -671,6 +676,12 @@ class AccountStatements(models.Model):
         verbose_name_plural = _("Account Statements")
 	ordering = ['-import_date']
 
+    TYPE_OF_STATEMENT = (
+        ('account', _('Account statement')),
+        ('darujme', 'Darujeme.cz'),
+    )
+
+    type = models.CharField(max_length=20, choices=TYPE_OF_STATEMENT, default='account')
     import_date = models.DateField(auto_now=True)
     csv_file = models.FileField(
         upload_to='account-statements')
@@ -681,6 +692,13 @@ class AccountStatements(models.Model):
     
     def save(self, *args, **kwargs):
         super(AccountStatements, self).save(*args, **kwargs)
+        if self.type == 'account':
+            self.parse_bank_csv()
+        elif self.type == 'darujme':
+            from aklub.darujme import parse_darujme
+            parse_darujme(self, self.csv_file.path)
+
+    def parse_bank_csv(self):
         # Read and parse the account statement
         # TODO: This should be separated into a dedicated module
         win1250_contents = open(self.csv_file.path).read()
@@ -692,10 +710,6 @@ class AccountStatements(models.Model):
         term_line = [line for line in header.split('\n')
                      if line.startswith("Období:")]
         name, date_start, dash, date_end = term_line[0].split()
-        def str_to_datetime(date):
-            return datetime.date(**dict(
-                    zip(['day', 'month', 'year'],
-                        [int(val) for val in date.split('.')])))
         self.date_from = str_to_datetime(date_start)
         self.date_to = str_to_datetime(date_end)
         super(AccountStatements, self).save()
@@ -773,6 +787,7 @@ class Payment(models.Model):
         ('bank-transfer', _('Bank transfer')),
         ('cash', _('In cash')),
         ('expected', _('Expected payment')),
+        ('darujme', 'Darujme.cz'),
         )
 
     date = models.DateField(
