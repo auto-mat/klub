@@ -671,8 +671,7 @@ class AccountStatements(models.Model):
         verbose_name_plural = _("Account Statements")
 	ordering = ['-import_date']
 
-    import_date = models.DateField(
-        default = datetime.date.today())
+    import_date = models.DateField(auto_now=True)
     csv_file = models.FileField(
         upload_to='account-statements')
     date_from = models.DateField(
