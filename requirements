@@ -19,3 +19,4 @@ django-qsstats-magic
 python-dateutil
 html2text
 xlrd
+django-debug-toolbar
