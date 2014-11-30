@@ -50,6 +50,12 @@ class UserConditionFilter(SimpleListFilter):
 
         return models.filter_by_condition(queryset, cond)
 
+
+class UserConditionFilter1(UserConditionFilter):
+    """Filters using computed dynamic conditions from DB"""
+    parameter_name = 'user_condition1'
+
+
 class ActiveCampaignFilter(SimpleListFilter):
     title = u"Active"
     parameter_name = u'active'
