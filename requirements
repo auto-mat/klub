@@ -20,3 +20,4 @@ python-dateutil
 html2text
 xlrd
 django-debug-toolbar
+django-daterange-filter

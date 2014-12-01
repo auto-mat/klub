@@ -27,6 +27,7 @@ from django.contrib import admin, messages
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext as _
 from django.http import HttpResponseRedirect, HttpResponse
+from daterange_filter.filter import DateRangeFilter
 from import_export.admin import ImportExportModelAdmin
 import django.forms
 # Local models
@@ -96,7 +97,7 @@ class UserAdmin(ImportExportModelAdmin):
                     'regular_payments_info', 
                     'number_of_payments', 'total_contrib', 'regular_amount',
                     'active', 'last_payment_date')
-    list_filter = ['regular_payments', 'language', 'active', 'wished_information', 'old_account', 'source', 'campaigns', filters.UserConditionFilter, filters.UserConditionFilter1]
+    list_filter = ['regular_payments', 'language', 'active', 'wished_information', 'old_account', 'source', 'campaigns', ('registered_support', DateRangeFilter), filters.UserConditionFilter, filters.UserConditionFilter1]
     search_fields = ['firstname', 'surname', 'variable_symbol']
     ordering = ('surname',)
     actions = ('send_mass_communication',

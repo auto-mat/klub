@@ -137,6 +137,7 @@ INSTALLED_APPS = (
     'massadmin',
     'import_export',
     'debug_toolbar',
+    'daterange_filter',
     'aklub'
 )
 
