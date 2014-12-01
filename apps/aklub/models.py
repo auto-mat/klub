@@ -220,6 +220,7 @@ class User(models.Model):
         ('direct-dialogue-full-form', _("Direct dialogue -- full form (automatic in bank)")),
         ('telephone-call', _("Telephonic call")),
         ('personal', _('Personal recommendation')),
+        ('darujme', 'Darujeme.cz'),
         ('other', _('Another form of contact')))
     REGULAR_PAYMENT_FREQUENCIES = (
         ('monthly', _('Monthly')),
