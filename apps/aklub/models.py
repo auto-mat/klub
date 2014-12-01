@@ -985,7 +985,7 @@ class Communication(models.Model):
     def dispatch(self, save = True):
         """Dispatch the communication
 
-        Currently only method 'email' is implemented. For these messages, the
+        Currently only method 'email' is implemented, all other methods will be only saved. For these messages, the
         email is sent via the service configured in application settings.
 
         TODO: Implement 'mail': the form with the requested text should be
@@ -1014,6 +1014,11 @@ class Communication(models.Model):
                 pass
             else:
                 self.dispatched = True
+            self.send = False
+            if save:
+                self.save()
+        else:
+            self.dispatched = True
             self.send = False
             if save:
                 self.save()
