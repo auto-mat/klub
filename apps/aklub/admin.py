@@ -94,7 +94,7 @@ class ExpenseInline(admin.TabularInline):
 class UserAdmin(ImportExportModelAdmin):
     list_display = ('person_name', 
                     'variable_symbol', 'registered_support_date',
-                    'regular_payments_info', 
+                    'regular_payments_info', 'payment_delay', 'extra_payments',
                     'number_of_payments', 'total_contrib', 'regular_amount',
                     'active', 'last_payment_date')
     list_filter = ['regular_payments', 'language', 'active', 'wished_information', 'old_account', 'source', 'campaigns', ('registered_support', DateRangeFilter), filters.UserConditionFilter, filters.UserConditionFilter1]

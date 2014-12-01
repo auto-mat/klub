@@ -537,14 +537,25 @@ class User(models.Model):
     def regular_payments_info(self):
         if not self.regular_payments:
             return _boolean_icon(False)
-        out = [ u"%s: %s" % (_(u"Expected"), self.expected_regular_payment_date()) ]
-        if self.regular_payments_delay():
-            out.append(u"%s: %s" % (_(u"Delay"), timesince(self.expected_regular_payment_date())))
-        if self.extra_money():
-            out.append(u"%s: %s" % (_(u"Extra"), self.extra_money()))
-        return u"<br>".join(out)
+        return self.expected_regular_payment_date()
     regular_payments_info.allow_tags = True
-    regular_payments_info.short_description = _(u"Regular payments")
+    regular_payments_info.short_description = _(u"Expected payment")
+
+    def payment_delay(self):
+        if self.regular_payments_delay():
+            return timesince(self.expected_regular_payment_date())
+        else:
+            return _boolean_icon(False)
+    payment_delay.allow_tags = True
+    payment_delay.short_description = _(u"Payment delay")
+
+    def extra_payments(self):
+        if self.extra_money():
+            return self.extra_money()
+        else:
+            return _boolean_icon(False)
+    extra_payments.allow_tags = True
+    extra_payments.short_description = _(u"Extra money")
 
     def mail_communications_count(self):
         return self.communications.filter(method = "mail").count()
