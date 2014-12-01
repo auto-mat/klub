@@ -458,11 +458,7 @@ class User(models.Model):
     
     def last_payment(self):
         """Return last payment"""
-        user_payments = self.payments().order_by('-date')
-        if len(user_payments):
-            return user_payments[0]
-        else:
-            return None
+        return self.payments().order_by('-date').last()
 
     def last_payment_date(self):
         """Return date of last payment or None
@@ -486,16 +482,16 @@ class User(models.Model):
             return None
 
     def expected_regular_payment_date(self):
-        last_payment = self.last_payment()
+        last_payment_date = self.last_payment_date
         if not self.regular_payments:
             return None
-        if last_payment:
+        if last_payment_date:
             # Exactly a month after last payment or whatever
             # expectation record for the given user is set to
             freq = self.regular_frequency_td()
             if not freq:
                 return None
-            expected = last_payment.date+freq
+            expected = last_payment_date+freq
             if self.expected_date_of_first_payment:
                 expected = max(expected, self.expected_date_of_first_payment)
         elif self.expected_date_of_first_payment:
