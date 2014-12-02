@@ -108,6 +108,7 @@ ROOT_URLCONF = 'urls'
 
 TEMPLATE_DIRS = (
     normpath(PROJECT_ROOT, 'apps/aklub/templates'),
+    normpath(PROJECT_ROOT, 'env/lib/python2.6/site-packages/debug_toolbar/templates'),
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
@@ -135,6 +136,8 @@ INSTALLED_APPS = (
     'chart_tools',
     'massadmin',
     'import_export',
+    'debug_toolbar',
+    'daterange_filter',
     'aklub'
 )
 
@@ -203,6 +206,8 @@ LOGGING = {
         }
     }
 }
+
+TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 
 # import local settings
 try:

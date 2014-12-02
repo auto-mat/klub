@@ -220,6 +220,7 @@ class User(models.Model):
         ('direct-dialogue-full-form', _("Direct dialogue -- full form (automatic in bank)")),
         ('telephone-call', _("Telephonic call")),
         ('personal', _('Personal recommendation')),
+        ('darujme', 'Darujeme.cz'),
         ('other', _('Another form of contact')))
     REGULAR_PAYMENT_FREQUENCIES = (
         ('monthly', _('Monthly')),
@@ -458,11 +459,7 @@ class User(models.Model):
     
     def last_payment(self):
         """Return last payment"""
-        user_payments = self.payments().order_by('-date')
-        if len(user_payments):
-            return user_payments[0]
-        else:
-            return None
+        return self.payments().order_by('-date').last()
 
     def last_payment_date(self):
         """Return date of last payment or None
@@ -486,16 +483,16 @@ class User(models.Model):
             return None
 
     def expected_regular_payment_date(self):
-        last_payment = self.last_payment()
+        last_payment_date = self.last_payment_date
         if not self.regular_payments:
             return None
-        if last_payment:
+        if last_payment_date:
             # Exactly a month after last payment or whatever
             # expectation record for the given user is set to
             freq = self.regular_frequency_td()
             if not freq:
                 return None
-            expected = last_payment.date+freq
+            expected = last_payment_date+freq
             if self.expected_date_of_first_payment:
                 expected = max(expected, self.expected_date_of_first_payment)
         elif self.expected_date_of_first_payment:
@@ -541,14 +538,25 @@ class User(models.Model):
     def regular_payments_info(self):
         if not self.regular_payments:
             return _boolean_icon(False)
-        out = [ u"%s: %s" % (_(u"Expected"), self.expected_regular_payment_date()) ]
-        if self.regular_payments_delay():
-            out.append(u"%s: %s" % (_(u"Delay"), timesince(self.expected_regular_payment_date())))
-        if self.extra_money():
-            out.append(u"%s: %s" % (_(u"Extra"), self.extra_money()))
-        return u"<br>".join(out)
+        return self.expected_regular_payment_date()
     regular_payments_info.allow_tags = True
-    regular_payments_info.short_description = _(u"Regular payments")
+    regular_payments_info.short_description = _(u"Expected payment")
+
+    def payment_delay(self):
+        if self.regular_payments_delay():
+            return timesince(self.expected_regular_payment_date())
+        else:
+            return _boolean_icon(False)
+    payment_delay.allow_tags = True
+    payment_delay.short_description = _(u"Payment delay")
+
+    def extra_payments(self):
+        if self.extra_money():
+            return self.extra_money()
+        else:
+            return _boolean_icon(False)
+    extra_payments.allow_tags = True
+    extra_payments.short_description = _(u"Extra money")
 
     def mail_communications_count(self):
         return self.communications.filter(method = "mail").count()
@@ -977,7 +985,7 @@ class Communication(models.Model):
     def dispatch(self, save = True):
         """Dispatch the communication
 
-        Currently only method 'email' is implemented. For these messages, the
+        Currently only method 'email' is implemented, all other methods will be only saved. For these messages, the
         email is sent via the service configured in application settings.
 
         TODO: Implement 'mail': the form with the requested text should be
@@ -1006,6 +1014,11 @@ class Communication(models.Model):
                 pass
             else:
                 self.dispatched = True
+            self.send = False
+            if save:
+                self.save()
+        else:
+            self.dispatched = True
             self.send = False
             if save:
                 self.save()

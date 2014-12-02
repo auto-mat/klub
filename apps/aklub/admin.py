@@ -27,8 +27,10 @@ from django.contrib import admin, messages
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext as _
 from django.http import HttpResponseRedirect, HttpResponse
+from daterange_filter.filter import DateRangeFilter
 from import_export.admin import ImportExportModelAdmin
 import django.forms
+from django.utils.html import mark_safe
 # Local models
 from aklub.models import *
 from aklub import mailing
@@ -89,17 +91,34 @@ class CommunicationInline(admin.TabularInline):
 class ExpenseInline(admin.TabularInline):
     model = Expense
 
+
+def show_payments_by_year(self, request, queryset):
+    payments = Payment.objects.filter(user__in=queryset)
+    payment_dates = payments.dates('date', 'year')
+    amount_string = ["%s: %s" % (
+        date_year.year,
+        payments.filter(date__year=date_year.year)
+        .aggregate(Sum('amount'))['amount__sum'])
+        for date_year in payment_dates]
+    amount_string += (_("TOT.: %s") % payments.aggregate(Sum('amount'))['amount__sum'], )
+    print amount_string
+    self.message_user(request, mark_safe("<br/>".join(amount_string)))
+show_payments_by_year.short_description = _("Show payments by year")
+
+
 # -- ADMIN FORMS --
 class UserAdmin(ImportExportModelAdmin):
     list_display = ('person_name', 
                     'variable_symbol', 'registered_support_date',
-                    'regular_payments_info', 
+                    'regular_payments_info', 'payment_delay', 'extra_payments',
                     'number_of_payments', 'total_contrib', 'regular_amount',
                     'active', 'last_payment_date')
-    list_filter = ['regular_payments', 'language', 'active', 'wished_information', 'old_account', 'source', 'campaigns', filters.UserConditionFilter]
+    date_hierarchy = 'registered_support'
+    list_filter = ['regular_payments', 'language', 'active', 'wished_information', 'old_account', 'source', 'campaigns', ('registered_support', DateRangeFilter), filters.UserConditionFilter, filters.UserConditionFilter1]
     search_fields = ['firstname', 'surname', 'variable_symbol']
     ordering = ('surname',)
     actions = ('send_mass_communication',
+               show_payments_by_year,
                export_as_csv_action(fields=(
                 'title_before', 'firstname', 'surname', 'title_after', 'sex', 'telephone', 'email',
                 'street', 'city', 'zip_code', 'variable_symbol', 'club_card_available',
