@@ -678,7 +678,7 @@ class AccountStatements(models.Model):
 
     TYPE_OF_STATEMENT = (
         ('account', _('Account statement')),
-        ('darujme', 'Darujeme.cz'),
+        ('darujme', 'Darujme.cz'),
     )
 
     type = models.CharField(max_length=20, choices=TYPE_OF_STATEMENT, default='account')
