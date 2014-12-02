@@ -113,6 +113,7 @@ class UserAdmin(ImportExportModelAdmin):
                     'regular_payments_info', 'payment_delay', 'extra_payments',
                     'number_of_payments', 'total_contrib', 'regular_amount',
                     'active', 'last_payment_date')
+    date_hierarchy = 'registered_support'
     list_filter = ['regular_payments', 'language', 'active', 'wished_information', 'old_account', 'source', 'campaigns', ('registered_support', DateRangeFilter), filters.UserConditionFilter, filters.UserConditionFilter1]
     search_fields = ['firstname', 'surname', 'variable_symbol']
     ordering = ('surname',)
