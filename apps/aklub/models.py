@@ -649,8 +649,8 @@ def filter_by_condition(queryset, cond):
     return queryset.filter(id__in=filtered_ids)
 
 class NewUserManager(models.Manager):
-    def get_query_set(self):
-        return super(NewUserManager,self).get_query_set().filter(verified=False)
+    def get_queryset(self):
+        return super(NewUserManager,self).get_queryset().filter(verified=False)
 
 class NewUser(User):
     objects = NewUserManager()

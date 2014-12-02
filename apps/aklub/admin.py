@@ -152,8 +152,8 @@ class UserAdmin(ImportExportModelAdmin):
                 'classes': ['collapse']}),
         ]
 
-    def queryset(self, request):
-        qs = super(UserAdmin, self).queryset(request)
+    def get_queryset(self, request):
+        qs = super(UserAdmin, self).get_queryset(request)
         return qs.annotate(**User.annotations)
 
     def save_formset(self, request, form, formset, change):
@@ -246,13 +246,13 @@ class CommunicationAdmin(admin.ModelAdmin):
         obj.handled_by = request.user
         obj.save()
 
-    def queryset(self, request):
+    def get_queryset(self, request):
         # Filter out mass communications which are already dispatched
         # There is no use in displaying the many repetitive rows that
         # arrise from mass communications once they are dispatched. If
         # however not dispatched yet, these communications
         # still require admin action and should be visible.
-        qs = super(CommunicationAdmin, self).queryset(request)
+        qs = super(CommunicationAdmin, self).get_queryset(request)
         return qs.exclude(type='mass', dispatched='true')
 
 class AutomaticCommunicationAdmin(admin.ModelAdmin):
