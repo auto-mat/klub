@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='accountstatements',
             name='type',
-            field=models.CharField(default=b'account', max_length=20, choices=[(b'account', 'Account statement'), (b'darujme', b'Darujeme.cz')]),
+            field=models.CharField(default=b'account', max_length=20, choices=[(b'account', 'Account statement'), (b'darujme', b'Darujme.cz')]),
             preserve_default=True,
         ),
         migrations.AlterField(
