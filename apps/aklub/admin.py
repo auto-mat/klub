@@ -283,7 +283,7 @@ class AutomaticCommunicationAdmin(admin.ModelAdmin):
         obj = form.save()
         if "_continue" in request.POST and request.POST["_continue"] == "test_mail":
             mailing.send_mass_communication(obj, ["fake_user"], request, False)
-        # TODO: Generate some summary info message into request about the result
+            messages.info(request, _("Emails sent to following addreses: %s") % request.user.email)
         return obj
 
 class MassCommunicationAdmin(admin.ModelAdmin):
@@ -316,13 +316,14 @@ class MassCommunicationAdmin(admin.ModelAdmin):
         obj = form.save()
         if "_continue" in request.POST and request.POST["_continue"] == "test_mail":
             mailing.send_mass_communication(obj, ["fake_user"], request, False)
+            messages.info(request, _("Emails sent to following addreses: %s") % request.user.email)
 
         if "_continue" in request.POST and request.POST["_continue"] == "send_mails":
             mailing.send_mass_communication(obj, obj.send_to_users.all(), request)
             # Sending was done, so revert the state of the 'send' checkbox back to False
             obj.date = datetime.datetime.now()
             obj.save()
-        # TODO: Generate some summary info message into request about the result
+            messages.info(request, _("Emails sent to following addreses: %s") % ", ".join([u.email for u in obj.send_to_users.all()]))
         return obj
 
 class ConditionAdmin(ImportExportModelAdmin):

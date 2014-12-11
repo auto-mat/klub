@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: AKlub\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-12-02 12:18+0100\n"
+"POT-Creation-Date: 2014-12-11 16:14+0100\n"
 "PO-Revision-Date: 2013-04-24 00:59+0100\n"
 "Last-Translator: Hynek Hanke <hanke@brailcom.org>\n"
 "Language-Team: Auto*Mat <hynek.hanke@auto-mat.cz>\n"
@@ -88,23 +88,28 @@ msgstr "Obsah"
 msgid "Sending"
 msgstr "Odesílání"
 
-#: admin.py:334 models.py:66
+#: admin.py:287 admin.py:320 admin.py:327
+#, python-format
+msgid "Emails sent to following addreses: %s"
+msgstr "Emaily odeslány na následující adresy: %s"
+
+#: admin.py:335 models.py:66
 msgid "Description"
 msgstr "Popis"
 
-#: admin.py:337
+#: admin.py:338
 msgid "Operator"
 msgstr "Operátor"
 
-#: admin.py:340
+#: admin.py:341
 msgid "Comparing conditions operands"
 msgstr "Hodnoty pro srovnávací podmínky"
 
-#: admin.py:343
+#: admin.py:344
 msgid "Logical conditions operands"
 msgstr "Hodnoty pro logické podmínky"
 
-#: admin.py:346
+#: admin.py:347
 msgid "Usage"
 msgstr "Použití"
 
@@ -115,19 +120,19 @@ msgstr "Platby"
 
 #: dashboard.py:66
 msgid "Quick links"
-msgstr ""
+msgstr "Rychlé odkazy"
 
 #: dashboard.py:72
 msgid "Return to site"
-msgstr ""
+msgstr "Zpět na stránku"
 
 #: dashboard.py:73
 msgid "Change password"
-msgstr ""
+msgstr "Změnit heslo"
 
 #: dashboard.py:75
 msgid "Log out"
-msgstr ""
+msgstr "Odhlásit"
 
 #: dashboard.py:81
 msgid "Applications"
