@@ -108,14 +108,14 @@ show_payments_by_year.short_description = _("Show payments by year")
 
 # -- ADMIN FORMS --
 class UserAdmin(ImportExportModelAdmin):
-    list_display = ('person_name', 
+    list_display = ('person_name', 'email',
                     'variable_symbol', 'registered_support_date',
                     'regular_payments_info', 'payment_delay', 'extra_payments',
                     'number_of_payments', 'total_contrib', 'regular_amount',
                     'active', 'last_payment_date')
     date_hierarchy = 'registered_support'
-    list_filter = ['regular_payments', 'language', 'active', 'wished_information', 'old_account', 'source', 'campaigns', ('registered_support', DateRangeFilter), filters.UserConditionFilter, filters.UserConditionFilter1]
-    search_fields = ['firstname', 'surname', 'variable_symbol']
+    list_filter = ['regular_payments', 'language', 'active', 'wished_information', 'old_account', 'source', 'campaigns', ('registered_support', DateRangeFilter), filters.EmailFilter, filters.UserConditionFilter, filters.UserConditionFilter1]
+    search_fields = ['firstname', 'surname', 'variable_symbol', 'email']
     ordering = ('surname',)
     actions = ('send_mass_communication',
                show_payments_by_year,

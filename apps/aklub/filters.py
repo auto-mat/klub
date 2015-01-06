@@ -72,3 +72,20 @@ class ActiveCampaignFilter(SimpleListFilter):
         if self.value() == 'no':
             return queryset.exclude(Q(terminated__gte = date.today()) | Q(terminated = None), created__lte = date.today())
 
+
+class EmailFilter(SimpleListFilter):
+    title = _(u"Email")
+    parameter_name = u'email'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('duplicate', _(u'Duplicate')),
+            ('blank', _(u'Blank')),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == 'duplicate':
+            duplicates = User.objects.filter(email__isnull=False).exclude(email__exact='').values('email').annotate(Count('id')).values('email').order_by().filter(id__count__gt=1).values_list('email', flat=True)
+            return queryset.filter(email__in=duplicates)
+        if self.value() == 'blank':
+            return queryset.filter(email__exact='')
