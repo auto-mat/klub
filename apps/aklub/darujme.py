@@ -6,6 +6,9 @@ import logging
 import datetime
 
 from aklub.models import AccountStatements, Payment, User, str_to_datetime
+from django.core.exceptions import MultipleObjectsReturned
+from django.forms import ValidationError
+from django.utils.translation import ugettext_lazy as _
 
 # Text constants in Darujme.cz report
 KLUB = u'Klub přátel Auto*Matu'
@@ -13,10 +16,11 @@ OK_STATE = u'OK, převedeno'
 
 log = logging.getLogger(__name__)
 
-def parse_darujme(statement, xlsfile):
+def parse_darujme(xlsfile):
     log.info('Darujme.cz import started at %s' % datetime.datetime.now())
-    book = xlrd.open_workbook(xlsfile)
+    book = xlrd.open_workbook(file_contents=xlsfile.read())
     sheet = book.sheet_by_index(0)
+    payments = []
     for ir in range(1,sheet.nrows):
         row = sheet.row(ir)
         log.debug('Parsing transaction: %s' % row)
@@ -49,7 +53,6 @@ def parse_darujme(statement, xlsfile):
             continue
 
         p = Payment()
-        p.account_statement = statement
         p.type = 'darujme'
         p.SS = id
         p.date = str_to_datetime(received)
@@ -62,8 +65,12 @@ def parse_darujme(statement, xlsfile):
             p.user = user
         except User.DoesNotExist:
             log.info('User with email %s not found' % email)
+        except MultipleObjectsReturned:
+            log.info('Duplicate email %s' % email)
+            raise ValidationError(_('Duplicate email %(email)s'), params={'email': email})
 
-        p.save()
+        payments.append(p)
+    return payments
 
 if __name__ == '__main__':
     import os, sys

@@ -698,18 +698,24 @@ class AccountStatements(models.Model):
     date_to = models.DateField(
         blank=True, null=True)
     
-    def save(self, *args, **kwargs):
-        super(AccountStatements, self).save(*args, **kwargs)
+    def clean(self, *args, **kwargs):
+        super(AccountStatements, self).clean(*args, **kwargs)
         if self.type == 'account':
-            self.parse_bank_csv()
+            self.payments = self.parse_bank_csv()
         elif self.type == 'darujme':
             from aklub.darujme import parse_darujme
-            parse_darujme(self, self.csv_file.path)
+            self.payments = parse_darujme(self.csv_file)
+
+    def save(self, *args, **kwargs):
+        super(AccountStatements, self).save(*args, **kwargs)
+        for payment in self.payments:
+            payment.account_statement = self
+            payment.save()
 
     def parse_bank_csv(self):
         # Read and parse the account statement
         # TODO: This should be separated into a dedicated module
-        win1250_contents = open(self.csv_file.path).read()
+        win1250_contents = self.csv_file.read()
         unicode_contents = win1250_contents.decode('windows-1250')
         splitted = unicode_contents.encode('utf-8').split('\n\n')
         header = splitted[0]
@@ -730,6 +736,7 @@ class AccountStatements(models.Model):
                 ])
 
         first_line = True
+        payments = []
         for payment in payments_reader:
 	    #print payment
             if first_line:
@@ -766,7 +773,8 @@ class AccountStatements(models.Model):
                     p.VS = None
                 p.type = 'bank-transfer'
                 p.account_statement = self
-                p.save()
+                payments.append(p)
+        return payments
 
 class Payment(models.Model):
     """Payment model and DB table
