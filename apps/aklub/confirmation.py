@@ -100,7 +100,7 @@ def makepdf(outfile, name, sex, street, city, year, amount):
 	def firstPageGraphics(canvas, doc):
 		canvas.saveState()
 
-		im = Image(signature, 5.8*cm, 4.7*cm)
+		im = Image(signature, 5.8*cm, 3.05*cm)
 		im.drawOn(canvas, 100, 100)
 		canvas.setLineWidth(.3)
 		canvas.line(45,80,550,80)
