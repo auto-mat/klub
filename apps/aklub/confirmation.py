@@ -14,7 +14,7 @@ def makepdf(outfile, name, sex, street, city, year, amount):
         DIR = os.path.dirname(__file__)
 	# CONFIGURATION
 	logo = os.path.join(DIR, "logo.jpg")
-	signature = os.path.join(DIR, "signature.jpg")
+	signature = os.path.join(DIR, "signature.png")
 	statutory_name = u"Jakub Stránský"
 	statutory_titles = [
 		u"člen výkonné rady o.s. Auto*Mat",
