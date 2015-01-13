@@ -15,10 +15,10 @@ def makepdf(outfile, name, sex, street, city, year, amount):
 	# CONFIGURATION
 	logo = os.path.join(DIR, "logo.jpg")
 	signature = os.path.join(DIR, "signature.png")
-	statutory_name = u"Jakub Stránský"
+	statutory_name = u"Jana Pírková"
 	statutory_titles = [
-		u"člen výkonné rady o.s. Auto*Mat",
-		u"statutární zástupce",
+		u"členka výkonné rady o.s. Auto*Mat",
+		u"statutární zástupkyně",
 	]
 
 	# different wording based on user's sex
