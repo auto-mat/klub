@@ -8,36 +8,7 @@
 </head>
 
 <body>
-<script type="text/javascript">
-
-  var _gaq = _gaq || [];
-  _gaq.push(['_setAccount', 'UA-22281359-11']);
-  _gaq.push(['_trackPageview']);
-  _gaq.push(['_addTrans',
-    '{{ user_id }}',           // transaction ID - required
-    'Nakrmte Automat',  // affiliation or store name
-    '{{ amount }}',          // total - required
-  ]);
-
-   // add item might be called for every item in the shopping cart
-   // where your ecommerce engine loops through each item in the cart and
-   // prints out _addItem for each
-  _gaq.push(['_addItem',
-    '{{ user_id }}',           // transaction ID - required
-    'DD44',           // SKU/code - required
-    'Pravidelný dar',        // product name
-    '{{ amount }}',          // unit price - required
-    '1'               // quantity - required
-  ]);
-  _gaq.push(['_trackTrans']); //submits transaction to the Analytics servers
-
-  (function() {
-    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-  })();
-
-</script>
+{% include "google_analytics_shop.html" %}
 
 <h1>Děkujeme!</h1>
 
