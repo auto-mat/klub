@@ -25,6 +25,7 @@ from django.shortcuts import render_to_response
 from django.utils.translation import ugettext as _
 from django.contrib.admin import widgets
 from django.contrib.formtools.wizard.views import SessionWizardView
+from django.views.generic.edit import FormView
 from django.core.mail import EmailMessage
 from django.db.models import Sum, Count, Q
 import json
@@ -101,51 +102,20 @@ def new_user(form, regular):
 	# TODO: Unlock DB access here
 	return new_user.id
 
-def regular(request):
-    form_class = RegularUserForm
-    if request.method == 'POST': # If the form has been submitted...
-        form = form_class(request.POST) # A form bound to the POST data
-        if form.is_valid(): # All validation rules pass
-	    user_id = new_user(form, regular=True)
-            amount = User.objects.get(id= user_id).monthly_regular_amount()
-            return http.HttpResponseRedirect('/thanks/?amount=%s&user_id=%s' % (amount, user_id)) # Redirect after POST
-    else:
-        form = form_class() # An unbound form
 
-    return render_to_response('regular.html', {
-        'form': form,
-    })
+class RegularView(FormView):
+    template_name='regular.html'
+    form_class=RegularUserForm
+    success_template='thanks.html'
 
-def thanks(request):
-        amount = request.GET.get('amount', 0)
-        user_id = request.GET.get('user_id', 0)
-	return render_to_response('thanks.html', {
+    def form_valid(self, form):
+        user_id = new_user(form, regular=True)
+        amount = User.objects.get(id= user_id).monthly_regular_amount()
+	return render_to_response(self.success_template, {
             'amount': amount,
             'user_id': user_id,
             })
 
-def regular_wp(request):
-    form_class = RegularUserFormWithProfile
-    if request.method == 'POST': # If the form has been submitted...
-        form = form_class(request.POST) # A form bound to the POST data
-        if form.is_valid(): # All validation rules pass
-	    user_id = new_user(form, regular=True)
-            amount = User.objects.get(id= user_id).monthly_regular_amount()
-            return http.HttpResponseRedirect('/thanks-wp/?amount=%s&user_id=%s' % (amount, user_id)) # Redirect after POST
-    else:
-        form = form_class() # An unbound form
-
-    return render_to_response('regular-wp.html', {
-        'form': form,
-    })
-
-def thanks_wp(request):
-        amount = request.GET.get('amount', 0)
-        user_id = request.GET.get('user_id', 0)
-	return render_to_response('thanks-wp.html', {
-            'amount': amount,
-            'user_id': user_id,
-            })
 
 def donators(request):
         payed = Payment.objects.exclude(type='expected').values_list('user_id', flat=True)
