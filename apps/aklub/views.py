@@ -42,6 +42,9 @@ class RegularUserForm(forms.ModelForm):
 							 initial=datetime.date.today(),
 							 widget=forms.DateInput(format = '%d.%m.%Y'),
 							 input_formats=('%d.%m.%Y',))
+        email = forms.EmailField(
+            required=True)
+
  
 	class Meta:
 		model = User
