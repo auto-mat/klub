@@ -94,6 +94,9 @@ class RegularUserFormDPNK(RegularUserFormWithProfile):
     profile_text = forms.CharField(
         label=_("What is your reason (will be used on nakrmteautomat.cz page)?"),
         help_text=_("Tell others why you support Auto*Mat"),
+        max_length=3000,
+        widget=forms.Textarea,
+        required=False,
     )
 
 def new_user(form, regular, source='web'):
