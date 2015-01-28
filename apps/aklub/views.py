@@ -80,7 +80,7 @@ class RegularUserFormWithProfile(RegularUserForm):
 			    'email', 'telephone', 'regular_frequency')
 		widgets = {}
 
-def new_user(form, regular):
+def new_user(form, regular, source='web'):
 	# Check number of registrations so far today
 	# TODO: Lock DB access here (to ensure uniqueness of VS)
 	now = datetime.datetime.now()
@@ -99,7 +99,7 @@ def new_user(form, regular):
 	new_user = form.save(commit=False)
 	new_user.regular_payments = regular
 	new_user.variable_symbol = variable_symbol
-	new_user.source = 'web'
+	new_user.source = source
 	# Save new user instance
 	new_user.save()
 	# TODO: Unlock DB access here
@@ -110,9 +110,10 @@ class RegularView(FormView):
     template_name='regular.html'
     form_class=RegularUserForm
     success_template='thanks.html'
+    source='web'
 
     def form_valid(self, form):
-        user_id = new_user(form, regular=True)
+        user_id = new_user(form, regular=True, source=self.source)
         amount = User.objects.get(id= user_id).monthly_regular_amount()
 	return render_to_response(self.success_template, {
             'amount': amount,

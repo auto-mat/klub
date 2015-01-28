@@ -8,6 +8,12 @@ urlpatterns = patterns('',
            form_class=RegularUserFormWithProfile,
            success_template='thanks-wp.html')
            ),
+       url(r'^regular-dpnk/', RegularView.as_view(
+           template_name='regular-dpnk.html',
+           form_class=RegularUserFormDPNK,
+           success_template='thanks-dpnk.html',
+           source='dpnk'),
+           ),
        (r'^onetime/', 'aklub.views.onetime'),
        (r'^donators/', 'aklub.views.donators'),
        (r'^profiles/', 'aklub.views.profiles'),
