@@ -112,6 +112,26 @@ class RegularView(FormView):
     success_template='thanks.html'
     source='web'
 
+    def get_initial(self):
+        initial = super(RegularView, self).get_initial()
+        if self.request.GET.get('firstname'):
+            initial['firstname'] = self.request.GET.get('firstname')
+        if self.request.GET.get('surname'):
+            initial['surname'] = self.request.GET.get('surname')
+        if self.request.GET.get('street'):
+            initial['street'] = self.request.GET.get('street')
+        if self.request.GET.get('city'):
+            initial['city'] = self.request.GET.get('city')
+        if self.request.GET.get('country'):
+            initial['country'] = self.request.GET.get('country')
+        if self.request.GET.get('zip_code'):
+            initial['zip_code'] = self.request.GET.get('zip_code')
+        if self.request.GET.get('email'):
+            initial['email'] = self.request.GET.get('email')
+        if self.request.GET.get('telephone'):
+            initial['telephone'] = self.request.GET.get('telephone')
+        return initial
+
     def form_valid(self, form):
         user_id = new_user(form, regular=True, source=self.source)
         amount = User.objects.get(id= user_id).monthly_regular_amount()
