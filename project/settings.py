@@ -83,6 +83,7 @@ TEMPLATE_CONTEXT_PROCESSORS += (
 MIDDLEWARE_CLASSES = (
 #    'johnny.middleware.LocalStoreClearMiddleware',  # disabled for django 1.4
 #    'johnny.middleware.QueryCacheMiddleware', # disabled for django 1.4
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -137,6 +138,7 @@ INSTALLED_APPS = (
     'massadmin',
     'import_export',
     'debug_toolbar',
+    'corsheaders',
     'daterange_filter',
     'aklub'
 )
