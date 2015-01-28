@@ -26,8 +26,10 @@ from django.utils.translation import ugettext as _
 from django.contrib.admin import widgets
 from django.contrib.formtools.wizard.views import SessionWizardView
 from django.views.generic.edit import FormView
+from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
 from django.db.models import Sum, Count, Q
+import autocom
 import json
 
 import settings
@@ -45,6 +47,13 @@ class RegularUserForm(forms.ModelForm):
         email = forms.EmailField(
             required=True)
 
+        def clean_email(self):
+            email=self.cleaned_data['email']
+            if User.objects.filter(email=email).exists():
+                user=User.objects.get(email=email)
+                autocom.check(users=[user], action='resend-data')
+                raise ValidationError(_("Oops! This email address is already registered in our Auto*Mat support club, you are not registering for the first time. We respect your inclination, but your registration is not need to repeat... All info you need has been sent to your email."))
+            return email
  
 	class Meta:
 		model = User
