@@ -80,6 +80,13 @@ class RegularUserFormWithProfile(RegularUserForm):
 			    'email', 'telephone', 'regular_frequency')
 		widgets = {}
 
+
+class RegularUserFormDPNK(RegularUserFormWithProfile):
+    profile_text = forms.CharField(
+        label=_("What is your reason (will be used on nakrmteautomat.cz page)?"),
+        help_text=_("Tell others why you support Auto*Mat"),
+    )
+
 def new_user(form, regular, source='web'):
 	# Check number of registrations so far today
 	# TODO: Lock DB access here (to ensure uniqueness of VS)

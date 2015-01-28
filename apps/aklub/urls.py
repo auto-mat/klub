@@ -1,5 +1,5 @@
 from django.conf.urls import *
-from aklub.views import RegularUserFormWithProfile, RegularView
+from aklub.views import RegularUserFormWithProfile, RegularView, RegularUserFormDPNK
 
 urlpatterns = patterns('',
        url(r'^regular/', RegularView.as_view()),

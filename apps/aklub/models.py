@@ -272,7 +272,7 @@ class User(models.Model):
         verbose_name=_("Street and number"),
         max_length=80, blank=True)
     city = models.CharField(
-        verbose_name=_("City"),
+        verbose_name=_("City/City part"),
         max_length=40, blank=True)
     country = models.CharField(
         verbose_name=_("Country"),
@@ -336,6 +336,7 @@ class User(models.Model):
     # account also for quaterly and annual payments
     regular_amount = models.PositiveIntegerField(
         verbose_name=_("Regularly (amount)"),
+        help_text=_(u"Minimum yearly payment is 1800 Kč"),
         blank=True, null=True)
     regular_frequency = models.CharField(
         verbose_name=_("Frequency of regular payments"),
