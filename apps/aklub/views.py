@@ -46,6 +46,9 @@ class RegularUserForm(forms.ModelForm):
 							 input_formats=('%d.%m.%Y',))
         email = forms.EmailField(
             required=True)
+        regular_amount = forms.IntegerField(
+            min_value = 1,
+            )
 
         def clean_email(self):
             email=self.cleaned_data['email']
