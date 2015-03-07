@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: AKlub\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-01-28 16:32+0100\n"
+"POT-Creation-Date: 2015-03-07 22:11+0100\n"
 "PO-Revision-Date: 2013-04-24 00:59+0100\n"
 "Last-Translator: Hynek Hanke <hanke@brailcom.org>\n"
 "Language-Team: Auto*Mat <hynek.hanke@auto-mat.cz>\n"
@@ -28,88 +28,88 @@ msgstr "TOT.: %s"
 msgid "Show payments by year"
 msgstr "Ukázat součty plateb po rocích"
 
-#: admin.py:136
+#: admin.py:135
 msgid "Basic personal"
 msgstr "Základní informace"
 
-#: admin.py:139
+#: admin.py:138
 msgid "Titles and addressments"
 msgstr "Tituly a adresy"
 
-#: admin.py:144
+#: admin.py:143
 msgid "Contacts"
 msgstr "Kontakty"
 
-#: admin.py:149
+#: admin.py:148
 msgid "Additional"
 msgstr "Doplňkové informace"
 
-#: admin.py:153
+#: admin.py:152
 msgid "Support"
 msgstr "Podpora"
 
-#: admin.py:160 models.py:932
+#: admin.py:159 models.py:932
 msgid "Communications"
 msgstr "Komunikace"
 
-#: admin.py:163
+#: admin.py:162
 msgid "Benefits"
 msgstr "Benefity"
 
-#: admin.py:167 models.py:961
+#: admin.py:166 models.py:961
 msgid "Notes"
 msgstr "Poznámky"
 
-#: admin.py:170
+#: admin.py:169
 msgid "Profile"
 msgstr "Profil"
 
-#: admin.py:209
+#: admin.py:208
 msgid "Send mass communication"
 msgstr "Odeslat hromadnou komunikaci"
 
-#: admin.py:215 admin.py:302
+#: admin.py:214 admin.py:301
 msgid "Basic"
 msgstr "Základní"
 
-#: admin.py:219
+#: admin.py:218
 msgid "Details"
 msgstr "Detaily"
 
-#: admin.py:249
+#: admin.py:248
 msgid "Header"
 msgstr "Hlavička"
 
-#: admin.py:252 admin.py:305
+#: admin.py:251 admin.py:304
 msgid "Content"
 msgstr "Obsah"
 
-#: admin.py:257 admin.py:310
+#: admin.py:256 admin.py:309
 msgid "Sending"
 msgstr "Odesílání"
 
-#: admin.py:287 admin.py:320 admin.py:327
+#: admin.py:286 admin.py:319 admin.py:326
 #, python-format
 msgid "Emails sent to following addreses: %s"
 msgstr "Emaily odeslány na následující adresy: %s"
 
-#: admin.py:335 models.py:66
+#: admin.py:334 models.py:66
 msgid "Description"
 msgstr "Popis"
 
-#: admin.py:338
+#: admin.py:337
 msgid "Operator"
 msgstr "Operátor"
 
-#: admin.py:341
+#: admin.py:340
 msgid "Comparing conditions operands"
 msgstr "Hodnoty pro srovnávací podmínky"
 
-#: admin.py:344
+#: admin.py:343
 msgid "Logical conditions operands"
 msgstr "Hodnoty pro logické podmínky"
 
-#: admin.py:347
+#: admin.py:346
 msgid "Usage"
 msgstr "Použití"
 
@@ -247,7 +247,7 @@ msgstr "Ano"
 msgid "No"
 msgstr "Ne"
 
-#: filters.py:77 models.py:168 models.py:266 models.py:907 views.py:177
+#: filters.py:77 models.py:168 models.py:266 models.py:907 views.py:182
 msgid "Email"
 msgstr "Email"
 
@@ -384,11 +384,11 @@ msgstr "Zaregistrován"
 msgid "Recruiter ID"
 msgstr "ID verbíře"
 
-#: models.py:162 models.py:237 views.py:175
+#: models.py:162 models.py:237 views.py:180
 msgid "First name"
 msgstr "Jméno"
 
-#: models.py:165 models.py:240 views.py:176
+#: models.py:165 models.py:240 views.py:181
 msgid "Surname"
 msgstr "Příjmení"
 
@@ -595,7 +595,7 @@ msgstr ""
 msgid "Additional information"
 msgstr "Rozšiřující informace"
 
-#: models.py:313 models.py:826 views.py:188
+#: models.py:313 models.py:826 views.py:193
 msgid "Variable symbol"
 msgstr "Variabilní symbol"
 
@@ -635,11 +635,11 @@ msgstr "Starý účet"
 msgid "User has old account"
 msgstr "Uživatel má starý účet"
 
-#: models.py:338
+#: models.py:338 views.py:50
 msgid "Regularly (amount)"
 msgstr "Částka pravidelné platby"
 
-#: models.py:339
+#: models.py:339 views.py:51
 msgid "Minimum yearly payment is 1800 Kč"
 msgstr ""
 "Jsme rádi za jakýkoli dar, plné členství s výhodami však začíná od 1800 Kč "
@@ -692,7 +692,7 @@ msgstr ""
 msgid "What is your reason?"
 msgstr "A jaký je Tvůj důvod?"
 
-#: models.py:373 views.py:96
+#: models.py:373 views.py:101
 msgid "Tell others why you support Auto*Mat"
 msgstr "Řekni ostatním, proč podporuješ Auto*Mat"
 
@@ -820,7 +820,7 @@ msgstr "V hotovosti"
 msgid "Date of payment"
 msgstr "Datum platby"
 
-#: models.py:814 views.py:178
+#: models.py:814 views.py:183
 msgid "Amount"
 msgstr "Částka"
 
@@ -1154,29 +1154,31 @@ msgstr "Členové po měsících"
 msgid "Payments by months"
 msgstr "Platby po měsících"
 
-#: views.py:55
+#: views.py:60
 msgid ""
 "Oops! This email address is already registered in our Auto*Mat support club, "
 "you are not registering for the first time. We respect your inclination, but "
 "your registration is not need to repeat... All info you need has been sent "
 "to your email."
 msgstr ""
-"Jejda! Tenhle mail už známe, vypadá to, že se do Klubu přátel Auto*Matu neregistrujete poprvé. Vaší náklonnosti si vážíme, registraci ale není nutné opakovat... "
-"Poslali jsme Vám do mailu údaje potřebné k dalším příspěvkům i radu, kam se obrátit, pokud potřebujete ještě něco jiného."
+"Jejda! Tenhle mail už známe, vypadá to, že se do Klubu přátel Auto*Matu "
+"neregistrujete poprvé. Vaší náklonnosti si vážíme, registraci ale není nutné "
+"opakovat... Poslali jsme Vám do mailu údaje potřebné k dalším příspěvkům i "
+"radu, kam se obrátit, pokud potřebujete ještě něco jiného."
 
-#: views.py:95
+#: views.py:100
 msgid "What is your reason (will be used on nakrmteautomat.cz page)?"
 msgstr "A jaký je Váš důvod (bude použito na stránce nakrmteautomat.cz)?"
 
-#: views.py:182
+#: views.py:187
 msgid "Account"
 msgstr "Účet"
 
-#: views.py:293
+#: views.py:298
 msgid "Auto*Mat: Reminder of variable symbol"
 msgstr "Auto*Mat: Připomínka variabilního symbolu"
 
-#: views.py:295
+#: views.py:300
 #, python-format
 msgid ""
 "Dear friend,\n"
@@ -1212,7 +1214,7 @@ msgstr ""
 "S pozdravem,\n"
 "Auto*Mat\n"
 
-#: views.py:331
+#: views.py:336
 msgid "None of these accounts"
 msgstr "Žádný z těchto účtů"
 
@@ -1242,6 +1244,10 @@ msgstr "Generuj"
 #, python-format
 msgid "Add %(name)s"
 msgstr "Přidat %(name)s"
+
+#, fuzzy
+#~ msgid "Regular amount"
+#~ msgstr "Částka pravidelné platby"
 
 #~ msgid "City"
 #~ msgstr "Město"

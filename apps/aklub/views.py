@@ -47,6 +47,8 @@ class RegularUserForm(forms.ModelForm):
         email = forms.EmailField(
             required=True)
         regular_amount = forms.IntegerField(
+            label=_("Regularly (amount)"),
+            help_text=_(u"Minimum yearly payment is 1800 Kč"),
             min_value = 1,
             )
 
