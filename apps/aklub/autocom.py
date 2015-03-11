@@ -23,6 +23,9 @@
 from models import User, Payment, Communication, AutomaticCommunication
 import sys, datetime
 import string
+import logging
+logger = logging.getLogger(__name__)
+
 
 def _localize_enum(descr, val, lang):
     for t in descr:
@@ -100,10 +103,8 @@ def process_template(template_string, user):
 
 def check(users=None, action=None):
     for auto_comm in AutomaticCommunication.objects.all():
-        #print "Processing"
-        #print "  %s:  %s" % (auto_comm.condition, auto_comm)
-        #print "    Action: %s" % auto_comm.method
-        #print "    Users newly satisfying condition:"
+        logger.info(u"Processin %s: %s, action: %s" % (auto_comm.condition, auto_comm, auto_comm.method))
+
         if users:
             annotated_users = User.objects.filter(id__in=[u.id for u in users]
                                                   ).annotate(**User.annotations)
