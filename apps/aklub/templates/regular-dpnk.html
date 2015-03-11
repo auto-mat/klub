@@ -2,7 +2,7 @@
 
 
 <div class="container">
-<form id="aklub-form" method="post" class="form-horizontal" action="http://localhost:8001/regular-dpnk/">{% csrf_token %}
+<form id="aklub-form" method="post" class="form-horizontal" action="http://{{ request.get_host }}{% url "regular-dpnk" %}">{% csrf_token %}
 <b>Již více než 700 lidí může jezdit Do práce na kole bez placení startovného – a hřeje je přitom dobrý pocit, že jsou hrdiny Auto*Matu a pomáhají tak aktivně zlepšovat místo, kde žijí. Přidejte se k nim právě dnes i Vy! Stačí jen pár minut času a nevelký měsíční příspěvek.</b>
 
 <br>
