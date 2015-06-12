@@ -43,19 +43,19 @@ def parse_darujme(xlsfile):
         if state != OK_STATE:
             continue
         
-        received = row[12].value
+        received = str_to_datetime(row[12].value)
         name = row[17].value
         surname = row[18].value
         email = row[19].value
 
-        if Payment.objects.filter(type='darujme', SS=id).exists():
+        if Payment.objects.filter(type='darujme', SS=id, date=received).exists():
             log.info('Payment with type Darujme.cz and SS=%d already exists, skipping' % id)
             continue
 
         p = Payment()
         p.type = 'darujme'
         p.SS = id
-        p.date = str_to_datetime(received)
+        p.date = received
         p.amount = ammount
         p.account_name = u'%s, %s' % (surname, name)
         p.user_identification = email
