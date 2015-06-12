@@ -1,4 +1,4 @@
-Django<1.8
+Django<1.9
 django-stdimage
 reportlab
 django-extensions
@@ -22,3 +22,4 @@ xlrd
 django-debug-toolbar
 django-daterange-filter
 django-cors-headers
+django-formtools

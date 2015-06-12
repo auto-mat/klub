@@ -125,7 +125,7 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.messages',
     'django.contrib.sessions',
-    'django.contrib.formtools',
+    'formtools',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'stdimage',

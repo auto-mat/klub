@@ -154,7 +154,7 @@ class Recruiter(models.Model):
 
     registered = models.DateField(
         verbose_name=_("Registered"),
-        default=datetime.datetime.now())
+        default=django.utils.timezone.now)
     recruiter_id = models.PositiveIntegerField(
         verbose_name=_("Recruiter ID"),
         blank=False, unique=True)
@@ -316,7 +316,7 @@ class User(models.Model):
     registered_support = models.DateTimeField(
         verbose_name=_("Registered support"),
         help_text=_("When did this user register to support us"),
-        default=datetime.datetime.now(),
+        default=django.utils.timezone.now,
         blank=True)
     exceptional_membership = models.BooleanField(
         verbose_name=_("Exceptional membership"),
@@ -1143,7 +1143,7 @@ class Condition(models.Model):
                                    related_name='conds_rel',
                                    symmetrical=False,
                                    verbose_name=_("Conditions"),
-                                   blank=True, null=True)
+                                   blank=True)
     as_filter = models.BooleanField(
         verbose_name=_("Display as filter?"),
         help_text=_("Determines whether this condition is available as a filter"

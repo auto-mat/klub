@@ -24,7 +24,7 @@ from django.db import models
 from django.shortcuts import render_to_response
 from django.utils.translation import ugettext as _
 from django.contrib.admin import widgets
-from django.contrib.formtools.wizard.views import SessionWizardView
+from formtools.wizard.views import SessionWizardView
 from django.views.generic.edit import FormView
 from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
