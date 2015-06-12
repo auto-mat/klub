@@ -209,7 +209,7 @@ class UserAdmin(ImportExportModelAdmin):
 
 class PaymentAdmin(admin.ModelAdmin):
     list_display = ('date', 'amount', 'person_name', 'account', 'bank_code',
-                    'VS', 'user_identification', 'type', 'paired_with_expected')
+                    'VS', 'SS', 'user_identification', 'type', 'paired_with_expected')
     fieldsets = [
         (_("Basic"), {
                 'fields' : ['user', 'date', 'amount',
@@ -227,7 +227,7 @@ class PaymentAdmin(admin.ModelAdmin):
     raw_id_fields = ('user',)
     list_filter = ['type', 'date', filters.PaymentsAssignmentsFilter]
     date_hierarchy = 'date'
-    search_fields = ['user__surname', 'user__firstname', 'amount', 'VS', 'user_identification']
+    search_fields = ['user__surname', 'user__firstname', 'amount', 'VS', 'SS', 'user_identification']
     actions = (export_as_csv_action(fields=list_display),)
 
 class NewUserAdmin(UserAdmin):
