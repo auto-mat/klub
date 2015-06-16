@@ -21,6 +21,7 @@ def parse_darujme(xlsfile):
     book = xlrd.open_workbook(file_contents=xlsfile.read())
     sheet = book.sheet_by_index(0)
     payments = []
+    skipped_payments = []
     for ir in range(1,sheet.nrows):
         row = sheet.row(ir)
         log.debug('Parsing transaction: %s' % row)
@@ -49,6 +50,7 @@ def parse_darujme(xlsfile):
         email = row[19].value
 
         if Payment.objects.filter(type='darujme', SS=id, date=received).exists():
+            skipped_payments.append({'ss': id, 'date': received, 'name': name, 'surname': surname,'email': email})
             log.info('Payment with type Darujme.cz and SS=%d already exists, skipping' % id)
             continue
 
@@ -70,7 +72,7 @@ def parse_darujme(xlsfile):
             raise ValidationError(_('Duplicate email %(email)s'), params={'email': email})
 
         payments.append(p)
-    return payments
+    return payments, skipped_payments
 
 if __name__ == '__main__':
     import os, sys

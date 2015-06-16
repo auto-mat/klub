@@ -706,7 +706,7 @@ class AccountStatements(models.Model):
             self.payments = self.parse_bank_csv()
         elif self.type == 'darujme':
             from aklub.darujme import parse_darujme
-            self.payments = parse_darujme(self.csv_file)
+            self.payments, self.skipped_payments = parse_darujme(self.csv_file)
 
     def save(self, *args, **kwargs):
         super(AccountStatements, self).save(*args, **kwargs)

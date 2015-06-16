@@ -356,6 +356,15 @@ class AccountStatementsAdmin(admin.ModelAdmin):
     readonly_fields = ('import_date',)
     fields = copy.copy(list_display)
 
+    def save_model(self, request, obj, form, change):
+        if obj.skipped_payments:
+            skipped_payments_string = ', '.join(["%s %s (%s)" % (p['name'], p['surname'], p['email']) for p in obj.skipped_payments])
+            messages.info(request, 'Skipped payments: %s' % skipped_payments_string)
+        payments_without_user = ', '.join(["%s (%s)" % (p.account_name, p.user_identification) for p in obj.payments if not p.user])
+        if payments_without_user:
+            messages.info(request, 'Payments without user: %s' % payments_without_user)
+        obj.save()
+
 class CampaignAdmin(admin.ModelAdmin):
     list_display = ('name', 'created', 'terminated', 'number_of_members', 'number_of_recruiters', 'acquisition_campaign', 'yield_total', 'total_expenses', 'expected_monthly_income', 'return_of_investmensts', 'average_yield', 'average_expense')
     fields = ('created', 'terminated', 'name', 'description', 'acquisition_campaign', 'real_yield', 'number_of_members', 'number_of_recruiters', 'yield_total', 'total_expenses', 'expected_monthly_income', 'return_of_investmensts', 'average_yield', 'average_expense')
