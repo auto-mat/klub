@@ -357,7 +357,7 @@ class AccountStatementsAdmin(admin.ModelAdmin):
     fields = copy.copy(list_display)
 
     def save_model(self, request, obj, form, change):
-        if obj.skipped_payments:
+        if getattr(obj, 'skipped_payments', None):
             skipped_payments_string = ', '.join(["%s %s (%s)" % (p['name'], p['surname'], p['email']) for p in obj.skipped_payments])
             messages.info(request, 'Skipped payments: %s' % skipped_payments_string)
         payments_without_user = ', '.join(["%s (%s)" % (p.account_name, p.user_identification) for p in obj.payments if not p.user])
