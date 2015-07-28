@@ -217,6 +217,7 @@ class User(models.Model):
     SOURCE = (
         ('web', _("Web form")),
         ('dpnk', _("DPNK campaign")),
+        ('lead-dpnk', _("DPNK campaign - lead")),
         ('direct-dialogue-partial-form', _("Direct dialogue -- partial form (not automatic in bank)")),
         ('direct-dialogue-full-form', _("Direct dialogue -- full form (automatic in bank)")),
         ('telephone-call', _("Telephonic call")),
