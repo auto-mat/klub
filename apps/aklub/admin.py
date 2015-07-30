@@ -338,7 +338,7 @@ class ConditionAdmin(ImportExportModelAdmin):
                 'fields' : ['operation']
                 }),
         (_("Comparing conditions operands"), {
-                'fields': [('variable', 'value')]
+                'fields': [('variable', 'value', 'variable_description')]
                 }),
         (_("Logical conditions operands"), {
                 'fields': ['conds']
@@ -348,6 +348,7 @@ class ConditionAdmin(ImportExportModelAdmin):
                 }),
         ]
 
+    readonly_fields = ('variable_description', )
     ordering = ('name',)
 
 class AccountStatementsAdmin(admin.ModelAdmin):

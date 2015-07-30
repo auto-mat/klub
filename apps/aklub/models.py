@@ -459,6 +459,7 @@ class User(models.Model):
 	return self.payments_number
     number_of_payments.short_description = _("# payments") 
     number_of_payments.admin_order_field = 'payments_number'
+    number_of_payments.return_type = 'Integer'
     
     def last_payment(self):
         """Return last payment"""
@@ -473,6 +474,7 @@ class User(models.Model):
 	return self.last_payment_date
     last_payment_date.short_description = _("Last payment")
     last_payment_date.admin_order_field = 'last_payment_date'
+    last_payment_date.return_type = "Date"
 
     def regular_frequency_td(self):
         """Return regular frequency as timedelta"""
@@ -523,6 +525,7 @@ class User(models.Model):
                    return datetime.timedelta(days=0)
         else:
             return datetime.timedelta(days=0)
+    regular_payments_delay.return_type = "TimeDelta"
 
     def extra_money(self):
         """Check if we didn't receive more money than expected"""
@@ -537,6 +540,7 @@ class User(models.Model):
             if total and self.regular_amount and total > self.regular_amount:
                 return total - self.regular_amount
         return None
+    extra_money.return_type = "Integer"
 
     def regular_payments_info(self):
         if not self.regular_payments:
@@ -576,6 +580,7 @@ class User(models.Model):
             return "0 Kč"
     total_contrib.short_description = _("Total")
     total_contrib.admin_order_field = 'payment_total'
+    total_contrib.return_type = "Integer"
 
     def registered_support_date(self):
         return self.registered_support.strftime('%d. %m. %Y')
@@ -638,6 +643,7 @@ class User(models.Model):
             return True
         else:
             return False
+    no_upgrade.return_type = "Boolean"
 
     def monthly_regular_amount(self):
         months = {
@@ -1055,7 +1061,7 @@ class ConditionValues(object):
     def __init__(self, model_names):
         self._columns = []
         # Special attributes
-        self._columns += [('action', None)]
+        self._columns += [('action', None, _(u"Action"), 'CharField', ('daily', 'new-user'))]
         # Models attributes
         for name in model_names:
             model = {'User': User,
@@ -1063,12 +1069,18 @@ class ConditionValues(object):
                      'User.last_payment': Payment,
                      }[name]
             # DB fields
-            self._columns += [(name, field.name) for field in model._meta.fields]
+            self._columns += [(name, field.name, field.verbose_name, field.get_internal_type(), zip(*field.choices)[0] if field.choices else "") for field in model._meta.fields]
             # Public methods
             # TODO: This really lists all attributes, we should
             # for callable attributes
-            self._columns += [(name, method) for method in dir(model)
+            self._columns += [(
+                name, method, 
+                getattr(getattr(model, method, None), 'short_description', method),
+                getattr(getattr(model, method, None), 'return_type', "function"),
+                getattr(getattr(model, method, None), 'condition_choices', "")
+                ) for method in dir(model)
                               if (not method.startswith("_")
+                                  and hasattr(getattr(model, method, None), '__call__')
                                   and method not in dir(models.Model))]
         self._columns.sort()
         self._index = 0
@@ -1078,13 +1090,14 @@ class ConditionValues(object):
  
     def next(self):
         try:
-            name, secondary_name = self._columns[self._index]
+            name, secondary_name, verbose_name, condition_type, choices = self._columns[self._index]
             if secondary_name:
                 val = name+"."+secondary_name
             else:
                 val = name
+            name = u"%s: %s %s" % (verbose_name, condition_type, choices)
             self._index = self._index + 1
-            return (val, val)
+            return (val, name)
         except IndexError:
             raise StopIteration
 
@@ -1157,6 +1170,14 @@ class Condition(models.Model):
 
     def __unicode__(self):
         return self.name
+
+    def variable_description(self):
+        #import pudb; pudb.set_trace()
+        if self.variable:
+            try:
+                return unicode(User._meta.get_field(self.variable.split(".")[1]).help_text)
+            except:
+                return eval(self.variable).__doc__
 
     def is_true(self, user, action=None):
         def get_val(spec, user):
