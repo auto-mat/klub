@@ -111,7 +111,7 @@ def check(users=None, action=None):
         else:
             annotated_users = User.objects.all().annotate(**User.annotations)
         for user in annotated_users:
-            if auto_comm.only_once and user.id in [u.id for u in auto_comm.sent_to_users.all()]:
+            if auto_comm.only_once and auto_comm.sent_to_users.filter(pk=user.pk).exists():
                 continue
             if auto_comm.condition.is_true(user, action):
                 if user.language == 'cs':
