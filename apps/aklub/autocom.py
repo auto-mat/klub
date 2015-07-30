@@ -103,7 +103,7 @@ def process_template(template_string, user):
 
 def check(users=None, action=None):
     for auto_comm in AutomaticCommunication.objects.all():
-        logger.info(u"Processin %s: %s, action: %s" % (auto_comm.condition, auto_comm, auto_comm.method))
+        logger.info(u"Processin condition \"%s\" for autocom \"%s\", method: \"%s\", action: \"%s\"" % (auto_comm.condition, auto_comm, auto_comm.method, action))
 
         if users:
             annotated_users = User.objects.filter(id__in=[u.id for u in users]
@@ -121,6 +121,7 @@ def check(users=None, action=None):
                     template = auto_comm.template_en
                     subject = auto_comm.subject_en
                 if template and template != '':
+                    logger.info(u"Added new automatic communication \"%s\" for user \"%s\", action \"%s\"" % (auto_comm, user, action))
                     c = Communication(user=user, method=auto_comm.method, date=datetime.datetime.now(),
                                       subject=subject, summary=process_template(template, user),
                                       note="Prepared by auto*mated mailer at %s" % datetime.datetime.now(),
