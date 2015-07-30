@@ -2,4 +2,4 @@
 
 import aklub
 
-aklub.autocom.check()
+aklub.autocom.check(action=u"daily")
