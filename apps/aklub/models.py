@@ -1147,7 +1147,7 @@ class Condition(models.Model):
         verbose_name=_("Variable"),
         choices=ConditionValues(('User','User.last_payment')),
         help_text=_("Value or variable on left-hand side"),
-        max_length=30, blank=True, null=True)
+        max_length=50, blank=True, null=True)
     # One of value or conds must be non-null
     value = models.CharField(
         verbose_name=_("Value"),
