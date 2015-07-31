@@ -328,7 +328,7 @@ class MassCommunicationAdmin(admin.ModelAdmin):
 
 class ConditionAdmin(ImportExportModelAdmin):
     save_as = True
-    list_display = ('name', 'as_filter', 'on_dashboard',)
+    list_display = ('name', 'as_filter', 'on_dashboard', 'operation', 'variable', 'value', 'condition_list')
     filter_horizontal = ('conds',)
     fieldsets = [
         (_("Description"), {

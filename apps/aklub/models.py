@@ -1171,6 +1171,9 @@ class Condition(models.Model):
     def __unicode__(self):
         return self.name
 
+
+    def condition_list(self):
+        return ", ".join([condition.name for condition in self.conds.all()])
     def variable_description(self):
         #import pudb; pudb.set_trace()
         if self.variable:
