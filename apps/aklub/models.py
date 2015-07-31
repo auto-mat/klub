@@ -568,7 +568,7 @@ class User(models.Model):
     def mail_communications_count(self):
         return self.communications.filter(method = "mail").count()
 
-    def total_contrib(self):
+    def total_contrib_string(self):
         """Return the sum of all money received from this user
 
         This depends on the query being previously annotated with
@@ -578,6 +578,20 @@ class User(models.Model):
             return str(self.payment_total) + " Kč"
         else:
             return "0 Kč"
+    total_contrib_string.short_description = _("Total")
+    total_contrib_string.admin_order_field = 'payment_total'
+    total_contrib_string.return_type = "Integer"
+
+    def total_contrib(self):
+        """Return the sum of all money received from this user
+
+        This depends on the query being previously annotated with
+        self.annotations
+        """
+	if self.payment_total:
+            return self.payment_total
+        else:
+            return 0
     total_contrib.short_description = _("Total")
     total_contrib.admin_order_field = 'payment_total'
     total_contrib.return_type = "Integer"
