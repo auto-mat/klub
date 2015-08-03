@@ -1244,12 +1244,14 @@ class TerminalCondition(models.Model):
     condition = models.ForeignKey(Condition)
 
     def variable_description(self):
-        #import pudb; pudb.set_trace()
         if self.variable:
             try:
                 return unicode(User._meta.get_field(self.variable.split(".")[1]).help_text)
             except:
-                return eval(self.variable).__doc__
+                try:
+                    return eval(self.variable).__doc__
+                except:
+                    return "action"
 
     def is_true(self, user, action=None):
         def get_val(spec, user):
