@@ -1075,7 +1075,7 @@ class ConditionValues(object):
     def __init__(self, model_names):
         self._columns = []
         # Special attributes
-        self._columns += [('action', None, _(u"Action"), 'CharField', ('daily', 'new-user'))]
+        self._columns += [('action', None, _(u"Action"), 'CharField', ('daily', 'new-user', 'new-payment'))]
         # Models attributes
         for name in model_names:
             model = {'User': User,
@@ -1115,6 +1115,7 @@ class ConditionValues(object):
         except IndexError:
             raise StopIteration
 
+
 class Condition(models.Model):
     """A condition entry and DB model
 
@@ -1137,17 +1138,10 @@ class Condition(models.Model):
         verbose_name_plural = _("Conditions")
 
     OPERATORS = (
-        ('Logical', (
-                ('and', 'and'),
-                ('or', 'or'),
-                ('nor', 'nor'),
-                )),
-        ('Comparison', (
-                ('=', 'is equal to'),
-                ('!=', 'is not equal to'),
-                ('like', 'is like'), # in SQL sense
-                ('>', 'greater than'),
-                ('<', 'less than'))))
+                ('and', _(u'and')),
+                ('or', _(u'or')),
+                ('nor', _(u'nor')),
+                )
 
     name = models.CharField(
         verbose_name=_("Name of condition"),
@@ -1185,9 +1179,80 @@ class Condition(models.Model):
     def __unicode__(self):
         return self.name
 
+    def is_true(self, user, action=None):
+        if self.operation == 'and':
+            for cond in self.conds.all():
+                if not cond.is_true(user, action):
+                    return False
+            for tcond in self.terminalcondition_set.all():
+                if not tcond.is_true(user, action):
+                    return False
+            return True
+        if self.operation == 'or':
+            for cond in self.conds.all():
+                if cond.is_true(user, action):
+                    return True
+            for tcond in self.terminalcondition_set.all():
+                if tcond.is_true(user, action):
+                    return True
+            return False
+        if self.operation == 'nor':
+            for cond in self.conds.all():
+                if cond.is_true(user, action):
+                    return False
+            for tcond in self.terminalcondition_set.all():
+                if tcond.is_true(user, action):
+                    return False
+            return True
+        raise NotImplementedError("Unknown operation %s" % self.operation)
 
     def condition_list(self):
         return ", ".join([condition.name for condition in self.conds.all()])
+
+
+class TerminalCondition(models.Model):
+    """A terminal condition entry and DB model
+
+    Terminal conditions are composed of the left hand side, an operator
+    and the right hand side.
+
+    Possible values for either side are:
+    1) a value (string, integer...)
+    2) a symbolic value -- variable, special value or reference to DB
+    (e.g. u.regular)
+
+    Only one type of left and one type of right hand side value is permitted.
+    Not all operators will work with all types of values (e.g. logic operators
+    only work on other conditions on both sides)
+    """
+
+    class Meta:
+        verbose_name = _("Terminal condition")
+        verbose_name_plural = _("Terminal conditions")
+
+    OPERATORS = (
+                ('=', _(u'is equal to')),
+                ('!=', _(u'is not equal to')),
+                ('like', _(u'is like')), # in SQL sense
+                ('>', _(u'greater than')),
+                ('<', _(u'less than')))
+
+    variable = models.CharField(
+        verbose_name=_("Variable"),
+        choices=ConditionValues(('User','User.last_payment')),
+        help_text=_("Value or variable on left-hand side"),
+        max_length=50, blank=True, null=True)
+    operation = models.CharField(
+        verbose_name=_("Operation"),
+        choices=OPERATORS,
+        max_length=30)
+    # One of value or conds must be non-null
+    value = models.CharField(
+        verbose_name=_("Value"),
+        help_text=_("Value or variable on right-hand side. <br/>action: daily, new-user<br/>DateField: month_ago, one_day, one_week, two_weeks, one_month<br/>BooleanField: "),
+        max_length=50, blank=True, null=True)
+    condition = models.ForeignKey(Condition)
+
     def variable_description(self):
         #import pudb; pudb.set_trace()
         if self.variable:
@@ -1243,22 +1308,6 @@ class Condition(models.Model):
                     return int(spec)
                 except (TypeError, ValueError):
                     return spec
-        # Composed conditions
-        if self.operation == 'and':
-            for cond in self.conds.all():
-                if not cond.is_true(user, action):
-                    return False
-            return True
-        if self.operation == 'or':
-            for cond in self.conds.all():
-                if cond.is_true(user, action):
-                    return True
-            return False
-        if self.operation == 'nor':
-            for cond in self.conds.all():
-                if cond.is_true(user, action):
-                    return False
-            return True
 
         # Elementary conditions
         left = get_val(self.variable, user)
@@ -1280,6 +1329,7 @@ class Condition(models.Model):
         if self.operation == '!=':
             return not left == right
         raise NotImplementedError("Unknown operation %s" % self.operation)
+
 
 class AutomaticCommunication(models.Model):
     """AutomaticCommunication entry and DB model

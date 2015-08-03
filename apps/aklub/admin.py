@@ -326,10 +326,18 @@ class MassCommunicationAdmin(admin.ModelAdmin):
             messages.info(request, _("Emails sent to following addreses: %s") % ", ".join([u.email for u in obj.send_to_users.all()]))
         return obj
 
+
+class TerminalConditionInline(admin.TabularInline):
+    model = TerminalCondition
+    readonly_fields = ("variable_description",)
+    extra = 0
+
+
 class ConditionAdmin(ImportExportModelAdmin):
     save_as = True
     list_display = ('name', 'as_filter', 'on_dashboard', 'operation', 'variable', 'value', 'condition_list')
     filter_horizontal = ('conds',)
+    inlines = [TerminalConditionInline,]
     fieldsets = [
         (_("Description"), {
                 'fields' : ['name']
@@ -338,7 +346,7 @@ class ConditionAdmin(ImportExportModelAdmin):
                 'fields' : ['operation']
                 }),
         (_("Comparing conditions operands"), {
-                'fields': [('variable', 'value', 'variable_description')]
+                'fields': [('variable', 'value')]
                 }),
         (_("Logical conditions operands"), {
                 'fields': ['conds']
@@ -348,7 +356,6 @@ class ConditionAdmin(ImportExportModelAdmin):
                 }),
         ]
 
-    readonly_fields = ('variable_description', )
     ordering = ('name',)
 
 class AccountStatementsAdmin(admin.ModelAdmin):
