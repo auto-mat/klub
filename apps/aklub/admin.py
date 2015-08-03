@@ -335,7 +335,7 @@ class TerminalConditionInline(admin.TabularInline):
 
 class ConditionAdmin(ImportExportModelAdmin):
     save_as = True
-    list_display = ('name', 'as_filter', 'on_dashboard', 'operation', 'variable', 'value', 'condition_list')
+    list_display = ('name', 'as_filter', 'on_dashboard', 'operation', 'condition_list')
     filter_horizontal = ('conds',)
     inlines = [TerminalConditionInline,]
     fieldsets = [
@@ -344,9 +344,6 @@ class ConditionAdmin(ImportExportModelAdmin):
                 }),
         (_("Operator"), {
                 'fields' : ['operation']
-                }),
-        (_("Comparing conditions operands"), {
-                'fields': [('variable', 'value')]
                 }),
         (_("Logical conditions operands"), {
                 'fields': ['conds']
