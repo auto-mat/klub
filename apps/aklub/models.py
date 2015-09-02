@@ -810,6 +810,9 @@ class AccountStatements(models.Model):
                 payments.append(p)
         return payments
 
+    def __unicode__(self):
+        return "%s (%s)" % (self.pk, self.import_date)
+
 class Payment(models.Model):
     """Payment model and DB table
 
