@@ -198,6 +198,29 @@ class Recruiter(models.Model):
         return " ".join(("%03d" % self.recruiter_id, self.firstname, self.surname))
     person_name.short_description = _("Name") 
 
+
+class Source(models.Model):
+    """How did he contact us / became a member?"""
+
+    class Meta:
+        verbose_name = _("Source")
+        verbose_name_plural = _("Sources")
+
+    slug = models.SlugField(
+        verbose_name=_("Slug"),
+        help_text=_("Identifier of the source"),
+        max_length=100, blank=False)
+    name = models.CharField(
+        verbose_name=_("Name"),
+        help_text=_("Name of the source"),
+        max_length=100, blank=False)
+    direct_dialogue = models.BooleanField(
+        verbose_name=_("Is from Direct Dialogue"),
+        default=False)
+
+    def __unicode__(self):
+        return self.name
+
 class User(models.Model):
     """Club user model and DB table"""
 
@@ -214,16 +237,6 @@ class User(models.Model):
         # TODO: List of languages used in the club should come from app settings
         ('cs', _('Czech')), 
         ('en', _('English')))
-    SOURCE = (
-        ('web', _("Web form")),
-        ('dpnk', _("DPNK campaign")),
-        ('lead-dpnk', _("DPNK campaign - lead")),
-        ('direct-dialogue-partial-form', _("Direct dialogue -- partial form (not automatic in bank)")),
-        ('direct-dialogue-full-form', _("Direct dialogue -- full form (automatic in bank)")),
-        ('telephone-call', _("Telephonic call")),
-        ('personal', _('Personal recommendation')),
-        ('darujme', 'Darujme.cz'),
-        ('other', _('Another form of contact')))
     REGULAR_PAYMENT_FREQUENCIES = (
         ('monthly', _('Monthly')),
         ('quaterly', _('Quaterly')),
@@ -298,14 +311,14 @@ class User(models.Model):
         verbose_name=_("Field of work"),
         help_text="His/her area of expertise and/or interest",
         max_length=80, blank=True)
-    source = models.CharField(
+    source = models.ForeignKey(
+        Source,
         verbose_name=_("Source"),
         help_text=_("How did he contact us / became a member? In direct dialog, please distinguish "
                     "between partial form (he still needs to send a permanent order into his bank) "
                     "and full form (we are going to submit his form directly into bank, no further "
                     "action is needed from him)."),
-        choices=SOURCE,
-        max_length=80, blank=False)
+        max_length=80, blank=True, null=True, default=None)
     additional_information = models.TextField(
         verbose_name=_("Additional information"),
         max_length=500, blank=True)
@@ -443,9 +456,7 @@ class User(models.Model):
             return False
 
     def is_direct_dialogue(self):
-        if self.source in ['direct-dialogue-full-form', 'direct-dialogue-partial-form']:
-            return True
-        return False
+        return self.source.direct_dialogue
 
     def payments(self):
         return Payment.objects.filter(user=self)

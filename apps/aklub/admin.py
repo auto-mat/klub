@@ -379,6 +379,9 @@ class RecruiterAdmin(admin.ModelAdmin):
     actions = (export_as_csv_action(fields=list(list_display)+['note']),)
     filter_horizontal = ('campaigns',)
 
+class SourceAdmin(admin.ModelAdmin):
+    list_display = ('slug', 'name', 'direct_dialogue')
+
 class TaxConfirmationAdmin(admin.ModelAdmin):
     list_display = ('user', 'year', 'amount', 'file', 'user__regular_payments')
     ordering = ('user__surname', 'user__firstname',)
@@ -423,3 +426,4 @@ admin.site.register(Condition, ConditionAdmin)
 admin.site.register(Campaign, CampaignAdmin)
 admin.site.register(Recruiter, RecruiterAdmin)
 admin.site.register(TaxConfirmation, TaxConfirmationAdmin)
+admin.site.register(Source, SourceAdmin)

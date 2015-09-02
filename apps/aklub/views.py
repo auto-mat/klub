@@ -104,7 +104,7 @@ class RegularUserFormDPNK(RegularUserFormWithProfile):
         required=False,
     )
 
-def new_user(form, regular, source='web'):
+def new_user(form, regular, source_slug='web'):
 	# Check number of registrations so far today
 	# TODO: Lock DB access here (to ensure uniqueness of VS)
 	now = datetime.datetime.now()
@@ -123,7 +123,7 @@ def new_user(form, regular, source='web'):
 	new_user = form.save(commit=False)
 	new_user.regular_payments = regular
 	new_user.variable_symbol = variable_symbol
-	new_user.source = source
+	new_user.source = models.Source.objects.get(slug=source_slug)
 	# Save new user instance
 	new_user.save()
 	# TODO: Unlock DB access here
@@ -134,7 +134,7 @@ class RegularView(FormView):
     template_name='regular.html'
     form_class=RegularUserForm
     success_template='thanks.html'
-    source='web'
+    source_slug='web'
 
     def get_initial(self):
         initial = super(RegularView, self).get_initial()
@@ -157,7 +157,8 @@ class RegularView(FormView):
         return initial
 
     def form_valid(self, form):
-        user_id = new_user(form, regular=True, source=self.source)
+	source = models.Source.objects.get(slug=source_slug)
+        user_id = new_user(form, regular=True, source=source)
         amount = User.objects.get(id= user_id).monthly_regular_amount()
 	return render_to_response(self.success_template, {
             'amount': amount,
