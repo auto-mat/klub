@@ -734,17 +734,19 @@ class AccountStatements(models.Model):
     
     def clean(self, *args, **kwargs):
         super(AccountStatements, self).clean(*args, **kwargs)
-        if self.type == 'account':
-            self.payments = self.parse_bank_csv()
-        elif self.type == 'darujme':
-            from aklub.darujme import parse_darujme
-            self.payments, self.skipped_payments = parse_darujme(self.csv_file)
+        if not self.pk: #new Account statement
+            if self.type == 'account':
+                self.payments = self.parse_bank_csv()
+            elif self.type == 'darujme':
+                from aklub.darujme import parse_darujme
+                self.payments, self.skipped_payments = parse_darujme(self.csv_file)
 
     def save(self, *args, **kwargs):
         super(AccountStatements, self).save(*args, **kwargs)
-        for payment in self.payments:
-            payment.account_statement = self
-            payment.save()
+        if hasattr(self, "payments"):
+            for payment in self.payments:
+                payment.account_statement = self
+                payment.save()
 
     def parse_bank_csv(self):
         # Read and parse the account statement
