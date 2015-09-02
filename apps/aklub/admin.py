@@ -209,7 +209,7 @@ class UserAdmin(ImportExportModelAdmin):
     send_mass_communication.short_description = _("Send mass communication")    
 
 class PaymentAdmin(admin.ModelAdmin):
-    list_display = ('date', 'amount', 'person_name', 'account', 'bank_code',
+    list_display = ('date', 'account_statement', 'amount', 'person_name', 'account', 'bank_code',
                     'VS', 'SS', 'user_identification', 'type', 'paired_with_expected')
     fieldsets = [
         (_("Basic"), {
@@ -357,16 +357,19 @@ class ConditionAdmin(ImportExportModelAdmin):
     ordering = ('name',)
 
 class AccountStatementsAdmin(admin.ModelAdmin):
-    list_display = ('type', 'import_date', 'csv_file', 'date_from', 'date_to')
+    list_display = ('type', 'import_date', 'payments_count', 'csv_file', 'date_from', 'date_to')
     inlines = [PaymentsInlineNoExtra]
-    readonly_fields = ('import_date',)
+    readonly_fields = ('import_date', 'payments_count')
     fields = copy.copy(list_display)
+
+    def payments_count(self, obj):
+        return obj.payment_set.count()
 
     def save_model(self, request, obj, form, change):
         if getattr(obj, 'skipped_payments', None):
             skipped_payments_string = ', '.join(["%s %s (%s)" % (p['name'], p['surname'], p['email']) for p in obj.skipped_payments])
             messages.info(request, 'Skipped payments: %s' % skipped_payments_string)
-        payments_without_user = ', '.join(["%s (%s)" % (p.account_name, p.user_identification) for p in obj.payments if not p.user])
+        payments_without_user = ', '.join(["%s (%s)" % (p.account_name, p.user_identification) for p in obj.payment_set.all() if not p.user])
         if payments_without_user:
             messages.info(request, 'Payments without user: %s' % payments_without_user)
         obj.save()
