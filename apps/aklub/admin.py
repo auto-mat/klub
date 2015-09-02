@@ -81,6 +81,7 @@ class PaymentsInline(admin.TabularInline):
     extra = 5
 
 class PaymentsInlineNoExtra(PaymentsInline):
+    raw_id_fields = ('user',)
     extra = 0
 
 class CommunicationInline(admin.TabularInline):
