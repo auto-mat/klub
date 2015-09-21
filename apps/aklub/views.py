@@ -20,7 +20,6 @@
 # Create your views here.
 import datetime, re
 from django import forms, http
-from django.db import models
 from django.shortcuts import render_to_response
 from django.utils.translation import ugettext as _
 from django.contrib.admin import widgets
@@ -123,7 +122,7 @@ def new_user(form, regular, source_slug='web'):
 	new_user = form.save(commit=False)
 	new_user.regular_payments = regular
 	new_user.variable_symbol = variable_symbol
-	new_user.source = models.Source.objects.get(slug=source_slug)
+	new_user.source = Source.objects.get(slug=source_slug)
 	# Save new user instance
 	new_user.save()
 	# TODO: Unlock DB access here
@@ -157,8 +156,7 @@ class RegularView(FormView):
         return initial
 
     def form_valid(self, form):
-	source = models.Source.objects.get(slug=source_slug)
-        user_id = new_user(form, regular=True, source=source)
+        user_id = new_user(form, regular=True, source_slug=self.source_slug)
         amount = User.objects.get(id= user_id).monthly_regular_amount()
 	return render_to_response(self.success_template, {
             'amount': amount,
