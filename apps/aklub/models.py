@@ -508,6 +508,8 @@ class User(models.Model):
         except KeyError:
             return None
 
+    @denormalized(models.DateField, null=True)
+    @depend_on_related('Payment')
     def expected_regular_payment_date(self):
         last_payment_date = self.last_payment_date()
         if not self.regular_payments:
@@ -536,11 +538,11 @@ class User(models.Model):
 
         Return True if so, otherwise return the delay in payment as dattime.timedelta
         """
-        if self.regular_payments and self.expected_regular_payment_date():
+        if self.regular_payments and self.expected_regular_payment_date:
             # Check for regular payments
             # (Allow 7 days for payment processing)
-            if self.expected_regular_payment_date():
-               expected_with_tolerance = self.expected_regular_payment_date() + datetime.timedelta(days=10)
+            if self.expected_regular_payment_date:
+               expected_with_tolerance = self.expected_regular_payment_date + datetime.timedelta(days=10)
                if (expected_with_tolerance
                    < datetime.date.today()):
                    return datetime.date.today()-expected_with_tolerance
@@ -550,6 +552,8 @@ class User(models.Model):
             return datetime.timedelta(days=0)
     regular_payments_delay.return_type = "TimeDelta"
 
+    @denormalized(models.IntegerField, null=True)
+    @depend_on_related('Payment')
     def extra_money(self):
         """Check if we didn't receive more money than expected"""
         total = 20
@@ -568,25 +572,28 @@ class User(models.Model):
     def regular_payments_info(self):
         if not self.regular_payments:
             return _boolean_icon(False)
-        return self.expected_regular_payment_date()
+        return self.expected_regular_payment_date
     regular_payments_info.allow_tags = True
     regular_payments_info.short_description = _(u"Expected payment")
+    regular_payments_info.admin_order_field = 'expected_regular_payment_date'
 
     def payment_delay(self):
         if self.regular_payments_delay:
-            return timesince(self.expected_regular_payment_date())
+            return timesince(self.expected_regular_payment_date)
         else:
             return _boolean_icon(False)
     payment_delay.allow_tags = True
     payment_delay.short_description = _(u"Payment delay")
+    payment_delay.admin_order_field = 'expected_regular_payment_date'
 
     def extra_payments(self):
-        if self.extra_money():
-            return self.extra_money()
+        if self.extra_money:
+            return self.extra_money
         else:
             return _boolean_icon(False)
     extra_payments.allow_tags = True
     extra_payments.short_description = _(u"Extra money")
+    extra_payments.admin_order_field = 'extra_money'
 
     def mail_communications_count(self):
         return self.communications.filter(method = "mail").count()

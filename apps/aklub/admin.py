@@ -110,7 +110,6 @@ show_payments_by_year.short_description = _("Show payments by year")
 # -- ADMIN FORMS --
 class UserAdmin(ImportExportModelAdmin):
     list_display = ('person_name', 'email', 'source',
-                    'regular_payments_delay',
                     'variable_symbol', 'registered_support_date',
                     'regular_payments_info', 'payment_delay', 'extra_payments',
                     'number_of_payments', 'total_contrib_string', 'regular_amount',
@@ -129,6 +128,7 @@ class UserAdmin(ImportExportModelAdmin):
             ))
     save_as = True
     list_max_show_all = 10000
+    list_per_page = 10
     inlines = [PaymentsInline, CommunicationInline]
     raw_id_fields = ('recruiter',)
     readonly_fields = ('verified_by',)
@@ -175,7 +175,7 @@ class UserAdmin(ImportExportModelAdmin):
 
     def get_queryset(self, request):
         qs = super(UserAdmin, self).get_queryset(request)
-        return qs.annotate(**User.annotations)
+        return qs.annotate(**User.annotations).select_related('source__name')
 
     def save_formset(self, request, form, formset, change):
 	# We need to save the request.user to inline Communication
