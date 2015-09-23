@@ -278,6 +278,7 @@ class CommunicationAdmin(admin.ModelAdmin):
 
 class AutomaticCommunicationAdmin(admin.ModelAdmin):
     list_display = ('name', 'method', 'subject')
+    filter_horizontal = ('sent_to_users',)
     ordering = ('name',)
 
     def save_form(self, request, form, change):

@@ -1358,7 +1358,7 @@ class AutomaticCommunication(models.Model):
                                            help_text = _(
             "List of users to whom this communication was already sent"),
                                            blank=True,
-                                           editable=False)
+                                           )
     def __unicode__(self):
         return self.name
 
