@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # Author: Hynek Hanke <hynek.hanke@auto-mat.cz>
+# Author: Petr Dlouhý <petr.dlouhy@auto-mat.cz>
 #
 # Copyright (C) 2010 o.s. Auto*Mat
 #
@@ -30,6 +31,7 @@ from django.core.files.storage import FileSystemStorage
 from django.core.files.temp import NamedTemporaryFile
 from django.utils.timesince import timesince
 from django.utils.translation import ugettext_lazy as _
+from denorm import denormalized, depend_on_related
 import html2text
 # External dependencies
 import datetime
@@ -40,6 +42,7 @@ import stdimage
 import autocom
 import confirmation
 import logging
+import timedelta
 logger = logging.getLogger(__name__)
 
 class Campaign(models.Model):
@@ -519,6 +522,8 @@ class User(models.Model):
             expected = self.registered_support.date()+datetime.timedelta(days=31)
         return expected
 
+    @denormalized(timedelta.fields.TimedeltaField, null=True)
+    @depend_on_related('Payment')
     def regular_payments_delay(self):
         """Check if his payments are OK
 

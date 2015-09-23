@@ -110,6 +110,7 @@ show_payments_by_year.short_description = _("Show payments by year")
 # -- ADMIN FORMS --
 class UserAdmin(ImportExportModelAdmin):
     list_display = ('person_name', 'email', 'source',
+                    'regular_payments_delay',
                     'variable_symbol', 'registered_support_date',
                     'regular_payments_info', 'payment_delay', 'extra_payments',
                     'number_of_payments', 'total_contrib_string', 'regular_amount',
