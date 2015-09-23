@@ -441,7 +441,7 @@ class User(models.Model):
     # the queryset being annotated as follows)
     annotations = {'payment_total': Sum('payment__amount'),
                    'payments_number': Count('payment'),
-                   'last_payment_date': Max('payment__date')}
+                   'last_payment_date_ann': Max('payment__date')}
     
     def __unicode__(self):
         return self.person_name()
@@ -485,7 +485,14 @@ class User(models.Model):
         This depends on the query being previously annotated with
         self.annotations
         """
-	return self.last_payment_date
+        if hasattr(self, "last_payment_date_ann"):
+            return self.last_payment_date_ann
+        else:
+            last_payment = self.last_payment()
+            if last_payment:
+                return last_payment.date
+            else:
+                return None
     last_payment_date.short_description = _("Last payment")
     last_payment_date.admin_order_field = 'last_payment_date'
     last_payment_date.return_type = "Date"
@@ -502,7 +509,7 @@ class User(models.Model):
             return None
 
     def expected_regular_payment_date(self):
-        last_payment_date = self.last_payment_date
+        last_payment_date = self.last_payment_date()
         if not self.regular_payments:
             return None
         if last_payment_date:
@@ -566,7 +573,7 @@ class User(models.Model):
     regular_payments_info.short_description = _(u"Expected payment")
 
     def payment_delay(self):
-        if self.regular_payments_delay():
+        if self.regular_payments_delay:
             return timesince(self.expected_regular_payment_date())
         else:
             return _boolean_icon(False)
