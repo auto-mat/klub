@@ -105,12 +105,9 @@ def check(users=None, action=None):
     for auto_comm in AutomaticCommunication.objects.all():
         logger.info(u"Processin condition \"%s\" for autocom \"%s\", method: \"%s\", action: \"%s\"" % (auto_comm.condition, auto_comm, auto_comm.method, action))
 
-        if users:
-            annotated_users = User.objects.filter(id__in=[u.id for u in users]
-                                                  ).annotate(**User.annotations)
-        else:
-            annotated_users = User.objects.all().annotate(**User.annotations)
-        for user in annotated_users:
+        if not users:
+            users = User.objects.all()
+        for user in users:
             if auto_comm.only_once and auto_comm.sent_to_users.filter(pk=user.pk).exists():
                 continue
             if auto_comm.condition.is_true(user, action):

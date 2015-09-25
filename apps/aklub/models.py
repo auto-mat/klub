@@ -437,12 +437,6 @@ class User(models.Model):
         default=0,
         blank=False)
 
-    # General annotation fields (some methods in this class rely on
-    # the queryset being annotated as follows)
-    annotations = {'payment_total': Sum('payment__amount'),
-                   'payments_number': Count('payment'),
-                   'last_payment_date_ann': Max('payment__date')}
-    
     def __unicode__(self):
         return self.person_name()
 
@@ -464,13 +458,12 @@ class User(models.Model):
     def payments(self):
         return Payment.objects.filter(user=self)
 
+    @denormalized(models.IntegerField, null=True)
+    @depend_on_related('Payment')
     def number_of_payments(self):
         """Return number of payments made by this user
-
-        This depends on the query being previously annotated with
-        self.annotations
         """
-	return self.payments_number
+        return self.payment_set.aggregate(count=Count('amount'))['count']
     number_of_payments.short_description = _("# payments") 
     number_of_payments.admin_order_field = 'payments_number'
     number_of_payments.return_type = 'Integer'
@@ -479,20 +472,16 @@ class User(models.Model):
         """Return last payment"""
         return self.payments().order_by('-date').last()
 
+    @denormalized(models.DateField, null=True)
+    @depend_on_related('Payment')
     def last_payment_date(self):
         """Return date of last payment or None
-
-        This depends on the query being previously annotated with
-        self.annotations
         """
-        if hasattr(self, "last_payment_date_ann"):
-            return self.last_payment_date_ann
+        last_payment = self.last_payment()
+        if last_payment:
+            return last_payment.date
         else:
-            last_payment = self.last_payment()
-            if last_payment:
-                return last_payment.date
-            else:
-                return None
+            return None
     last_payment_date.short_description = _("Last payment")
     last_payment_date.admin_order_field = 'last_payment_date'
     last_payment_date.return_type = "Date"
@@ -511,7 +500,11 @@ class User(models.Model):
     @denormalized(models.DateField, null=True)
     @depend_on_related('Payment')
     def expected_regular_payment_date(self):
-        last_payment_date = self.last_payment_date()
+        last_payment = self.last_payment()
+        if last_payment:
+            last_payment_date = self.last_payment().date
+        else:
+            last_payment_date = None
         if not self.regular_payments:
             return None
         if last_payment_date:
@@ -598,11 +591,13 @@ class User(models.Model):
     def mail_communications_count(self):
         return self.communications.filter(method = "mail").count()
 
+    @denormalized(models.FloatField, null=True)
+    @depend_on_related('Payment')
+    def payment_total(self):
+        return self.payment_set.aggregate(sum=Sum('amount'))['sum']
+
     def total_contrib_string(self):
         """Return the sum of all money received from this user
-
-        This depends on the query being previously annotated with
-        self.annotations
         """
 	if self.payment_total:
             return str(self.payment_total) + " Kč"
@@ -614,9 +609,6 @@ class User(models.Model):
 
     def total_contrib(self):
         """Return the sum of all money received from this user
-
-        This depends on the query being previously annotated with
-        self.annotations
         """
 	if self.payment_total:
             return self.payment_total
