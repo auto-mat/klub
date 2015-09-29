@@ -340,6 +340,8 @@ class TerminalConditionInline(admin.TabularInline):
     readonly_fields = ("variable_description",)
     extra = 0
 
+class TerminalConditionAdmin(ImportExportModelAdmin):
+    list_display = ('variable', 'operation', 'value', 'condition')
 
 class ConditionAdmin(ImportExportModelAdmin):
     save_as = True
@@ -438,6 +440,7 @@ admin.site.register(AccountStatements, AccountStatementsAdmin)
 admin.site.register(AutomaticCommunication, AutomaticCommunicationAdmin)
 admin.site.register(MassCommunication, MassCommunicationAdmin)
 admin.site.register(Condition, ConditionAdmin)
+admin.site.register(TerminalCondition, TerminalConditionAdmin)
 admin.site.register(Campaign, CampaignAdmin)
 admin.site.register(Recruiter, RecruiterAdmin)
 admin.site.register(TaxConfirmation, TaxConfirmationAdmin)
