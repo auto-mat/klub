@@ -107,22 +107,22 @@ def check(users=None, action=None):
 
         if not users:
             users = User.objects.all()
+        users = users.filter(auto_comm.condition.get_query(action))
         for user in users:
             if auto_comm.only_once and auto_comm.sent_to_users.filter(pk=user.pk).exists():
                 continue
-            if auto_comm.condition.is_true(user, action):
-                if user.language == 'cs':
-                    template = auto_comm.template
-                    subject = auto_comm.subject
-                else:
-                    template = auto_comm.template_en
-                    subject = auto_comm.subject_en
-                if template and template != '':
-                    logger.info(u"Added new automatic communication \"%s\" for user \"%s\", action \"%s\"" % (auto_comm, user, action))
-                    c = Communication(user=user, method=auto_comm.method, date=datetime.datetime.now(),
-                                      subject=subject, summary=process_template(template, user),
-                                      note="Prepared by auto*mated mailer at %s" % datetime.datetime.now(),
-                                      send=auto_comm.dispatch_auto, type='auto')
-                    auto_comm.sent_to_users.add(user)
-                    c.save()
+            if user.language == 'cs':
+                template = auto_comm.template
+                subject = auto_comm.subject
+            else:
+                template = auto_comm.template_en
+                subject = auto_comm.subject_en
+            if template and template != '':
+                logger.info(u"Added new automatic communication \"%s\" for user \"%s\", action \"%s\"" % (auto_comm, user, action))
+                c = Communication(user=user, method=auto_comm.method, date=datetime.datetime.now(),
+                                  subject=subject, summary=process_template(template, user),
+                                  note="Prepared by auto*mated mailer at %s" % datetime.datetime.now(),
+                                  send=auto_comm.dispatch_auto, type='auto')
+                auto_comm.sent_to_users.add(user)
+                c.save()
 

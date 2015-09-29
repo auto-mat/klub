@@ -24,13 +24,14 @@
 import django
 from django.contrib.admin.templatetags.admin_list import _boolean_icon
 from django.db import models
-from django.db.models import Sum, Count, Max
+from django.db.models import Sum, Count, Max, Q
 from django.core.mail import EmailMultiAlternatives
 from django.core.files import File
 from django.core.files.storage import FileSystemStorage
 from django.core.files.temp import NamedTemporaryFile
 from django.utils.timesince import timesince
 from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import string_concat
 from denorm import denormalized, depend_on_related
 import html2text
 # External dependencies
@@ -470,7 +471,7 @@ class User(models.Model):
     
     def last_payment(self):
         """Return last payment"""
-        return self.payments().order_by('-date').last()
+        return self.payments().order_by('date').last()
 
     @denormalized(models.DateField, null=True)
     @depend_on_related('Payment')
@@ -485,6 +486,20 @@ class User(models.Model):
     last_payment_date.short_description = _("Last payment")
     last_payment_date.admin_order_field = 'last_payment_date'
     last_payment_date.return_type = "Date"
+
+    @denormalized(models.CharField, max_length=20, null=True)
+    @depend_on_related('Payment')
+    def last_payment_type(self):
+        """Return date of last payment or None
+        """
+        last_payment = self.last_payment()
+        if last_payment:
+            return last_payment.type
+        else:
+            return None
+    last_payment_date.short_description = _("Last payment type")
+    last_payment_date.admin_order_field = 'last_payment_type'
+    last_payment_date.return_type = "CharField"
 
     def regular_frequency_td(self):
         """Return regular frequency as timedelta"""
@@ -621,7 +636,7 @@ class User(models.Model):
         else:
             insert = False
         super(User, self).save(*args, **kwargs)
-        autocom.check(users=[self], action=(insert and 'new-user' or None))
+        autocom.check(users=User.objects.filter(pk=self.pk), action=(insert and 'new-user' or None))
 
     def make_tax_confirmation(self, year):
 	amount = self.payment_set.exclude(type='expected').filter(date__year=year).aggregate(Sum('amount'))['amount__sum']
@@ -684,10 +699,7 @@ def filter_by_condition(queryset, cond):
     # Hack: It would be better to work directly on the objects
     # of the queryset rather than extracting ids from another
     # DB query and then filtering the former queryset
-    all_users = User.objects.all().annotate(**User.annotations)
-    filtered_ids = [user.id for user in all_users
-                    if cond.is_true(user)]
-    return queryset.filter(id__in=filtered_ids)
+    return queryset.filter(cond.get_query())
 
 class NewUserManager(models.Manager):
     def get_queryset(self):
@@ -1095,22 +1107,11 @@ class ConditionValues(object):
         for name in model_names:
             model = {'User': User,
                      'Payment': Payment,
+                     'User.source': Source,
                      'User.last_payment': Payment,
                      }[name]
             # DB fields
-            self._columns += [(name, field.name, field.verbose_name, field.get_internal_type(), zip(*field.choices)[0] if field.choices else "") for field in model._meta.fields]
-            # Public methods
-            # TODO: This really lists all attributes, we should
-            # for callable attributes
-            self._columns += [(
-                name, method, 
-                getattr(getattr(model, method, None), 'short_description', method),
-                getattr(getattr(model, method, None), 'return_type', "function"),
-                getattr(getattr(model, method, None), 'condition_choices', "")
-                ) for method in dir(model)
-                              if (not method.startswith("_")
-                                  and hasattr(getattr(model, method, None), '__call__')
-                                  and method not in dir(models.Model))]
+            self._columns += [(name, field.name, string_concat(name, " ", field.verbose_name), field.get_internal_type(), zip(*field.choices)[0] if field.choices else "") for field in model._meta.fields]
         self._columns.sort()
         self._index = 0
 
@@ -1184,31 +1185,26 @@ class Condition(models.Model):
     def __unicode__(self):
         return self.name
 
-    def is_true(self, user, action=None):
+    def get_query(self, action=None):
+        ret_cond = Q()
         if self.operation == 'and':
             for cond in self.conds.all():
-                if not cond.is_true(user, action):
-                    return False
+                ret_cond &= cond.get_query()
             for tcond in self.terminalcondition_set.all():
-                if not tcond.is_true(user, action):
-                    return False
-            return True
+                ret_cond &= tcond.get_query()
+            return ret_cond
         if self.operation == 'or':
             for cond in self.conds.all():
-                if cond.is_true(user, action):
-                    return True
+                ret_cond |= cond.get_query()
             for tcond in self.terminalcondition_set.all():
-                if tcond.is_true(user, action):
-                    return True
-            return False
+                ret_cond |= tcond.get_query()
+            return ret_cond
         if self.operation == 'nor':
             for cond in self.conds.all():
-                if cond.is_true(user, action):
-                    return False
+                ret_cond |= cond.get_query()
             for tcond in self.terminalcondition_set.all():
-                if tcond.is_true(user, action):
-                    return False
-            return True
+                ret_cond |= tcond.get_query()
+            return ~(ret_cond)
         raise NotImplementedError("Unknown operation %s" % self.operation)
 
     def condition_list(self):
@@ -1244,7 +1240,7 @@ class TerminalCondition(models.Model):
 
     variable = models.CharField(
         verbose_name=_("Variable"),
-        choices=ConditionValues(('User','User.last_payment')),
+        choices=ConditionValues(('User', 'User.source')),
         help_text=_("Value or variable on left-hand side"),
         max_length=50, blank=True, null=True)
     operation = models.CharField(
@@ -1268,8 +1264,8 @@ class TerminalCondition(models.Model):
                 except:
                     return "action"
 
-    def is_true(self, user, action=None):
-        def get_val(spec, user):
+    def get_query(self):
+        def get_val(spec):
             # Symbolic names
             if spec == 'month_ago':
                 return datetime.datetime.now()-datetime.timedelta(days=30)
@@ -1287,23 +1283,12 @@ class TerminalCondition(models.Model):
                 return False
             if spec == 'None':
                 return None
-            if spec == 'action':
-                return action
-        
+
             # DB objects
             if '.' in spec:
                 spec_ = spec.split('.')
                 if spec_[0] == 'User':
-                    assert user
-                    obj = user
-                    for s in spec_[1:]:
-                        v = getattr(obj, s)
-                        if callable(v):
-                            v = v()
-                        if v is None:
-                            return None
-                        obj = v
-                    return v
+                    return "__".join(spec_[1:]) + op_string
                 elif spec_[0] == 'datetime':
                     return datetime.datetime.strptime(spec_[1], '%Y-%m-%d %H:%M')
                 elif spec_[0] == 'timedelta':
@@ -1315,27 +1300,34 @@ class TerminalCondition(models.Model):
                     return int(spec)
                 except (TypeError, ValueError):
                     return spec
+        
+        def get_querystring(spec, operatoin):
+            if self.operation == '=':
+                op_string = ""
+            elif self.operation == '<':
+                op_string = "__lt"
+            elif self.operation == '>':
+                op_string = "__gt"
+            elif self.operation == '!=':
+                op_string = "__not"
+            else:
+                NotImplementedError("Unknown operation %s" % self.operation)
+
+            if '.' in spec:
+                spec_ = spec.split('.')
+                if spec_[0] == 'User':
+                    return "__".join(spec_[1:]) + op_string
+
+        if self.variable == 'action':
+            if tcond.value == action:
+                return Q()
+            else:
+                return Q(pk__in=[])
 
         # Elementary conditions
-        left = get_val(self.variable, user)
-        right = get_val(self.value, user)
-        
-        if left == None or right == None:
-            return False
-
-        # Enable comparison of dates and datetimes by converting dates to datetimes as 00:00
-        if isinstance(left, datetime.date) and isinstance(right, datetime.datetime):
-            left = datetime.datetime.combine(left, datetime.time.min)
-
-        if self.operation == '=':
-            return left == right
-        if self.operation == '<':
-            return left < right
-        if self.operation == '>':
-            return left > right
-        if self.operation == '!=':
-            return not left == right
-        raise NotImplementedError("Unknown operation %s" % self.operation)
+        left = get_querystring(self.variable, self.operation)
+        right = get_val(self.value)
+        return Q(**{left: right})
 
 
 class AutomaticCommunication(models.Model):
