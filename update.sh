@@ -36,5 +36,7 @@ fi
 env/bin/python ./manage.py collectstatic --noinput
 touch wsgi.py
 type supervisorctl && sudo supervisorctl restart $app_name
+env/bin/python ./manage.py denorm_drop
+env/bin/python ./manage.py denorm_init
 
 echo "App succesfully updated"
