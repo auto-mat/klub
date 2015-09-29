@@ -594,29 +594,15 @@ class User(models.Model):
     @denormalized(models.FloatField, null=True)
     @depend_on_related('Payment')
     def payment_total(self):
-        return self.payment_set.aggregate(sum=Sum('amount'))['sum']
+        return self.payment_set.aggregate(sum=Sum('amount'))['sum'] or 0
 
     def total_contrib_string(self):
         """Return the sum of all money received from this user
         """
-	if self.payment_total:
-            return str(self.payment_total) + " Kč"
-        else:
-            return "0 Kč"
+        return str(self.payment_total) + " Kč"
     total_contrib_string.short_description = _("Total")
     total_contrib_string.admin_order_field = 'payment_total'
     total_contrib_string.return_type = "Integer"
-
-    def total_contrib(self):
-        """Return the sum of all money received from this user
-        """
-	if self.payment_total:
-            return self.payment_total
-        else:
-            return 0
-    total_contrib.short_description = _("Total")
-    total_contrib.admin_order_field = 'payment_total'
-    total_contrib.return_type = "Integer"
 
     def registered_support_date(self):
         return self.registered_support.strftime('%d. %m. %Y')
@@ -654,6 +640,8 @@ class User(models.Model):
 	conf.save()
 	return conf
 
+    @denormalized(models.NullBooleanField, null=True)
+    @depend_on_related('Payment')
     def no_upgrade(self):
         """Check for users without upgrade to payments
 
