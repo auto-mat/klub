@@ -128,6 +128,7 @@ class UserAdmin(ImportExportModelAdmin):
             ))
     save_as = True
     list_max_show_all = 10000
+    list_per_page = 100
     inlines = [PaymentsInline, CommunicationInline]
     raw_id_fields = ('recruiter',)
     readonly_fields = ('verified_by',)
@@ -174,7 +175,7 @@ class UserAdmin(ImportExportModelAdmin):
 
     def get_queryset(self, request):
         qs = super(UserAdmin, self).get_queryset(request)
-        return qs.annotate(**User.annotations)
+        return qs.select_related('source__name')
 
     def save_formset(self, request, form, formset, change):
 	# We need to save the request.user to inline Communication
@@ -277,6 +278,7 @@ class CommunicationAdmin(admin.ModelAdmin):
 
 class AutomaticCommunicationAdmin(admin.ModelAdmin):
     list_display = ('name', 'method', 'subject')
+    filter_horizontal = ('sent_to_users',)
     ordering = ('name',)
 
     def save_form(self, request, form, change):

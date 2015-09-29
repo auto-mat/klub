@@ -85,6 +85,7 @@ MIDDLEWARE_CLASSES = (
 #    'johnny.middleware.QueryCacheMiddleware', # disabled for django 1.4
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'denorm.middleware.DenormMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -140,6 +141,7 @@ INSTALLED_APPS = (
     'debug_toolbar',
     'corsheaders',
     'daterange_filter',
+    'denorm',
     'aklub'
 )
 

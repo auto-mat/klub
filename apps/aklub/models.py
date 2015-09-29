@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # Author: Hynek Hanke <hynek.hanke@auto-mat.cz>
+# Author: Petr Dlouhý <petr.dlouhy@auto-mat.cz>
 #
 # Copyright (C) 2010 o.s. Auto*Mat
 #
@@ -30,6 +31,7 @@ from django.core.files.storage import FileSystemStorage
 from django.core.files.temp import NamedTemporaryFile
 from django.utils.timesince import timesince
 from django.utils.translation import ugettext_lazy as _
+from denorm import denormalized, depend_on_related
 import html2text
 # External dependencies
 import datetime
@@ -40,6 +42,7 @@ import stdimage
 import autocom
 import confirmation
 import logging
+import timedelta
 logger = logging.getLogger(__name__)
 
 class Campaign(models.Model):
@@ -434,12 +437,6 @@ class User(models.Model):
         default=0,
         blank=False)
 
-    # General annotation fields (some methods in this class rely on
-    # the queryset being annotated as follows)
-    annotations = {'payment_total': Sum('payment__amount'),
-                   'payments_number': Count('payment'),
-                   'last_payment_date': Max('payment__date')}
-    
     def __unicode__(self):
         return self.person_name()
 
@@ -461,13 +458,12 @@ class User(models.Model):
     def payments(self):
         return Payment.objects.filter(user=self)
 
+    @denormalized(models.IntegerField, null=True)
+    @depend_on_related('Payment')
     def number_of_payments(self):
         """Return number of payments made by this user
-
-        This depends on the query being previously annotated with
-        self.annotations
         """
-	return self.payments_number
+        return self.payment_set.aggregate(count=Count('amount'))['count']
     number_of_payments.short_description = _("# payments") 
     number_of_payments.admin_order_field = 'payments_number'
     number_of_payments.return_type = 'Integer'
@@ -476,13 +472,16 @@ class User(models.Model):
         """Return last payment"""
         return self.payments().order_by('-date').last()
 
+    @denormalized(models.DateField, null=True)
+    @depend_on_related('Payment')
     def last_payment_date(self):
         """Return date of last payment or None
-
-        This depends on the query being previously annotated with
-        self.annotations
         """
-	return self.last_payment_date
+        last_payment = self.last_payment()
+        if last_payment:
+            return last_payment.date
+        else:
+            return None
     last_payment_date.short_description = _("Last payment")
     last_payment_date.admin_order_field = 'last_payment_date'
     last_payment_date.return_type = "Date"
@@ -498,8 +497,14 @@ class User(models.Model):
         except KeyError:
             return None
 
+    @denormalized(models.DateField, null=True)
+    @depend_on_related('Payment')
     def expected_regular_payment_date(self):
-        last_payment_date = self.last_payment_date
+        last_payment = self.last_payment()
+        if last_payment:
+            last_payment_date = self.last_payment().date
+        else:
+            last_payment_date = None
         if not self.regular_payments:
             return None
         if last_payment_date:
@@ -519,16 +524,18 @@ class User(models.Model):
             expected = self.registered_support.date()+datetime.timedelta(days=31)
         return expected
 
+    @denormalized(timedelta.fields.TimedeltaField, null=True)
+    @depend_on_related('Payment')
     def regular_payments_delay(self):
         """Check if his payments are OK
 
         Return True if so, otherwise return the delay in payment as dattime.timedelta
         """
-        if self.regular_payments and self.expected_regular_payment_date():
+        if self.regular_payments and self.expected_regular_payment_date:
             # Check for regular payments
             # (Allow 7 days for payment processing)
-            if self.expected_regular_payment_date():
-               expected_with_tolerance = self.expected_regular_payment_date() + datetime.timedelta(days=10)
+            if self.expected_regular_payment_date:
+               expected_with_tolerance = self.expected_regular_payment_date + datetime.timedelta(days=10)
                if (expected_with_tolerance
                    < datetime.date.today()):
                    return datetime.date.today()-expected_with_tolerance
@@ -538,6 +545,8 @@ class User(models.Model):
             return datetime.timedelta(days=0)
     regular_payments_delay.return_type = "TimeDelta"
 
+    @denormalized(models.IntegerField, null=True)
+    @depend_on_related('Payment')
     def extra_money(self):
         """Check if we didn't receive more money than expected"""
         total = 20
@@ -556,34 +565,39 @@ class User(models.Model):
     def regular_payments_info(self):
         if not self.regular_payments:
             return _boolean_icon(False)
-        return self.expected_regular_payment_date()
+        return self.expected_regular_payment_date
     regular_payments_info.allow_tags = True
     regular_payments_info.short_description = _(u"Expected payment")
+    regular_payments_info.admin_order_field = 'expected_regular_payment_date'
 
     def payment_delay(self):
-        if self.regular_payments_delay():
-            return timesince(self.expected_regular_payment_date())
+        if self.regular_payments_delay:
+            return timesince(self.expected_regular_payment_date)
         else:
             return _boolean_icon(False)
     payment_delay.allow_tags = True
     payment_delay.short_description = _(u"Payment delay")
+    payment_delay.admin_order_field = 'expected_regular_payment_date'
 
     def extra_payments(self):
-        if self.extra_money():
-            return self.extra_money()
+        if self.extra_money:
+            return self.extra_money
         else:
             return _boolean_icon(False)
     extra_payments.allow_tags = True
     extra_payments.short_description = _(u"Extra money")
+    extra_payments.admin_order_field = 'extra_money'
 
     def mail_communications_count(self):
         return self.communications.filter(method = "mail").count()
 
+    @denormalized(models.FloatField, null=True)
+    @depend_on_related('Payment')
+    def payment_total(self):
+        return self.payment_set.aggregate(sum=Sum('amount'))['sum']
+
     def total_contrib_string(self):
         """Return the sum of all money received from this user
-
-        This depends on the query being previously annotated with
-        self.annotations
         """
 	if self.payment_total:
             return str(self.payment_total) + " Kč"
@@ -595,9 +609,6 @@ class User(models.Model):
 
     def total_contrib(self):
         """Return the sum of all money received from this user
-
-        This depends on the query being previously annotated with
-        self.annotations
         """
 	if self.payment_total:
             return self.payment_total
@@ -1392,7 +1403,7 @@ class AutomaticCommunication(models.Model):
                                            help_text = _(
             "List of users to whom this communication was already sent"),
                                            blank=True,
-                                           editable=False)
+                                           )
     def __unicode__(self):
         return self.name
 

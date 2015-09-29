@@ -23,3 +23,5 @@ django-debug-toolbar
 django-daterange-filter
 django-cors-headers
 django-formtools
+-e git+https://github.com/PetrDlouhy/django-denorm.git#egg=django-denorm
+django-timedeltafield
