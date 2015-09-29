@@ -1319,7 +1319,7 @@ class TerminalCondition(models.Model):
                     return "__".join(spec_[1:]) + op_string
 
         if self.variable == 'action':
-            if tcond.value == action:
+            if self.value == action:
                 return Q()
             else:
                 return Q(pk__in=[])
