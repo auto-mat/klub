@@ -36,6 +36,10 @@ from aklub.models import *
 from aklub import mailing
 import filters
 
+def resave_action(self, request, queryset):
+    for q in queryset:
+        q.save()
+
 def export_as_csv_action(description="Export selected objects as CSV file",
                          fields=None, exclude=None, header=True):
     """
@@ -120,6 +124,7 @@ class UserAdmin(ImportExportModelAdmin):
     ordering = ('surname',)
     actions = ('send_mass_communication',
                show_payments_by_year,
+               resave_action,
                export_as_csv_action(fields=(
                 'title_before', 'firstname', 'surname', 'title_after', 'sex', 'telephone', 'email',
                 'street', 'city', 'zip_code', 'variable_symbol', 'club_card_available',
