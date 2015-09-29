@@ -26,7 +26,7 @@ def make_terminal_conditions(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aklub', '0006_auto_20150731_1454'),
+        ('aklub', '0009_auto_20150731_1454'),
     ]
 
 
