@@ -1189,21 +1189,21 @@ class Condition(models.Model):
         ret_cond = Q()
         if self.operation == 'and':
             for cond in self.conds.all():
-                ret_cond &= cond.get_query()
+                ret_cond &= cond.get_query(action)
             for tcond in self.terminalcondition_set.all():
-                ret_cond &= tcond.get_query()
+                ret_cond &= tcond.get_query(action)
             return ret_cond
         if self.operation == 'or':
             for cond in self.conds.all():
-                ret_cond |= cond.get_query()
+                ret_cond |= cond.get_query(action)
             for tcond in self.terminalcondition_set.all():
-                ret_cond |= tcond.get_query()
+                ret_cond |= tcond.get_query(action)
             return ret_cond
         if self.operation == 'nor':
             for cond in self.conds.all():
-                ret_cond |= cond.get_query()
+                ret_cond |= cond.get_query(action)
             for tcond in self.terminalcondition_set.all():
-                ret_cond |= tcond.get_query()
+                ret_cond |= tcond.get_query(action)
             return ~(ret_cond)
         raise NotImplementedError("Unknown operation %s" % self.operation)
 
@@ -1264,7 +1264,7 @@ class TerminalCondition(models.Model):
                 except:
                     return "action"
 
-    def get_query(self):
+    def get_query(self, action=None):
         def get_val(spec):
             # Symbolic names
             if spec == 'month_ago':
