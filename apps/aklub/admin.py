@@ -345,7 +345,7 @@ class TerminalConditionAdmin(ImportExportModelAdmin):
 
 class ConditionAdmin(ImportExportModelAdmin):
     save_as = True
-    list_display = ('name', 'as_filter', 'on_dashboard', 'operation', 'condition_list')
+    list_display = ('name', 'as_filter', 'on_dashboard', 'operation', 'condition_string')
     filter_horizontal = ('conds',)
     inlines = [TerminalConditionInline,]
     fieldsets = [

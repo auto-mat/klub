@@ -1197,8 +1197,24 @@ class Condition(models.Model):
             return ~(ret_cond)
         raise NotImplementedError("Unknown operation %s" % self.operation)
 
-    def condition_list(self):
-        return ", ".join([condition.name for condition in self.conds.all()])
+    def condition_string(self):
+        prefix = ""
+        sufix = ""
+        if self.operation == 'nor':
+            prefix = "not("
+            sufix = ")"
+            op_string = " or "
+        else:
+            op_string = " %s " % self.operation
+
+        condition_list = [condition.condition_string() for condition in self.conds.all()]
+        terminalcondition_list = [str(condition) for condition in self.terminalcondition_set.all()]
+        return "%s%s(%s)%s" % (
+                prefix,
+                self.name,
+                op_string.join(condition_list + terminalcondition_list),
+                sufix
+                )
 
 
 class TerminalCondition(models.Model):
@@ -1318,6 +1334,9 @@ class TerminalCondition(models.Model):
         left = get_querystring(self.variable, self.operation)
         right = get_val(self.value)
         return Q(**{left: right})
+
+    def __unicode__(self):
+        return "%s %s %s" % (self.variable, self.operation, self.value)
 
 
 class AutomaticCommunication(models.Model):
