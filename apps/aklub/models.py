@@ -43,7 +43,6 @@ import stdimage
 import autocom
 import confirmation
 import logging
-import timedelta
 logger = logging.getLogger(__name__)
 
 class Campaign(models.Model):
@@ -467,7 +466,6 @@ class User(models.Model):
         return self.payment_set.aggregate(count=Count('amount'))['count']
     number_of_payments.short_description = _("# payments") 
     number_of_payments.admin_order_field = 'payments_number'
-    number_of_payments.return_type = 'Integer'
     
     def last_payment(self):
         """Return last payment"""
@@ -485,7 +483,6 @@ class User(models.Model):
             return None
     last_payment_date.short_description = _("Last payment")
     last_payment_date.admin_order_field = 'last_payment_date'
-    last_payment_date.return_type = "Date"
 
     @denormalized(models.CharField, max_length=20, null=True)
     @depend_on_related('Payment')
@@ -499,7 +496,6 @@ class User(models.Model):
             return None
     last_payment_date.short_description = _("Last payment type")
     last_payment_date.admin_order_field = 'last_payment_type'
-    last_payment_date.return_type = "CharField"
 
     def regular_frequency_td(self):
         """Return regular frequency as timedelta"""
@@ -539,8 +535,6 @@ class User(models.Model):
             expected = self.registered_support.date()+datetime.timedelta(days=31)
         return expected
 
-    @denormalized(timedelta.fields.TimedeltaField, null=True)
-    @depend_on_related('Payment')
     def regular_payments_delay(self):
         """Check if his payments are OK
 
@@ -555,10 +549,9 @@ class User(models.Model):
                    < datetime.date.today()):
                    return datetime.date.today()-expected_with_tolerance
                else:
-                   return datetime.timedelta(days=0)
+                   return False
         else:
-            return datetime.timedelta(days=0)
-    regular_payments_delay.return_type = "TimeDelta"
+            return False
 
     @denormalized(models.IntegerField, null=True)
     @depend_on_related('Payment')
@@ -575,7 +568,6 @@ class User(models.Model):
             if total and self.regular_amount and total > self.regular_amount:
                 return total - self.regular_amount
         return None
-    extra_money.return_type = "Integer"
 
     def regular_payments_info(self):
         if not self.regular_payments:
@@ -586,7 +578,7 @@ class User(models.Model):
     regular_payments_info.admin_order_field = 'expected_regular_payment_date'
 
     def payment_delay(self):
-        if self.regular_payments_delay:
+        if self.regular_payments_delay():
             return timesince(self.expected_regular_payment_date)
         else:
             return _boolean_icon(False)
@@ -617,7 +609,6 @@ class User(models.Model):
         return str(self.payment_total) + " Kč"
     total_contrib_string.short_description = _("Total")
     total_contrib_string.admin_order_field = 'payment_total'
-    total_contrib_string.return_type = "Integer"
 
     def registered_support_date(self):
         return self.registered_support.strftime('%d. %m. %Y')
@@ -682,7 +673,6 @@ class User(models.Model):
             return True
         else:
             return False
-    no_upgrade.return_type = "Boolean"
 
     def monthly_regular_amount(self):
         months = {
