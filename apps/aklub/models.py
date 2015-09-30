@@ -1256,7 +1256,7 @@ class TerminalCondition(models.Model):
     # One of value or conds must be non-null
     value = models.CharField(
         verbose_name=_("Value"),
-        help_text=_("Value or variable on right-hand side. <br/>action: daily, new-user<br/>DateField: month_ago, one_day, one_week, two_weeks, one_month<br/>BooleanField: "),
+        help_text=_("Value or variable on right-hand side. <br/>\naction: daily, new-user<br/>\nDateField: month_ago, one_day, one_week, two_weeks, one_month<br/>\nBooleanField: True, False"),
         max_length=50, blank=True, null=True)
     condition = models.ForeignKey(Condition)
 
