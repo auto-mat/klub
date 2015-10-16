@@ -459,7 +459,7 @@ class User(models.Model):
         return Payment.objects.filter(user=self)
 
     @denormalized(models.IntegerField, null=True)
-    @depend_on_related('Payment')
+    @depend_on_related('Payment', foreign_key="user")
     def number_of_payments(self):
         """Return number of payments made by this user
         """
@@ -467,35 +467,36 @@ class User(models.Model):
     number_of_payments.short_description = _("# payments") 
     number_of_payments.admin_order_field = 'payments_number'
     
-    def last_payment(self):
+    def last_payment_function(self):
         """Return last payment"""
         return self.payments().order_by('date').last()
 
-    @denormalized(models.DateField, null=True)
-    @depend_on_related('Payment')
+    @denormalized(models.ForeignKey, to='Payment', related_name="user_last_payment")
+    def last_payment(self):
+        """Return last payment"""
+        return self.last_payment_function()
+
     def last_payment_date(self):
         """Return date of last payment or None
         """
-        last_payment = self.last_payment()
+        last_payment = self.last_payment
         if last_payment:
             return last_payment.date
         else:
             return None
     last_payment_date.short_description = _("Last payment")
-    last_payment_date.admin_order_field = 'last_payment_date'
+    last_payment_date.admin_order_field = 'last_payment__date'
 
-    @denormalized(models.CharField, max_length=20, null=True)
-    @depend_on_related('Payment')
     def last_payment_type(self):
         """Return date of last payment or None
         """
-        last_payment = self.last_payment()
+        last_payment = self.last_payment
         if last_payment:
             return last_payment.type
         else:
             return None
-    last_payment_date.short_description = _("Last payment type")
-    last_payment_date.admin_order_field = 'last_payment_type'
+    last_payment_type.short_description = _("Last payment type")
+    last_payment_type.admin_order_field = 'last_payment__type'
 
     def regular_frequency_td(self):
         """Return regular frequency as timedelta"""
@@ -509,11 +510,11 @@ class User(models.Model):
             return None
 
     @denormalized(models.DateField, null=True)
-    @depend_on_related('Payment')
+    @depend_on_related('Payment', foreign_key="user")
     def expected_regular_payment_date(self):
-        last_payment = self.last_payment()
+        last_payment = self.last_payment_function()
         if last_payment:
-            last_payment_date = self.last_payment().date
+            last_payment_date = last_payment.date
         else:
             last_payment_date = None
         if not self.regular_payments:
@@ -540,11 +541,12 @@ class User(models.Model):
 
         Return True if so, otherwise return the delay in payment as dattime.timedelta
         """
-        if self.regular_payments and self.expected_regular_payment_date:
+        expected_regular_payment_date = self.expected_regular_payment_date
+        if self.regular_payments and expected_regular_payment_date:
             # Check for regular payments
             # (Allow 7 days for payment processing)
-            if self.expected_regular_payment_date:
-               expected_with_tolerance = self.expected_regular_payment_date + datetime.timedelta(days=10)
+            if expected_regular_payment_date:
+               expected_with_tolerance = expected_regular_payment_date + datetime.timedelta(days=10)
                if (expected_with_tolerance
                    < datetime.date.today()):
                    return datetime.date.today()-expected_with_tolerance
@@ -554,7 +556,7 @@ class User(models.Model):
             return False
 
     @denormalized(models.IntegerField, null=True)
-    @depend_on_related('Payment')
+    @depend_on_related('Payment', foreign_key="user")
     def extra_money(self):
         """Check if we didn't receive more money than expected"""
         total = 20
@@ -599,7 +601,7 @@ class User(models.Model):
         return self.communications.filter(method = "mail").count()
 
     @denormalized(models.FloatField, null=True)
-    @depend_on_related('Payment')
+    @depend_on_related('Payment', foreign_key="user")
     def payment_total(self):
         return self.payment_set.aggregate(sum=Sum('amount'))['sum'] or 0
 
@@ -647,7 +649,7 @@ class User(models.Model):
 	return conf
 
     @denormalized(models.NullBooleanField, null=True)
-    @depend_on_related('Payment')
+    @depend_on_related('Payment', foreign_key="user")
     def no_upgrade(self):
         """Check for users without upgrade to payments
 
@@ -659,7 +661,7 @@ class User(models.Model):
         """
         if self.regular_payments != True:
             return False
-        payment_now = self.last_payment()
+        payment_now = self.last_payment_function()
         if ((not payment_now) or
             (payment_now.date < (datetime.date.today()-datetime.timedelta(days=45)))):
             return False
@@ -1246,7 +1248,7 @@ class TerminalCondition(models.Model):
 
     variable = models.CharField(
         verbose_name=_("Variable"),
-        choices=ConditionValues(('User', 'User.source')),
+        choices=ConditionValues(('User', 'User.source', 'User.last_payment')),
         help_text=_("Value or variable on left-hand side"),
         max_length=50, blank=True, null=True)
     operation = models.CharField(
