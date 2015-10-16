@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='user',
             name='last_payment',
-            field=models.ForeignKey(related_name='user_last_payment', default=None, editable=False, to='aklub.Payment'),
+            field=models.ForeignKey(related_name='user_last_payment', default=None, editable=False, null=True, to='aklub.Payment'),
         ),
         migrations.AlterField(
             model_name='terminalcondition',

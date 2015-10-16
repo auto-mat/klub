@@ -471,7 +471,7 @@ class User(models.Model):
         """Return last payment"""
         return self.payments().order_by('date').last()
 
-    @denormalized(models.ForeignKey, to='Payment', default=None, related_name="user_last_payment")
+    @denormalized(models.ForeignKey, to='Payment', default=None, null=True, related_name="user_last_payment")
     def last_payment(self):
         """Return last payment"""
         return self.last_payment_function()
