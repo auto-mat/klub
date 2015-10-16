@@ -32,6 +32,8 @@ from django.core.files.temp import NamedTemporaryFile
 from django.utils.timesince import timesince
 from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import string_concat
+from django.utils.html import mark_safe
+from django.contrib.humanize.templatetags.humanize import intcomma
 from denorm import denormalized, depend_on_related
 import html2text
 # External dependencies
@@ -608,7 +610,7 @@ class User(models.Model):
     def total_contrib_string(self):
         """Return the sum of all money received from this user
         """
-        return str(self.payment_total) + " Kč"
+        return mark_safe(u"%s&nbsp;Kč" % intcomma(int(self.payment_total)))
     total_contrib_string.short_description = _("Total")
     total_contrib_string.admin_order_field = 'payment_total'
 
