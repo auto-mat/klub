@@ -940,7 +940,7 @@ class Payment(models.Model):
             # user is known, otherwise the bellow check would be too
             # time-consuming (relying on Cron performing it in regular
             # intervals anyway)
-            autocom.check(users=[self.user], action=(insert and 'new-payment' or None))
+            autocom.check(users=User.objects.filter(pk=self.user.pk), action=(insert and 'new-payment' or None))
 
     def __unicode__(self):
         return str(self.amount)
