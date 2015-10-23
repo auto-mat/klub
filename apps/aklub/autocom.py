@@ -108,7 +108,7 @@ def check(users=None, action=None):
         logger.info(u"Processin condition \"%s\" for autocom \"%s\", method: \"%s\", action: \"%s\"" % (auto_comm.condition, auto_comm, auto_comm.method, action))
 
         filtered_users = users.filter(auto_comm.condition.get_query(action))
-        for user in users:
+        for user in filtered_users:
             if auto_comm.only_once and auto_comm.sent_to_users.filter(pk=user.pk).exists():
                 continue
             if user.language == 'cs':
