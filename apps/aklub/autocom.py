@@ -71,7 +71,7 @@ def process_template(template_string, user):
         regular_amount = user.regular_amount,
         regular_frequency = _localize_enum(User.REGULAR_PAYMENT_FREQUENCIES, user.regular_frequency, user.language),
         var_symbol = user.variable_symbol,
-        last_payment_amount = user.last_payment() and user.last_payment().amount or None
+        last_payment_amount = user.last_payment and user.last_payment.amount or None
         )
 
     # Modify text according to gender
@@ -102,12 +102,12 @@ def process_template(template_string, user):
     return gender_text
 
 def check(users=None, action=None):
+    if not users:
+        users = User.objects.all()
     for auto_comm in AutomaticCommunication.objects.all():
         logger.info(u"Processin condition \"%s\" for autocom \"%s\", method: \"%s\", action: \"%s\"" % (auto_comm.condition, auto_comm, auto_comm.method, action))
 
-        if not users:
-            users = User.objects.all()
-        users = users.filter(auto_comm.condition.get_query(action))
+        filtered_users = users.filter(auto_comm.condition.get_query(action))
         for user in users:
             if auto_comm.only_once and auto_comm.sent_to_users.filter(pk=user.pk).exists():
                 continue

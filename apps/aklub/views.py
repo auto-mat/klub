@@ -55,7 +55,7 @@ class RegularUserForm(forms.ModelForm):
             email=self.cleaned_data['email']
             if User.objects.filter(email=email).exists():
                 user=User.objects.get(email=email)
-                autocom.check(users=[user], action='resend-data')
+                autocom.check(users=User.objects.filter(pk=user.pk), action='resend-data')
                 raise ValidationError(_("Oops! This email address is already registered in our Auto*Mat support club, you are not registering for the first time. We respect your inclination, but your registration is not need to repeat... All info you need has been sent to your email."))
             return email
  
