@@ -1,7 +1,7 @@
 Django<1.9
 django-stdimage
 reportlab
-django-extensions
+-e git+https://github.com/django-extensions/django-extensions.git#egg=django-extensions
 psycopg2
 django-bootstrap-form
 #pygraphviz
@@ -24,3 +24,4 @@ django-daterange-filter
 django-cors-headers
 django-formtools
 -e git+https://github.com/PetrDlouhy/django-denorm.git#egg=django-denorm
+django-timedeltafield
