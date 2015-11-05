@@ -91,7 +91,11 @@ class PaymentsInlineNoExtra(PaymentsInline):
 class CommunicationInline(admin.TabularInline):
     model = Communication
     extra = 1
-    readonly_fields = ('type', 'created_by', 'handled_by',)
+    readonly_fields = ('type', 'created_by', 'handled_by')
+    def get_queryset(self, request):
+        qs = super(CommunicationInline, self).get_queryset(request)
+        qs = qs.filter(type__in=('individual', 'auto')).order_by('-date')
+        return qs
 
 class ExpenseInline(admin.TabularInline):
     model = Expense
