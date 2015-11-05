@@ -366,8 +366,8 @@ def profiles(request):
 	from_date = request.GET.get('from') or '1970-1-1'
 	paying = request.GET.get('paying')
 
-	users = (User.objects.annotate(**User.annotations).filter(registered_support__gte=from_date).order_by('-registered_support')
-		 | User.objects.annotate(**User.annotations).filter(id__in=(493,89,98,921,33,886,1181,842,954,25))).exclude(
+	users = (User.objects.filter(registered_support__gte=from_date).order_by('-registered_support')
+		 | User.objects.filter(id__in=(493,89,98,921,33,886,1181,842,954,25))).exclude(
                       public=False, profile_picture__isnull=False)
 
 
