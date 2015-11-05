@@ -79,7 +79,11 @@ TEMPLATE_CONTEXT_PROCESSORS += (
      'django.core.context_processors.media',
      'django.contrib.messages.context_processors.messages',
 )
-TEMPLATE_LOADERS = ("admin_tools.template_loaders.Loader", )
+TEMPLATE_LOADERS = (
+   "admin_tools.template_loaders.Loader",
+   'django.template.loaders.filesystem.Loader',
+   'django.template.loaders.app_directories.Loader',
+   )
 
 MIDDLEWARE_CLASSES = (
 #    'johnny.middleware.LocalStoreClearMiddleware',  # disabled for django 1.4
