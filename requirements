@@ -23,5 +23,5 @@ django-debug-toolbar
 django-daterange-filter
 django-cors-headers
 django-formtools
-egg=django-denorm
+django-denorm
 django-timedeltafield
