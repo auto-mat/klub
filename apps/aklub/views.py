@@ -31,7 +31,7 @@ from django.db.models import Sum, Count, Q
 import autocom
 import json
 
-from models import *
+from .models import *
 
 
 class RegularUserForm(forms.ModelForm):

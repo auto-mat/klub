@@ -20,7 +20,7 @@
 
 """Automatic communications for club management"""
 
-from models import User, Communication, AutomaticCommunication
+from .models import User, Communication, AutomaticCommunication
 import datetime
 import string
 import logging

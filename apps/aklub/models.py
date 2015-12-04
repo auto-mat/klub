@@ -42,8 +42,8 @@ import csv
 import os.path
 import stdimage
 # Local modules
-import autocom
-import confirmation
+# from . import autocom
+from . import confirmation
 import logging
 logger = logging.getLogger(__name__)
 

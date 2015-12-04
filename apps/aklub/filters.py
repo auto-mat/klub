@@ -5,8 +5,8 @@ from django.contrib.admin import SimpleListFilter
 from django.db.models import Count, Q
 from datetime import date
 
-from models import Condition, User
-import models
+from .models import Condition, User
+from . import models
 
 
 class NullFieldFilter(SimpleListFilter):

@@ -32,9 +32,9 @@ from import_export.admin import ImportExportModelAdmin
 import django.forms
 from django.utils.html import mark_safe
 # Local models
-from aklub.models import *
-from aklub import mailing
-import filters
+from .models import *
+from . import mailing
+from . import filters
 
 
 def resave_action(self, request, queryset):
@@ -117,7 +117,6 @@ def show_payments_by_year(self, request, queryset):
         .aggregate(Sum('amount'))['amount__sum'])
         for date_year in payment_dates]
     amount_string += (_("TOT.: %s") % payments.aggregate(Sum('amount'))['amount__sum'], )
-    print amount_string
     self.message_user(request, mark_safe("<br/>".join(amount_string)))
 show_payments_by_year.short_description = _("Show payments by year")
 

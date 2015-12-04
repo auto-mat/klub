@@ -5,7 +5,8 @@ from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS
 
 
 def normpath(*args):
-    os.path.normpath(os.path.abspath(os.path.join(*args)))
+    return os.path.normpath(os.path.abspath(os.path.join(*args)))
+
 
 PROJECT_ROOT = normpath(__file__, "..", "..")
 
