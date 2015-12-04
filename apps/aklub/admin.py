@@ -266,6 +266,7 @@ class NewUserAdmin(UserAdmin):
 
 class CommunicationAdmin(admin.ModelAdmin):
     list_display = ('subject', 'dispatched', 'user', 'method',  'created_by', 'handled_by',
+                    'user__regular_payments_info', 'user__payment_delay', 'user__extra_payments',
                     'date', 'type')
     raw_id_fields = ('user',)
     readonly_fields = ('type', 'created_by', 'handled_by',)
@@ -287,6 +288,14 @@ class CommunicationAdmin(admin.ModelAdmin):
                 }),
         ]
 
+    def user__regular_payments_info(self, obj):
+        return obj.user.regular_payments_info()
+
+    def user__payment_delay(self, obj):
+        return obj.user.payment_delay()
+
+    def user__extra_payments(self, obj):
+        return obj.user.extra_payments()
     
     def save_model(self, request, obj, form, change):
         if not obj.pk:
