@@ -24,7 +24,7 @@
 import django
 from django.contrib.admin.templatetags.admin_list import _boolean_icon
 from django.db import models
-from django.db.models import Sum, Count, Max, Q
+from django.db.models import Sum, Count, Q
 from django.core.mail import EmailMultiAlternatives
 from django.core.files import File
 from django.core.files.storage import FileSystemStorage
@@ -46,6 +46,7 @@ import autocom
 import confirmation
 import logging
 logger = logging.getLogger(__name__)
+
 
 class Campaign(models.Model):
     """Campaign -- abstract event with description
@@ -94,7 +95,7 @@ class Campaign(models.Model):
 
     def yield_total(self):
         if self.acquisition_campaign:
-            return User.objects.filter(campaigns=self).aggregate(yield_total = Sum('payment__amount'))['yield_total']
+            return User.objects.filter(campaigns=self).aggregate(yield_total=Sum('payment__amount'))['yield_total']
         else:
             return self.real_yield
     yield_total.short_description = _("total yield")
@@ -128,6 +129,7 @@ class Campaign(models.Model):
     def __unicode__(self):
         return self.name
 
+
 class Expense(models.Model):
     """Expense in campaign"""
 
@@ -140,7 +142,7 @@ class Expense(models.Model):
         blank=False, null=False)
     item = models.CharField(
         verbose_name=_("item"),
-        max_length=300, 
+        max_length=300,
         blank=True,
         )
     campaign = models.ForeignKey(
@@ -189,19 +191,20 @@ class Recruiter(models.Model):
         verbose_name=_("Rating"),
         help_text=_("5 = ordinary (modestly good), 0 = hopelessly bad "
                     "10 = excelent much above average"),
-        choices=[(i, str(i)) for i in range(0,11)],
+        choices=[(i, str(i)) for i in range(0, 11)],
         default=5,
         blank=False)
     campaigns = models.ManyToManyField(Campaign,
-                                       help_text = _("Associated campaigns"),
+                                       help_text=_("Associated campaigns"),
                                        blank=True,
                                        editable=True)
+
     def __unicode__(self):
         return self.person_name()
 
     def person_name(self):
         return " ".join(("%03d" % self.recruiter_id, self.firstname, self.surname))
-    person_name.short_description = _("Name") 
+    person_name.short_description = _("Name")
 
 
 class Source(models.Model):
@@ -226,6 +229,7 @@ class Source(models.Model):
     def __unicode__(self):
         return self.name
 
+
 class User(models.Model):
     """Club user model and DB table"""
 
@@ -240,24 +244,24 @@ class User(models.Model):
         ('unknown', _('Unknown')))
     LANGUAGE = (
         # TODO: List of languages used in the club should come from app settings
-        ('cs', _('Czech')), 
+        ('cs', _('Czech')),
         ('en', _('English')))
     REGULAR_PAYMENT_FREQUENCIES = (
         ('monthly', _('Monthly')),
         ('quaterly', _('Quaterly')),
         ('biannually', _('Bianually')),
         ('annually', _('Anually')))
-             
+
     # -- Basic personal information
     title_before = models.CharField(
         verbose_name=_("Title before name"),
         max_length=15, blank=True)
     firstname = models.CharField(
         verbose_name=_("First name"),
-        max_length=80) # TODO AFTER DB CLEANUP: null=False
+        max_length=80)  # TODO AFTER DB CLEANUP: null=False
     surname = models.CharField(
         verbose_name=_("Surname"),
-        max_length=80) # TODO AFTER DB CLEANUP: null=False
+        max_length=80)  # TODO AFTER DB CLEANUP: null=False
     title_after = models.CharField(
         verbose_name=_("Title after name"),
         max_length=15, blank=True)
@@ -363,12 +367,12 @@ class User(models.Model):
         max_length=20, blank=True, null=True)
     expected_date_of_first_payment = models.DateField(
         verbose_name=_("Expected date of first payment"),
-        help_text = ("When should the first payment arrive on our account"),
+        help_text=("When should the first payment arrive on our account"),
         blank=True, null=True)
     other_support = models.TextField(
         verbose_name=_("Other support"),
-        help_text=
-        _("If the user supports us in other ways, please specify here."),
+        help_text=_(
+            "If the user supports us in other ways, please specify here."),
         max_length=500, blank=True)
     public = models.BooleanField(
         verbose_name=_("Publish my name in the list of supporters"),
@@ -384,8 +388,9 @@ class User(models.Model):
         default=True)
     active = models.BooleanField(
         verbose_name=_("Active"),
-        help_text=_("Is the user active member? Use this field to disable old "
-                   "or temporary users."),
+        help_text=_(
+            "Is the user active member? Use this field to disable old "
+            "or temporary users."),
         default=True)
     profile_text = models.TextField(
         verbose_name=_("What is your reason?"),
@@ -401,7 +406,7 @@ class User(models.Model):
         blank=True, null=True)
 
     # --- Communication
-    
+
     # Benefits
     club_card_available = models.BooleanField(
         verbose_name=_("Club card available"),
@@ -418,11 +423,12 @@ class User(models.Model):
     note = models.TextField(
         verbose_name=_("Note for making a boring form more lively"),
         max_length=2000, blank=True)
-    campaigns = models.ManyToManyField(Campaign, 
-                                       help_text = _("Associated campaigns"),
-                                       related_name='members',
-                                       blank=True,
-                                       editable=True)
+    campaigns = models.ManyToManyField(
+        Campaign,
+        help_text=_("Associated campaigns"),
+        related_name='members',
+        blank=True,
+        editable=True)
     recruiter = models.ForeignKey(Recruiter, blank=True, null=True)
     verified = models.BooleanField(
         _("Verified"),
@@ -444,7 +450,7 @@ class User(models.Model):
 
     def person_name(self):
         return " ".join((self.surname, self.firstname))
-    person_name.short_description = _("Full name") 
+    person_name.short_description = _("Full name")
 
     def requires_action(self):
         """Return true if the user requires some action from
@@ -466,9 +472,9 @@ class User(models.Model):
         """Return number of payments made by this user
         """
         return self.payment_set.aggregate(count=Count('amount'))['count']
-    number_of_payments.short_description = _("# payments") 
+    number_of_payments.short_description = _("# payments")
     number_of_payments.admin_order_field = 'payments_number'
-    
+
     def last_payment_function(self):
         """Return last payment"""
         return self.payments().order_by('date').last()
@@ -548,12 +554,12 @@ class User(models.Model):
             # Check for regular payments
             # (Allow 7 days for payment processing)
             if expected_regular_payment_date:
-               expected_with_tolerance = expected_regular_payment_date + datetime.timedelta(days=10)
-               if (expected_with_tolerance
-                   < datetime.date.today()):
-                   return datetime.date.today()-expected_with_tolerance
-               else:
-                   return False
+                expected_with_tolerance = expected_regular_payment_date + datetime.timedelta(days=10)
+                if (expected_with_tolerance <
+                        datetime.date.today()):
+                    return datetime.date.today()-expected_with_tolerance
+                else:
+                    return False
         else:
             return False
 
@@ -567,8 +573,8 @@ class User(models.Model):
             if not freq:
                 return None
             total = sum([p.amount for p in Payment.objects.filter(
-                        user=self, date__gt = datetime.date.today()-freq + \
-                        + datetime.timedelta(days=3))])
+                        user=self, date__gt=datetime.date.today() - freq +
+                        datetime.timedelta(days=3))])
             if total and self.regular_amount and total > self.regular_amount:
                 return total - self.regular_amount
         return None
@@ -600,7 +606,7 @@ class User(models.Model):
     extra_payments.admin_order_field = 'extra_money'
 
     def mail_communications_count(self):
-        return self.communications.filter(method = "mail").count()
+        return self.communications.filter(method="mail").count()
 
     @denormalized(models.FloatField, null=True)
     @depend_on_related('Payment', foreign_key="user")
@@ -619,9 +625,9 @@ class User(models.Model):
     registered_support_date.short_description = _("Registration")
     registered_support_date.admin_order_field = 'registered_support'
 
-    def payment_total(self, from_date, to_date):
+    def payment_total_range(self, from_date, to_date):
         return self.payment_set.filter(date__gte=from_date, date__lte=to_date).aggregate(sum=Sum('amount'))['sum'] or 0
-    
+
     def save(self, *args, **kwargs):
         """Record save hook
 
@@ -637,21 +643,21 @@ class User(models.Model):
         autocom.check(users=User.objects.filter(pk=self.pk), action=(insert and 'new-user' or None))
 
     def make_tax_confirmation(self, year):
-	amount = self.payment_set.exclude(type='expected').filter(date__year=year).aggregate(Sum('amount'))['amount__sum']
-	if not amount:
-		return
-	temp = NamedTemporaryFile()
-	name = u"%s %s" % (self.firstname, self.surname)
-	addr_city = u"%s %s" % (self.zip_code, self.city)
-	confirmation.makepdf(temp, name, self.sex, self.street, addr_city, year, amount)
-	try:
-		conf = TaxConfirmation.objects.get(user=self,year=year)
-	except TaxConfirmation.DoesNotExist:
-		conf = TaxConfirmation(user=self,year=year)
-	conf.file = File(temp)
+        amount = self.payment_set.exclude(type='expected').filter(date__year=year).aggregate(Sum('amount'))['amount__sum']
+        if not amount:
+                return
+        temp = NamedTemporaryFile()
+        name = u"%s %s" % (self.firstname, self.surname)
+        addr_city = u"%s %s" % (self.zip_code, self.city)
+        confirmation.makepdf(temp, name, self.sex, self.street, addr_city, year, amount)
+        try:
+                conf = TaxConfirmation.objects.get(user=self, year=year)
+        except TaxConfirmation.DoesNotExist:
+                conf = TaxConfirmation(user=self, year=year)
+        conf.file = File(temp)
         conf.amount = amount
-	conf.save()
-	return conf
+        conf.save()
+        return conf
 
     @denormalized(models.NullBooleanField, null=True)
     @depend_on_related('Payment', foreign_key="user")
@@ -664,11 +670,11 @@ class User(models.Model):
 
         This really only makes sense for monthly payments.
         """
-        if self.regular_payments != True:
+        if not self.regular_payments:
             return False
         payment_now = self.last_payment_function()
         if ((not payment_now) or
-            (payment_now.date < (datetime.date.today()-datetime.timedelta(days=45)))):
+                (payment_now.date < (datetime.date.today() - datetime.timedelta(days=45)))):
             return False
         payments_year_before = Payment.objects.filter(
             user=self,
@@ -692,18 +698,22 @@ class User(models.Model):
         else:
             return 0.0
 
+
 def filter_by_condition(queryset, cond):
     # Hack: It would be better to work directly on the objects
     # of the queryset rather than extracting ids from another
     # DB query and then filtering the former queryset
     return queryset.filter(cond.get_query())
 
+
 class NewUserManager(models.Manager):
     def get_queryset(self):
-        return super(NewUserManager,self).get_queryset().filter(verified=False)
+        return super(NewUserManager, self).get_queryset().filter(verified=False)
+
 
 class NewUser(User):
     objects = NewUserManager()
+
     class Meta:
         proxy = True
         verbose_name = _("new user")
@@ -711,16 +721,20 @@ class NewUser(User):
 
 
 class UserYearPayments(User):
+
     def get_queryset(self):
-        return super(NewUserManager,self).get_queryset().filter(verified=False)
+        return super(NewUserManager, self).get_queryset().filter(verified=False)
+
     class Meta:
         proxy = True
 
 
 def str_to_datetime(date):
-    return datetime.date(**dict(
-        zip(['day', 'month', 'year'],
-        [int(val) for val in date.split('.')])))
+    return datetime.date(
+        **dict(zip(
+            ['day', 'month', 'year'],
+            [int(val) for val in date.split('.')])))
+
 
 class AccountStatements(models.Model):
     """AccountStatemt entry and DB model
@@ -732,7 +746,7 @@ class AccountStatements(models.Model):
     class Meta:
         verbose_name = _("Account Statement")
         verbose_name_plural = _("Account Statements")
-	ordering = ['-import_date']
+        ordering = ['-import_date']
 
     TYPE_OF_STATEMENT = (
         ('account', _('Account statement')),
@@ -747,10 +761,10 @@ class AccountStatements(models.Model):
         blank=True, null=True)
     date_to = models.DateField(
         blank=True, null=True)
-    
+
     def clean(self, *args, **kwargs):
         super(AccountStatements, self).clean(*args, **kwargs)
-        if not self.pk: #new Account statement
+        if not self.pk:  # new Account statement
             if self.type == 'account':
                 self.payments = self.parse_bank_csv()
             elif self.type == 'darujme':
@@ -780,8 +794,10 @@ class AccountStatements(models.Model):
         self.date_to = str_to_datetime(date_end)
         super(AccountStatements, self).save()
 
-        payments_reader = csv.DictReader(data.split("\n"), delimiter=';',
-                                 fieldnames = [
+        payments_reader = csv.DictReader(
+            data.split("\n"),
+            delimiter=';',
+            fieldnames=[
                 'transfer', 'date', 'amount', 'account', 'bank_code', 'BIC', 'KS', 'VS',
                 'SS', 'user_identification', 'type', 'done_by', 'account_name',
                 'bank_name', 'unknown'
@@ -790,25 +806,25 @@ class AccountStatements(models.Model):
         first_line = True
         payments = []
         for payment in payments_reader:
-	    #print payment
+            # print payment
             if first_line:
                 first_line = False
-		#print "found first_line"
+                # print "found first_line"
             elif payment['date'] == 'Suma':
                 break
             else:
                 del payment['transfer']
                 del payment['unknown']
-		#print "PAYMENT", payment
-		#print payment['date']
-                d,m,y = payment['date'].split('.')
-                payment['date'] = "%04d-%02d-%02d" % (int(y),int(m),int(d))
+                # print "PAYMENT", payment
+                # print payment['date']
+                d, m, y = payment['date'].split('.')
+                payment['date'] = "%04d-%02d-%02d" % (int(y), int(m), int(d))
                 payment['amount'] = int(round(float(
-                            payment['amount'].replace(',','.').replace(' ',''))))
+                            payment['amount'].replace(',', '.').replace(' ', ''))))
                 if payment['amount'] < 0:
                     # Skip transfers from the club account,
                     # only process contributions
-                    continue                 
+                    continue
                 p = Payment(**payment)
                 # Payments pairing'
                 if p.VS != '':
@@ -816,11 +832,11 @@ class AccountStatements(models.Model):
                     if len(users_with_vs) == 1:
                         p.user = users_with_vs[0]
                     elif len(users_with_vs) > 1:
-                        raise Exception("Duplicit variable symbol (%s) detected "
-                                        "for users: %s!" %
-                                        (p.VS,
-                                         ",".join(
-                                    [str(user) for user in users_with_vs])))
+                        raise Exception(
+                            "Duplicit variable symbol (%s) detected "
+                            "for users: %s!" %
+                            (p.VS, ",".join(
+                                [str(user) for user in users_with_vs])))
                 else:
                     p.VS = None
                 p.type = 'bank-transfer'
@@ -830,6 +846,7 @@ class AccountStatements(models.Model):
 
     def __unicode__(self):
         return "%s (%s)" % (self.pk, self.import_date)
+
 
 class Payment(models.Model):
     """Payment model and DB table
@@ -851,8 +868,7 @@ class Payment(models.Model):
     class Meta:
         verbose_name = _("Payment")
         verbose_name_plural = _("Payments")
-	ordering = ['-date']
-
+        ordering = ['-date']
 
     TYPE_OF_PAYMENT = (
         ('bank-transfer', _('Bank transfer')),
@@ -876,7 +892,7 @@ class Payment(models.Model):
         max_length=30, blank=True)
     VS = models.CharField(
         verbose_name=_("VS"),
-        help_text= _("Variable symbol"),
+        help_text=_("Variable symbol"),
         max_length=30, blank=True)
     SS = models.CharField(
         _("SS"),
@@ -913,7 +929,7 @@ class Payment(models.Model):
         max_length=200, blank=True)
     bank_name = models.CharField(
         verbose_name=_("Bank name"),
-        max_length=500, blank=True)    
+        max_length=500, blank=True)
     # Pairing of payments with a specific club system user
     user = models.ForeignKey(User, blank=True, null=True)
     # Origin of payment from bank account statement
@@ -926,7 +942,7 @@ class Payment(models.Model):
 
     def paired_with_expected(self):
         """Return if the payment is paired with an expected payment
-        
+
         Expected payments are of two types:
 
         1) Single individual payments, that were previously registered as
@@ -970,6 +986,7 @@ COMMUNICATION_TYPE = (
     ('individual', _("Individual")),
 )
 
+
 class Communication(models.Model):
     """Communication entry and DB Model
 
@@ -983,11 +1000,12 @@ class Communication(models.Model):
     class Meta:
         verbose_name = _("Communication")
         verbose_name_plural = _("Communications")
-	ordering = ['date']
+        ordering = ['date']
 
-    user = models.ForeignKey(User,
+    user = models.ForeignKey(
+        User,
         related_name="communications",
-        )
+    )
     method = models.CharField(
         verbose_name=_("Method"),
         max_length=30, choices=COMMUNICATION_METHOD)
@@ -1041,11 +1059,11 @@ class Communication(models.Model):
         If state of the dispatched field changes to True, call
         the automated dispatch() method.
         """
-        if self.send == True:
-            self.dispatch(save=False) # then try to dispatch this email automatically
+        if self.send:
+            self.dispatch(save=False)  # then try to dispatch this email automatically
         super(Communication, self).save(*args, **kwargs)
 
-    def dispatch(self, save = True):
+    def dispatch(self, save=True):
         """Dispatch the communication
 
         Currently only method 'email' is implemented, all other methods will be only saved. For these messages, the
@@ -1061,10 +1079,12 @@ class Communication(models.Model):
             else:
                 bcc = ['kp@auto-mat.cz']
 
-            email = EmailMultiAlternatives(subject=self.subject, body=self.summary_txt(),
-                                 from_email = 'Klub pratel Auto*Matu <kp@auto-mat.cz>',
-                                 to = [self.user.email],
-                                 bcc = bcc)
+            email = EmailMultiAlternatives(
+                subject=self.subject,
+                body=self.summary_txt(),
+                from_email='Klub pratel Auto*Matu <kp@auto-mat.cz>',
+                to=[self.user.email],
+                bcc=bcc)
             if self.type != 'individual':
                 email.attach_alternative(self.summary, "text/html")
             if self.attachment:
@@ -1092,9 +1112,10 @@ class Communication(models.Model):
         else:
             return html2text.html2text(self.summary)
 
+
 class ConditionValues(object):
     """Iterator that returns values available for Klub Conditions
-    
+
     Returns tuples (val, val) where val is a string of the form
     model.cid where model is the name of the model in lower case
     and cid is the database column id (name).
@@ -1116,13 +1137,15 @@ class ConditionValues(object):
                      'User.last_payment': Payment,
                      }[name]
             # DB fields
-            self._columns += [(name, field.name, string_concat(name, " ", field.verbose_name), field.get_internal_type(), zip(*field.choices)[0] if field.choices else "") for field in model._meta.fields]
+            self._columns += [
+                (name, field.name, string_concat(name, " ", field.verbose_name), field.get_internal_type(), zip(*field.choices)[0] if field.choices else "")
+                for field in model._meta.fields]
         self._columns.sort()
         self._index = 0
 
     def __iter__(self):
         return self
- 
+
     def next(self):
         try:
             name, secondary_name, verbose_name, condition_type, choices = self._columns[self._index]
@@ -1255,7 +1278,7 @@ class TerminalCondition(models.Model):
     OPERATORS = (
                 ('=', _(u'is equal to')),
                 ('!=', _(u'is not equal to')),
-                ('like', _(u'is like')), # in SQL sense
+                ('like', _(u'is like')),  # in SQL sense
                 ('>', _(u'greater than')),
                 ('<', _(u'less than')))
 
@@ -1271,7 +1294,11 @@ class TerminalCondition(models.Model):
     # One of value or conds must be non-null
     value = models.CharField(
         verbose_name=_("Value"),
-        help_text=_("Value or variable on right-hand side. <br/>\naction: daily, new-user<br/>\nDateField: month_ago, one_day, one_week, two_weeks, one_month<br/>\nBooleanField: True, False"),
+        help_text=_(
+            "Value or variable on right-hand side. <br/>"
+            "\naction: daily, new-user<br/>"
+            "\nDateField: month_ago, one_day, one_week, two_weeks, one_month<br/>"
+            "\nBooleanField: True, False"),
         max_length=50, blank=True, null=True)
     condition = models.ForeignKey(Condition)
 
@@ -1321,7 +1348,7 @@ class TerminalCondition(models.Model):
                     return int(spec)
                 except (TypeError, ValueError):
                     return spec
-        
+
         def get_querystring(spec, operatoin):
             if self.operation == '=':
                 op_string = ""
@@ -1385,8 +1412,8 @@ class AutomaticCommunication(models.Model):
         blank=True, null=True)
     template = models.TextField(
         verbose_name=_("Template"),
-        help_text = _("Template can contain variable substitutions like addressment, name, "
-                      "variable symbol etc."),
+        help_text=_("Template can contain variable substitutions like addressment, name, "
+                    "variable symbol etc."),
         max_length=50000)
     template_en = models.TextField(
         verbose_name=_("English template"),
@@ -1394,22 +1421,25 @@ class AutomaticCommunication(models.Model):
         blank=True, null=True)
     only_once = models.BooleanField(
         verbose_name=_("Only once"),
-        help_text = _("If checked, never send this communication twice to one user"),
+        help_text=_("If checked, never send this communication twice to one user"),
         default=True)
     dispatch_auto = models.BooleanField(
         verbose_name=_("Dispatch auto"),
-        help_text = _("If checked, the communication might be dispatched by the system "
-                      "(e.g. an email sent) as soon as condition becomes true, without "
-                      "any further action from the administrator. If not, the communication "
-                      "is created, but the administrator must send it manually."),
+        help_text=_("If checked, the communication might be dispatched by the system "
+                    "(e.g. an email sent) as soon as condition becomes true, without "
+                    "any further action from the administrator. If not, the communication "
+                    "is created, but the administrator must send it manually."),
         default=False)
-    sent_to_users = models.ManyToManyField(User, 
-                                           help_text = _(
+    sent_to_users = models.ManyToManyField(
+        User,
+        help_text=_(
             "List of users to whom this communication was already sent"),
-                                           blank=True,
-                                           )
+        blank=True,
+        )
+
     def __unicode__(self):
         return self.name
+
 
 class MassCommunication(models.Model):
     """MassCommunication entry and DB model"""
@@ -1439,8 +1469,9 @@ class MassCommunication(models.Model):
         blank=True, null=True)
     template = models.TextField(
         verbose_name=_("Template"),
-        help_text = _("Template can contain variable substitutions like addressment, name, "
-                      "variable symbol etc."),
+        help_text=_(
+            "Template can contain variable substitutions like addressment, name, "
+            "variable symbol etc."),
         max_length=50000,
         blank=True, null=True)
     template_en = models.TextField(
@@ -1457,20 +1488,22 @@ class MassCommunication(models.Model):
                     "for last year is appended to the message."),
         default=False
         )
-    send_to_users = models.ManyToManyField(User, 
-            verbose_name=_("send to users"),
-                                           help_text = _(
+    send_to_users = models.ManyToManyField(
+        User,
+        verbose_name=_("send to users"),
+        help_text=_(
             "All users who should receive the communication"),
-                                           limit_choices_to = {'active': 'True', 'wished_information': 'True'},
-                                           blank=True)
+        limit_choices_to={'active': 'True', 'wished_information': 'True'},
+        blank=True)
     note = models.TextField(
         verbose_name=_("note"),
-        help_text = _("Note"),
+        help_text=_("Note"),
         max_length=500,
         blank=True, null=True)
 
     def __unicode__(self):
         return self.name
+
 
 class OverwriteStorage(FileSystemStorage):
     def get_available_name(self, name):
@@ -1483,15 +1516,17 @@ class OverwriteStorage(FileSystemStorage):
                 self.delete(name)
         return name
 
+
 def confirmation_upload_to(instance, filename):
-	return "confirmations/%s_%s.pdf" % (instance.user.id, instance.year)
+        return "confirmations/%s_%s.pdf" % (instance.user.id, instance.year)
+
 
 class TaxConfirmation(models.Model):
 
-	user = models.ForeignKey(User)
-	year = models.PositiveIntegerField()
+        user = models.ForeignKey(User)
+        year = models.PositiveIntegerField()
         amount = models.PositiveIntegerField(default=0)
-	file = models.FileField(upload_to=confirmation_upload_to, storage=OverwriteStorage())
+        file = models.FileField(upload_to=confirmation_upload_to, storage=OverwriteStorage())
 
         def user__regular_payments(self):
             return self.user.regular_payments
@@ -1516,6 +1551,7 @@ class StatMemberCountsByMonths(models.Model):
     irregular = models.IntegerField()
     total = models.IntegerField()
     run_total = models.IntegerField()
+
 
 class StatPaymentsByMonths(models.Model):
 

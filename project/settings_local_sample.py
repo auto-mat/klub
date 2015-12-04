@@ -1,4 +1,4 @@
-from settings import *
+from settings import *  # noqa
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -21,7 +21,7 @@ DATABASES = {
         },
 }
 
-SECRET_KEY=''
+SECRET_KEY = ''
 
-#Make log in execution directory when testing
+# Make log in execution directory when testing
 LOGGING['handlers']['logfile']['filename'] = "aklub.log"

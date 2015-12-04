@@ -36,9 +36,11 @@ from aklub.models import *
 from aklub import mailing
 import filters
 
+
 def resave_action(self, request, queryset):
     for q in queryset:
         q.save()
+
 
 def export_as_csv_action(description="Export selected objects as CSV file",
                          fields=None, exclude=None, header=True):
@@ -78,24 +80,29 @@ def export_as_csv_action(description="Export selected objects as CSV file",
     export_as_csv.short_description = description
     return export_as_csv
 
+
 # -- INLINE FORMS --
 class PaymentsInline(admin.TabularInline):
     model = Payment
     list_display = ('amount', 'person_name', 'date', 'paired_with_expected')
     extra = 5
 
+
 class PaymentsInlineNoExtra(PaymentsInline):
     raw_id_fields = ('user',)
     extra = 0
+
 
 class CommunicationInline(admin.TabularInline):
     model = Communication
     extra = 1
     readonly_fields = ('type', 'created_by', 'handled_by')
+
     def get_queryset(self, request):
         qs = super(CommunicationInline, self).get_queryset(request)
         qs = qs.filter(type__in=('individual', 'auto')).order_by('-date')
         return qs
+
 
 class ExpenseInline(admin.TabularInline):
     model = Expense
@@ -123,25 +130,27 @@ class UserAdmin(ImportExportModelAdmin):
                     'number_of_payments', 'total_contrib_string', 'regular_amount',
                     'active', 'last_payment_date')
     date_hierarchy = 'registered_support'
-    list_filter = ['regular_payments', 'language', 'active', 'wished_information', 'old_account', 'source', 'campaigns', ('registered_support', DateRangeFilter), filters.EmailFilter, filters.UserConditionFilter, filters.UserConditionFilter1]
+    list_filter = [
+        'regular_payments', 'language', 'active', 'wished_information', 'old_account',
+        'source', 'campaigns', ('registered_support', DateRangeFilter), filters.EmailFilter,
+        filters.UserConditionFilter, filters.UserConditionFilter1]
     search_fields = ['firstname', 'surname', 'variable_symbol', 'email']
     ordering = ('surname',)
     actions = ('send_mass_communication',
                show_payments_by_year,
                resave_action,
                export_as_csv_action(fields=(
-                'title_before', 'firstname', 'surname', 'title_after', 'sex', 'telephone', 'email',
-                'street', 'city', 'zip_code', 'variable_symbol', 'club_card_available',
-                'regular_payments', 'regular_frequency', 'registered_support',
-                'note', 'additional_information', 'active', 'language', 'recruiter')
-            ))
+                   'title_before', 'firstname', 'surname', 'title_after', 'sex', 'telephone', 'email',
+                   'street', 'city', 'zip_code', 'variable_symbol', 'club_card_available',
+                   'regular_payments', 'regular_frequency', 'registered_support',
+                   'note', 'additional_information', 'active', 'language', 'recruiter')))
     save_as = True
     list_max_show_all = 10000
     list_per_page = 100
     inlines = [PaymentsInline, CommunicationInline]
     raw_id_fields = ('recruiter',)
     readonly_fields = ('verified_by',)
-    filter_horizontal = ('campaigns',) # broken in django pre-1.4
+    filter_horizontal = ('campaigns',)  # broken in django pre-1.4
     fieldsets = [
         (_('Basic personal'), {
                 'fields': [('firstname', 'surname'),
@@ -162,7 +171,7 @@ class UserAdmin(ImportExportModelAdmin):
                 'classes': ['collapse']}),
         (_('Support'), {
                 'fields': ['variable_symbol',
-                           'registered_support',                           
+                           'registered_support',
                            ('regular_payments', 'regular_frequency',
                             'regular_amount', 'expected_date_of_first_payment',
                             'exceptional_membership'),
@@ -187,10 +196,10 @@ class UserAdmin(ImportExportModelAdmin):
         return qs.select_related('source__name')
 
     def save_formset(self, request, form, formset, change):
-	# We need to save the request.user to inline Communication
-	# the same as we do in CommunicationAdmin.save_model().
-	# Unfortunatelly, save_model() doesn't work on CommunicationInline
-	# so we need to workaround it using save_formset here.
+        # We need to save the request.user to inline Communication
+        # the same as we do in CommunicationAdmin.save_model().
+        # Unfortunatelly, save_model() doesn't work on CommunicationInline
+        # so we need to workaround it using save_formset here.
         if not issubclass(formset.model, Communication):
             return super(UserAdmin, self).save_formset(request, form, formset, change)
         instances = formset.save(commit=False)
@@ -216,7 +225,7 @@ class UserAdmin(ImportExportModelAdmin):
         selected = [str(e.pk) for e in queryset.all()]
         return HttpResponseRedirect("/admin/aklub/masscommunication/add/?send_to_users=%s" %
                                     (",".join(selected),))
-    send_mass_communication.short_description = _("Send mass communication")    
+    send_mass_communication.short_description = _("Send mass communication")
 
 
 class UserYearPaymentsAdmin(UserAdmin):
@@ -224,16 +233,19 @@ class UserYearPaymentsAdmin(UserAdmin):
                     'variable_symbol', 'registered_support_date',
                     'payment_total_by_year',
                     'active', 'last_payment_date')
-    list_filter = [('payment__date', DateRangeFilter), 'regular_payments', 'language', 'active', 'wished_information', 'old_account', 'source', 'campaigns', ('registered_support', DateRangeFilter), filters.EmailFilter, filters.UserConditionFilter, filters.UserConditionFilter1]
+    list_filter = [
+        ('payment__date', DateRangeFilter), 'regular_payments', 'language', 'active',
+        'wished_information', 'old_account', 'source', 'campaigns',
+        ('registered_support', DateRangeFilter), filters.EmailFilter, filters.UserConditionFilter, filters.UserConditionFilter1]
 
     def payment_total_by_year(self, obj):
         if self.from_date and self.to_date:
-            return obj.payment_total(datetime.datetime.strptime(self.from_date, '%d.%m.%Y'), datetime.datetime.strptime(self.to_date, '%d.%m.%Y'))
+            return obj.payment_total_range(datetime.datetime.strptime(self.from_date, '%d.%m.%Y'), datetime.datetime.strptime(self.to_date, '%d.%m.%Y'))
 
     def changelist_view(self, request, extra_context=None):
         self.from_date = request.GET.get('drf__payment__date__gte', None)
         self.to_date = request.GET.get('drf__payment__date__lte', None)
-        return super(UserYearPaymentsAdmin,self).changelist_view(request, extra_context=extra_context)
+        return super(UserYearPaymentsAdmin, self).changelist_view(request, extra_context=extra_context)
 
 
 class PaymentAdmin(admin.ModelAdmin):
@@ -241,13 +253,14 @@ class PaymentAdmin(admin.ModelAdmin):
                     'VS', 'SS', 'user_identification', 'type', 'paired_with_expected')
     fieldsets = [
         (_("Basic"), {
-                'fields' : ['user', 'date', 'amount',
-                            ('type', )]
+                'fields': [
+                    'user', 'date', 'amount',
+                    ('type', )]
                 }),
         (_("Details"), {
                 'fields': [('account', 'bank_code'),
                            ('account_name', 'bank_name'),
-                           ('VS', 'KS', 'SS'),                           
+                           ('VS', 'KS', 'SS'),
                            'user_identification',
                            'account_statement']
                 }),
@@ -259,24 +272,26 @@ class PaymentAdmin(admin.ModelAdmin):
     search_fields = ['user__surname', 'user__firstname', 'amount', 'VS', 'SS', 'user_identification']
     actions = (export_as_csv_action(fields=list_display),)
 
+
 class NewUserAdmin(UserAdmin):
     list_display = ('person_name', 'is_direct_dialogue',
                     'variable_symbol', 'regular_payments', 'registered_support',
                     'recruiter', 'active')
 
+
 class CommunicationAdmin(admin.ModelAdmin):
     list_display = ('subject', 'dispatched', 'user', 'method',  'created_by', 'handled_by',
                     'user__regular_payments_info', 'user__payment_delay', 'user__extra_payments',
                     'date', 'type')
-    raw_id_fields = ('user',)
-    readonly_fields = ('type', 'created_by', 'handled_by',)
-    list_filter = [ 'dispatched', 'send', 'date', 'method', 'type',]
+    raw_id_fields = ('user', )
+    readonly_fields = ('type', 'created_by', 'handled_by', )
+    list_filter = ['dispatched', 'send', 'date', 'method', 'type', ]
     date_hierarchy = 'date'
     ordering = ('-date',)
 
     fieldsets = [
         (_("Header"), {
-                'fields' : [('user', 'method', 'date')]
+                'fields': [('user', 'method', 'date')]
                 }),
         (_("Content"), {
                 'fields': ['subject',
@@ -284,7 +299,7 @@ class CommunicationAdmin(admin.ModelAdmin):
                            'note']
                 }),
         (_("Sending"), {
-                'fields' : [('created_by', 'handled_by', 'send', 'dispatched')]
+                'fields': [('created_by', 'handled_by', 'send', 'dispatched')]
                 }),
         ]
 
@@ -296,7 +311,7 @@ class CommunicationAdmin(admin.ModelAdmin):
 
     def user__extra_payments(self, obj):
         return obj.user.extra_payments()
-    
+
     def save_model(self, request, obj, form, change):
         if not obj.pk:
             obj.created_by = request.user
@@ -312,6 +327,7 @@ class CommunicationAdmin(admin.ModelAdmin):
         qs = super(CommunicationAdmin, self).get_queryset(request)
         return qs.exclude(type='mass', dispatched='true')
 
+
 class AutomaticCommunicationAdmin(admin.ModelAdmin):
     list_display = ('name', 'method', 'subject')
     filter_horizontal = ('sent_to_users',)
@@ -325,20 +341,21 @@ class AutomaticCommunicationAdmin(admin.ModelAdmin):
             messages.info(request, _("Emails sent to following addreses: %s") % request.user.email)
         return obj
 
+
 class MassCommunicationAdmin(admin.ModelAdmin):
     save_as = True
     list_display = ('name', 'date', 'method', 'subject')
     ordering = ('date',)
 
     filter_horizontal = ('send_to_users',)
-    
+
     formfield_overrides = {
-        django.db.models.CharField: {'widget': django.forms.TextInput(attrs={'size':'60'})},
+        django.db.models.CharField: {'widget': django.forms.TextInput(attrs={'size': '60'})},
     }
-    
+
     fieldsets = [
         (_("Basic"), {
-                'fields' : [('name', 'method', 'date', 'note')]
+                'fields': [('name', 'method', 'date', 'note')]
                 }),
         (_("Content"), {
                 'fields': [('subject', 'subject_en'),
@@ -346,7 +363,7 @@ class MassCommunicationAdmin(admin.ModelAdmin):
                            ('attachment', 'attach_tax_confirmation')]
                 }),
         (_("Sending"), {
-                'fields' : ['send_to_users']
+                'fields': ['send_to_users']
                 }),
         ]
 
@@ -371,20 +388,22 @@ class TerminalConditionInline(admin.TabularInline):
     readonly_fields = ("variable_description",)
     extra = 0
 
+
 class TerminalConditionAdmin(ImportExportModelAdmin):
     list_display = ('variable', 'operation', 'value', 'condition')
+
 
 class ConditionAdmin(ImportExportModelAdmin):
     save_as = True
     list_display = ('name', 'as_filter', 'on_dashboard', 'operation', 'condition_string')
     filter_horizontal = ('conds',)
-    inlines = [TerminalConditionInline,]
+    inlines = [TerminalConditionInline, ]
     fieldsets = [
         (_("Description"), {
-                'fields' : ['name']
+                'fields': ['name']
                 }),
         (_("Operator"), {
-                'fields' : ['operation']
+                'fields': ['operation']
                 }),
         (_("Logical conditions operands"), {
                 'fields': ['conds']
@@ -395,6 +414,7 @@ class ConditionAdmin(ImportExportModelAdmin):
         ]
 
     ordering = ('name',)
+
 
 class AccountStatementsAdmin(admin.ModelAdmin):
     list_display = ('type', 'import_date', 'payments_count', 'csv_file', 'date_from', 'date_to')
@@ -414,12 +434,20 @@ class AccountStatementsAdmin(admin.ModelAdmin):
             messages.info(request, 'Payments without user: %s' % payments_without_user)
         obj.save()
 
+
 class CampaignAdmin(admin.ModelAdmin):
-    list_display = ('name', 'created', 'terminated', 'number_of_members', 'number_of_recruiters', 'acquisition_campaign', 'yield_total', 'total_expenses', 'expected_monthly_income', 'return_of_investmensts', 'average_yield', 'average_expense')
-    fields = ('created', 'terminated', 'name', 'description', 'acquisition_campaign', 'real_yield', 'number_of_members', 'number_of_recruiters', 'yield_total', 'total_expenses', 'expected_monthly_income', 'return_of_investmensts', 'average_yield', 'average_expense')
-    readonly_fields = ('number_of_members', 'number_of_recruiters', 'yield_total', 'total_expenses', 'expected_monthly_income', 'return_of_investmensts', 'average_yield', 'average_expense')
+    list_display = (
+        'name', 'created', 'terminated', 'number_of_members', 'number_of_recruiters', 'acquisition_campaign', 'yield_total',
+        'total_expenses', 'expected_monthly_income', 'return_of_investmensts', 'average_yield', 'average_expense')
+    fields = (
+        'created', 'terminated', 'name', 'description', 'acquisition_campaign', 'real_yield', 'number_of_members',
+        'number_of_recruiters', 'yield_total', 'total_expenses', 'expected_monthly_income', 'return_of_investmensts', 'average_yield', 'average_expense')
+    readonly_fields = (
+        'number_of_members', 'number_of_recruiters', 'yield_total', 'total_expenses',
+        'expected_monthly_income', 'return_of_investmensts', 'average_yield', 'average_expense')
     list_filter = ('acquisition_campaign', filters.ActiveCampaignFilter)
     inlines = (ExpenseInline, )
+
 
 class RecruiterAdmin(admin.ModelAdmin):
     list_display = ('recruiter_id', 'person_name', 'email', 'telephone', 'problem', 'rating')
@@ -427,8 +455,10 @@ class RecruiterAdmin(admin.ModelAdmin):
     actions = (export_as_csv_action(fields=list(list_display)+['note']),)
     filter_horizontal = ('campaigns',)
 
+
 class SourceAdmin(admin.ModelAdmin):
     list_display = ('slug', 'name', 'direct_dialogue')
+
 
 class TaxConfirmationAdmin(admin.ModelAdmin):
     list_display = ('user', 'year', 'amount', 'file', 'user__regular_payments')
@@ -439,21 +469,22 @@ class TaxConfirmationAdmin(admin.ModelAdmin):
     list_max_show_all = 10000
 
     def generate(self, request):
-	year = datetime.datetime.now().year - 1
-	payed = Payment.objects.filter(date__year=year).exclude(type='expected').values_list('user_id', flat=True)
-	donors = User.objects.filter(id__in=payed).order_by('surname')
-	count = 0
-	for d in donors:
-	    c = d.make_tax_confirmation(year)
-	    if c:
-		count += 1
+        year = datetime.datetime.now().year - 1
+        payed = Payment.objects.filter(date__year=year).exclude(type='expected').values_list('user_id', flat=True)
+        donors = User.objects.filter(id__in=payed).order_by('surname')
+        count = 0
+        for d in donors:
+            c = d.make_tax_confirmation(year)
+            if c:
+                count += 1
         messages.info(request, 'Generated %d tax confirmations' % count)
-	return HttpResponseRedirect(reverse('admin:aklub_taxconfirmation_changelist'))
+        return HttpResponseRedirect(reverse('admin:aklub_taxconfirmation_changelist'))
 
     def get_urls(self):
         from django.conf.urls import patterns, url
         urls = super(TaxConfirmationAdmin, self).get_urls()
-        my_urls = patterns('',
+        my_urls = patterns(
+            '',
             url(
                 r'generate',
                 self.admin_site.admin_view(self.generate),
@@ -461,7 +492,7 @@ class TaxConfirmationAdmin(admin.ModelAdmin):
             ),
         )
         return my_urls + urls
-    
+
 
 admin.site.register(User, UserAdmin)
 admin.site.register(UserYearPayments, UserYearPaymentsAdmin)

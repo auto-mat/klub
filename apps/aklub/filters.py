@@ -2,15 +2,15 @@
 
 from django.utils.translation import ugettext as _
 from django.contrib.admin import SimpleListFilter
-from django.db.models import Sum, Count, Q
+from django.db.models import Count, Q
 from datetime import date
 
 from models import Condition, User
 import models
-import autocom
+
 
 class NullFieldFilter(SimpleListFilter):
-    """This fiters nullable fields by 
+    """This fiters nullable fields by
            'All' (no filter),
            'Empty' (field__isnull=True filter)
            'Filled in' (not null).
@@ -18,7 +18,7 @@ class NullFieldFilter(SimpleListFilter):
        Child classes must override the field attribute
        to specify which field this filter should be applied to."""
 
-    field=None
+    field = None
 
     def lookups(self, request, model_admin):
         return (('filled', _('Filled-in')),
@@ -27,12 +27,14 @@ class NullFieldFilter(SimpleListFilter):
     def queryset(self, request, queryset):
         if not self.value():
             return queryset
-        return queryset.filter(**{'%s__isnull' % self.field: self.value()=='empty' and True})
+        return queryset.filter(**{'%s__isnull' % self.field: self.value() == 'empty' and True})
+
 
 class PaymentsAssignmentsFilter(NullFieldFilter):
     field = 'user'
     title = _("User assignment")
     parameter_name = 'user_assignment'
+
 
 class UserConditionFilter(SimpleListFilter):
     """Filters using computed dynamic conditions from DB"""
@@ -68,9 +70,9 @@ class ActiveCampaignFilter(SimpleListFilter):
 
     def queryset(self, request, queryset):
         if self.value() == 'yes':
-            return queryset.filter(Q(terminated__gte = date.today()) | Q(terminated = None), created__lte = date.today())
+            return queryset.filter(Q(terminated__gte=date.today()) | Q(terminated=None), created__lte=date.today())
         if self.value() == 'no':
-            return queryset.exclude(Q(terminated__gte = date.today()) | Q(terminated = None), created__lte = date.today())
+            return queryset.exclude(Q(terminated__gte=date.today()) | Q(terminated=None), created__lte=date.today())
 
 
 class EmailFilter(SimpleListFilter):
@@ -85,7 +87,14 @@ class EmailFilter(SimpleListFilter):
 
     def queryset(self, request, queryset):
         if self.value() == 'duplicate':
-            duplicates = User.objects.filter(email__isnull=False).exclude(email__exact='').values('email').annotate(Count('id')).values('email').order_by().filter(id__count__gt=1).values_list('email', flat=True)
+            duplicates = User.objects.filter(email__isnull=False).\
+                exclude(email__exact='').\
+                values('email').\
+                annotate(Count('id')).\
+                values('email').\
+                order_by().\
+                filter(id__count__gt=1).\
+                values_list('email', flat=True)
             return queryset.filter(email__in=duplicates)
         if self.value() == 'blank':
             return queryset.filter(email__exact='')

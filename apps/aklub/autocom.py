@@ -20,8 +20,8 @@
 
 """Automatic communications for club management"""
 
-from models import User, Payment, Communication, AutomaticCommunication
-import sys, datetime
+from models import User, Communication, AutomaticCommunication
+import datetime
 import string
 import logging
 logger = logging.getLogger(__name__)
@@ -42,6 +42,7 @@ def _localize_enum(descr, val, lang):
     # Translation not found
     return val
 
+
 def process_template(template_string, user):
     template = string.Template(template_string)
 
@@ -59,19 +60,19 @@ def process_template(template_string, user):
             addressment = u'member of the Auto*Mat friends club'
     # Make variable substitutions
     text = template.substitute(
-        addressment = addressment,
-        name = user.firstname,
-        firstname = user.firstname,
-        surname = user.surname,
-        street = user.street,
-        city = user.city,
-        zipcode = user.zip_code,
-        email = user.email,
-        telephone = user.telephone,
-        regular_amount = user.regular_amount,
-        regular_frequency = _localize_enum(User.REGULAR_PAYMENT_FREQUENCIES, user.regular_frequency, user.language),
-        var_symbol = user.variable_symbol,
-        last_payment_amount = user.last_payment and user.last_payment.amount or None
+        addressment=addressment,
+        name=user.firstname,
+        firstname=user.firstname,
+        surname=user.surname,
+        street=user.street,
+        city=user.city,
+        zipcode=user.zip_code,
+        email=user.email,
+        telephone=user.telephone,
+        regular_amount=user.regular_amount,
+        regular_frequency=_localize_enum(User.REGULAR_PAYMENT_FREQUENCIES, user.regular_frequency, user.language),
+        var_symbol=user.variable_symbol,
+        last_payment_amount=user.last_payment and user.last_payment.amount or None
         )
 
     # Modify text according to gender
@@ -89,17 +90,18 @@ def process_template(template_string, user):
             male_variant = text[i+1:sep_pos]
             female_variant = text[sep_pos+1:end_pos]
             if user.sex == 'male':
-                gender_text += male_variant;
+                gender_text += male_variant
             elif user.sex == 'female':
-                gender_text += female_variant;
+                gender_text += female_variant
             else:
-                gender_text += male_variant+"/"+female_variant;
+                gender_text += male_variant + "/" + female_variant
             o = end_pos+1
             i = end_pos
-        i+=1
+        i += 1
     gender_text += text[o:]
 
     return gender_text
+
 
 def check(users=None, action=None):
     if not users:
@@ -125,4 +127,3 @@ def check(users=None, action=None):
                                   send=auto_comm.dispatch_auto, type='auto')
                 auto_comm.sent_to_users.add(user)
                 c.save()
-

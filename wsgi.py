@@ -17,15 +17,16 @@ import os
 import site
 import sys
 from project.settings import PROJECT_ROOT
+from django.core.wsgi import get_wsgi_application
 
-ALLDIRS = [ os.path.join(PROJECT_ROOT, 'env/lib/python2.6/site-packages'), ]
+ALLDIRS = [os.path.join(PROJECT_ROOT, 'env/lib/python2.6/site-packages'), ]
 
 # Remember original sys.path.
 prev_sys_path = list(sys.path)
 
 # Add each new site-packages directory.
 for directory in ALLDIRS:
-  site.addsitedir(directory)
+    site.addsitedir(directory)
 
 # Reorder sys.path so new directories at the front.
 new_sys_path = []
@@ -40,7 +41,6 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "project.settings")
 # This application object is used by any WSGI server configured to use this
 # file. This includes Django's development server, if the WSGI_APPLICATION
 # setting points here.
-from django.core.wsgi import get_wsgi_application
 application = get_wsgi_application()
 
 # Apply WSGI middleware here.

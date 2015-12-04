@@ -39,21 +39,24 @@ from models import Condition, User, AccountStatements, MassCommunication
 import datetime
 import models
 from django.core.cache import get_cache
-cache = get_cache('django.core.cache.backends.memcached.MemcachedCache',
-        LOCATION = ['127.0.0.1:11211'],
-		KEY_PREFIX = 'aklub',
-        )
+cache = get_cache(
+    'django.core.cache.backends.memcached.MemcachedCache',
+    LOCATION=['127.0.0.1:11211'],
+    KEY_PREFIX='aklub',
+)
+
 
 def get_users_by_condition_cached(cond):
     items = cache.get('condition_filter_%i' % cond.pk, None)
-    if items == None:
+    if not items:
         items = models.filter_by_condition(User.objects, cond)
         now = datetime.datetime.now()
         td = now.replace(hour=23, minute=59, second=59, microsecond=999) - now
         seconds_till_midnight = td.seconds + (td.days * 24 * 3600)
-        print seconds_till_midnight
+        print(seconds_till_midnight)
         cache.set('condition_filter_%i' % cond.pk, items, seconds_till_midnight)
     return items
+
 
 class AklubIndexDashboard(Dashboard):
     """
@@ -111,7 +114,7 @@ class AklubIndexDashboard(Dashboard):
         self.children += [PaymentCharts()]
         self.children += [UserCharts()]
 
-        #Modules for conditions:
+        # Modules for conditions:
         children = []
         children.append(
             {
@@ -137,7 +140,7 @@ class AklubIndexDashboard(Dashboard):
                 )
         self.children.append(modules.LinkList(
             _('Conditions'),
-            children = children
+            children=children
         ))
 
         for cond in Condition.objects.filter(on_dashboard=True):
@@ -154,8 +157,8 @@ class AklubIndexDashboard(Dashboard):
             self.children.append(modules.LinkList(
                 title=cond.name,
                 title_url="aklub/user/?user_condition=%i" % cond.id,
-                children = children,
-                pre_content = _(u"Total number of items: %i") % members.count(),
+                children=children,
+                pre_content=_(u"Total number of items: %i") % members.count(),
                 ))
 
 

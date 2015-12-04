@@ -1,8 +1,12 @@
 # Django settings for klub project.
 import os
 import sys
+from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS
 
-normpath = lambda *args: os.path.normpath(os.path.abspath(os.path.join(*args)))
+
+def normpath(*args):
+    os.path.normpath(os.path.abspath(os.path.join(*args)))
+
 PROJECT_ROOT = normpath(__file__, "..", "..")
 
 sys.path.append(normpath(PROJECT_ROOT, "project"))
@@ -13,7 +17,7 @@ TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
     ('Hynek Hanke', 'hynek.hanke@auto-mat.cz'),
-#    ('Vaclav Rehak', 'vrehak@baf.cz'),
+    # ('Vaclav Rehak', 'vrehak@baf.cz'),
 )
 
 MANAGERS = ADMINS
@@ -70,10 +74,9 @@ STATIC_URL = '/media/'
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-#    'django.contrib.staticfiles.finders.DefaultStorageFinder',
+    # 'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
-from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS
 TEMPLATE_CONTEXT_PROCESSORS += (
      'django.core.context_processors.request',
      'django.core.context_processors.media',
@@ -86,8 +89,8 @@ TEMPLATE_LOADERS = (
    )
 
 MIDDLEWARE_CLASSES = (
-#    'johnny.middleware.LocalStoreClearMiddleware',  # disabled for django 1.4
-#    'johnny.middleware.QueryCacheMiddleware', # disabled for django 1.4
+    # 'johnny.middleware.LocalStoreClearMiddleware',  # disabled for django 1.4
+    # 'johnny.middleware.QueryCacheMiddleware', # disabled for django 1.4
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'denorm.middleware.DenormMiddleware',
@@ -98,10 +101,10 @@ MIDDLEWARE_CLASSES = (
 )
 
 CACHES = {
-    'default' : dict(
-        BACKEND = 'django.core.cache.backends.memcached.MemcachedCache',
-        LOCATION = ['127.0.0.1:11211'],
-		KEY_PREFIX = 'aklub',
+    'default': dict(
+        BACKEND='django.core.cache.backends.memcached.MemcachedCache',
+        LOCATION=['127.0.0.1:11211'],
+        KEY_PREFIX='aklub',
     )
 }
 
@@ -178,14 +181,14 @@ LOGGING = {
             'level': 'DEBUG',
             'class': 'django.utils.log.NullHandler',
         },
-        'console':{
+        'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
             'formatter': 'simple'
         },
         'logfile': {
-            'level':'DEBUG',
-            'class':'logging.handlers.RotatingFileHandler',
+            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',
             'filename': "/var/log/django/aklub.log",
             'backupCount': 50,
             'maxBytes': 10000000,
@@ -199,19 +202,19 @@ LOGGING = {
         }
     },
     'loggers': {
-        'django': { 
+        'django': {
             'handlers': ['console', 'logfile'],
-            'propagate': True, 
+            'propagate': True,
             'level': 'INFO',
         },
-        'django.request': { 
+        'django.request': {
             'handlers': ['mail_admins', 'logfile'],
             'level': 'ERROR',
             'propagate': False,
         },
         'aklub': {
             'handlers': ['console', 'mail_admins', 'logfile'],
-            'level': 'DEBUG', 
+            'level': 'DEBUG',
         }
     }
 }
@@ -220,6 +223,6 @@ TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 
 # import local settings
 try:
-    from settings_local import *
+    from settings_local import *  # noqa
 except ImportError:
     pass

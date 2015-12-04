@@ -25,27 +25,28 @@ from django.utils.translation import ugettext as _
 
 """Mailing"""
 
-def send_mass_communication(obj, users, request, save = True):
+
+def send_mass_communication(obj, users, request, save=True):
     for user in users:
         if user == "fake_user":
-            #create fake values
+            # create fake values
             def last_payment():
-                return Payment(amount = 12345)
+                return Payment(amount=12345)
             user = User(
-                email = request.user.email,
-                language = 'cs',
-                active = True,
-                addressment = None,
-                sex = 'male',
-                firstname = request.user.first_name,
-                surname = request.user.last_name,
-                street = _('testing street'),
-                city = _('testing city'),
-                zip_code = 12345,
-                telephone = "123 456 789",
-                regular_amount = 123456,
-                regular_frequency = "monthly",
-                variable_symbol = 12345678,
+                email=request.user.email,
+                language='cs',
+                active=True,
+                addressment=None,
+                sex='male',
+                firstname=request.user.first_name,
+                surname=request.user.last_name,
+                street=_('testing street'),
+                city=_('testing city'),
+                zip_code=12345,
+                telephone="123 456 789",
+                regular_amount=123456,
+                regular_frequency="monthly",
+                variable_symbol=12345678,
                 )
             user.last_payment = last_payment
         if user.language == 'cs':
@@ -59,7 +60,7 @@ def send_mass_communication(obj, users, request, save = True):
                 attachment = copy.copy(obj.attachment)
             else:
                 tax_confirmations = TaxConfirmation.objects.filter(
-                    user = user, year = datetime.datetime.now().year-1)
+                    user=user, year=datetime.datetime.now().year-1)
                 if len(tax_confirmations) > 0:
                     attachment = copy.copy(tax_confirmations[0].file)
                 else:
@@ -69,6 +70,6 @@ def send_mass_communication(obj, users, request, save = True):
                               summary=autocom.process_template(template, user),
                               attachment=attachment,
                               note=_("Prepared by auto*mated mass communications at %s") % datetime.datetime.now(),
-                              send=True, created_by = request.user, handled_by=request.user,
+                              send=True, created_by=request.user, handled_by=request.user,
                               type='mass')
-            c.dispatch(save = save)
+            c.dispatch(save=save)
