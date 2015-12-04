@@ -618,6 +618,9 @@ class User(models.Model):
         return self.registered_support.strftime('%d. %m. %Y')
     registered_support_date.short_description = _("Registration")
     registered_support_date.admin_order_field = 'registered_support'
+
+    def payment_total(self, from_date, to_date):
+        return self.payment_set.filter(date__gte=from_date, date__lte=to_date).aggregate(sum=Sum('amount'))['sum'] or 0
     
     def save(self, *args, **kwargs):
         """Record save hook
@@ -705,6 +708,14 @@ class NewUser(User):
         proxy = True
         verbose_name = _("new user")
         verbose_name_plural = _("new users")
+
+
+class UserYearPayments(User):
+    def get_queryset(self):
+        return super(NewUserManager,self).get_queryset().filter(verified=False)
+    class Meta:
+        proxy = True
+
 
 def str_to_datetime(date):
     return datetime.date(**dict(

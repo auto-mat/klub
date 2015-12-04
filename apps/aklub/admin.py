@@ -218,6 +218,24 @@ class UserAdmin(ImportExportModelAdmin):
                                     (",".join(selected),))
     send_mass_communication.short_description = _("Send mass communication")    
 
+
+class UserYearPaymentsAdmin(UserAdmin):
+    list_display = ('person_name', 'email', 'source',
+                    'variable_symbol', 'registered_support_date',
+                    'payment_total_by_year',
+                    'active', 'last_payment_date')
+    list_filter = [('payment__date', DateRangeFilter), 'regular_payments', 'language', 'active', 'wished_information', 'old_account', 'source', 'campaigns', ('registered_support', DateRangeFilter), filters.EmailFilter, filters.UserConditionFilter, filters.UserConditionFilter1]
+
+    def payment_total_by_year(self, obj):
+        if self.from_date and self.to_date:
+            return obj.payment_total(datetime.datetime.strptime(self.from_date, '%d.%m.%Y'), datetime.datetime.strptime(self.to_date, '%d.%m.%Y'))
+
+    def changelist_view(self, request, extra_context=None):
+        self.from_date = request.GET.get('drf__payment__date__gte', None)
+        self.to_date = request.GET.get('drf__payment__date__lte', None)
+        return super(UserYearPaymentsAdmin,self).changelist_view(request, extra_context=extra_context)
+
+
 class PaymentAdmin(admin.ModelAdmin):
     list_display = ('date', 'account_statement', 'amount', 'person_name', 'account', 'bank_code',
                     'VS', 'SS', 'user_identification', 'type', 'paired_with_expected')
@@ -437,6 +455,7 @@ class TaxConfirmationAdmin(admin.ModelAdmin):
     
 
 admin.site.register(User, UserAdmin)
+admin.site.register(UserYearPayments, UserYearPaymentsAdmin)
 admin.site.register(NewUser, NewUserAdmin)
 admin.site.register(Communication, CommunicationAdmin)
 admin.site.register(Payment, PaymentAdmin)
