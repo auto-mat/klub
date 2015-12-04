@@ -1,6 +1,7 @@
 /#*#
 *.mo
 *.pyc
+*.swp
 *~
 env/
 project/settings_local.py
