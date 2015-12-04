@@ -1,0 +1,640 @@
+[
+    {
+        "fields": {
+            "as_filter": false, 
+            "conds": [], 
+            "name": "Pravideln\u00fd pl\u00e1tce", 
+            "on_dashboard": false, 
+            "operation": "and"
+        }, 
+        "model": "aklub.condition", 
+        "pk": 1
+    }, 
+    {
+        "fields": {
+            "as_filter": false, 
+            "conds": [], 
+            "name": "Nestar\u00e1 registrace", 
+            "on_dashboard": false, 
+            "operation": "and"
+        }, 
+        "model": "aklub.condition", 
+        "pk": 2
+    }, 
+    {
+        "fields": {
+            "as_filter": true, 
+            "conds": [
+                2, 
+                1
+            ], 
+            "name": "Nestar\u00e1 registrace pravideln\u00e9ho pl\u00e1tce", 
+            "on_dashboard": false, 
+            "operation": "and"
+        }, 
+        "model": "aklub.condition", 
+        "pk": 3
+    }, 
+    {
+        "fields": {
+            "as_filter": true, 
+            "conds": [], 
+            "name": "\u0160t\u011bdr\u00fd d\u00e1rce", 
+            "on_dashboard": false, 
+            "operation": "and"
+        }, 
+        "model": "aklub.condition", 
+        "pk": 4
+    }, 
+    {
+        "fields": {
+            "as_filter": true, 
+            "conds": [], 
+            "name": "Pravideln\u00e9 platby v nepo\u0159\u00e1dku", 
+            "on_dashboard": false, 
+            "operation": "and"
+        }, 
+        "model": "aklub.condition", 
+        "pk": 5
+    }, 
+    {
+        "fields": {
+            "as_filter": false, 
+            "conds": [
+                3
+            ], 
+            "name": "T\u00fdden opo\u017ed\u011bn\u00e1 pravideln\u00e1 platba", 
+            "on_dashboard": false, 
+            "operation": "and"
+        }, 
+        "model": "aklub.condition", 
+        "pk": 6
+    }, 
+    {
+        "fields": {
+            "as_filter": false, 
+            "conds": [], 
+            "name": "Den opo\u017ed\u011bn\u00e1 pravideln\u00e1 platba", 
+            "on_dashboard": false, 
+            "operation": "and"
+        }, 
+        "model": "aklub.condition", 
+        "pk": 7
+    }, 
+    {
+        "fields": {
+            "as_filter": false, 
+            "conds": [], 
+            "name": "M\u011bs\u00edc opo\u017ed\u011bn\u00e1 pravideln\u00e1 platba", 
+            "on_dashboard": false, 
+            "operation": "and"
+        }, 
+        "model": "aklub.condition", 
+        "pk": 8
+    }, 
+    {
+        "fields": {
+            "as_filter": true, 
+            "conds": [], 
+            "name": "Bez zdroje", 
+            "on_dashboard": false, 
+            "operation": "and"
+        }, 
+        "model": "aklub.condition", 
+        "pk": 9
+    }, 
+    {
+        "fields": {
+            "as_filter": false, 
+            "conds": [], 
+            "name": "Direct dialog partial", 
+            "on_dashboard": false, 
+            "operation": "and"
+        }, 
+        "model": "aklub.condition", 
+        "pk": 10
+    }, 
+    {
+        "fields": {
+            "as_filter": true, 
+            "conds": [
+                10, 
+                28
+            ], 
+            "name": "Neni direct dialog", 
+            "on_dashboard": false, 
+            "operation": "nor"
+        }, 
+        "model": "aklub.condition", 
+        "pk": 11
+    }, 
+    {
+        "fields": {
+            "as_filter": true, 
+            "conds": [], 
+            "name": "Mimo\u0159\u00e1dn\u00e1 platba", 
+            "on_dashboard": false, 
+            "operation": "and"
+        }, 
+        "model": "aklub.condition", 
+        "pk": 12
+    }, 
+    {
+        "fields": {
+            "as_filter": false, 
+            "conds": [], 
+            "name": "Nepravideln\u00fd pl\u00e1tce", 
+            "on_dashboard": false, 
+            "operation": "and"
+        }, 
+        "model": "aklub.condition", 
+        "pk": 13
+    }, 
+    {
+        "fields": {
+            "as_filter": false, 
+            "conds": [], 
+            "name": "Platba v posledn\u00edm m\u011bs\u00edci", 
+            "on_dashboard": false, 
+            "operation": "and"
+        }, 
+        "model": "aklub.condition", 
+        "pk": 14
+    }, 
+    {
+        "fields": {
+            "as_filter": true, 
+            "conds": [
+                14, 
+                13
+            ], 
+            "name": "Nov\u00e9 platby nepravideln\u00fdch pl\u00e1tc\u016f", 
+            "on_dashboard": false, 
+            "operation": "and"
+        }, 
+        "model": "aklub.condition", 
+        "pk": 15
+    }, 
+    {
+        "fields": {
+            "as_filter": true, 
+            "conds": [], 
+            "name": "S platbou", 
+            "on_dashboard": false, 
+            "operation": "and"
+        }, 
+        "model": "aklub.condition", 
+        "pk": 16
+    }, 
+    {
+        "fields": {
+            "as_filter": true, 
+            "conds": [], 
+            "name": "Prvn\u00ed platba", 
+            "on_dashboard": false, 
+            "operation": "and"
+        }, 
+        "model": "aklub.condition", 
+        "pk": 17
+    }, 
+    {
+        "fields": {
+            "as_filter": true, 
+            "conds": [], 
+            "name": "Extra platby", 
+            "on_dashboard": false, 
+            "operation": "and"
+        }, 
+        "model": "aklub.condition", 
+        "pk": 18
+    }, 
+    {
+        "fields": {
+            "as_filter": false, 
+            "conds": [], 
+            "name": "Akce nov\u00fd u\u017eivatel", 
+            "on_dashboard": false, 
+            "operation": "and"
+        }, 
+        "model": "aklub.condition", 
+        "pk": 19
+    }, 
+    {
+        "fields": {
+            "as_filter": false, 
+            "conds": [
+                11, 
+                1, 
+                19
+            ], 
+            "name": "Akce nov\u00fd pravideln\u00fd d\u00e1rce -- neni primy dialog", 
+            "on_dashboard": false, 
+            "operation": "and"
+        }, 
+        "model": "aklub.condition", 
+        "pk": 20
+    }, 
+    {
+        "fields": {
+            "as_filter": false, 
+            "conds": [], 
+            "name": "Akce nov\u00e1 platba", 
+            "on_dashboard": false, 
+            "operation": "and"
+        }, 
+        "model": "aklub.condition", 
+        "pk": 21
+    }, 
+    {
+        "fields": {
+            "as_filter": false, 
+            "conds": [], 
+            "name": "Posledn\u00ed platba u\u017eivatele je typu o\u010dek\u00e1van\u00e1", 
+            "on_dashboard": false, 
+            "operation": "and"
+        }, 
+        "model": "aklub.condition", 
+        "pk": 22
+    }, 
+    {
+        "fields": {
+            "as_filter": false, 
+            "conds": [
+                17, 
+                21, 
+                22
+            ], 
+            "name": "Akce nov\u00e1 o\u010dek\u00e1van\u00e1 platba / prvn\u00ed od u\u017eivatele", 
+            "on_dashboard": false, 
+            "operation": "and"
+        }, 
+        "model": "aklub.condition", 
+        "pk": 23
+    }, 
+    {
+        "fields": {
+            "as_filter": false, 
+            "conds": [
+                21, 
+                22, 
+                25
+            ], 
+            "name": "Akce nov\u00e1 o\u010dek\u00e1van\u00e1 platba / ji\u017e d\u0159\u00edve platil", 
+            "on_dashboard": false, 
+            "operation": "and"
+        }, 
+        "model": "aklub.condition", 
+        "pk": 24
+    }, 
+    {
+        "fields": {
+            "as_filter": true, 
+            "conds": [], 
+            "name": "V\u00edce ne\u017e 1 platba", 
+            "on_dashboard": false, 
+            "operation": "and"
+        }, 
+        "model": "aklub.condition", 
+        "pk": 25
+    }, 
+    {
+        "fields": {
+            "as_filter": true, 
+            "conds": [], 
+            "name": "Upgrade", 
+            "on_dashboard": false, 
+            "operation": "and"
+        }, 
+        "model": "aklub.condition", 
+        "pk": 27
+    }, 
+    {
+        "fields": {
+            "as_filter": false, 
+            "conds": [], 
+            "name": "Direct dialog full", 
+            "on_dashboard": false, 
+            "operation": "and"
+        }, 
+        "model": "aklub.condition", 
+        "pk": 28
+    }, 
+    {
+        "fields": {
+            "as_filter": false, 
+            "conds": [
+                1, 
+                28, 
+                19
+            ], 
+            "name": "Akce novy pravidelny darce -- p\u0159\u00edm\u00fd dialog -- pln\u00fd formul\u00e1\u0159", 
+            "on_dashboard": false, 
+            "operation": "and"
+        }, 
+        "model": "aklub.condition", 
+        "pk": 29
+    }, 
+    {
+        "fields": {
+            "as_filter": false, 
+            "conds": [
+                1, 
+                10, 
+                19
+            ], 
+            "name": "Akce novy pravidelny darce -- p\u0159\u00edm\u00fd dialog -- \u010d\u00e1ste\u010dn\u00fd formul\u00e1\u0159", 
+            "on_dashboard": false, 
+            "operation": "and"
+        }, 
+        "model": "aklub.condition", 
+        "pk": 30
+    }, 
+    {
+        "fields": {
+            "as_filter": true, 
+            "conds": [], 
+            "name": "Bez platby", 
+            "on_dashboard": false, 
+            "operation": "and"
+        }, 
+        "model": "aklub.condition", 
+        "pk": 31
+    }, 
+    {
+        "fields": {
+            "as_filter": true, 
+            "conds": [
+                5
+            ], 
+            "name": "Pravideln\u00e9 platby v po\u0159\u00e1dku", 
+            "on_dashboard": false, 
+            "operation": "nor"
+        }, 
+        "model": "aklub.condition", 
+        "pk": 32
+    }, 
+    {
+        "fields": {
+            "as_filter": true, 
+            "conds": [
+                5
+            ], 
+            "name": "Bez zpo\u017ed\u011bn\u00ed", 
+            "on_dashboard": false, 
+            "operation": "nor"
+        }, 
+        "model": "aklub.condition", 
+        "pk": 33
+    }, 
+    {
+        "fields": {
+            "as_filter": false, 
+            "conds": [], 
+            "name": "Akce opakovan\u00e1 registrace na stejn\u00fd email", 
+            "on_dashboard": false, 
+            "operation": "and"
+        }, 
+        "model": "aklub.condition", 
+        "pk": 34
+    }, 
+    {
+        "fields": {
+            "condition": 2, 
+            "operation": ">", 
+            "value": "datetime.2010-09-24 00:00", 
+            "variable": "User.registered_support"
+        }, 
+        "model": "aklub.terminalcondition", 
+        "pk": 1
+    }, 
+    {
+        "fields": {
+            "condition": 1, 
+            "operation": "=", 
+            "value": "true", 
+            "variable": "User.regular_payments"
+        }, 
+        "model": "aklub.terminalcondition", 
+        "pk": 2
+    }, 
+    {
+        "fields": {
+            "condition": 4, 
+            "operation": ">", 
+            "value": "5000", 
+            "variable": "User.payment_total"
+        }, 
+        "model": "aklub.terminalcondition", 
+        "pk": 3
+    }, 
+    {
+        "fields": {
+            "condition": 5, 
+            "operation": ">", 
+            "value": "days_ago.11", 
+            "variable": "User.expected_regular_payment_date"
+        }, 
+        "model": "aklub.terminalcondition", 
+        "pk": 4
+    }, 
+    {
+        "fields": {
+            "condition": 6, 
+            "operation": "=", 
+            "value": "days_ago.18", 
+            "variable": "User.expected_regular_payment_date"
+        }, 
+        "model": "aklub.terminalcondition", 
+        "pk": 5
+    }, 
+    {
+        "fields": {
+            "condition": 8, 
+            "operation": "=", 
+            "value": "days_ago.40", 
+            "variable": "User.expected_regular_payment_date"
+        }, 
+        "model": "aklub.terminalcondition", 
+        "pk": 6
+    }, 
+    {
+        "fields": {
+            "condition": 9, 
+            "operation": "=", 
+            "value": "None", 
+            "variable": "User.source.slug"
+        }, 
+        "model": "aklub.terminalcondition", 
+        "pk": 7
+    }, 
+    {
+        "fields": {
+            "condition": 12, 
+            "operation": ">", 
+            "value": "0", 
+            "variable": "User.extra_money"
+        }, 
+        "model": "aklub.terminalcondition", 
+        "pk": 8
+    }, 
+    {
+        "fields": {
+            "condition": 14, 
+            "operation": ">", 
+            "value": "month_ago", 
+            "variable": "User.last_payment.date"
+        }, 
+        "model": "aklub.terminalcondition", 
+        "pk": 9
+    }, 
+    {
+        "fields": {
+            "condition": 13, 
+            "operation": "=", 
+            "value": "false", 
+            "variable": "User.regular_payments"
+        }, 
+        "model": "aklub.terminalcondition", 
+        "pk": 10
+    }, 
+    {
+        "fields": {
+            "condition": 17, 
+            "operation": "=", 
+            "value": "1", 
+            "variable": "User.number_of_payments"
+        }, 
+        "model": "aklub.terminalcondition", 
+        "pk": 11
+    }, 
+    {
+        "fields": {
+            "condition": 18, 
+            "operation": ">", 
+            "value": "0", 
+            "variable": "User.extra_money"
+        }, 
+        "model": "aklub.terminalcondition", 
+        "pk": 12
+    }, 
+    {
+        "fields": {
+            "condition": 21, 
+            "operation": "=", 
+            "value": "new-payment", 
+            "variable": "action"
+        }, 
+        "model": "aklub.terminalcondition", 
+        "pk": 13
+    }, 
+    {
+        "fields": {
+            "condition": 22, 
+            "operation": "=", 
+            "value": "expected", 
+            "variable": "User.last_payment.type"
+        }, 
+        "model": "aklub.terminalcondition", 
+        "pk": 14
+    }, 
+    {
+        "fields": {
+            "condition": 25, 
+            "operation": ">", 
+            "value": "1", 
+            "variable": "User.number_of_payments"
+        }, 
+        "model": "aklub.terminalcondition", 
+        "pk": 15
+    }, 
+    {
+        "fields": {
+            "condition": 27, 
+            "operation": "=", 
+            "value": "true", 
+            "variable": "User.no_upgrade"
+        }, 
+        "model": "aklub.terminalcondition", 
+        "pk": 16
+    }, 
+    {
+        "fields": {
+            "condition": 10, 
+            "operation": "=", 
+            "value": "direct-dialogue-partial-form", 
+            "variable": "User.source.slug"
+        }, 
+        "model": "aklub.terminalcondition", 
+        "pk": 17
+    }, 
+    {
+        "fields": {
+            "condition": 28, 
+            "operation": "=", 
+            "value": "direct-dialogue-full-form", 
+            "variable": "User.source.slug"
+        }, 
+        "model": "aklub.terminalcondition", 
+        "pk": 18
+    }, 
+    {
+        "fields": {
+            "condition": 16, 
+            "operation": "!=", 
+            "value": "0", 
+            "variable": "User.number_of_payments"
+        }, 
+        "model": "aklub.terminalcondition", 
+        "pk": 19
+    }, 
+    {
+        "fields": {
+            "condition": 31, 
+            "operation": "=", 
+            "value": "0", 
+            "variable": "User.number_of_payments"
+        }, 
+        "model": "aklub.terminalcondition", 
+        "pk": 20
+    }, 
+    {
+        "fields": {
+            "condition": 34, 
+            "operation": "=", 
+            "value": "resend-data", 
+            "variable": "action"
+        }, 
+        "model": "aklub.terminalcondition", 
+        "pk": 21
+    }, 
+    {
+        "fields": {
+            "condition": 19, 
+            "operation": "=", 
+            "value": "new-user", 
+            "variable": "action"
+        }, 
+        "model": "aklub.terminalcondition", 
+        "pk": 22
+    }, 
+    {
+        "fields": {
+            "condition": 7, 
+            "operation": "=", 
+            "value": "days_ago.1", 
+            "variable": "User.expected_regular_payment_date"
+        }, 
+        "model": "aklub.terminalcondition", 
+        "pk": 24
+    }, 
+    {
+        "fields": {
+            "condition": 7, 
+            "operation": "=", 
+            "value": "daily", 
+            "variable": "action"
+        }, 
+        "model": "aklub.terminalcondition", 
+        "pk": 25
+    }
+]
