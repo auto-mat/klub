@@ -1138,7 +1138,7 @@ class ConditionValues(object):
                      }[name]
             # DB fields
             self._columns += [
-                (name, field.name, string_concat(name, " ", field.verbose_name), field.get_internal_type(), zip(*field.choices)[0] if field.choices else "")
+                (name, field.name, string_concat(name, " ", field.verbose_name), field.get_internal_type(), next(zip(*field.choices)) if field.choices else "")
                 for field in model._meta.fields]
         self._columns.sort()
         self._index = 0
