@@ -1,5 +1,5 @@
 #!/bin/bash
-#version 0.3
+#version 0.4
 
 app_name=aklub
 db_name=klub
@@ -19,24 +19,29 @@ set -e
 
 if [ "$1" = "reinstall" ]; then
    rm env -rf
-   virtualenv --no-site-packages env
+   virtualenv --no-site-packages env --python=python3
 fi
 
 git pull
-source env/bin/activate
-env/bin/python env/bin/pip install -r requirements --upgrade
+
+
+if [ "$1" != "no_virtualenv" ]; then
+   echo activate
+   source env/bin/activate
+fi
+pip install --process-dependency-links -r requirements.txt
 if [ "$1" = "migrate" ]; then
    echo "Backuping db..."
    mkdir -p db_backup
-   sudo -u postgres pg_dump $db_name > db_backup/`date +"%y%m%d-%H:%M:%S"`.sql
+   sudo -u postgres pg_dump -C $db_name > db_backup/`date +"%y%m%d-%H:%M:%S"`-pnk.sql
    echo "Migrating..."
-   env/bin/python ./manage.py migrate
+   python ./manage.py migrate
 fi
 (cd apps/aklub/ && django-admin.py compilemessages)
-env/bin/python ./manage.py collectstatic --noinput
+python ./manage.py collectstatic --noinput
 touch wsgi.py
 type supervisorctl && sudo supervisorctl restart $app_name
-env/bin/python ./manage.py denorm_drop
-env/bin/python ./manage.py denorm_init
+python ./manage.py denorm_drop
+python ./manage.py denorm_init
 
 echo "App succesfully updated"
