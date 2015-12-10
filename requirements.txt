@@ -15,7 +15,7 @@ django-chart-tools
 django-mass-edit
 python-memcached
 django-import-export
-django-qsstats-magic
+-e git+https://github.com/PetrDlouhy/django-qsstats-magic.git#egg=django-qsstats-magic
 python-dateutil
 html2text
 xlrd
