@@ -42,7 +42,6 @@ import csv
 import os.path
 import stdimage
 # Local modules
-# from . import autocom
 from . import confirmation
 import logging
 logger = logging.getLogger(__name__)
@@ -126,7 +125,7 @@ class Campaign(models.Model):
             return self.yield_total() / self.number_of_members()
     average_yield.short_description = _("average yield")
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
@@ -199,7 +198,7 @@ class Recruiter(models.Model):
                                        blank=True,
                                        editable=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.person_name()
 
     def person_name(self):
@@ -226,7 +225,7 @@ class Source(models.Model):
         verbose_name=_("Is from Direct Dialogue"),
         default=False)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
@@ -445,7 +444,7 @@ class User(models.Model):
         default=0,
         blank=False)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.person_name()
 
     def person_name(self):
@@ -844,7 +843,7 @@ class AccountStatements(models.Model):
                 payments.append(p)
         return payments
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s (%s)" % (self.pk, self.import_date)
 
 
@@ -969,7 +968,7 @@ class Payment(models.Model):
             # intervals anyway)
             autocom.check(users=User.objects.filter(pk=self.user.pk), action=(insert and 'new-payment' or None))
 
-    def __unicode__(self):
+    def __str__(self):
         return str(self.amount)
 
 COMMUNICATION_METHOD = (
@@ -1138,7 +1137,7 @@ class ConditionValues(object):
                      }[name]
             # DB fields
             self._columns += [
-                (name, field.name, string_concat(name, " ", field.verbose_name), field.get_internal_type(), next(zip(*field.choices)) if field.choices else "")
+                (name, field.name, string_concat(name, " ", field.verbose_name), field.get_internal_type(), list(zip(*field.choices))[0] if field.choices else "")
                 for field in model._meta.fields]
         self._columns.sort()
         self._index = 0
@@ -1146,7 +1145,7 @@ class ConditionValues(object):
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         try:
             name, secondary_name, verbose_name, condition_type, choices = self._columns[self._index]
             if secondary_name:
@@ -1210,7 +1209,7 @@ class Condition(models.Model):
         help_text=_("Determines whether this condition is available on dashboard"),
         default=False)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     def get_query(self, action=None):
@@ -1377,7 +1376,7 @@ class TerminalCondition(models.Model):
         right = get_val(self.value)
         return Q(**{left: right})
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s %s %s" % (self.variable, self.operation, self.value)
 
 
@@ -1437,7 +1436,7 @@ class AutomaticCommunication(models.Model):
         blank=True,
         )
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
@@ -1501,7 +1500,7 @@ class MassCommunication(models.Model):
         max_length=500,
         blank=True, null=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 

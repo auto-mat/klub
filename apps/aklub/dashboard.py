@@ -34,10 +34,10 @@ from django.core.urlresolvers import reverse
 
 from admin_tools.dashboard import modules, Dashboard, AppIndexDashboard
 from admin_tools.utils import get_admin_site_name
-from aklub.dashboard_charts import PaymentCharts, UserCharts, PaymentCountCharts
-from models import Condition, User, AccountStatements, MassCommunication
+from .dashboard_charts import PaymentCharts, UserCharts, PaymentCountCharts
+from .models import Condition, User, AccountStatements, MassCommunication
 import datetime
-import models
+from . import models
 from django.core.cache import get_cache
 cache = get_cache(
     'django.core.cache.backends.memcached.MemcachedCache',
