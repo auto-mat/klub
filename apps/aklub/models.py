@@ -639,7 +639,8 @@ class User(models.Model):
         else:
             insert = False
         super(User, self).save(*args, **kwargs)
-        autocom.check(users=User.objects.filter(pk=self.pk), action=(insert and 'new-user' or None))
+        from .autocom import check as autocom_check
+        autocom_check(users=User.objects.filter(pk=self.pk), action=(insert and 'new-user' or None))
 
     def make_tax_confirmation(self, year):
         amount = self.payment_set.exclude(type='expected').filter(date__year=year).aggregate(Sum('amount'))['amount__sum']
@@ -966,7 +967,8 @@ class Payment(models.Model):
             # user is known, otherwise the bellow check would be too
             # time-consuming (relying on Cron performing it in regular
             # intervals anyway)
-            autocom.check(users=User.objects.filter(pk=self.user.pk), action=(insert and 'new-payment' or None))
+            from .autocom import check as autocom_check
+            autocom_check(users=User.objects.filter(pk=self.user.pk), action=(insert and 'new-payment' or None))
 
     def __str__(self):
         return str(self.amount)
