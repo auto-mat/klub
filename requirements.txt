@@ -1,4 +1,4 @@
-Django<1.9
+Django<1.10
 django-stdimage
 reportlab
 django-extensions
@@ -23,6 +23,6 @@ django-debug-toolbar
 django-daterange-filter
 django-cors-headers
 django-formtools
--e git+https://github.com/django-denorm/django-denorm.git@develop#egg=django-denorm
+-e git+https://github.com/PetrDlouhy/django-denorm.git@develop#egg=django-denorm
 django-timedeltafield
 gunicorn
