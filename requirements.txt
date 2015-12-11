@@ -25,3 +25,4 @@ django-cors-headers
 django-formtools
 -e git+https://github.com/django-denorm/django-denorm.git@develop#egg=django-denorm
 django-timedeltafield
+gunicorn
