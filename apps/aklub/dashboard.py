@@ -38,12 +38,8 @@ from .dashboard_charts import PaymentCharts, UserCharts, PaymentCountCharts
 from .models import Condition, User, AccountStatements, MassCommunication
 import datetime
 from . import models
-from django.core.cache import get_cache
-cache = get_cache(
-    'django.core.cache.backends.memcached.MemcachedCache',
-    LOCATION=['127.0.0.1:11211'],
-    KEY_PREFIX='aklub',
-)
+from django.core.cache import caches
+cache = caches['default']
 
 
 def get_users_by_condition_cached(cond):
