@@ -28,7 +28,7 @@ from django.views.generic.edit import FormView
 from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
 from django.db.models import Sum, Count, Q
-import autocom
+from . import autocom
 import json
 
 from .models import *
