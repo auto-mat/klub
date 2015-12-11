@@ -21,6 +21,7 @@
 import datetime
 import re
 from django import forms, http
+from django.template import RequestContext
 from django.shortcuts import render_to_response
 from django.utils.translation import ugettext as _
 from formtools.wizard.views import SessionWizardView
@@ -31,7 +32,7 @@ from django.db.models import Sum, Count, Q
 from . import autocom
 import json
 
-from .models import *
+from .models import User, Payment, Source, StatMemberCountsByMonths, StatPaymentsByMonths
 
 
 class RegularUserForm(forms.ModelForm):
@@ -75,7 +76,7 @@ class RegularUserForm(forms.ModelForm):
         required = ('firstname', 'surname', 'street', 'city', 'country', 'zip_code',
                     'language', 'email', 'telephone', 'regular_frequency', 'regular_amount')
         widgets = {
-                'language': forms.RadioSelect,  # should be set automatically
+            'language': forms.RadioSelect,  # should be set automatically
         }
 
     def __init__(self, *args, **kwargs):
@@ -115,8 +116,8 @@ def new_user(form, regular, source_slug='web'):
     # TODO: Lock DB access here (to ensure uniqueness of VS)
     now = datetime.datetime.now()
     reg_n_today = len(User.objects.filter(
-            registered_support__gt=(
-                now-datetime.timedelta(days=1))))
+        registered_support__gt=(
+            now-datetime.timedelta(days=1))))
     for i in range(reg_n_today+1, 299):
         variable_symbol = '%s%02d%02d%03d' % (
             str(now.year)[-2:], now.month, now.day, i)
@@ -307,20 +308,20 @@ class OneTimePaymentWizard(SessionWizardView):
     def send_vs_reminder(self, id):
         user = User.objects.filter(id=id)[0]
         mail_subject = _(
-                "Auto*Mat: Reminder of variable symbol")
+            "Auto*Mat: Reminder of variable symbol")
         mail_body = _(
-                "Dear friend,\n\n"
-                "if it is you who was just trying to let us know about his\n"
-                "planned donation to us, thank you very much and for your\n"
-                "convenience, here is your variable symbol:\n\n"
-                "                %s\n\n"
-                "If you do not know what this mean, it is possible that\n"
-                "sombody else has entered your name into our system. In such\n"
-                "a case, you can safely ignore this email, nothing will happen\n"
-                "without your authorization, or if you receive it repeatedly,\n"
-                "you can contact us on kp@auto-mat.cz.\n\n"
-                "Best Regards,\n"
-                "Auto*Mat\n" % user.variable_symbol)
+            "Dear friend,\n\n"
+            "if it is you who was just trying to let us know about his\n"
+            "planned donation to us, thank you very much and for your\n"
+            "convenience, here is your variable symbol:\n\n"
+            "                %s\n\n"
+            "If you do not know what this mean, it is possible that\n"
+            "sombody else has entered your name into our system. In such\n"
+            "a case, you can safely ignore this email, nothing will happen\n"
+            "without your authorization, or if you receive it repeatedly,\n"
+            "you can contact us on kp@auto-mat.cz.\n\n"
+            "Best Regards,\n"
+            "Auto*Mat\n" % user.variable_symbol)
         EmailMessage(subject=mail_subject, body=mail_body,
                      from_email='kp@auto-mat.cz', to=[user.email]).send()
 
@@ -343,7 +344,7 @@ class OneTimePaymentWizard(SessionWizardView):
                 cd0 = self._step_data(OneTimePaymentWizardFormBase)
                 if cd0:
                         users = self._find_matching_users(*[cd0[key] for key in [
-                                                'email', 'firstname', 'surname']])
+                            'email', 'firstname', 'surname']])
                         candidates = ([(u.id, "%s %s <%s>" % (u.firstname, u.surname, obfuscate(u.email))) for u in users] +
                                       [('None', _("None of these accounts"))])
                         form.fields['uid'] = forms.ChoiceField(choices=candidates)
@@ -387,7 +388,7 @@ def profiles(request):
     users = (
         User.objects.filter(registered_support__gte=from_date).order_by('-registered_support') |
         User.objects.filter(id__in=(493, 89, 98, 921, 33, 886, 1181, 842, 954, 25))).exclude(
-                  public=False, profile_picture__isnull=False)
+            public=False, profile_picture__isnull=False)
 
     result = [{'firstname': u.public and u.firstname or '',
                'surname': u.public and u.surname or '',

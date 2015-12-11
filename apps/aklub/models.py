@@ -820,7 +820,7 @@ class AccountStatements(models.Model):
                 d, m, y = payment['date'].split('.')
                 payment['date'] = "%04d-%02d-%02d" % (int(y), int(m), int(d))
                 payment['amount'] = int(round(float(
-                            payment['amount'].replace(',', '.').replace(' ', ''))))
+                    payment['amount'].replace(',', '.').replace(' ', ''))))
                 if payment['amount'] < 0:
                     # Skip transfers from the club account,
                     # only process contributions
@@ -1183,10 +1183,10 @@ class Condition(models.Model):
         verbose_name_plural = _("Conditions")
 
     OPERATORS = (
-                ('and', _(u'and')),
-                ('or', _(u'or')),
-                ('nor', _(u'nor')),
-                )
+        ('and', _(u'and')),
+        ('or', _(u'or')),
+        ('nor', _(u'nor')),
+        )
 
     name = models.CharField(
         verbose_name=_("Name of condition"),
@@ -1249,11 +1249,11 @@ class Condition(models.Model):
         condition_list = [condition.condition_string() for condition in self.conds.all()]
         terminalcondition_list = [str(condition) for condition in self.terminalcondition_set.all()]
         return "%s%s(%s)%s" % (
-                prefix,
-                self.name,
-                op_string.join(condition_list + terminalcondition_list),
-                sufix
-                )
+            prefix,
+            self.name,
+            op_string.join(condition_list + terminalcondition_list),
+            sufix
+            )
 
 
 class TerminalCondition(models.Model):

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-#!/usr/bin/env python
 # Author: Hynek Hanke <hynek.hanke@auto-mat.cz>
 #
 # Copyright (C) 2010 o.s. Auto*Mat

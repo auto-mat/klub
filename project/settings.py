@@ -24,14 +24,14 @@ ADMINS = (
 MANAGERS = ADMINS
 
 DATABASES = {
-        'default': {
-                'ENGINE': 'django.db.backends.postgresql_psycopg2',
-                'NAME': 'klub',
-                'USER': 'django',
-                'PASSWORD': 'osmiznak',
-                'HOST': 'localhost',
-                'PORT': '',
-        },
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'klub',
+        'USER': 'django',
+        'PASSWORD': 'osmiznak',
+        'HOST': 'localhost',
+        'PORT': '',
+    },
 }
 
 # Local time zone for this installation. Choices can be found here:
@@ -79,15 +79,15 @@ STATICFILES_FINDERS = (
 )
 
 TEMPLATE_CONTEXT_PROCESSORS += (
-     'django.core.context_processors.request',
-     'django.core.context_processors.media',
-     'django.contrib.messages.context_processors.messages',
+    'django.core.context_processors.request',
+    'django.core.context_processors.media',
+    'django.contrib.messages.context_processors.messages',
 )
 TEMPLATE_LOADERS = (
-   "admin_tools.template_loaders.Loader",
-   'django.template.loaders.filesystem.Loader',
-   'django.template.loaders.app_directories.Loader',
-   )
+    "admin_tools.template_loaders.Loader",
+    'django.template.loaders.filesystem.Loader',
+    'django.template.loaders.app_directories.Loader',
+)
 
 MIDDLEWARE_CLASSES = (
     # 'johnny.middleware.LocalStoreClearMiddleware',  # disabled for django 1.4
@@ -173,10 +173,10 @@ LOGGING = {
         },
     },
     'filters': {
-         'require_debug_false': {
-             '()': 'django.utils.log.RequireDebugFalse'
-         }
-     },
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse'
+        }
+    },
     'handlers': {
         'null': {
             'level': 'DEBUG',

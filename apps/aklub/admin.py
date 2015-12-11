@@ -32,7 +32,12 @@ from import_export.admin import ImportExportModelAdmin
 import django.forms
 from django.utils.html import mark_safe
 # Local models
-from .models import *
+from django.db.models import Sum
+from .models import (
+    User, Payment, Communication, Expense,
+    TerminalCondition, UserYearPayments, NewUser, AccountStatements,
+    AutomaticCommunication, MassCommunication, Condition, Campaign,
+    Recruiter, Source, TaxConfirmation)
 from . import mailing
 from . import filters
 
@@ -152,42 +157,42 @@ class UserAdmin(ImportExportModelAdmin):
     filter_horizontal = ('campaigns',)  # broken in django pre-1.4
     fieldsets = [
         (_('Basic personal'), {
-                'fields': [('firstname', 'surname'),
-                           ('sex', 'language', 'active', 'public')]}),
+            'fields': [('firstname', 'surname'),
+                       ('sex', 'language', 'active', 'public')]}),
         (_('Titles and addressments'), {
-                'fields': [('title_before', 'title_after'),
-                           ('addressment', 'addressment_on_envelope')],
-                'classes': ['collapse']
-                }),
+            'fields': [('title_before', 'title_after'),
+                       ('addressment', 'addressment_on_envelope')],
+            'classes': ['collapse']
+            }),
         (_('Contacts'), {
-                'fields': [('email', 'telephone'),
-                           ('street', 'city', 'country'),
-                           'zip_code', 'different_correspondence_address'],
-                }),
+            'fields': [('email', 'telephone'),
+                       ('street', 'city', 'country'),
+                       'zip_code', 'different_correspondence_address'],
+            }),
         (_('Additional'), {
-                'fields': ['knows_us_from',  'why_supports',
-                           'field_of_work', 'additional_information'],
-                'classes': ['collapse']}),
+            'fields': ['knows_us_from',  'why_supports',
+                       'field_of_work', 'additional_information'],
+            'classes': ['collapse']}),
         (_('Support'), {
-                'fields': ['variable_symbol',
-                           'registered_support',
-                           ('regular_payments', 'regular_frequency',
-                            'regular_amount', 'expected_date_of_first_payment',
-                            'exceptional_membership'),
-                           'other_support', 'old_account']}),
+            'fields': ['variable_symbol',
+                       'registered_support',
+                       ('regular_payments', 'regular_frequency',
+                        'regular_amount', 'expected_date_of_first_payment',
+                        'exceptional_membership'),
+                       'other_support', 'old_account']}),
         (_('Communications'), {
-                'fields': ['wished_information', 'wished_tax_confirmation', 'wished_welcome_letter'],
-                'classes': ['collapse']}),
+            'fields': ['wished_information', 'wished_tax_confirmation', 'wished_welcome_letter'],
+            'classes': ['collapse']}),
         (_('Benefits'), {
-                'fields': [('club_card_available', 'club_card_dispatched'),
-                           'other_benefits'],
-                'classes': ['collapse']}),
+            'fields': [('club_card_available', 'club_card_dispatched'),
+                       'other_benefits'],
+            'classes': ['collapse']}),
         (_('Notes'), {
-                'fields': ['note', 'source', 'campaigns', 'recruiter', 'verified', 'verified_by', 'activity_points'],
-                'classes': ['collapse']}),
+            'fields': ['note', 'source', 'campaigns', 'recruiter', 'verified', 'verified_by', 'activity_points'],
+            'classes': ['collapse']}),
         (_('Profile'), {
-                'fields': ['profile_text', 'profile_picture'],
-                'classes': ['collapse']}),
+            'fields': ['profile_text', 'profile_picture'],
+            'classes': ['collapse']}),
         ]
 
     def get_queryset(self, request):
@@ -252,17 +257,17 @@ class PaymentAdmin(admin.ModelAdmin):
                     'VS', 'SS', 'user_identification', 'type', 'paired_with_expected')
     fieldsets = [
         (_("Basic"), {
-                'fields': [
-                    'user', 'date', 'amount',
-                    ('type', )]
-                }),
+            'fields': [
+                'user', 'date', 'amount',
+                ('type', )]
+            }),
         (_("Details"), {
-                'fields': [('account', 'bank_code'),
-                           ('account_name', 'bank_name'),
-                           ('VS', 'KS', 'SS'),
-                           'user_identification',
-                           'account_statement']
-                }),
+            'fields': [('account', 'bank_code'),
+                       ('account_name', 'bank_name'),
+                       ('VS', 'KS', 'SS'),
+                       'user_identification',
+                       'account_statement']
+            }),
         ]
     readonly_fields = ('account_statement',)
     raw_id_fields = ('user',)
@@ -290,16 +295,16 @@ class CommunicationAdmin(admin.ModelAdmin):
 
     fieldsets = [
         (_("Header"), {
-                'fields': [('user', 'method', 'date')]
-                }),
+            'fields': [('user', 'method', 'date')]
+            }),
         (_("Content"), {
-                'fields': ['subject',
-                           ('summary', 'attachment'),
-                           'note']
-                }),
+            'fields': ['subject',
+                       ('summary', 'attachment'),
+                       'note']
+            }),
         (_("Sending"), {
-                'fields': [('created_by', 'handled_by', 'send', 'dispatched')]
-                }),
+            'fields': [('created_by', 'handled_by', 'send', 'dispatched')]
+            }),
         ]
 
     def user__regular_payments_info(self, obj):
@@ -354,16 +359,16 @@ class MassCommunicationAdmin(admin.ModelAdmin):
 
     fieldsets = [
         (_("Basic"), {
-                'fields': [('name', 'method', 'date', 'note')]
-                }),
+            'fields': [('name', 'method', 'date', 'note')]
+            }),
         (_("Content"), {
-                'fields': [('subject', 'subject_en'),
-                           ('template', 'template_en'),
-                           ('attachment', 'attach_tax_confirmation')]
-                }),
+            'fields': [('subject', 'subject_en'),
+                       ('template', 'template_en'),
+                       ('attachment', 'attach_tax_confirmation')]
+            }),
         (_("Sending"), {
-                'fields': ['send_to_users']
-                }),
+            'fields': ['send_to_users']
+            }),
         ]
 
     def save_form(self, request, form, change):
@@ -399,17 +404,17 @@ class ConditionAdmin(ImportExportModelAdmin):
     inlines = [TerminalConditionInline, ]
     fieldsets = [
         (_("Description"), {
-                'fields': ['name']
-                }),
+            'fields': ['name']
+            }),
         (_("Operator"), {
-                'fields': ['operation']
-                }),
+            'fields': ['operation']
+            }),
         (_("Logical conditions operands"), {
-                'fields': ['conds']
-                }),
+            'fields': ['conds']
+            }),
         (_("Usage"), {
-                'fields': ['as_filter', 'on_dashboard']
-                }),
+            'fields': ['as_filter', 'on_dashboard']
+            }),
         ]
 
     ordering = ('name',)
