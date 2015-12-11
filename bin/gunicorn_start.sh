@@ -9,7 +9,8 @@ NUM_WORKERS=3 # how many worker processes should Gunicorn spawn
 DJANGO_SETTINGS_MODULE=project.settings # which settings file should Django use
 DJANGO_WSGI_MODULE=wsgi # WSGI module name
 
-source ../update_local.sh
+CURDIR=`dirname $0`
+source $CURDIR/../update_local.sh
  
 echo "Starting $NAME as `whoami`"
  
