@@ -12,7 +12,7 @@ feedparser
 -e git+https://github.com/PetrDlouhy/django-admin-user-stats.git#egg=django-admin-user-stats
 #django-admin-user-stats==0.2
 django-chart-tools
--e git+https://github.com/PetrDlouhy/django-admin-user-stats.git#egg=django-mass-edit
+-e git+https://github.com/PetrDlouhy/django-mass-edit.git#egg=django-mass-edit
 python-memcached
 -e git+https://github.com/PetrDlouhy/django-import-export.git#egg=django-import-export
 -e git+https://github.com/PetrDlouhy/django-qsstats-magic.git#egg=django-qsstats-magic
