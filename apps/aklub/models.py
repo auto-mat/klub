@@ -783,7 +783,7 @@ class AccountStatements(models.Model):
         # TODO: This should be separated into a dedicated module
         win1250_contents = self.csv_file.read()
         unicode_contents = win1250_contents.decode('windows-1250')
-        splitted = unicode_contents.encode('utf-8').split('\n\n')
+        splitted = str(unicode_contents).split('\n\n')
         header = splitted[0]
         data = splitted[1]
 
