@@ -30,8 +30,6 @@ def send_mass_communication(obj, users, request, save=True):
     for user in users:
         if user == "fake_user":
             # create fake values
-            def last_payment():
-                return Payment(amount=12345)
             user = User(
                 email=request.user.email,
                 language='cs',
@@ -47,8 +45,8 @@ def send_mass_communication(obj, users, request, save=True):
                 regular_amount=123456,
                 regular_frequency="monthly",
                 variable_symbol=12345678,
+                last_payment=Payment(amount=12345),
                 )
-            user.last_payment = last_payment
         if user.language == 'cs':
             template, subject = obj.template, obj.subject
         else:
