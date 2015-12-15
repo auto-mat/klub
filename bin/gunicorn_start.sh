@@ -19,6 +19,7 @@ cd $DJANGODIR
 source env/bin/activate
 export DJANGO_SETTINGS_MODULE=$DJANGO_SETTINGS_MODULE
 export PYTHONPATH=$DJANGODIR:$PYTHONPATH
+export environment=LANG=en_US.UTF-8, LC_ALL=en_US.UTF-8, LC_LANG=en_US.UTF-8
  
 # Create the run directory if it doesn't exist
 RUNDIR=$(dirname $SOCKFILE)
