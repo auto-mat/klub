@@ -116,6 +116,16 @@ class ConditionsTests(BaseTestCase):
         )
         self.assertQueryEquals(c.get_query(), Q(pk__in=[]))
 
+    def test_blank_condition(self):
+        c = Condition.objects.create(operation="and")
+        TerminalCondition.objects.create(
+            variable="User.regular_payments",
+            value="true",
+            operation="=",
+            condition=c,
+        )
+        self.assertQueryEquals(c.get_query(), Q(regular_payments=True))
+
     def test_combined_condition(self):
         c = Condition.objects.create(operation="and")
         TerminalCondition.objects.create(
