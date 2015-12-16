@@ -1215,26 +1215,27 @@ class Condition(models.Model):
         return self.name
 
     def get_query(self, action=None):
-        ret_cond = Q()
-        if self.operation == 'and':
-            for cond in self.conds.all():
-                ret_cond &= cond.get_query(action)
-            for tcond in self.terminalcondition_set.all():
-                ret_cond &= tcond.get_query(action)
-            return ret_cond
-        if self.operation == 'or':
-            for cond in self.conds.all():
-                ret_cond |= cond.get_query(action)
-            for tcond in self.terminalcondition_set.all():
-                ret_cond |= tcond.get_query(action)
-            return ret_cond
+        operation_dict = {
+            'and': lambda x, y: x & y,
+            'or': lambda x, y: x | y,
+            'nor': lambda x, y: x | y,
+        }
+        ret_cond = None
+        for cond in self.conds.all():
+            if ret_cond:
+                ret_cond = operation_dict[self.operation](ret_cond, cond.get_query(action))
+            else:
+                ret_cond = cond.get_query(action)
+        for tcond in self.terminalcondition_set.all():
+            if ret_cond:
+                ret_cond = operation_dict[self.operation](ret_cond, tcond.get_query(action))
+            else:
+                ret_cond = tcond.get_query(action)
+
         if self.operation == 'nor':
-            for cond in self.conds.all():
-                ret_cond |= cond.get_query(action)
-            for tcond in self.terminalcondition_set.all():
-                ret_cond |= tcond.get_query(action)
             return ~(ret_cond)
-        raise NotImplementedError("Unknown operation %s" % self.operation)
+        else:
+            return ret_cond
 
     def condition_string(self):
         prefix = ""
@@ -1277,11 +1278,15 @@ class TerminalCondition(models.Model):
         verbose_name_plural = _("Terminal conditions")
 
     OPERATORS = (
-                ('=', _(u'is equal to')),
-                ('!=', _(u'is not equal to')),
-                ('like', _(u'is like')),  # in SQL sense
-                ('>', _(u'greater than')),
-                ('<', _(u'less than')))
+                ('=', u'='),
+                ('!=', u'≠'),
+                ('>', '>'),
+                ('<', '<'),
+                ('>=', u'≤'),
+                ('<=', u'≤'),
+                ('containts', _(u'contains')),
+                ('icontaints', _(u'contains (case insensitive)')),
+    )
 
     variable = models.CharField(
         verbose_name=_("Variable"),
@@ -1313,70 +1318,75 @@ class TerminalCondition(models.Model):
                 except:
                     return "action"
 
+    def get_val(self, spec):
+        if '.' in spec:
+            variable, value = spec.split('.')
+        else:
+            variable = spec
+
+        spec_dict = {
+            'month_ago': datetime.datetime.now()-datetime.timedelta(days=30),
+            'one_day': datetime.timedelta(days=1),
+            'one_week': datetime.timedelta(days=7),
+            'two_weeks': datetime.timedelta(days=14),
+            'one_month': datetime.timedelta(days=31),
+            'datetime': lambda value: datetime.datetime.strptime(value, '%Y-%m-%d %H:%M'),
+            'timedelta': lambda value: datetime.timedelta(days=int(value)),
+            'days_ago': lambda value: datetime.datetime.now() - datetime.timedelta(days=int(value)),
+            'true': True,
+            'false': False,
+            'None': None,
+        }
+        if variable in spec_dict:
+            expression = spec_dict[variable]
+            if hasattr(expression, "__call__"):  # is function
+                return spec_dict[variable](value)
+            else:
+                return spec_dict[variable]
+        else:
+            try:
+                return int(spec)
+            except (TypeError, ValueError):
+                return spec
+
+    def get_querystring(self, spec, operation):
+        spec_ = spec.split('.')
+        if spec_[0] != 'User':
+            NotImplementedError("Unknown spec %s" % spec_[0])
+
+        join_querystring = "__".join(spec_[1:])
+
+        if operation == '=' or operation == '!=':
+            return join_querystring
+        elif operation == '<':
+            return join_querystring + "__lt"
+        elif operation == '>':
+            return join_querystring + "__gt"
+        elif operation == 'contains':
+            return join_querystring + "__contains"
+        elif operation == 'icontains':
+            return join_querystring + "__icontains"
+        elif operation == '<=':
+            return join_querystring + "__lte"
+        elif operation == '>=':
+            return join_querystring + "__gte"
+        else:
+            NotImplementedError("Unknown operation %s" % operation)
+
     def get_query(self, action=None):
-        def get_val(spec):
-            # Symbolic names
-            if spec == 'month_ago':
-                return datetime.datetime.now()-datetime.timedelta(days=30)
-            if spec == 'one_day':
-                return datetime.timedelta(days=1)
-            if spec == 'one_week':
-                return datetime.timedelta(days=7)
-            if spec == 'two_weeks':
-                return datetime.timedelta(days=14)
-            if spec == 'one_month':
-                return datetime.timedelta(days=31)
-            if spec == 'true':
-                return True
-            if spec == 'false':
-                return False
-            if spec == 'None':
-                return None
-
-            # DB objects
-            if '.' in spec:
-                spec_ = spec.split('.')
-                if spec_[0] == 'User':
-                    return "__".join(spec_[1:]) + op_string
-                elif spec_[0] == 'datetime':
-                    return datetime.datetime.strptime(spec_[1], '%Y-%m-%d %H:%M')
-                elif spec_[0] == 'timedelta':
-                    return datetime.timedelta(days=int(spec_[1]))
-                elif spec_[0] == 'days_ago':
-                    return datetime.datetime.now() - datetime.timedelta(days=int(spec_[1]))
-            else:
-                try:
-                    return int(spec)
-                except (TypeError, ValueError):
-                    return spec
-
-        def get_querystring(spec, operatoin):
-            if self.operation == '=':
-                op_string = ""
-            elif self.operation == '<':
-                op_string = "__lt"
-            elif self.operation == '>':
-                op_string = "__gt"
-            elif self.operation == '!=':
-                op_string = "__not"
-            else:
-                NotImplementedError("Unknown operation %s" % self.operation)
-
-            if '.' in spec:
-                spec_ = spec.split('.')
-                if spec_[0] == 'User':
-                    return "__".join(spec_[1:]) + op_string
-
         if self.variable == 'action':
             if self.value == action:
                 return Q()
             else:
-                return Q(pk__in=[])
+                return Q(pk__in=[])  # empty set
 
         # Elementary conditions
-        left = get_querystring(self.variable, self.operation)
-        right = get_val(self.value)
-        return Q(**{left: right})
+        left = self.get_querystring(self.variable, self.operation)
+        right = self.get_val(self.value)
+        if self.operation == '!=':
+            return ~Q(**{left: right})
+        else:
+            return Q(**{left: right})
 
     def __str__(self):
         return "%s %s %s" % (self.variable, self.operation, self.value)

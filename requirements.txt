@@ -26,3 +26,4 @@ django-formtools
 -e git+https://github.com/PetrDlouhy/django-denorm.git@develop#egg=django-denorm
 django-timedeltafield
 gunicorn
+freezegun
