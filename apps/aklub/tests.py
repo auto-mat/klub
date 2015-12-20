@@ -18,12 +18,11 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 from django.db.models import Q
-from django.test import TestCase, RequestFactory, Client
-from django.contrib.auth.models import User
-from django.core.urlresolvers import reverse
+from django.test import TestCase
 import datetime
 from freezegun import freeze_time
 from .models import TerminalCondition, Condition
+from django_admin_smoke_tests import tests
 
 
 class BaseTestCase(TestCase):
@@ -174,25 +173,5 @@ class ConditionsTests(BaseTestCase):
         self.assertQueryEquals(c2.get_query(), test_query)
 
 
-class AdminFilterTests(TestCase):
-    fixtures = ["conditions"]
-
-    def setUp(self):
-        self.factory = RequestFactory()
-        self.client = Client(HTTP_HOST='testserver')
-        self.user = User.objects.create_superuser(
-            username='admin', email='test_user@test_user.com', password='admin')
-        self.user.save()
-
-    def run(self, *args, **kwargs):
-        super(AdminFilterTests, self).run(*args, **kwargs)
-
-    def test_admin_views(self):
-        """
-        test if the admin pages load
-        """
-        self.assertTrue(self.client.login(username='admin', password='admin'))
-        response = self.client.get(reverse("admin:aklub_user_changelist"))
-        self.assertEqual(response.status_code, 200)
-        response = self.client.get(reverse("admin:aklub_condition_changelist"))
-        self.assertEqual(response.status_code, 200)
+class AdminTest(tests.AdminSiteSmokeTest):
+    fixtures = ['conditions']

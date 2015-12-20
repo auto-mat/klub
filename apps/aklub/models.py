@@ -126,7 +126,7 @@ class Campaign(models.Model):
     average_yield.short_description = _("average yield")
 
     def __str__(self):
-        return self.name
+        return str(self.name)
 
 
 class Expense(models.Model):
@@ -199,10 +199,10 @@ class Recruiter(models.Model):
                                        editable=True)
 
     def __str__(self):
-        return self.person_name()
+        return str(self.person_name())
 
     def person_name(self):
-        return " ".join(("%03d" % self.recruiter_id, self.firstname, self.surname))
+        return "%03d %s %s" % (self.recruiter_id or 0, self.firstname, self.surname)
     person_name.short_description = _("Name")
 
 
@@ -226,7 +226,7 @@ class Source(models.Model):
         default=False)
 
     def __str__(self):
-        return self.name
+        return str(self.name)
 
 
 class User(models.Model):
@@ -445,7 +445,7 @@ class User(models.Model):
         blank=False)
 
     def __str__(self):
-        return self.person_name()
+        return str(self.person_name())
 
     def person_name(self):
         return " ".join((self.surname, self.firstname))
@@ -1212,7 +1212,7 @@ class Condition(models.Model):
         default=False)
 
     def __str__(self):
-        return self.name
+        return str(self.name)
 
     def get_query(self, action=None):
         operation_dict = {
@@ -1449,7 +1449,7 @@ class AutomaticCommunication(models.Model):
         )
 
     def __str__(self):
-        return self.name
+        return str(self.name)
 
 
 class MassCommunication(models.Model):
@@ -1513,7 +1513,7 @@ class MassCommunication(models.Model):
         blank=True, null=True)
 
     def __str__(self):
-        return self.name
+        return str(self.name)
 
 
 class OverwriteStorage(FileSystemStorage):
