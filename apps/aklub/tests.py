@@ -23,6 +23,9 @@ import datetime
 from freezegun import freeze_time
 from .models import TerminalCondition, Condition
 from django_admin_smoke_tests import tests
+from .confirmation import makepdf
+import io
+from PyPDF2 import PdfFileReader
 
 
 class BaseTestCase(TestCase):
@@ -171,6 +174,30 @@ class ConditionsTests(BaseTestCase):
         )
         test_query = ~((~Q(days_ago_condition=datetime.datetime(2009, 12, 26, 0, 0)) & Q(time_condition__gte=datetime.timedelta(5))) | Q(int_condition=4) | Q(int_condition__lte=5))
         self.assertQueryEquals(c2.get_query(), test_query)
+
+
+class ConfirmationTest(TestCase):
+    def test_makepdf(self):
+        output = io.BytesIO()
+        makepdf(output, 'Test name', 'male', 'Test street', 'Test city', 2099, 999)
+        pdf = PdfFileReader(output)
+        pdf_string = pdf.pages[0].extractText()
+        self.assertTrue('Test name' in pdf_string)
+        self.assertTrue('Test street' in pdf_string)
+        self.assertTrue('Test city' in pdf_string)
+        self.assertTrue('2099' in pdf_string)
+        self.assertTrue('999' in pdf_string)
+
+    def test_makepdf_female(self):
+        output = io.BytesIO()
+        makepdf(output, 'Test name', 'female', 'Test street', 'Test city', 2099, 999)
+        pdf = PdfFileReader(output)
+        pdf_string = pdf.pages[0].extractText()
+        self.assertTrue('Test name' in pdf_string)
+        self.assertTrue('Test street' in pdf_string)
+        self.assertTrue('Test city' in pdf_string)
+        self.assertTrue('2099' in pdf_string)
+        self.assertTrue('999' in pdf_string)
 
 
 class AdminTest(tests.AdminSiteSmokeTest):

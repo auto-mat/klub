@@ -15,11 +15,10 @@ def makepdf(outfile, name, sex, street, city, year, amount):
     DIR = os.path.dirname(__file__)
     # CONFIGURATION
     logo = os.path.join(DIR, "logo.jpg")
-    signature = os.path.join(DIR, "signature.png")
-    statutory_name = u"Jana Pírková"
+    signature = os.path.join(DIR, "signature.jpg")
+    statutory_name = u"Hana Škodová"
     statutory_titles = [
-        u"členka výkonné rady o.s. Auto*Mat",
-        u"statutární zástupkyně",
+        u"ředitelka z.s. Auto*Mat",
     ]
 
     # different wording based on user's sex
@@ -41,9 +40,9 @@ def makepdf(outfile, name, sex, street, city, year, amount):
     při dodržení zákonných podmínek.
     """
 
-    footer1 = u"Auto*Mat, o.s.  – iniciativa pro lepší kvalitu života ve městě"
-    footer2 = u"Kancelář: Bořivojova 108, 130 00 Praha 3 | M: auto-mat@auto-mat.cz | T: 212 240 666 | W: www.auto-mat.cz"
-    footer3 = u"Sídlo: Lublaňská 18, 120 00 Praha 2 | IČ: 226 703 19 | Účet vedený u ČSOB v Praze 1: 217 359 444 / 0300"
+    footer1 = u"Auto*Mat, z.s.  – iniciativa pro lepší kvalitu života ve městě"
+    footer2 = u"Kancelář: Bořivojova 108, 130 00 Praha 3 | M: kp@auto-mat.cz | T: 212 240 666 | W: www.auto-mat.cz"
+    # footer3 = u"Sídlo: Lublaňská 18, 120 00 Praha 2 | IČ: 226 703 19 | Účet vedený u ČSOB v Praze 1: 217 359 444 / 0300"
 
     # END OF CONFIGURATION
 
@@ -109,7 +108,7 @@ def makepdf(outfile, name, sex, street, city, year, amount):
         canvas.drawString(145, 65, footer1)
         canvas.setFont('DejaVu', 9)
         canvas.drawString(50, 50, footer2)
-        canvas.drawString(60, 35, footer3)
+        # canvas.drawString(60, 35, footer3)
         canvas.restoreState()
 
     doc.build(Story, onFirstPage=firstPageGraphics)
