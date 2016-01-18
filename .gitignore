@@ -10,5 +10,7 @@ trash/
 logs/
 static/
 update_local.sh
-aklub.log
+aklub.log*
 db_backup
+.coveragerc
+htmlcov/
