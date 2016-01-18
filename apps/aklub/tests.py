@@ -21,9 +21,10 @@ from django.db.models import Q
 from django.test import TestCase
 import datetime
 from freezegun import freeze_time
-from .models import TerminalCondition, Condition
+from .models import TerminalCondition, Condition, User, Communication, AutomaticCommunication
 from django_admin_smoke_tests import tests
 from .confirmation import makepdf
+from . import autocom
 import io
 from PyPDF2 import PdfFileReader
 
@@ -199,6 +200,69 @@ class ConfirmationTest(TestCase):
         self.assertTrue('2099' in pdf_string)
         self.assertTrue('999' in pdf_string)
 
+
+class AutocomTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create(sex='male')
+        c = Condition.objects.create(operation="nor")
+        TerminalCondition.objects.create(
+            variable="action",
+            value="test-autocomm",
+            operation="==",
+            condition=c,
+        )
+        AutomaticCommunication.objects.create(
+            condition=c,
+            template="Vazen{y|a} {pane|pani} $addressment $regular_frequency testovací šablona",
+            template_en="Dear {sir|miss} $addressment $regular_frequency test template",
+            subject="Testovací komunikace",
+            subject_en="Testing communication",
+        )
+
+    def test_autocom(self):
+        autocom.check(action="test-autocomm")
+        communication = Communication.objects.get(user=self.user)
+        self.assertTrue("testovací šablona" in communication.summary)
+        self.assertTrue("člene Klubu přátel Auto*Matu" in communication.summary)
+        self.assertTrue("Vazeny pane" in communication.summary)
+
+    def test_autocom_female(self):
+        self.user.sex = 'female'
+        self.user.save()
+        autocom.check(action="test-autocomm")
+        communication = Communication.objects.get(user=self.user)
+        self.assertIn("testovací šablona", communication.summary)
+        self.assertIn("členko Klubu přátel Auto*Matu", communication.summary)
+        self.assertIn("Vazena pani", communication.summary)
+
+    def test_autocom_unknown(self):
+        self.user.sex = 'unknown'
+        self.user.save()
+        autocom.check(action="test-autocomm")
+        communication = Communication.objects.get(user=self.user)
+        self.assertIn("testovací šablona", communication.summary)
+        self.assertIn("člene/členko Klubu přátel Auto*Matu", communication.summary)
+        self.assertIn("Vazeny/a pane/pani", communication.summary)
+
+    def test_autocom_addressment(self):
+        self.user.sex = 'male'
+        self.user.addressment = 'own addressment'
+        self.user.save()
+        autocom.check(action="test-autocomm")
+        communication = Communication.objects.get(user=self.user)
+        self.assertIn("testovací šablona", communication.summary)
+        self.assertIn("own addressment", communication.summary)
+        self.assertIn("Vazeny pane", communication.summary)
+
+    def test_autocom_en(self):
+        self.user.sex = 'unknown'
+        self.user.language = 'en'
+        self.user.save()
+        autocom.check(action="test-autocomm")
+        communication = Communication.objects.get(user=self.user)
+        self.assertIn("test template", communication.summary)
+        self.assertIn("member of the Auto*Mat friends club", communication.summary)
+        self.assertIn("Dear sir", communication.summary)
 
 class AdminTest(tests.AdminSiteSmokeTest):
     fixtures = ['conditions']
