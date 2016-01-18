@@ -19,12 +19,14 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 from django.db.models import Q
 from django.test import TestCase
+from django.core import mail
+from django.contrib.auth.models import User as DjangoUser
 import datetime
 from freezegun import freeze_time
 from .models import TerminalCondition, Condition, User, Communication, AutomaticCommunication
 from django_admin_smoke_tests import tests
 from .confirmation import makepdf
-from . import autocom
+from . import autocom, mailing
 import io
 from PyPDF2 import PdfFileReader
 
@@ -263,6 +265,28 @@ class AutocomTest(TestCase):
         self.assertIn("test template", communication.summary)
         self.assertIn("member of the Auto*Mat friends club", communication.summary)
         self.assertIn("Dear sir", communication.summary)
+
+
+class MailingTest(TestCase):
+    def test_mailing(self):
+        sending_user = DjangoUser.objects.create(
+            first_name="Testing",
+            last_name="User",
+            email="test@test.com",
+        )
+        c = AutomaticCommunication.objects.create(
+            condition=Condition.objects.create(),
+            template="Testing template",
+            subject="Testing email",
+            method="email",
+        )
+        mailing.send_mass_communication(c, ["fake_user"], sending_user, save=False)
+        self.assertEqual(len(mail.outbox), 1)
+        msg = mail.outbox[0]
+        self.assertEqual(msg.recipients(), ['test@test.com'])
+        self.assertEqual(msg.subject, 'Testing email')
+        self.assertIn("Testing template", msg.body)
+
 
 class AdminTest(tests.AdminSiteSmokeTest):
     fixtures = ['conditions']

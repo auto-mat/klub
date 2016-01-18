@@ -26,18 +26,18 @@ from django.utils.translation import ugettext as _
 """Mailing"""
 
 
-def send_mass_communication(obj, users, request, save=True):
+def send_mass_communication(obj, users, sending_user, save=True):
     for user in users:
         if user == "fake_user":
             # create fake values
             user = User(
-                email=request.user.email,
+                email=sending_user.email,
                 language='cs',
                 active=True,
                 addressment=None,
                 sex='male',
-                firstname=request.user.first_name,
-                surname=request.user.last_name,
+                firstname=sending_user.first_name,
+                surname=sending_user.last_name,
                 street=_('testing street'),
                 city=_('testing city'),
                 zip_code=12345,
@@ -68,6 +68,6 @@ def send_mass_communication(obj, users, request, save=True):
                               summary=autocom.process_template(template, user),
                               attachment=attachment,
                               note=_("Prepared by auto*mated mass communications at %s") % datetime.datetime.now(),
-                              send=True, created_by=request.user, handled_by=request.user,
+                              send=True, created_by=sending_user, handled_by=sending_user,
                               type='mass')
             c.dispatch(save=save)
