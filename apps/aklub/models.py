@@ -326,7 +326,7 @@ class User(models.Model):
                     "between partial form (he still needs to send a permanent order into his bank) "
                     "and full form (we are going to submit his form directly into bank, no further "
                     "action is needed from him)."),
-        max_length=80, blank=True, null=True, default=None)
+        max_length=80, blank=True, null=True, default=None, on_delete=models.SET_NULL)
     additional_information = models.TextField(
         verbose_name=_("Additional information"),
         max_length=500, blank=True)
@@ -428,7 +428,12 @@ class User(models.Model):
         related_name='members',
         blank=True,
         editable=True)
-    recruiter = models.ForeignKey(Recruiter, blank=True, null=True)
+    recruiter = models.ForeignKey(
+        Recruiter,
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+    )
     verified = models.BooleanField(
         _("Verified"),
         help_text=_("Was the the user information verified by a club administrator?"),
@@ -437,7 +442,10 @@ class User(models.Model):
         'auth.User',
         verbose_name=_("Verified by"),
         related_name='verified_users',
-        null=True, blank=True)
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
     activity_points = models.IntegerField(
         verbose_name=_("Activity points"),
         help_text=_("Points for users activity"),
@@ -478,7 +486,7 @@ class User(models.Model):
         """Return last payment"""
         return self.payments().order_by('date').last()
 
-    @denormalized(models.ForeignKey, to='Payment', default=None, null=True, related_name="user_last_payment")
+    @denormalized(models.ForeignKey, to='Payment', default=None, null=True, related_name="user_last_payment", on_delete=models.SET_NULL)
     def last_payment(self):
         """Return last payment"""
         return self.last_payment_function()
@@ -1037,12 +1045,18 @@ class Communication(models.Model):
         'auth.User',
         verbose_name=_("Created by"),
         related_name='created_by_communication',
-        null=True, blank=True)
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
     handled_by = models.ForeignKey(
         'auth.User',
         verbose_name=_("Last handled by"),
         related_name='handled_by_communication',
-        null=True, blank=True)
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
     send = models.BooleanField(
         verbose_name=_("Send / Handle"),
         help_text=_("Request sending or resolving this communication. For emails, this means that "
@@ -1409,7 +1423,11 @@ class AutomaticCommunication(models.Model):
         verbose_name=_("Name"),
         max_length=50,
         blank=False, null=True)
-    condition = models.ForeignKey(Condition)
+    condition = models.ForeignKey(
+        Condition,
+        null=True,
+        on_delete=models.SET_NULL,
+    )
     method = models.CharField(
         verbose_name=_("Method"),
         max_length=30,
