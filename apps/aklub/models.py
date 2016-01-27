@@ -735,6 +735,8 @@ class UserYearPayments(User):
 
     class Meta:
         proxy = True
+        verbose_name = _("Payment for users in time period")
+        verbose_name_plural = _("Payments for users in time periods")
 
 
 def str_to_datetime(date):
