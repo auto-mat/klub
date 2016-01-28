@@ -333,7 +333,7 @@ class CommunicationAdmin(admin.ModelAdmin):
 
 
 class AutomaticCommunicationAdmin(admin.ModelAdmin):
-    list_display = ('name', 'method', 'subject')
+    list_display = ('name', 'method', 'subject', 'condition', 'only_once', 'dispatch_auto')
     filter_horizontal = ('sent_to_users',)
     ordering = ('name',)
 
