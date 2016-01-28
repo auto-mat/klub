@@ -20,6 +20,7 @@
 from django.db.models import Q
 from django.test import TestCase
 from django.core import mail
+from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User as DjangoUser
 import datetime
 from freezegun import freeze_time
@@ -290,3 +291,43 @@ class MailingTest(TestCase):
 
 class AdminTest(tests.AdminSiteSmokeTest):
     fixtures = ['conditions']
+
+class ViewsTestsLogon(TestCase):
+    fixtures = ['conditions']
+
+    def setUp(self):
+        self.user = DjangoUser.objects.create_superuser(
+            username='admin', email='test_user@test_user.com', password='admin')
+        self.assertTrue(self.client.login(username='admin', password='admin'))
+
+    def verify_views(self, views, status_code_map):
+        for view in views:
+            status_code = status_code_map[view] if view in status_code_map else 200
+            address = view
+            response = self.client.get(address, follow=True)
+            filename = view.replace("/", "_")
+            if response.status_code != status_code:
+                with open("error_%s.html" % filename, "w") as f:
+                    f.write(response.content.decode())
+            self.assertEqual(response.status_code, status_code, "%s view failed, the failed page is saved to error_%s.html file." % (view, filename))
+
+    views = [
+        '/admin',
+        reverse('regular'),
+        reverse('regular-wp'),
+        reverse('regular-dpnk'),
+        reverse('onetime'),
+        reverse('donators'),
+        reverse('profiles'),
+        reverse('stay-members'),
+        reverse('stay-payments'),
+    ]
+
+    def test_aklub_views(self):
+        """
+        test if the user pages work
+        """
+        status_code_map = {
+        }
+
+        self.verify_views(self.views, status_code_map)

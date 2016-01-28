@@ -50,8 +50,8 @@
         "fields": {
             "as_filter": true, 
             "conds": [], 
-            "name": "Pravideln\u00e9 platby v nepo\u0159\u00e1dku", 
-            "on_dashboard": false, 
+            "name": "Pravideln\u00e9 platby v po\u0159\u00e1dku",
+            "on_dashboard": true,
             "operation": "and"
         }, 
         "model": "aklub.condition", 
@@ -366,7 +366,7 @@
             "conds": [
                 5
             ], 
-            "name": "Pravideln\u00e9 platby v po\u0159\u00e1dku", 
+            "name": "Pravideln\u00e9 platby v nepo\u0159\u00e1dku",
             "on_dashboard": false, 
             "operation": "nor"
         }, 

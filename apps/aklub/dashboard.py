@@ -49,7 +49,6 @@ def get_users_by_condition_cached(cond):
         now = datetime.datetime.now()
         td = now.replace(hour=23, minute=59, second=59, microsecond=999) - now
         seconds_till_midnight = td.seconds + (td.days * 24 * 3600)
-        print(seconds_till_midnight)
         cache.set('condition_filter_%i' % cond.pk, items, seconds_till_midnight)
     return items
 
@@ -112,24 +111,26 @@ class AklubIndexDashboard(Dashboard):
 
         # Modules for conditions:
         children = []
-        children.append(
-            {
-                'title': _(u"Days from last bill upload: %(days)s days") % {"days": (datetime.date.today() - AccountStatements.objects.first().import_date).days},
-                'url': "aklub/accountstatements/",
-                'external': False,
-            }
-            )
-        children.append(
-            {
-                'title': _(u"Days from last mass communication: %(days)s days") % {"days": (datetime.date.today() - MassCommunication.objects.order_by("-date").first().date).days},
-                'url': "aklub/masscommunication/",
-                'external': False,
-            }
-            )
+        if AccountStatements.objects.exists():
+            children.append(
+                {
+                    'title': _(u"Days from last bill upload: %(days)s days") % {"days": (datetime.date.today() - AccountStatements.objects.first().import_date).days},
+                    'url': "aklub/accountstatements/",
+                    'external': False,
+                }
+                )
+        if MassCommunication.objects.exists():
+            children.append(
+                {
+                    'title': _(u"Days from last mass communication: %(days)s days") % {"days": (datetime.date.today() - MassCommunication.objects.order_by("-date").first().date).days},
+                    'url': "aklub/masscommunication/",
+                    'external': False,
+                }
+                )
         for cond in Condition.objects.filter(on_dashboard=True):
             children.append(
                 {
-                    'title': _(u"%(name)s: %(items)s items") % {"name": unicode(cond.name), "items": get_users_by_condition_cached(cond).count()},
+                    'title': _(u"%(name)s: %(items)s items") % {"name": str(cond.name), "items": get_users_by_condition_cached(cond).count()},
                     'url': "aklub/user/?user_condition=%i" % cond.id,
                     'external': False,
                 }

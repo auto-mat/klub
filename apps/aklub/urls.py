@@ -1,13 +1,13 @@
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 from aklub.views import RegularUserFormWithProfile, RegularView, RegularUserFormDPNK
 
-urlpatterns = patterns(
-    '',
-    url(r'^regular/', RegularView.as_view()),
+urlpatterns = [
+    url(r'^regular/', RegularView.as_view(), name="regular"),
     url(r'^regular-wp/', RegularView.as_view(
         template_name='regular-wp.html',
         form_class=RegularUserFormWithProfile,
-        success_template='thanks-wp.html')
+        success_template='thanks-wp.html'),
+        name="regular-wp",
         ),
     url(r'^regular-dpnk/', RegularView.as_view(
         template_name='regular-dpnk.html',
@@ -16,7 +16,7 @@ urlpatterns = patterns(
         source_slug='dpnk'),
         name="regular-dpnk",
         ),
-    (r'^onetime/', 'aklub.views.onetime'),
-    (r'^donators/', 'aklub.views.donators'),
-    (r'^profiles/', 'aklub.views.profiles'),
-)
+    url(r'^onetime/', 'aklub.views.onetime', name="onetime"),
+    url(r'^donators/', 'aklub.views.donators', name="donators"),
+    url(r'^profiles/', 'aklub.views.profiles', name="profiles"),
+]
