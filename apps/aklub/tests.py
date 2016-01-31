@@ -291,10 +291,10 @@ class MailingTest(TestCase):
 
 
 class AdminTest(tests.AdminSiteSmokeTest):
-    fixtures = ['conditions']
+    fixtures = ['conditions', 'users']
 
 class ViewsTestsLogon(TestCase):
-    fixtures = ['conditions']
+    fixtures = ['conditions', 'users']
 
     def setUp(self):
         self.user = DjangoUser.objects.create_superuser(
