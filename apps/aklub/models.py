@@ -903,7 +903,7 @@ class Payment(models.Model):
     VS = models.CharField(
         verbose_name=_("VS"),
         help_text=_("Variable symbol"),
-        max_length=30, blank=True)
+        max_length=30, blank=True, null=True)
     SS = models.CharField(
         _("SS"),
         help_text=_("Specific symbol"),

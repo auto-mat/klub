@@ -24,12 +24,13 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User as DjangoUser
 import datetime
 from freezegun import freeze_time
-from .models import TerminalCondition, Condition, User, Communication, AutomaticCommunication
+from .models import TerminalCondition, Condition, User, Communication, AutomaticCommunication, AccountStatements
 from django_admin_smoke_tests import tests
 from .confirmation import makepdf
 from . import autocom, mailing
 import io
 from PyPDF2 import PdfFileReader
+from django.core.files import File
 
 
 class BaseTestCase(TestCase):
@@ -331,3 +332,28 @@ class ViewsTestsLogon(TestCase):
         }
 
         self.verify_views(self.views, status_code_map)
+
+class AccountStatementTests(TestCase):
+    fixtures = ['conditions', 'users']
+
+    def test_bank_statement(self):
+        with open("apps/aklub/test_data/test_statement.csv", "rb") as f:
+            a = AccountStatements(csv_file=File(f), type="account")
+            a.clean()
+            a.save()
+
+            a1 = AccountStatements.objects.get()
+            self.assertEqual(len(a1.payment_set.all()), 3)
+            user = User.objects.get()
+            self.assertEqual(user.payment_set.get(), a1.payment_set.get(account=2150508001))
+
+    def test_darujme_statement(self):
+        with open("apps/aklub/test_data/test_darujme.xls", "rb") as f:
+            a = AccountStatements(csv_file=File(f), type="darujme")
+            a.clean()
+            a.save()
+
+            a1 = AccountStatements.objects.get()
+            self.assertEqual(len(a1.payment_set.all()), 2)
+            user = User.objects.get()
+            self.assertEqual(user.payment_set.get(), a1.payment_set.get(amount=200))
