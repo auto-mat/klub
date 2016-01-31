@@ -293,6 +293,7 @@ class MailingTest(TestCase):
 class AdminTest(tests.AdminSiteSmokeTest):
     fixtures = ['conditions', 'users']
 
+
 class ViewsTestsLogon(TestCase):
     fixtures = ['conditions', 'users']
 
@@ -332,6 +333,7 @@ class ViewsTestsLogon(TestCase):
         }
 
         self.verify_views(self.views, status_code_map)
+
 
 class AccountStatementTests(TestCase):
     fixtures = ['conditions', 'users']
