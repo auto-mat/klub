@@ -320,8 +320,8 @@ class ViewsTestsLogon(TestCase):
         reverse('onetime'),
         reverse('donators'),
         reverse('profiles'),
-        reverse('stay-members'),
-        reverse('stay-payments'),
+        # reverse('stay-members'),
+        # reverse('stay-payments'),
     ]
 
     def test_aklub_views(self):
