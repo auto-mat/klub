@@ -420,11 +420,19 @@ class ConditionAdmin(ImportExportModelAdmin):
     ordering = ('name',)
 
 
+def pair_variable_symbols(self, req, queryset):
+    for account_statement in queryset:
+        for payment in account_statement.payment_set.all():
+            account_statement.pair_vs(payment)
+pair_variable_symbols.short_description = _("Pair payments with users based on variable symboles")
+
+
 class AccountStatementsAdmin(admin.ModelAdmin):
     list_display = ('type', 'import_date', 'payments_count', 'csv_file', 'date_from', 'date_to')
     inlines = [PaymentsInlineNoExtra]
     readonly_fields = ('import_date', 'payments_count')
     fields = copy.copy(list_display)
+    actions = (pair_variable_symbols,)
 
     def payments_count(self, obj):
         return obj.payment_set.count()

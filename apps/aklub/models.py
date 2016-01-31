@@ -788,6 +788,21 @@ class AccountStatements(models.Model):
                 payment.account_statement = self
                 payment.save()
 
+    def pair_vs(self, payment):
+        # Payments pairing'
+        if payment.VS != '':
+            users_with_vs = User.objects.filter(variable_symbol=payment.VS)
+            if len(users_with_vs) == 1:
+                payment.user = users_with_vs[0]
+            elif len(users_with_vs) > 1:
+                raise Exception(
+                    "Duplicit variable symbol (%s) detected "
+                    "for users: %s!" %
+                    (payment.VS, ",".join(
+                        [str(user) for user in users_with_vs])))
+        else:
+            payment.VS = None
+
     def parse_bank_csv(self):
         # Read and parse the account statement
         # TODO: This should be separated into a dedicated module
@@ -836,19 +851,7 @@ class AccountStatements(models.Model):
                     # only process contributions
                     continue
                 p = Payment(**payment)
-                # Payments pairing'
-                if p.VS != '':
-                    users_with_vs = User.objects.filter(variable_symbol=p.VS)
-                    if len(users_with_vs) == 1:
-                        p.user = users_with_vs[0]
-                    elif len(users_with_vs) > 1:
-                        raise Exception(
-                            "Duplicit variable symbol (%s) detected "
-                            "for users: %s!" %
-                            (p.VS, ",".join(
-                                [str(user) for user in users_with_vs])))
-                else:
-                    p.VS = None
+                self.pair_vs(p)
                 p.type = 'bank-transfer'
                 p.account_statement = self
                 payments.append(p)
