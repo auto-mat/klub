@@ -420,11 +420,14 @@ class ConditionAdmin(ImportExportModelAdmin):
     ordering = ('name',)
 
 
-def pair_variable_symbols(self, req, queryset):
+def pair_variable_symbols(self, request, queryset):
     for account_statement in queryset:
         for payment in account_statement.payment_set.all():
-            account_statement.pair_vs(payment)
-            payment.save()
+            try:
+                account_statement.pair_vs(payment)
+                payment.save()
+            except Exception as e:
+                messages.error(request, _('Exception during pairing: %s' % e))
 pair_variable_symbols.short_description = _("Pair payments with users based on variable symboles")
 
 
