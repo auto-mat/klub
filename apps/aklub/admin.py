@@ -424,6 +424,7 @@ def pair_variable_symbols(self, req, queryset):
     for account_statement in queryset:
         for payment in account_statement.payment_set.all():
             account_statement.pair_vs(payment)
+            payment.save()
 pair_variable_symbols.short_description = _("Pair payments with users based on variable symboles")
 
 

@@ -27,7 +27,7 @@ from freezegun import freeze_time
 from .models import TerminalCondition, Condition, User, Communication, AutomaticCommunication, AccountStatements
 from django_admin_smoke_tests import tests
 from .confirmation import makepdf
-from . import autocom, mailing
+from . import autocom, mailing, admin
 import io
 from PyPDF2 import PdfFileReader
 from django.core.files import File
@@ -344,10 +344,17 @@ class AccountStatementTests(TestCase):
             a.clean()
             a.save()
 
-            a1 = AccountStatements.objects.get()
-            self.assertEqual(len(a1.payment_set.all()), 3)
-            user = User.objects.get()
-            self.assertEqual(user.payment_set.get(), a1.payment_set.get(account=2150508001))
+        a1 = AccountStatements.objects.get()
+        self.assertEqual(len(a1.payment_set.all()), 3)
+        user = User.objects.get(pk=2978)
+        self.assertEqual(user.payment_set.get(), a1.payment_set.get(account=2150508001))
+
+        unpaired_payment = a1.payment_set.get(VS=130430002)
+        unpaired_payment.VS = 130430001
+        unpaired_payment.save()
+        user1 = User.objects.get(pk=2979)
+        admin.pair_variable_symbols(None, None, [a1, ])
+        self.assertEqual(user1.payment_set.get(), a1.payment_set.get(VS=130430001))
 
     def test_darujme_statement(self):
         with open("apps/aklub/test_data/test_darujme.xls", "rb") as f:
@@ -355,7 +362,7 @@ class AccountStatementTests(TestCase):
             a.clean()
             a.save()
 
-            a1 = AccountStatements.objects.get()
-            self.assertEqual(len(a1.payment_set.all()), 2)
-            user = User.objects.get()
-            self.assertEqual(user.payment_set.get(), a1.payment_set.get(amount=200))
+        a1 = AccountStatements.objects.get()
+        self.assertEqual(len(a1.payment_set.all()), 2)
+        user = User.objects.get(pk=2978)
+        self.assertEqual(user.payment_set.get(), a1.payment_set.get(amount=200))
