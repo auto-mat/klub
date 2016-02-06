@@ -39,6 +39,7 @@ import html2text
 # External dependencies
 import datetime
 import csv
+import codecs
 import os.path
 import stdimage
 # Local modules
@@ -790,7 +791,9 @@ class AccountStatements(models.Model):
 
     def pair_vs(self, payment):
         # Payments pairing'
-        if payment.VS != '':
+        if payment.VS == '':
+            payment.VS = None
+        else:
             users_with_vs = User.objects.filter(variable_symbol=payment.VS)
             if len(users_with_vs) == 1:
                 payment.user = users_with_vs[0]
@@ -800,27 +803,12 @@ class AccountStatements(models.Model):
                     "for users: %s!" %
                     (payment.VS, ",".join(
                         [str(user) for user in users_with_vs])))
-        else:
-            payment.VS = None
 
     def parse_bank_csv(self):
         # Read and parse the account statement
         # TODO: This should be separated into a dedicated module
-        win1250_contents = self.csv_file.read()
-        unicode_contents = win1250_contents.decode('utf-8')
-        splitted = str(unicode_contents).split('\n\n')
-        header = splitted[0]
-        data = splitted[1]
-
-        term_line = [line for line in header.split('\n')
-                     if line.startswith("\"Období:")]
-        name, date_start, dash, date_end = term_line[0][1:-2].split()
-        self.date_from = str_to_datetime(date_start)
-        self.date_to = str_to_datetime(date_end)
-        super(AccountStatements, self).save()
-
         payments_reader = csv.DictReader(
-            data.split("\n"),
+            codecs.iterdecode(self.csv_file, 'utf-8'),
             delimiter=';',
             fieldnames=[
                 'operation_id', 'date', 'amount', 'currency', 'account', 'account_name',
@@ -828,16 +816,24 @@ class AccountStatements(models.Model):
                 'SS', 'user_identification', 'recipient_message', 'transfer_type', 'done_by',
                 'specification', 'transfer_note', 'BIC', 'order_id'
                 ])
-        first_line = True
         payments = []
+        in_header = True
+
         for payment in payments_reader:
-            logger.debug(payment)
-            if first_line:
-                first_line = False
-                logging.debug("found first_line")
-            elif payment['date'] == 'Suma':
-                break
+            if in_header:
+                header_line = payment["operation_id"]
+                logger.debug(header_line)
+                if header_line.startswith("Období:"):
+                    name, date_start, dash, date_end = header_line.split()
+                    self.date_from = str_to_datetime(date_start)
+                    self.date_to = str_to_datetime(date_end)
+                    super(AccountStatements, self).save()
+
+                if header_line == "ID operace":
+                    in_header = False
+                    continue
             else:
+                logger.debug(payment)
                 logging.debug("PAYMENT %s" % payment)
                 logging.debug(payment['date'])
                 d, m, y = payment['date'].split('.')

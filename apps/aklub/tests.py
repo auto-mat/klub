@@ -338,24 +338,6 @@ class ViewsTestsLogon(TestCase):
 class AccountStatementTests(TestCase):
     fixtures = ['conditions', 'users']
 
-    def test_bank_statement(self):
-        with open("apps/aklub/test_data/test_statement.csv", "rb") as f:
-            a = AccountStatements(csv_file=File(f), type="account")
-            a.clean()
-            a.save()
-
-        a1 = AccountStatements.objects.get()
-        self.assertEqual(len(a1.payment_set.all()), 3)
-        user = User.objects.get(pk=2978)
-        self.assertEqual(user.payment_set.get(), a1.payment_set.get(account=2150508001))
-
-        unpaired_payment = a1.payment_set.get(VS=130430002)
-        unpaired_payment.VS = 130430001
-        unpaired_payment.save()
-        user1 = User.objects.get(pk=2979)
-        admin.pair_variable_symbols(None, None, [a1, ])
-        self.assertEqual(user1.payment_set.get(), a1.payment_set.get(VS=130430001))
-
     def test_bank_new_statement(self):
         with open("apps/aklub/test_data/Pohyby_5_2016.csv", "rb") as f:
             a = AccountStatements(csv_file=File(f), type="account")
@@ -364,6 +346,8 @@ class AccountStatementTests(TestCase):
 
         a1 = AccountStatements.objects.get()
         self.assertEqual(len(a1.payment_set.all()), 3)
+        self.assertEqual(a1.date_from, datetime.date(day=25, month=1, year=2016))
+        self.assertEqual(a1.date_to, datetime.date(day=31, month=1, year=2016))
         user = User.objects.get(pk=2978)
 
         p1 = Payment.objects.get(account=2150508001)
@@ -376,7 +360,7 @@ class AccountStatementTests(TestCase):
         self.assertEqual(p1.KS, '0101')
         self.assertEqual(p1.user_identification, 'Account note')
         self.assertEqual(p1.type, 'bank-transfer')
-        self.assertEqual(p1.done_by,"Done by")
+        self.assertEqual(p1.done_by, "Done by")
         self.assertEqual(p1.account_name, "Testing user account")
         self.assertEqual(p1.bank_name, "Raiffeisenbank a.s.")
         self.assertEqual(p1.transfer_note, "Testing user note")
