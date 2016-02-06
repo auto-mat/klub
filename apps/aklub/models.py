@@ -807,14 +807,14 @@ class AccountStatements(models.Model):
         # Read and parse the account statement
         # TODO: This should be separated into a dedicated module
         win1250_contents = self.csv_file.read()
-        unicode_contents = win1250_contents.decode('windows-1250')
+        unicode_contents = win1250_contents.decode('utf-8')
         splitted = str(unicode_contents).split('\n\n')
         header = splitted[0]
         data = splitted[1]
 
         term_line = [line for line in header.split('\n')
-                     if line.startswith("Období:")]
-        name, date_start, dash, date_end = term_line[0].split()
+                     if line.startswith("\"Období:")]
+        name, date_start, dash, date_end = term_line[0][1:-2].split()
         self.date_from = str_to_datetime(date_start)
         self.date_to = str_to_datetime(date_end)
         super(AccountStatements, self).save()
@@ -823,25 +823,23 @@ class AccountStatements(models.Model):
             data.split("\n"),
             delimiter=';',
             fieldnames=[
-                'transfer', 'date', 'amount', 'account', 'bank_code', 'BIC', 'KS', 'VS',
-                'SS', 'user_identification', 'type', 'done_by', 'account_name',
-                'bank_name', 'unknown'
+                'operation_id', 'date', 'amount', 'currency', 'account', 'account_name',
+                'bank_code', 'bank_name', 'KS', 'VS',
+                'SS', 'user_identification', 'recipient_message', 'transfer_type', 'done_by',
+                'specification', 'transfer_note', 'BIC', 'order_id'
                 ])
-
         first_line = True
         payments = []
         for payment in payments_reader:
-            # print payment
+            logger.debug(payment)
             if first_line:
                 first_line = False
-                # print "found first_line"
+                logging.debug("found first_line")
             elif payment['date'] == 'Suma':
                 break
             else:
-                del payment['transfer']
-                del payment['unknown']
-                # print "PAYMENT", payment
-                # print payment['date']
+                logging.debug("PAYMENT %s" % payment)
+                logging.debug(payment['date'])
                 d, m, y = payment['date'].split('.')
                 payment['date'] = "%04d-%02d-%02d" % (int(y), int(m), int(d))
                 payment['amount'] = int(round(float(
@@ -943,6 +941,27 @@ class Payment(models.Model):
     bank_name = models.CharField(
         verbose_name=_("Bank name"),
         max_length=500, blank=True)
+    transfer_note = models.CharField(
+        verbose_name=_("Transfer note"),
+        max_length=200, blank=True, null=True)
+    currency = models.CharField(
+        verbose_name=_("Currency"),
+        max_length=200, blank=True, null=True)
+    recipient_message = models.CharField(
+        verbose_name=_("Recipient message"),
+        max_length=200, blank=True, null=True)
+    operation_id = models.CharField(
+        verbose_name=_("Operation ID"),
+        max_length=200, blank=True, null=True)
+    transfer_type = models.CharField(
+        verbose_name=_("Transfer type"),
+        max_length=200, blank=True, null=True)
+    specification = models.CharField(
+        verbose_name=_("Specification"),
+        max_length=200, blank=True, null=True)
+    order_id = models.CharField(
+        verbose_name=_("Order ID"),
+        max_length=200, blank=True, null=True)
     # Pairing of payments with a specific club system user
     user = models.ForeignKey(User, blank=True, null=True)
     # Origin of payment from bank account statement

@@ -253,7 +253,8 @@ class UserYearPaymentsAdmin(UserAdmin):
 
 
 class PaymentAdmin(admin.ModelAdmin):
-    list_display = ('date', 'account_statement', 'amount', 'person_name', 'account', 'bank_code',
+    list_display = ('date', 'account_statement', 'amount', 'person_name', 'account_name', 'account', 'bank_code',
+                    "transfer_note", "currency", "recipient_message", "operation_id", "transfer_type", "specification", "order_id",
                     'VS', 'SS', 'user_identification', 'type', 'paired_with_expected')
     fieldsets = [
         (_("Basic"), {

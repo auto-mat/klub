@@ -24,7 +24,7 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User as DjangoUser
 import datetime
 from freezegun import freeze_time
-from .models import TerminalCondition, Condition, User, Communication, AutomaticCommunication, AccountStatements
+from .models import TerminalCondition, Condition, User, Communication, AutomaticCommunication, AccountStatements, Payment
 from django_admin_smoke_tests import tests
 from .confirmation import makepdf
 from . import autocom, mailing, admin
@@ -347,6 +347,47 @@ class AccountStatementTests(TestCase):
         a1 = AccountStatements.objects.get()
         self.assertEqual(len(a1.payment_set.all()), 3)
         user = User.objects.get(pk=2978)
+        self.assertEqual(user.payment_set.get(), a1.payment_set.get(account=2150508001))
+
+        unpaired_payment = a1.payment_set.get(VS=130430002)
+        unpaired_payment.VS = 130430001
+        unpaired_payment.save()
+        user1 = User.objects.get(pk=2979)
+        admin.pair_variable_symbols(None, None, [a1, ])
+        self.assertEqual(user1.payment_set.get(), a1.payment_set.get(VS=130430001))
+
+    def test_bank_new_statement(self):
+        with open("apps/aklub/test_data/Pohyby_5_2016.csv", "rb") as f:
+            a = AccountStatements(csv_file=File(f), type="account")
+            a.clean()
+            a.save()
+
+        a1 = AccountStatements.objects.get()
+        self.assertEqual(len(a1.payment_set.all()), 3)
+        user = User.objects.get(pk=2978)
+
+        p1 = Payment.objects.get(account=2150508001)
+        self.assertEqual(p1.date, datetime.date(day=18, month=1, year=2016))
+        self.assertEqual(p1.amount, 250)
+        self.assertEqual(p1.account, '2150508001')
+        self.assertEqual(p1.bank_code, '5500')
+        self.assertEqual(p1.VS, '120127010')
+        self.assertEqual(p1.SS, "12321")
+        self.assertEqual(p1.KS, '0101')
+        self.assertEqual(p1.user_identification, 'Account note')
+        self.assertEqual(p1.type, 'bank-transfer')
+        self.assertEqual(p1.done_by,"Done by")
+        self.assertEqual(p1.account_name, "Testing user account")
+        self.assertEqual(p1.bank_name, "Raiffeisenbank a.s.")
+        self.assertEqual(p1.transfer_note, "Testing user note")
+        self.assertEqual(p1.currency, "CZK")
+        self.assertEqual(p1.recipient_message, "Message for recepient")
+        self.assertEqual(p1.operation_id, "12366")
+        self.assertEqual(p1.transfer_type, "Bezhotovostní příjem")
+        self.assertEqual(p1.specification, "Account specification")
+        self.assertEqual(p1.order_id, "1232")
+        self.assertEqual(p1.user, user)
+
         self.assertEqual(user.payment_set.get(), a1.payment_set.get(account=2150508001))
 
         unpaired_payment = a1.payment_set.get(VS=130430002)
