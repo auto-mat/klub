@@ -22,6 +22,7 @@ from django.test import TestCase
 from django.core import mail
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User as DjangoUser
+from django.core.management import call_command
 import datetime
 from freezegun import freeze_time
 from .models import TerminalCondition, Condition, User, Communication, AutomaticCommunication, AccountStatements, Payment
@@ -335,6 +336,62 @@ class ViewsTestsLogon(TestCase):
         self.verify_views(self.views, status_code_map)
 
 
+class ModelTests(TestCase):
+    fixtures = ['conditions', 'users']
+
+    def setUp(self):
+        call_command('denorm_init')
+        self.u = User.objects.get(pk=2979)
+        self.u1 = User.objects.get(pk=2978)
+        self.p = Payment.objects.get(pk=1)
+        self.p1 = Payment.objects.get(pk=2)
+        self.p1.BIC = 101
+        self.p1.save()
+        call_command('denorm_flush')
+        self.u1 = User.objects.get(pk=2978)
+        self.tax_confirmation = self.u1.make_tax_confirmation(2016)
+
+    def test_payment_model(self):
+        self.assertEquals(self.p.person_name(), 'User Test')
+
+    @freeze_time("2016-5-1")
+    def test_user_model(self):
+        self.assertEquals(self.u.is_direct_dialogue(), False)
+        self.assertEquals(self.u.last_payment_date(), None)
+        self.assertEquals(self.u.last_payment_type(), None)
+        self.assertEquals(self.u.requires_action(), False)
+        self.assertEquals(self.u.expected_regular_payment_date, None)
+        self.assertEquals(self.u.regular_payments_delay(), False)
+        self.assertEquals(self.u.extra_payments(), '<img src="/media/admin/img/icon-no.svg" alt="False" />')
+        self.assertEquals(self.u.no_upgrade, False)
+        self.assertEquals(self.u.monthly_regular_amount(), 0)
+
+        self.assertEquals(self.u1.is_direct_dialogue(), False)
+        self.assertEquals(self.u1.person_name(), 'User Test')
+        self.assertEquals(self.u1.requires_action(), True)
+        self.assertListEqual(list(self.u1.payments()), [self.p1, self.p])
+        self.assertEquals(self.u1.number_of_payments, 2)
+        self.assertEquals(self.u1.last_payment, self.p1)
+        self.assertEquals(self.u1.last_payment_date(), datetime.date(2016, 3, 9))
+        self.assertEquals(self.u1.last_payment_type(), 'bank-transfer')
+        self.assertEquals(self.u1.regular_frequency_td(), datetime.timedelta(31))
+        self.assertEquals(self.u1.expected_regular_payment_date, datetime.date(2016, 4, 9))
+        self.assertEquals(self.u1.regular_payments_delay(), datetime.timedelta(12))
+        self.assertEquals(self.u1.extra_money, 150)
+        self.assertEquals(self.u1.regular_payments_info(), datetime.date(2016, 4, 9))
+        self.assertEquals(self.u1.extra_payments(), 150)
+        self.assertEquals(self.u1.mail_communications_count(), False)
+        self.assertEquals(self.u1.payment_total, 250.0)
+        self.assertEquals(self.u1.total_contrib_string(), "250&nbsp;Kč")
+        self.assertEquals(self.u1.registered_support_date(), "16. 12. 2015")
+        self.assertEquals(self.u1.payment_total_range(datetime.date(2016, 1, 1), datetime.date(2016, 2, 1)), 0)
+        self.assertEquals(self.tax_confirmation.year, 2016)
+        self.assertTrue("PDF-1.4" in str(self.tax_confirmation.file.read()))
+        self.assertEquals(self.tax_confirmation.amount, 250)
+        self.assertEquals(self.u1.no_upgrade, False)
+        self.assertEquals(self.u1.monthly_regular_amount(), 100)
+
+
 class AccountStatementTests(TestCase):
     fixtures = ['conditions', 'users']
 
@@ -372,7 +429,7 @@ class AccountStatementTests(TestCase):
         self.assertEqual(p1.order_id, "1232")
         self.assertEqual(p1.user, user)
 
-        self.assertEqual(user.payment_set.get(), a1.payment_set.get(account=2150508001))
+        self.assertEqual(user.payment_set.get(date=datetime.date(2016, 1, 18)), a1.payment_set.get(account=2150508001))
 
         unpaired_payment = a1.payment_set.get(VS=130430002)
         unpaired_payment.VS = 130430001
@@ -390,4 +447,4 @@ class AccountStatementTests(TestCase):
         a1 = AccountStatements.objects.get()
         self.assertEqual(len(a1.payment_set.all()), 2)
         user = User.objects.get(pk=2978)
-        self.assertEqual(user.payment_set.get(), a1.payment_set.get(amount=200))
+        self.assertEqual(user.payment_set.get(date=datetime.date(2016, 1, 20)), a1.payment_set.get(amount=200))
