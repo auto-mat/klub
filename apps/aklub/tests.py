@@ -63,6 +63,7 @@ class ConditionsTests(BaseTestCase):
             condition=c,
         )
         self.assertQueryEquals(c.get_query(), Q(date_condition__gt=datetime.datetime(2010, 9, 24, 0, 0)))
+        self.assertQueryEquals(c.condition_string(), "None(User.date_condition > datetime.2010-09-24 00:00)")
 
     def test_boolean_condition(self):
         c = Condition.objects.create(operation="or")
@@ -73,6 +74,7 @@ class ConditionsTests(BaseTestCase):
             condition=c,
         )
         self.assertQueryEquals(c.get_query(), Q(boolean_condition=True))
+        self.assertQueryEquals(c.condition_string(), "None(User.boolean_condition = true)")
 
     def test_time_condition(self):
         c = Condition.objects.create(operation="or")
@@ -83,6 +85,7 @@ class ConditionsTests(BaseTestCase):
             condition=c,
         )
         self.assertQueryEquals(c.get_query(), Q(time_condition__lt=datetime.datetime(2009, 12, 2, 0, 0)))
+        self.assertQueryEquals(c.condition_string(), "None(User.time_condition < month_ago)")
 
     def test_text_condition(self):
         c = Condition.objects.create(operation="or")
@@ -93,6 +96,7 @@ class ConditionsTests(BaseTestCase):
             condition=c,
         )
         self.assertQueryEquals(c.get_query(), Q(text_condition__contains="asdf"))
+        self.assertQueryEquals(c.condition_string(), "None(User.text_condition contains asdf)")
 
     def test_text_icontains_condition(self):
         c = Condition.objects.create(operation="or")
@@ -103,6 +107,7 @@ class ConditionsTests(BaseTestCase):
             condition=c,
         )
         self.assertQueryEquals(c.get_query(), Q(text_condition__icontains="asdf"))
+        self.assertQueryEquals(c.condition_string(), "None(User.text_condition icontains asdf)")
 
     def test_action_condition_equals(self):
         c = Condition.objects.create(operation="or")
@@ -123,6 +128,7 @@ class ConditionsTests(BaseTestCase):
             condition=c,
         )
         self.assertQueryEquals(c.get_query(), Q(pk__in=[]))
+        self.assertQueryEquals(c.condition_string(), "None(action = asdf)")
 
     def test_blank_condition(self):
         c = Condition.objects.create(operation="and")
@@ -133,6 +139,7 @@ class ConditionsTests(BaseTestCase):
             condition=c,
         )
         self.assertQueryEquals(c.get_query(), Q(regular_payments=True))
+        self.assertQueryEquals(c.condition_string(), "None(User.regular_payments = true)")
 
     def test_combined_condition(self):
         c = Condition.objects.create(operation="and")
@@ -149,6 +156,7 @@ class ConditionsTests(BaseTestCase):
             condition=c,
         )
         self.assertQueryEquals(c.get_query(), ~Q(days_ago_condition=datetime.datetime(2009, 12, 26, 0, 0)) & Q(time_condition__gte=datetime.timedelta(5)))
+        self.assertQueryEquals(c.condition_string(), "None(User.days_ago_condition != days_ago.6 and User.time_condition >= timedelta.5)")
 
     def test_multiple_combined_conditions(self):
         c1 = Condition.objects.create(operation="and")
@@ -180,6 +188,7 @@ class ConditionsTests(BaseTestCase):
         )
         test_query = ~((~Q(days_ago_condition=datetime.datetime(2009, 12, 26, 0, 0)) & Q(time_condition__gte=datetime.timedelta(5))) | Q(int_condition=4) | Q(int_condition__lte=5))
         self.assertQueryEquals(c2.get_query(), test_query)
+        self.assertQueryEquals(c2.condition_string(), "not(None(None(User.days_ago_condition != days_ago.6 and User.time_condition >= timedelta.5) or User.int_condition = 4 or User.int_condition <= 5))")
 
 
 class ConfirmationTest(TestCase):
