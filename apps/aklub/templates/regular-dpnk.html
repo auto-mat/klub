@@ -1,27 +1,15 @@
 {% load bootstrap %}
 
 
-<div class="container">
+<div>
 <form id="aklub-form" method="post" class="form-horizontal" action="http://{{ request.get_host }}{% url "regular-dpnk" %}">{% csrf_token %}
-<b>Již více než 700 lidí může jezdit Do práce na kole bez placení startovného – a hřeje je přitom dobrý pocit, že jsou hrdiny Auto*Matu a pomáhají tak aktivně zlepšovat místo, kde žijí. Přidejte se k nim právě dnes i Vy! Stačí jen pár minut času a nevelký měsíční příspěvek.</b>
 
-<br>
-<b>Přidejte se k pravidelným dárcům a staňte se naším hrdinou či hrdinkou hned teď!</b>
-
-<br>
-<i>Pozn.: Pro nárok na startovné do soutěže Do práce na kole zdarma je třeba, aby se Váš první dar připsal na náš účet do konce registrace.</i>
-
-<br>
-<i></i><a href="http://www.auto-mat.cz/">Auto*Mat</a> je nezisková organizace, financovaná převážně z grantových dotací a darů individuálních příznivců. Právě finanční podpora našich dárců v Klubu přátel je pro nás ze všech možných zdrojů tím nejdůležitějším. Posiluje naši nezávislost na úřadech, institucích a politicky motivovaných rozhodnutích. Umožňuje nám denně nezávisle provádět odborně-kritickou práci, lobbovat u politiků a úředníků, vytvářet odborné studie a informovat média a veřejnost o dopravní politice Prahy.
-
-<br>
-<b>Potřebujete další důvody?</b>
-<ul>
-   <li>Budete o všem vědět z první ruky – našim dárcům posíláme pravidelně přehled akcí a novinek.</li>
-   <li>U vybraných partnerů <a href="http://www.auto-mat.cz/podporte-nas/prispejte/vyhody-pro-cleny-klubu-pratel-automatu/"> získáte symbolické výhody</a> – slevy na produkty či vstupenky.</li>
-   <li>Nejméně jednou ročně pořádáme společné setkání členů Klubu, na kterém rádi vyslechneme i vaše podněty a připomínky k činnosti sdružení.</li>
-   <li>Částku nad 1000 Kč ročně si <a href="http://www.auto-mat.cz/podporte-nas/prispejte/sve-dary-muzete-odecist-od-danoveho-zakladu/"> můžete odečíst z daní</a>.</li>
-</ul>
+Chcete mít startovné každý rok zdarma a města, ve kterých je radost jezdit (do práce) na kole?
+<br/>
+Staňte se aj vy hrdinou Auto*Matu jako pravidelní dárce ! Stačí jen pár minut času a nevelký měsíční příspěvek.
+<br/>
+Pozn.: Pro nárok na startovné do soutěže Do práce na kole zdarma je třeba, aby se Váš první dar připsal na náš účet do konce registrace.
+<br/>
 
   {{ form|bootstrap }}
   <p>
