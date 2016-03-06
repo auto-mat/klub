@@ -469,7 +469,10 @@ class User(models.Model):
             return False
 
     def is_direct_dialogue(self):
-        return self.source.direct_dialogue
+        if self.source:
+            return self.source.direct_dialogue
+        else:
+            return False
 
     def payments(self):
         return Payment.objects.filter(user=self)

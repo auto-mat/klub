@@ -498,16 +498,15 @@ class TaxConfirmationAdmin(admin.ModelAdmin):
         return HttpResponseRedirect(reverse('admin:aklub_taxconfirmation_changelist'))
 
     def get_urls(self):
-        from django.conf.urls import patterns, url
+        from django.conf.urls import url
         urls = super(TaxConfirmationAdmin, self).get_urls()
-        my_urls = patterns(
-            '',
+        my_urls = [
             url(
                 r'generate',
                 self.admin_site.admin_view(self.generate),
                 name='aklub_taxconfirmation_generate',
             ),
-        )
+        ]
         return my_urls + urls
 
 

@@ -1,7 +1,6 @@
 # Django settings for klub project.
 import os
 import sys
-from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS
 
 
 def normpath(*args):
@@ -14,7 +13,6 @@ sys.path.append(normpath(PROJECT_ROOT, "project"))
 sys.path.append(normpath(PROJECT_ROOT, "apps"))
 
 DEBUG = True
-TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
     ('Hynek Hanke', 'hynek.hanke@auto-mat.cz'),
@@ -78,16 +76,30 @@ STATICFILES_FINDERS = (
     # 'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
-TEMPLATE_CONTEXT_PROCESSORS += (
-    'django.template.context_processors.request',
-    'django.template.context_processors.media',
-    'django.contrib.messages.context_processors.messages',
-)
-TEMPLATE_LOADERS = (
-    "admin_tools.template_loaders.Loader",
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-)
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [
+            normpath(PROJECT_ROOT, 'apps/aklub/templates'),
+            normpath(PROJECT_ROOT, 'env/lib/python2.6/site-packages/debug_toolbar/templates'),
+        ],
+        'APP_DIRS': False,
+        'OPTIONS': {
+            'context_processors': (
+                'django.contrib.auth.context_processors.auth',
+                'django.template.context_processors.request',
+                'django.template.context_processors.media',
+                'django.contrib.messages.context_processors.messages',
+            ),
+            'loaders': (
+                "admin_tools.template_loaders.Loader",
+                'django.template.loaders.filesystem.Loader',
+                'django.template.loaders.app_directories.Loader',
+            ),
+            'debug': DEBUG,
+        },
+    },
+]
 
 MIDDLEWARE_CLASSES = (
     # 'johnny.middleware.LocalStoreClearMiddleware',  # disabled for django 1.4
@@ -116,14 +128,6 @@ LOCALE_PATHS = [
 USE_L10N = True
 
 ROOT_URLCONF = 'urls'
-
-TEMPLATE_DIRS = (
-    normpath(PROJECT_ROOT, 'apps/aklub/templates'),
-    normpath(PROJECT_ROOT, 'env/lib/python2.6/site-packages/debug_toolbar/templates'),
-    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-)
 
 INSTALLED_APPS = (
     'admin_tools',
