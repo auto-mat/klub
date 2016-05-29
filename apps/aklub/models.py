@@ -335,6 +335,7 @@ class User(models.Model):
     variable_symbol = models.CharField(
         verbose_name=_("Variable symbol"),
         default="",
+        unique=True,
         max_length=30, blank=False)
     registered_support = models.DateTimeField(
         verbose_name=_("Registered support"),
