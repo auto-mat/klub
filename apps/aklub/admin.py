@@ -138,7 +138,7 @@ class UserAdmin(ImportExportModelAdmin):
         'regular_payments', 'language', 'active', 'wished_information', 'old_account',
         'source', 'campaigns', ('registered_support', DateRangeFilter), filters.EmailFilter,
         filters.UserConditionFilter, filters.UserConditionFilter1]
-    search_fields = ['firstname', 'surname', 'variable_symbol', 'email']
+    search_fields = ['firstname', 'surname', 'variable_symbol', 'email', 'telephone']
     ordering = ('surname',)
     actions = ('send_mass_communication',
                show_payments_by_year,
