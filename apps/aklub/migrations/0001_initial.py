@@ -312,17 +312,6 @@ class Migration(migrations.Migration):
             preserve_default=True,
         ),
         migrations.CreateModel(
-            name='NewUser',
-            fields=[
-            ],
-            options={
-                'verbose_name': 'new user',
-                'proxy': True,
-                'verbose_name_plural': 'new users',
-            },
-            bases=('aklub.user',),
-        ),
-        migrations.CreateModel(
             name='StatMemberCountsByMonths',
             fields=[
             ],

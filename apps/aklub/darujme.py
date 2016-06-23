@@ -5,7 +5,7 @@ import xlrd
 import logging
 import datetime
 
-from aklub.models import AccountStatements, Payment, User, str_to_datetime
+from aklub.models import AccountStatements, Payment, UserInCampaign, str_to_datetime
 from django.core.exceptions import MultipleObjectsReturned
 from django.forms import ValidationError
 from django.utils.translation import ugettext_lazy as _
@@ -64,9 +64,9 @@ def parse_darujme(xlsfile):
         p.user_identification = email
 
         try:
-            user = User.objects.get(email=email)
+            user = UserInCampaign.objects.get(email=email)
             p.user = user
-        except User.DoesNotExist:
+        except UserInCampaign.DoesNotExist:
             log.info('User with email %s not found' % email)
         except MultipleObjectsReturned:
             log.info('Duplicate email %s' % email)

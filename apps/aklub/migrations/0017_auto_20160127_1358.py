@@ -14,10 +14,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterModelOptions(
-            name='useryearpayments',
-            options={'verbose_name': 'Payment for users in time period', 'verbose_name_plural': 'Payments for users in time periods'},
-        ),
         migrations.AlterField(
             model_name='automaticcommunication',
             name='condition',

@@ -95,14 +95,14 @@ class Campaign(models.Model):
 
     def yield_total(self):
         if self.acquisition_campaign:
-            return User.objects.filter(campaigns=self).aggregate(yield_total=Sum('payment__amount'))['yield_total']
+            return UserInCampaign.objects.filter(campaigns=self).aggregate(yield_total=Sum('payment__amount'))['yield_total']
         else:
             return self.real_yield
     yield_total.short_description = _("total yield")
 
     def expected_monthly_income(self):
         income = 0.0
-        for campaign_member in User.objects.filter(campaigns=self):
+        for campaign_member in UserInCampaign.objects.filter(campaigns=self):
             income += campaign_member.monthly_regular_amount()
         return income
     expected_monthly_income.short_description = _("expected monthly income")
@@ -230,12 +230,12 @@ class Source(models.Model):
         return str(self.name)
 
 
-class User(models.Model):
+class UserInCampaign(models.Model):
     """Club user model and DB table"""
 
     class Meta:
-        verbose_name = _("User")
-        verbose_name_plural = _("Users")
+        verbose_name = _("User in campaign")
+        verbose_name_plural = _("Users in campaign")
         ordering = ("surname", "firstname")
 
     GENDER = (
@@ -651,9 +651,9 @@ class User(models.Model):
             insert = True
         else:
             insert = False
-        super(User, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
         from .autocom import check as autocom_check
-        autocom_check(users=User.objects.filter(pk=self.pk), action=(insert and 'new-user' or None))
+        autocom_check(users=UserInCampaign.objects.filter(pk=self.pk), action=(insert and 'new-user' or None))
 
     def make_tax_confirmation(self, year):
         amount = self.payment_set.exclude(type='expected').filter(date__year=year).aggregate(Sum('amount'))['amount__sum']
@@ -724,7 +724,7 @@ class NewUserManager(models.Manager):
         return super(NewUserManager, self).get_queryset().filter(verified=False)
 
 
-class NewUser(User):
+class NewUser(UserInCampaign):
     objects = NewUserManager()
 
     class Meta:
@@ -733,7 +733,7 @@ class NewUser(User):
         verbose_name_plural = _("new users")
 
 
-class UserYearPayments(User):
+class UserYearPayments(UserInCampaign):
 
     def get_queryset(self):
         return super(NewUserManager, self).get_queryset().filter(verified=False)
@@ -798,7 +798,7 @@ class AccountStatements(models.Model):
         if payment.VS == '':
             payment.VS = None
         else:
-            users_with_vs = User.objects.filter(variable_symbol=payment.VS)
+            users_with_vs = UserInCampaign.objects.filter(variable_symbol=payment.VS)
             if len(users_with_vs) == 1:
                 payment.user = users_with_vs[0]
             elif len(users_with_vs) > 1:
@@ -963,7 +963,7 @@ class Payment(models.Model):
         verbose_name=_("Order ID"),
         max_length=200, blank=True, null=True)
     # Pairing of payments with a specific club system user
-    user = models.ForeignKey(User, blank=True, null=True)
+    user = models.ForeignKey(UserInCampaign, blank=True, null=True)
     # Origin of payment from bank account statement
     account_statement = models.ForeignKey(AccountStatements, blank=True, null=True)
 
@@ -1000,7 +1000,7 @@ class Payment(models.Model):
             # time-consuming (relying on Cron performing it in regular
             # intervals anyway)
             from .autocom import check as autocom_check
-            autocom_check(users=User.objects.filter(pk=self.user.pk), action=(insert and 'new-payment' or None))
+            autocom_check(users=UserInCampaign.objects.filter(pk=self.user.pk), action=(insert and 'new-payment' or None))
 
     def __str__(self):
         return str(self.amount)
@@ -1036,7 +1036,7 @@ class Communication(models.Model):
         ordering = ['date']
 
     user = models.ForeignKey(
-        User,
+        UserInCampaign,
         related_name="communications",
     )
     method = models.CharField(
@@ -1170,10 +1170,10 @@ class ConditionValues(object):
         self._columns += [('action', None, _(u"Action"), 'CharField', ('daily', 'new-user', 'new-payment'))]
         # Models attributes
         for name in model_names:
-            model = {'User': User,
+            model = {'UserInCampaign': UserInCampaign,
                      'Payment': Payment,
-                     'User.source': Source,
-                     'User.last_payment': Payment,
+                     'UserInCampaign.source': Source,
+                     'UserInCampaign.last_payment': Payment,
                      }[name]
             # DB fields
             self._columns += [
@@ -1328,7 +1328,7 @@ class TerminalCondition(models.Model):
 
     variable = models.CharField(
         verbose_name=_("Variable"),
-        choices=ConditionValues(('User', 'User.source', 'User.last_payment')),
+        choices=ConditionValues(('UserInCampaign', 'UserInCampaign.source', 'UserInCampaign.last_payment')),
         help_text=_("Value or variable on left-hand side"),
         max_length=50, blank=True, null=True)
     operation = models.CharField(
@@ -1349,7 +1349,7 @@ class TerminalCondition(models.Model):
     def variable_description(self):
         if self.variable:
             try:
-                return unicode(User._meta.get_field(self.variable.split(".")[1]).help_text)
+                return unicode(UserInCampaign._meta.get_field(self.variable.split(".")[1]).help_text)
             except:
                 try:
                     return eval(self.variable).__doc__
@@ -1389,7 +1389,7 @@ class TerminalCondition(models.Model):
 
     def get_querystring(self, spec, operation):
         spec_ = spec.split('.')
-        if spec_[0] != 'User':
+        if spec_[0] != 'UserInCampaign':
             NotImplementedError("Unknown spec %s" % spec_[0])
 
         join_querystring = "__".join(spec_[1:])
@@ -1484,7 +1484,7 @@ class AutomaticCommunication(models.Model):
                     "is created, but the administrator must send it manually."),
         default=False)
     sent_to_users = models.ManyToManyField(
-        User,
+        UserInCampaign,
         help_text=_(
             "List of users to whom this communication was already sent"),
         blank=True,
@@ -1542,7 +1542,7 @@ class MassCommunication(models.Model):
         default=False
         )
     send_to_users = models.ManyToManyField(
-        User,
+        UserInCampaign,
         verbose_name=_("send to users"),
         help_text=_(
             "All users who should receive the communication"),
@@ -1576,7 +1576,7 @@ def confirmation_upload_to(instance, filename):
 
 class TaxConfirmation(models.Model):
 
-        user = models.ForeignKey(User)
+        user = models.ForeignKey(UserInCampaign)
         year = models.PositiveIntegerField()
         amount = models.PositiveIntegerField(default=0)
         file = models.FileField(upload_to=confirmation_upload_to, storage=OverwriteStorage())

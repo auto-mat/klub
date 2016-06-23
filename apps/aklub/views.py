@@ -32,14 +32,14 @@ from django.db.models import Sum, Count, Q
 from . import autocom
 import json
 
-from .models import User, Payment, Source, StatMemberCountsByMonths, StatPaymentsByMonths
+from .models import UserInCampaign, Payment, Source, StatMemberCountsByMonths, StatPaymentsByMonths
 
 
 class RegularUserForm(forms.ModelForm):
     required_css_class = 'required'
 
     # the fields defined here will override those defined on the model
-    regular_frequency = forms.ChoiceField(label=_("Regular payments"), choices=User.REGULAR_PAYMENT_FREQUENCIES, required=True, widget=forms.RadioSelect())
+    regular_frequency = forms.ChoiceField(label=_("Regular payments"), choices=UserInCampaign.REGULAR_PAYMENT_FREQUENCIES, required=True, widget=forms.RadioSelect())
     expected_date_of_first_payment = forms.DateField(label=_("Expected date of first payment"), required=True,
                                                      initial=datetime.date.today(),
                                                      widget=forms.DateInput(format='%d.%m.%Y'),
@@ -54,9 +54,9 @@ class RegularUserForm(forms.ModelForm):
 
     def clean_email(self):
         email = self.cleaned_data['email']
-        if User.objects.filter(email=email).exists():
-            user = User.objects.get(email=email)
-            autocom.check(users=User.objects.filter(pk=user.pk), action='resend-data')
+        if UserInCampaign.objects.filter(email=email).exists():
+            user = UserInCampaign.objects.get(email=email)
+            autocom.check(users=UserInCampaign.objects.filter(pk=user.pk), action='resend-data')
             raise ValidationError(_(
                 "Oops! This email address is already registered in our Auto*Mat support club, you are not registering for the first time."
                 " We respect your inclination, but your registration is not need to repeat..."
@@ -64,7 +64,7 @@ class RegularUserForm(forms.ModelForm):
         return email
 
     class Meta:
-        model = User
+        model = UserInCampaign
         fields = (
             'title_before', 'firstname', 'surname', 'title_after',
             'street', 'city', 'country', 'zip_code',
@@ -115,13 +115,13 @@ def new_user(form, regular, source_slug='web'):
     # Check number of registrations so far today
     # TODO: Lock DB access here (to ensure uniqueness of VS)
     now = datetime.datetime.now()
-    reg_n_today = len(User.objects.filter(
+    reg_n_today = len(UserInCampaign.objects.filter(
         registered_support__gt=(
             now-datetime.timedelta(days=1))))
     for i in range(reg_n_today+1, 299):
         variable_symbol = '%s%02d%02d%03d' % (
             str(now.year)[-2:], now.month, now.day, i)
-        if len(User.objects.filter(variable_symbol=variable_symbol)) == 0:
+        if len(UserInCampaign.objects.filter(variable_symbol=variable_symbol)) == 0:
             break
     else:
         assert 0, "Out of free variable symbols, date %s, reg_n_today=%d" % (now, reg_n_today)
@@ -165,7 +165,7 @@ class RegularView(FormView):
 
     def form_valid(self, form):
         user_id = new_user(form, regular=True, source_slug=self.source_slug)
-        amount = User.objects.get(id=user_id).monthly_regular_amount()
+        amount = UserInCampaign.objects.get(id=user_id).monthly_regular_amount()
         return render_to_response(self.success_template, {
             'amount': amount,
             'user_id': user_id,
@@ -174,7 +174,7 @@ class RegularView(FormView):
 
 def donators(request):
     payed = Payment.objects.exclude(type='expected').values_list('user_id', flat=True)
-    donators = User.objects.filter(public=True, id__in=payed).order_by('surname')
+    donators = UserInCampaign.objects.filter(public=True, id__in=payed).order_by('surname')
     n_donators = len(donators)
     n_regular = len(donators.filter(active=True, regular_payments=True))
     return render_to_response('donators.html', {
@@ -213,7 +213,7 @@ class OneTimePaymentWizardFormUnknown(forms.ModelForm):
     required_css_class = 'required'
 
     class Meta:
-        model = User
+        model = UserInCampaign
         fields = (
             'title_before', 'firstname', 'surname', 'title_after',
             'street', 'city', 'country', 'zip_code',
@@ -262,7 +262,7 @@ class OneTimePaymentWizard(SessionWizardView):
         if u:
             return False
         elif w and c:
-            return c['vs_check'] != User.objects.filter(id=w['uid'])[0].variable_symbol
+            return c['vs_check'] != UserInCampaign.objects.filter(id=w['uid'])[0].variable_symbol
         else:
             return True
 
@@ -296,7 +296,7 @@ class OneTimePaymentWizard(SessionWizardView):
                         uid = new_user(form, False)
                 elif isinstance(form, OneTimePaymentWizardFormWhoIs):
                         uid = form.cleaned_data['uid']
-        user = User.objects.filter(id=uid)[0]
+        user = UserInCampaign.objects.filter(id=uid)[0]
         payment = Payment(date=datetime.datetime.now(),
                           amount=form_list[0].cleaned_data['amount'],
                           VS=user.variable_symbol,
@@ -306,7 +306,7 @@ class OneTimePaymentWizard(SessionWizardView):
         return http.HttpResponseRedirect('/thanks/')
 
     def send_vs_reminder(self, id):
-        user = User.objects.filter(id=id)[0]
+        user = UserInCampaign.objects.filter(id=id)[0]
         mail_subject = _(
             "Auto*Mat: Reminder of variable symbol")
         mail_body = _(
@@ -326,8 +326,8 @@ class OneTimePaymentWizard(SessionWizardView):
                      from_email='kp@auto-mat.cz', to=[user.email]).send()
 
     def _find_matching_users(self, email, firstname, surname):
-        users = (set(User.objects.filter(email=email, active=True).all()) |
-                 set(User.objects.filter(firstname=firstname, surname=surname, active=True)))
+        users = (set(UserInCampaign.objects.filter(email=email, active=True).all()) |
+                 set(UserInCampaign.objects.filter(firstname=firstname, surname=surname, active=True)))
         return list(users)
 
     def get_form(self, step=None, data=None, files=None):
@@ -366,7 +366,7 @@ def onetime(request):
 def stat_members(request):
     return render_to_response('stat-members.html',
                               {'members_by_months': StatMemberCountsByMonths.objects.all(),
-                               'total_members': User.objects.all().filter(active=True).aggregate(Count('id'))['id__count']
+                               'total_members': UserInCampaign.objects.all().filter(active=True).aggregate(Count('id'))['id__count']
                                })
 
 
@@ -386,8 +386,8 @@ def profiles(request):
     paying = request.GET.get('paying')
 
     users = (
-        User.objects.filter(registered_support__gte=from_date).order_by('-registered_support') |
-        User.objects.filter(id__in=(493, 89, 98, 921, 33, 886, 1181, 842, 954, 25))).exclude(
+        UserInCampaign.objects.filter(registered_support__gte=from_date).order_by('-registered_support') |
+        UserInCampaign.objects.filter(id__in=(493, 89, 98, 921, 33, 886, 1181, 842, 954, 25))).exclude(
             public=False, profile_picture__isnull=False)
 
     result = [{'firstname': u.public and u.firstname or '',

@@ -35,7 +35,7 @@ from django.core.urlresolvers import reverse
 from admin_tools.dashboard import modules, Dashboard, AppIndexDashboard
 from admin_tools.utils import get_admin_site_name
 from .dashboard_charts import PaymentCharts, UserCharts, PaymentCountCharts
-from .models import Condition, User, AccountStatements, MassCommunication
+from .models import Condition, UserInCampaign, AccountStatements, MassCommunication
 import datetime
 from . import models
 from django.core.cache import caches
@@ -45,7 +45,7 @@ cache = caches['default']
 def get_users_by_condition_cached(cond):
     items = cache.get('condition_filter_%i' % cond.pk, None)
     if not items:
-        items = models.filter_by_condition(User.objects, cond)
+        items = models.filter_by_condition(UserInCampaign.objects, cond)
         now = datetime.datetime.now()
         td = now.replace(hour=23, minute=59, second=59, microsecond=999) - now
         seconds_till_midnight = td.seconds + (td.days * 24 * 3600)

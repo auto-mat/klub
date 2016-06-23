@@ -34,7 +34,7 @@ from django.utils.html import mark_safe
 # Local models
 from django.db.models import Sum
 from .models import (
-    User, Payment, Communication, Expense,
+    UserInCampaign, Payment, Communication, Expense,
     TerminalCondition, UserYearPayments, NewUser, AccountStatements,
     AutomaticCommunication, MassCommunication, Condition, Campaign,
     Recruiter, Source, TaxConfirmation)
@@ -127,7 +127,7 @@ show_payments_by_year.short_description = _("Show payments by year")
 
 
 # -- ADMIN FORMS --
-class UserAdmin(ImportExportModelAdmin):
+class UserInCampaignAdmin(ImportExportModelAdmin):
     list_display = ('person_name', 'email', 'source',
                     'variable_symbol', 'registered_support_date',
                     'regular_payments_info', 'payment_delay', 'extra_payments',
@@ -196,7 +196,7 @@ class UserAdmin(ImportExportModelAdmin):
         ]
 
     def get_queryset(self, request):
-        qs = super(UserAdmin, self).get_queryset(request)
+        qs = super().get_queryset(request)
         return qs.select_related('source__name')
 
     def save_formset(self, request, form, formset, change):
@@ -205,7 +205,7 @@ class UserAdmin(ImportExportModelAdmin):
         # Unfortunatelly, save_model() doesn't work on CommunicationInline
         # so we need to workaround it using save_formset here.
         if not issubclass(formset.model, Communication):
-            return super(UserAdmin, self).save_formset(request, form, formset, change)
+            return super().save_formset(request, form, formset, change)
         instances = formset.save(commit=False)
         for instance in instances:
             if not instance.pk:
@@ -232,7 +232,7 @@ class UserAdmin(ImportExportModelAdmin):
     send_mass_communication.short_description = _("Send mass communication")
 
 
-class UserYearPaymentsAdmin(UserAdmin):
+class UserYearPaymentsAdmin(UserInCampaignAdmin):
     list_display = ('person_name', 'email', 'source',
                     'variable_symbol', 'registered_support_date',
                     'payment_total_by_year',
@@ -278,7 +278,7 @@ class PaymentAdmin(admin.ModelAdmin):
     actions = (export_as_csv_action(fields=list_display),)
 
 
-class NewUserAdmin(UserAdmin):
+class NewUserAdmin(UserInCampaignAdmin):
     list_display = ('person_name', 'is_direct_dialogue',
                     'variable_symbol', 'regular_payments', 'registered_support',
                     'recruiter', 'active')
@@ -488,7 +488,7 @@ class TaxConfirmationAdmin(admin.ModelAdmin):
     def generate(self, request):
         year = datetime.datetime.now().year - 1
         payed = Payment.objects.filter(date__year=year).exclude(type='expected').values_list('user_id', flat=True)
-        donors = User.objects.filter(id__in=payed).order_by('surname')
+        donors = UserInCampaign.objects.filter(id__in=payed).order_by('surname')
         count = 0
         for d in donors:
             c = d.make_tax_confirmation(year)
@@ -510,7 +510,7 @@ class TaxConfirmationAdmin(admin.ModelAdmin):
         return my_urls + urls
 
 
-admin.site.register(User, UserAdmin)
+admin.site.register(UserInCampaign, UserInCampaignAdmin)
 admin.site.register(UserYearPayments, UserYearPaymentsAdmin)
 admin.site.register(NewUser, NewUserAdmin)
 admin.site.register(Communication, CommunicationAdmin)

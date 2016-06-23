@@ -5,7 +5,7 @@ from django.contrib.admin import SimpleListFilter
 from django.db.models import Count, Q
 from datetime import date
 
-from .models import Condition, User
+from .models import Condition, UserInCampaign
 from . import models
 
 
@@ -87,7 +87,7 @@ class EmailFilter(SimpleListFilter):
 
     def queryset(self, request, queryset):
         if self.value() == 'duplicate':
-            duplicates = User.objects.filter(email__isnull=False).\
+            duplicates = UserInCampaign.objects.filter(email__isnull=False).\
                 exclude(email__exact='').\
                 values('email').\
                 annotate(Count('id')).\

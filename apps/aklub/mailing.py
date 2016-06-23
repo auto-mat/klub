@@ -18,7 +18,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import copy
-from aklub.models import Communication, TaxConfirmation, User, Payment
+from aklub.models import Communication, TaxConfirmation, UserInCampaign, Payment
 import datetime
 from aklub import autocom
 from django.utils.translation import ugettext as _
@@ -30,7 +30,7 @@ def send_mass_communication(obj, users, sending_user, save=True):
     for user in users:
         if user == "fake_user":
             # create fake values
-            user = User(
+            user = UserInCampaign(
                 email=sending_user.email,
                 language='cs',
                 active=True,

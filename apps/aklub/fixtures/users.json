@@ -91,7 +91,7 @@
             "wished_welcome_letter": true,
             "zip_code": ""
         },
-        "model": "aklub.user",
+        "model": "aklub.userincampaign",
         "pk": 2979
     },
     {
@@ -148,7 +148,7 @@
             "wished_welcome_letter": true,
             "zip_code": ""
         },
-        "model": "aklub.user",
+        "model": "aklub.userincampaign",
         "pk": 2978
     }
 ]

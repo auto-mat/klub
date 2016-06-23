@@ -19,7 +19,7 @@
 
 """Automatic communications for club management"""
 
-from .models import User, Communication, AutomaticCommunication
+from .models import UserInCampaign, Communication, AutomaticCommunication
 import datetime
 import string
 import logging
@@ -69,7 +69,7 @@ def process_template(template_string, user):
         email=user.email,
         telephone=user.telephone,
         regular_amount=user.regular_amount,
-        regular_frequency=_localize_enum(User.REGULAR_PAYMENT_FREQUENCIES, user.regular_frequency, user.language),
+        regular_frequency=_localize_enum(UserInCampaign.REGULAR_PAYMENT_FREQUENCIES, user.regular_frequency, user.language),
         var_symbol=user.variable_symbol,
         last_payment_amount=user.last_payment and user.last_payment.amount or None
         )
@@ -104,7 +104,7 @@ def process_template(template_string, user):
 
 def check(users=None, action=None):
     if not users:
-        users = User.objects.all()
+        users = UserInCampaign.objects.all()
     for auto_comm in AutomaticCommunication.objects.all():
         logger.info(u"Processin condition \"%s\" for autocom \"%s\", method: \"%s\", action: \"%s\"" % (auto_comm.condition, auto_comm, auto_comm.method, action))
 

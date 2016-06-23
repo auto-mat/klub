@@ -12,15 +12,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.CreateModel(
-            name='UserYearPayments',
-            fields=[
-            ],
-            options={
-                'proxy': True,
-            },
-            bases=('aklub.user',),
-        ),
         migrations.AlterField(
             model_name='accountstatements',
             name='csv_file',

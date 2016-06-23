@@ -20,7 +20,7 @@
 from django.utils.translation import ugettext_lazy as _
 from django.db.models import Sum, Count
 from admin_user_stats.base_modules import BaseChart, BaseCharts
-from aklub.models import Payment, User
+from aklub.models import Payment, UserInCampaign
 
 
 class PaymentCountChart(BaseChart):
@@ -94,7 +94,7 @@ class UserChart(BaseChart):
     chart_size = "900x200"
     values_count = 50
     interval = 'months'
-    queryset = User.objects
+    queryset = UserInCampaign.objects
     date_field = 'registered_support'
 
 
@@ -109,7 +109,7 @@ class UserCharts(BaseCharts):
             self.chart_model(_('By Day'), interval='days'),
             self.chart_model(_('By Week'), interval='weeks'),
             self.chart_model(_('By Month'), interval='months'),
-            self.chart_model(_('Regular By Month'), interval='months', queryset=User.objects.filter(regular_payments=True)),
-            self.chart_model(_('Onetime By Month'), interval='months', queryset=User.objects.filter(regular_payments=False)),
+            self.chart_model(_('Regular By Month'), interval='months', queryset=UserInCampaign.objects.filter(regular_payments=True)),
+            self.chart_model(_('Onetime By Month'), interval='months', queryset=UserInCampaign.objects.filter(regular_payments=False)),
             self.chart_model(_('By Year'), interval='years'),
         ]
