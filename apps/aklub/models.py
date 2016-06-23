@@ -610,7 +610,7 @@ class UserInCampaign(models.Model):
 
     def extra_payments(self):
         if self.extra_money:
-            return self.extra_money
+            return "%s&nbsp;Kč" % self.extra_money
         else:
             return _boolean_icon(False)
     extra_payments.allow_tags = True
