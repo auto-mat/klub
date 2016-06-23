@@ -1,3 +1,6 @@
 [run]
 include = apps*
-omit = */migrations/*
+omit = */migrations*
+plugins =
+    django_coverage_plugin
+branch = True
