@@ -350,6 +350,7 @@ class ViewsTestsLogon(TestCase):
         self.verify_views(self.views, status_code_map)
 
 
+@freeze_time("2016-5-1")
 class ModelTests(TestCase):
     fixtures = ['conditions', 'users']
 
@@ -368,7 +369,6 @@ class ModelTests(TestCase):
     def test_payment_model(self):
         self.assertEquals(self.p.person_name(), 'User Test')
 
-    @freeze_time("2016-5-1")
     def test_user_model(self):
         self.assertEquals(self.u.is_direct_dialogue(), False)
         self.assertEquals(self.u.last_payment_date(), None)
@@ -391,9 +391,9 @@ class ModelTests(TestCase):
         self.assertEquals(self.u1.regular_frequency_td(), datetime.timedelta(31))
         self.assertEquals(self.u1.expected_regular_payment_date, datetime.date(2016, 4, 9))
         self.assertEquals(self.u1.regular_payments_delay(), datetime.timedelta(12))
-        self.assertEquals(self.u1.extra_money, 150)
+        self.assertEquals(self.u1.extra_money, None)
         self.assertEquals(self.u1.regular_payments_info(), datetime.date(2016, 4, 9))
-        self.assertEquals(self.u1.extra_payments(), 150)
+        self.assertEquals(self.u1.extra_payments(), '<img src="/media/admin/img/icon-no.svg" alt="False" />')
         self.assertEquals(self.u1.mail_communications_count(), False)
         self.assertEquals(self.u1.payment_total, 250.0)
         self.assertEquals(self.u1.total_contrib_string(), "250&nbsp;Kč")
@@ -404,6 +404,13 @@ class ModelTests(TestCase):
         self.assertEquals(self.tax_confirmation.amount, 250)
         self.assertEquals(self.u1.no_upgrade, False)
         self.assertEquals(self.u1.monthly_regular_amount(), 100)
+
+    def test_extra_payments(self):
+        Payment.objects.create(date=datetime.date(year=2016, month=5, day=1), user=self.u1, amount=250)
+        call_command('denorm_flush')
+        self.u1 = UserInCampaign.objects.get(pk=2978)
+        self.assertEquals(self.u1.extra_money, 150)
+        self.assertEquals(self.u1.extra_payments(), "150&nbsp;Kč")
 
 
 class AccountStatementTests(TestCase):

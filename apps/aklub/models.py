@@ -579,7 +579,6 @@ class UserInCampaign(models.Model):
     @depend_on_related('Payment', foreign_key="user")
     def extra_money(self):
         """Check if we didn't receive more money than expected"""
-        total = 20
         if self.regular_payments:
             freq = self.regular_frequency_td()
             if not freq:
@@ -587,7 +586,7 @@ class UserInCampaign(models.Model):
             total = sum([p.amount for p in Payment.objects.filter(
                         user=self, date__gt=datetime.date.today() - freq +
                         datetime.timedelta(days=3))])
-            if total and self.regular_amount and total > self.regular_amount:
+            if self.regular_amount and total > self.regular_amount:
                 return total - self.regular_amount
         return None
 
