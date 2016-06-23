@@ -122,7 +122,9 @@ class AklubIndexDashboard(Dashboard):
         if MassCommunication.objects.exists():
             children.append(
                 {
-                    'title': _(u"Days from last mass communication: %(days)s days") % {"days": (datetime.date.today() - MassCommunication.objects.order_by("-date").first().date).days},
+                    'title': _(
+                        u"Days from last mass communication: %(days)s days"
+                    ) % {"days": (datetime.date.today() - MassCommunication.objects.order_by("-date").first().date).days},
                     'url': "aklub/masscommunication/",
                     'external': False,
                 }

@@ -36,7 +36,8 @@ from django.core.files import File
 
 class BaseTestCase(TestCase):
     def assertQuerysetEquals(self, qs1, qs2):
-        pk = lambda o: o.pk
+        def pk(o):
+            return o.pk
         return self.assertEqual(
             list(sorted(qs1, key=pk)),
             list(sorted(qs2, key=pk))
@@ -188,7 +189,11 @@ class ConditionsTests(BaseTestCase):
         )
         test_query = ~((~Q(days_ago_condition=datetime.datetime(2009, 12, 26, 0, 0)) & Q(time_condition__gte=datetime.timedelta(5))) | Q(int_condition=4) | Q(int_condition__lte=5))
         self.assertQueryEquals(c2.get_query(), test_query)
-        self.assertQueryEquals(c2.condition_string(), "not(None(None(UserInCampaign.days_ago_condition != days_ago.6 and UserInCampaign.time_condition >= timedelta.5) or UserInCampaign.int_condition = 4 or UserInCampaign.int_condition <= 5))")
+        self.assertQueryEquals(
+            c2.condition_string(),
+            "not(None(None(UserInCampaign.days_ago_condition != days_ago.6 and UserInCampaign.time_condition >= timedelta.5) "
+            "or UserInCampaign.int_condition = 4 or UserInCampaign.int_condition <= 5))"
+        )
 
 
 class ConfirmationTest(TestCase):
