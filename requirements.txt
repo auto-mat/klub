@@ -19,14 +19,10 @@ python-memcached
 python-dateutil
 html2text
 xlrd
-django-debug-toolbar
 django-daterange-filter
 django-cors-headers
 django-formtools
 -e git+https://github.com/PetrDlouhy/django-denorm.git@develop#egg=django-denorm
 django-timedeltafield
 gunicorn
-freezegun
--e git+https://github.com/PetrDlouhy/django-admin-smoke-tests.git#egg=django-admin-smoke-tests  # the non-PIP source is for newest django-polymorphic, that defined both get_queryset and queryset
 pypdf2  # for pdf result testing
-django_coverage_plugin
