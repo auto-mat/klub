@@ -34,7 +34,7 @@ from django.utils.html import mark_safe
 # Local models
 from django.db.models import Sum
 from .models import (
-    UserInCampaign, Payment, Communication, Expense,
+    UserInCampaign, UserProfile, Payment, Communication, Expense,
     TerminalCondition, UserYearPayments, NewUser, AccountStatements,
     AutomaticCommunication, MassCommunication, Condition, Campaign,
     Recruiter, Source, TaxConfirmation)
@@ -126,9 +126,13 @@ def show_payments_by_year(self, request, queryset):
 show_payments_by_year.short_description = _("Show payments by year")
 
 
+class UserProfileAdmin(ImportExportModelAdmin):
+    list_display = ('person_name', 'title_before', 'sex')
+
+
 # -- ADMIN FORMS --
 class UserInCampaignAdmin(ImportExportModelAdmin):
-    list_display = ('person_name', 'email', 'source',
+    list_display = ('person_name', 'email', 'source', 'campaign',
                     'variable_symbol', 'registered_support_date',
                     'regular_payments_info', 'payment_delay', 'extra_payments',
                     'number_of_payments', 'total_contrib_string', 'regular_amount',
@@ -158,6 +162,7 @@ class UserInCampaignAdmin(ImportExportModelAdmin):
     fieldsets = [
         (_('Basic personal'), {
             'fields': [('firstname', 'surname'),
+                       ('campaign',),
                        ('sex', 'language', 'active', 'public')]}),
         (_('Titles and addressments'), {
             'fields': [('title_before', 'title_after'),
@@ -511,6 +516,7 @@ class TaxConfirmationAdmin(admin.ModelAdmin):
 
 
 admin.site.register(UserInCampaign, UserInCampaignAdmin)
+admin.site.register(UserProfile, UserProfileAdmin)
 admin.site.register(UserYearPayments, UserYearPaymentsAdmin)
 admin.site.register(NewUser, NewUserAdmin)
 admin.site.register(Communication, CommunicationAdmin)
