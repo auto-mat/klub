@@ -144,13 +144,13 @@ class UserInCampaignAdmin(ImportExportModelAdmin, RelatedFieldAdmin):
         'regular_payments', 'userprofile__language', 'userprofile__active', 'userprofile__wished_information', 'old_account',
         'source', 'userprofile__campaigns', ('registered_support', DateRangeFilter), filters.EmailFilter,
         filters.UserConditionFilter, filters.UserConditionFilter1]
-    search_fields = ['userprofile__user__first_name', 'userprofile__user__last_name', 'variable_symbol', 'email', 'telephone']
+    search_fields = ['userprofile__user__first_name', 'userprofile__user__last_name', 'variable_symbol', 'email', 'userprofile__telephone']
     ordering = ('userprofile__user__last_name',)
     actions = ('send_mass_communication',
                show_payments_by_year,
                resave_action,
                export_as_csv_action(fields=(
-                   'title_before', 'userprofile__user__first_name', 'userprofile__user__last_name', 'title_after', 'sex', 'telephone', 'email',
+                   'title_before', 'userprofile__user__first_name', 'userprofile__user__last_name', 'title_after', 'sex', 'userprofile__telephone', 'email',
                    'street', 'city', 'zip_code', 'variable_symbol', 'club_card_available',
                    'regular_payments', 'regular_frequency', 'registered_support',
                    'note', 'additional_information', 'userprofile__active', 'userprofile__language', 'recruiter')))
@@ -240,13 +240,13 @@ class UserInCampaignAdmin(ImportExportModelAdmin, RelatedFieldAdmin):
 
 
 class UserYearPaymentsAdmin(UserInCampaignAdmin):
-    list_display = ('person_name', 'email', 'source',
+    list_display = ('person_name', 'userprofile__email', 'source',
                     'variable_symbol', 'registered_support_date',
                     'payment_total_by_year',
-                    'active', 'last_payment_date')
+                    'userprofile__active', 'last_payment_date')
     list_filter = [
-        ('payment__date', DateRangeFilter), 'regular_payments', 'language', 'active',
-        'wished_information', 'old_account', 'source', 'campaigns',
+        ('payment__date', DateRangeFilter), 'regular_payments', 'userprofile__language', 'userprofile__active',
+        'userprofile__wished_information', 'old_account', 'source', 'userprofile__campaigns',
         ('registered_support', DateRangeFilter), filters.EmailFilter, filters.UserConditionFilter, filters.UserConditionFilter1]
 
     def payment_total_by_year(self, obj):
@@ -288,7 +288,7 @@ class PaymentAdmin(admin.ModelAdmin):
 class NewUserAdmin(UserInCampaignAdmin):
     list_display = ('person_name', 'is_direct_dialogue',
                     'variable_symbol', 'regular_payments', 'registered_support',
-                    'recruiter', 'active')
+                    'userprofile__recruiter', 'userprofile__active')
 
 
 class CommunicationAdmin(admin.ModelAdmin):
