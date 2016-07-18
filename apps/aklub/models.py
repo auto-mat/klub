@@ -252,6 +252,9 @@ class UserProfile(models.Model):
         help_text=_("Associated campaigns"),
         blank=True,
         editable=True)
+    title_after = models.CharField(
+        verbose_name=_("Title after name"),
+        max_length=15, blank=True)
     title_before = models.CharField(
         verbose_name=_("Title before name"),
         max_length=15, blank=True)
@@ -357,6 +360,9 @@ class UserProfile(models.Model):
         return " ".join((self.user.last_name, self.user.first_name))
     person_name.short_description = _("Full name")
 
+    def __str__(self):
+        return str(self.person_name())
+
 
 class UserInCampaign(models.Model):
     """Club user model and DB table"""
@@ -364,16 +370,12 @@ class UserInCampaign(models.Model):
     class Meta:
         verbose_name = _("User in campaign")
         verbose_name_plural = _("Users in campaign")
-        ordering = ("surname", "firstname")
+        ordering = ("userprofile__user__last_name", "userprofile__user__last_name")
 
     GENDER = (
         ('male', _('Male')),
         ('female', _('Female')),
         ('unknown', _('Unknown')))
-    LANGUAGE = (
-        # TODO: List of languages used in the club should come from app settings
-        ('cs', _('Czech')),
-        ('en', _('English')))
     REGULAR_PAYMENT_FREQUENCIES = (
         ('monthly', _('Monthly')),
         ('quaterly', _('Quaterly')),
@@ -393,62 +395,6 @@ class UserInCampaign(models.Model):
         blank=True,
         null=True,
         editable=True)
-    title_before = models.CharField(
-        verbose_name=_("Title before name"),
-        max_length=15, blank=True)
-    firstname = models.CharField(
-        verbose_name=_("First name"),
-        max_length=80)  # TODO AFTER DB CLEANUP: null=False
-    surname = models.CharField(
-        verbose_name=_("Surname"),
-        max_length=80)  # TODO AFTER DB CLEANUP: null=False
-    title_after = models.CharField(
-        verbose_name=_("Title after name"),
-        max_length=15, blank=True)
-    sex = models.CharField(
-        verbose_name=_("Gender"),
-        choices=GENDER,
-        max_length=50)
-    addressment = models.CharField(
-        verbose_name=_("Addressment in letter"),
-        max_length=40, blank=True)
-    addressment_on_envelope = models.CharField(
-        verbose_name=_("Addressment on envelope"),
-        max_length=40, blank=True)
-    language = models.CharField(
-        verbose_name=_("Language"),
-        help_text=_("This is the language which will be used to "
-                    "communicate with this user. The system will send "
-                    "emails in this language and administrators will use "
-                    "this language in phone calls and personal contacts."),
-        choices=LANGUAGE,
-        default="cs",
-        max_length=50)
-    # -- Contacts
-    email = models.CharField(
-        verbose_name=_("Email"),
-        max_length=40, blank=True)
-    telephone = models.CharField(
-        verbose_name=_("Telephone"),
-        max_length=30, blank=True)
-    street = models.CharField(
-        verbose_name=_("Street and number"),
-        max_length=80, blank=True)
-    city = models.CharField(
-        verbose_name=_("City/City part"),
-        max_length=40, blank=True)
-    country = models.CharField(
-        verbose_name=_("Country"),
-        # TODO: Default country should come from app settings
-        default=u"Česká republika",
-        max_length=40, blank=True)
-    zip_code = models.CharField(
-        verbose_name=_("ZIP Code"),
-        max_length=10, blank=True)
-    different_correspondence_address = models.BooleanField(
-        verbose_name=_("Different correspondence address"),
-        help_text=_("User has different correspondence address"),
-        default=False)
     # -- Additional Info
     knows_us_from = models.CharField(
         verbose_name=_("Where does he/she know us from?"),
@@ -515,67 +461,11 @@ class UserInCampaign(models.Model):
         help_text=_(
             "If the user supports us in other ways, please specify here."),
         max_length=500, blank=True)
-    public = models.BooleanField(
-        verbose_name=_("Publish my name in the list of supporters"),
-        default=True)
-    wished_tax_confirmation = models.BooleanField(
-        verbose_name=_("Send tax confirmation"),
-        default=True)
-    wished_welcome_letter = models.BooleanField(
-        verbose_name=_("Send welcome letter"),
-        default=True)
-    wished_information = models.BooleanField(
-        verbose_name=_("Send regular news via email"),
-        default=True)
-    active = models.BooleanField(
-        verbose_name=_("Active"),
-        help_text=_(
-            "Is the user active member? Use this field to disable old "
-            "or temporary users."),
-        default=True)
-    profile_text = models.TextField(
-        verbose_name=_("What is your reason?"),
-        help_text=_("Tell others why you support Auto*Mat"),
-        max_length=3000, blank=True, null=True)
-    profile_picture = stdimage.StdImageField(
-        verbose_name=_("Profile picture"),
-        help_text=_("Your profile picture, which others will see."),
-        upload_to='profile-images',
-        variations={
-            'thumbnail': (100, 100, True),
-        },
-        blank=True, null=True)
 
-    # --- Communication
-
-    # Benefits
-    club_card_available = models.BooleanField(
-        verbose_name=_("Club card available"),
-        default=False, help_text=_("Is he entitled to posses a club card?"))
-    club_card_dispatched = models.BooleanField(
-        verbose_name=_("Club card dispatched?"),
-        help_text=_("Did we send him the club card already?"),
-        default=False)
-    other_benefits = models.TextField(
-        verbose_name=_("Other benefits"),
-        help_text=_("Did he receive some other benefits?"),
-        max_length=500, blank=True)
     # -- Notes (club administrators private notes)
     note = models.TextField(
         verbose_name=_("Note for making a boring form more lively"),
         max_length=2000, blank=True)
-    campaigns = models.ManyToManyField(
-        Campaign,
-        help_text=_("Associated campaigns"),
-        related_name='members',
-        blank=True,
-        editable=True)
-    recruiter = models.ForeignKey(
-        Recruiter,
-        blank=True,
-        null=True,
-        on_delete=models.SET_NULL,
-    )
     verified = models.BooleanField(
         _("Verified"),
         help_text=_("Was the the user information verified by a club administrator?"),
@@ -598,7 +488,7 @@ class UserInCampaign(models.Model):
         return str(self.person_name())
 
     def person_name(self):
-        return " ".join((self.surname, self.firstname))
+        return " ".join((self.userprofile.user.last_name, self.userprofile.user.first_name))
     person_name.short_description = _("Full name")
 
     def requires_action(self):
@@ -799,9 +689,9 @@ class UserInCampaign(models.Model):
         if not amount:
                 return
         temp = NamedTemporaryFile()
-        name = u"%s %s" % (self.firstname, self.surname)
-        addr_city = u"%s %s" % (self.zip_code, self.city)
-        confirmation.makepdf(temp, name, self.sex, self.street, addr_city, year, amount)
+        name = u"%s %s" % (self.userprofile.user.first_name, self.userprofile.user.last_name)
+        addr_city = u"%s %s" % (self.userprofile.zip_code, self.userprofile.city)
+        confirmation.makepdf(temp, name, self.userprofile.sex, self.userprofile.street, addr_city, year, amount)
         try:
                 conf = TaxConfirmation.objects.get(user=self, year=year)
         except TaxConfirmation.DoesNotExist:
@@ -1261,7 +1151,7 @@ class Communication(models.Model):
                 subject=self.subject,
                 body=self.summary_txt(),
                 from_email='Klub pratel Auto*Matu <kp@auto-mat.cz>',
-                to=[self.user.email],
+                to=[self.user.userprofile.user.email],
                 bcc=bcc)
             if self.type != 'individual':
                 email.attach_alternative(self.summary, "text/html")
@@ -1685,7 +1575,7 @@ class MassCommunication(models.Model):
         verbose_name=_("send to users"),
         help_text=_(
             "All users who should receive the communication"),
-        limit_choices_to={'active': 'True', 'wished_information': 'True'},
+        limit_choices_to={'userprofile__active': 'True', 'userprofile__wished_information': 'True'},
         blank=True)
     note = models.TextField(
         verbose_name=_("note"),

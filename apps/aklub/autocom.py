@@ -45,13 +45,13 @@ def _localize_enum(descr, val, lang):
 def process_template(template_string, user):
     template = string.Template(template_string)
 
-    if user.addressment and user.addressment != '':
-        addressment = user.addressment
+    if user.userprofile.addressment and user.userprofile.addressment != '':
+        addressment = user.userprofile.addressment
     else:
-        if user.language == 'cs':
-            if user.sex == 'male':
+        if user.userprofile.language == 'cs':
+            if user.userprofile.sex == 'male':
                 addressment = u'člene Klubu přátel Auto*Matu'
-            elif user.sex == 'female':
+            elif user.userprofile.sex == 'female':
                 addressment = u'členko Klubu přátel Auto*Matu'
             else:
                 addressment = u'člene/členko Klubu přátel Auto*Matu'
@@ -60,16 +60,16 @@ def process_template(template_string, user):
     # Make variable substitutions
     text = template.substitute(
         addressment=addressment,
-        name=user.firstname,
-        firstname=user.firstname,
-        surname=user.surname,
-        street=user.street,
-        city=user.city,
-        zipcode=user.zip_code,
-        email=user.email,
-        telephone=user.telephone,
+        name=user.userprofile.user.first_name,
+        firstname=user.userprofile.user.first_name,
+        surname=user.userprofile.user.last_name,
+        street=user.userprofile.street,
+        city=user.userprofile.city,
+        zipcode=user.userprofile.zip_code,
+        email=user.userprofile.user.email,
+        telephone=user.userprofile.telephone,
         regular_amount=user.regular_amount,
-        regular_frequency=_localize_enum(UserInCampaign.REGULAR_PAYMENT_FREQUENCIES, user.regular_frequency, user.language),
+        regular_frequency=_localize_enum(UserInCampaign.REGULAR_PAYMENT_FREQUENCIES, user.regular_frequency, user.userprofile.language),
         var_symbol=user.variable_symbol,
         last_payment_amount=user.last_payment and user.last_payment.amount or None
         )
@@ -88,9 +88,9 @@ def process_template(template_string, user):
             assert end_pos > sep_pos, "Wrong format of template, no separator | or after end mark }"
             male_variant = text[i+1:sep_pos]
             female_variant = text[sep_pos+1:end_pos]
-            if user.sex == 'male':
+            if user.userprofile.sex == 'male':
                 gender_text += male_variant
-            elif user.sex == 'female':
+            elif user.userprofile.sex == 'female':
                 gender_text += female_variant
             else:
                 gender_text += male_variant + "/" + female_variant
@@ -112,7 +112,7 @@ def check(users=None, action=None):
         for user in filtered_users:
             if auto_comm.only_once and auto_comm.sent_to_users.filter(pk=user.pk).exists():
                 continue
-            if user.language == 'cs':
+            if user.userprofile.language == 'cs':
                 template = auto_comm.template
                 subject = auto_comm.subject
             else:

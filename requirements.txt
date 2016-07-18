@@ -22,6 +22,7 @@ xlrd
 django-daterange-filter
 django-cors-headers
 django-formtools
+django-related-admin
 -e git+https://github.com/PetrDlouhy/django-denorm.git@develop#egg=django-denorm
 django-timedeltafield
 gunicorn

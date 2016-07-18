@@ -25,7 +25,7 @@ from django.contrib.auth.models import User as DjangoUser
 from django.core.management import call_command
 import datetime
 from freezegun import freeze_time
-from .models import TerminalCondition, Condition, UserInCampaign, Communication, AutomaticCommunication, AccountStatements, Payment
+from .models import TerminalCondition, Condition, UserInCampaign, Communication, AutomaticCommunication, AccountStatements, Payment, UserProfile
 from django_admin_smoke_tests import tests
 from .confirmation import makepdf
 from . import autocom, mailing, admin
@@ -222,7 +222,9 @@ class ConfirmationTest(TestCase):
 
 class AutocomTest(TestCase):
     def setUp(self):
-        self.user = UserInCampaign.objects.create(sex='male')
+        self.user = DjangoUser.objects.create()
+        self.userprofile = UserProfile.objects.create(sex='male', user=self.user)
+        self.userincampaign = UserInCampaign.objects.create(userprofile=self.userprofile)
         c = Condition.objects.create(operation="nor")
         TerminalCondition.objects.create(
             variable="action",
@@ -240,45 +242,45 @@ class AutocomTest(TestCase):
 
     def test_autocom(self):
         autocom.check(action="test-autocomm")
-        communication = Communication.objects.get(user=self.user)
+        communication = Communication.objects.get(user=self.userincampaign)
         self.assertTrue("testovací šablona" in communication.summary)
         self.assertTrue("člene Klubu přátel Auto*Matu" in communication.summary)
         self.assertTrue("Vazeny pane" in communication.summary)
 
     def test_autocom_female(self):
-        self.user.sex = 'female'
-        self.user.save()
+        self.userprofile.sex = 'female'
+        self.userprofile.save()
         autocom.check(action="test-autocomm")
-        communication = Communication.objects.get(user=self.user)
+        communication = Communication.objects.get(user=self.userincampaign)
         self.assertIn("testovací šablona", communication.summary)
         self.assertIn("členko Klubu přátel Auto*Matu", communication.summary)
         self.assertIn("Vazena pani", communication.summary)
 
     def test_autocom_unknown(self):
-        self.user.sex = 'unknown'
-        self.user.save()
+        self.userprofile.sex = 'unknown'
+        self.userprofile.save()
         autocom.check(action="test-autocomm")
-        communication = Communication.objects.get(user=self.user)
+        communication = Communication.objects.get(user=self.userincampaign)
         self.assertIn("testovací šablona", communication.summary)
         self.assertIn("člene/členko Klubu přátel Auto*Matu", communication.summary)
         self.assertIn("Vazeny/a pane/pani", communication.summary)
 
     def test_autocom_addressment(self):
-        self.user.sex = 'male'
-        self.user.addressment = 'own addressment'
-        self.user.save()
+        self.user.userprofile.sex = 'male'
+        self.user.userprofile.addressment = 'own addressment'
+        self.user.userprofile.save()
         autocom.check(action="test-autocomm")
-        communication = Communication.objects.get(user=self.user)
+        communication = Communication.objects.get(user=self.userincampaign)
         self.assertIn("testovací šablona", communication.summary)
         self.assertIn("own addressment", communication.summary)
         self.assertIn("Vazeny pane", communication.summary)
 
     def test_autocom_en(self):
-        self.user.sex = 'unknown'
-        self.user.language = 'en'
-        self.user.save()
+        self.user.userprofile.sex = 'unknown'
+        self.user.userprofile.language = 'en'
+        self.user.userprofile.save()
         autocom.check(action="test-autocomm")
-        communication = Communication.objects.get(user=self.user)
+        communication = Communication.objects.get(user=self.userincampaign)
         self.assertIn("test template", communication.summary)
         self.assertIn("member of the Auto*Mat friends club", communication.summary)
         self.assertIn("Dear sir", communication.summary)

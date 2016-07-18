@@ -29,6 +29,7 @@ from django.utils.translation import ugettext as _
 from django.http import HttpResponseRedirect, HttpResponse
 from daterange_filter.filter import DateRangeFilter
 from import_export.admin import ImportExportModelAdmin
+from related_admin import RelatedFieldAdmin
 import django.forms
 from django.utils.html import mark_safe
 # Local models
@@ -128,35 +129,36 @@ show_payments_by_year.short_description = _("Show payments by year")
 
 class UserProfileAdmin(ImportExportModelAdmin):
     list_display = ('person_name', 'title_before', 'sex')
+    raw_id_fields = ('recruiter',)
 
 
 # -- ADMIN FORMS --
-class UserInCampaignAdmin(ImportExportModelAdmin):
-    list_display = ('person_name', 'email', 'source', 'campaign',
+class UserInCampaignAdmin(ImportExportModelAdmin, RelatedFieldAdmin):
+    list_display = ('person_name', 'userprofile__user__email', 'source', 'campaign',
                     'variable_symbol', 'registered_support_date',
                     'regular_payments_info', 'payment_delay', 'extra_payments',
                     'number_of_payments', 'total_contrib_string', 'regular_amount',
-                    'active', 'last_payment_date')
+                    'userprofile__active', 'last_payment_date')
     date_hierarchy = 'registered_support'
     list_filter = [
-        'regular_payments', 'language', 'active', 'wished_information', 'old_account',
-        'source', 'campaigns', ('registered_support', DateRangeFilter), filters.EmailFilter,
+        'regular_payments', 'userprofile__language', 'userprofile__active', 'userprofile__wished_information', 'old_account',
+        'source', 'userprofile__campaigns', ('registered_support', DateRangeFilter), filters.EmailFilter,
         filters.UserConditionFilter, filters.UserConditionFilter1]
-    search_fields = ['firstname', 'surname', 'variable_symbol', 'email', 'telephone']
-    ordering = ('surname',)
+    search_fields = ['userprofile__user__first_name', 'userprofile__user__last_name', 'variable_symbol', 'email', 'telephone']
+    ordering = ('userprofile__user__last_name',)
     actions = ('send_mass_communication',
                show_payments_by_year,
                resave_action,
                export_as_csv_action(fields=(
-                   'title_before', 'firstname', 'surname', 'title_after', 'sex', 'telephone', 'email',
+                   'title_before', 'userprofile__user__first_name', 'userprofile__user__last_name', 'title_after', 'sex', 'telephone', 'email',
                    'street', 'city', 'zip_code', 'variable_symbol', 'club_card_available',
                    'regular_payments', 'regular_frequency', 'registered_support',
-                   'note', 'additional_information', 'active', 'language', 'recruiter')))
+                   'note', 'additional_information', 'userprofile__active', 'userprofile__language', 'recruiter')))
     save_as = True
     list_max_show_all = 10000
     list_per_page = 100
     inlines = [PaymentsInline, CommunicationInline]
-    raw_id_fields = ('recruiter',)
+    raw_id_fields = ('userprofile',)
     readonly_fields = ('verified_by',)
     filter_horizontal = ('campaigns',)  # broken in django pre-1.4
     fieldsets = [
@@ -279,7 +281,7 @@ class PaymentAdmin(admin.ModelAdmin):
     raw_id_fields = ('user',)
     list_filter = ['type', 'date', filters.PaymentsAssignmentsFilter]
     date_hierarchy = 'date'
-    search_fields = ['user__surname', 'user__firstname', 'amount', 'VS', 'SS', 'user_identification']
+    search_fields = ['user__userprofile__user__last_name', 'user__userprofile__user__first_name', 'amount', 'VS', 'SS', 'user_identification']
     actions = (export_as_csv_action(fields=list_display),)
 
 
@@ -484,16 +486,16 @@ class SourceAdmin(admin.ModelAdmin):
 
 class TaxConfirmationAdmin(admin.ModelAdmin):
     list_display = ('user', 'year', 'amount', 'file', 'user__regular_payments')
-    ordering = ('user__surname', 'user__firstname',)
+    ordering = ('user__userprofile__user__last_name', 'user__userprofile__user__first_name',)
     list_filter = ['year', 'user__regular_payments']
-    search_fields = ('user__surname', 'user__firstname', 'user__variable_symbol',)
+    search_fields = ('user__userprofile__user__last_name', 'user__firstname', 'user__variable_symbol',)
     actions = (export_as_csv_action(fields=('user', 'amount')),)
     list_max_show_all = 10000
 
     def generate(self, request):
         year = datetime.datetime.now().year - 1
         payed = Payment.objects.filter(date__year=year).exclude(type='expected').values_list('user_id', flat=True)
-        donors = UserInCampaign.objects.filter(id__in=payed).order_by('surname')
+        donors = UserInCampaign.objects.filter(id__in=payed).order_by('userprofile__user__last_name')
         count = 0
         for d in donors:
             c = d.make_tax_confirmation(year)

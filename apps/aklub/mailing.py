@@ -17,11 +17,12 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-import copy
-from aklub.models import Communication, TaxConfirmation, UserInCampaign, Payment
-import datetime
 from aklub import autocom
+from aklub.models import Communication, TaxConfirmation, UserInCampaign, Payment, UserProfile
+from django.contrib.auth.models import User as DjangoUser
 from django.utils.translation import ugettext as _
+import copy
+import datetime
 
 """Mailing"""
 
@@ -30,42 +31,48 @@ def send_mass_communication(obj, users, sending_user, save=True):
     for user in users:
         if user == "fake_user":
             # create fake values
-            user = UserInCampaign(
+            user = DjangoUser(
                 email=sending_user.email,
-                language='cs',
-                active=True,
-                addressment=None,
+                first_name=sending_user.first_name,
+                last_name=sending_user.last_name,
+            )
+            userprofile = UserProfile(
+                user=user,
                 sex='male',
-                firstname=sending_user.first_name,
-                surname=sending_user.last_name,
                 street=_('testing street'),
                 city=_('testing city'),
                 zip_code=12345,
                 telephone="123 456 789",
+                language='cs',
+                active=True,
+                addressment=None,
+            )
+            userincampaign = UserInCampaign(
+                userprofile=userprofile,
                 regular_amount=123456,
                 regular_frequency="monthly",
                 variable_symbol=12345678,
                 last_payment=Payment(amount=12345),
-                )
-        if user.language == 'cs':
+            )
+        if userincampaign.userprofile.language == 'cs':
             template, subject = obj.template, obj.subject
         else:
             template, subject = obj.template_en, obj.subject_en
-        if user.active and subject.strip() != '':
+        if userincampaign.userprofile.active and subject.strip() != '':
             if template.strip('') == '':
                 raise Exception("Message template is empty for one of the language variants.")
             if hasattr(obj, "attach_tax_confirmation") and not obj.attach_tax_confirmation:
                 attachment = copy.copy(obj.attachment)
             else:
                 tax_confirmations = TaxConfirmation.objects.filter(
-                    user=user, year=datetime.datetime.now().year-1)
+                    user=userincampaign, year=datetime.datetime.now().year-1)
                 if len(tax_confirmations) > 0:
                     attachment = copy.copy(tax_confirmations[0].file)
                 else:
                     attachment = None
-            c = Communication(user=user, method=obj.method, date=datetime.datetime.now(),
+            c = Communication(user=userincampaign, method=obj.method, date=datetime.datetime.now(),
                               subject=subject,
-                              summary=autocom.process_template(template, user),
+                              summary=autocom.process_template(template, userincampaign),
                               attachment=attachment,
                               note=_("Prepared by auto*mated mass communications at %s") % datetime.datetime.now(),
                               send=True, created_by=sending_user, handled_by=sending_user,

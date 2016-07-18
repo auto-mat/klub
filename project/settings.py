@@ -155,6 +155,7 @@ INSTALLED_APPS = (
     'corsheaders',
     'daterange_filter',
     'denorm',
+    'related_admin',
     'aklub'
 )
 
