@@ -7,7 +7,7 @@ django-bootstrap-form
 #pygraphviz
 django-wysiwyg
 django-tinymce
-django-admin-tools
+-e git+https://github.com/and-nothing-else/django-admin-tools.git#egg=django-admin-tools  # git version for Django 1.10 compatibility
 feedparser
 -e git+https://github.com/PetrDlouhy/django-admin-user-stats.git#egg=django-admin-user-stats
 #django-admin-user-stats==0.2

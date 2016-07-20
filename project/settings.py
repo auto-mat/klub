@@ -102,14 +102,13 @@ TEMPLATES = [
 ]
 
 MIDDLEWARE_CLASSES = (
-    # 'johnny.middleware.LocalStoreClearMiddleware',  # disabled for django 1.4
-    # 'johnny.middleware.QueryCacheMiddleware', # disabled for django 1.4
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'denorm.middleware.DenormMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.middleware.locale.LocaleMiddleware',
 )
 

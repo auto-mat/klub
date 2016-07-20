@@ -1,5 +1,5 @@
 from django.conf.urls import url
-from aklub.views import RegularUserFormWithProfile, RegularView, RegularUserFormDPNK
+from aklub.views import RegularUserFormWithProfile, RegularView, RegularUserFormDPNK, onetime, donators, profiles
 
 urlpatterns = [
     url(r'^regular/', RegularView.as_view(), name="regular"),
@@ -16,7 +16,7 @@ urlpatterns = [
         source_slug='dpnk'),
         name="regular-dpnk",
         ),
-    url(r'^onetime/', 'aklub.views.onetime', name="onetime"),
-    url(r'^donators/', 'aklub.views.donators', name="donators"),
-    url(r'^profiles/', 'aklub.views.profiles', name="profiles"),
+    url(r'^onetime/', onetime, name="onetime"),
+    url(r'^donators/', donators, name="donators"),
+    url(r'^profiles/', profiles, name="profiles"),
 ]
