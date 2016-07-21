@@ -44,8 +44,8 @@ class RegularUserForm(forms.ModelForm):
                                                      initial=datetime.date.today(),
                                                      widget=forms.DateInput(format='%d.%m.%Y'),
                                                      input_formats=('%d.%m.%Y',))
-    firstname = forms.CharField()
-    surname = forms.CharField()
+    firstname = forms.CharField(label=_("First name"), max_length=40, required=True)
+    surname = forms.CharField(label=_("Surname"), max_length=40, required=True)
     email = forms.EmailField(
         required=True)
     telephone = forms.CharField(
@@ -71,19 +71,8 @@ class RegularUserForm(forms.ModelForm):
 
     class Meta:
         model = UserInCampaign
-        fields = (
-            'title_before', 'firstname', 'surname', 'title_after',
-            'street', 'city', 'country', 'zip_code',
-            'language', 'email', 'telephone',
-            'regular_frequency', 'regular_amount', 'expected_date_of_first_payment',
-            'wished_tax_confirmation',
-            'wished_welcome_letter', 'wished_information', 'public', 'note'
-        )
-        required = ('firstname', 'surname', 'street', 'city', 'country', 'zip_code',
-                    'language', 'email', 'telephone', 'regular_frequency', 'regular_amount')
-        widgets = {
-            'language': forms.RadioSelect,  # should be set automatically
-        }
+        fields = ('firstname', 'surname', 'telephone', 'email')
+        required = ('firstname', 'surname', 'telephone', 'email')
 
     def __init__(self, *args, **kwargs):
         super(RegularUserForm, self).__init__(*args, **kwargs)
@@ -93,18 +82,7 @@ class RegularUserForm(forms.ModelForm):
 
 class RegularUserFormWithProfile(RegularUserForm):
     class Meta (RegularUserForm.Meta):
-        fields = (
-            'firstname', 'surname',
-            'street', 'city', 'country', 'zip_code',
-            'email', 'telephone',
-            'regular_frequency', 'regular_amount',
-            'wished_tax_confirmation',
-            'wished_welcome_letter', 'wished_information', 'public',
-            'profile_text', 'profile_picture',
-        )
-        required = ('firstname', 'surname', 'street', 'city', 'country', 'zip_code',
-                    'email', 'telephone', 'regular_frequency')
-        widgets = {}
+        pass
 
 
 class RegularUserFormDPNK(RegularUserFormWithProfile):
@@ -218,21 +196,17 @@ class OneTimePaymentWizardFormKnown(forms.Form):
 class OneTimePaymentWizardFormUnknown(forms.ModelForm):
     required_css_class = 'required'
 
+    telephone = forms.CharField(
+        label=_(u"Telefon"),
+        validators=[RegexValidator(r'^[0-9+ ]*$', _('Telefon musí být složen s čísel, mezer a znaku plus.')), MinLengthValidator(9)],
+        max_length=30)
+    firstname = forms.CharField(label=_("First name"), max_length=40, required=True)
+    surname = forms.CharField(label=_("Surname"), max_length=40, required=True)
+    email = forms.CharField(label=_("Email"), max_length=40, required=True)
     class Meta:
         model = UserInCampaign
-        fields = (
-            'title_before', 'firstname', 'surname', 'title_after',
-            'street', 'city', 'country', 'zip_code',
-            'language', 'email', 'telephone',
-            'wished_tax_confirmation', 'wished_information',
-            'public', 'note'
-        )
-        required = (
-            'firstname', 'surname', 'street', 'city', 'country', 'zip_code',
-            'language', 'email', 'telephone')
-        widgets = {
-            'language': forms.RadioSelect,  # should be set automatically
-        }
+        fields = ('firstname', 'surname', 'telephone', 'email')
+        required = ('firstname', 'surname', 'telephone', 'email')
 
     def __init__(self, *args, **kwargs):
         super(OneTimePaymentWizardFormUnknown, self).__init__(*args, **kwargs)
