@@ -18,21 +18,21 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 # Create your views here.
-import datetime
-import re
+from . import autocom
+from .models import UserInCampaign, Payment, Source, StatMemberCountsByMonths, StatPaymentsByMonths
 from django import forms, http
-from django.template import RequestContext
-from django.shortcuts import render_to_response
-from django.utils.translation import ugettext as _
-from formtools.wizard.views import SessionWizardView
-from django.views.generic.edit import FormView
 from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
+from django.core.validators import RegexValidator, MinLengthValidator
 from django.db.models import Sum, Count, Q
-from . import autocom
+from django.shortcuts import render_to_response
+from django.template import RequestContext
+from django.utils.translation import ugettext as _
+from django.views.generic.edit import FormView
+from formtools.wizard.views import SessionWizardView
+import datetime
 import json
-
-from .models import UserInCampaign, Payment, Source, StatMemberCountsByMonths, StatPaymentsByMonths
+import re
 
 
 class RegularUserForm(forms.ModelForm):
@@ -44,8 +44,14 @@ class RegularUserForm(forms.ModelForm):
                                                      initial=datetime.date.today(),
                                                      widget=forms.DateInput(format='%d.%m.%Y'),
                                                      input_formats=('%d.%m.%Y',))
+    firstname = forms.CharField()
+    surname = forms.CharField()
     email = forms.EmailField(
         required=True)
+    telephone = forms.CharField(
+        label=_(u"Telefon"),
+        validators=[RegexValidator(r'^[0-9+ ]*$', _('Telefon musí být složen s čísel, mezer a znaku plus.')), MinLengthValidator(9)],
+        max_length=30)
     regular_amount = forms.IntegerField(
         label=_("Regularly (amount)"),
         help_text=_(u"Minimum yearly payment is 1800 Kč"),
@@ -174,9 +180,9 @@ class RegularView(FormView):
 
 def donators(request):
     payed = Payment.objects.exclude(type='expected').values_list('user_id', flat=True)
-    donators = UserInCampaign.objects.filter(public=True, id__in=payed).order_by('surname')
+    donators = UserInCampaign.objects.filter(userprofile__public=True, id__in=payed).order_by('userprofile__user__last_name')
     n_donators = len(donators)
-    n_regular = len(donators.filter(active=True, regular_payments=True))
+    n_regular = len(donators.filter(userprofile__active=True, regular_payments=True))
     return render_to_response('donators.html', {
         'n_donators': n_donators,
         'n_regular': n_regular,
@@ -388,13 +394,13 @@ def profiles(request):
     users = (
         UserInCampaign.objects.filter(registered_support__gte=from_date).order_by('-registered_support') |
         UserInCampaign.objects.filter(id__in=(493, 89, 98, 921, 33, 886, 1181, 842, 954, 25))).exclude(
-            public=False, profile_picture__isnull=False)
+            userprofile__public=False, userprofile__profile_picture__isnull=False)
 
-    result = [{'firstname': u.public and u.firstname or '',
-               'surname': u.public and u.surname or '',
-               'text': u.profile_text or '',
-               'picture': u.profile_picture and u.profile_picture.url or '',
-               'picture_thumbnail': u.profile_picture and u.profile_picture.thumbnail.url or '',
+    result = [{'firstname': u.userprofile.public and u.userprofile.user.first_name or '',
+               'surname': u.userprofile.public and u.userprofile.user.last_name or '',
+               'text': u.userprofile.profile_text or '',
+               'picture': u.userprofile.profile_picture and u.userprofile.profile_picture.url or '',
+               'picture_thumbnail': u.userprofile.profile_picture and u.userprofile.profile_picture.thumbnail.url or '',
                }
               for u in users
               if ((not paying) or (u.payment_total > 0))]

@@ -87,14 +87,15 @@ class EmailFilter(SimpleListFilter):
 
     def queryset(self, request, queryset):
         if self.value() == 'duplicate':
-            duplicates = UserInCampaign.objects.filter(email__isnull=False).\
-                exclude(email__exact='').\
-                values('email').\
+            duplicates = UserInCampaign.objects.filter(userprofile__user__email__isnull=False).\
+                exclude(userprofile__user__email__exact='').\
+                values('userprofile__user__email').\
                 annotate(Count('id')).\
-                values('email').\
+                values('userprofile__user__email').\
                 order_by().\
                 filter(id__count__gt=1).\
-                values_list('email', flat=True)
-            return queryset.filter(email__in=duplicates)
+                values_list('userprofile__user__email', flat=True)
+            return queryset.filter(userprofile__user__email__in=duplicates)
         if self.value() == 'blank':
-            return queryset.filter(email__exact='')
+            return queryset.filter(userprofile__user__email__exact='')
+        return queryset
