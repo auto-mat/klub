@@ -150,6 +150,7 @@ class Expense(models.Model):
         Campaign,
         verbose_name=_("campaign"),
         related_name='expenses',
+        on_delete=models.CASCADE,
         null=False, blank=False)
 
 
@@ -245,6 +246,7 @@ class UserProfile(models.Model):
         related_name='userprofile',
         unique=True,
         null=False,
+        on_delete=models.CASCADE,
         blank=False,
     )
     campaigns = models.ManyToManyField(
@@ -386,6 +388,7 @@ class UserInCampaign(models.Model):
     userprofile = models.ForeignKey(
         UserProfile,
         blank=True,
+        on_delete=models.CASCADE,
         null=True,
     )
     campaign = models.ForeignKey(
@@ -393,6 +396,7 @@ class UserInCampaign(models.Model):
         help_text=_("Campaign"),
         default=None,
         blank=True,
+        on_delete=models.CASCADE,
         null=True,
         editable=True)
     # -- Additional Info
@@ -992,9 +996,19 @@ class Payment(models.Model):
         verbose_name=_("Order ID"),
         max_length=200, blank=True, null=True)
     # Pairing of payments with a specific club system user
-    user = models.ForeignKey(UserInCampaign, blank=True, null=True)
+    user = models.ForeignKey(
+        UserInCampaign,
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+    )
     # Origin of payment from bank account statement
-    account_statement = models.ForeignKey(AccountStatements, blank=True, null=True)
+    account_statement = models.ForeignKey(
+        AccountStatements,
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+    )
 
     def person_name(self):
         """Return name of the payer"""
@@ -1066,6 +1080,7 @@ class Communication(models.Model):
 
     user = models.ForeignKey(
         UserInCampaign,
+        on_delete=models.CASCADE,
         related_name="communications",
     )
     method = models.CharField(
@@ -1373,7 +1388,10 @@ class TerminalCondition(models.Model):
             "\nDateField: month_ago, one_day, one_week, two_weeks, one_month<br/>"
             "\nBooleanField: True, False"),
         max_length=50, blank=True, null=True)
-    condition = models.ForeignKey(Condition)
+    condition = models.ForeignKey(
+        Condition,
+        on_delete=models.CASCADE,
+    )
 
     def variable_description(self):
         if self.variable:
@@ -1605,7 +1623,10 @@ def confirmation_upload_to(instance, filename):
 
 class TaxConfirmation(models.Model):
 
-        user = models.ForeignKey(UserInCampaign)
+        user = models.ForeignKey(
+            UserInCampaign,
+            on_delete=models.CASCADE,
+        )
         year = models.PositiveIntegerField()
         amount = models.PositiveIntegerField(default=0)
         file = models.FileField(upload_to=confirmation_upload_to, storage=OverwriteStorage())
