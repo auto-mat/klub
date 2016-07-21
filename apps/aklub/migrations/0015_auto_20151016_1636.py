@@ -15,10 +15,6 @@ class Migration(migrations.Migration):
             model_name='user',
             name='last_payment_date',
         ),
-        migrations.RemoveField(
-            model_name='user',
-            name='regular_payments_delay',
-        ),
         migrations.AddField(
             model_name='user',
             name='last_payment',

@@ -337,7 +337,7 @@ class CommunicationAdmin(admin.ModelAdmin):
         # however not dispatched yet, these communications
         # still require admin action and should be visible.
         qs = super(CommunicationAdmin, self).get_queryset(request)
-        return qs.exclude(type='mass', dispatched='true')
+        return qs.exclude(type='mass', dispatched=True)
 
 
 class AutomaticCommunicationAdmin(admin.ModelAdmin):
