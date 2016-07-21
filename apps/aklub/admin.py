@@ -130,6 +130,34 @@ show_payments_by_year.short_description = _("Show payments by year")
 class UserProfileAdmin(ImportExportModelAdmin):
     list_display = ('person_name', 'title_before', 'sex')
     raw_id_fields = ('recruiter',)
+    filter_horizontal = ('campaigns',)
+    fieldsets = [
+        (_('Basic personal'), {
+            'fields': [('sex', 'language', 'active', 'public')]}),
+        (_('Titles and addressments'), {
+            'fields': [('title_before', 'title_after'),
+                       ('addressment', 'addressment_on_envelope')],
+            'classes': ['collapse']
+            }),
+        (_('Contacts'), {
+            'fields': [('telephone'),
+                       ('street', 'city', 'country'),
+                       'zip_code', 'different_correspondence_address'],
+            }),
+        (_('Communications'), {
+            'fields': ['wished_information', 'wished_tax_confirmation', 'wished_welcome_letter'],
+            'classes': ['collapse']}),
+        (_('Benefits'), {
+            'fields': [('club_card_available', 'club_card_dispatched'),
+                       'other_benefits'],
+            'classes': ['collapse']}),
+        (_('Notes'), {
+            'fields': ['campaigns', 'recruiter'],
+            'classes': ['collapse']}),
+        (_('Profile'), {
+            'fields': ['profile_text', 'profile_picture'],
+            'classes': ['collapse']}),
+        ]
 
 
 # -- ADMIN FORMS --
@@ -150,8 +178,9 @@ class UserInCampaignAdmin(ImportExportModelAdmin, RelatedFieldAdmin):
                show_payments_by_year,
                resave_action,
                export_as_csv_action(fields=(
-                   'title_before', 'userprofile__user__first_name', 'userprofile__user__last_name', 'title_after', 'sex', 'userprofile__telephone', 'userprofile__user__email',
-                   'street', 'city', 'zip_code', 'variable_symbol', 'club_card_available',
+                   'userprofile__title_before', 'userprofile__user__first_name', 'userprofile__user__last_name',
+                   'userprofile__title_after', 'userprofile__sex', 'userprofile__telephone', 'userprofile__user__email',
+                   'userprofile__street', 'userprofile__city', 'userprofile__zip_code', 'variable_symbol', 'userprofile__club_card_available',
                    'regular_payments', 'regular_frequency', 'registered_support',
                    'note', 'additional_information', 'userprofile__active', 'userprofile__language', 'recruiter')))
     save_as = True
@@ -160,22 +189,9 @@ class UserInCampaignAdmin(ImportExportModelAdmin, RelatedFieldAdmin):
     inlines = [PaymentsInline, CommunicationInline]
     raw_id_fields = ('userprofile',)
     readonly_fields = ('verified_by',)
-    filter_horizontal = ('campaigns',)  # broken in django pre-1.4
     fieldsets = [
         (_('Basic personal'), {
-            'fields': [('firstname', 'surname'),
-                       ('campaign',),
-                       ('sex', 'language', 'active', 'public')]}),
-        (_('Titles and addressments'), {
-            'fields': [('title_before', 'title_after'),
-                       ('addressment', 'addressment_on_envelope')],
-            'classes': ['collapse']
-            }),
-        (_('Contacts'), {
-            'fields': [('email', 'telephone'),
-                       ('street', 'city', 'country'),
-                       'zip_code', 'different_correspondence_address'],
-            }),
+            'fields': [('campaign',)]}),
         (_('Additional'), {
             'fields': ['knows_us_from',  'why_supports',
                        'field_of_work', 'additional_information'],
@@ -187,24 +203,10 @@ class UserInCampaignAdmin(ImportExportModelAdmin, RelatedFieldAdmin):
                         'regular_amount', 'expected_date_of_first_payment',
                         'exceptional_membership'),
                        'other_support', 'old_account']}),
-        (_('Communications'), {
-            'fields': ['wished_information', 'wished_tax_confirmation', 'wished_welcome_letter'],
-            'classes': ['collapse']}),
-        (_('Benefits'), {
-            'fields': [('club_card_available', 'club_card_dispatched'),
-                       'other_benefits'],
-            'classes': ['collapse']}),
         (_('Notes'), {
-            'fields': ['note', 'source', 'campaigns', 'recruiter', 'verified', 'verified_by', 'activity_points'],
-            'classes': ['collapse']}),
-        (_('Profile'), {
-            'fields': ['profile_text', 'profile_picture'],
+            'fields': ['note', 'source', 'verified', 'verified_by', 'activity_points'],
             'classes': ['collapse']}),
         ]
-
-    def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        return qs.select_related('source__name')
 
     def save_formset(self, request, form, formset, change):
         # We need to save the request.user to inline Communication

@@ -203,6 +203,7 @@ class OneTimePaymentWizardFormUnknown(forms.ModelForm):
     firstname = forms.CharField(label=_("First name"), max_length=40, required=True)
     surname = forms.CharField(label=_("Surname"), max_length=40, required=True)
     email = forms.CharField(label=_("Email"), max_length=40, required=True)
+
     class Meta:
         model = UserInCampaign
         fields = ('firstname', 'surname', 'telephone', 'email')
