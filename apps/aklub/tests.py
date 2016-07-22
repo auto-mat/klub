@@ -359,6 +359,7 @@ class ViewsTests(TestCase):
         self.assertEqual(msg.body, 'New user has been created Jméno: Testing Příjmení: User Ulice: Město: PSC:\nE-mail: test@test.cz Telefon: 111222333\n\n')
 
         self.assertEqual(User.objects.get(email="test@test.cz").get_full_name(), "Testing User")
+        self.assertEqual(User.objects.get(email="test@test.cz").username, "test3")
         self.assertEqual(UserProfile.objects.get(user__email="test@test.cz").telephone, '111222333')
         self.assertEqual(UserInCampaign.objects.get(userprofile__user__email="test@test.cz").regular_amount, 321)
 
@@ -371,6 +372,7 @@ class ViewsTests(TestCase):
         self.assertContains(response, '<h1>Děkujeme!</h1>', html=True)
 
         self.assertEqual(User.objects.get(email="test@test.cz").get_full_name(), "Testing User")
+        self.assertEqual(User.objects.get(email="test@test.cz").username, "test3")
         self.assertEqual(UserProfile.objects.get(user__email="test@test.cz").telephone, '111222333')
         self.assertEqual(UserInCampaign.objects.get(userprofile__user__email="test@test.cz").regular_amount, 321)
 
@@ -383,6 +385,7 @@ class ViewsTests(TestCase):
         self.assertContains(response, '<h1>Děkujeme!</h1>', html=True)
 
         self.assertEqual(User.objects.get(email="test@test.cz").get_full_name(), "Testing User")
+        self.assertEqual(User.objects.get(email="test@test.cz").username, "test3")
         self.assertEqual(UserProfile.objects.get(user__email="test@test.cz").telephone, '111222333')
         self.assertEqual(UserInCampaign.objects.get(userprofile__user__email="test@test.cz").regular_amount, 321)
 
@@ -424,6 +427,7 @@ class ViewsTests(TestCase):
         self.assertContains(response, '<h1>Děkujeme!</h1>', html=True)
 
         self.assertEqual(User.objects.get(email="test@test.cz").get_full_name(), "Testing User")
+        self.assertEqual(User.objects.get(email="test@test.cz").username, "test3")
         self.assertEqual(UserProfile.objects.get(user__email="test@test.cz").telephone, '+420123456789')
         self.assertEqual(UserInCampaign.objects.get(userprofile__user__email="test@test.cz").note, 'Note')
 

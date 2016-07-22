@@ -42,6 +42,17 @@ class RegularUserForm_User(forms.ModelForm):
 
     email = forms.EmailField(
         required=True)
+    username = forms.CharField(widget=forms.HiddenInput, required=False)
+
+    def clean_username(self):
+        "This function is required to overwrite an inherited username clean"
+        return self.cleaned_data['username']
+
+    def clean(self):
+        if not self.errors:
+            self.cleaned_data['username'] = '%s%s' % (self.cleaned_data['email'].split('@', 1)[0], User.objects.count())
+        super().clean()
+        return self.cleaned_data
 
     def clean_email(self):
         email = self.cleaned_data['email']
@@ -56,7 +67,7 @@ class RegularUserForm_User(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ('first_name', 'last_name', 'email')
+        fields = ('first_name', 'last_name', 'email', 'username')
         required = ('first_name', 'last_name', 'email')
 
     def __init__(self, *args, **kwargs):
@@ -249,9 +260,21 @@ class OneTimePaymentWizardFormUnknown_UserProfile(forms.ModelForm):
 
 
 class OneTimePaymentWizardFormUnknown_User(forms.ModelForm):
+    username = forms.CharField(widget=forms.HiddenInput, required=False)
+
+    def clean_username(self):
+        "This function is required to overwrite an inherited username clean"
+        return self.cleaned_data['username']
+
+    def clean(self):
+        if not self.errors:
+            self.cleaned_data['username'] = '%s%s' % (self.cleaned_data['email'].split('@', 1)[0], User.objects.count())
+        super().clean()
+        return self.cleaned_data
+
     class Meta:
         model = User
-        fields = ('first_name', 'last_name', 'email')
+        fields = ('first_name', 'last_name', 'email', 'username')
         required = ('first_name', 'last_name', 'email')
 
 
