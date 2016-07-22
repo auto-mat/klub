@@ -21,7 +21,7 @@ from . import autocom, mailing, admin
 from .confirmation import makepdf
 from .models import TerminalCondition, Condition, UserInCampaign, Communication, AutomaticCommunication, AccountStatements, Payment, UserProfile
 from PyPDF2 import PdfFileReader
-from django.contrib.auth.models import User as DjangoUser
+from django.contrib.auth.models import User
 from django.core import mail
 from django.core.files import File
 from django.core.management import call_command
@@ -222,7 +222,7 @@ class ConfirmationTest(TestCase):
 
 class AutocomTest(TestCase):
     def setUp(self):
-        self.user = DjangoUser.objects.create()
+        self.user = User.objects.create()
         self.userprofile = UserProfile.objects.create(sex='male', user=self.user)
         self.userincampaign = UserInCampaign.objects.create(userprofile=self.userprofile)
         c = Condition.objects.create(operation="nor")
@@ -288,7 +288,7 @@ class AutocomTest(TestCase):
 
 class MailingTest(TestCase):
     def test_mailing(self):
-        sending_user = DjangoUser.objects.create(
+        sending_user = User.objects.create(
             first_name="Testing",
             last_name="UserInCampaign",
             email="test@test.com",
@@ -320,7 +320,7 @@ class ViewsTests(TestCase):
     fixtures = ['conditions', 'users', 'communications']
 
     def setUp(self):
-        self.user = DjangoUser.objects.create_superuser(
+        self.user = User.objects.create_superuser(
             username='admin', email='test_user@test_user.com', password='admin')
         self.client.force_login(self.user)
 
@@ -332,6 +332,17 @@ class ViewsTests(TestCase):
         'userincampaign-regular_frequency': 'monthly',
         'userincampaign-regular_amount': '321',
     }
+
+    def test_regular_existing_email(self):
+        address = reverse('regular')
+        regular_post_data = self.regular_post_data.copy()
+        regular_post_data['user-email'] = 'test.user@email.cz'
+        response = self.client.post(address, regular_post_data, follow=False)
+        self.assertContains(
+            response,
+            'Jejda! Tenhle mail už známe, vypadá to, že se do Klubu přátel Auto*Matu neregistrujete poprvé. '
+            'Vaší náklonnosti si vážíme, registraci ale není nutné opakovat... '
+            'Poslali jsme Vám do mailu údaje potřebné k dalším příspěvkům i radu, kam se obrátit, pokud potřebujete ještě něco jiného.')
 
     def test_regular_dpnk(self):
         address = reverse('regular-dpnk')
@@ -347,6 +358,10 @@ class ViewsTests(TestCase):
         self.assertEqual(msg.subject, 'New user')
         self.assertEqual(msg.body, 'New user has been created Jméno: Testing Příjmení: User Ulice: Město: PSC:\nE-mail: test@test.cz Telefon: 111222333\n\n')
 
+        self.assertEqual(User.objects.get(email="test@test.cz").get_full_name(), "Testing User")
+        self.assertEqual(UserProfile.objects.get(user__email="test@test.cz").telephone, '111222333')
+        self.assertEqual(UserInCampaign.objects.get(userprofile__user__email="test@test.cz").regular_amount, 321)
+
     def test_regular(self):
         address = reverse('regular')
         response = self.client.get(address)
@@ -355,6 +370,10 @@ class ViewsTests(TestCase):
         response = self.client.post(address, self.regular_post_data, follow=True)
         self.assertContains(response, '<h1>Děkujeme!</h1>', html=True)
 
+        self.assertEqual(User.objects.get(email="test@test.cz").get_full_name(), "Testing User")
+        self.assertEqual(UserProfile.objects.get(user__email="test@test.cz").telephone, '111222333')
+        self.assertEqual(UserInCampaign.objects.get(userprofile__user__email="test@test.cz").regular_amount, 321)
+
     def test_regular_wp(self):
         address = reverse('regular-wp')
         response = self.client.get(address)
@@ -362,6 +381,10 @@ class ViewsTests(TestCase):
 
         response = self.client.post(address, self.regular_post_data, follow=True)
         self.assertContains(response, '<h1>Děkujeme!</h1>', html=True)
+
+        self.assertEqual(User.objects.get(email="test@test.cz").get_full_name(), "Testing User")
+        self.assertEqual(UserProfile.objects.get(user__email="test@test.cz").telephone, '111222333')
+        self.assertEqual(UserInCampaign.objects.get(userprofile__user__email="test@test.cz").regular_amount, 321)
 
     def test_onetime(self):
         address = reverse('onetime')
@@ -400,12 +423,45 @@ class ViewsTests(TestCase):
         response = self.client.post(address, post_data, follow=True)
         self.assertContains(response, '<h1>Děkujeme!</h1>', html=True)
 
+        self.assertEqual(User.objects.get(email="test@test.cz").get_full_name(), "Testing User")
+        self.assertEqual(UserProfile.objects.get(user__email="test@test.cz").telephone, '+420123456789')
+        self.assertEqual(UserInCampaign.objects.get(userprofile__user__email="test@test.cz").note, 'Note')
+
+    def test_onetime_existing_email(self):
+        address = reverse('onetime')
+        response = self.client.get(address)
+        self.assertContains(response, '<input id="id_0-first_name" maxlength="40" name="0-first_name" type="text" required />', html=True)
+
+        post_data = {
+            'one_time_payment_wizard-current_step': 0,
+            '0-email': 'test.user@email.cz',
+            '0-first_name': 'Testing',
+            '0-last_name': 'User',
+            '0-amount': '321',
+        }
+        response = self.client.post(address, post_data, follow=True)
+        self.assertContains(response, '<option value="2978">Test User &lt;t***r@e***.cz&gt;</option>', html=True)
+
+        post_data = {
+            'one_time_payment_wizard-current_step': 2,
+            '2-uid': 2978,
+        }
+        response = self.client.post(address, post_data, follow=True)
+        self.assertContains(response, '<input id="id_4-vs_check" maxlength="40" name="4-vs_check" type="text" />', html=True)
+
+        post_data = {
+            'one_time_payment_wizard-current_step': 4,
+            '4-vs_check': 120127010,
+        }
+        response = self.client.post(address, post_data, follow=True)
+        self.assertContains(response, '<h1>Děkujeme!</h1>', html=True)
+
 
 class SmokeViewsTestsLogon(TestCase):
     fixtures = ['conditions', 'users']
 
     def setUp(self):
-        self.user = DjangoUser.objects.create_superuser(
+        self.user = User.objects.create_superuser(
             username='admin', email='test_user@test_user.com', password='admin')
         self.client.force_login(self.user)
 
