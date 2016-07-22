@@ -359,7 +359,10 @@ class UserProfile(models.Model):
     )
 
     def person_name(self):
-        return " ".join((self.user.last_name, self.user.first_name))
+        if hasattr(self, 'user'):
+            return " ".join((self.user.last_name, self.user.first_name))
+        else:
+            return "UserProfile: %s " % self.id
     person_name.short_description = _("Full name")
 
     def __str__(self):
@@ -492,7 +495,10 @@ class UserInCampaign(models.Model):
         return str(self.person_name())
 
     def person_name(self):
-        return " ".join((self.userprofile.user.last_name, self.userprofile.user.first_name))
+        if hasattr(self, 'userprofile') and hasattr(self.userprofile, 'user'):
+            return " ".join((self.userprofile.user.last_name, self.userprofile.user.first_name))
+        else:
+            return "UserInCampaign: %s " % self.id
     person_name.short_description = _("Full name")
 
     def requires_action(self):

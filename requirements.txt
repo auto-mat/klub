@@ -26,3 +26,4 @@ django-related-admin
 -e git+https://github.com/PetrDlouhy/django-denorm.git@develop#egg=django-denorm
 gunicorn
 pypdf2  # for pdf result testing
+django-betterforms

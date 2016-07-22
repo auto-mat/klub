@@ -311,13 +311,97 @@ class AdminTest(tests.AdminSiteSmokeTest):
     fixtures = ['conditions', 'users']
 
 
-class ViewsTestsLogon(TestCase):
+def print_response(response):
+    with open("response.html", "w") as f:
+        f.write(response.content.decode())
+
+
+class ViewsTests(TestCase):
     fixtures = ['conditions', 'users']
 
     def setUp(self):
         self.user = DjangoUser.objects.create_superuser(
             username='admin', email='test_user@test_user.com', password='admin')
-        self.assertTrue(self.client.login(username='admin', password='admin'))
+        self.client.force_login(self.user)
+
+    regular_post_data = {
+        'user-email': 'test@test.cz',
+        'user-first_name': 'Testing',
+        'user-last_name': 'User',
+        'userprofile-telephone': 111222333,
+        'userincampaign-regular_frequency': 'monthly',
+        'userincampaign-regular_amount': '321',
+    }
+
+    def test_regular_dpnk(self):
+        address = reverse('regular-dpnk')
+        response = self.client.get(address)
+        self.assertContains(response, '<input class=" form-control" id="id_user-first_name" maxlength="30" name="user-first_name" type="text" required />', html=True)
+
+        response = self.client.post(address, self.regular_post_data, follow=True)
+        self.assertContains(response, '<h5>Děkujeme!</h5>', html=True)
+
+    def test_regular(self):
+        address = reverse('regular')
+        response = self.client.get(address)
+        self.assertContains(response, '<input id="id_user-first_name" maxlength="30" name="user-first_name" type="text" required />', html=True)
+
+        response = self.client.post(address, self.regular_post_data, follow=True)
+        self.assertContains(response, '<h1>Děkujeme!</h1>', html=True)
+
+    def test_regular_wp(self):
+        address = reverse('regular-wp')
+        response = self.client.get(address)
+        self.assertContains(response, '<input class=" form-control" id="id_user-first_name" maxlength="30" name="user-first_name" type="text" required />', html=True)
+
+        response = self.client.post(address, self.regular_post_data, follow=True)
+        self.assertContains(response, '<h1>Děkujeme!</h1>', html=True)
+
+    def test_onetime(self):
+        address = reverse('onetime')
+        response = self.client.get(address)
+        self.assertContains(response, '<input id="id_0-first_name" maxlength="40" name="0-first_name" type="text" required />', html=True)
+
+        post_data = {
+            'one_time_payment_wizard-current_step': 0,
+            '0-email': 'test@test.cz',
+            '0-first_name': 'Testing',
+            '0-last_name': 'User',
+            '0-amount': '321',
+        }
+        response = self.client.post(address, post_data, follow=True)
+        self.assertContains(response, '<input id="id_userprofile__1-title_before" maxlength="15" name="userprofile__1-title_before" type="text" />', html=True)
+
+        post_data = {
+            'one_time_payment_wizard-current_step': 1,
+            'userincampaign__1-note': 'Note',
+            'user__1-first_name': 'Testing',
+            'user__1-last_name': 'User',
+            'user__1-email': 'test@test.cz',
+            'userprofile__1-title_before': 'Tit.',
+            'userprofile__1-title_after': '',
+            'userprofile__1-street': 'On Street 1',
+            'userprofile__1-city': 'City',
+            'userprofile__1-country': 'Country',
+            'userprofile__1-zip_code': '100 00',
+            'userprofile__1-language': 'cs',
+            'userprofile__1-telephone': '+420123456789',
+            'userprofile__1-wished_tax_confirmation': 'on',
+            'userprofile__1-wished_information': 'on',
+            'userprofile__1-public': 'on',
+            'userprofile__1-note': 'asdf',
+        }
+        response = self.client.post(address, post_data, follow=True)
+        self.assertContains(response, '<h1>Děkujeme!</h1>', html=True)
+
+
+class SmokeViewsTestsLogon(TestCase):
+    fixtures = ['conditions', 'users']
+
+    def setUp(self):
+        self.user = DjangoUser.objects.create_superuser(
+            username='admin', email='test_user@test_user.com', password='admin')
+        self.client.force_login(self.user)
 
     def verify_views(self, views, status_code_map):
         for view in views:
@@ -332,9 +416,6 @@ class ViewsTestsLogon(TestCase):
 
     views = [
         '/admin',
-        reverse('regular'),
-        reverse('regular-wp'),
-        reverse('regular-dpnk'),
         reverse('onetime'),
         reverse('donators'),
         reverse('profiles'),

@@ -19,8 +19,10 @@
 
 # Create your views here.
 from . import autocom
-from .models import UserInCampaign, Payment, Source, StatMemberCountsByMonths, StatPaymentsByMonths
+from .models import UserInCampaign, UserProfile, Payment, Source, StatMemberCountsByMonths, StatPaymentsByMonths
+from betterforms.multiform import MultiModelForm
 from django import forms, http
+from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
 from django.core.validators import RegexValidator, MinLengthValidator
@@ -35,33 +37,16 @@ import json
 import re
 
 
-class RegularUserForm(forms.ModelForm):
+class RegularUserForm_User(forms.ModelForm):
     required_css_class = 'required'
 
-    # the fields defined here will override those defined on the model
-    regular_frequency = forms.ChoiceField(label=_("Regular payments"), choices=UserInCampaign.REGULAR_PAYMENT_FREQUENCIES, required=True, widget=forms.RadioSelect())
-    expected_date_of_first_payment = forms.DateField(label=_("Expected date of first payment"), required=True,
-                                                     initial=datetime.date.today(),
-                                                     widget=forms.DateInput(format='%d.%m.%Y'),
-                                                     input_formats=('%d.%m.%Y',))
-    firstname = forms.CharField(label=_("First name"), max_length=40, required=True)
-    surname = forms.CharField(label=_("Surname"), max_length=40, required=True)
     email = forms.EmailField(
         required=True)
-    telephone = forms.CharField(
-        label=_(u"Telefon"),
-        validators=[RegexValidator(r'^[0-9+ ]*$', _('Telefon musí být složen s čísel, mezer a znaku plus.')), MinLengthValidator(9)],
-        max_length=30)
-    regular_amount = forms.IntegerField(
-        label=_("Regularly (amount)"),
-        help_text=_(u"Minimum yearly payment is 1800 Kč"),
-        min_value=1,
-        )
 
     def clean_email(self):
         email = self.cleaned_data['email']
-        if UserInCampaign.objects.filter(email=email).exists():
-            user = UserInCampaign.objects.get(email=email)
+        if UserInCampaign.objects.filter(userprofile__user__email=email).exists():
+            user = UserInCampaign.objects.get(userprofile__user__email=email)
             autocom.check(users=UserInCampaign.objects.filter(pk=user.pk), action='resend-data')
             raise ValidationError(_(
                 "Oops! This email address is already registered in our Auto*Mat support club, you are not registering for the first time."
@@ -70,19 +55,56 @@ class RegularUserForm(forms.ModelForm):
         return email
 
     class Meta:
-        model = UserInCampaign
-        fields = ('firstname', 'surname', 'telephone', 'email')
-        required = ('firstname', 'surname', 'telephone', 'email')
+        model = User
+        fields = ('first_name', 'last_name', 'email')
+        required = ('first_name', 'last_name', 'email')
 
     def __init__(self, *args, **kwargs):
-        super(RegularUserForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         for field in self.Meta.required:
             self.fields[field].required = True
 
 
+class RegularUserForm_UserProfile(forms.ModelForm):
+    required_css_class = 'required'
+
+    telephone = forms.CharField(
+        label=_(u"Telefon"),
+        validators=[RegexValidator(r'^[0-9+ ]*$', _('Telefon musí být složen s čísel, mezer a znaku plus.')), MinLengthValidator(9)],
+        max_length=30)
+
+    class Meta:
+        model = UserProfile
+        fields = ('telephone',)
+        required = ('telephone',)
+
+
+class RegularUserForm_UserInCampaign(forms.ModelForm):
+    required_css_class = 'required'
+
+    regular_frequency = forms.ChoiceField(label=_("Regular payments"), choices=UserInCampaign.REGULAR_PAYMENT_FREQUENCIES, required=True, widget=forms.RadioSelect())
+    regular_amount = forms.IntegerField(
+        label=_("Regularly (amount)"),
+        help_text=_(u"Minimum yearly payment is 1800 Kč"),
+        min_value=1,
+        )
+
+    class Meta:
+        model = UserInCampaign
+        fields = ('regular_frequency', 'regular_amount')
+
+
+class RegularUserForm(MultiModelForm):
+    base_fields = {}
+    form_classes = {
+        'user': RegularUserForm_User,
+        'userprofile': RegularUserForm_UserProfile,
+        'userincampaign': RegularUserForm_UserInCampaign,
+    }
+
+
 class RegularUserFormWithProfile(RegularUserForm):
-    class Meta (RegularUserForm.Meta):
-        pass
+    pass
 
 
 class RegularUserFormDPNK(RegularUserFormWithProfile):
@@ -111,14 +133,21 @@ def new_user(form, regular, source_slug='web'):
         assert 0, "Out of free variable symbols, date %s, reg_n_today=%d" % (now, reg_n_today)
     # variable_symbol is now unique in database
     # Create new user instance and fill in additional data
-    new_user = form.save(commit=False)
-    new_user.regular_payments = regular
-    new_user.variable_symbol = variable_symbol
-    new_user.source = Source.objects.get(slug=source_slug)
+    new_user_objects = form.save(commit=False)
+    new_user = new_user_objects['user']
+    new_user_profile = new_user_objects['userprofile']
+    new_user_in_campaign = new_user_objects['userincampaign']
+    new_user_in_campaign.regular_payments = regular
+    new_user_in_campaign.variable_symbol = variable_symbol
+    new_user_in_campaign.source = Source.objects.get(slug=source_slug)
     # Save new user instance
     new_user.save()
+    new_user_profile.user = new_user
+    new_user_profile.save()
+    new_user_in_campaign.profile = new_user_profile
+    new_user_in_campaign.save()
     # TODO: Unlock DB access here
-    return new_user.id
+    return new_user_in_campaign.id
 
 
 class RegularView(FormView):
@@ -128,7 +157,7 @@ class RegularView(FormView):
     source_slug = 'web'
 
     def get_initial(self):
-        initial = super(RegularView, self).get_initial()
+        initial = super().get_initial()
         if self.request.GET.get('firstname'):
             initial['firstname'] = self.request.GET.get('firstname')
         if self.request.GET.get('surname'):
@@ -169,8 +198,8 @@ def donators(request):
 
 class OneTimePaymentWizardFormBase(forms.Form):
     required_css_class = 'required'
-    firstname = forms.CharField(label=_("First name"), max_length=40, required=True)
-    surname = forms.CharField(label=_("Surname"), max_length=40, required=True)
+    first_name = forms.CharField(label=_("First name"), max_length=40, required=True)
+    last_name = forms.CharField(label=_("Surname"), max_length=40, required=True)
     email = forms.CharField(label=_("Email"), max_length=40, required=True)
     amount = forms.IntegerField(label=_("Amount"), required=True)
 
@@ -193,34 +222,55 @@ class OneTimePaymentWizardFormKnown(forms.Form):
     note = forms.CharField(max_length=40)
 
 
-class OneTimePaymentWizardFormUnknown(forms.ModelForm):
+class OneTimePaymentWizardFormUnknown_UserInCampaign(forms.ModelForm):
     required_css_class = 'required'
-
-    telephone = forms.CharField(
-        label=_(u"Telefon"),
-        validators=[RegexValidator(r'^[0-9+ ]*$', _('Telefon musí být složen s čísel, mezer a znaku plus.')), MinLengthValidator(9)],
-        max_length=30)
-    firstname = forms.CharField(label=_("First name"), max_length=40, required=True)
-    surname = forms.CharField(label=_("Surname"), max_length=40, required=True)
-    email = forms.CharField(label=_("Email"), max_length=40, required=True)
 
     class Meta:
         model = UserInCampaign
-        fields = ('firstname', 'surname', 'telephone', 'email')
-        required = ('firstname', 'surname', 'telephone', 'email')
+        fields = ('note',)
 
-    def __init__(self, *args, **kwargs):
-        super(OneTimePaymentWizardFormUnknown, self).__init__(*args, **kwargs)
-        for field in self.Meta.required:
-            self.fields[field].required = True
+
+class OneTimePaymentWizardFormUnknown_UserProfile(forms.ModelForm):
+    class Meta:
+        model = UserProfile
+        fields = (
+            'title_before', 'title_after',
+            'street', 'city', 'country', 'zip_code',
+            'language', 'telephone',
+            'wished_tax_confirmation', 'wished_information',
+            'public', 'note'
+        )
+        required = (
+            'street', 'city', 'country', 'zip_code',
+            'language', 'telephone')
+        widgets = {
+            'language': forms.RadioSelect,  # should be set automatically
+        }
+
+
+class OneTimePaymentWizardFormUnknown_User(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ('first_name', 'last_name', 'email')
+        required = ('first_name', 'last_name', 'email')
+
+
+class OneTimePaymentWizardFormUnknown(MultiModelForm):
+    base_fields = {}
+    form_classes = {
+        'user': OneTimePaymentWizardFormUnknown_User,
+        'userprofile': OneTimePaymentWizardFormUnknown_UserProfile,
+        'userincampaign': OneTimePaymentWizardFormUnknown_UserInCampaign,
+    }
 
 
 class OneTimePaymentWizard(SessionWizardView):
+    success_template = 'thanks.html'
 
     def is_possibly_known(self):
         f = self._step_data(OneTimePaymentWizardFormBase)
         if f:
-            return len(self._find_matching_users(f['email'], f['firstname'], f['surname'])) > 0
+            return len(self._find_matching_users(f['email'], f['first_name'], f['last_name'])) > 0
         return True
 
     def is_unknown(self):
@@ -271,7 +321,7 @@ class OneTimePaymentWizard(SessionWizardView):
     def get_template_names(self):
         return self.FORMS[int(self.steps.current)][3]
 
-    def done(self, form_list, **kwargs):
+    def done(self, form_list, form_dict, **kwargs):
         for form in form_list:
                 if isinstance(form, OneTimePaymentWizardFormUnknown):
                         uid = new_user(form, False)
@@ -279,12 +329,15 @@ class OneTimePaymentWizard(SessionWizardView):
                         uid = form.cleaned_data['uid']
         user = UserInCampaign.objects.filter(id=uid)[0]
         payment = Payment(date=datetime.datetime.now(),
-                          amount=form_list[0].cleaned_data['amount'],
+                          amount=form_dict['0'].cleaned_data['amount'],
                           VS=user.variable_symbol,
                           type='expected',
                           user=user)
         payment.save()
-        return http.HttpResponseRedirect('/thanks/')
+        return render_to_response(self.success_template, {
+            'amount': payment.amount,
+            'user_id': user.id,
+            })
 
     def send_vs_reminder(self, id):
         user = UserInCampaign.objects.filter(id=id)[0]
@@ -304,20 +357,20 @@ class OneTimePaymentWizard(SessionWizardView):
             "Best Regards,\n"
             "Auto*Mat\n" % user.variable_symbol)
         EmailMessage(subject=mail_subject, body=mail_body,
-                     from_email='kp@auto-mat.cz', to=[user.email]).send()
+                     from_email='kp@auto-mat.cz', to=[user.userprofile.user.email]).send()
 
     def _find_matching_users(self, email, firstname, surname):
-        users = (set(UserInCampaign.objects.filter(email=email, active=True).all()) |
-                 set(UserInCampaign.objects.filter(firstname=firstname, surname=surname, active=True)))
+        users = (set(UserInCampaign.objects.filter(userprofile__user__email=email, userprofile__active=True).all()) |
+                 set(UserInCampaign.objects.filter(userprofile__user__first_name=firstname, userprofile__user__last_name=surname, userprofile__active=True)))
         return list(users)
 
     def get_form(self, step=None, data=None, files=None):
-        form = super(OneTimePaymentWizard, self).get_form(step, data, files)
+        form = super().get_form(step, data, files)
         if step == self._step_number(OneTimePaymentWizardFormUnknown):
                 cd0 = self._step_data(OneTimePaymentWizardFormBase)
                 if cd0:
-                        for f in ['firstname', 'surname', 'email']:
-                                form.fields[f].initial = cd0[f]
+                        for f in ['first_name', 'last_name', 'email']:
+                                form.forms['user'].fields .initial = cd0[f]
         elif step == self._step_number(OneTimePaymentWizardFormWhoIs):
                 def obfuscate(email):
                         m = re.match('(?P<b1>.).*(?P<b2>.)@(?P<a>.).*\.(?P<d>.+)', email)
@@ -325,8 +378,8 @@ class OneTimePaymentWizard(SessionWizardView):
                 cd0 = self._step_data(OneTimePaymentWizardFormBase)
                 if cd0:
                         users = self._find_matching_users(*[cd0[key] for key in [
-                            'email', 'firstname', 'surname']])
-                        candidates = ([(u.id, "%s %s <%s>" % (u.firstname, u.surname, obfuscate(u.email))) for u in users] +
+                            'email', 'first_name', 'last_name']])
+                        candidates = ([(u.id, "%s %s <%s>" % (u.userprofile.user.first_name, u.userprofile.user.last_name, obfuscate(u.userprofile.user.email))) for u in users] +
                                       [('None', _("None of these accounts"))])
                         form.fields['uid'] = forms.ChoiceField(choices=candidates)
         elif step == self._step_number(OneTimePaymentWizardFormConfirm):

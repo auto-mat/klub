@@ -39,6 +39,22 @@
     },
     {
         "fields": {
+            "slug": "web",
+            "name": "Web"
+        },
+        "model": "aklub.source",
+        "pk": 2
+    },
+    {
+        "fields": {
+            "slug": "dpnk",
+            "name": "Do práce na kole"
+        },
+        "model": "aklub.source",
+        "pk": 1
+    },
+    {
+        "fields": {
             "username": "testuser1",
             "first_name": "Test",
             "last_name": "User 1",
