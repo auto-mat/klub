@@ -357,6 +357,16 @@ class UserProfile(models.Model):
         null=True,
         on_delete=models.SET_NULL,
     )
+    created = models.DateTimeField(
+        verbose_name=_(u"Datum vytvoření"),
+        auto_now_add=True,
+        null=True,
+    )
+    updated = models.DateTimeField(
+        verbose_name=_(u"Datum poslední změny"),
+        auto_now=True,
+        null=True,
+    )
 
     def person_name(self):
         if hasattr(self, 'user'):
@@ -490,6 +500,11 @@ class UserInCampaign(models.Model):
         help_text=_("Points for users activity"),
         default=0,
         blank=False)
+    updated = models.DateTimeField(
+        verbose_name=_(u"Datum poslední změny"),
+        auto_now=True,
+        null=True,
+    )
 
     def __str__(self):
         return str(self.person_name())

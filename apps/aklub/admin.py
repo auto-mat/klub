@@ -128,7 +128,7 @@ show_payments_by_year.short_description = _("Show payments by year")
 
 
 class UserProfileAdmin(ImportExportModelAdmin):
-    list_display = ('person_name', 'title_before', 'sex')
+    list_display = ('person_name', 'title_before', 'sex', 'created', 'updated')
     raw_id_fields = ('recruiter',)
     filter_horizontal = ('campaigns',)
     fieldsets = [
