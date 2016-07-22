@@ -1,0 +1,14 @@
+[
+    {
+        "fields": {
+            "name": "New user",
+            "condition": "19",
+            "dispatch_auto": true,
+            "subject": "New user",
+            "template": "New user has been created Jméno: $name Příjmení: $surname Ulice: $street Město: $city PSC: $zipcode E-mail: $email Telefon: $telephone",
+            "method": "email"
+        },
+        "model": "aklub.automaticcommunication",
+        "pk": 1 
+    }
+]

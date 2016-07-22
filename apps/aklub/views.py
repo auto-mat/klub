@@ -144,7 +144,7 @@ def new_user(form, regular, source_slug='web'):
     new_user.save()
     new_user_profile.user = new_user
     new_user_profile.save()
-    new_user_in_campaign.profile = new_user_profile
+    new_user_in_campaign.userprofile = new_user_profile
     new_user_in_campaign.save()
     # TODO: Unlock DB access here
     return new_user_in_campaign.id

@@ -17,21 +17,21 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+from . import autocom, mailing, admin
+from .confirmation import makepdf
+from .models import TerminalCondition, Condition, UserInCampaign, Communication, AutomaticCommunication, AccountStatements, Payment, UserProfile
+from PyPDF2 import PdfFileReader
+from django.contrib.auth.models import User as DjangoUser
+from django.core import mail
+from django.core.files import File
+from django.core.management import call_command
+from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.test import TestCase
-from django.core import mail
-from django.core.urlresolvers import reverse
-from django.contrib.auth.models import User as DjangoUser
-from django.core.management import call_command
-import datetime
-from freezegun import freeze_time
-from .models import TerminalCondition, Condition, UserInCampaign, Communication, AutomaticCommunication, AccountStatements, Payment, UserProfile
 from django_admin_smoke_tests import tests
-from .confirmation import makepdf
-from . import autocom, mailing, admin
+from freezegun import freeze_time
+import datetime
 import io
-from PyPDF2 import PdfFileReader
-from django.core.files import File
 
 
 class BaseTestCase(TestCase):
@@ -317,7 +317,7 @@ def print_response(response):
 
 
 class ViewsTests(TestCase):
-    fixtures = ['conditions', 'users']
+    fixtures = ['conditions', 'users', 'communications']
 
     def setUp(self):
         self.user = DjangoUser.objects.create_superuser(
@@ -340,6 +340,12 @@ class ViewsTests(TestCase):
 
         response = self.client.post(address, self.regular_post_data, follow=True)
         self.assertContains(response, '<h5>Děkujeme!</h5>', html=True)
+
+        self.assertEqual(len(mail.outbox), 1)
+        msg = mail.outbox[0]
+        self.assertEqual(msg.recipients(), ['test@test.cz', 'kp@auto-mat.cz'])
+        self.assertEqual(msg.subject, 'New user')
+        self.assertEqual(msg.body, 'New user has been created Jméno: Testing Příjmení: User Ulice: Město: PSC:\nE-mail: test@test.cz Telefon: 111222333\n\n')
 
     def test_regular(self):
         address = reverse('regular')
