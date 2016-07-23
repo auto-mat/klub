@@ -616,3 +616,25 @@ class AccountStatementTests(TestCase):
         self.assertEqual(len(a1.payment_set.all()), 2)
         user = UserInCampaign.objects.get(pk=2978)
         self.assertEqual(user.payment_set.get(date=datetime.date(2016, 1, 20)), a1.payment_set.get(amount=200))
+
+
+class AdminImportExportTests(TestCase):
+    fixtures = ['conditions', 'users', 'communications']
+
+    def setUp(self):
+        super().setUp()
+        self.user = User.objects.create_superuser(
+            username='admin', email='test_user@test_user.com', password='admin')
+        self.client.force_login(self.user)
+
+    def test_userattendance_export(self):
+        address = "/admin/aklub/userincampaign/export/"
+        post_data = {
+            'file_format': 0,
+        }
+        response = self.client.post(address, post_data)
+        self.assertContains(
+            response,
+            ',Test,User,,male,,test.user@email.cz,,Praha 4,,120127010,0,1,monthly,2015-12-16 18:22:30,'
+            '"Domníváte se, že má město po zprovoznění tunelu Blanka omezit tranzit historickým centrem? Ano, hned se zprovozněním tunelu",editor,1,cs,'
+        )

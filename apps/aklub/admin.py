@@ -21,14 +21,14 @@
 
 import copy
 import datetime
-import csv
 # Django imports
 from django.contrib import admin, messages
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext as _
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect
 from daterange_filter.filter import DateRangeFilter
-from import_export.admin import ImportExportModelAdmin
+from import_export.admin import ImportExportMixin
+from import_export.resources import ModelResource
 from related_admin import RelatedFieldAdmin
 import django.forms
 from django.utils.html import mark_safe
@@ -46,45 +46,6 @@ from . import filters
 def resave_action(self, request, queryset):
     for q in queryset:
         q.save()
-
-
-def export_as_csv_action(description="Export selected objects as CSV file",
-                         fields=None, exclude=None, header=True):
-    """
-    This function returns an export csv action
-    'fields' and 'exclude' work like in django ModelForm
-    'header' is whether or not to output the column names as the first row
-    """
-    def export_as_csv(modeladmin, request, queryset):
-        """
-        Generic csv export admin action.
-        based on http://djangosnippets.org/snippets/2020/
-        """
-        assert not (fields and exclude)
-        opts = modeladmin.model._meta
-        if fields:
-            field_names = fields
-        else:
-            field_names = set([field.name for field in opts.fields])
-            if exclude:
-                excludeset = set(exclude)
-                field_names = field_names - excludeset
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename=%s.csv' % unicode(opts).replace('.', '_')
-        writer = csv.writer(response)
-        if header:
-            writer.writerow(list(field_names))
-        for obj in queryset:
-            row = []
-            for field in field_names:
-                val = getattr(obj, field)
-                if callable(val):
-                    val = val()
-                row.append(unicode(val).encode('utf-8'))
-            writer.writerow(row)
-        return response
-    export_as_csv.short_description = description
-    return export_as_csv
 
 
 # -- INLINE FORMS --
@@ -127,7 +88,7 @@ def show_payments_by_year(self, request, queryset):
 show_payments_by_year.short_description = _("Show payments by year")
 
 
-class UserProfileAdmin(ImportExportModelAdmin):
+class UserProfileAdmin(ImportExportMixin, admin.ModelAdmin):
     list_display = ('person_name', 'title_before', 'sex', 'created', 'updated')
     raw_id_fields = ('recruiter',)
     filter_horizontal = ('campaigns',)
@@ -160,8 +121,36 @@ class UserProfileAdmin(ImportExportModelAdmin):
         ]
 
 
+class UserInCampaignResource(ModelResource):
+    class Meta:
+        model = UserInCampaign
+        fields = (
+            'userprofile__title_before',
+            'userprofile__user__first_name',
+            'userprofile__user__last_name',
+            'userprofile__title_after',
+            'userprofile__sex',
+            'userprofile__telephone',
+            'userprofile__user__email',
+            'userprofile__street',
+            'userprofile__city',
+            'userprofile__zip_code',
+            'variable_symbol',
+            'userprofile__club_card_available',
+            'regular_payments',
+            'regular_frequency',
+            'registered_support',
+            'note',
+            'additional_information',
+            'userprofile__active',
+            'userprofile__language',
+            'userprofile__recruiter',
+        )
+        export_order = fields
+
+
 # -- ADMIN FORMS --
-class UserInCampaignAdmin(ImportExportModelAdmin, RelatedFieldAdmin):
+class UserInCampaignAdmin(ImportExportMixin, RelatedFieldAdmin):
     list_display = ('person_name', 'userprofile__user__email', 'source', 'campaign',
                     'variable_symbol', 'registered_support_date',
                     'regular_payments_info', 'payment_delay', 'extra_payments',
@@ -177,12 +166,8 @@ class UserInCampaignAdmin(ImportExportModelAdmin, RelatedFieldAdmin):
     actions = ('send_mass_communication',
                show_payments_by_year,
                resave_action,
-               export_as_csv_action(fields=(
-                   'userprofile__title_before', 'userprofile__user__first_name', 'userprofile__user__last_name',
-                   'userprofile__title_after', 'userprofile__sex', 'userprofile__telephone', 'userprofile__user__email',
-                   'userprofile__street', 'userprofile__city', 'userprofile__zip_code', 'variable_symbol', 'userprofile__club_card_available',
-                   'regular_payments', 'regular_frequency', 'registered_support',
-                   'note', 'additional_information', 'userprofile__active', 'userprofile__language', 'recruiter')))
+               )
+    resource_class = UserInCampaignResource
     save_as = True
     list_max_show_all = 10000
     list_per_page = 100
@@ -261,7 +246,7 @@ class UserYearPaymentsAdmin(UserInCampaignAdmin):
         return super(UserYearPaymentsAdmin, self).changelist_view(request, extra_context=extra_context)
 
 
-class PaymentAdmin(admin.ModelAdmin):
+class PaymentAdmin(ImportExportMixin, admin.ModelAdmin):
     list_display = ('date', 'account_statement', 'amount', 'person_name', 'account_name', 'account', 'bank_code',
                     "transfer_note", "currency", "recipient_message", "operation_id", "transfer_type", "specification", "order_id",
                     'VS', 'SS', 'user_identification', 'type', 'paired_with_expected')
@@ -284,7 +269,6 @@ class PaymentAdmin(admin.ModelAdmin):
     list_filter = ['type', 'date', filters.PaymentsAssignmentsFilter]
     date_hierarchy = 'date'
     search_fields = ['user__userprofile__user__last_name', 'user__userprofile__user__first_name', 'amount', 'VS', 'SS', 'user_identification']
-    actions = (export_as_csv_action(fields=list_display),)
 
 
 class NewUserAdmin(UserInCampaignAdmin):
@@ -403,11 +387,11 @@ class TerminalConditionInline(admin.TabularInline):
     extra = 0
 
 
-class TerminalConditionAdmin(ImportExportModelAdmin):
+class TerminalConditionAdmin(ImportExportMixin, admin.ModelAdmin):
     list_display = ('variable', 'operation', 'value', 'condition')
 
 
-class ConditionAdmin(ImportExportModelAdmin):
+class ConditionAdmin(ImportExportMixin, admin.ModelAdmin):
     save_as = True
     list_display = ('name', 'as_filter', 'on_dashboard', 'operation', 'condition_string')
     filter_horizontal = ('conds',)
@@ -475,10 +459,9 @@ class CampaignAdmin(admin.ModelAdmin):
     inlines = (ExpenseInline, )
 
 
-class RecruiterAdmin(admin.ModelAdmin):
+class RecruiterAdmin(ImportExportMixin, admin.ModelAdmin):
     list_display = ('recruiter_id', 'person_name', 'email', 'telephone', 'problem', 'rating')
     list_filter = ('problem',)
-    actions = (export_as_csv_action(fields=list(list_display)+['note']),)
     filter_horizontal = ('campaigns',)
 
 
@@ -486,12 +469,11 @@ class SourceAdmin(admin.ModelAdmin):
     list_display = ('slug', 'name', 'direct_dialogue')
 
 
-class TaxConfirmationAdmin(admin.ModelAdmin):
+class TaxConfirmationAdmin(ImportExportMixin, admin.ModelAdmin):
     list_display = ('user', 'year', 'amount', 'file', 'user__regular_payments')
     ordering = ('user__userprofile__user__last_name', 'user__userprofile__user__first_name',)
     list_filter = ['year', 'user__regular_payments']
     search_fields = ('user__userprofile__user__last_name', 'user__firstname', 'user__variable_symbol',)
-    actions = (export_as_csv_action(fields=('user', 'amount')),)
     list_max_show_all = 10000
 
     def generate(self, request):
