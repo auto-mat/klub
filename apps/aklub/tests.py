@@ -327,8 +327,10 @@ class AdminTest(tests.AdminSiteSmokeTest):
         response = model_admin.generate(request)
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/admin/aklub/taxconfirmation/")
-        self.assertEqual(TaxConfirmation.objects.get(user__id=2978).amount, 250)
+        self.assertEqual(TaxConfirmation.objects.get(user__id=2978).amount, 350)
+        self.assertEqual(request._messages._queued_messages[0].message, 'Generated 1 tax confirmations')
 
+    @freeze_time("2015-5-1")
     def test_account_statement_changelist_post(self):
         model_admin = django_admin.site._registry[AccountStatements]
         request = self.get_request()
@@ -349,7 +351,10 @@ class AdminTest(tests.AdminSiteSmokeTest):
             self.assertEqual(response.status_code, 302)
             obj = AccountStatements.objects.get(date_from="2010-10-01")
             self.assertEqual(response.url, "/admin/aklub/accountstatements/")
-            self.assertEqual(obj.payment_set.count(), 2)
+            self.assertEqual(obj.payment_set.count(), 3)
+
+            self.assertEqual(request._messages._queued_messages[0].message, 'Skipped payments: Testing User 1 (test.user1@email.cz)')
+            self.assertEqual(request._messages._queued_messages[1].message, 'The Výpis z účtu "<a href="/admin/aklub/accountstatements/%(id)s/change/">%(id)s (2015-05-01)</a>" was added successfully.' % {'id': obj.id})
 
     def test_mass_comminication_changelist_post_send_mails(self):
         model_admin = django_admin.site._registry[MassCommunication]
@@ -639,6 +644,7 @@ class ModelTests(TestCase):
         self.u1 = UserInCampaign.objects.get(pk=2978)
         self.p = Payment.objects.get(pk=1)
         self.p1 = Payment.objects.get(pk=2)
+        self.p2 = Payment.objects.get(pk=3)
         self.p1.BIC = 101
         self.p1.save()
         call_command('denorm_flush')
@@ -662,8 +668,8 @@ class ModelTests(TestCase):
         self.assertEqual(self.u1.is_direct_dialogue(), False)
         self.assertEqual(self.u1.person_name(), 'User Test')
         self.assertEqual(self.u1.requires_action(), True)
-        self.assertListEqual(list(self.u1.payments()), [self.p1, self.p])
-        self.assertEqual(self.u1.number_of_payments, 2)
+        self.assertListEqual(list(self.u1.payments()), [self.p1, self.p2, self.p])
+        self.assertEqual(self.u1.number_of_payments, 3)
         self.assertEqual(self.u1.last_payment, self.p1)
         self.assertEqual(self.u1.last_payment_date(), datetime.date(2016, 3, 9))
         self.assertEqual(self.u1.last_payment_type(), 'bank-transfer')
@@ -674,13 +680,13 @@ class ModelTests(TestCase):
         self.assertEqual(self.u1.regular_payments_info(), datetime.date(2016, 4, 9))
         self.assertEqual(self.u1.extra_payments(), '<img src="/media/admin/img/icon-no.svg" alt="False" />')
         self.assertEqual(self.u1.mail_communications_count(), False)
-        self.assertEqual(self.u1.payment_total, 250.0)
-        self.assertEqual(self.u1.total_contrib_string(), "250&nbsp;Kč")
+        self.assertEqual(self.u1.payment_total, 350.0)
+        self.assertEqual(self.u1.total_contrib_string(), "350&nbsp;Kč")
         self.assertEqual(self.u1.registered_support_date(), "16. 12. 2015")
         self.assertEqual(self.u1.payment_total_range(datetime.date(2016, 1, 1), datetime.date(2016, 2, 1)), 0)
         self.assertEqual(self.tax_confirmation.year, 2016)
         self.assertTrue("PDF-1.4" in str(self.tax_confirmation.file.read()))
-        self.assertEqual(self.tax_confirmation.amount, 250)
+        self.assertEqual(self.tax_confirmation.amount, 350)
         self.assertEqual(self.u1.no_upgrade, False)
         self.assertEqual(self.u1.monthly_regular_amount(), 100)
 
@@ -745,7 +751,7 @@ class AccountStatementTests(TestCase):
             a.save()
 
         a1 = AccountStatements.objects.get()
-        self.assertEqual(len(a1.payment_set.all()), 2)
+        self.assertEqual(len(a1.payment_set.all()), 3)
         user = UserInCampaign.objects.get(pk=2978)
         self.assertEqual(user.payment_set.get(date=datetime.date(2016, 1, 20)), a1.payment_set.get(amount=200))
 

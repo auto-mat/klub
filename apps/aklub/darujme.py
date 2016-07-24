@@ -69,7 +69,7 @@ def parse_darujme(xlsfile):
             userprofile = UserProfile.objects.get(user=user)
             userincampaign = UserInCampaign.objects.get(userprofile=userprofile)
             p.user = userincampaign
-        except UserInCampaign.DoesNotExist:
+        except (UserInCampaign.DoesNotExist, UserProfile.DoesNotExist, DjangoUser.DoesNotExist):
             log.info('User with email %s not found' % email)
         except MultipleObjectsReturned:
             log.info('Duplicate email %s' % email)
