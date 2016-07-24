@@ -19,9 +19,11 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 from . import autocom, mailing, admin
 from .confirmation import makepdf
-from .models import TerminalCondition, Condition, UserInCampaign, Communication, AutomaticCommunication, AccountStatements, Payment, UserProfile
+from .models import TerminalCondition, Condition, UserInCampaign, Communication, AutomaticCommunication, AccountStatements, Payment, UserProfile, MassCommunication, TaxConfirmation
 from PyPDF2 import PdfFileReader
+from django.contrib import admin as django_admin
 from django.contrib.auth.models import User
+from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core import mail
 from django.core.files import File
 from django.core.management import call_command
@@ -309,6 +311,136 @@ class MailingTest(TestCase):
 
 class AdminTest(tests.AdminSiteSmokeTest):
     fixtures = ['conditions', 'users']
+
+    def post_request(self, post_data):
+        request = self.factory.post('/', post_data)
+        request.user = self.superuser
+        request._dont_enforce_csrf_checks = True
+        request.session = 'session'
+        request._messages = FallbackStorage(request)
+        return request
+
+    @freeze_time("2017-5-1")
+    def test_tax_confirmation_generate(self):
+        model_admin = django_admin.site._registry[TaxConfirmation]
+        request = self.post_request({})
+        response = model_admin.generate(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, "/admin/aklub/taxconfirmation/")
+        self.assertEqual(TaxConfirmation.objects.get(user__id=2978).amount, 250)
+
+    def test_account_statement_changelist_post(self):
+        model_admin = django_admin.site._registry[AccountStatements]
+        request = self.get_request()
+        response = model_admin.add_view(request)
+        self.assertEqual(response.status_code, 200)
+
+        with open("apps/aklub/test_data/test_darujme.xls", "rb") as f:
+            post_data = {
+                '_save': 'Save',
+                "type": "darujme",
+                "date_from": "2010-10-01",
+                "csv_file": f,
+                'payment_set-TOTAL_FORMS': 0,
+                'payment_set-INITIAL_FORMS': 0,
+            }
+            request = self.post_request(post_data)
+            response = model_admin.add_view(request)
+            self.assertEqual(response.status_code, 302)
+            obj = AccountStatements.objects.get(date_from="2010-10-01")
+            self.assertEqual(response.url, "/admin/aklub/accountstatements/")
+            self.assertEqual(obj.payment_set.count(), 2)
+
+    def test_mass_comminication_changelist_post_send_mails(self):
+        model_admin = django_admin.site._registry[MassCommunication]
+        request = self.get_request()
+        response = model_admin.add_view(request)
+        self.assertEqual(response.status_code, 200)
+
+        post_data = {
+            '_continue': 'send_mails',
+            'name': 'test communication',
+            "method": "email",
+            'date': "2010-03-03",
+            "subject": "Subject",
+            "template": "Test template",
+        }
+        request = self.post_request(post_data)
+        response = model_admin.add_view(request)
+        self.assertEqual(response.status_code, 302)
+        obj = MassCommunication.objects.get(name="test communication")
+        self.assertEqual(obj.subject, "Subject")
+        self.assertEqual(response.url, "/admin/aklub/masscommunication/%s/change/" % obj.id)
+
+    def test_mass_comminication_changelist_post(self):
+        model_admin = django_admin.site._registry[MassCommunication]
+        request = self.get_request()
+        response = model_admin.add_view(request)
+        self.assertEqual(response.status_code, 200)
+
+        post_data = {
+            '_continue': 'test_mail',
+            'name': 'test communication',
+            "method": "email",
+            'date': "2010-03-03",
+            "subject": "Subject",
+            "template": "Test template",
+        }
+        request = self.post_request(post_data)
+        response = model_admin.add_view(request)
+        self.assertEqual(response.status_code, 302)
+        obj = MassCommunication.objects.get(name="test communication")
+        self.assertEqual(obj.subject, "Subject")
+        self.assertEqual(response.url, "/admin/aklub/masscommunication/%s/change/" % obj.id)
+
+    def test_automatic_comminication_changelist_post(self):
+        model_admin = django_admin.site._registry[AutomaticCommunication]
+        request = self.get_request()
+        response = model_admin.add_view(request)
+        self.assertEqual(response.status_code, 200)
+
+        post_data = {
+            '_continue': 'test_mail',
+            'name': 'test communication',
+            'condition': 1,
+            "method": "email",
+            "subject": "Subject",
+            "template": "Test template",
+        }
+        request = self.post_request(post_data)
+        response = model_admin.add_view(request)
+        self.assertEqual(response.status_code, 302)
+        obj = AutomaticCommunication.objects.get(name="test communication")
+        self.assertEqual(obj.subject, "Subject")
+        self.assertEqual(response.url, "/admin/aklub/automaticcommunication/%s/change/" % obj.id)
+
+    def test_user_in_campaign_changelist_post(self):
+        model_admin = django_admin.site._registry[UserInCampaign]
+        request = self.get_request()
+        response = model_admin.add_view(request)
+        self.assertEqual(response.status_code, 200)
+
+        post_data = {
+            '_continue': 'Save',
+            'variable_symbol': 1234,
+            'activity_points': 13,
+            'registered_support_0': "2010-03-03",
+            'registered_support_1': "12:35",
+            'campaign': '1',
+            'verified': 1,
+            'communications-TOTAL_FORMS': 0,
+            'communications-INITIAL_FORMS': 0,
+            'payment_set-TOTAL_FORMS': 0,
+            'payment_set-INITIAL_FORMS': 0,
+        }
+        request = self.post_request(post_data)
+        response = model_admin.add_view(request)
+        self.assertEqual(response.status_code, 302)
+        userincampaign = UserInCampaign.objects.get(variable_symbol=1234)
+        self.assertEqual(response.url, "/admin/aklub/userincampaign/%s/change/" % userincampaign.id)
+
+        self.assertEqual(userincampaign.activity_points, 13)
+        self.assertEqual(userincampaign.verified_by.username, 'testuser')
 
 
 def print_response(response):
