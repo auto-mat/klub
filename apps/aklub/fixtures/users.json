@@ -131,6 +131,7 @@
             "variable_symbol": "130430001",
             "verified": false,
             "verified_by": null,
+            "campaign": 2,
             "why_supports": ""
         },
         "model": "aklub.userincampaign",
@@ -179,6 +180,24 @@
     },
     {
         "fields": {
+            "name": "Prahou na kole",
+            "created": "2015-12-16",
+            "darujme_name": "Prahounakole.cz"
+        },
+        "model": "aklub.campaign",
+        "pk": 1
+    },
+    {
+        "fields": {
+            "name": "Klub přátel Auto*Matu",
+            "created": "2015-12-16",
+            "darujme_name": "Klub přátel Auto*Matu"
+        },
+        "model": "aklub.campaign",
+        "pk": 2
+    },
+    {
+        "fields": {
             "userprofile": 2978,
             "activity_points": 1,
             "additional_information": "editor",
@@ -203,6 +222,7 @@
             "variable_symbol": "120127010",
             "verified": false,
             "verified_by": null,
+            "campaign": 2,
             "why_supports": ""
         },
         "model": "aklub.userincampaign",

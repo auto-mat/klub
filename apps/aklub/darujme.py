@@ -5,15 +5,15 @@ import xlrd
 import logging
 import datetime
 
-from aklub.models import AccountStatements, Payment, UserInCampaign, str_to_datetime, UserProfile
+from aklub.models import Payment, UserInCampaign, str_to_datetime, UserProfile, Campaign
+from aklub.views import generate_variable_symbol
 from django.contrib.auth.models import User as DjangoUser
 from django.core.exceptions import MultipleObjectsReturned
 from django.forms import ValidationError
 from django.utils.translation import ugettext_lazy as _
 
 # Text constants in Darujme.cz report
-KLUB = u'Klub přátel Auto*Matu'
-OK_STATE = u'OK, převedeno'
+OK_STATES = ('OK, převedeno', 'OK')
 
 log = logging.getLogger(__name__)
 
@@ -33,18 +33,16 @@ def parse_darujme(xlsfile):
 
         # Skip all non klub transactions (e.g. PNK)
         prj = row[2].value
-        if prj != KLUB:
-            continue
 
         # Amount sent by the donor in CZK
         # The money we receive is smaller by Darujme.cz
         # margin, but we must count the whole ammount
         # to issue correct tax confirmation to the donor
-        ammount = int(row[5].value)
-
         state = row[9].value
-        if state != OK_STATE:
+        if state not in OK_STATES:
             continue
+
+        ammount = int(row[5].value)
 
         received = str_to_datetime(row[12].value)
         name = row[17].value
@@ -65,25 +63,29 @@ def parse_darujme(xlsfile):
         p.user_identification = email
 
         try:
-            user = DjangoUser.objects.get(email=email)
-            userprofile = UserProfile.objects.get(user=user)
-            userincampaign = UserInCampaign.objects.get(userprofile=userprofile)
+            campaign = Campaign.objects.get(darujme_name=prj)
+            user, user_created = DjangoUser.objects.get_or_create(
+                email=email,
+                defaults={
+                    'first_name': name,
+                    'last_name': surname,
+                })
+            userprofile, userprofile_created = UserProfile.objects.get_or_create(
+                user=user,
+            )
+            userincampaign, userincampaign_created = UserInCampaign.objects.get_or_create(
+                userprofile=userprofile,
+                campaign=campaign,
+                defaults={
+                    'variable_symbol': generate_variable_symbol(),
+                })
             p.user = userincampaign
-        except (UserInCampaign.DoesNotExist, UserProfile.DoesNotExist, DjangoUser.DoesNotExist):
-            log.info('User with email %s not found' % email)
+
+            if userincampaign_created:
+                log.info('UserInCampaign with email %s created' % email)
         except MultipleObjectsReturned:
             log.info('Duplicate email %s' % email)
             raise ValidationError(_('Duplicate email %(email)s'), params={'email': email})
 
         payments.append(p)
     return payments, skipped_payments
-
-if __name__ == '__main__':
-    import os
-    import sys
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "project.settings")
-    import django
-    django.setup()
-
-    p = AccountStatements()
-    parse_darujme(p, sys.argv[1])

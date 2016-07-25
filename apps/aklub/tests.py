@@ -354,7 +354,10 @@ class AdminTest(tests.AdminSiteSmokeTest):
             self.assertEqual(obj.payment_set.count(), 3)
 
             self.assertEqual(request._messages._queued_messages[0].message, 'Skipped payments: Testing User 1 (test.user1@email.cz)')
-            self.assertEqual(request._messages._queued_messages[1].message, 'The Výpis z účtu "<a href="/admin/aklub/accountstatements/%(id)s/change/">%(id)s (2015-05-01)</a>" was added successfully.' % {'id': obj.id})
+            self.assertEqual(
+                request._messages._queued_messages[1].message,
+                'The Výpis z účtu "<a href="/admin/aklub/accountstatements/%(id)s/change/">%(id)s (2015-05-01)</a>" was added successfully.' % {'id': obj.id}
+            )
 
     def test_mass_comminication_changelist_post_send_mails(self):
         model_admin = django_admin.site._registry[MassCommunication]
@@ -754,6 +757,8 @@ class AccountStatementTests(TestCase):
         self.assertEqual(len(a1.payment_set.all()), 3)
         user = UserInCampaign.objects.get(pk=2978)
         self.assertEqual(user.payment_set.get(date=datetime.date(2016, 1, 20)), a1.payment_set.get(amount=200))
+        unknown_user = UserInCampaign.objects.get(userprofile__user__email="unknown@email.cz")
+        self.assertEqual(unknown_user.payment_set.get(date=datetime.date(2016, 1, 19)).amount, 150)
 
 
 class AdminImportExportTests(TestCase):

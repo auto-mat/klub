@@ -128,9 +128,7 @@ class RegularUserFormDPNK(RegularUserFormWithProfile):
     )
 
 
-def new_user(form, regular, source_slug='web'):
-    # Check number of registrations so far today
-    # TODO: Lock DB access here (to ensure uniqueness of VS)
+def generate_variable_symbol():
     now = datetime.datetime.now()
     reg_n_today = len(UserInCampaign.objects.filter(
         registered_support__gt=(
@@ -142,6 +140,13 @@ def new_user(form, regular, source_slug='web'):
             break
     else:
         assert 0, "Out of free variable symbols, date %s, reg_n_today=%d" % (now, reg_n_today)
+    return variable_symbol
+
+
+def new_user(form, regular, source_slug='web'):
+    # Check number of registrations so far today
+    # TODO: Lock DB access here (to ensure uniqueness of VS)
+    variable_symbol = generate_variable_symbol()
     # variable_symbol is now unique in database
     # Create new user instance and fill in additional data
     new_user_objects = form.save(commit=False)
