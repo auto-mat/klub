@@ -475,6 +475,7 @@ class SourceAdmin(admin.ModelAdmin):
 
 
 class TaxConfirmationAdmin(ImportExportMixin, admin.ModelAdmin):
+    change_list_template = "admin/aklub/taxconfirmation/change_list.html"
     list_display = ('user', 'year', 'amount', 'file', 'user__regular_payments')
     ordering = ('user__userprofile__user__last_name', 'user__userprofile__user__first_name',)
     list_filter = ['year', 'user__regular_payments']
