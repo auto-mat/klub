@@ -180,6 +180,15 @@
     },
     {
         "fields": {
+            "user": 2978,
+            "year": "2014",
+            "amount": "2014"
+        },
+        "model": "aklub.taxconfirmation",
+        "pk": 1
+    },
+    {
+        "fields": {
             "name": "Prahou na kole",
             "created": "2015-12-16",
             "darujme_name": "Prahounakole.cz"
@@ -191,10 +200,20 @@
         "fields": {
             "name": "Klub přátel Auto*Matu",
             "created": "2015-12-16",
+            "acquisition_campaign": true,
             "darujme_name": "Klub přátel Auto*Matu"
         },
         "model": "aklub.campaign",
         "pk": 2
+    },
+    {
+        "fields": {
+            "item": "Testing expense",
+            "amount": 123,
+            "campaign": 2
+        },
+        "model": "aklub.expense",
+        "pk": 1
     },
     {
         "fields": {

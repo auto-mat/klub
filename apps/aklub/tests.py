@@ -327,7 +327,7 @@ class AdminTest(tests.AdminSiteSmokeTest):
         response = model_admin.generate(request)
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/admin/aklub/taxconfirmation/")
-        self.assertEqual(TaxConfirmation.objects.get(user__id=2978).amount, 350)
+        self.assertEqual(TaxConfirmation.objects.get(user__id=2978, year=2016).amount, 350)
         self.assertEqual(request._messages._queued_messages[0].message, 'Generated 1 tax confirmations')
 
     @freeze_time("2015-5-1")

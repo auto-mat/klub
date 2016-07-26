@@ -86,7 +86,7 @@ class Campaign(models.Model):
         blank=True, null=True)
 
     def number_of_members(self):
-        return self.members.count()
+        return self.userincampaign_set.count()
     number_of_members.short_description = _("number of members")
 
     def recruiters(self):
@@ -99,14 +99,15 @@ class Campaign(models.Model):
 
     def yield_total(self):
         if self.acquisition_campaign:
-            return UserInCampaign.objects.filter(campaigns=self).aggregate(yield_total=Sum('payment__amount'))['yield_total']
+            return UserInCampaign.objects.filter(campaign=self).aggregate(yield_total=Sum('payment__amount'))['yield_total']
         else:
             return self.real_yield
     yield_total.short_description = _("total yield")
 
     def expected_monthly_income(self):
         income = 0.0
-        for campaign_member in UserInCampaign.objects.filter(campaigns=self):
+        for campaign_member in UserInCampaign.objects.filter(campaign=self):
+            # TODO: use aggregate to count this
             income += campaign_member.monthly_regular_amount()
         return income
     expected_monthly_income.short_description = _("expected monthly income")
