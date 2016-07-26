@@ -42,6 +42,7 @@ import copy
 import datetime
 import django.forms
 
+
 def resave_action(self, request, queryset):
     for q in queryset:
         q.save()
@@ -123,7 +124,17 @@ class UserProfileInline(admin.StackedInline):
 class UserAdmin(RelatedFieldAdmin, UserAdmin):
     inlines = [UserProfileInline]
     list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff', 'userprofile__sex', 'userprofile__created', 'userprofile__updated')
-    list_filter = ('is_staff', 'is_superuser', 'is_active', 'groups', 'userprofile__language', 'userprofile__active', 'userprofile__wished_information', 'userprofile__campaigns', 'userprofile__recruiter')
+    list_filter = (
+        'is_staff',
+        'is_superuser',
+        'is_active',
+        'groups',
+        'userprofile__language',
+        'userprofile__active',
+        'userprofile__wished_information',
+        'userprofile__campaigns',
+        'userprofile__recruiter',
+    )
 
 
 class UserInCampaignResource(ModelResource):
@@ -480,6 +491,7 @@ class TaxConfirmationAdmin(ImportExportMixin, admin.ModelAdmin):
     ordering = ('user__userprofile__user__last_name', 'user__userprofile__user__first_name',)
     list_filter = ['year', 'user__regular_payments']
     search_fields = ('user__userprofile__user__last_name', 'user__firstname', 'user__variable_symbol',)
+    raw_id_fields = ('user',)
     list_max_show_all = 10000
 
     def generate(self, request):
