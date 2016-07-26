@@ -4,9 +4,9 @@
 {% block object-tools %}
 {% if change %}{% if not is_popup %}
   <ul class="object-tools">
-    <li><a href="../../recruiter/?campaigns__exact={{ object_id }}" class="historylink">{% trans "Recruiters" %}</a></li>
-    <li><a href="../../user/?campaigns__exact={{ object_id }}" class="historylink">{% trans "Members" %}</a></li>
-    <li><a href="history/" class="historylink">{% trans "History" %}</a></li>
+    <li><a href="{% url "admin:aklub_recruiter_changelist" %}?campaigns__id__exact={{ object_id }}" class="historylink">{% trans "Recruiters" %}</a></li>
+    <li><a href="{% url "admin:aklub_userincampaign_changelist" %}?campaign__id__exact={{ object_id }}" class="historylink">{% trans "Members" %}</a></li>
+    <li><a href="{% url "admin:aklub_campaign_history" object_id %}" class="historylink">{% trans "History" %}</a></li>
   </ul>
 {% endif %}{% endif %}
 {% endblock %}

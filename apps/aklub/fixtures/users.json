@@ -66,6 +66,18 @@
     },
     {
         "fields": {
+            "registered": "2015-12-16",
+            "recruiter_id": "123",
+            "firstname": "Testing",
+            "telephone": "123456789",
+            "surname": "Recruiter",
+            "campaigns": [1]
+        },
+        "model": "aklub.recruiter",
+        "pk": 1
+    },
+    {
+        "fields": {
             "username": "testuser1",
             "first_name": "Test",
             "last_name": "User 1",
@@ -83,7 +95,7 @@
             "other_benefits": "",
             "wished_tax_confirmation": true,
             "wished_welcome_letter": true,
-            "recruiter": null,
+            "recruiter": 1,
             "addressment": "Zbyn\u011bku",
             "addressment_on_envelope": "",
             "city": "Praha 4",
@@ -111,7 +123,7 @@
             "activity_points": 1,
             "additional_information": "editor",
             "exceptional_membership": false,
-            "expected_date_of_first_payment": null,
+            "expected_date_of_first_payment": "2015-12-16",
             "expected_regular_payment_date": null,
             "extra_money": null,
             "field_of_work": "",
@@ -221,7 +233,7 @@
             "activity_points": 1,
             "additional_information": "editor",
             "exceptional_membership": false,
-            "expected_date_of_first_payment": null,
+            "expected_date_of_first_payment":  "2015-12-16",
             "expected_regular_payment_date": null,
             "extra_money": null,
             "field_of_work": "",

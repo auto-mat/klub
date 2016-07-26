@@ -92,6 +92,7 @@ class UserProfileAdmin(ImportExportMixin, admin.ModelAdmin):
     list_display = ('person_name', 'title_before', 'sex', 'created', 'updated')
     raw_id_fields = ('recruiter',)
     filter_horizontal = ('campaigns',)
+    list_filter = ('language', 'active', 'wished_information', 'campaigns', 'recruiter')
     fieldsets = [
         (_('Basic personal'), {
             'fields': [('sex', 'language', 'active', 'public')]}),
@@ -159,7 +160,7 @@ class UserInCampaignAdmin(ImportExportMixin, RelatedFieldAdmin):
     date_hierarchy = 'registered_support'
     list_filter = [
         'regular_payments', 'userprofile__language', 'userprofile__active', 'userprofile__wished_information', 'old_account',
-        'source', 'userprofile__campaigns', ('registered_support', DateRangeFilter), filters.EmailFilter,
+        'source', 'campaign', ('registered_support', DateRangeFilter), filters.EmailFilter,
         filters.UserConditionFilter, filters.UserConditionFilter1]
     search_fields = ['userprofile__user__first_name', 'userprofile__user__last_name', 'variable_symbol', 'userprofile__user__email', 'userprofile__telephone']
     ordering = ('userprofile__user__last_name',)
@@ -461,7 +462,7 @@ class CampaignAdmin(admin.ModelAdmin):
 
 class RecruiterAdmin(ImportExportMixin, admin.ModelAdmin):
     list_display = ('recruiter_id', 'person_name', 'email', 'telephone', 'problem', 'rating')
-    list_filter = ('problem',)
+    list_filter = ('problem', 'campaigns')
     filter_horizontal = ('campaigns',)
 
 
