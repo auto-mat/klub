@@ -354,7 +354,7 @@ class AdminTest(tests.AdminSiteSmokeTest):
             self.assertEqual(response.status_code, 302)
             obj = AccountStatements.objects.get(date_from="2010-10-01")
             self.assertEqual(response.url, "/admin/aklub/accountstatements/")
-            self.assertEqual(obj.payment_set.count(), 3)
+            self.assertEqual(obj.payment_set.count(), 4)
 
             self.assertEqual(request._messages._queued_messages[0].message, 'Skipped payments: Testing User 1 (test.user1@email.cz)')
             self.assertEqual(
@@ -762,11 +762,26 @@ class AccountStatementTests(TestCase):
             a.save()
 
         a1 = AccountStatements.objects.get()
-        self.assertEqual(len(a1.payment_set.all()), 3)
+        self.assertEqual(len(a1.payment_set.all()), 4)
         user = UserInCampaign.objects.get(pk=2978)
         self.assertEqual(user.payment_set.get(date=datetime.date(2016, 1, 20)), a1.payment_set.get(amount=200))
         unknown_user = UserInCampaign.objects.get(userprofile__user__email="unknown@email.cz")
         self.assertEqual(unknown_user.payment_set.get(date=datetime.date(2016, 1, 19)).amount, 150)
+        self.assertEqual(unknown_user.__str__(), "User 1 Testing")
+        self.assertEqual(unknown_user.userprofile.street, "Ulice 321")
+        self.assertEqual(unknown_user.userprofile.city, "Nová obec")
+        self.assertEqual(unknown_user.userprofile.zip_code, "12321")
+        self.assertEqual(unknown_user.userprofile.user.username, "unknown2")
+        self.assertEqual(unknown_user.wished_information, True)
+        self.assertEqual(unknown_user.regular_payments, True)
+        self.assertEqual(unknown_user.regular_amount, 150)
+        self.assertEqual(unknown_user.regular_frequency, "monthly")
+
+        unknown_user1 = UserInCampaign.objects.get(userprofile__user__email="unknown1@email.cz")
+        self.assertEqual(unknown_user1.userprofile.zip_code, "123 21")
+        self.assertEqual(unknown_user1.regular_amount, None)
+        self.assertEqual(unknown_user1.regular_frequency, None)
+        self.assertEqual(unknown_user1.regular_payments, False)
 
 
 class AdminImportExportTests(TestCase):

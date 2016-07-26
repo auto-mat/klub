@@ -7,7 +7,7 @@ import datetime
 
 from aklub.models import Payment, UserInCampaign, str_to_datetime, UserProfile, Campaign
 from aklub.views import generate_variable_symbol
-from django.contrib.auth.models import User as DjangoUser
+from django.contrib.auth.models import User
 from django.core.exceptions import MultipleObjectsReturned
 from django.forms import ValidationError
 from django.utils.translation import ugettext_lazy as _
@@ -15,7 +15,16 @@ from django.utils.translation import ugettext_lazy as _
 # Text constants in Darujme.cz report
 OK_STATES = ('OK, převedeno', 'OK')
 
+MONTHLY = 'měsíční'
+ONETIME = "jednorázový"
+
 log = logging.getLogger(__name__)
+
+
+def parse_string(value):
+    if type(value) == float:
+        return int(value)
+    return value
 
 
 def parse_darujme(xlsfile):
@@ -29,7 +38,10 @@ def parse_darujme(xlsfile):
         log.debug('Parsing transaction: %s' % row)
 
         # Darujme.cz ID of the transaction
-        id = int(row[0].value)
+        if row[0].value:
+            id = int(row[0].value)
+        else:
+            id = ""
 
         # Skip all non klub transactions (e.g. PNK)
         prj = row[2].value
@@ -48,6 +60,15 @@ def parse_darujme(xlsfile):
         name = row[17].value
         surname = row[18].value
         email = row[19].value
+        street = row[20].value
+        city = row[21].value
+        zip_code = parse_string(row[22].value)
+        wished_tax_confirmation = row[23].value
+        regular_payments = row[13].value == MONTHLY
+        if regular_payments:
+            regular_frequency = "monthly"
+        else:
+            regular_frequency = None
 
         if Payment.objects.filter(type='darujme', SS=id, date=received).exists():
             skipped_payments.append({'ss': id, 'date': received, 'name': name, 'surname': surname, 'email': email})
@@ -64,20 +85,29 @@ def parse_darujme(xlsfile):
 
         try:
             campaign = Campaign.objects.get(darujme_name=prj)
-            user, user_created = DjangoUser.objects.get_or_create(
+            user, user_created = User.objects.get_or_create(
                 email=email,
                 defaults={
                     'first_name': name,
                     'last_name': surname,
+                    'username': '%s%s' % (email.split('@', 1)[0], User.objects.count()),
                 })
             userprofile, userprofile_created = UserProfile.objects.get_or_create(
                 user=user,
-            )
+                defaults={
+                    'street': street,
+                    'city': city,
+                    'zip_code': zip_code,
+                })
             userincampaign, userincampaign_created = UserInCampaign.objects.get_or_create(
                 userprofile=userprofile,
                 campaign=campaign,
                 defaults={
                     'variable_symbol': generate_variable_symbol(),
+                    'wished_tax_confirmation': wished_tax_confirmation,
+                    'regular_frequency': regular_frequency,
+                    'regular_payments': regular_payments,
+                    'regular_amount': ammount if regular_frequency else None,
                 })
             p.user = userincampaign
 
