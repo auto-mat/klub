@@ -19,7 +19,9 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 from . import autocom, mailing, admin, filters
 from .confirmation import makepdf
-from .models import TerminalCondition, Condition, UserInCampaign, Communication, AutomaticCommunication, AccountStatements, Payment, UserProfile, MassCommunication, TaxConfirmation, Campaign
+from .models import (
+    TerminalCondition, Condition, UserInCampaign, Communication, AutomaticCommunication,
+    AccountStatements, Payment, UserProfile, MassCommunication, TaxConfirmation, Campaign)
 from PyPDF2 import PdfFileReader
 from django.contrib import admin as django_admin
 from django.contrib.auth.models import User
@@ -659,6 +661,9 @@ class ModelTests(TestCase):
 
     def test_payment_model(self):
         self.assertEqual(self.p.person_name(), 'User Test')
+
+    def test_user_person_name(self):
+        self.assertEqual(self.u.person_name(), 'User 1 Test')
 
     def test_user_model(self):
         self.assertEqual(self.u.is_direct_dialogue(), False)

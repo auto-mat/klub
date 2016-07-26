@@ -515,7 +515,7 @@ class UserInCampaign(models.Model):
 
     def person_name(self):
         if hasattr(self, 'userprofile') and hasattr(self.userprofile, 'user'):
-            return " ".join((self.userprofile.user.last_name, self.userprofile.user.first_name))
+            return self.userprofile.__str__()
         else:
             return "UserInCampaign: %s " % self.id
     person_name.short_description = _("Full name")
