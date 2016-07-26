@@ -386,12 +386,15 @@ class AdminTest(tests.AdminSiteSmokeTest):
         response = model_admin.add_view(request)
         self.assertEqual(response.status_code, 200)
 
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        attachment = SimpleUploadedFile("attachment.txt", b"attachment", content_type="text/plain")
         post_data = {
             '_continue': 'test_mail',
             'name': 'test communication',
             "method": "email",
             'date': "2010-03-03",
             "subject": "Subject",
+            "attachment": attachment,
             "template": "Test template",
         }
         request = self.post_request(post_data)
