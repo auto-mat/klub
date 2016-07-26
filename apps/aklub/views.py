@@ -243,7 +243,7 @@ class OneTimePaymentWizardFormUnknown_UserInCampaign(forms.ModelForm):
 
     class Meta:
         model = UserInCampaign
-        fields = ('note',)
+        fields = ('note', 'wished_tax_confirmation', 'wished_information',)
 
 
 class OneTimePaymentWizardFormUnknown_UserProfile(forms.ModelForm):
@@ -253,7 +253,6 @@ class OneTimePaymentWizardFormUnknown_UserProfile(forms.ModelForm):
             'title_before', 'title_after',
             'street', 'city', 'country', 'zip_code',
             'language', 'telephone',
-            'wished_tax_confirmation', 'wished_information',
             'public', 'note'
         )
         required = (

@@ -23,7 +23,6 @@ def create_userprofiles(apps, schema_editor):
             email=uic.email,
         )
         print(uic.email)
-        wished_information = False if uic.wished_information == None else uic.wished_information
         userprofile = UserProfile.objects.create(
             user=user,
             title_before=uic.title_before,
@@ -40,9 +39,6 @@ def create_userprofiles(apps, schema_editor):
             different_correspondence_address=uic.different_correspondence_address,
             other_support=uic.other_support,
             public=uic.public,
-            wished_tax_confirmation=uic.wished_tax_confirmation,
-            wished_welcome_letter=uic.wished_welcome_letter,
-            wished_information=wished_information,
             active=uic.active,
             profile_text=uic.profile_text,
             profile_picture=uic.profile_picture,
@@ -50,7 +46,6 @@ def create_userprofiles(apps, schema_editor):
             club_card_dispatched=uic.club_card_dispatched,
             other_benefits=uic.other_benefits,
             note=uic.note,
-            recruiter=uic.recruiter,
         )
         userprofile.campaigns=uic.campaigns.all()
         uic.campaign = campaign

@@ -312,15 +312,6 @@ class UserProfile(models.Model):
     public = models.BooleanField(
         verbose_name=_("Publish my name in the list of supporters"),
         default=True)
-    wished_tax_confirmation = models.BooleanField(
-        verbose_name=_("Send tax confirmation"),
-        default=True)
-    wished_welcome_letter = models.BooleanField(
-        verbose_name=_("Send welcome letter"),
-        default=True)
-    wished_information = models.BooleanField(
-        verbose_name=_("Send regular news via email"),
-        default=True)
     active = models.BooleanField(
         verbose_name=_("Active"),
         help_text=_(
@@ -355,12 +346,6 @@ class UserProfile(models.Model):
     note = models.TextField(
         verbose_name=_("Note for making a boring form more lively"),
         max_length=2000, blank=True)
-    recruiter = models.ForeignKey(
-        Recruiter,
-        blank=True,
-        null=True,
-        on_delete=models.SET_NULL,
-    )
     created = models.DateTimeField(
         verbose_name=_(u"Datum vytvoření"),
         auto_now_add=True,
@@ -509,6 +494,21 @@ class UserInCampaign(models.Model):
         auto_now=True,
         null=True,
     )
+    recruiter = models.ForeignKey(
+        Recruiter,
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+    )
+    wished_tax_confirmation = models.BooleanField(
+        verbose_name=_("Send tax confirmation"),
+        default=True)
+    wished_welcome_letter = models.BooleanField(
+        verbose_name=_("Send welcome letter"),
+        default=True)
+    wished_information = models.BooleanField(
+        verbose_name=_("Send regular news via email"),
+        default=True)
 
     def __str__(self):
         return str(self.person_name())
@@ -1618,7 +1618,7 @@ class MassCommunication(models.Model):
         verbose_name=_("send to users"),
         help_text=_(
             "All users who should receive the communication"),
-        limit_choices_to={'userprofile__active': 'True', 'userprofile__wished_information': 'True'},
+        limit_choices_to={'userprofile__active': 'True', 'wished_information': 'True'},
         blank=True)
     note = models.TextField(
         verbose_name=_("note"),

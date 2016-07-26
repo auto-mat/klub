@@ -82,10 +82,6 @@ class Migration(migrations.Migration):
         ),
         migrations.RemoveField(
             model_name='userincampaign',
-            name='recruiter',
-        ),
-        migrations.RemoveField(
-            model_name='userincampaign',
             name='sex',
         ),
         migrations.RemoveField(
@@ -107,18 +103,6 @@ class Migration(migrations.Migration):
         migrations.RemoveField(
             model_name='userincampaign',
             name='title_before',
-        ),
-        migrations.RemoveField(
-            model_name='userincampaign',
-            name='wished_information',
-        ),
-        migrations.RemoveField(
-            model_name='userincampaign',
-            name='wished_tax_confirmation',
-        ),
-        migrations.RemoveField(
-            model_name='userincampaign',
-            name='wished_welcome_letter',
         ),
         migrations.RemoveField(
             model_name='userincampaign',
