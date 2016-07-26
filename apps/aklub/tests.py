@@ -625,7 +625,6 @@ class SmokeViewsTestsLogon(TestCase):
 
     views = [
         '/admin',
-        reverse('onetime'),
         reverse('donators'),
         reverse('profiles'),
     ]
