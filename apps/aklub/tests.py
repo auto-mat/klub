@@ -32,6 +32,7 @@ from django.db.models import Q
 from django.test import TestCase, RequestFactory
 from django_admin_smoke_tests import tests
 from freezegun import freeze_time
+from unittest.mock import MagicMock
 import datetime
 import io
 
@@ -829,3 +830,8 @@ class FilterTests(TestCase):
         f = filters.EmailFilter(self.request, {"email": "blank"}, User, None)
         q = f.queryset(self.request, UserInCampaign.objects.all())
         self.assertEquals(q.count(), 0)
+
+    def test_show_payments_by_year_blank(self):
+        m = MagicMock()
+        admin.show_payments_by_year(m, self.request, UserInCampaign.objects.all())
+        m.message_user.assert_called_once_with(self.request, '2016: 350<br/>TOT.: 350')
