@@ -19,29 +19,28 @@
 
 """Definition of administration interface for club management application"""
 
-import copy
-import datetime
-# Django imports
-from django.contrib import admin, messages
-from django.core.urlresolvers import reverse
-from django.utils.translation import ugettext as _
-from django.http import HttpResponseRedirect
-from daterange_filter.filter import DateRangeFilter
-from import_export.admin import ImportExportMixin
-from import_export.resources import ModelResource
-from related_admin import RelatedFieldAdmin
-import django.forms
-from django.utils.html import mark_safe
-# Local models
-from django.db.models import Sum
+from . import filters
+from . import mailing
 from .models import (
     UserInCampaign, UserProfile, Payment, Communication, Expense,
     TerminalCondition, UserYearPayments, NewUser, AccountStatements,
     AutomaticCommunication, MassCommunication, Condition, Campaign,
     Recruiter, Source, TaxConfirmation)
-from . import mailing
-from . import filters
-
+from daterange_filter.filter import DateRangeFilter
+from django.contrib import admin, messages
+from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.models import User
+from django.core.urlresolvers import reverse
+from django.db.models import Sum
+from django.http import HttpResponseRedirect
+from django.utils.html import mark_safe
+from django.utils.translation import ugettext as _
+from import_export.admin import ImportExportMixin
+from import_export.resources import ModelResource
+from related_admin import RelatedFieldAdmin
+import copy
+import datetime
+import django.forms
 
 def resave_action(self, request, queryset):
     for q in queryset:
@@ -88,11 +87,10 @@ def show_payments_by_year(self, request, queryset):
 show_payments_by_year.short_description = _("Show payments by year")
 
 
-class UserProfileAdmin(ImportExportMixin, admin.ModelAdmin):
-    list_display = ('person_name', 'title_before', 'sex', 'created', 'updated')
+class UserProfileInline(admin.StackedInline):
+    model = UserProfile
     raw_id_fields = ('recruiter',)
     filter_horizontal = ('campaigns',)
-    list_filter = ('language', 'active', 'wished_information', 'campaigns', 'recruiter')
     fieldsets = [
         (_('Basic personal'), {
             'fields': [('sex', 'language', 'active', 'public')]}),
@@ -120,6 +118,12 @@ class UserProfileAdmin(ImportExportMixin, admin.ModelAdmin):
             'fields': ['profile_text', 'profile_picture'],
             'classes': ['collapse']}),
         ]
+
+
+class UserAdmin(RelatedFieldAdmin, UserAdmin):
+    inlines = [UserProfileInline]
+    list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff', 'userprofile__sex', 'userprofile__created', 'userprofile__updated')
+    list_filter = ('is_staff', 'is_superuser', 'is_active', 'groups', 'userprofile__language', 'userprofile__active', 'userprofile__wished_information', 'userprofile__campaigns', 'userprofile__recruiter')
 
 
 class UserInCampaignResource(ModelResource):
@@ -503,7 +507,6 @@ class TaxConfirmationAdmin(ImportExportMixin, admin.ModelAdmin):
 
 
 admin.site.register(UserInCampaign, UserInCampaignAdmin)
-admin.site.register(UserProfile, UserProfileAdmin)
 admin.site.register(UserYearPayments, UserYearPaymentsAdmin)
 admin.site.register(NewUser, NewUserAdmin)
 admin.site.register(Communication, CommunicationAdmin)
@@ -517,3 +520,6 @@ admin.site.register(Campaign, CampaignAdmin)
 admin.site.register(Recruiter, RecruiterAdmin)
 admin.site.register(TaxConfirmation, TaxConfirmationAdmin)
 admin.site.register(Source, SourceAdmin)
+
+admin.site.unregister(User)
+admin.site.register(User, UserAdmin)
