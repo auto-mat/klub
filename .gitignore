@@ -12,5 +12,5 @@ static/
 update_local.sh
 aklub.log*
 db_backup
-.coveragerc
+.coverage
 htmlcov/
