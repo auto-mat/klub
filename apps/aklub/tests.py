@@ -17,9 +17,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-from . import autocom, mailing, admin
+from . import autocom, mailing, admin, filters
 from .confirmation import makepdf
-from .models import TerminalCondition, Condition, UserInCampaign, Communication, AutomaticCommunication, AccountStatements, Payment, UserProfile, MassCommunication, TaxConfirmation
+from .models import TerminalCondition, Condition, UserInCampaign, Communication, AutomaticCommunication, AccountStatements, Payment, UserProfile, MassCommunication, TaxConfirmation, Campaign
 from PyPDF2 import PdfFileReader
 from django.contrib import admin as django_admin
 from django.contrib.auth.models import User
@@ -29,7 +29,7 @@ from django.core.files import File
 from django.core.management import call_command
 from django.core.urlresolvers import reverse
 from django.db.models import Q
-from django.test import TestCase
+from django.test import TestCase, RequestFactory
 from django_admin_smoke_tests import tests
 from freezegun import freeze_time
 import datetime
@@ -784,3 +784,49 @@ class AdminImportExportTests(TestCase):
             ',Test,User,,male,,test.user@email.cz,,Praha 4,,120127010,0,1,monthly,2015-12-16 18:22:30,'
             '"Domníváte se, že má město po zprovoznění tunelu Blanka omezit tranzit historickým centrem? Ano, hned se zprovozněním tunelu",editor,1,cs,'
         )
+
+
+class FilterTests(TestCase):
+    fixtures = ['conditions', 'users', 'communications']
+
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.user = User.objects.create_superuser(
+            username='admin', email='test_user@test_user.com', password='admin')
+        self.client.force_login(self.user)
+        self.request = self.factory.get("")
+
+    def test_payment_assignment_filter(self):
+        f = filters.PaymentsAssignmentsFilter(self.request, {"user_assignment": "empty"}, User, None)
+        q = f.queryset(self.request, Payment.objects.all())
+        self.assertEquals(q.count(), 0)
+
+    def test_user_condition_filter(self):
+        f = filters.UserConditionFilter(self.request, {"user_condition": 2}, User, None)
+        q = f.queryset(self.request, UserInCampaign.objects.all())
+        self.assertEquals(q.count(), 2)
+
+    def test_active_camaign_filter_no(self):
+        f = filters.ActiveCampaignFilter(self.request, {"active": "no"}, User, None)
+        q = f.queryset(self.request, Campaign.objects.all())
+        self.assertEquals(q.count(), 0)
+
+    def test_active_camaign_filter_yes(self):
+        f = filters.ActiveCampaignFilter(self.request, {"active": "yes"}, User, None)
+        q = f.queryset(self.request, Campaign.objects.all())
+        self.assertEquals(q.count(), 2)
+
+    def test_email_filter(self):
+        f = filters.EmailFilter(self.request, {}, User, None)
+        q = f.queryset(self.request, UserInCampaign.objects.all())
+        self.assertEquals(q.count(), 2)
+
+    def test_email_filter_duplicate(self):
+        f = filters.EmailFilter(self.request, {"email": "duplicate"}, User, None)
+        q = f.queryset(self.request, UserInCampaign.objects.all())
+        self.assertEquals(q.count(), 0)
+
+    def test_email_filter_blank(self):
+        f = filters.EmailFilter(self.request, {"email": "blank"}, User, None)
+        q = f.queryset(self.request, UserInCampaign.objects.all())
+        self.assertEquals(q.count(), 0)
