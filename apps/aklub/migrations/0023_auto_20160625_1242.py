@@ -34,7 +34,6 @@ class Migration(migrations.Migration):
                 ('different_correspondence_address', models.BooleanField(default=False, help_text='User has different correspondence address', verbose_name='Different correspondence address')),
                 ('other_support', models.TextField(blank=True, help_text='If the user supports us in other ways, please specify here.', max_length=500, verbose_name='Other support')),
                 ('public', models.BooleanField(default=True, verbose_name='Publish my name in the list of supporters')),
-                ('active', models.BooleanField(default=True, help_text='Is the user active member? Use this field to disable old or temporary users.', verbose_name='Active')),
                 ('profile_text', models.TextField(blank=True, help_text='Tell others why you support Auto*Mat', max_length=3000, null=True, verbose_name='What is your reason?')),
                 ('profile_picture', stdimage.models.StdImageField(blank=True, help_text='Your profile picture, which others will see.', null=True, upload_to='profile-images', verbose_name='Profile picture')),
                 ('club_card_available', models.BooleanField(default=False, help_text='Is he entitled to posses a club card?', verbose_name='Club card available')),

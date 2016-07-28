@@ -21,6 +21,7 @@ def create_userprofiles(apps, schema_editor):
             first_name=uic.firstname,
             last_name=uic.surname,
             email=uic.email,
+            is_active=uic.active,
         )
         print(uic.email)
         userprofile = UserProfile.objects.create(
@@ -39,7 +40,6 @@ def create_userprofiles(apps, schema_editor):
             different_correspondence_address=uic.different_correspondence_address,
             other_support=uic.other_support,
             public=uic.public,
-            active=uic.active,
             profile_text=uic.profile_text,
             profile_picture=uic.profile_picture,
             club_card_available=uic.club_card_available,

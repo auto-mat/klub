@@ -103,7 +103,6 @@
             "public": true,
             "title_after": "",
             "title_before": "",
-            "active": true,
             "street": "",
             "club_card_dispatched": false,
             "telephone": "",
@@ -178,7 +177,6 @@
             "zip_code": "",
             "title_after": "",
             "title_before": "",
-            "active": true,
             "campaigns": [],
             "club_card_dispatched": false,
             "profile_text": null

@@ -93,7 +93,7 @@ class UserProfileInline(admin.StackedInline):
     filter_horizontal = ('campaigns',)
     fieldsets = [
         (_('Basic personal'), {
-            'fields': [('sex', 'language', 'active', 'public')]}),
+            'fields': [('sex', 'language', 'public')]}),
         (_('Titles and addressments'), {
             'fields': [('title_before', 'title_after'),
                        ('addressment', 'addressment_on_envelope')],
@@ -126,7 +126,6 @@ class UserAdmin(RelatedFieldAdmin, UserAdmin):
         'is_active',
         'groups',
         'userprofile__language',
-        'userprofile__active',
         'userprofile__campaigns',
     )
 
@@ -152,7 +151,7 @@ class UserInCampaignResource(ModelResource):
             'registered_support',
             'note',
             'additional_information',
-            'userprofile__active',
+            'userprofile__user__is_active',
             'userprofile__language',
         )
         export_order = fields
@@ -164,10 +163,10 @@ class UserInCampaignAdmin(ImportExportMixin, RelatedFieldAdmin):
                     'variable_symbol', 'registered_support_date',
                     'regular_payments_info', 'payment_delay', 'extra_payments',
                     'number_of_payments', 'total_contrib_string', 'regular_amount',
-                    'userprofile__active', 'last_payment_date')
+                    'userprofile__user__is_active', 'last_payment_date')
     date_hierarchy = 'registered_support'
     list_filter = [
-        'regular_payments', 'userprofile__language', 'userprofile__active', 'wished_information', 'old_account',
+        'regular_payments', 'userprofile__language', 'userprofile__user__is_active', 'wished_information', 'old_account',
         'source', 'campaign', ('registered_support', DateRangeFilter), filters.EmailFilter,
         filters.UserConditionFilter, filters.UserConditionFilter1]
     search_fields = ['userprofile__user__first_name', 'userprofile__user__last_name', 'variable_symbol', 'userprofile__user__email', 'userprofile__telephone']
@@ -242,9 +241,9 @@ class UserYearPaymentsAdmin(UserInCampaignAdmin):
     list_display = ('person_name', 'userprofile__user__email', 'source',
                     'variable_symbol', 'registered_support_date',
                     'payment_total_by_year',
-                    'userprofile__active', 'last_payment_date')
+                    'userprofile__user__is_active', 'last_payment_date')
     list_filter = [
-        ('payment__date', DateRangeFilter), 'regular_payments', 'userprofile__language', 'userprofile__active',
+        ('payment__date', DateRangeFilter), 'regular_payments', 'userprofile__language', 'userprofile__user__is_active',
         'wished_information', 'old_account', 'source', 'userprofile__campaigns',
         ('registered_support', DateRangeFilter), filters.EmailFilter, filters.UserConditionFilter, filters.UserConditionFilter1]
 
@@ -286,7 +285,7 @@ class PaymentAdmin(ImportExportMixin, admin.ModelAdmin):
 class NewUserAdmin(UserInCampaignAdmin):
     list_display = ('person_name', 'is_direct_dialogue',
                     'variable_symbol', 'regular_payments', 'registered_support',
-                    'recruiter', 'userprofile__active')
+                    'recruiter', 'userprofile__user__is_active')
 
 
 class CommunicationAdmin(admin.ModelAdmin):

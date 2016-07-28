@@ -312,12 +312,6 @@ class UserProfile(models.Model):
     public = models.BooleanField(
         verbose_name=_("Publish my name in the list of supporters"),
         default=True)
-    active = models.BooleanField(
-        verbose_name=_("Active"),
-        help_text=_(
-            "Is the user active member? Use this field to disable old "
-            "or temporary users."),
-        default=True)
     profile_text = models.TextField(
         verbose_name=_("What is your reason?"),
         help_text=_("Tell others why you support Auto*Mat"),
@@ -1618,7 +1612,7 @@ class MassCommunication(models.Model):
         verbose_name=_("send to users"),
         help_text=_(
             "All users who should receive the communication"),
-        limit_choices_to={'userprofile__active': 'True', 'wished_information': 'True'},
+        limit_choices_to={'userprofile__user__is_active': 'True', 'wished_information': 'True'},
         blank=True)
     note = models.TextField(
         verbose_name=_("note"),

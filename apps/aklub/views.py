@@ -205,7 +205,7 @@ def donators(request):
     payed = Payment.objects.exclude(type='expected').values_list('user_id', flat=True)
     donators = UserInCampaign.objects.filter(userprofile__public=True, id__in=payed).order_by('userprofile__user__last_name')
     n_donators = len(donators)
-    n_regular = len(donators.filter(userprofile__active=True, regular_payments=True))
+    n_regular = len(donators.filter(userprofile__user__is_active=True, regular_payments=True))
     return render_to_response('donators.html', {
         'n_donators': n_donators,
         'n_regular': n_regular,
@@ -387,8 +387,8 @@ class OneTimePaymentWizard(SessionWizardView):
                      from_email='kp@auto-mat.cz', to=[user.userprofile.user.email]).send()
 
     def _find_matching_users(self, email, firstname, surname):
-        users = (set(UserInCampaign.objects.filter(userprofile__user__email=email, userprofile__active=True).all()) |
-                 set(UserInCampaign.objects.filter(userprofile__user__first_name=firstname, userprofile__user__last_name=surname, userprofile__active=True)))
+        users = (set(UserInCampaign.objects.filter(userprofile__user__email=email, userprofile__user__is_active=True).all()) |
+                 set(UserInCampaign.objects.filter(userprofile__user__first_name=firstname, userprofile__user__last_name=surname, userprofile__user__is_active=True)))
         return list(users)
 
     def get_form(self, step=None, data=None, files=None):
@@ -427,7 +427,7 @@ def onetime(request):
 def stat_members(request):
     return render_to_response('stat-members.html',
                               {'members_by_months': StatMemberCountsByMonths.objects.all(),
-                               'total_members': UserInCampaign.objects.all().filter(active=True).aggregate(Count('id'))['id__count']
+                               'total_members': UserInCampaign.objects.all().filter(userprofile__user__is_active=True).aggregate(Count('id'))['id__count']
                                })
 
 
