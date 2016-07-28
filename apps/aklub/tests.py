@@ -780,6 +780,7 @@ class AccountStatementTests(TestCase):
         unknown_user1 = UserInCampaign.objects.get(userprofile__user__email="unknown1@email.cz")
         self.assertEqual(unknown_user1.userprofile.zip_code, "123 21")
         self.assertEqual(unknown_user1.regular_amount, None)
+        self.assertEqual(unknown_user1.end_of_regular_payments, datetime.date(2014, 12, 31))
         self.assertEqual(unknown_user1.regular_frequency, None)
         self.assertEqual(unknown_user1.regular_payments, False)
 

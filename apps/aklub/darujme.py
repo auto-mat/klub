@@ -17,6 +17,7 @@ OK_STATES = ('OK, převedeno', 'OK')
 
 MONTHLY = 'měsíční'
 ONETIME = "jednorázový"
+UNLIMITED = "na dobu neurčitou"
 
 log = logging.getLogger(__name__)
 
@@ -65,6 +66,11 @@ def parse_darujme(xlsfile):
         zip_code = parse_string(row[22].value)
         wished_tax_confirmation = row[23].value
         regular_payments = row[13].value == MONTHLY
+        if row[14].value and row[14].value != UNLIMITED:
+            end_of_regular_payments = str_to_datetime(row[14].value)
+        else:
+            end_of_regular_payments = None
+
         if regular_payments:
             regular_frequency = "monthly"
         else:
@@ -108,6 +114,7 @@ def parse_darujme(xlsfile):
                     'regular_frequency': regular_frequency,
                     'regular_payments': regular_payments,
                     'regular_amount': ammount if regular_frequency else None,
+                    'end_of_regular_payments': end_of_regular_payments,
                 })
             p.user = userincampaign
 

@@ -503,6 +503,11 @@ class UserInCampaign(models.Model):
     wished_information = models.BooleanField(
         verbose_name=_("Send regular news via email"),
         default=True)
+    end_of_regular_payments = models.DateField(
+        verbose_name=_("End of regular payments (for payments by card)"),
+        blank=True,
+        null=True,
+        )
 
     def __str__(self):
         return str(self.person_name())
