@@ -72,7 +72,11 @@ class Campaign(models.Model):
     darujme_name = models.CharField(
         verbose_name=_("Name in Darujme.cz"),
         unique=True,
-        max_length=100, blank=True)
+        default=None,
+        max_length=100,
+        blank=True,
+        null=True,
+        )
     description = models.TextField(
         verbose_name=_("Description"),
         help_text=_("Description of this campaign"),
