@@ -71,6 +71,7 @@ class Campaign(models.Model):
         max_length=100, blank=True)
     darujme_name = models.CharField(
         verbose_name=_("Name in Darujme.cz"),
+        unique=True,
         max_length=100, blank=True)
     description = models.TextField(
         verbose_name=_("Description"),
@@ -84,6 +85,18 @@ class Campaign(models.Model):
         verbose_name=_("Real yield"),
         help_text=_("Use if yield differs from counted value"),
         blank=True, null=True)
+    slug = models.SlugField(
+        verbose_name=_("Slug"),
+        help_text=_("Identifier of the campaign"),
+        default=None,
+        max_length=100,
+        unique=True,
+        blank=True,
+        null=True,
+    )
+    allow_statistics = models.BooleanField(
+        verbose_name=_("Allow statistics exports"),
+        default=False)
 
     def number_of_members(self):
         return self.userincampaign_set.count()
@@ -104,12 +117,16 @@ class Campaign(models.Model):
             return self.real_yield
     yield_total.short_description = _("total yield")
 
-    def expected_monthly_income(self):
-        income = 0.0
+    def expected_yearly_income(self):
+        income = 0
         for campaign_member in UserInCampaign.objects.filter(campaign=self):
             # TODO: use aggregate to count this
-            income += campaign_member.monthly_regular_amount()
+            income += campaign_member.yearly_regular_amount()
         return income
+    expected_yearly_income.short_description = _("expected yearly income")
+
+    def expected_monthly_income(self):
+        return float(self.expected_yearly_income()) / 12.0
     expected_monthly_income.short_description = _("expected monthly income")
 
     def return_of_investmensts(self):
@@ -757,16 +774,19 @@ class UserInCampaign(models.Model):
         else:
             return False
 
-    def monthly_regular_amount(self):
-        months = {
-            'monthly': 1.0,
-            'quaterly': 3.0,
-            'biannually': 6.0,
-            'annually': 12.0}
+    def yearly_regular_amount(self):
+        times = {
+            'monthly': 12,
+            'quaterly': 4,
+            'biannually': 2,
+            'annually': 1}
         if self.regular_frequency and self.regular_amount:
-            return float(self.regular_amount) / months[self.regular_frequency]
+            return self.regular_amount * times[self.regular_frequency]
         else:
-            return 0.0
+            return 0
+
+    def monthly_regular_amount(self):
+        return float(self.yearly_regular_amount()) / 12.0
 
 
 def filter_by_condition(queryset, cond):

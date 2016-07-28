@@ -12,9 +12,4 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='campaign',
-            name='darujme_name',
-            field=models.CharField(blank=True, help_text='Choose some unique name for this campaign', max_length=100, verbose_name='Name'),
-        ),
     ]

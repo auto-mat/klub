@@ -19,7 +19,7 @@
 
 # Create your views here.
 from . import autocom
-from .models import UserInCampaign, UserProfile, Payment, Source, StatMemberCountsByMonths, StatPaymentsByMonths
+from .models import UserInCampaign, UserProfile, Payment, Source, StatMemberCountsByMonths, StatPaymentsByMonths, Campaign
 from betterforms.multiform import MultiModelForm
 from django import forms, http
 from django.contrib.auth.models import User
@@ -27,10 +27,11 @@ from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
 from django.core.validators import RegexValidator, MinLengthValidator
 from django.db.models import Sum, Count, Q
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.utils.translation import ugettext as _
 from django.views.generic.edit import FormView
+from django.views.generic import View
 from formtools.wizard.views import SessionWizardView
 import datetime
 import json
@@ -460,3 +461,12 @@ def profiles(request):
               for u in users
               if ((not paying) or (u.payment_total > 0))]
     return http.HttpResponse(json.dumps(result), content_type='application/json')
+
+
+class CampaignStatistics(View):
+    def get(self, request, *args, **kwargs):
+        campaign = get_object_or_404(Campaign, slug=kwargs['campaign_slug'], allow_statistics=True)
+        return http.HttpResponse(json.dumps({
+            'expected-yearly-income': campaign.expected_yearly_income(),
+            'total-income': campaign.yield_total(),
+        }), content_type='application/json')

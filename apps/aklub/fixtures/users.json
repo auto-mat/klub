@@ -197,7 +197,8 @@
         "fields": {
             "name": "Prahou na kole",
             "created": "2015-12-16",
-            "darujme_name": "Prahounakole.cz"
+            "slug": "pnk1",
+            "darujme_name": "Prahounakole.cz1"
         },
         "model": "aklub.campaign",
         "pk": 1
@@ -206,8 +207,10 @@
         "fields": {
             "name": "Klub přátel Auto*Matu",
             "created": "2015-12-16",
+            "slug": "klub1",
+            "allow_statistics": true,
             "acquisition_campaign": true,
-            "darujme_name": "Klub přátel Auto*Matu"
+            "darujme_name": "Klub přátel Auto*Matu1"
         },
         "model": "aklub.campaign",
         "pk": 2

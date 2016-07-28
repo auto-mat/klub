@@ -479,6 +479,12 @@ class ViewsTests(TestCase):
         'userincampaign-regular_amount': '321',
     }
 
+    def test_campaign_statistics(self):
+        address = reverse('campaign-statistics', kwargs={'campaign_slug': 'klub'})
+        response = self.client.get(address)
+        self.assertJSONEqual(response.content.decode(), {"total-income": None, "expected-yearly-income": 0})
+        self.assertEqual(response.status_code, 200)
+
     def test_regular_existing_email(self):
         address = reverse('regular')
         regular_post_data = self.regular_post_data.copy()
@@ -835,7 +841,7 @@ class FilterTests(TestCase):
     def test_active_camaign_filter_yes(self):
         f = filters.ActiveCampaignFilter(self.request, {"active": "yes"}, User, None)
         q = f.queryset(self.request, Campaign.objects.all())
-        self.assertEquals(q.count(), 2)
+        self.assertEquals(q.count(), 3)
 
     def test_email_filter(self):
         f = filters.EmailFilter(self.request, {}, User, None)

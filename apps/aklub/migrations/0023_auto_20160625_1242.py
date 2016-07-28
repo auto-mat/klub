@@ -59,4 +59,19 @@ class Migration(migrations.Migration):
             name='userprofile',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='aklub.UserProfile'),
         ),
+        migrations.AddField(
+            model_name='campaign',
+            name='darujme_name',
+            field=models.CharField(blank=True, help_text='Choose some unique name for this campaign', max_length=100, unique=True, verbose_name='Name'),
+        ),
+        migrations.AddField(
+            model_name='campaign',
+            name='allow_statistics',
+            field=models.BooleanField(default=False, verbose_name='Allow statistics exports'),
+        ),
+        migrations.AddField(
+            model_name='campaign',
+            name='slug',
+            field=models.SlugField(blank=True, default=None, help_text='Identifier of the campaign', max_length=100, null=True, unique=True, verbose_name='Slug'),
+        ),
     ]
