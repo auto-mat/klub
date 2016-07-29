@@ -832,6 +832,13 @@ def str_to_datetime(date):
             [int(val) for val in date.split('.')])))
 
 
+def str_to_datetime_xml(date):
+    return datetime.date(
+        **dict(zip(
+            ['year', 'month', 'day'],
+            [int(val) for val in date.split('-')])))
+
+
 class AccountStatements(models.Model):
     """AccountStatemt entry and DB model
 
