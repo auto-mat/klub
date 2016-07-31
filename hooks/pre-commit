@@ -2,7 +2,7 @@
 import sys
 from flake8.run import git_hook
 
-STRICT = False
+STRICT = True
 
 
 if __name__ == '__main__':
