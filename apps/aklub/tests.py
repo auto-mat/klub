@@ -28,6 +28,7 @@ from django.contrib.auth.models import User
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core import mail
 from django.core.files import File
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
 from django.core.urlresolvers import reverse
 from django.db.models import Q
@@ -437,7 +438,6 @@ class AdminTest(tests.AdminSiteSmokeTest):
         response = model_admin.add_view(request)
         self.assertEqual(response.status_code, 200)
 
-        from django.core.files.uploadedfile import SimpleUploadedFile
         attachment = SimpleUploadedFile("attachment.txt", b"attachment", content_type="text/plain")
         post_data = {
             '_continue': 'test_mail',
@@ -668,7 +668,7 @@ class ViewsTests(TestCase):
 
 
 class SmokeViewsTestsLogon(TestCase):
-    fixtures = ['conditions', 'users']
+    fixtures = ['conditions', 'users', 'communications']
 
     def setUp(self):
         self.user = User.objects.create_superuser(
@@ -778,7 +778,7 @@ class AccountStatementTests(TestCase):
             a.clean()
             a.save()
 
-        a1 = AccountStatements.objects.get()
+        a1 = AccountStatements.objects.get(pk=a.pk)
         self.assertEqual(len(a1.payment_set.all()), 3)
         self.assertEqual(a1.date_from, datetime.date(day=25, month=1, year=2016))
         self.assertEqual(a1.date_to, datetime.date(day=31, month=1, year=2016))
@@ -816,7 +816,7 @@ class AccountStatementTests(TestCase):
         self.assertEqual(user1.payment_set.get(), a1.payment_set.get(VS=130430001))
 
     def check_account_statement_data(self):
-        a1 = AccountStatements.objects.get()
+        a1 = AccountStatements.objects.get(type="darujme")
         self.assertEqual(len(a1.payment_set.all()), 4)
         user = UserInCampaign.objects.get(pk=2978)
         self.assertEqual(user.payment_set.get(date=datetime.date(2016, 1, 20)), a1.payment_set.get(amount=200))

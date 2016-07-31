@@ -10,5 +10,13 @@
         },
         "model": "aklub.automaticcommunication",
         "pk": 1 
+    },
+    {
+        "fields": {
+            "date": "2016-03-12",
+            "name": "Mass communication"
+        },
+        "model": "aklub.masscommunication",
+        "pk": 1
     }
 ]

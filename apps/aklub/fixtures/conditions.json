@@ -4,7 +4,7 @@
             "as_filter": false, 
             "conds": [], 
             "name": "Pravideln\u00fd pl\u00e1tce", 
-            "on_dashboard": false, 
+            "on_dashboard": true,
             "operation": "and"
         }, 
         "model": "aklub.condition", 
@@ -15,7 +15,7 @@
             "as_filter": false, 
             "conds": [], 
             "name": "Nestar\u00e1 registrace", 
-            "on_dashboard": false, 
+            "on_dashboard": true,
             "operation": "and"
         }, 
         "model": "aklub.condition", 
@@ -29,7 +29,7 @@
                 1
             ], 
             "name": "Nestar\u00e1 registrace pravideln\u00e9ho pl\u00e1tce", 
-            "on_dashboard": false, 
+            "on_dashboard": true,
             "operation": "and"
         }, 
         "model": "aklub.condition", 
@@ -40,7 +40,7 @@
             "as_filter": true, 
             "conds": [], 
             "name": "\u0160t\u011bdr\u00fd d\u00e1rce", 
-            "on_dashboard": false, 
+            "on_dashboard": false,
             "operation": "and"
         }, 
         "model": "aklub.condition", 
@@ -64,7 +64,7 @@
                 3
             ], 
             "name": "T\u00fdden opo\u017ed\u011bn\u00e1 pravideln\u00e1 platba", 
-            "on_dashboard": false, 
+            "on_dashboard": false,
             "operation": "and"
         }, 
         "model": "aklub.condition", 

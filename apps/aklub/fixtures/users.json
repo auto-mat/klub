@@ -186,6 +186,14 @@
     },
     {
         "fields": {
+            "import_date": "2016-08-01",
+            "type": "account"
+        },
+        "model": "aklub.accountstatements",
+        "pk": 1
+    },
+    {
+        "fields": {
             "user": 2978,
             "year": "2014",
             "amount": "2014"
