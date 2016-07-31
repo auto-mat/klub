@@ -3,6 +3,7 @@
 
 from aklub.models import Payment, UserInCampaign, str_to_datetime, str_to_datetime_xml, UserProfile, Campaign, AccountStatements
 from aklub.views import generate_variable_symbol
+from collections import OrderedDict
 from django.contrib.auth.models import User
 from django.core.exceptions import MultipleObjectsReturned
 from django.forms import ValidationError
@@ -10,6 +11,7 @@ from django.utils.translation import ugettext_lazy as _
 from xml.dom import minidom
 import datetime
 import logging
+import urllib
 import xlrd
 
 # Text constants in Darujme.cz report
@@ -45,6 +47,7 @@ def parse_darujme_xml(xmlfile):
         else:
             data['id'] = ""
         data['projekt'] = record.getElementsByTagName('projekt')[0].firstChild.nodeValue
+        data['cislo_projektu'] = record.getElementsByTagName('cislo_projektu')[0].firstChild.nodeValue
         data['cetnost'] = record.getElementsByTagName('cetnost')[0].firstChild.nodeValue
         cetnost_konec = record.getElementsByTagName('cetnost_konec')[0].firstChild
         if cetnost_konec:
@@ -71,7 +74,7 @@ def parse_darujme_xml(xmlfile):
     return payments, skipped_payments
 
 
-def create_statement_from_API(xmlfile):
+def create_statement_from_file(xmlfile):
     payments, skipped_payments = parse_darujme_xml(xmlfile)
     if len(payments) > 0:
         a = AccountStatements(type="darujme")
@@ -82,9 +85,23 @@ def create_statement_from_API(xmlfile):
     return a, skipped_payments
 
 
+def create_statement_from_API(campaign):
+    response = urllib.request.urlopen(
+        'https://www.darujme.cz/dar/api/darujme_api.php?api_id=%s&api_secret=%s&typ_dotazu=1' %
+        (campaign.darujme_api_id, campaign.darujme_api_secret)
+    )
+    return create_statement_from_file(response)
+
+
 def create_payment(data, payments, skipped_payments):
     if Payment.objects.filter(type='darujme', SS=data['id'], date=data['datum_prichozi_platby']).exists():
-        skipped_payments.append({'ss': data['id'], 'date': data['datum_prichozi_platby'], 'name': data['jmeno'], 'surname': data['prijmeni'], 'email': data['email']})
+        skipped_payments.append(OrderedDict([
+            ('ss', data['id']),
+            ('date', data['datum_prichozi_platby']),
+            ('name', data['jmeno']),
+            ('surname', data['prijmeni']),
+            ('email', data['email']),
+        ]))
         log.info('Payment with type Darujme.cz and SS=%s already exists, skipping' % str(data['id']))
         return None
 
@@ -107,7 +124,10 @@ def create_payment(data, payments, skipped_payments):
         cetnost = None
 
     try:
-        campaign = Campaign.objects.get(darujme_name=data['projekt'])
+        if 'cislo_projektu' in data:
+            campaign = Campaign.objects.get(darujme_api_id=data['cislo_projektu'])
+        else:
+            campaign = Campaign.objects.get(darujme_name=data['projekt'])
         user, user_created = User.objects.get_or_create(
             email=data['email'],
             defaults={

@@ -34,7 +34,7 @@ from django.db.models import Q
 from django.test import TestCase, RequestFactory
 from django_admin_smoke_tests import tests
 from freezegun import freeze_time
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 import datetime
 import io
 
@@ -761,59 +761,56 @@ class AccountStatementTests(TestCase):
         admin.pair_variable_symbols(None, None, [a1, ])
         self.assertEqual(user1.payment_set.get(), a1.payment_set.get(VS=130430001))
 
+    def check_account_statement_data(self):
+        a1 = AccountStatements.objects.get()
+        self.assertEqual(len(a1.payment_set.all()), 4)
+        user = UserInCampaign.objects.get(pk=2978)
+        self.assertEqual(user.payment_set.get(date=datetime.date(2016, 1, 20)), a1.payment_set.get(amount=200))
+        unknown_user = UserInCampaign.objects.get(userprofile__user__email="unknown@email.cz")
+        self.assertEqual(unknown_user.payment_set.get(date=datetime.date(2016, 1, 19)).amount, 150)
+        self.assertEqual(unknown_user.__str__(), "User 1 Testing")
+        self.assertEqual(unknown_user.userprofile.street, "Ulice 321")
+        self.assertEqual(unknown_user.userprofile.city, "Nová obec")
+        self.assertEqual(unknown_user.userprofile.zip_code, "12321")
+        self.assertEqual(unknown_user.userprofile.user.username, "unknown2")
+        self.assertEqual(unknown_user.wished_information, True)
+        self.assertEqual(unknown_user.regular_payments, True)
+        self.assertEqual(unknown_user.regular_amount, 150)
+        self.assertEqual(unknown_user.regular_frequency, "monthly")
+
+        unknown_user1 = UserInCampaign.objects.get(userprofile__user__email="unknown1@email.cz")
+        self.assertEqual(unknown_user1.userprofile.zip_code, "123 21")
+        self.assertEqual(unknown_user1.regular_amount, None)
+        self.assertEqual(unknown_user1.end_of_regular_payments, datetime.date(2014, 12, 31))
+        self.assertEqual(unknown_user1.regular_frequency, None)
+        self.assertEqual(unknown_user1.regular_payments, False)
+        return a1
+
     def test_darujme_statement(self):
         with open("apps/aklub/test_data/test_darujme.xls", "rb") as f:
             a = AccountStatements(csv_file=File(f), type="darujme")
             a.clean()
             a.save()
-
-        a1 = AccountStatements.objects.get()
-        self.assertEqual(len(a1.payment_set.all()), 4)
-        user = UserInCampaign.objects.get(pk=2978)
-        self.assertEqual(user.payment_set.get(date=datetime.date(2016, 1, 20)), a1.payment_set.get(amount=200))
-        unknown_user = UserInCampaign.objects.get(userprofile__user__email="unknown@email.cz")
-        self.assertEqual(unknown_user.payment_set.get(date=datetime.date(2016, 1, 19)).amount, 150)
-        self.assertEqual(unknown_user.__str__(), "User 1 Testing")
-        self.assertEqual(unknown_user.userprofile.street, "Ulice 321")
-        self.assertEqual(unknown_user.userprofile.city, "Nová obec")
-        self.assertEqual(unknown_user.userprofile.zip_code, "12321")
-        self.assertEqual(unknown_user.userprofile.user.username, "unknown2")
-        self.assertEqual(unknown_user.wished_information, True)
-        self.assertEqual(unknown_user.regular_payments, True)
-        self.assertEqual(unknown_user.regular_amount, 150)
-        self.assertEqual(unknown_user.regular_frequency, "monthly")
-
-        unknown_user1 = UserInCampaign.objects.get(userprofile__user__email="unknown1@email.cz")
-        self.assertEqual(unknown_user1.userprofile.zip_code, "123 21")
-        self.assertEqual(unknown_user1.regular_amount, None)
-        self.assertEqual(unknown_user1.end_of_regular_payments, datetime.date(2014, 12, 31))
-        self.assertEqual(unknown_user1.regular_frequency, None)
-        self.assertEqual(unknown_user1.regular_payments, False)
+        self.check_account_statement_data()
 
     def test_darujme_xml_statement(self):
-        darujme.create_statement_from_API("apps/aklub/test_data/darujme.xml")
-        a1 = AccountStatements.objects.get()
-        self.assertEqual(len(a1.payment_set.all()), 4)
-        user = UserInCampaign.objects.get(pk=2978)
-        self.assertEqual(user.payment_set.get(date=datetime.date(2016, 1, 20)), a1.payment_set.get(amount=200))
-        unknown_user = UserInCampaign.objects.get(userprofile__user__email="unknown@email.cz")
-        self.assertEqual(unknown_user.payment_set.get(date=datetime.date(2016, 1, 19)).amount, 150)
-        self.assertEqual(unknown_user.__str__(), "User 1 Testing")
-        self.assertEqual(unknown_user.userprofile.street, "Ulice 321")
-        self.assertEqual(unknown_user.userprofile.city, "Nová obec")
-        self.assertEqual(unknown_user.userprofile.zip_code, "12321")
-        self.assertEqual(unknown_user.userprofile.user.username, "unknown2")
-        self.assertEqual(unknown_user.wished_information, True)
-        self.assertEqual(unknown_user.regular_payments, True)
-        self.assertEqual(unknown_user.regular_amount, 150)
-        self.assertEqual(unknown_user.regular_frequency, "monthly")
+        darujme.create_statement_from_file("apps/aklub/test_data/darujme.xml")
+        self.check_account_statement_data()
 
-        unknown_user1 = UserInCampaign.objects.get(userprofile__user__email="unknown1@email.cz")
-        self.assertEqual(unknown_user1.userprofile.zip_code, "123 21")
-        self.assertEqual(unknown_user1.regular_amount, None)
-        self.assertEqual(unknown_user1.end_of_regular_payments, datetime.date(2014, 12, 31))
-        self.assertEqual(unknown_user1.regular_frequency, None)
-        self.assertEqual(unknown_user1.regular_payments, False)
+    @patch("urllib.request")
+    def test_darujme_action(self, urllib_request):
+        request = RequestFactory().get("")
+        with open("apps/aklub/test_data/darujme.xml", "r") as f:
+            m = MagicMock()
+            urllib_request.urlopen = MagicMock(return_value=f)
+            admin.download_darujme_statement(m, request, Campaign.objects.filter(slug="klub1"))
+
+        a1 = self.check_account_statement_data()
+        m.message_user.assert_called_once_with(
+            request,
+            'Created following account statements: %s<br/>Skipped payments: [OrderedDict([(&#39;ss&#39;, &#39;22258&#39;),'
+            ' (&#39;date&#39;, &#39;2016-02-09&#39;), (&#39;name&#39;, &#39;Testing&#39;), (&#39;surname&#39;, &#39;User 1&#39;),'
+            ' (&#39;email&#39;, &#39;test.user1@email.cz&#39;)])]' % a1.id)
 
 
 class AdminImportExportTests(TestCase):

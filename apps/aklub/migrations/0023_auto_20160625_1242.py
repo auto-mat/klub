@@ -62,7 +62,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='campaign',
             name='darujme_name',
-            field=models.CharField(blank=True, help_text='Choose some unique name for this campaign', max_length=100, unique=True, verbose_name='Name', null=True, default=None),
+            field=models.CharField(blank=True, default=None, max_length=100, null=True, unique=True, verbose_name='Name in Darujme.cz'),
         ),
         migrations.AddField(
             model_name='campaign',

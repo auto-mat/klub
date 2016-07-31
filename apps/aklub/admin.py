@@ -19,8 +19,7 @@
 
 """Definition of administration interface for club management application"""
 
-from . import filters
-from . import mailing
+from . import filters, mailing, darujme
 from .models import (
     UserInCampaign, UserProfile, Payment, Communication, Expense,
     TerminalCondition, UserYearPayments, NewUser, AccountStatements,
@@ -33,7 +32,7 @@ from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.db.models import Sum
 from django.http import HttpResponseRedirect
-from django.utils.html import mark_safe
+from django.utils.html import mark_safe, format_html
 from django.utils.translation import ugettext as _
 from import_export.admin import ImportExportMixin
 from import_export.resources import ModelResource
@@ -51,13 +50,39 @@ def resave_action(self, request, queryset):
 # -- INLINE FORMS --
 class PaymentsInline(admin.TabularInline):
     model = Payment
-    list_display = ('amount', 'person_name', 'date', 'paired_with_expected')
     extra = 5
 
 
 class PaymentsInlineNoExtra(PaymentsInline):
     raw_id_fields = ('user',)
+    readonly_fields = ('user__campaign',)
+    fields = (
+        'type',
+        'user__campaign',
+        'user',
+        'user_identification',
+        'account_name',
+        'recipient_message',
+        'bank_name',
+        'date',
+        'amount',
+        'account',
+        'bank_code',
+        'VS',
+        'SS',
+        'KS',
+        'BIC',
+        'transfer_type',
+        'transfer_note',
+        'currency',
+        'done_by',
+        'specification',
+        'order_id',
+    )
     extra = 0
+
+    def user__campaign(self, obj):
+        return obj.user.campaign
 
 
 class CommunicationInline(admin.TabularInline):
@@ -456,6 +481,20 @@ class AccountStatementsAdmin(admin.ModelAdmin):
         obj.save()
 
 
+def download_darujme_statement(self, request, queryset):
+    payments = []
+    skipped_payments = []
+    for campaign in queryset.all():
+        payment, skipped = darujme.create_statement_from_API(campaign)
+        payments.append(payment)
+        skipped_payments += skipped
+    self.message_user(request, format_html(
+        "Created following account statements: {}<br/>Skipped payments: {}",
+        ", ".join([str(p.id) if p else "" for p in payments]),
+        skipped_payments))
+download_darujme_statement.short_description = _("Download darujme statements")
+
+
 class CampaignAdmin(admin.ModelAdmin):
     list_display = (
         'name', 'darujme_name', 'created', 'terminated', 'number_of_members', 'number_of_recruiters', 'acquisition_campaign', 'yield_total',
@@ -465,6 +504,7 @@ class CampaignAdmin(admin.ModelAdmin):
         'expected_monthly_income', 'return_of_investmensts', 'average_yield', 'average_expense')
     list_filter = ('acquisition_campaign', filters.ActiveCampaignFilter)
     inlines = (ExpenseInline, )
+    actions = (download_darujme_statement,)
 
 
 class RecruiterAdmin(ImportExportMixin, admin.ModelAdmin):
