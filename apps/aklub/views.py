@@ -469,4 +469,6 @@ class CampaignStatistics(View):
         return http.HttpResponse(json.dumps({
             'expected-yearly-income': campaign.expected_yearly_income(),
             'total-income': campaign.yield_total(),
+            'number-of-onetime-members': campaign.number_of_onetime_members(),
+            'number-of-regular-members': campaign.number_of_regular_members(),
         }), content_type='application/json')

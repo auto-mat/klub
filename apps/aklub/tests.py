@@ -480,9 +480,14 @@ class ViewsTests(TestCase):
     }
 
     def test_campaign_statistics(self):
-        address = reverse('campaign-statistics', kwargs={'campaign_slug': 'klub'})
+        address = reverse('campaign-statistics', kwargs={'campaign_slug': 'klub1'})
         response = self.client.get(address)
-        self.assertJSONEqual(response.content.decode(), {"total-income": None, "expected-yearly-income": 0})
+        self.assertJSONEqual(response.content.decode(), {
+            "total-income": 350,
+            "expected-yearly-income": 1200,
+            "number-of-regular-members": 1,
+            "number-of-onetime-members": 1,
+            })
         self.assertEqual(response.status_code, 200)
 
     def test_regular_existing_email(self):
