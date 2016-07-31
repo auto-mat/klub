@@ -292,7 +292,10 @@ class AutocomTest(TestCase):
 
 
 class MailingTest(TestCase):
-    def test_mailing(self):
+    fixtures = ['conditions', 'users']
+
+    @freeze_time("2015-5-1")
+    def test_mailing_fake_user(self):
         sending_user = User.objects.create(
             first_name="Testing",
             last_name="UserInCampaign",
@@ -310,6 +313,51 @@ class MailingTest(TestCase):
         self.assertEqual(msg.recipients(), ['test@test.com'])
         self.assertEqual(msg.subject, 'Testing email')
         self.assertIn("Testing template", msg.body)
+
+    @freeze_time("2015-5-1")
+    def test_mailing_fail(self):
+        sending_user = User.objects.create(
+            first_name="Testing",
+            last_name="UserInCampaign",
+            email="test@test.com",
+        )
+        c = AutomaticCommunication.objects.create(
+            condition=Condition.objects.create(),
+            template="Testing template",
+            subject="Testing email",
+            method="email",
+        )
+        u = UserInCampaign.objects.all()
+        with self.assertRaises(Exception) as ex:
+            mailing.send_mass_communication(c, u, sending_user, save=False)
+        self.assertEqual(str(ex.exception), "Message template is empty for one of the language variants.")
+
+    @freeze_time("2015-5-1")
+    def test_mailing(self):
+        sending_user = User.objects.create(
+            first_name="Testing",
+            last_name="UserInCampaign",
+            email="test@test.com",
+        )
+        c = AutomaticCommunication.objects.create(
+            condition=Condition.objects.create(),
+            template="Testing template",
+            template_en="Testing template en",
+            subject="Testing email",
+            subject_en="Testing email en",
+            method="email",
+        )
+        u = UserInCampaign.objects.all()
+        mailing.send_mass_communication(c, u, sending_user, save=False)
+        self.assertEqual(len(mail.outbox), 2)
+        msg = mail.outbox[0]
+        self.assertEqual(msg.recipients(), ['test.user@email.cz'])
+        self.assertEqual(msg.subject, 'Testing email')
+        self.assertIn("Testing template", msg.body)
+        msg1 = mail.outbox[1]
+        self.assertEqual(msg1.recipients(), ['test.user1@email.cz'])
+        self.assertEqual(msg1.subject, 'Testing email en')
+        self.assertIn("Testing template", msg1.body)
 
 
 class AdminTest(tests.AdminSiteSmokeTest):
@@ -362,7 +410,7 @@ class AdminTest(tests.AdminSiteSmokeTest):
                 'The Výpis z účtu "<a href="/admin/aklub/accountstatements/%(id)s/change/">%(id)s (2015-05-01)</a>" was added successfully.' % {'id': obj.id}
             )
 
-    def test_mass_comminication_changelist_post_send_mails(self):
+    def test_mass_communication_changelist_post_send_mails(self):
         model_admin = django_admin.site._registry[MassCommunication]
         request = self.get_request()
         response = model_admin.add_view(request)
@@ -383,7 +431,7 @@ class AdminTest(tests.AdminSiteSmokeTest):
         self.assertEqual(obj.subject, "Subject")
         self.assertEqual(response.url, "/admin/aklub/masscommunication/%s/change/" % obj.id)
 
-    def test_mass_comminication_changelist_post(self):
+    def test_mass_communication_changelist_post(self):
         model_admin = django_admin.site._registry[MassCommunication]
         request = self.get_request()
         response = model_admin.add_view(request)
@@ -397,6 +445,7 @@ class AdminTest(tests.AdminSiteSmokeTest):
             "method": "email",
             'date': "2010-03-03",
             "subject": "Subject",
+            "attach_tax_confirmation": False,
             "attachment": attachment,
             "template": "Test template",
         }
@@ -407,7 +456,7 @@ class AdminTest(tests.AdminSiteSmokeTest):
         self.assertEqual(obj.subject, "Subject")
         self.assertEqual(response.url, "/admin/aklub/masscommunication/%s/change/" % obj.id)
 
-    def test_automatic_comminication_changelist_post(self):
+    def test_automatic_communication_changelist_post(self):
         model_admin = django_admin.site._registry[AutomaticCommunication]
         request = self.get_request()
         response = model_admin.add_view(request)
