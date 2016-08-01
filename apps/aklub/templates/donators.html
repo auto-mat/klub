@@ -13,7 +13,7 @@ Podporovatelé Auto*Matu
 
 {% block form_content %}
 <p>
-Celkem již podpořilo činnost Auto*Matu {{ n_donators }} lidí</br>
+Celkem již podpořilo činnost Auto*Matu {{ n_donators }} lidí<br/>
 Z toho {{ n_regular }} přispívá na jeho činnost pravidelně
 </p>
 
@@ -21,7 +21,7 @@ Z toho {{ n_regular }} přispívá na jeho činnost pravidelně
 
 <ul>
     {% for u in donators %}
-       <li>{{ u.userprofile.user.firstname }}&nbsp;{{ u.userprofile.user.surname }}</li>
+       <li>{{ u.userprofile.user.first_name }}&nbsp;{{ u.userprofile.user.last_name }}</li>
     {% endfor %}
 </ul>
 

@@ -107,6 +107,7 @@ class RegularUserForm_UserInCampaign(forms.ModelForm):
 
 
 class RegularUserForm(MultiModelForm):
+    required_css_class = 'required'
     base_fields = {}
     form_classes = {
         'user': RegularUserForm_User,

@@ -224,7 +224,7 @@ LOGGING = {
     }
 }
 
-TEST_RUNNER = 'django.test.runner.DiscoverRunner'
+TEST_RUNNER = 'aklub.tests.AklubTestSuiteRunner'
 
 # import local settings
 try:

@@ -23,6 +23,7 @@ from .models import (
     TerminalCondition, Condition, UserInCampaign, Communication, AutomaticCommunication,
     AccountStatements, Payment, UserProfile, MassCommunication, TaxConfirmation, Campaign)
 from PyPDF2 import PdfFileReader
+from django.conf import settings
 from django.contrib import admin as django_admin
 from django.contrib.auth.models import User
 from django.contrib.messages.storage.fallback import FallbackStorage
@@ -33,11 +34,23 @@ from django.core.management import call_command
 from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.test import TestCase, RequestFactory
+from django.test.runner import DiscoverRunner
 from django_admin_smoke_tests import tests
 from freezegun import freeze_time
 from unittest.mock import MagicMock, patch
 import datetime
 import io
+
+
+class AklubTestSuiteRunner(DiscoverRunner):
+    class InvalidStringError(str):
+        def __mod__(self, other):
+            raise Exception("empty string")
+            return ""
+
+    def __init__(self, *args, **kwargs):
+        settings.TEMPLATES[0]['OPTIONS']['string_if_invalid'] = self.InvalidStringError("%s")
+        super().__init__(*args, **kwargs)
 
 
 class BaseTestCase(TestCase):
@@ -544,6 +557,40 @@ class ViewsTests(TestCase):
             })
         self.assertEqual(response.status_code, 200)
 
+    def test_main_admin_page(self):
+        address = "/"
+        response = self.client.get(address)
+        self.assertContains(response, "Nestará registrace: 2 položek")
+        self.assertContains(
+            response,
+            '<div class="dashboard-module-content"> <p>Celkový počet položek: 1</p><ul class="stacked"><li class="odd"><a href="aklub/user/2978">User Test</a></li></ul> </div>',
+            html=True,
+            )
+
+    def test_donators(self):
+        address = reverse('donators')
+        response = self.client.get(address)
+        self.assertContains(
+            response,
+            '<p>Celkem již podpořilo činnost Auto*Matu 1 lidí<br/>Z toho 1 přispívá na jeho činnost pravidelně</p>',
+            html=True,
+            )
+        self.assertContains(
+            response,
+            '<ul><li>Test&nbsp;User</li></ul>',
+            html=True,
+            )
+
+    def test_profiles(self):
+        address = reverse('profiles')
+        response = self.client.get(address)
+        self.assertJSONEqual(
+            response.content.decode(),
+            [
+                {"firstname": "Test", "text": "", "picture": "", "surname": "User 1", "picture_thumbnail": ""},
+                {"firstname": "Test", "text": "", "picture": "", "surname": "User", "picture_thumbnail": ""}
+            ])
+
     def test_regular_existing_email(self):
         address = reverse('regular')
         regular_post_data = self.regular_post_data.copy()
@@ -670,41 +717,6 @@ class ViewsTests(TestCase):
         }
         response = self.client.post(address, post_data, follow=True)
         self.assertContains(response, '<h1>Děkujeme!</h1>', html=True)
-
-
-class SmokeViewsTestsLogon(TestCase):
-    fixtures = ['conditions', 'users', 'communications']
-
-    def setUp(self):
-        self.user = User.objects.create_superuser(
-            username='admin', email='test_user@test_user.com', password='admin')
-        self.client.force_login(self.user)
-
-    def verify_views(self, views, status_code_map):
-        for view in views:
-            status_code = status_code_map[view] if view in status_code_map else 200
-            address = view
-            response = self.client.get(address, follow=True)
-            filename = view.replace("/", "_")
-            if response.status_code != status_code:
-                with open("error_%s.html" % filename, "w") as f:
-                    f.write(response.content.decode())
-            self.assertEqual(response.status_code, status_code, "%s view failed, the failed page is saved to error_%s.html file." % (view, filename))
-
-    views = [
-        '/admin',
-        reverse('donators'),
-        reverse('profiles'),
-    ]
-
-    def test_aklub_views(self):
-        """
-        test if the user pages work
-        """
-        status_code_map = {
-        }
-
-        self.verify_views(self.views, status_code_map)
 
 
 @freeze_time("2016-5-1")
