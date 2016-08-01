@@ -878,7 +878,10 @@ class AccountStatements(models.Model):
     type = models.CharField(max_length=20, choices=TYPE_OF_STATEMENT)
     import_date = models.DateField(auto_now=True)
     csv_file = models.FileField(
-        upload_to='account-statements')
+        upload_to='account-statements',
+        null=False,
+        blank=False,
+        )
     date_from = models.DateField(
         blank=True, null=True)
     date_to = models.DateField(
@@ -886,7 +889,7 @@ class AccountStatements(models.Model):
 
     def clean(self, *args, **kwargs):
         super(AccountStatements, self).clean(*args, **kwargs)
-        if not self.pk:  # new Account statement
+        if not self.pk and self.csv_file:  # new Account statement
             if self.type == 'account':
                 self.payments = self.parse_bank_csv()
             elif self.type == 'darujme':

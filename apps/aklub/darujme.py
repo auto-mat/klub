@@ -113,10 +113,10 @@ def create_payment(data, payments, skipped_payments):
     p.account_name = u'%s, %s' % (data['prijmeni'], data['jmeno'])
     p.user_identification = data['email']
 
-    if data['cetnost_konec'] != UNLIMITED:
-        cetnost_konec = data['cetnost_konec']
-    else:
+    if data['cetnost_konec'] in (UNLIMITED, ""):
         cetnost_konec = None
+    else:
+        cetnost_konec = data['cetnost_konec']
 
     if data['cetnost'] == MONTHLY:
         cetnost = "monthly"
