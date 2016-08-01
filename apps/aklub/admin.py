@@ -42,11 +42,6 @@ import datetime
 import django.forms
 
 
-def resave_action(self, request, queryset):
-    for q in queryset:
-        q.save()
-
-
 # -- INLINE FORMS --
 class PaymentsInline(admin.TabularInline):
     model = Payment
@@ -198,7 +193,6 @@ class UserInCampaignAdmin(ImportExportMixin, RelatedFieldAdmin):
     ordering = ('userprofile__user__last_name',)
     actions = ('send_mass_communication',
                show_payments_by_year,
-               resave_action,
                )
     resource_class = UserInCampaignResource
     save_as = True

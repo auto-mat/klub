@@ -491,10 +491,15 @@ class AdminTest(tests.AdminSiteSmokeTest):
             'registered_support_1': "12:35",
             'campaign': '1',
             'verified': 1,
-            'communications-TOTAL_FORMS': 0,
+            'communications-TOTAL_FORMS': 1,
             'communications-INITIAL_FORMS': 0,
             'payment_set-TOTAL_FORMS': 0,
             'payment_set-INITIAL_FORMS': 0,
+            "communications-0-method": "phonecall",
+            "communications-0-subject": "Subject 1",
+            "communications-0-summary": "Text 1",
+            "communications-0-date_0": "2010-01-01",
+            "communications-0-date_1": "11:11",
         }
         request = self.post_request(post_data)
         response = model_admin.add_view(request)
