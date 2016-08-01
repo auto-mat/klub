@@ -204,7 +204,7 @@ def parse_darujme(xlsfile):
         data['potvrzeni_daru'] = row[23].value
         data['cetnost'] = row[13].value
         cetnost_konec = row[14].value
-        if cetnost_konec != UNLIMITED:
+        if cetnost_konec and cetnost_konec != UNLIMITED:
             data['cetnost_konec'] = str_to_datetime(cetnost_konec)
         else:
             data['cetnost_konec'] = cetnost_konec
