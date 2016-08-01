@@ -385,6 +385,14 @@ class AdminTest(tests.AdminSiteSmokeTest):
         request._messages = FallbackStorage(request)
         return request
 
+    def test_send_mass_communication(self):
+        model_admin = django_admin.site._registry[UserInCampaign]
+        request = self.post_request({})
+        queryset = UserInCampaign.objects.all()
+        response = model_admin.send_mass_communication(request, queryset)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, "/admin/aklub/masscommunication/add/?send_to_users=2978,2979")
+
     @freeze_time("2017-5-1")
     def test_tax_confirmation_generate(self):
         model_admin = django_admin.site._registry[TaxConfirmation]
@@ -489,6 +497,28 @@ class AdminTest(tests.AdminSiteSmokeTest):
         obj = AutomaticCommunication.objects.get(name="test communication")
         self.assertEqual(obj.subject, "Subject")
         self.assertEqual(response.url, "/admin/aklub/automaticcommunication/%s/change/" % obj.id)
+
+    def test_communication_changelist_post(self):
+        model_admin = django_admin.site._registry[Communication]
+        request = self.get_request()
+        response = model_admin.add_view(request)
+        self.assertEqual(response.status_code, 200)
+
+        post_data = {
+            '_save': 'test_mail',
+            "user": "2978",
+            "date_0": "2015-03-1",
+            "date_1": "12:43",
+            "method": "email",
+            "subject": "Subject 123",
+            "summary": "Test template",
+        }
+        request = self.post_request(post_data)
+        response = model_admin.add_view(request)
+        self.assertEqual(response.status_code, 302)
+        obj = Communication.objects.get(subject="Subject 123")
+        self.assertEqual(obj.summary, "Test template")
+        self.assertEqual(response.url, "/admin/aklub/communication/")
 
     def test_user_in_campaign_changelist_post(self):
         model_admin = django_admin.site._registry[UserInCampaign]
