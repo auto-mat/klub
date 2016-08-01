@@ -30,9 +30,11 @@ from django.core.validators import RegexValidator, MinLengthValidator
 from django.db.models import Sum, Count, Q
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
+from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext as _
-from django.views.generic.edit import FormView
+from django.views.decorators.cache import cache_page, never_cache
 from django.views.generic import View
+from django.views.generic.edit import FormView
 from formtools.wizard.views import SessionWizardView
 import datetime
 import json
@@ -462,6 +464,11 @@ def profiles(request):
 
 
 class CampaignStatistics(View):
+    @method_decorator(never_cache)
+    @method_decorator(cache_page(24 * 60))  # cache in memcached for 1h
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
     def get(self, request, *args, **kwargs):
         campaign = get_object_or_404(Campaign, slug=kwargs['campaign_slug'], allow_statistics=True)
         return http.HttpResponse(json.dumps({
