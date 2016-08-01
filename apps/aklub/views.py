@@ -21,6 +21,7 @@
 from . import autocom
 from .models import UserInCampaign, UserProfile, Payment, Source, StatMemberCountsByMonths, StatPaymentsByMonths, Campaign
 from betterforms.multiform import MultiModelForm
+from collections import OrderedDict
 from django import forms, http
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
@@ -109,11 +110,11 @@ class RegularUserForm_UserInCampaign(forms.ModelForm):
 class RegularUserForm(MultiModelForm):
     required_css_class = 'required'
     base_fields = {}
-    form_classes = {
-        'user': RegularUserForm_User,
-        'userprofile': RegularUserForm_UserProfile,
-        'userincampaign': RegularUserForm_UserInCampaign,
-    }
+    form_classes = OrderedDict([
+        ('user', RegularUserForm_User),
+        ('userprofile', RegularUserForm_UserProfile),
+        ('userincampaign', RegularUserForm_UserInCampaign),
+    ])
 
 
 class RegularUserFormWithProfile(RegularUserForm):
@@ -176,22 +177,18 @@ class RegularView(FormView):
 
     def get_initial(self):
         initial = super().get_initial()
+        initial_user = {}
+        initial_userprofile = {}
         if self.request.GET.get('firstname'):
-            initial['firstname'] = self.request.GET.get('firstname')
+            initial_user['first_name'] = self.request.GET.get('firstname')
         if self.request.GET.get('surname'):
-            initial['surname'] = self.request.GET.get('surname')
-        if self.request.GET.get('street'):
-            initial['street'] = self.request.GET.get('street')
-        if self.request.GET.get('city'):
-            initial['city'] = self.request.GET.get('city')
-        if self.request.GET.get('country'):
-            initial['country'] = self.request.GET.get('country')
-        if self.request.GET.get('zip_code'):
-            initial['zip_code'] = self.request.GET.get('zip_code')
+            initial_user['last_name'] = self.request.GET.get('surname')
         if self.request.GET.get('email'):
-            initial['email'] = self.request.GET.get('email')
+            initial_user['email'] = self.request.GET.get('email')
         if self.request.GET.get('telephone'):
-            initial['telephone'] = self.request.GET.get('telephone')
+            initial_userprofile['telephone'] = self.request.GET.get('telephone')
+        initial['user'] = initial_user
+        initial['userprofile'] = initial_userprofile
         return initial
 
     def form_valid(self, form):

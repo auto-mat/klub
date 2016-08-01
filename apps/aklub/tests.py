@@ -634,9 +634,24 @@ class ViewsTests(TestCase):
             'Poslali jsme Vám do mailu údaje potřebné k dalším příspěvkům i radu, kam se obrátit, pokud potřebujete ještě něco jiného.')
 
     def test_regular_dpnk(self):
-        address = reverse('regular-dpnk')
+        address = "%s?firstname=Uest&surname=Tser&email=uest.tser@email.cz&telephone=1211221" % reverse('regular-dpnk')
         response = self.client.get(address)
-        self.assertContains(response, '<input class=" form-control" id="id_user-first_name" maxlength="30" name="user-first_name" type="text" required />', html=True)
+        self.assertContains(
+            response,
+            '<input class=" form-control" id="id_user-first_name" maxlength="30" name="user-first_name" type="text" required value="Uest" />',
+            html=True)
+        self.assertContains(
+            response,
+            '<input class=" form-control" id="id_user-last_name" maxlength="30" name="user-last_name" type="text" required value="Tser" />',
+            html=True)
+        self.assertContains(
+            response,
+            '<input class=" form-control" id="id_userprofile-telephone" maxlength="30" name="userprofile-telephone" type="text" required value="1211221" />',
+            html=True)
+        self.assertContains(
+            response,
+            '<input class=" form-control" id="id_user-email" name="user-email" type="email" required value="uest.tser@email.cz" />',
+            html=True)
 
         response = self.client.post(address, self.regular_post_data, follow=True)
         self.assertContains(response, '<h5>Děkujeme!</h5>', html=True)
