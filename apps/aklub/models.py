@@ -120,10 +120,13 @@ class Campaign(models.Model):
     number_of_members.short_description = _("number of members")
 
     def number_of_regular_members(self):
-        return self.userincampaign_set.filter(regular_payments=True).count()
+        return self.userincampaign_set.filter(regular_payments=True, payment__amount__gt=0).distinct().count()
 
     def number_of_onetime_members(self):
-        return self.userincampaign_set.filter(regular_payments=False).count()
+        return self.userincampaign_set.filter(regular_payments=False, payment__amount__gt=0).distinct().count()
+
+    def number_of_active_members(self):
+        return self.userincampaign_set.filter(payment__amount__gt=0).distinct().count()
 
     def recruiters(self):
         return Recruiter.objects.filter(campaigns=self)

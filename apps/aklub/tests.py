@@ -401,7 +401,7 @@ class AdminTest(tests.AdminSiteSmokeTest):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/admin/aklub/taxconfirmation/")
         self.assertEqual(TaxConfirmation.objects.get(user__id=2978, year=2016).amount, 350)
-        self.assertEqual(request._messages._queued_messages[0].message, 'Generated 1 tax confirmations')
+        self.assertEqual(request._messages._queued_messages[0].message, 'Generated 2 tax confirmations')
 
     @freeze_time("2015-5-1")
     def test_account_statement_changelist_post(self):
@@ -580,10 +580,11 @@ class ViewsTests(TestCase):
         address = reverse('campaign-statistics', kwargs={'campaign_slug': 'klub1'})
         response = self.client.get(address)
         self.assertJSONEqual(response.content.decode(), {
-            "total-income": 350,
+            "total-income": 480,
             "expected-yearly-income": 1200,
             "number-of-regular-members": 1,
             "number-of-onetime-members": 1,
+            "number-of-active-members": 2,
             })
         self.assertEqual(response.status_code, 200)
 
@@ -602,12 +603,12 @@ class ViewsTests(TestCase):
         response = self.client.get(address)
         self.assertContains(
             response,
-            '<p>Celkem již podpořilo činnost Auto*Matu 1 lidí<br/>Z toho 1 přispívá na jeho činnost pravidelně</p>',
+            '<p>Celkem již podpořilo činnost Auto*Matu 2 lidí<br/>Z toho 1 přispívá na jeho činnost pravidelně</p>',
             html=True,
             )
         self.assertContains(
             response,
-            '<ul><li>Test&nbsp;User</li></ul>',
+            '<ul><li>Test&nbsp;User</li><li>Test&nbsp;User 1</li></ul>',
             html=True,
             )
 
@@ -860,7 +861,7 @@ class AccountStatementTests(TestCase):
         unpaired_payment.save()
         user1 = UserInCampaign.objects.get(pk=2979)
         admin.pair_variable_symbols(None, None, [a1, ])
-        self.assertEqual(user1.payment_set.get(), a1.payment_set.get(VS=130430001))
+        self.assertEqual(user1.payment_set.get(VS=130430001), a1.payment_set.get(VS=130430001))
 
     def check_account_statement_data(self):
         a1 = AccountStatements.objects.get(type="darujme")
@@ -984,4 +985,4 @@ class FilterTests(TestCase):
     def test_show_payments_by_year_blank(self):
         m = MagicMock()
         admin.show_payments_by_year(m, self.request, UserInCampaign.objects.all())
-        m.message_user.assert_called_once_with(self.request, '2016: 350<br/>TOT.: 350')
+        m.message_user.assert_called_once_with(self.request, '2016: 480<br/>TOT.: 480')
