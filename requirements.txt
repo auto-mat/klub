@@ -7,15 +7,15 @@ django-bootstrap-form
 #pygraphviz
 django-wysiwyg
 django-tinymce
--e git+https://github.com/and-nothing-else/django-admin-tools.git#egg=django-admin-tools  # git version for Django 1.10 compatibility
+-e git+https://github.com/PetrDlouhy/django-admin-tools.git#egg=django-admin-tools  # git version for Django 1.10 compatibility
 feedparser
--e git+https://github.com/PetrDlouhy/django-admin-user-stats.git#egg=django-admin-user-stats
+-e git+https://github.com/PetrDlouhy/django-admin-user-stats.git#egg=django-admin-user-stats  # for yearly statistics
 #django-admin-user-stats==0.2
 django-chart-tools
--e git+https://github.com/PetrDlouhy/django-mass-edit.git#egg=django-mass-edit
+django-mass-edit
 python-memcached
--e git+https://github.com/PetrDlouhy/django-import-export.git#egg=django-import-export
--e git+https://github.com/PetrDlouhy/django-qsstats-magic.git#egg=django-qsstats-magic
+django-import-export
+-e git+https://github.com/PetrDlouhy/django-qsstats-magic.git#egg=django-qsstats-magic  # for Python 3 fixes
 python-dateutil
 html2text
 xlrd
