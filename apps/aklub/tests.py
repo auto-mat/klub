@@ -34,6 +34,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
 from django.core.urlresolvers import reverse
 from django.db.models import Q
+from django.forms import ValidationError
 from django.test import TestCase, RequestFactory
 from django.test.runner import DiscoverRunner
 from django_admin_smoke_tests import tests
@@ -927,6 +928,13 @@ class AccountStatementTests(TestCase):
         self.assertEqual(unknown_user1.end_of_regular_payments, datetime.date(2014, 12, 31))
         self.assertEqual(unknown_user1.regular_frequency, None)
         self.assertEqual(unknown_user1.regular_payments, False)
+
+        unknown_user3 = UserInCampaign.objects.get(userprofile__user__email="unknown3@email.cz")
+        self.assertEqual(unknown_user3.userprofile.zip_code, "")
+        self.assertEqual(unknown_user3.regular_amount, None)
+        self.assertEqual(unknown_user3.end_of_regular_payments, None)
+        self.assertEqual(unknown_user3.regular_frequency, 'monthly')
+        self.assertEqual(unknown_user3.regular_payments, True)
         return a1
 
     def test_darujme_statement(self):
@@ -939,6 +947,19 @@ class AccountStatementTests(TestCase):
     def test_darujme_xml_statement(self):
         darujme.create_statement_from_file("apps/aklub/test_data/darujme.xml")
         self.check_account_statement_data()
+
+    def test_darujme_xml_emty_file_skipped(self):
+        count_before = AccountStatements.objects.count()
+        attachment = SimpleUploadedFile("attachment.txt", b'<?xml version="1.0" encoding="utf-8" ?><darujme_api></darujme_api>', content_type="text/xml")
+        darujme.create_statement_from_file(attachment)
+        self.assertEqual(AccountStatements.objects.count(), count_before)
+
+    def test_darujme_xml_statement_duplicate_email(self):
+        u2 = User.objects.get(pk=3)
+        u2.email = "test.user@email.cz"
+        u2.save()
+        with self.assertRaises(ValidationError):
+            darujme.create_statement_from_file("apps/aklub/test_data/darujme.xml")
 
     @patch("urllib.request")
     def test_darujme_action(self, urllib_request):

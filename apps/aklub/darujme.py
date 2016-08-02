@@ -5,7 +5,6 @@ from aklub.models import Payment, UserInCampaign, str_to_datetime, str_to_dateti
 from aklub.views import generate_variable_symbol
 from collections import OrderedDict
 from django.contrib.auth.models import User
-from django.core.exceptions import MultipleObjectsReturned
 from django.forms import ValidationError
 from django.utils.translation import ugettext_lazy as _
 from xml.dom import minidom
@@ -49,6 +48,7 @@ def parse_darujme_xml(xmlfile):
         data['projekt'] = record.getElementsByTagName('projekt')[0].firstChild.nodeValue
         data['cislo_projektu'] = record.getElementsByTagName('cislo_projektu')[0].firstChild.nodeValue
         data['cetnost'] = record.getElementsByTagName('cetnost')[0].firstChild.nodeValue
+        data['stav'] = record.getElementsByTagName('stav')[0].firstChild.nodeValue
         cetnost_konec = record.getElementsByTagName('cetnost_konec')[0].firstChild
         if cetnost_konec:
             data['cetnost_konec'] = str_to_datetime_xml(cetnost_konec.nodeValue)
@@ -68,9 +68,13 @@ def parse_darujme_xml(xmlfile):
         platby = record.getElementsByTagName('platby')
         if len(platby) > 0:
             for platba in platby[0].getElementsByTagName('platba'):
-                data['datum_prichozi_platby'] = record.getElementsByTagName('datum_prichozi_platby')[0].firstChild.nodeValue
+                data['datum_prichozi_platby'] = platba.getElementsByTagName('datum_prichozi_platby')[0].firstChild.nodeValue
                 data['obdrzena_castka'] = parse_float_to_int(platba.getElementsByTagName('obdrzena_castka')[0].firstChild.nodeValue)
                 create_payment(data, payments, skipped_payments)
+        else:
+            data['datum_prichozi_platby'] = None
+            data['obdrzena_castka'] = None
+            create_payment(data, payments, skipped_payments)
     return payments, skipped_payments
 
 
@@ -105,13 +109,15 @@ def create_payment(data, payments, skipped_payments):
         log.info('Payment with type Darujme.cz and SS=%s already exists, skipping' % str(data['id']))
         return None
 
-    p = Payment()
-    p.type = 'darujme'
-    p.SS = data['id']
-    p.date = data['datum_prichozi_platby']
-    p.amount = data['obdrzena_castka']
-    p.account_name = u'%s, %s' % (data['prijmeni'], data['jmeno'])
-    p.user_identification = data['email']
+    p = None
+    if data['stav'] in OK_STATES:
+        p = Payment()
+        p.type = 'darujme'
+        p.SS = data['id']
+        p.date = data['datum_prichozi_platby']
+        p.amount = data['obdrzena_castka']
+        p.account_name = u'%s, %s' % (data['prijmeni'], data['jmeno'])
+        p.user_identification = data['email']
 
     if data['cetnost_konec'] in (UNLIMITED, ""):
         cetnost_konec = None
@@ -123,11 +129,11 @@ def create_payment(data, payments, skipped_payments):
     else:
         cetnost = None
 
+    if 'cislo_projektu' in data:
+        campaign = Campaign.objects.get(darujme_api_id=data['cislo_projektu'])
+    else:
+        campaign = Campaign.objects.get(darujme_name=data['projekt'])
     try:
-        if 'cislo_projektu' in data:
-            campaign = Campaign.objects.get(darujme_api_id=data['cislo_projektu'])
-        else:
-            campaign = Campaign.objects.get(darujme_name=data['projekt'])
         user, user_created = User.objects.get_or_create(
             email=data['email'],
             defaults={
@@ -135,31 +141,32 @@ def create_payment(data, payments, skipped_payments):
                 'last_name': data['prijmeni'],
                 'username': '%s%s' % (data['email'].split('@', 1)[0], User.objects.count()),
             })
-        userprofile, userprofile_created = UserProfile.objects.get_or_create(
-            user=user,
-            defaults={
-                'street': data['ulice'],
-                'city': data['mesto'],
-                'zip_code': data['psc'],
-            })
-        userincampaign, userincampaign_created = UserInCampaign.objects.get_or_create(
-            userprofile=userprofile,
-            campaign=campaign,
-            defaults={
-                'variable_symbol': generate_variable_symbol(),
-                'wished_tax_confirmation': data['potvrzeni_daru'],
-                'regular_frequency': cetnost,
-                'regular_payments': cetnost is not None,
-                'regular_amount': data['obdrzena_castka'] if cetnost else None,
-                'end_of_regular_payments': cetnost_konec,
-            })
-        p.user = userincampaign
-
-        if userincampaign_created:
-            log.info('UserInCampaign with email %s created' % data['email'])
-    except MultipleObjectsReturned:
+    except User.MultipleObjectsReturned:
         log.info('Duplicate email %s' % data['email'])
         raise ValidationError(_('Duplicate email %(email)s'), params={'email': data['email']})
+    userprofile, userprofile_created = UserProfile.objects.get_or_create(
+        user=user,
+        defaults={
+            'street': data['ulice'],
+            'city': data['mesto'],
+            'zip_code': data['psc'],
+        })
+    userincampaign, userincampaign_created = UserInCampaign.objects.get_or_create(
+        userprofile=userprofile,
+        campaign=campaign,
+        defaults={
+            'variable_symbol': generate_variable_symbol(),
+            'wished_tax_confirmation': data['potvrzeni_daru'],
+            'regular_frequency': cetnost,
+            'regular_payments': cetnost is not None,
+            'regular_amount': data['obdrzena_castka'] if cetnost else None,
+            'end_of_regular_payments': cetnost_konec,
+        })
+    if p:
+        p.user = userincampaign
+
+    if userincampaign_created:
+        log.info('UserInCampaign with email %s created' % data['email'])
     payments.append(p)
 
 
@@ -188,11 +195,11 @@ def parse_darujme(xlsfile):
         # The money we receive is smaller by Darujme.cz
         # margin, but we must count the whole ammount
         # to issue correct tax confirmation to the donor
-        state = row[9].value
-        if state not in OK_STATES:
-            continue
-
-        data['obdrzena_castka'] = int(row[5].value)
+        data['stav'] = row[9].value
+        if row[5].value:
+            data['obdrzena_castka'] = int(row[5].value)
+        else:
+            data['obdrzena_castka'] = None
 
         data['datum_prichozi_platby'] = str_to_datetime(row[12].value)
         data['jmeno'] = row[17].value

@@ -845,6 +845,8 @@ class UserYearPayments(UserInCampaign):
 
 
 def str_to_datetime(date):
+    if not date:
+        return None
     return datetime.date(
         **dict(zip(
             ['day', 'month', 'year'],
@@ -900,8 +902,9 @@ class AccountStatements(models.Model):
         super(AccountStatements, self).save(*args, **kwargs)
         if hasattr(self, "payments"):
             for payment in self.payments:
-                payment.account_statement = self
-                payment.save()
+                if payment:
+                    payment.account_statement = self
+                    payment.save()
 
     def pair_vs(self, payment):
         # Payments pairing'
