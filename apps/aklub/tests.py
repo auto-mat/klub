@@ -28,6 +28,7 @@ from django.contrib import admin as django_admin
 from django.contrib.auth.models import User
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core import mail
+from django.core.cache import cache
 from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
@@ -40,6 +41,15 @@ from freezegun import freeze_time
 from unittest.mock import MagicMock, patch
 import datetime
 import io
+
+
+ICON_FALSE = '<img src="/media/admin/img/icon-no.svg" alt="False" />'
+
+
+class ClearCacheMixin(object):
+    def tearDown(self):
+        super().tearDown()
+        cache.clear()
 
 
 class AklubTestSuiteRunner(DiscoverRunner):
@@ -363,12 +373,16 @@ class MailingTest(TestCase):
         )
         u = UserInCampaign.objects.all()
         mailing.send_mass_communication(c, u, sending_user, save=False)
-        self.assertEqual(len(mail.outbox), 2)
+        self.assertEqual(len(mail.outbox), 3)
         msg = mail.outbox[0]
+        self.assertEqual(msg.recipients(), ['without_payments@email.cz'])
+        self.assertEqual(msg.subject, 'Testing email')
+        self.assertIn("Testing template", msg.body)
+        msg = mail.outbox[1]
         self.assertEqual(msg.recipients(), ['test.user@email.cz'])
         self.assertEqual(msg.subject, 'Testing email')
         self.assertIn("Testing template", msg.body)
-        msg1 = mail.outbox[1]
+        msg1 = mail.outbox[2]
         self.assertEqual(msg1.recipients(), ['test.user1@email.cz'])
         self.assertEqual(msg1.subject, 'Testing email en')
         self.assertIn("Testing template", msg1.body)
@@ -391,7 +405,7 @@ class AdminTest(tests.AdminSiteSmokeTest):
         queryset = UserInCampaign.objects.all()
         response = model_admin.send_mass_communication(request, queryset)
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, "/admin/aklub/masscommunication/add/?send_to_users=2978,2979")
+        self.assertEqual(response.url, "/admin/aklub/masscommunication/add/?send_to_users=3,2978,2979")
 
     @freeze_time("2017-5-1")
     def test_tax_confirmation_generate(self):
@@ -559,7 +573,7 @@ def print_response(response):
         f.write(response.content.decode())
 
 
-class ViewsTests(TestCase):
+class ViewsTests(ClearCacheMixin, TestCase):
     fixtures = ['conditions', 'users', 'communications']
 
     def setUp(self):
@@ -582,7 +596,7 @@ class ViewsTests(TestCase):
         self.assertJSONEqual(response.content.decode(), {
             "total-income": 480,
             "expected-yearly-income": 1200,
-            "number-of-regular-members": 1,
+            "number-of-regular-members": 2,
             "number-of-onetime-members": 1,
             "number-of-active-members": 2,
             })
@@ -591,10 +605,14 @@ class ViewsTests(TestCase):
     def test_main_admin_page(self):
         address = "/"
         response = self.client.get(address)
-        self.assertContains(response, "Nestará registrace: 2 položek")
+        self.assertContains(response, "Nestará registrace: 3 položek")
+        print_response(response)
         self.assertContains(
             response,
-            '<div class="dashboard-module-content"> <p>Celkový počet položek: 1</p><ul class="stacked"><li class="odd"><a href="aklub/user/2978">User Test</a></li></ul> </div>',
+            '<div class="dashboard-module-content"> <p>Celkový počet položek: 2</p><ul class="stacked">'
+            '<li class="odd"><a href="aklub/user/3">Payments Without</a></li>'
+            '<li class="even"><a href="aklub/user/2978">User Test</a></li>'
+            '</ul> </div>',
             html=True,
             )
 
@@ -619,7 +637,8 @@ class ViewsTests(TestCase):
             response.content.decode(),
             [
                 {"firstname": "Test", "text": "", "picture": "", "surname": "User 1", "picture_thumbnail": ""},
-                {"firstname": "Test", "text": "", "picture": "", "surname": "User", "picture_thumbnail": ""}
+                {"firstname": "Test", "text": "", "picture": "", "surname": "User", "picture_thumbnail": ""},
+                {"firstname": "Without", "text": "", "picture": "", "surname": "Payments", "picture_thumbnail": ""},
             ])
 
     def test_regular_existing_email(self):
@@ -663,7 +682,7 @@ class ViewsTests(TestCase):
         self.assertEqual(msg.body, 'New user has been created Jméno: Testing Příjmení: User Ulice: Město: PSC:\nE-mail: test@test.cz Telefon: 111222333\n\n')
 
         self.assertEqual(User.objects.get(email="test@test.cz").get_full_name(), "Testing User")
-        self.assertEqual(User.objects.get(email="test@test.cz").username, "test3")
+        self.assertEqual(User.objects.get(email="test@test.cz").username, "test4")
         self.assertEqual(UserProfile.objects.get(user__email="test@test.cz").telephone, '111222333')
         self.assertEqual(UserInCampaign.objects.get(userprofile__user__email="test@test.cz").regular_amount, 321)
 
@@ -676,7 +695,7 @@ class ViewsTests(TestCase):
         self.assertContains(response, '<h1>Děkujeme!</h1>', html=True)
 
         self.assertEqual(User.objects.get(email="test@test.cz").get_full_name(), "Testing User")
-        self.assertEqual(User.objects.get(email="test@test.cz").username, "test3")
+        self.assertEqual(User.objects.get(email="test@test.cz").username, "test4")
         self.assertEqual(UserProfile.objects.get(user__email="test@test.cz").telephone, '111222333')
         self.assertEqual(UserInCampaign.objects.get(userprofile__user__email="test@test.cz").regular_amount, 321)
 
@@ -689,7 +708,7 @@ class ViewsTests(TestCase):
         self.assertContains(response, '<h1>Děkujeme!</h1>', html=True)
 
         self.assertEqual(User.objects.get(email="test@test.cz").get_full_name(), "Testing User")
-        self.assertEqual(User.objects.get(email="test@test.cz").username, "test3")
+        self.assertEqual(User.objects.get(email="test@test.cz").username, "test4")
         self.assertEqual(UserProfile.objects.get(user__email="test@test.cz").telephone, '111222333')
         self.assertEqual(UserInCampaign.objects.get(userprofile__user__email="test@test.cz").regular_amount, 321)
 
@@ -731,7 +750,7 @@ class ViewsTests(TestCase):
         self.assertContains(response, '<h1>Děkujeme!</h1>', html=True)
 
         self.assertEqual(User.objects.get(email="test@test.cz").get_full_name(), "Testing User")
-        self.assertEqual(User.objects.get(email="test@test.cz").username, "test3")
+        self.assertEqual(User.objects.get(email="test@test.cz").username, "test4")
         self.assertEqual(UserProfile.objects.get(user__email="test@test.cz").telephone, '+420123456789')
         self.assertEqual(UserInCampaign.objects.get(userprofile__user__email="test@test.cz").note, 'Note')
 
@@ -773,6 +792,8 @@ class ModelTests(TestCase):
         call_command('denorm_init')
         self.u = UserInCampaign.objects.get(pk=2979)
         self.u1 = UserInCampaign.objects.get(pk=2978)
+        self.u2 = UserInCampaign.objects.get(pk=3)
+        self.u2.save()
         self.p = Payment.objects.get(pk=1)
         self.p1 = Payment.objects.get(pk=2)
         self.p2 = Payment.objects.get(pk=3)
@@ -793,9 +814,10 @@ class ModelTests(TestCase):
         self.assertEqual(self.u.last_payment_date(), None)
         self.assertEqual(self.u.last_payment_type(), None)
         self.assertEqual(self.u.requires_action(), False)
+        self.assertEqual(self.u.payment_delay(),  ICON_FALSE)
         self.assertEqual(self.u.expected_regular_payment_date, None)
         self.assertEqual(self.u.regular_payments_delay(), False)
-        self.assertEqual(self.u.extra_payments(), '<img src="/media/admin/img/icon-no.svg" alt="False" />')
+        self.assertEqual(self.u.extra_payments(), ICON_FALSE)
         self.assertEqual(self.u.no_upgrade, False)
         self.assertEqual(self.u.monthly_regular_amount(), 0)
 
@@ -812,8 +834,9 @@ class ModelTests(TestCase):
         self.assertEqual(self.u1.regular_payments_delay(), datetime.timedelta(12))
         self.assertEqual(self.u1.extra_money, None)
         self.assertEqual(self.u1.regular_payments_info(), datetime.date(2016, 4, 9))
-        self.assertEqual(self.u1.extra_payments(), '<img src="/media/admin/img/icon-no.svg" alt="False" />')
+        self.assertEqual(self.u1.extra_payments(),  ICON_FALSE)
         self.assertEqual(self.u1.mail_communications_count(), False)
+        self.assertEqual(self.u1.payment_delay(), '3\xa0týdny, 1\xa0den')
         self.assertEqual(self.u1.payment_total, 350.0)
         self.assertEqual(self.u1.total_contrib_string(), "350&nbsp;Kč")
         self.assertEqual(self.u1.registered_support_date(), "16. 12. 2015")
@@ -823,6 +846,9 @@ class ModelTests(TestCase):
         self.assertEqual(self.tax_confirmation.amount, 350)
         self.assertEqual(self.u1.no_upgrade, False)
         self.assertEqual(self.u1.monthly_regular_amount(), 100)
+
+        self.assertEqual(self.u2.expected_regular_payment_date, datetime.date(2015, 12, 19))
+        self.assertEqual(self.u2.payment_delay(), '4\xa0měsíce, 2\xa0týdny')
 
     def test_extra_payments(self):
         Payment.objects.create(date=datetime.date(year=2016, month=5, day=1), user=self.u1, amount=250)
@@ -889,7 +915,7 @@ class AccountStatementTests(TestCase):
         self.assertEqual(unknown_user.userprofile.street, "Ulice 321")
         self.assertEqual(unknown_user.userprofile.city, "Nová obec")
         self.assertEqual(unknown_user.userprofile.zip_code, "12321")
-        self.assertEqual(unknown_user.userprofile.user.username, "unknown2")
+        self.assertEqual(unknown_user.userprofile.user.username, "unknown3")
         self.assertEqual(unknown_user.wished_information, True)
         self.assertEqual(unknown_user.regular_payments, True)
         self.assertEqual(unknown_user.regular_amount, 150)
@@ -970,7 +996,7 @@ class FilterTests(TestCase):
     def test_user_condition_filter(self):
         f = filters.UserConditionFilter(self.request, {"user_condition": 2}, User, None)
         q = f.queryset(self.request, UserInCampaign.objects.all())
-        self.assertEquals(q.count(), 2)
+        self.assertEquals(q.count(), 3)
 
     def test_active_camaign_filter_no(self):
         f = filters.ActiveCampaignFilter(self.request, {"active": "no"}, User, None)
@@ -985,7 +1011,7 @@ class FilterTests(TestCase):
     def test_email_filter(self):
         f = filters.EmailFilter(self.request, {}, User, None)
         q = f.queryset(self.request, UserInCampaign.objects.all())
-        self.assertEquals(q.count(), 2)
+        self.assertEquals(q.count(), 3)
 
     def test_email_filter_duplicate(self):
         f = filters.EmailFilter(self.request, {"email": "duplicate"}, User, None)

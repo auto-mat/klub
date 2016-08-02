@@ -671,10 +671,7 @@ class UserInCampaign(models.Model):
                 if (expected_with_tolerance <
                         datetime.date.today()):
                     return datetime.date.today()-expected_with_tolerance
-                else:
-                    return False
-        else:
-            return False
+        return False
 
     @denormalized(models.IntegerField, null=True)
     @depend_on_related('Payment', foreign_key="user")
@@ -911,15 +908,11 @@ class AccountStatements(models.Model):
         if payment.VS == '':
             payment.VS = None
         else:
-            users_with_vs = UserInCampaign.objects.filter(variable_symbol=payment.VS)
-            if len(users_with_vs) == 1:
-                payment.user = users_with_vs[0]
-            elif len(users_with_vs) > 1:
-                raise Exception(
-                    "Duplicit variable symbol (%s) detected "
-                    "for users: %s!" %
-                    (payment.VS, ",".join(
-                        [str(user) for user in users_with_vs])))
+            try:
+                user_with_vs = UserInCampaign.objects.get(variable_symbol=payment.VS)
+                payment.user = user_with_vs
+            except UserInCampaign.DoesNotExist:
+                return
 
     def parse_bank_csv(self):
         # Read and parse the account statement

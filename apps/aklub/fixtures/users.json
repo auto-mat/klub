@@ -279,6 +279,78 @@
         },
         "model": "aklub.userincampaign",
         "pk": 2978
+    },
+    {
+        "fields": {
+            "username": "without_payments",
+            "first_name": "Without",
+            "last_name": "Payments",
+            "email": "without_payments@email.cz"
+        },
+        "model": "auth.user",
+        "pk": 3
+    },
+    {
+        "fields": {
+            "profile_picture": "",
+            "user": 3,
+            "sex": "male",
+            "street": "",
+            "addressment": "Street",
+            "addressment_on_envelope": "",
+            "city": "Praha 4",
+            "different_correspondence_address": false,
+            "language": "cs",
+            "telephone": "",
+            "club_card_available": false,
+            "country": "\u010cesk\u00e1 republika",
+            "other_benefits": "",
+            "public": true,
+            "zip_code": "",
+            "title_after": "",
+            "title_before": "",
+            "campaigns": [],
+            "club_card_dispatched": false,
+            "profile_text": null
+        },
+        "model": "aklub.userprofile",
+        "pk": 3
+    },
+    {
+        "fields": {
+            "userprofile": 3,
+            "wished_information": true,
+            "wished_tax_confirmation": true,
+            "wished_welcome_letter": true,
+            "recruiter": null,
+            "activity_points": 1,
+            "additional_information": "editor",
+            "exceptional_membership": false,
+            "expected_date_of_first_payment":  "2015-12-16",
+            "expected_regular_payment_date": null,
+            "extra_money": null,
+            "field_of_work": "",
+            "knows_us_from": "",
+            "last_payment": null,
+            "no_upgrade": false,
+            "note": "User without payments",
+            "number_of_payments": 0,
+            "old_account": false,
+            "other_support": "",
+            "payment_total": 0.0,
+            "registered_support": "2015-12-16T18:22:30.128",
+            "regular_amount": 100,
+            "regular_frequency": null,
+            "regular_payments": true,
+            "source": 10,
+            "variable_symbol": "",
+            "verified": false,
+            "verified_by": null,
+            "campaign": 2,
+            "why_supports": ""
+        },
+        "model": "aklub.userincampaign",
+        "pk": 3
     }
 ]
 
