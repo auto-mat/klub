@@ -1514,22 +1514,17 @@ class TerminalCondition(models.Model):
 
         join_querystring = "__".join(spec_[1:])
 
-        if operation == '=' or operation == '!=':
-            return join_querystring
-        elif operation == '<':
-            return join_querystring + "__lt"
-        elif operation == '>':
-            return join_querystring + "__gt"
-        elif operation == 'contains':
-            return join_querystring + "__contains"
-        elif operation == 'icontains':
-            return join_querystring + "__icontains"
-        elif operation == '<=':
-            return join_querystring + "__lte"
-        elif operation == '>=':
-            return join_querystring + "__gte"
-        else:
-            NotImplementedError("Unknown operation %s" % operation)
+        operation_map = {
+            '=': "",
+            '!=': "",
+            '<': "__lt",
+            '>': "__gt",
+            'contains': "__contains",
+            'icontains': "__icontains",
+            '<=': "__lte",
+            '>=': "__gte",
+        }
+        return join_querystring + operation_map[operation]
 
     def get_query(self, action=None):
         if self.variable == 'action':
