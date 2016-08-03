@@ -50,7 +50,7 @@ def parse_darujme_xml(xmlfile):
         data['cetnost'] = record.getElementsByTagName('cetnost')[0].firstChild.nodeValue
         data['stav'] = record.getElementsByTagName('stav')[0].firstChild.nodeValue
         cetnost_konec = record.getElementsByTagName('cetnost_konec')[0].firstChild
-        if cetnost_konec:
+        if cetnost_konec and cetnost_konec.nodeValue != UNLIMITED:
             data['cetnost_konec'] = str_to_datetime_xml(cetnost_konec.nodeValue)
         else:
             data['cetnost_konec'] = UNLIMITED
