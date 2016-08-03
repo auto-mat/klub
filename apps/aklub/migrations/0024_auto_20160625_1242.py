@@ -40,6 +40,8 @@ def create_userprofiles(apps, schema_editor):
             last_name=uic.surname,
             email=uic.email,
             is_active=uic.active,
+            created=uic.registered_support,
+            updated=uic.registered_support
         )
         print(uic.email)
         userprofile = UserProfile.objects.create(
