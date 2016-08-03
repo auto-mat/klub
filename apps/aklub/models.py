@@ -1290,11 +1290,14 @@ class ConditionValues(object):
         self._columns += [('action', None, _(u"Action"), 'CharField', ('daily', 'new-user', 'new-payment'))]
         # Models attributes
         for name in model_names:
-            model = {'UserInCampaign': UserInCampaign,
-                     'Payment': Payment,
-                     'UserInCampaign.source': Source,
-                     'UserInCampaign.last_payment': Payment,
-                     }[name]
+            model = {
+                'User': User,
+                'UserProfile': UserProfile,
+                'UserInCampaign': UserInCampaign,
+                'Payment': Payment,
+                'User.source': Source,
+                'User.last_payment': Payment,
+            }[name]
             # DB fields
             self._columns += [
                 (name, field.name, string_concat(name, " ", field.verbose_name), field.get_internal_type(), list(zip(*field.choices))[0] if field.choices else "")
@@ -1448,7 +1451,7 @@ class TerminalCondition(models.Model):
 
     variable = models.CharField(
         verbose_name=_("Variable"),
-        choices=ConditionValues(('UserInCampaign', 'UserInCampaign.source', 'UserInCampaign.last_payment')),
+        choices=ConditionValues(('User', 'UserProfile', 'UserInCampaign', 'User.source', 'User.last_payment')),
         help_text=_("Value or variable on left-hand side"),
         max_length=50, blank=True, null=True)
     operation = models.CharField(

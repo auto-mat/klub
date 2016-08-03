@@ -402,7 +402,7 @@
             "condition": 2, 
             "operation": ">", 
             "value": "datetime.2010-09-24 00:00", 
-            "variable": "User.registered_support"
+            "variable": "UserInCampaign.registered_support"
         }, 
         "model": "aklub.terminalcondition", 
         "pk": 1
@@ -412,7 +412,7 @@
             "condition": 1, 
             "operation": "=", 
             "value": "true", 
-            "variable": "User.regular_payments"
+            "variable": "UserInCampaign.regular_payments"
         }, 
         "model": "aklub.terminalcondition", 
         "pk": 2
@@ -422,7 +422,7 @@
             "condition": 4, 
             "operation": ">", 
             "value": "5000", 
-            "variable": "User.payment_total"
+            "variable": "UserInCampaign.payment_total"
         }, 
         "model": "aklub.terminalcondition", 
         "pk": 3
@@ -432,7 +432,7 @@
             "condition": 5, 
             "operation": ">", 
             "value": "days_ago.11", 
-            "variable": "User.expected_regular_payment_date"
+            "variable": "UserInCampaign.expected_regular_payment_date"
         }, 
         "model": "aklub.terminalcondition", 
         "pk": 4
@@ -442,7 +442,7 @@
             "condition": 6, 
             "operation": "=", 
             "value": "days_ago.18", 
-            "variable": "User.expected_regular_payment_date"
+            "variable": "UserInCampaign.expected_regular_payment_date"
         }, 
         "model": "aklub.terminalcondition", 
         "pk": 5
@@ -452,7 +452,7 @@
             "condition": 8, 
             "operation": "=", 
             "value": "days_ago.40", 
-            "variable": "User.expected_regular_payment_date"
+            "variable": "UserInCampaign.expected_regular_payment_date"
         }, 
         "model": "aklub.terminalcondition", 
         "pk": 6
@@ -462,7 +462,7 @@
             "condition": 9, 
             "operation": "=", 
             "value": "None", 
-            "variable": "User.source.slug"
+            "variable": "UserInCampaign.source.slug"
         }, 
         "model": "aklub.terminalcondition", 
         "pk": 7
@@ -472,7 +472,7 @@
             "condition": 12, 
             "operation": ">", 
             "value": "0", 
-            "variable": "User.extra_money"
+            "variable": "UserInCampaign.extra_money"
         }, 
         "model": "aklub.terminalcondition", 
         "pk": 8
@@ -482,7 +482,7 @@
             "condition": 14, 
             "operation": ">", 
             "value": "month_ago", 
-            "variable": "User.last_payment.date"
+            "variable": "UserInCampaign.last_payment.date"
         }, 
         "model": "aklub.terminalcondition", 
         "pk": 9
@@ -492,7 +492,7 @@
             "condition": 13, 
             "operation": "=", 
             "value": "false", 
-            "variable": "User.regular_payments"
+            "variable": "UserInCampaign.regular_payments"
         }, 
         "model": "aklub.terminalcondition", 
         "pk": 10
@@ -502,7 +502,7 @@
             "condition": 17, 
             "operation": "=", 
             "value": "1", 
-            "variable": "User.number_of_payments"
+            "variable": "UserInCampaign.number_of_payments"
         }, 
         "model": "aklub.terminalcondition", 
         "pk": 11
@@ -512,7 +512,7 @@
             "condition": 18, 
             "operation": ">", 
             "value": "0", 
-            "variable": "User.extra_money"
+            "variable": "UserInCampaign.extra_money"
         }, 
         "model": "aklub.terminalcondition", 
         "pk": 12
@@ -532,7 +532,7 @@
             "condition": 22, 
             "operation": "=", 
             "value": "expected", 
-            "variable": "User.last_payment.type"
+            "variable": "UserInCampaign.last_payment.type"
         }, 
         "model": "aklub.terminalcondition", 
         "pk": 14
@@ -542,7 +542,7 @@
             "condition": 25, 
             "operation": ">", 
             "value": "1", 
-            "variable": "User.number_of_payments"
+            "variable": "UserInCampaign.number_of_payments"
         }, 
         "model": "aklub.terminalcondition", 
         "pk": 15
@@ -552,7 +552,7 @@
             "condition": 27, 
             "operation": "=", 
             "value": "true", 
-            "variable": "User.no_upgrade"
+            "variable": "UserInCampaign.no_upgrade"
         }, 
         "model": "aklub.terminalcondition", 
         "pk": 16
@@ -562,7 +562,7 @@
             "condition": 10, 
             "operation": "=", 
             "value": "direct-dialogue-partial-form", 
-            "variable": "User.source.slug"
+            "variable": "UserInCampaign.source.slug"
         }, 
         "model": "aklub.terminalcondition", 
         "pk": 17
@@ -572,7 +572,7 @@
             "condition": 28, 
             "operation": "=", 
             "value": "direct-dialogue-full-form", 
-            "variable": "User.source.slug"
+            "variable": "UserInCampaign.source.slug"
         }, 
         "model": "aklub.terminalcondition", 
         "pk": 18
@@ -582,7 +582,7 @@
             "condition": 16, 
             "operation": "!=", 
             "value": "0", 
-            "variable": "User.number_of_payments"
+            "variable": "UserInCampaign.number_of_payments"
         }, 
         "model": "aklub.terminalcondition", 
         "pk": 19
@@ -592,7 +592,7 @@
             "condition": 31, 
             "operation": "=", 
             "value": "0", 
-            "variable": "User.number_of_payments"
+            "variable": "UserInCampaign.number_of_payments"
         }, 
         "model": "aklub.terminalcondition", 
         "pk": 20
@@ -622,7 +622,7 @@
             "condition": 7, 
             "operation": "=", 
             "value": "days_ago.1", 
-            "variable": "User.expected_regular_payment_date"
+            "variable": "UserInCampaign.expected_regular_payment_date"
         }, 
         "model": "aklub.terminalcondition", 
         "pk": 24
