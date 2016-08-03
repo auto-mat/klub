@@ -1,3 +1,3 @@
 #!/bin/sh
 
-env/bin/python manage.py shell < autocom.py
+env/bin/python manage.py autocom
