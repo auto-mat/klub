@@ -32,7 +32,7 @@ from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.db.models import Sum
 from django.http import HttpResponseRedirect
-from django.utils.html import mark_safe, format_html
+from django.utils.html import mark_safe, format_html, format_html_join
 from django.utils.translation import ugettext as _
 from import_export.admin import ImportExportMixin
 from import_export.resources import ModelResource
@@ -40,6 +40,13 @@ from related_admin import RelatedFieldAdmin
 import copy
 import datetime
 import django.forms
+
+
+def admin_links(args_generator):
+    return format_html_join(
+        mark_safe('<br/>'),
+        '<a href="{}">{}</a>',
+        args_generator)
 
 
 # -- INLINE FORMS --
@@ -134,12 +141,23 @@ class UserProfileInline(admin.StackedInline):
         (_('Profile'), {
             'fields': ['profile_text', 'profile_picture'],
             'classes': ['collapse']}),
+        (_('Links'), {
+            'fields': ['userattendance_links'],
+            }),
         ]
+    readonly_fields = ('userattendance_links',)
+
+    def userattendance_links(self, obj):
+        return admin_links(
+            [(reverse('admin:aklub_userincampaign_change', args=(u.pk,)), str(u.campaign))
+                for u in obj.userincampaign_set.all()])
+    userattendance_links.short_description = _('Users in campaign')
 
 
 class UserAdmin(RelatedFieldAdmin, UserAdmin):
     inlines = [UserProfileInline]
-    list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff', 'userprofile__sex', 'userprofile__created', 'userprofile__updated')
+    list_display = ('username', 'email', 'userprofile__telephone', 'first_name', 'last_name', 'is_staff', 'userprofile__sex', 'userprofile__created', 'userprofile__updated')
+    search_fields = ('username', 'email', 'first_name', 'last_name', 'userprofile__telephone')
     list_filter = (
         'is_staff',
         'is_superuser',
