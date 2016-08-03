@@ -23,6 +23,7 @@ from .models import (
     TerminalCondition, Condition, UserInCampaign, Communication, AutomaticCommunication,
     AccountStatements, Payment, UserProfile, MassCommunication, TaxConfirmation, Campaign)
 from PyPDF2 import PdfFileReader
+from collections import OrderedDict
 from django.conf import settings
 from django.contrib import admin as django_admin
 from django.contrib.auth.models import User
@@ -607,7 +608,6 @@ class ViewsTests(ClearCacheMixin, TestCase):
         address = "/"
         response = self.client.get(address)
         self.assertContains(response, "Nestará registrace: 3 položek")
-        print_response(response)
         self.assertContains(
             response,
             '<div class="dashboard-module-content"> <p>Celkový počet položek: 2</p><ul class="stacked">'
@@ -945,14 +945,17 @@ class AccountStatementTests(TestCase):
         self.check_account_statement_data()
 
     def test_darujme_xml_statement(self):
-        darujme.create_statement_from_file("apps/aklub/test_data/darujme.xml")
-        self.check_account_statement_data()
+        a, skipped = darujme.create_statement_from_file("apps/aklub/test_data/darujme.xml")
+        a1 = self.check_account_statement_data()
+        self.assertEqual(a, a1)
+        self.assertListEqual(skipped, [OrderedDict([('ss', '22258'), ('date', '2016-02-09'), ('name', 'Testing'), ('surname', 'User 1'), ('email', 'test.user1@email.cz')])])
 
-    def test_darujme_xml_emty_file_skipped(self):
+    def test_darujme_xml_file_skipped(self):
         count_before = AccountStatements.objects.count()
-        attachment = SimpleUploadedFile("attachment.txt", b'<?xml version="1.0" encoding="utf-8" ?><darujme_api></darujme_api>', content_type="text/xml")
-        darujme.create_statement_from_file(attachment)
+        a, skipped = darujme.create_statement_from_file("apps/aklub/test_data/darujme_skip.xml")
         self.assertEqual(AccountStatements.objects.count(), count_before)
+        self.assertEqual(a, None)
+        self.assertListEqual(skipped, [OrderedDict([('ss', '22258'), ('date', '2016-02-09'), ('name', 'Testing'), ('surname', 'User'), ('email', 'test.user@email.cz')])])
 
     def test_darujme_xml_statement_duplicate_email(self):
         u2 = User.objects.get(pk=3)

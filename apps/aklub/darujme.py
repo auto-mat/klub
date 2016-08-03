@@ -162,12 +162,13 @@ def create_payment(data, payments, skipped_payments):
             'regular_amount': data['obdrzena_castka'] if cetnost else None,
             'end_of_regular_payments': cetnost_konec,
         })
-    if p:
-        p.user = userincampaign
 
     if userincampaign_created:
         log.info('UserInCampaign with email %s created' % data['email'])
-    payments.append(p)
+
+    if p:
+        p.user = userincampaign
+        payments.append(p)
 
 
 def parse_darujme(xlsfile):
