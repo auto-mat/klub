@@ -156,7 +156,7 @@ class UserProfileInline(admin.StackedInline):
 
 class UserAdmin(RelatedFieldAdmin, UserAdmin):
     inlines = [UserProfileInline]
-    list_display = ('username', 'email', 'userprofile__telephone', 'first_name', 'last_name', 'is_staff', 'userprofile__sex', 'userprofile__created', 'userprofile__updated')
+    list_display = ('username', 'email', 'userprofile__telephone', 'first_name', 'last_name', 'is_staff', 'userprofile__sex', 'date_joined', 'last_login')
     search_fields = ('username', 'email', 'first_name', 'last_name', 'userprofile__telephone')
     list_filter = (
         'is_staff',
