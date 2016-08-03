@@ -145,7 +145,7 @@ class Campaign(models.Model):
 
     def expected_yearly_income(self):
         income = 0
-        for campaign_member in UserInCampaign.objects.filter(campaign=self):
+        for campaign_member in UserInCampaign.objects.filter(campaign=self, payment__amount__gt=0).distinct():
             # TODO: use aggregate to count this
             income += campaign_member.yearly_regular_amount()
         return income
