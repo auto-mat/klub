@@ -27,6 +27,7 @@ from .models import (
     Recruiter, Source, TaxConfirmation)
 from daterange_filter.filter import DateRangeFilter
 from django.contrib import admin, messages
+from django.contrib.admin import site
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
@@ -37,6 +38,7 @@ from django.utils.translation import ugettext as _
 from import_export.admin import ImportExportMixin
 from import_export.resources import ModelResource
 from related_admin import RelatedFieldAdmin
+import adminactions.actions as actions
 import copy
 import datetime
 import django.forms
@@ -581,3 +583,6 @@ admin.site.register(Source, SourceAdmin)
 
 admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
+
+# register all adminactions
+actions.add_to_site(site)

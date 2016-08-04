@@ -155,6 +155,7 @@ INSTALLED_APPS = (
     'daterange_filter',
     'denorm',
     'related_admin',
+    'adminactions',
     'aklub'
 )
 

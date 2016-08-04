@@ -19,5 +19,6 @@ urlpatterns = [
     url(r'^jsi18n', javascript_catalog),
     url(r'^tinymce/', include('tinymce.urls')),
     url(r'^admin_tools/', include('admin_tools.urls')),
+    url(r'^adminactions/', include('adminactions.urls')),
     url(r'', include("aklub.urls")),
 ]

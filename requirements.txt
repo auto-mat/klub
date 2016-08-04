@@ -27,3 +27,4 @@ django-related-admin
 gunicorn
 pypdf2  # for pdf result testing
 django-betterforms
+django-adminactions
