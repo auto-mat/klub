@@ -107,6 +107,9 @@ def create_statement_from_API(campaign):
 
 
 def create_payment(data, payments, skipped_payments):
+    if data['email'] == '':
+        return
+
     if Payment.objects.filter(type='darujme', SS=data['id'], date=data['datum_prichozi_platby']).exists():
         skipped_payments.append(OrderedDict([
             ('ss', data['id']),
@@ -119,7 +122,7 @@ def create_payment(data, payments, skipped_payments):
         return None
 
     p = None
-    if STATE_OK_MAP[data['stav']]:
+    if STATE_OK_MAP[data['stav'].strip()]:
         p = Payment()
         p.type = 'darujme'
         p.SS = data['id']
