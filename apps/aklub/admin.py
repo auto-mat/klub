@@ -512,7 +512,7 @@ download_darujme_statement.short_description = _("Download darujme statements")
 
 class CampaignAdmin(admin.ModelAdmin):
     list_display = (
-        'name', 'darujme_name', 'created', 'terminated', 'number_of_members', 'number_of_recruiters', 'acquisition_campaign', 'yield_total',
+        'name', 'darujme_name', 'darujme_api_id', 'created', 'terminated', 'number_of_members', 'number_of_recruiters', 'acquisition_campaign', 'yield_total',
         'total_expenses', 'expected_monthly_income', 'return_of_investmensts', 'average_yield', 'average_expense')
     readonly_fields = (
         'number_of_members', 'number_of_recruiters', 'yield_total', 'total_expenses',
