@@ -165,6 +165,7 @@ class UserAdmin(RelatedFieldAdmin, UserAdmin):
         'groups',
         'userprofile__language',
         'userprofile__campaigns',
+        filters.EmailFilter,
     )
 
 
@@ -205,7 +206,7 @@ class UserInCampaignAdmin(ImportExportMixin, RelatedFieldAdmin):
     date_hierarchy = 'registered_support'
     list_filter = [
         'regular_payments', 'userprofile__language', 'userprofile__user__is_active', 'wished_information', 'old_account',
-        'source', 'campaign', ('registered_support', DateRangeFilter), filters.EmailFilter,
+        'source', 'campaign', ('registered_support', DateRangeFilter),
         filters.UserConditionFilter, filters.UserConditionFilter1]
     search_fields = ['userprofile__user__first_name', 'userprofile__user__last_name', 'variable_symbol', 'userprofile__user__email', 'userprofile__telephone']
     ordering = ('userprofile__user__last_name',)
@@ -282,7 +283,7 @@ class UserYearPaymentsAdmin(UserInCampaignAdmin):
     list_filter = [
         ('payment__date', DateRangeFilter), 'regular_payments', 'userprofile__language', 'userprofile__user__is_active',
         'wished_information', 'old_account', 'source', 'userprofile__campaigns',
-        ('registered_support', DateRangeFilter), filters.EmailFilter, filters.UserConditionFilter, filters.UserConditionFilter1]
+        ('registered_support', DateRangeFilter), filters.UserConditionFilter, filters.UserConditionFilter1]
 
     def payment_total_by_year(self, obj):
         if self.from_date and self.to_date:

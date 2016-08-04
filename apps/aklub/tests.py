@@ -1041,17 +1041,17 @@ class FilterTests(TestCase):
 
     def test_email_filter(self):
         f = filters.EmailFilter(self.request, {}, User, None)
-        q = f.queryset(self.request, UserInCampaign.objects.all())
-        self.assertEquals(q.count(), 3)
+        q = f.queryset(self.request, User.objects.all())
+        self.assertEquals(q.count(), 4)
 
     def test_email_filter_duplicate(self):
         f = filters.EmailFilter(self.request, {"email": "duplicate"}, User, None)
-        q = f.queryset(self.request, UserInCampaign.objects.all())
+        q = f.queryset(self.request, User.objects.all())
         self.assertEquals(q.count(), 0)
 
     def test_email_filter_blank(self):
         f = filters.EmailFilter(self.request, {"email": "blank"}, User, None)
-        q = f.queryset(self.request, UserInCampaign.objects.all())
+        q = f.queryset(self.request, User.objects.all())
         self.assertEquals(q.count(), 0)
 
     def test_show_payments_by_year_blank(self):

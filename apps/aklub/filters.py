@@ -1,12 +1,12 @@
 # custom filters
 
-from django.utils.translation import ugettext as _
-from django.contrib.admin import SimpleListFilter
-from django.db.models import Count, Q
-from datetime import date
-
-from .models import Condition, UserInCampaign
 from . import models
+from .models import Condition
+from datetime import date
+from django.contrib.admin import SimpleListFilter
+from django.contrib.auth.models import User
+from django.db.models import Count, Q
+from django.utils.translation import ugettext as _
 
 
 class NullFieldFilter(SimpleListFilter):
@@ -87,15 +87,15 @@ class EmailFilter(SimpleListFilter):
 
     def queryset(self, request, queryset):
         if self.value() == 'duplicate':
-            duplicates = UserInCampaign.objects.filter(userprofile__user__email__isnull=False).\
-                exclude(userprofile__user__email__exact='').\
-                values('userprofile__user__email').\
+            duplicates = User.objects.filter(email__isnull=False).\
+                exclude(email__exact='').\
+                values('email').\
                 annotate(Count('id')).\
-                values('userprofile__user__email').\
+                values('email').\
                 order_by().\
                 filter(id__count__gt=1).\
-                values_list('userprofile__user__email', flat=True)
-            return queryset.filter(userprofile__user__email__in=duplicates)
+                values_list('email', flat=True)
+            return queryset.filter(email__in=duplicates)
         if self.value() == 'blank':
-            return queryset.filter(userprofile__user__email__exact='')
+            return queryset.filter(Q(email__exact='') or Q(email__isnull=True))
         return queryset
