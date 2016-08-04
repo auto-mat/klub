@@ -920,7 +920,7 @@ class AccountStatementTests(TestCase):
         self.assertEqual(unknown_user.wished_information, True)
         self.assertEqual(unknown_user.regular_payments, True)
         self.assertEqual(unknown_user.regular_amount, 150)
-        self.assertEqual(unknown_user.regular_frequency, "monthly")
+        self.assertEqual(unknown_user.regular_frequency, "annually")
 
         unknown_user1 = UserInCampaign.objects.get(userprofile__user__email="unknown1@email.cz")
         self.assertEqual(unknown_user1.userprofile.zip_code, "123 21")
@@ -935,6 +935,13 @@ class AccountStatementTests(TestCase):
         self.assertEqual(unknown_user3.end_of_regular_payments, None)
         self.assertEqual(unknown_user3.regular_frequency, 'monthly')
         self.assertEqual(unknown_user3.regular_payments, True)
+
+        test_user1 = UserInCampaign.objects.get(userprofile__user__email="test.user1@email.cz")
+        self.assertEqual(test_user1.userprofile.zip_code, "")
+        self.assertEqual(test_user1.regular_amount, None)
+        self.assertEqual(test_user1.end_of_regular_payments, None)
+        self.assertEqual(test_user1.regular_frequency, None)
+        self.assertEqual(test_user1.regular_payments, False)
         return a1
 
     def test_darujme_statement(self):

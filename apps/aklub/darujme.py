@@ -14,10 +14,19 @@ import urllib
 import xlrd
 
 # Text constants in Darujme.cz report
-OK_STATES = ('OK, převedeno', 'OK')
+STATE_OK_MAP = {
+    'OK, převedeno': True,
+    'OK': True,
+    'neproběhlo': False,
+    'neuzavřeno': False,
+    'příslib': False,
+}
 
-MONTHLY = 'měsíční'
-ONETIME = "jednorázový"
+FREQUENCY_MAP = {
+    'měsíční': "monthly",
+    "roční": "annually",
+    "jednorázový": None,
+}
 UNLIMITED = "na dobu neurčitou"
 
 log = logging.getLogger(__name__)
@@ -110,7 +119,7 @@ def create_payment(data, payments, skipped_payments):
         return None
 
     p = None
-    if data['stav'] in OK_STATES:
+    if STATE_OK_MAP[data['stav']]:
         p = Payment()
         p.type = 'darujme'
         p.SS = data['id']
@@ -124,10 +133,7 @@ def create_payment(data, payments, skipped_payments):
     else:
         cetnost_konec = data['cetnost_konec']
 
-    if data['cetnost'] == MONTHLY:
-        cetnost = "monthly"
-    else:
-        cetnost = None
+    cetnost = FREQUENCY_MAP[data['cetnost']]
 
     if 'cislo_projektu' in data:
         campaign = Campaign.objects.get(darujme_api_id=data['cislo_projektu'])
