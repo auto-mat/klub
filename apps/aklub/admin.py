@@ -119,7 +119,7 @@ show_payments_by_year.short_description = _("Show payments by year")
 
 userprofile_fieldsets = [
     (_('Basic personal'), {
-        'fields': [('sex', 'language', 'public')]}),
+        'fields': ['user', ('sex', 'language', 'public')]}),
     (_('Titles and addressments'), {
         'fields': [('title_before', 'title_after'),
                    ('addressment', 'addressment_on_envelope')],
@@ -169,8 +169,25 @@ class UserAdmin(RelatedFieldAdmin, UserAdmin):
 
 
 class UserProfileAdmin(RelatedFieldAdmin):
-    list_display = ('user__username', 'user__email', 'user__telephone', 'user__first_name', 'user__last_name', 'user__is_staff', 'sex', 'user__date_joined', 'user__last_login')
-    search_fields = ('user__username', 'user__email', 'user__first_name', 'user__last_name', 'user__telephone')
+    list_display = (
+        'person_name',
+        'user__username',
+        'user__email',
+        'user__telephone',
+        'user__first_name',
+        'user__last_name',
+        'user__is_staff',
+        'sex',
+        'user__date_joined',
+        'user__last_login',
+    )
+    search_fields = (
+        'user__username',
+        'user__email',
+        'user__first_name',
+        'user__last_name',
+        'user__telephone',
+    )
     list_filter = (
         'user__is_staff',
         'user__is_superuser',
