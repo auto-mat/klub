@@ -563,10 +563,7 @@ class UserInCampaign(models.Model):
         return str(self.person_name())
 
     def person_name(self):
-        if hasattr(self, 'userprofile') and hasattr(self.userprofile, 'user'):
-            return self.userprofile.__str__()
-        else:
-            return "UserInCampaign: %s " % self.id
+        return self.userprofile.__str__()
     person_name.short_description = _("Full name")
 
     def requires_action(self):
