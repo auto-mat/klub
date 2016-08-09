@@ -117,43 +117,40 @@ def show_payments_by_year(self, request, queryset):
 show_payments_by_year.short_description = _("Show payments by year")
 
 
+userprofile_fieldsets = [
+    (_('Basic personal'), {
+        'fields': [('sex', 'language', 'public')]}),
+    (_('Titles and addressments'), {
+        'fields': [('title_before', 'title_after'),
+                   ('addressment', 'addressment_on_envelope')],
+        'classes': ['collapse']
+        }),
+    (_('Contacts'), {
+        'fields': [('telephone'),
+                   ('street', 'city', 'country'),
+                   'zip_code', 'different_correspondence_address'],
+        }),
+    (_('Benefits'), {
+        'fields': [('club_card_available', 'club_card_dispatched'),
+                   'other_benefits'],
+        'classes': ['collapse']}),
+    (_('Notes'), {
+        'fields': ['campaigns'],
+        'classes': ['collapse']}),
+    (_('Profile'), {
+        'fields': ['profile_text', 'profile_picture'],
+        'classes': ['collapse']}),
+    (_('Links'), {
+        'fields': ['userattendance_links'],
+        }),
+    ]
+
+
 class UserProfileInline(admin.StackedInline):
     model = UserProfile
     filter_horizontal = ('campaigns',)
-    fieldsets = [
-        (_('Basic personal'), {
-            'fields': [('sex', 'language', 'public')]}),
-        (_('Titles and addressments'), {
-            'fields': [('title_before', 'title_after'),
-                       ('addressment', 'addressment_on_envelope')],
-            'classes': ['collapse']
-            }),
-        (_('Contacts'), {
-            'fields': [('telephone'),
-                       ('street', 'city', 'country'),
-                       'zip_code', 'different_correspondence_address'],
-            }),
-        (_('Benefits'), {
-            'fields': [('club_card_available', 'club_card_dispatched'),
-                       'other_benefits'],
-            'classes': ['collapse']}),
-        (_('Notes'), {
-            'fields': ['campaigns'],
-            'classes': ['collapse']}),
-        (_('Profile'), {
-            'fields': ['profile_text', 'profile_picture'],
-            'classes': ['collapse']}),
-        (_('Links'), {
-            'fields': ['userattendance_links'],
-            }),
-        ]
     readonly_fields = ('userattendance_links',)
-
-    def userattendance_links(self, obj):
-        return admin_links(
-            [(reverse('admin:aklub_userincampaign_change', args=(u.pk,)), str(u.campaign))
-                for u in obj.userincampaign_set.all()])
-    userattendance_links.short_description = _('Users in campaign')
+    fieldsets = userprofile_fieldsets
 
 
 class UserAdmin(RelatedFieldAdmin, UserAdmin):
@@ -169,6 +166,22 @@ class UserAdmin(RelatedFieldAdmin, UserAdmin):
         'userprofile__campaigns',
         filters.EmailFilter,
     )
+
+
+class UserProfileAdmin(RelatedFieldAdmin):
+    list_display = ('user__username', 'user__email', 'user__telephone', 'user__first_name', 'user__last_name', 'user__is_staff', 'sex', 'user__date_joined', 'user__last_login')
+    search_fields = ('user__username', 'user__email', 'user__first_name', 'user__last_name', 'user__telephone')
+    list_filter = (
+        'user__is_staff',
+        'user__is_superuser',
+        'user__is_active',
+        'user__groups',
+        'language',
+        'campaigns',
+    )
+    filter_horizontal = ('campaigns',)
+    fieldsets = userprofile_fieldsets
+    readonly_fields = ('userattendance_links',)
 
 
 class UserInCampaignResource(ModelResource):
@@ -224,7 +237,7 @@ class UserInCampaignAdmin(ImportExportMixin, RelatedFieldAdmin):
     readonly_fields = ('verified_by',)
     fieldsets = [
         (_('Basic personal'), {
-            'fields': [('campaign',)]}),
+            'fields': ['campaign', 'userprofile']}),
         (_('Additional'), {
             'fields': ['knows_us_from',  'why_supports',
                        'field_of_work', 'additional_information'],
@@ -581,6 +594,7 @@ admin.site.register(Campaign, CampaignAdmin)
 admin.site.register(Recruiter, RecruiterAdmin)
 admin.site.register(TaxConfirmation, TaxConfirmationAdmin)
 admin.site.register(Source, SourceAdmin)
+admin.site.register(UserProfile, UserProfileAdmin)
 
 admin.site.unregister(User)
 admin.site.register(User, UserAdmin)

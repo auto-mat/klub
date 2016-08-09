@@ -20,32 +20,31 @@
 
 """Database models for the club management application"""
 
-# Django imports
-import django
+from . import confirmation
+from denorm import denormalized, depend_on_related
 from django.contrib.admin.templatetags.admin_list import _boolean_icon
-from django.db import models
-from django.db.models import Sum, Count, Q
-from django.core.mail import EmailMultiAlternatives
+from django.contrib.auth.models import User
+from django.contrib.humanize.templatetags.humanize import intcomma
 from django.core.files import File
 from django.core.files.storage import FileSystemStorage
 from django.core.files.temp import NamedTemporaryFile
-from django.utils.timesince import timesince
-from django.utils.translation import ugettext_lazy as _
-from django.utils.translation import string_concat
+from django.core.mail import EmailMultiAlternatives
+from django.core.urlresolvers import reverse
+from django.db import models
+from django.db.models import Sum, Count, Q
+from django.utils import timezone
 from django.utils.html import mark_safe
-from django.contrib.auth.models import User
-from django.contrib.humanize.templatetags.humanize import intcomma
-from denorm import denormalized, depend_on_related
-import html2text
-# External dependencies
-import datetime
-import csv
+from django.utils.timesince import timesince
+from django.utils.translation import string_concat
+from django.utils.translation import ugettext_lazy as _
 import codecs
+import csv
+import datetime
+import html2text
+import logging
 import os.path
 import stdimage
-# Local modules
-from . import confirmation
-import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -210,7 +209,7 @@ class Recruiter(models.Model):
 
     registered = models.DateField(
         verbose_name=_("Registered"),
-        default=django.utils.timezone.now)
+        default=timezone.now)
     recruiter_id = models.PositiveIntegerField(
         verbose_name=_("Recruiter ID"),
         blank=False, unique=True)
@@ -401,6 +400,13 @@ class UserProfile(models.Model):
             return "UserProfile: %s " % self.id
     person_name.short_description = _("Full name")
 
+    def userattendance_links(self):
+        from .admin import admin_links
+        return admin_links(
+            [(reverse('admin:aklub_userincampaign_change', args=(u.pk,)), str(u.campaign))
+                for u in self.userincampaign_set.all()])
+    userattendance_links.short_description = _('Users in campaign')
+
     def __str__(self):
         return str(self.person_name())
 
@@ -426,9 +432,10 @@ class UserInCampaign(models.Model):
     # -- Basic personal information
     userprofile = models.ForeignKey(
         UserProfile,
-        blank=True,
+        blank=False,
+        default=True,
         on_delete=models.CASCADE,
-        null=True,
+        null=False,
     )
     campaign = models.ForeignKey(
         Campaign,
@@ -469,7 +476,7 @@ class UserInCampaign(models.Model):
     registered_support = models.DateTimeField(
         verbose_name=_("Registered support"),
         help_text=_("When did this user register to support us"),
-        default=django.utils.timezone.now,
+        default=timezone.now,
         blank=True)
     exceptional_membership = models.BooleanField(
         verbose_name=_("Exceptional membership"),

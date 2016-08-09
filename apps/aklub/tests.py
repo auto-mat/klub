@@ -544,6 +544,7 @@ class AdminTest(tests.AdminSiteSmokeTest):
 
         post_data = {
             '_continue': 'Save',
+            'userprofile': 2978,
             'variable_symbol': 1234,
             'activity_points': 13,
             'registered_support_0': "2010-03-03",
