@@ -520,6 +520,7 @@ class CampaignAdmin(admin.ModelAdmin):
     list_filter = ('acquisition_campaign', filters.ActiveCampaignFilter)
     inlines = (ExpenseInline, )
     actions = (download_darujme_statement,)
+    save_as = True
 
 
 class RecruiterAdmin(ImportExportMixin, admin.ModelAdmin):
