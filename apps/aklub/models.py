@@ -417,6 +417,7 @@ class UserInCampaign(models.Model):
     class Meta:
         verbose_name = _("User in campaign")
         verbose_name_plural = _("Users in campaign")
+        unique_together = ('userprofile', 'campaign',)
         ordering = ("userprofile__user__last_name", "userprofile__user__last_name")
 
     GENDER = (
