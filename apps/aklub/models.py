@@ -279,6 +279,10 @@ class Source(models.Model):
 
 
 class UserProfile(models.Model):
+    class Meta:
+        verbose_name = _("User profile")
+        verbose_name_plural = _("User profiles")
+
     GENDER = (
         ('male', _('Male')),
         ('female', _('Female')),
@@ -383,12 +387,12 @@ class UserProfile(models.Model):
         verbose_name=_("Note for making a boring form more lively"),
         max_length=2000, blank=True)
     created = models.DateTimeField(
-        verbose_name=_(u"Datum vytvoření"),
+        verbose_name=_("Date of creation"),
         auto_now_add=True,
         null=True,
     )
     updated = models.DateTimeField(
-        verbose_name=_(u"Datum poslední změny"),
+        verbose_name=_("Date of last change"),
         auto_now=True,
         null=True,
     )
@@ -535,7 +539,7 @@ class UserInCampaign(models.Model):
         default=0,
         blank=False)
     updated = models.DateTimeField(
-        verbose_name=_(u"Datum poslední změny"),
+        verbose_name=_("Date of last change"),
         auto_now=True,
         null=True,
     )

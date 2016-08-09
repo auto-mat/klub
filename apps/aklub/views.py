@@ -85,7 +85,7 @@ class RegularUserForm_UserProfile(forms.ModelForm):
 
     telephone = forms.CharField(
         label=_(u"Telefon"),
-        validators=[RegexValidator(r'^[0-9+ ]*$', _('Telefon musí být složen s čísel, mezer a znaku plus.')), MinLengthValidator(9)],
+        validators=[RegexValidator(r'^[0-9+ ]*$', _('Telephone must consist of numbers, spaces and plus sign')), MinLengthValidator(9)],
         max_length=30)
 
     class Meta:
