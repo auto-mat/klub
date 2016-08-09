@@ -433,7 +433,7 @@ class UserInCampaign(models.Model):
     userprofile = models.ForeignKey(
         UserProfile,
         blank=False,
-        default=True,
+        default=None,
         on_delete=models.CASCADE,
         null=False,
     )
