@@ -27,4 +27,4 @@ django-related-admin
 gunicorn
 pypdf2  # for pdf result testing
 django-betterforms
-django-adminactions
+-e git+https://github.com/PetrDlouhy/django-adminactions.git@devel#egg=django-adminactions  # for Django 1.10 compatibility
