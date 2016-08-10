@@ -122,13 +122,14 @@ def create_payment(data, payments, skipped_payments):
         log.info('Payment with type Darujme.cz and SS=%s already exists, skipping' % str(data['id']))
         return None
 
+    amount = data['obdrzena_castka'] or data['uvedena_castka']
     p = None
     if STATE_OK_MAP[data['stav'].strip()]:
         p = Payment()
         p.type = 'darujme'
         p.SS = data['id']
         p.date = data['datum_daru']
-        p.amount = data['obdrzena_castka'] or data['uvedena_castka']
+        p.amount = amount
         p.account_name = u'%s, %s' % (data['prijmeni'], data['jmeno'])
         p.user_identification = data['email']
 
@@ -170,12 +171,18 @@ def create_payment(data, payments, skipped_payments):
             'wished_tax_confirmation': data['potvrzeni_daru'],
             'regular_frequency': cetnost,
             'regular_payments': cetnost is not None,
-            'regular_amount': data['obdrzena_castka'] if cetnost else None,
+            'regular_amount': amount if cetnost else None,
             'end_of_regular_payments': cetnost_konec,
         })
 
     if userincampaign_created:
         log.info('UserInCampaign with email %s created' % data['email'])
+    else:
+        if cetnost and not userincampaign.regular_payments:
+            userincampaign.regular_frequency = cetnost
+            userincampaign.regular_payments = cetnost is not None
+            userincampaign.regular_amount = amount if cetnost else None
+            userincampaign.save()
 
     if p:
         p.user = userincampaign

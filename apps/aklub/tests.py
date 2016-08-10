@@ -440,7 +440,7 @@ class AdminTest(tests.AdminSiteSmokeTest):
             self.assertEqual(response.status_code, 302)
             obj = AccountStatements.objects.get(date_from="2010-10-01")
             self.assertEqual(response.url, "/admin/aklub/accountstatements/")
-            self.assertEqual(obj.payment_set.count(), 5)
+            self.assertEqual(obj.payment_set.count(), 6)
 
             self.assertEqual(request._messages._queued_messages[0].message, 'Skipped payments: Testing User 1 (test.user1@email.cz)')
             self.assertEqual(
@@ -908,7 +908,7 @@ class AccountStatementTests(TestCase):
 
     def check_account_statement_data(self):
         a1 = AccountStatements.objects.get(type="darujme")
-        self.assertEqual(len(a1.payment_set.all()), 5)
+        self.assertEqual(len(a1.payment_set.all()), 6)
         user = UserInCampaign.objects.get(pk=2978)
         self.assertEqual(user.payment_set.get(SS=17529), a1.payment_set.get(amount=200))
         unknown_user = UserInCampaign.objects.get(userprofile__user__email="unknown@email.cz")
@@ -929,16 +929,16 @@ class AccountStatementTests(TestCase):
         unknown_user1 = UserInCampaign.objects.get(userprofile__user__email="unknown1@email.cz")
         self.assertEqual(unknown_user1.userprofile.telephone, "2158")
         self.assertEqual(unknown_user1.userprofile.zip_code, "123 21")
-        self.assertEqual(unknown_user1.regular_amount, None)
+        self.assertEqual(unknown_user1.regular_amount, 150)
         self.assertEqual(unknown_user1.end_of_regular_payments, datetime.date(2014, 12, 31))
-        self.assertEqual(unknown_user1.regular_frequency, None)
-        self.assertEqual(unknown_user1.regular_payments, False)
+        self.assertEqual(unknown_user1.regular_frequency, 'monthly')
+        self.assertEqual(unknown_user1.regular_payments, True)
 
         self.assertEqual(Payment.objects.filter(SS=22359).exists(), False)
         unknown_user3 = UserInCampaign.objects.get(userprofile__user__email="unknown3@email.cz")
         self.assertEqual(unknown_user3.userprofile.zip_code, "")
         self.assertEqual(unknown_user3.userprofile.telephone, "")
-        self.assertEqual(unknown_user3.regular_amount, None)
+        self.assertEqual(unknown_user3.regular_amount, 150)
         self.assertEqual(unknown_user3.end_of_regular_payments, None)
         self.assertEqual(unknown_user3.regular_frequency, 'monthly')
         self.assertEqual(unknown_user3.regular_payments, True)
@@ -946,10 +946,10 @@ class AccountStatementTests(TestCase):
         test_user1 = UserInCampaign.objects.get(userprofile__user__email="test.user1@email.cz")
         self.assertEqual(test_user1.userprofile.zip_code, "")
         self.assertEqual(test_user1.userprofile.telephone, "")
-        self.assertEqual(test_user1.regular_amount, None)
+        self.assertEqual(test_user1.regular_amount, 150)
         self.assertEqual(test_user1.end_of_regular_payments, None)
-        self.assertEqual(test_user1.regular_frequency, None)
-        self.assertEqual(test_user1.regular_payments, False)
+        self.assertEqual(test_user1.regular_frequency, "annually")
+        self.assertEqual(test_user1.regular_payments, True)
 
         blank_date_user = UserInCampaign.objects.get(userprofile__user__email="blank.date@seznam.cz")
         payment_blank = blank_date_user.payment_set.get(SS=12345)
