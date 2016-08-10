@@ -173,7 +173,7 @@ class UserProfileAdmin(RelatedFieldAdmin):
         'person_name',
         'user__username',
         'user__email',
-        'user__telephone',
+        'telephone',
         'user__first_name',
         'user__last_name',
         'user__is_staff',
@@ -186,7 +186,7 @@ class UserProfileAdmin(RelatedFieldAdmin):
         'user__email',
         'user__first_name',
         'user__last_name',
-        'user__telephone',
+        'telephone',
     )
     list_filter = (
         'user__is_staff',
@@ -568,7 +568,7 @@ class TaxConfirmationAdmin(ImportExportMixin, admin.ModelAdmin):
     list_display = ('user', 'year', 'amount', 'file', 'user__regular_payments')
     ordering = ('user__userprofile__user__last_name', 'user__userprofile__user__first_name',)
     list_filter = ['year', 'user__regular_payments']
-    search_fields = ('user__userprofile__user__last_name', 'user__firstname', 'user__variable_symbol',)
+    search_fields = ('user__userprofile__user__last_name', 'user__userprofile__user__first_name', 'user__variable_symbol',)
     raw_id_fields = ('user',)
     list_max_show_all = 10000
 
