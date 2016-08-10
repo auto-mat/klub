@@ -914,6 +914,7 @@ class AccountStatementTests(TestCase):
         unknown_user = UserInCampaign.objects.get(userprofile__user__email="unknown@email.cz")
         self.assertEqual(unknown_user.payment_set.get(date=datetime.date(2016, 1, 19)).amount, 150)
         self.assertEqual(unknown_user.__str__(), "User 1 Testing")
+        self.assertEqual(unknown_user.userprofile.telephone, "656 464 222")
         self.assertEqual(unknown_user.userprofile.street, "Ulice 321")
         self.assertEqual(unknown_user.userprofile.city, "Nová obec")
         self.assertEqual(unknown_user.userprofile.zip_code, "12321")
@@ -924,6 +925,7 @@ class AccountStatementTests(TestCase):
         self.assertEqual(unknown_user.regular_frequency, "annually")
 
         unknown_user1 = UserInCampaign.objects.get(userprofile__user__email="unknown1@email.cz")
+        self.assertEqual(unknown_user1.userprofile.telephone, "2158")
         self.assertEqual(unknown_user1.userprofile.zip_code, "123 21")
         self.assertEqual(unknown_user1.regular_amount, None)
         self.assertEqual(unknown_user1.end_of_regular_payments, datetime.date(2014, 12, 31))
@@ -932,6 +934,7 @@ class AccountStatementTests(TestCase):
 
         unknown_user3 = UserInCampaign.objects.get(userprofile__user__email="unknown3@email.cz")
         self.assertEqual(unknown_user3.userprofile.zip_code, "")
+        self.assertEqual(unknown_user3.userprofile.telephone, "")
         self.assertEqual(unknown_user3.regular_amount, None)
         self.assertEqual(unknown_user3.end_of_regular_payments, None)
         self.assertEqual(unknown_user3.regular_frequency, 'monthly')
@@ -939,6 +942,7 @@ class AccountStatementTests(TestCase):
 
         test_user1 = UserInCampaign.objects.get(userprofile__user__email="test.user1@email.cz")
         self.assertEqual(test_user1.userprofile.zip_code, "")
+        self.assertEqual(test_user1.userprofile.telephone, "")
         self.assertEqual(test_user1.regular_amount, None)
         self.assertEqual(test_user1.end_of_regular_payments, None)
         self.assertEqual(test_user1.regular_frequency, None)

@@ -1121,7 +1121,7 @@ class Payment(models.Model):
             insert = True
         else:
             insert = False
-        super(Payment, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
         if self.user:
             # Evaluate autocom immediatelly only when the affected
             # user is known, otherwise the bellow check would be too

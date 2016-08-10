@@ -58,6 +58,7 @@ def parse_darujme_xml(xmlfile):
         data['cislo_projektu'] = record.getElementsByTagName('cislo_projektu')[0].firstChild.nodeValue
         data['cetnost'] = record.getElementsByTagName('cetnost')[0].firstChild.nodeValue
         data['stav'] = record.getElementsByTagName('stav')[0].firstChild.nodeValue
+        data['telefon'] = ""
         cetnost_konec = record.getElementsByTagName('cetnost_konec')[0].firstChild
         if cetnost_konec and cetnost_konec.nodeValue != UNLIMITED:
             data['cetnost_konec'] = str_to_datetime_xml(cetnost_konec.nodeValue)
@@ -99,10 +100,8 @@ def create_statement_from_file(xmlfile):
 
 
 def create_statement_from_API(campaign):
-    response = urllib.request.urlopen(
-        'https://www.darujme.cz/dar/api/darujme_api.php?api_id=%s&api_secret=%s&typ_dotazu=1' %
-        (campaign.darujme_api_id, campaign.darujme_api_secret)
-    )
+    url = 'https://www.darujme.cz/dar/api/darujme_api.php?api_id=%s&api_secret=%s&typ_dotazu=1' % (campaign.darujme_api_id, campaign.darujme_api_secret)
+    response = urllib.request.urlopen(url)
     return create_statement_from_file(response)
 
 
@@ -122,7 +121,7 @@ def create_payment(data, payments, skipped_payments):
         return None
 
     p = None
-    if STATE_OK_MAP[data['stav'].strip()]:
+    if STATE_OK_MAP[data['stav'].strip()] and data['obdrzena_castka']:
         p = Payment()
         p.type = 'darujme'
         p.SS = data['id']
@@ -156,6 +155,7 @@ def create_payment(data, payments, skipped_payments):
     userprofile, userprofile_created = UserProfile.objects.get_or_create(
         user=user,
         defaults={
+            'telephone': data['telefon'],
             'street': data['ulice'],
             'city': data['mesto'],
             'zip_code': data['psc'],
@@ -215,10 +215,11 @@ def parse_darujme(xlsfile):
         data['jmeno'] = row[17].value
         data['prijmeni'] = row[18].value
         data['email'] = row[19].value
-        data['ulice'] = row[20].value
-        data['mesto'] = row[21].value
-        data['psc'] = parse_string(row[22].value)
-        data['potvrzeni_daru'] = row[23].value
+        data['telefon'] = parse_string(row[20].value)
+        data['ulice'] = row[21].value
+        data['mesto'] = row[22].value
+        data['psc'] = parse_string(row[23].value)
+        data['potvrzeni_daru'] = row[24].value
         data['cetnost'] = row[13].value
         cetnost_konec = row[14].value
         if cetnost_konec and cetnost_konec != UNLIMITED:
