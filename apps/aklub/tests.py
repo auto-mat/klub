@@ -440,7 +440,7 @@ class AdminTest(tests.AdminSiteSmokeTest):
             self.assertEqual(response.status_code, 302)
             obj = AccountStatements.objects.get(date_from="2010-10-01")
             self.assertEqual(response.url, "/admin/aklub/accountstatements/")
-            self.assertEqual(obj.payment_set.count(), 4)
+            self.assertEqual(obj.payment_set.count(), 5)
 
             self.assertEqual(request._messages._queued_messages[0].message, 'Skipped payments: Testing User 1 (test.user1@email.cz)')
             self.assertEqual(
@@ -908,11 +908,13 @@ class AccountStatementTests(TestCase):
 
     def check_account_statement_data(self):
         a1 = AccountStatements.objects.get(type="darujme")
-        self.assertEqual(len(a1.payment_set.all()), 4)
+        self.assertEqual(len(a1.payment_set.all()), 5)
         user = UserInCampaign.objects.get(pk=2978)
-        self.assertEqual(user.payment_set.get(date=datetime.date(2016, 1, 20)), a1.payment_set.get(amount=200))
+        self.assertEqual(user.payment_set.get(SS=17529), a1.payment_set.get(amount=200))
         unknown_user = UserInCampaign.objects.get(userprofile__user__email="unknown@email.cz")
-        self.assertEqual(unknown_user.payment_set.get(date=datetime.date(2016, 1, 19)).amount, 150)
+        payment = unknown_user.payment_set.get(SS=22257)
+        self.assertEqual(payment.amount, 150)
+        self.assertEqual(payment.date, datetime.date(2016, 1, 19))
         self.assertEqual(unknown_user.__str__(), "User 1 Testing")
         self.assertEqual(unknown_user.userprofile.telephone, "656 464 222")
         self.assertEqual(unknown_user.userprofile.street, "Ulice 321")
@@ -932,6 +934,7 @@ class AccountStatementTests(TestCase):
         self.assertEqual(unknown_user1.regular_frequency, None)
         self.assertEqual(unknown_user1.regular_payments, False)
 
+        self.assertEqual(Payment.objects.filter(SS=22359).exists(), False)
         unknown_user3 = UserInCampaign.objects.get(userprofile__user__email="unknown3@email.cz")
         self.assertEqual(unknown_user3.userprofile.zip_code, "")
         self.assertEqual(unknown_user3.userprofile.telephone, "")
@@ -947,6 +950,17 @@ class AccountStatementTests(TestCase):
         self.assertEqual(test_user1.end_of_regular_payments, None)
         self.assertEqual(test_user1.regular_frequency, None)
         self.assertEqual(test_user1.regular_payments, False)
+
+        blank_date_user = UserInCampaign.objects.get(userprofile__user__email="blank.date@seznam.cz")
+        payment_blank = blank_date_user.payment_set.get(SS=12345)
+        self.assertEqual(payment_blank.amount, 500)
+        self.assertEqual(payment_blank.date, datetime.date(2016, 8, 9))
+        self.assertEqual(blank_date_user.userprofile.zip_code, "")
+        self.assertEqual(blank_date_user.userprofile.telephone, "")
+        self.assertEqual(blank_date_user.regular_amount, None)
+        self.assertEqual(blank_date_user.end_of_regular_payments, None)
+        self.assertEqual(blank_date_user.regular_frequency, None)
+        self.assertEqual(blank_date_user.regular_payments, False)
         return a1
 
     def test_darujme_statement(self):
@@ -967,7 +981,7 @@ class AccountStatementTests(TestCase):
         a, skipped = darujme.create_statement_from_file("apps/aklub/test_data/darujme_skip.xml")
         self.assertEqual(AccountStatements.objects.count(), count_before)
         self.assertEqual(a, None)
-        self.assertListEqual(skipped, [OrderedDict([('ss', '22258'), ('date', '2016-02-09'), ('name', 'Testing'), ('surname', 'User'), ('email', 'test.user@email.cz')])])
+        self.assertListEqual(skipped, [OrderedDict([('ss', '22258'), ('date', '2016-2-9'), ('name', 'Testing'), ('surname', 'User'), ('email', 'test.user@email.cz')])])
 
     def test_darujme_xml_statement_duplicate_email(self):
         u2 = User.objects.get(pk=3)

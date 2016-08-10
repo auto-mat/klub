@@ -16,7 +16,7 @@ import xlrd
 # Text constants in Darujme.cz report
 STATE_OK_MAP = {
     'OK, převedeno': True,
-    'OK': False,
+    'OK': True,
     'neproběhlo': False,
     'neuzavřeno': False,
     'příslib': False,
@@ -58,6 +58,8 @@ def parse_darujme_xml(xmlfile):
         data['cislo_projektu'] = record.getElementsByTagName('cislo_projektu')[0].firstChild.nodeValue
         data['cetnost'] = record.getElementsByTagName('cetnost')[0].firstChild.nodeValue
         data['stav'] = record.getElementsByTagName('stav')[0].firstChild.nodeValue
+        data['datum_daru'] = record.getElementsByTagName('datum_daru')[0].firstChild.nodeValue
+        data['uvedena_castka'] = parse_float_to_int(record.getElementsByTagName('uvedena_castka')[0].firstChild.nodeValue)
         data['telefon'] = ""
         cetnost_konec = record.getElementsByTagName('cetnost_konec')[0].firstChild
         if cetnost_konec and cetnost_konec.nodeValue != UNLIMITED:
@@ -109,10 +111,10 @@ def create_payment(data, payments, skipped_payments):
     if data['email'] == '':
         return
 
-    if Payment.objects.filter(type='darujme', SS=data['id'], date=data['datum_prichozi_platby']).exists():
+    if Payment.objects.filter(type='darujme', SS=data['id']).exists():
         skipped_payments.append(OrderedDict([
             ('ss', data['id']),
-            ('date', data['datum_prichozi_platby']),
+            ('date', data['datum_daru']),
             ('name', data['jmeno']),
             ('surname', data['prijmeni']),
             ('email', data['email']),
@@ -125,8 +127,8 @@ def create_payment(data, payments, skipped_payments):
         p = Payment()
         p.type = 'darujme'
         p.SS = data['id']
-        p.date = data['datum_prichozi_platby']
-        p.amount = data['obdrzena_castka']
+        p.date = data['datum_daru']
+        p.amount = data['obdrzena_castka'] or data['uvedena_castka']
         p.account_name = u'%s, %s' % (data['prijmeni'], data['jmeno'])
         p.user_identification = data['email']
 
@@ -210,7 +212,9 @@ def parse_darujme(xlsfile):
             data['obdrzena_castka'] = int(row[5].value)
         else:
             data['obdrzena_castka'] = None
+        data['uvedena_castka'] = int(row[4].value)
 
+        data['datum_daru'] = str_to_datetime(row[11].value)
         data['datum_prichozi_platby'] = str_to_datetime(row[12].value)
         data['jmeno'] = row[17].value
         data['prijmeni'] = row[18].value
