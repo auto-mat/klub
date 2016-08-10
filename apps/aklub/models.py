@@ -887,7 +887,7 @@ class AccountStatements(models.Model):
     )
 
     type = models.CharField(max_length=20, choices=TYPE_OF_STATEMENT)
-    import_date = models.DateField(auto_now=True)
+    import_date = models.DateTimeField(auto_now=True)
     csv_file = models.FileField(
         upload_to='account-statements',
         null=False,
