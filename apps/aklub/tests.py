@@ -599,7 +599,7 @@ class ViewsTests(ClearCacheMixin, TestCase):
         self.assertJSONEqual(response.content.decode(), {
             "total-income": 480,
             "expected-yearly-income": 1200,
-            "number-of-regular-members": 2,
+            "number-of-regular-members": 1,
             "number-of-onetime-members": 1,
             "number-of-active-members": 2,
             })
