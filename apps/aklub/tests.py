@@ -445,7 +445,7 @@ class AdminTest(tests.AdminSiteSmokeTest):
             self.assertEqual(request._messages._queued_messages[0].message, 'Skipped payments: Testing User 1 (test.user1@email.cz)')
             self.assertEqual(
                 request._messages._queued_messages[1].message,
-                'The Výpis z účtu "<a href="/admin/aklub/accountstatements/%(id)s/change/">%(id)s (2015-05-01)</a>" was added successfully.' % {'id': obj.id}
+                'The Výpis z účtu "<a href="/admin/aklub/accountstatements/%(id)s/change/">%(id)s (2015-05-01 00:00:00)</a>" was added successfully.' % {'id': obj.id}
             )
 
     def test_mass_communication_changelist_post_send_mails(self):

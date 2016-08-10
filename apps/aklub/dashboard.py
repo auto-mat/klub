@@ -114,7 +114,7 @@ class AklubIndexDashboard(Dashboard):
         if AccountStatements.objects.exists():
             children.append(
                 {
-                    'title': _(u"Days from last bill upload: %(days)s days") % {"days": (datetime.date.today() - AccountStatements.objects.first().import_date).days},
+                    'title': _(u"Days from last bill upload: %(days)s days") % {"days": (datetime.datetime.now() - AccountStatements.objects.first().import_date).days},
                     'url': "aklub/accountstatements/",
                     'external': False,
                 }
