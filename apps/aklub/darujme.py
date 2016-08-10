@@ -16,7 +16,7 @@ import xlrd
 # Text constants in Darujme.cz report
 STATE_OK_MAP = {
     'OK, převedeno': True,
-    'OK': True,
+    'OK': False,
     'neproběhlo': False,
     'neuzavřeno': False,
     'příslib': False,
@@ -121,7 +121,7 @@ def create_payment(data, payments, skipped_payments):
         return None
 
     p = None
-    if STATE_OK_MAP[data['stav'].strip()] and data['obdrzena_castka']:
+    if STATE_OK_MAP[data['stav'].strip()]:
         p = Payment()
         p.type = 'darujme'
         p.SS = data['id']

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <darujme_api>
     <record>
-        <transaction_id>17529</transaction_id><cislo_klienta>01081301</cislo_klienta><cislo_projektu>13934713</cislo_projektu><projekt>Klub přátel Auto*Matu1</projekt><typ>sporitelna</typ><datum_daru>2014-01-15</datum_daru><cetnost>měsíční</cetnost><cetnost_konec>na dobu neurčitou</cetnost_konec><mena>CZK</mena><uvedena_castka>200</uvedena_castka><vs>260116018</vs><stav>OK</stav>
+        <transaction_id>17529</transaction_id><cislo_klienta>01081301</cislo_klienta><cislo_projektu>13934713</cislo_projektu><projekt>Klub přátel Auto*Matu1</projekt><typ>sporitelna</typ><datum_daru>2014-01-15</datum_daru><cetnost>měsíční</cetnost><cetnost_konec>na dobu neurčitou</cetnost_konec><mena>CZK</mena><uvedena_castka>200</uvedena_castka><vs>260116018</vs><stav>OK, převedeno</stav>
         <platby>
             <platba>
                 <id_platby>13952</id_platby><obdrzena_castka>200.00</obdrzena_castka><poplatek>4.00</poplatek><vysledna_castka>196.00</vysledna_castka><datum_prichozi_platby>2016-01-20</datum_prichozi_platby><datum_odchozi_platby>2014-09-23</datum_odchozi_platby><vs_odchozi_platby>230914020</vs_odchozi_platby><ucet_odchozi_platby>2400063333/2010</ucet_odchozi_platby>
@@ -12,7 +12,7 @@
         </uzivatelska_pole>
     </record>
     <record>
-       <transaction_id>22256</transaction_id><cislo_klienta>01081301</cislo_klienta><cislo_projektu>13934713</cislo_projektu><projekt>Klub přátel Auto*Matu1</projekt><typ>sporitelna</typ><datum_daru>2014-01-15</datum_daru><cetnost>roční</cetnost><cetnost_konec></cetnost_konec><mena>CZK</mena><uvedena_castka>150</uvedena_castka><poplatek>4.00</poplatek><vs>260116018</vs><stav>OK</stav>
+       <transaction_id>22256</transaction_id><cislo_klienta>01081301</cislo_klienta><cislo_projektu>13934713</cislo_projektu><projekt>Klub přátel Auto*Matu1</projekt><typ>sporitelna</typ><datum_daru>2014-01-15</datum_daru><cetnost>roční</cetnost><cetnost_konec></cetnost_konec><mena>CZK</mena><uvedena_castka>150</uvedena_castka><poplatek>4.00</poplatek><vs>260116018</vs><stav>OK, převedeno</stav>
         <platby>
             <platba>
                 <id_platby>13952</id_platby><obdrzena_castka>150.00</obdrzena_castka><poplatek>3.00</poplatek><vysledna_castka>147.00</vysledna_castka><datum_prichozi_platby>2016-01-19</datum_prichozi_platby><datum_odchozi_platby>2014-09-23</datum_odchozi_platby><vs_odchozi_platby>230914020</vs_odchozi_platby><ucet_odchozi_platby>2400063333/2010</ucet_odchozi_platby>
@@ -23,7 +23,7 @@
         </uzivatelska_pole>
     </record>
     <record>
-       <transaction_id>22257</transaction_id><cislo_klienta>01081301</cislo_klienta><cislo_projektu>13934713</cislo_projektu><projekt>Klub přátel Auto*Matu1</projekt><typ>sporitelna</typ><datum_daru>2014-01-15</datum_daru><cetnost>roční</cetnost><cetnost_konec></cetnost_konec><mena>CZK</mena><uvedena_castka>150</uvedena_castka><poplatek>4.00</poplatek><vs>260116018</vs><stav>OK</stav>
+       <transaction_id>22257</transaction_id><cislo_klienta>01081301</cislo_klienta><cislo_projektu>13934713</cislo_projektu><projekt>Klub přátel Auto*Matu1</projekt><typ>sporitelna</typ><datum_daru>2014-01-15</datum_daru><cetnost>roční</cetnost><cetnost_konec></cetnost_konec><mena>CZK</mena><uvedena_castka>150</uvedena_castka><poplatek>4.00</poplatek><vs>260116018</vs><stav>OK, převedeno</stav>
         <platby>
             <platba>
                 <id_platby>13953</id_platby><obdrzena_castka>150.00</obdrzena_castka><poplatek>3.00</poplatek><vysledna_castka>147.00</vysledna_castka><datum_prichozi_platby>2016-01-19</datum_prichozi_platby><datum_odchozi_platby>2014-09-23</datum_odchozi_platby><vs_odchozi_platby>230914020</vs_odchozi_platby><ucet_odchozi_platby>2400063333/2010</ucet_odchozi_platby>
@@ -34,7 +34,7 @@
         </uzivatelska_pole>
     </record>
     <record>
-        <transaction_id>22258</transaction_id><cislo_klienta>01081301</cislo_klienta><cislo_projektu>13934713</cislo_projektu><projekt>Klub přátel Auto*Matu1</projekt><typ>sporitelna</typ><datum_daru>2014-01-15</datum_daru><cetnost>měsíční</cetnost><cetnost_konec></cetnost_konec><mena>CZK</mena><uvedena_castka>150</uvedena_castka><poplatek>4.00</poplatek><vs>260116018</vs><stav>OK</stav>
+        <transaction_id>22258</transaction_id><cislo_klienta>01081301</cislo_klienta><cislo_projektu>13934713</cislo_projektu><projekt>Klub přátel Auto*Matu1</projekt><typ>sporitelna</typ><datum_daru>2014-01-15</datum_daru><cetnost>měsíční</cetnost><cetnost_konec></cetnost_konec><mena>CZK</mena><uvedena_castka>150</uvedena_castka><poplatek>4.00</poplatek><vs>260116018</vs><stav>OK, převedeno</stav>
         <platby>
             <platba>
                 <id_platby>13954</id_platby><obdrzena_castka>150.00</obdrzena_castka><poplatek>3.00</poplatek><vysledna_castka>147.00</vysledna_castka><datum_prichozi_platby>2016-02-09</datum_prichozi_platby><datum_odchozi_platby>2014-09-23</datum_odchozi_platby><vs_odchozi_platby>230914020</vs_odchozi_platby><ucet_odchozi_platby>2400063333/2010</ucet_odchozi_platby>
@@ -45,7 +45,7 @@
         </uzivatelska_pole>
     </record>
     <record>
-        <transaction_id></transaction_id><cislo_klienta>01081301</cislo_klienta><cislo_projektu>13934713</cislo_projektu><projekt>Klub přátel Auto*Matu1</projekt><typ>sporitelna</typ><datum_daru>2014-01-15</datum_daru><cetnost>jednorázový</cetnost><cetnost_konec>2014-12-31</cetnost_konec><mena>CZK</mena><uvedena_castka>150</uvedena_castka><poplatek>4.00</poplatek><vs>260116018</vs><stav>OK</stav>
+        <transaction_id></transaction_id><cislo_klienta>01081301</cislo_klienta><cislo_projektu>13934713</cislo_projektu><projekt>Klub přátel Auto*Matu1</projekt><typ>sporitelna</typ><datum_daru>2014-01-15</datum_daru><cetnost>jednorázový</cetnost><cetnost_konec>2014-12-31</cetnost_konec><mena>CZK</mena><uvedena_castka>150</uvedena_castka><poplatek>4.00</poplatek><vs>260116018</vs><stav>OK, převedeno</stav>
         <platby>
             <platba>
                 <id_platby>13955</id_platby><obdrzena_castka>150.00</obdrzena_castka><poplatek>3.00</poplatek><vysledna_castka>147.00</vysledna_castka><datum_prichozi_platby>2016-01-19</datum_prichozi_platby><datum_odchozi_platby>2014-09-23</datum_odchozi_platby><vs_odchozi_platby>230914020</vs_odchozi_platby><ucet_odchozi_platby>2400063333/2010</ucet_odchozi_platby>
