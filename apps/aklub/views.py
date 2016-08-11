@@ -194,7 +194,7 @@ class RegularView(FormView):
         return initial
 
     def form_valid(self, form):
-        user_id = new_user(form, regular=True, source_slug=self.source_slug)
+        user_id = new_user(form, regular="promise", source_slug=self.source_slug)
         amount = UserInCampaign.objects.get(id=user_id).monthly_regular_amount()
         return render_to_response(self.success_template, {
             'amount': amount,
@@ -206,7 +206,7 @@ def donators(request):
     payed = Payment.objects.exclude(type='expected').values_list('user_id', flat=True)
     donators = UserInCampaign.objects.filter(userprofile__public=True, id__in=payed).order_by('userprofile__user__last_name')
     n_donators = len(donators)
-    n_regular = len(donators.filter(userprofile__user__is_active=True, regular_payments=True))
+    n_regular = len(donators.filter(userprofile__user__is_active=True, regular_payments="regular"))
     return render_to_response('donators.html', {
         'n_donators': n_donators,
         'n_regular': n_regular,
@@ -352,7 +352,7 @@ class OneTimePaymentWizard(SessionWizardView):
     def done(self, form_list, form_dict, **kwargs):
         for form in form_list:
                 if isinstance(form, OneTimePaymentWizardFormUnknown):
-                        uid = new_user(form, False)
+                        uid = new_user(form, "onetime")
                 elif isinstance(form, OneTimePaymentWizardFormWhoIs):
                         uid = form.cleaned_data['uid']
         user = UserInCampaign.objects.filter(id=uid)[0]

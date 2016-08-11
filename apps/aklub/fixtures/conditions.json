@@ -411,7 +411,7 @@
         "fields": {
             "condition": 1, 
             "operation": "=", 
-            "value": "true", 
+            "value": "regular",
             "variable": "UserInCampaign.regular_payments"
         }, 
         "model": "aklub.terminalcondition", 
@@ -491,7 +491,7 @@
         "fields": {
             "condition": 13, 
             "operation": "=", 
-            "value": "false", 
+            "value": "onetime",
             "variable": "UserInCampaign.regular_payments"
         }, 
         "model": "aklub.terminalcondition", 

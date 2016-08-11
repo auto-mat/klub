@@ -122,6 +122,14 @@ def create_payment(data, payments, skipped_payments):
         log.info('Payment with type Darujme.cz and SS=%s already exists, skipping' % str(data['id']))
         return None
 
+    if data['cetnost_konec'] in (UNLIMITED, ""):
+        cetnost_konec = None
+    else:
+        cetnost_konec = data['cetnost_konec']
+
+    cetnost = FREQUENCY_MAP[data['cetnost']]
+    regular_payments = "promise" if cetnost else "onetime"
+
     amount = data['obdrzena_castka'] or data['uvedena_castka']
     p = None
     if STATE_OK_MAP[data['stav'].strip()]:
@@ -133,12 +141,8 @@ def create_payment(data, payments, skipped_payments):
         p.account_name = u'%s, %s' % (data['prijmeni'], data['jmeno'])
         p.user_identification = data['email']
 
-    if data['cetnost_konec'] in (UNLIMITED, ""):
-        cetnost_konec = None
-    else:
-        cetnost_konec = data['cetnost_konec']
-
-    cetnost = FREQUENCY_MAP[data['cetnost']]
+        if cetnost:
+            regular_payments = "regular"
 
     if 'cislo_projektu' in data:
         campaign = Campaign.objects.get(darujme_api_id=data['cislo_projektu'])
@@ -170,7 +174,7 @@ def create_payment(data, payments, skipped_payments):
             'variable_symbol': generate_variable_symbol(),
             'wished_tax_confirmation': data['potvrzeni_daru'],
             'regular_frequency': cetnost,
-            'regular_payments': cetnost is not None,
+            'regular_payments': regular_payments,
             'regular_amount': amount if cetnost else None,
             'end_of_regular_payments': cetnost_konec,
         })
@@ -178,9 +182,9 @@ def create_payment(data, payments, skipped_payments):
     if userincampaign_created:
         log.info('UserInCampaign with email %s created' % data['email'])
     else:
-        if cetnost and not userincampaign.regular_payments:
+        if cetnost and userincampaign.regular_payments != "regular":
             userincampaign.regular_frequency = cetnost
-            userincampaign.regular_payments = cetnost is not None
+            userincampaign.regular_payments = regular_payments
             userincampaign.regular_amount = amount if cetnost else None
             userincampaign.save()
 

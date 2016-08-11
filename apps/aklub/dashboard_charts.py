@@ -48,8 +48,8 @@ class PaymentCountCharts(BaseCharts):
             self.chart_model(_('By Day'), interval='days'),
             self.chart_model(_('By Week'), interval='weeks'),
             self.chart_model(_('By Month'), interval='months'),
-            self.chart_model(_('By Month from regular'), interval='months', queryset=Payment.objects.filter(user__regular_payments=True)),
-            self.chart_model(_('By Month from onetimers'), interval='months', queryset=Payment.objects.filter(user__regular_payments=False)),
+            self.chart_model(_('By Month from regular'), interval='months', queryset=Payment.objects.filter(user__regular_payments="regular")),
+            self.chart_model(_('By Month from onetimers'), interval='months', queryset=Payment.objects.exclude(user__regular_payments="regular")),
             self.chart_model(_('By Year'), interval='years'),
         ]
 
@@ -79,8 +79,8 @@ class PaymentCharts(BaseCharts):
             self.chart_model(_('By Day'), interval='days'),
             self.chart_model(_('By Week'), interval='weeks'),
             self.chart_model(_('By Month'), interval='months'),
-            self.chart_model(_('By Month from regular'), interval='months', queryset=Payment.objects.filter(user__regular_payments=True)),
-            self.chart_model(_('By Month from onetimers'), interval='months', queryset=Payment.objects.filter(user__regular_payments=False)),
+            self.chart_model(_('By Month from regular'), interval='months', queryset=Payment.objects.filter(user__regular_payments="regular")),
+            self.chart_model(_('By Month from onetimers'), interval='months', queryset=Payment.objects.exclude(user__regular_payments="regular")),
             self.chart_model(_('By Year'), interval='years'),
         ]
 
@@ -109,7 +109,7 @@ class UserCharts(BaseCharts):
             self.chart_model(_('By Day'), interval='days'),
             self.chart_model(_('By Week'), interval='weeks'),
             self.chart_model(_('By Month'), interval='months'),
-            self.chart_model(_('Regular By Month'), interval='months', queryset=UserInCampaign.objects.filter(regular_payments=True)),
-            self.chart_model(_('Onetime By Month'), interval='months', queryset=UserInCampaign.objects.filter(regular_payments=False)),
+            self.chart_model(_('Regular By Month'), interval='months', queryset=UserInCampaign.objects.filter(regular_payments="regular")),
+            self.chart_model(_('Onetime By Month'), interval='months', queryset=UserInCampaign.objects.exclude(regular_payments="regular")),
             self.chart_model(_('By Year'), interval='years'),
         ]

@@ -119,10 +119,10 @@ class Campaign(models.Model):
     number_of_members.short_description = _("number of members")
 
     def number_of_regular_members(self):
-        return self.userincampaign_set.filter(regular_payments=True, payment__amount__gt=0).distinct().count()
+        return self.userincampaign_set.filter(regular_payments="regular", payment__amount__gt=0).distinct().count()
 
     def number_of_onetime_members(self):
-        return self.userincampaign_set.filter(regular_payments=False, payment__amount__gt=0).distinct().count()
+        return self.userincampaign_set.exclude(regular_payments="regular").filter(payment__amount__gt=0).distinct().count()
 
     def number_of_active_members(self):
         return self.userincampaign_set.filter(payment__amount__gt=0).distinct().count()
@@ -433,6 +433,11 @@ class UserInCampaign(models.Model):
         ('quaterly', _('Quaterly')),
         ('biannually', _('Bianually')),
         ('annually', _('Anually')))
+    REGULAR_PAYMENT_CHOICES = (
+        ('regular', _('Regular payments')),
+        ('onetime', _('No regular payments')),
+        ('promise', _('Promise of regular payments')),
+    )
 
     # -- Basic personal information
     userprofile = models.ForeignKey(
@@ -489,10 +494,12 @@ class UserInCampaign(models.Model):
                     "the club even if they do not pay any money. This should "
                     "be justified in the note."),
         default=False)
-    regular_payments = models.BooleanField(
+    regular_payments = models.CharField(
         verbose_name=_("Regular payments"),
         help_text=_("Is this user registered for regular payments?"),
-        default=False)
+        max_length=20,
+        choices=REGULAR_PAYMENT_CHOICES,
+        default="true")
     old_account = models.BooleanField(
         verbose_name=_("Old account"),
         help_text=_("User has old account"),
@@ -647,7 +654,7 @@ class UserInCampaign(models.Model):
             last_payment_date = last_payment.date
         else:
             last_payment_date = None
-        if not self.regular_payments:
+        if self.regular_payments != "regular":
             return None
         if last_payment_date:
             # Exactly a month after last payment or whatever
@@ -672,7 +679,7 @@ class UserInCampaign(models.Model):
         Return True if so, otherwise return the delay in payment as dattime.timedelta
         """
         expected_regular_payment_date = self.expected_regular_payment_date
-        if self.regular_payments and expected_regular_payment_date:
+        if self.regular_payments == "regular" and expected_regular_payment_date:
             # Check for regular payments
             # (Allow 7 days for payment processing)
             if expected_regular_payment_date:
@@ -686,7 +693,7 @@ class UserInCampaign(models.Model):
     @depend_on_related('Payment', foreign_key="user")
     def extra_money(self):
         """Check if we didn't receive more money than expected"""
-        if self.regular_payments:
+        if self.regular_payments == "regular":
             freq = self.regular_frequency_td()
             if not freq:
                 return None
@@ -698,8 +705,10 @@ class UserInCampaign(models.Model):
         return None
 
     def regular_payments_info(self):
-        if not self.regular_payments:
+        if self.regular_payments == "onetime":
             return _boolean_icon(False)
+        if self.regular_payments == "promise":
+            return _boolean_icon(None)
         return self.expected_regular_payment_date
     regular_payments_info.allow_tags = True
     regular_payments_info.short_description = _(u"Expected payment")
@@ -789,7 +798,7 @@ class UserInCampaign(models.Model):
 
         This really only makes sense for monthly payments.
         """
-        if not self.regular_payments:
+        if self.regular_payments != "regular":
             return False
         payment_now = self.last_payment_function()
         if ((not payment_now) or
@@ -1713,9 +1722,6 @@ class TaxConfirmation(models.Model):
         year = models.PositiveIntegerField()
         amount = models.PositiveIntegerField(default=0)
         file = models.FileField(upload_to=confirmation_upload_to, storage=OverwriteStorage())
-
-        def user__regular_payments(self):
-            return self.user.regular_payments
 
         class Meta:
             verbose_name = _("Tax confirmation")

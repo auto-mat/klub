@@ -166,12 +166,12 @@ class ConditionsTests(BaseTestCase):
         c = Condition.objects.create(operation="and")
         TerminalCondition.objects.create(
             variable="UserInCampaign.regular_payments",
-            value="true",
+            value="regular",
             operation="=",
             condition=c,
         )
-        self.assertQueryEquals(c.get_query(), Q(regular_payments=True))
-        self.assertQueryEquals(c.condition_string(), "None(UserInCampaign.regular_payments = true)")
+        self.assertQueryEquals(c.get_query(), Q(regular_payments="regular"))
+        self.assertQueryEquals(c.condition_string(), "None(UserInCampaign.regular_payments = regular)")
 
     def test_combined_condition(self):
         c = Condition.objects.create(operation="and")
@@ -549,6 +549,7 @@ class AdminTest(tests.AdminSiteSmokeTest):
             'activity_points': 13,
             'registered_support_0': "2010-03-03",
             'registered_support_1': "12:35",
+            'regular_payments': 'promise',
             'campaign': '1',
             'verified': 1,
             'communications-TOTAL_FORMS': 1,
@@ -922,7 +923,7 @@ class AccountStatementTests(TestCase):
         self.assertEqual(unknown_user.userprofile.zip_code, "12321")
         self.assertEqual(unknown_user.userprofile.user.username, "unknown3")
         self.assertEqual(unknown_user.wished_information, True)
-        self.assertEqual(unknown_user.regular_payments, True)
+        self.assertEqual(unknown_user.regular_payments, "regular")
         self.assertEqual(unknown_user.regular_amount, 150)
         self.assertEqual(unknown_user.regular_frequency, "annually")
 
@@ -932,7 +933,7 @@ class AccountStatementTests(TestCase):
         self.assertEqual(unknown_user1.regular_amount, 150)
         self.assertEqual(unknown_user1.end_of_regular_payments, datetime.date(2014, 12, 31))
         self.assertEqual(unknown_user1.regular_frequency, 'monthly')
-        self.assertEqual(unknown_user1.regular_payments, True)
+        self.assertEqual(unknown_user1.regular_payments, "regular")
 
         self.assertEqual(Payment.objects.filter(SS=22359).exists(), False)
         unknown_user3 = UserInCampaign.objects.get(userprofile__user__email="unknown3@email.cz")
@@ -941,7 +942,7 @@ class AccountStatementTests(TestCase):
         self.assertEqual(unknown_user3.regular_amount, 150)
         self.assertEqual(unknown_user3.end_of_regular_payments, None)
         self.assertEqual(unknown_user3.regular_frequency, 'monthly')
-        self.assertEqual(unknown_user3.regular_payments, True)
+        self.assertEqual(unknown_user3.regular_payments, "promise")
 
         test_user1 = UserInCampaign.objects.get(userprofile__user__email="test.user1@email.cz")
         self.assertEqual(test_user1.userprofile.zip_code, "")
@@ -949,7 +950,7 @@ class AccountStatementTests(TestCase):
         self.assertEqual(test_user1.regular_amount, 150)
         self.assertEqual(test_user1.end_of_regular_payments, None)
         self.assertEqual(test_user1.regular_frequency, "annually")
-        self.assertEqual(test_user1.regular_payments, True)
+        self.assertEqual(test_user1.regular_payments, "regular")
 
         blank_date_user = UserInCampaign.objects.get(userprofile__user__email="blank.date@seznam.cz")
         payment_blank = blank_date_user.payment_set.get(SS=12345)
@@ -960,7 +961,7 @@ class AccountStatementTests(TestCase):
         self.assertEqual(blank_date_user.regular_amount, None)
         self.assertEqual(blank_date_user.end_of_regular_payments, None)
         self.assertEqual(blank_date_user.regular_frequency, None)
-        self.assertEqual(blank_date_user.regular_payments, False)
+        self.assertEqual(blank_date_user.regular_payments, "onetime")
         return a1
 
     def test_darujme_statement(self):
@@ -1023,7 +1024,7 @@ class AdminImportExportTests(TestCase):
         response = self.client.post(address, post_data)
         self.assertContains(
             response,
-            ',Test,User,,male,,test.user@email.cz,,Praha 4,,120127010,0,1,monthly,2015-12-16 18:22:30,'
+            ',Test,User,,male,,test.user@email.cz,,Praha 4,,120127010,0,regular,monthly,2015-12-16 18:22:30,'
             '"Domníváte se, že má město po zprovoznění tunelu Blanka omezit tranzit historickým centrem? Ano, hned se zprovozněním tunelu",editor,1,cs'
         )
 

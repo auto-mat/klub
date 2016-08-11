@@ -563,7 +563,7 @@ class SourceAdmin(admin.ModelAdmin):
     list_display = ('slug', 'name', 'direct_dialogue')
 
 
-class TaxConfirmationAdmin(ImportExportMixin, admin.ModelAdmin):
+class TaxConfirmationAdmin(ImportExportMixin, RelatedFieldAdmin):
     change_list_template = "admin/aklub/taxconfirmation/change_list.html"
     list_display = ('user', 'year', 'amount', 'file', 'user__regular_payments')
     ordering = ('user__userprofile__user__last_name', 'user__userprofile__user__first_name',)
