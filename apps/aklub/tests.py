@@ -218,7 +218,10 @@ class ConditionsTests(BaseTestCase):
             operation="=",
             condition=c2,
         )
-        test_query = ~((~Q(days_ago_condition=datetime.datetime(2009, 12, 26, 0, 0)) & Q(time_condition__gte=datetime.timedelta(5))) | Q(int_condition=4) | Q(int_condition__lte=5))
+        test_query = ~(
+            (~Q(days_ago_condition=datetime.datetime(2009, 12, 26, 0, 0)) & Q(time_condition__gte=datetime.timedelta(5))) |
+            Q(int_condition=4) | Q(int_condition__lte=5)
+        )
         self.assertQueryEquals(c2.get_query(), test_query)
         self.assertQueryEquals(
             c2.condition_string(),
@@ -975,7 +978,10 @@ class AccountStatementTests(TestCase):
         a, skipped = darujme.create_statement_from_file("apps/aklub/test_data/darujme.xml")
         a1 = self.check_account_statement_data()
         self.assertEqual(a, a1)
-        self.assertListEqual(skipped, [OrderedDict([('ss', '22258'), ('date', '2016-02-09'), ('name', 'Testing'), ('surname', 'User 1'), ('email', 'test.user1@email.cz')])])
+        self.assertListEqual(
+            skipped,
+            [OrderedDict([('ss', '22258'), ('date', '2016-02-09'), ('name', 'Testing'), ('surname', 'User 1'), ('email', 'test.user1@email.cz')])]
+        )
 
     def test_darujme_xml_file_skipped(self):
         count_before = AccountStatements.objects.count()

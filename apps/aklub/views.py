@@ -407,8 +407,14 @@ class OneTimePaymentWizard(SessionWizardView):
                 if cd0:
                         users = self._find_matching_users(*[cd0[key] for key in [
                             'email', 'first_name', 'last_name']])
-                        candidates = ([(u.id, "%s %s <%s>" % (u.userprofile.user.first_name, u.userprofile.user.last_name, obfuscate(u.userprofile.user.email))) for u in users] +
-                                      [('None', _("None of these accounts"))])
+                        candidates = (
+                            [
+                                (
+                                    u.id,
+                                    "%s %s <%s>" % (u.userprofile.user.first_name, u.userprofile.user.last_name, obfuscate(u.userprofile.user.email))
+                                ) for u in users
+                            ] +
+                            [('None', _("None of these accounts"))])
                         form.fields['uid'] = forms.ChoiceField(choices=candidates)
         elif step == self._step_number(OneTimePaymentWizardFormConfirm):
                 d2 = self._step_data(OneTimePaymentWizardFormWhoIs)
