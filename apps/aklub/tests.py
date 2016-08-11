@@ -57,8 +57,8 @@ class ClearCacheMixin(object):
 class AklubTestSuiteRunner(DiscoverRunner):
     class InvalidStringError(str):
         def __mod__(self, other):
-            raise Exception("empty string")
-            return ""
+            raise Exception("empty string")  # pragma: no cover
+            return ""  # pragma: no cover
 
     def __init__(self, *args, **kwargs):
         settings.TEMPLATES[0]['OPTIONS']['string_if_invalid'] = self.InvalidStringError("%s")
@@ -67,9 +67,9 @@ class AklubTestSuiteRunner(DiscoverRunner):
 
 class BaseTestCase(TestCase):
     def assertQuerysetEquals(self, qs1, qs2):
-        def pk(o):
-            return o.pk
-        return self.assertEqual(
+        def pk(o):  # pragma: no cover
+            return o.pk  # pragma: no cover
+        return self.assertEqual(  # pragma: no cover
             list(sorted(qs1, key=pk)),
             list(sorted(qs2, key=pk))
         )
@@ -252,6 +252,39 @@ class ConfirmationTest(TestCase):
         self.assertTrue('Test city' in pdf_string)
         self.assertTrue('2099' in pdf_string)
         self.assertTrue('999' in pdf_string)
+
+
+class CommunicationTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create()
+        self.userprofile = UserProfile.objects.create(sex='male', user=self.user)
+        self.userincampaign = UserInCampaign.objects.create(userprofile=self.userprofile)
+
+    def test_communication(self):
+        Communication.objects.create(
+            type="individual",
+            user=self.userincampaign,
+            date=datetime.date(2016, 1, 1),
+            method="email",
+            summary="Testing template",
+            subject="Testing email",
+            send=True,
+        )
+        self.assertEqual(len(mail.outbox), 1)
+        msg = mail.outbox[0]
+        self.assertEqual(msg.recipients(), ['', 'kp@auto-mat.cz'])
+        self.assertEqual(msg.subject, 'Testing email')
+        self.assertIn("Testing template", msg.body)
+
+    def test_communication_phonecall(self):
+        Communication.objects.create(
+            type="individual",
+            user=self.userincampaign,
+            date=datetime.date(2016, 1, 1),
+            method="phonecall",
+            send=True,
+        )
+        self.assertEqual(len(mail.outbox), 0)
 
 
 class AutocomTest(TestCase):
@@ -576,8 +609,8 @@ class AdminTest(tests.AdminSiteSmokeTest):
 
 
 def print_response(response):
-    with open("response.html", "w") as f:
-        f.write(response.content.decode())
+    with open("response.html", "w") as f:  # pragma: no cover
+        f.write(response.content.decode())  # pragma: no cover
 
 
 class ViewsTests(ClearCacheMixin, TestCase):
