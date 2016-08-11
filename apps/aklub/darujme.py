@@ -42,6 +42,14 @@ def parse_float_to_int(value):
     return int(float(value))
 
 
+def map_ano_ne(value):
+    if value == "Ano":
+        return True
+    if value == "Ne":
+        return False
+    return value
+
+
 def parse_darujme_xml(xmlfile):
     xmldoc = minidom.parse(xmlfile)
     darujme_api = xmldoc.getElementsByTagName('darujme_api')[0]
@@ -68,13 +76,9 @@ def parse_darujme_xml(xmlfile):
             data['cetnost_konec'] = UNLIMITED
         for hodnota in record.getElementsByTagName('uzivatelska_pole')[0].getElementsByTagName('hodnota'):
             if hodnota.hasChildNodes():
-                value = hodnota.firstChild.nodeValue
+                value = map_ano_ne(hodnota.firstChild.nodeValue)
             else:
                 value = ""
-            if value == "Ano":
-                value = True
-            if value == "Ne":
-                value = False
             data[hodnota.attributes['nazev'].value] = value
 
         platby = record.getElementsByTagName('platby')
@@ -107,6 +111,32 @@ def create_statement_from_API(campaign):
     return create_statement_from_file(response)
 
 
+def get_campaign(data):
+    if 'cislo_projektu' in data:
+        return Campaign.objects.get(darujme_api_id=data['cislo_projektu'])
+    else:
+        return Campaign.objects.get(darujme_name=data['projekt'])
+
+
+def get_cetnost_konec(data):
+    if data['cetnost_konec'] in (UNLIMITED, ""):
+        return None
+    else:
+        return data['cetnost_konec']
+
+
+def get_cetnost_regular_payments(data):
+    cetnost = FREQUENCY_MAP[data['cetnost']]
+    state_ok = STATE_OK_MAP[data['stav'].strip()]
+    if not cetnost:
+        return cetnost, "onetime"
+    else:
+        if state_ok:
+            return cetnost, "regular"
+        else:
+            return cetnost, "promise"
+
+
 def create_payment(data, payments, skipped_payments):
     if data['email'] == '':
         return
@@ -122,13 +152,9 @@ def create_payment(data, payments, skipped_payments):
         log.info('Payment with type Darujme.cz and SS=%s already exists, skipping' % str(data['id']))
         return None
 
-    if data['cetnost_konec'] in (UNLIMITED, ""):
-        cetnost_konec = None
-    else:
-        cetnost_konec = data['cetnost_konec']
+    cetnost_konec = get_cetnost_konec(data)
 
-    cetnost = FREQUENCY_MAP[data['cetnost']]
-    regular_payments = "promise" if cetnost else "onetime"
+    cetnost, regular_payments = get_cetnost_regular_payments(data)
 
     amount = data['obdrzena_castka'] or data['uvedena_castka']
     p = None
@@ -141,13 +167,7 @@ def create_payment(data, payments, skipped_payments):
         p.account_name = u'%s, %s' % (data['prijmeni'], data['jmeno'])
         p.user_identification = data['email']
 
-        if cetnost:
-            regular_payments = "regular"
-
-    if 'cislo_projektu' in data:
-        campaign = Campaign.objects.get(darujme_api_id=data['cislo_projektu'])
-    else:
-        campaign = Campaign.objects.get(darujme_name=data['projekt'])
+    campaign = get_campaign(data)
     try:
         user, user_created = User.objects.get_or_create(
             email=data['email'],
