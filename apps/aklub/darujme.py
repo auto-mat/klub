@@ -156,7 +156,7 @@ def create_payment(data, payments, skipped_payments):
 
     cetnost, regular_payments = get_cetnost_regular_payments(data)
 
-    amount = data['obdrzena_castka'] or data['uvedena_castka']
+    amount = max(data['obdrzena_castka'] or data['uvedena_castka'], 0)
     p = None
     if STATE_OK_MAP[data['stav'].strip()]:
         p = Payment()
@@ -169,12 +169,18 @@ def create_payment(data, payments, skipped_payments):
 
     campaign = get_campaign(data)
     try:
+        i = User.objects.count()
+        while True:
+            username = '%s%s' % (data['email'].split('@', 1)[0], i)
+            if not User.objects.filter(username=username).exists():
+                break
+
         user, user_created = User.objects.get_or_create(
             email=data['email'],
             defaults={
                 'first_name': data['jmeno'],
                 'last_name': data['prijmeni'],
-                'username': '%s%s' % (data['email'].split('@', 1)[0], User.objects.count()),
+                'username': username,
             })
     except User.MultipleObjectsReturned:
         log.info('Duplicate email %s' % data['email'])

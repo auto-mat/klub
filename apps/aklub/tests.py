@@ -975,7 +975,7 @@ class AccountStatementTests(TestCase):
         unknown_user3 = UserInCampaign.objects.get(userprofile__user__email="unknown3@email.cz")
         self.assertEqual(unknown_user3.userprofile.zip_code, "")
         self.assertEqual(unknown_user3.userprofile.telephone, "")
-        self.assertEqual(unknown_user3.regular_amount, 150)
+        self.assertEqual(unknown_user3.regular_amount, 0)
         self.assertEqual(unknown_user3.end_of_regular_payments, None)
         self.assertEqual(unknown_user3.regular_frequency, 'monthly')
         self.assertEqual(unknown_user3.regular_payments, "promise")
