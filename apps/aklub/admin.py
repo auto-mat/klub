@@ -458,7 +458,7 @@ class MassCommunicationAdmin(admin.ModelAdmin):
             # Sending was done, so revert the state of the 'send' checkbox back to False
             obj.date = datetime.datetime.now()
             obj.save()
-            messages.info(request, _("Emails sent to following addreses: %s") % ", ".join([u.email for u in obj.send_to_users.all()]))
+            messages.info(request, _("Emails sent to following addreses: %s") % ", ".join([u.userprofile.user.email for u in obj.send_to_users.all()]))
         return obj
 
 

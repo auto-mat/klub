@@ -57,7 +57,7 @@ def send_mass_communication(obj, users, sending_user, save=True):
             template, subject = obj.template, obj.subject
         else:
             template, subject = obj.template_en, obj.subject_en
-        if userincampaign.userprofile.user.is_active:
+        if userincampaign.userprofile.user.is_active and subject.strip() != '':
             if not subject or subject.strip() == '' or not template or template.strip('') == '':
                 raise Exception("Message template is empty for one of the language variants.")
             if hasattr(obj, "attach_tax_confirmation") and not obj.attach_tax_confirmation:

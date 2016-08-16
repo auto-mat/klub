@@ -387,6 +387,7 @@ class MailingTest(TestCase):
             condition=Condition.objects.create(),
             template="Testing template",
             subject="Testing email",
+            subject_en="Testing email",
             method="email",
         )
         u = UserInCampaign.objects.all()
@@ -496,6 +497,7 @@ class AdminTest(tests.AdminSiteSmokeTest):
             "method": "email",
             'date': "2010-03-03",
             "subject": "Subject",
+            "send_to_users": [2978, 2979, 3],
             "template": "Test template",
         }
         request = self.post_request(post_data)
@@ -504,6 +506,15 @@ class AdminTest(tests.AdminSiteSmokeTest):
         obj = MassCommunication.objects.get(name="test communication")
         self.assertEqual(obj.subject, "Subject")
         self.assertEqual(response.url, "/admin/aklub/masscommunication/%s/change/" % obj.id)
+        self.assertEqual(
+            request._messages._queued_messages[0].message,
+            'Emaily odeslány na následující adresy: without_payments@email.cz, test.user@email.cz, test.user1@email.cz'
+        )
+        self.assertEqual(
+            request._messages._queued_messages[1].message,
+            'The Hromadná komunikace "<a href="/admin/aklub/masscommunication/%s/change/">test communication</a>"'
+            ' was added successfully. You may edit it again below.' % obj.id,
+        )
 
     def test_mass_communication_changelist_post(self):
         model_admin = django_admin.site._registry[MassCommunication]
