@@ -152,7 +152,6 @@ INSTALLED_APPS = (
     'chart_tools',
     'massadmin',
     'import_export',
-    'debug_toolbar',
     'corsheaders',
     'daterange_filter',
     'denorm',
