@@ -2,6 +2,7 @@
 
 from aklub import darujme
 from aklub.models import Campaign
+
 from django.core.management.base import BaseCommand
 
 

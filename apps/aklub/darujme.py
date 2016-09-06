@@ -1,17 +1,22 @@
 # -*- coding: utf-8 -*-
 """ Parse reports from Darujme.cz """
-
-from aklub.models import Payment, UserInCampaign, str_to_datetime, str_to_datetime_xml, UserProfile, Campaign, AccountStatements
-from aklub.views import generate_variable_symbol
-from collections import OrderedDict
-from django.contrib.auth.models import User
-from django.forms import ValidationError
-from django.utils.translation import ugettext_lazy as _
-from xml.dom import minidom
 import datetime
 import logging
 import urllib
+
+from collections import OrderedDict
+
+from xml.dom import minidom
+
+from aklub.models import AccountStatements, Campaign, Payment, UserInCampaign, UserProfile, str_to_datetime, str_to_datetime_xml
+from aklub.views import generate_variable_symbol
+
+from django.contrib.auth.models import User
+from django.forms import ValidationError
+from django.utils.translation import ugettext_lazy as _
+
 import xlrd
+
 
 # Text constants in Darujme.cz report
 STATE_OK_MAP = {
@@ -142,13 +147,17 @@ def create_payment(data, payments, skipped_payments):
         return
 
     if Payment.objects.filter(type='darujme', SS=data['id']).exists():
-        skipped_payments.append(OrderedDict([
-            ('ss', data['id']),
-            ('date', data['datum_daru']),
-            ('name', data['jmeno']),
-            ('surname', data['prijmeni']),
-            ('email', data['email']),
-        ]))
+        skipped_payments.append(
+            OrderedDict(
+                [
+                    ('ss', data['id']),
+                    ('date', data['datum_daru']),
+                    ('name', data['jmeno']),
+                    ('surname', data['prijmeni']),
+                    ('email', data['email']),
+                ],
+            ),
+        )
         log.info('Payment with type Darujme.cz and SS=%s already exists, skipping' % str(data['id']))
         return None
 
@@ -182,7 +191,8 @@ def create_payment(data, payments, skipped_payments):
                 'first_name': data['jmeno'],
                 'last_name': data['prijmeni'],
                 'username': username,
-            })
+            },
+        )
     except User.MultipleObjectsReturned:
         log.info('Duplicate email %s' % data['email'])
         raise ValidationError(_('Duplicate email %(email)s'), params={'email': data['email']})
@@ -193,7 +203,8 @@ def create_payment(data, payments, skipped_payments):
             'street': data['ulice'],
             'city': data['mesto'],
             'zip_code': data['psc'],
-        })
+        },
+    )
     userincampaign, userincampaign_created = UserInCampaign.objects.get_or_create(
         userprofile=userprofile,
         campaign=campaign,
@@ -204,7 +215,8 @@ def create_payment(data, payments, skipped_payments):
             'regular_payments': regular_payments,
             'regular_amount': amount if cetnost else None,
             'end_of_regular_payments': cetnost_konec,
-        })
+        },
+    )
 
     if userincampaign_created:
         log.info('UserInCampaign with email %s created' % data['email'])
