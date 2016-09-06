@@ -17,13 +17,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-from . import admin, autocom, darujme, filters, mailing
-from .confirmation import makepdf
-from .models import (
-    TerminalCondition, Condition, UserInCampaign, Communication, AutomaticCommunication,
-    AccountStatements, Payment, UserProfile, MassCommunication, TaxConfirmation, Campaign)
-from PyPDF2 import PdfFileReader
+
+import datetime
+import io
+
 from collections import OrderedDict
+
+from unittest.mock import MagicMock, patch
+
+from PyPDF2 import PdfFileReader
+
 from django.conf import settings
 from django.contrib import admin as django_admin
 from django.contrib.auth.models import User
@@ -36,14 +39,18 @@ from django.core.management import call_command
 from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.forms import ValidationError
-from django.test import TestCase, RequestFactory
+from django.test import RequestFactory, TestCase
 from django.test.runner import DiscoverRunner
-from django_admin_smoke_tests import tests
-from freezegun import freeze_time
-from unittest.mock import MagicMock, patch
-import datetime
-import io
 
+from django_admin_smoke_tests import tests
+
+from freezegun import freeze_time
+
+from . import admin, autocom, darujme, filters, mailing
+from .confirmation import makepdf
+from .models import (
+    AccountStatements, AutomaticCommunication, Campaign, Communication, Condition, MassCommunication,
+    Payment, TaxConfirmation, TerminalCondition, UserInCampaign, UserProfile)
 
 ICON_FALSE = '<img src="/media/admin/img/icon-no.svg" alt="False" />'
 
@@ -71,13 +78,13 @@ class BaseTestCase(TestCase):
             return o.pk  # pragma: no cover
         return self.assertEqual(  # pragma: no cover
             list(sorted(qs1, key=pk)),
-            list(sorted(qs2, key=pk))
+            list(sorted(qs2, key=pk)),
         )
 
     def assertQueryEquals(self, q1, q2):
         return self.assertEqual(
             q1.__str__(),
-            q2.__str__()
+            q2.__str__(),
         )
 
 
@@ -226,7 +233,7 @@ class ConditionsTests(BaseTestCase):
         self.assertQueryEquals(
             c2.condition_string(),
             "not(None(None(UserInCampaign.days_ago_condition != days_ago.6 and UserInCampaign.time_condition >= timedelta.5) "
-            "or UserInCampaign.int_condition = 4 or UserInCampaign.int_condition <= 5))"
+            "or UserInCampaign.int_condition = 4 or UserInCampaign.int_condition <= 5))",
         )
 
 
@@ -482,7 +489,7 @@ class AdminTest(tests.AdminSiteSmokeTest):
             self.assertEqual(request._messages._queued_messages[0].message, 'Skipped payments: Testing User 1 (test.user1@email.cz)')
             self.assertEqual(
                 request._messages._queued_messages[1].message,
-                'The Výpis z účtu "<a href="/admin/aklub/accountstatements/%(id)s/change/">%(id)s (2015-05-01 00:00:00)</a>" was added successfully.' % {'id': obj.id}
+                'The Výpis z účtu "<a href="/admin/aklub/accountstatements/%(id)s/change/">%(id)s (2015-05-01 00:00:00)</a>" was added successfully.' % {'id': obj.id},
             )
 
     def test_mass_communication_changelist_post_send_mails(self):
@@ -508,7 +515,7 @@ class AdminTest(tests.AdminSiteSmokeTest):
         self.assertEqual(response.url, "/admin/aklub/masscommunication/%s/change/" % obj.id)
         self.assertEqual(
             request._messages._queued_messages[0].message,
-            'Emaily odeslány na následující adresy: without_payments@email.cz, test.user@email.cz, test.user1@email.cz'
+            'Emaily odeslány na následující adresy: without_payments@email.cz, test.user@email.cz, test.user1@email.cz',
         )
         self.assertEqual(
             request._messages._queued_messages[1].message,
@@ -629,7 +636,10 @@ class ViewsTests(ClearCacheMixin, TestCase):
 
     def setUp(self):
         self.user = User.objects.create_superuser(
-            username='admin', email='test_user@test_user.com', password='admin')
+            username='admin',
+            email='test_user@test_user.com',
+            password='admin',
+        )
         self.client.force_login(self.user)
 
     regular_post_data = {
@@ -644,13 +654,16 @@ class ViewsTests(ClearCacheMixin, TestCase):
     def test_campaign_statistics(self):
         address = reverse('campaign-statistics', kwargs={'campaign_slug': 'klub1'})
         response = self.client.get(address)
-        self.assertJSONEqual(response.content.decode(), {
-            "total-income": 480,
-            "expected-yearly-income": 1200,
-            "number-of-regular-members": 1,
-            "number-of-onetime-members": 1,
-            "number-of-active-members": 2,
-            })
+        self.assertJSONEqual(
+            response.content.decode(),
+            {
+                "total-income": 480,
+                "expected-yearly-income": 1200,
+                "number-of-regular-members": 1,
+                "number-of-onetime-members": 1,
+                "number-of-active-members": 2,
+            },
+        )
         self.assertEqual(response.status_code, 200)
 
     def test_main_admin_page(self):
@@ -689,7 +702,8 @@ class ViewsTests(ClearCacheMixin, TestCase):
                 {"firstname": "Test", "text": "", "picture": "", "surname": "User 1", "picture_thumbnail": ""},
                 {"firstname": "Test", "text": "", "picture": "", "surname": "User", "picture_thumbnail": ""},
                 {"firstname": "Without", "text": "", "picture": "", "surname": "Payments", "picture_thumbnail": ""},
-            ])
+            ],
+        )
 
     def test_regular_existing_email(self):
         address = reverse('regular')
@@ -700,7 +714,8 @@ class ViewsTests(ClearCacheMixin, TestCase):
             response,
             'Jejda! Tenhle mail už známe, vypadá to, že se do Klubu přátel Auto*Matu neregistrujete poprvé. '
             'Vaší náklonnosti si vážíme, registraci ale není nutné opakovat... '
-            'Poslali jsme Vám do mailu údaje potřebné k dalším příspěvkům i radu, kam se obrátit, pokud potřebujete ještě něco jiného.')
+            'Poslali jsme Vám do mailu údaje potřebné k dalším příspěvkům i radu, kam se obrátit, pokud potřebujete ještě něco jiného.',
+        )
 
     def test_regular_dpnk(self):
         address = "%s?firstname=Uest&surname=Tser&email=uest.tser@email.cz&telephone=1211221" % reverse('regular-dpnk')
@@ -708,19 +723,23 @@ class ViewsTests(ClearCacheMixin, TestCase):
         self.assertContains(
             response,
             '<input class=" form-control" id="id_user-first_name" maxlength="30" name="user-first_name" type="text" required value="Uest" />',
-            html=True)
+            html=True,
+        )
         self.assertContains(
             response,
             '<input class=" form-control" id="id_user-last_name" maxlength="30" name="user-last_name" type="text" required value="Tser" />',
-            html=True)
+            html=True,
+        )
         self.assertContains(
             response,
             '<input class=" form-control" id="id_userprofile-telephone" maxlength="30" name="userprofile-telephone" type="text" required value="1211221" />',
-            html=True)
+            html=True,
+        )
         self.assertContains(
             response,
             '<input class=" form-control" id="id_user-email" name="user-email" type="email" required value="uest.tser@email.cz" />',
-            html=True)
+            html=True,
+        )
 
         response = self.client.post(address, self.regular_post_data, follow=True)
         self.assertContains(response, '<h5>Děkujeme!</h5>', html=True)
@@ -1024,7 +1043,7 @@ class AccountStatementTests(TestCase):
         self.assertEqual(a, a1)
         self.assertListEqual(
             skipped,
-            [OrderedDict([('ss', '22258'), ('date', '2016-02-09'), ('name', 'Testing'), ('surname', 'User 1'), ('email', 'test.user1@email.cz')])]
+            [OrderedDict([('ss', '22258'), ('date', '2016-02-09'), ('name', 'Testing'), ('surname', 'User 1'), ('email', 'test.user1@email.cz')])],
         )
 
     def test_darujme_xml_file_skipped(self):
@@ -1054,7 +1073,8 @@ class AccountStatementTests(TestCase):
             request,
             'Created following account statements: %s<br/>Skipped payments: [OrderedDict([(&#39;ss&#39;, &#39;22258&#39;),'
             ' (&#39;date&#39;, &#39;2016-02-09&#39;), (&#39;name&#39;, &#39;Testing&#39;), (&#39;surname&#39;, &#39;User 1&#39;),'
-            ' (&#39;email&#39;, &#39;test.user1@email.cz&#39;)])]' % a1.id)
+            ' (&#39;email&#39;, &#39;test.user1@email.cz&#39;)])]' % a1.id,
+        )
 
 
 class AdminImportExportTests(TestCase):
@@ -1063,7 +1083,10 @@ class AdminImportExportTests(TestCase):
     def setUp(self):
         super().setUp()
         self.user = User.objects.create_superuser(
-            username='admin', email='test_user@test_user.com', password='admin')
+            username='admin',
+            email='test_user@test_user.com',
+            password='admin',
+        )
         self.client.force_login(self.user)
 
     def test_userattendance_export(self):
@@ -1075,7 +1098,7 @@ class AdminImportExportTests(TestCase):
         self.assertContains(
             response,
             ',Test,User,,male,,test.user@email.cz,,Praha 4,,120127010,0,regular,monthly,2015-12-16 18:22:30,'
-            '"Domníváte se, že má město po zprovoznění tunelu Blanka omezit tranzit historickým centrem? Ano, hned se zprovozněním tunelu",editor,1,cs'
+            '"Domníváte se, že má město po zprovoznění tunelu Blanka omezit tranzit historickým centrem? Ano, hned se zprovozněním tunelu",editor,1,cs',
         )
 
 
@@ -1085,7 +1108,10 @@ class FilterTests(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
         self.user = User.objects.create_superuser(
-            username='admin', email='test_user@test_user.com', password='admin')
+            username='admin',
+            email='test_user@test_user.com',
+            password='admin',
+        )
         self.client.force_login(self.user)
         self.request = self.factory.get("")
 
