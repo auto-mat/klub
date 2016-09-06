@@ -172,6 +172,7 @@ def create_payment(data, payments, skipped_payments):
         i = User.objects.count()
         while True:
             username = '%s%s' % (data['email'].split('@', 1)[0], i)
+            i += 1
             if not User.objects.filter(username=username).exists():
                 break
 
