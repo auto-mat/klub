@@ -47,7 +47,7 @@ from . import darujme, filters, mailing
 from .models import (
     AccountStatements, AutomaticCommunication, Campaign,
     Communication, Condition, Expense, MassCommunication,
-    NewUser, Payment, Recruiter, Source,
+    NewUser, Payment, Recruiter, Result, Source,
     TaxConfirmation, TerminalCondition, UserInCampaign,
     UserProfile, UserYearPayments,
 )
@@ -263,6 +263,8 @@ class UserInCampaignAdmin(ImportExportMixin, RelatedFieldAdmin):
         'number_of_payments',
         'total_contrib_string',
         'regular_amount',
+        'next_communication_date',
+        'next_communication_method',
         'userprofile__user__is_active',
         'last_payment_date',
     )
@@ -312,6 +314,10 @@ class UserInCampaignAdmin(ImportExportMixin, RelatedFieldAdmin):
                 'wished_information',
                 'wished_tax_confirmation',
                 'wished_welcome_letter',
+                (
+                    'next_communication_date',
+                    'next_communication_method',
+                ),
             ],
             'classes': ['collapse'],
         }),
@@ -602,6 +608,14 @@ def download_darujme_statement(self, request, queryset):
 download_darujme_statement.short_description = _("Download darujme statements")
 
 
+class ResultAdmin(admin.ModelAdmin):
+    list_display = (
+        'name',
+        'sort',
+    )
+    save_as = True
+
+
 class CampaignAdmin(admin.ModelAdmin):
     list_display = (
         'name', 'darujme_name', 'darujme_api_id', 'created', 'terminated', 'number_of_members', 'number_of_recruiters', 'acquisition_campaign', 'yield_total',
@@ -670,6 +684,7 @@ admin.site.register(MassCommunication, MassCommunicationAdmin)
 admin.site.register(Condition, ConditionAdmin)
 admin.site.register(TerminalCondition, TerminalConditionAdmin)
 admin.site.register(Campaign, CampaignAdmin)
+admin.site.register(Result, ResultAdmin)
 admin.site.register(Recruiter, RecruiterAdmin)
 admin.site.register(TaxConfirmation, TaxConfirmationAdmin)
 admin.site.register(Source, SourceAdmin)

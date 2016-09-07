@@ -52,6 +52,39 @@ from . import confirmation
 logger = logging.getLogger(__name__)
 
 
+COMMUNICATION_METHOD = (
+    ('email', _("Email")),
+    ('phonecall', _("Phonecall")),
+    ('mail', _("Mail")),
+    ('personal', _("Personal")),
+    ('internal', _("Internal")),
+)
+
+
+class Result(models.Model):
+    RESULT_SORT = (
+        ('promise', _("Promise")),
+        ('ongoing', _("Ongoing communication")),
+        ('dont_contact', _("Don't contact again")),
+    )
+
+    name = models.CharField(
+        verbose_name=_("Name of result"),
+        max_length=200,
+        blank=False,
+        null=False,
+    )
+    sort = models.CharField(
+        verbose_name=_("Sort of result"),
+        max_length=30,
+        choices=RESULT_SORT,
+        default='individual',
+    )
+
+    def __str__(self):
+        return str(self.name)
+
+
 class Campaign(models.Model):
     """Campaign -- abstract event with description
 
@@ -111,6 +144,12 @@ class Campaign(models.Model):
         help_text=_("Use if yield differs from counted value"),
         blank=True,
         null=True,
+    )
+    result = models.ManyToManyField(
+        Result,
+        verbose_name=_("Acceptable results of communication"),
+        null=True,
+        blank=True,
     )
     slug = models.SlugField(
         verbose_name=_("Slug"),
@@ -676,6 +715,18 @@ class UserInCampaign(models.Model):
     )
     end_of_regular_payments = models.DateField(
         verbose_name=_("End of regular payments (for payments by card)"),
+        blank=True,
+        null=True,
+    )
+    next_communication_date = models.DateField(
+        verbose_name=_("Date of next communication"),
+        blank=True,
+        null=True,
+    )
+    next_communication_method = models.CharField(
+        verbose_name=_("Method of next communication"),
+        max_length=30,
+        choices=COMMUNICATION_METHOD,
         blank=True,
         null=True,
     )
@@ -1314,14 +1365,6 @@ class Payment(models.Model):
     def __str__(self):
         return str(self.amount)
 
-COMMUNICATION_METHOD = (
-    ('email', _("Email")),
-    ('phonecall', _("Phonecall")),
-    ('mail', _("Mail")),
-    ('personal', _("Personal")),
-    ('internal', _("Internal")),
-)
-
 COMMUNICATION_TYPE = (
     ('mass', _("Mass")),
     ('auto', _("Automatic")),
@@ -1396,6 +1439,13 @@ class Communication(models.Model):
         'auth.User',
         verbose_name=_("Last handled by"),
         related_name='handled_by_communication',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
+    result = models.ForeignKey(
+        Result,
+        verbose_name=_("Result of communication"),
         null=True,
         blank=True,
         on_delete=models.SET_NULL,

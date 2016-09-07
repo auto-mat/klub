@@ -50,7 +50,7 @@ from . import admin, autocom, darujme, filters, mailing
 from .confirmation import makepdf
 from .models import (
     AccountStatements, AutomaticCommunication, Campaign, Communication, Condition, MassCommunication,
-    Payment, TaxConfirmation, TerminalCondition, UserInCampaign, UserProfile)
+    Payment, Result, TaxConfirmation, TerminalCondition, UserInCampaign, UserProfile)
 
 ICON_FALSE = '<img src="/media/admin/img/icon-no.svg" alt="False" />'
 
@@ -877,6 +877,9 @@ class ModelTests(TestCase):
 
     def test_user_person_name(self):
         self.assertEqual(self.u.person_name(), 'User 1 Test')
+
+    def test_result_str(self):
+        self.assertEqual(Result(name="Test result").__str__(), 'Test result')
 
     def test_user_model(self):
         self.assertEqual(self.u.is_direct_dialogue(), False)
