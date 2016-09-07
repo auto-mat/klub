@@ -89,7 +89,7 @@
     },
     {
         "fields": {
-            "username": "testuser1",
+            "username": "test.user3",
             "first_name": "Test",
             "last_name": "User 1",
             "email": "test.user1@email.cz"

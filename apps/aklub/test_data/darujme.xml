@@ -56,7 +56,7 @@
         </uzivatelska_pole>
     </record>
     <record>
-        <transaction_id>22359</transaction_id><cislo_klienta>01081301</cislo_klienta><cislo_projektu>13934713</cislo_projektu><projekt>Klub přátel Auto*Matu1</projekt><typ>sporitelna</typ><datum_daru>2014-01-15</datum_daru><cetnost>měsíční</cetnost><cetnost_konec></cetnost_konec><mena>CZK</mena><uvedena_castka>150</uvedena_castka><poplatek>4.00</poplatek><vs>260116018</vs><stav>neproběhlo</stav>
+        <transaction_id>22359</transaction_id><cislo_klienta>01081301</cislo_klienta><cislo_projektu>13934713</cislo_projektu><projekt>Klub přátel Auto*Matu1</projekt><typ>sporitelna</typ><datum_daru>2014-01-15</datum_daru><cetnost>měsíční</cetnost><cetnost_konec></cetnost_konec><mena>CZK</mena><uvedena_castka>-150</uvedena_castka><poplatek>4.00</poplatek><vs>260116018</vs><stav>neproběhlo</stav>
         <uzivatelska_pole>
             <hodnota nazev="jmeno" popis="Jméno">Testing</hodnota><hodnota nazev="prijmeni" popis="Příjmení">User 3</hodnota><hodnota nazev="email" popis="Email">unknown3@email.cz</hodnota><hodnota nazev="ulice" popis="Ulice, č.p.">Ulice 321</hodnota><hodnota nazev="mesto" popis="Obec">Nová obec</hodnota><hodnota nazev="psc" popis="PSČ"></hodnota><hodnota nazev="potvrzeni_daru" popis="Chci obdržet potvrzení o daru">Ano</hodnota>
         </uzivatelska_pole>

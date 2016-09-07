@@ -19,9 +19,14 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 """Database models for the club management application"""
+import codecs
+import csv
+import datetime
+import logging
+import os.path
 
-from . import confirmation
 from denorm import denormalized, depend_on_related
+
 from django.contrib.admin.templatetags.admin_list import _boolean_icon
 from django.contrib.auth.models import User
 from django.contrib.humanize.templatetags.humanize import intcomma
@@ -31,21 +36,53 @@ from django.core.files.temp import NamedTemporaryFile
 from django.core.mail import EmailMultiAlternatives
 from django.core.urlresolvers import reverse
 from django.db import models
-from django.db.models import Sum, Count, Q
+from django.db.models import Count, Q, Sum
 from django.utils import timezone
 from django.utils.html import mark_safe
 from django.utils.timesince import timesince
 from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
-import codecs
-import csv
-import datetime
+
 import html2text
-import logging
-import os.path
+
 import stdimage
 
+from . import confirmation
+
 logger = logging.getLogger(__name__)
+
+
+COMMUNICATION_METHOD = (
+    ('email', _("Email")),
+    ('phonecall', _("Phonecall")),
+    ('mail', _("Mail")),
+    ('personal', _("Personal")),
+    ('internal', _("Internal")),
+)
+
+
+class Result(models.Model):
+    RESULT_SORT = (
+        ('promise', _("Promise")),
+        ('ongoing', _("Ongoing communication")),
+        ('dont_contact', _("Don't contact again")),
+    )
+
+    name = models.CharField(
+        verbose_name=_("Name of result"),
+        max_length=200,
+        blank=False,
+        null=False,
+    )
+    sort = models.CharField(
+        verbose_name=_("Sort of result"),
+        max_length=30,
+        choices=RESULT_SORT,
+        default='individual',
+    )
+
+    def __str__(self):
+        return str(self.name)
 
 
 class Campaign(models.Model):
@@ -58,16 +95,19 @@ class Campaign(models.Model):
         verbose_name_plural = _("Campaigns")
 
     created = models.DateField(
-        verbose_name=_("Created"))
+        verbose_name=_("Created"),
+    )
     terminated = models.DateField(
         verbose_name=_("Terminated"),
         blank=True,
         null=True,
-        )
+    )
     name = models.CharField(
         verbose_name=_("Name"),
         help_text=_("Choose some unique name for this campaign"),
-        max_length=100, blank=True)
+        max_length=100,
+        blank=True,
+    )
     darujme_name = models.CharField(
         verbose_name=_("Name in Darujme.cz"),
         unique=True,
@@ -75,7 +115,7 @@ class Campaign(models.Model):
         max_length=100,
         blank=True,
         null=True,
-        )
+    )
     darujme_api_id = models.IntegerField(
         verbose_name=_("Darujme.cz API ID"),
         default=None,
@@ -92,15 +132,25 @@ class Campaign(models.Model):
     description = models.TextField(
         verbose_name=_("Description"),
         help_text=_("Description of this campaign"),
-        max_length=3000, blank=True)
+        max_length=3000,
+        blank=True,
+    )
     acquisition_campaign = models.BooleanField(
         verbose_name=_("Acquisition campaign"),
         default=False,
-        )
+    )
     real_yield = models.FloatField(
         verbose_name=_("Real yield"),
         help_text=_("Use if yield differs from counted value"),
-        blank=True, null=True)
+        blank=True,
+        null=True,
+    )
+    result = models.ManyToManyField(
+        Result,
+        verbose_name=_("Acceptable results of communication"),
+        null=True,
+        blank=True,
+    )
     slug = models.SlugField(
         verbose_name=_("Slug"),
         help_text=_("Identifier of the campaign"),
@@ -112,7 +162,8 @@ class Campaign(models.Model):
     )
     allow_statistics = models.BooleanField(
         verbose_name=_("Allow statistics exports"),
-        default=False)
+        default=False,
+    )
 
     def number_of_members(self):
         return self.userincampaign_set.count()
@@ -186,18 +237,22 @@ class Expense(models.Model):
 
     amount = models.FloatField(
         verbose_name=_("amount"),
-        blank=False, null=False)
+        blank=False,
+        null=False,
+    )
     item = models.CharField(
         verbose_name=_("item"),
         max_length=300,
         blank=True,
-        )
+    )
     campaign = models.ForeignKey(
         Campaign,
         verbose_name=_("campaign"),
         related_name='expenses',
         on_delete=models.CASCADE,
-        null=False, blank=False)
+        null=False,
+        blank=False,
+    )
 
 
 class Recruiter(models.Model):
@@ -209,43 +264,60 @@ class Recruiter(models.Model):
 
     registered = models.DateField(
         verbose_name=_("Registered"),
-        default=timezone.now)
+        default=timezone.now,
+    )
     recruiter_id = models.PositiveIntegerField(
         verbose_name=_("Recruiter ID"),
-        blank=False, unique=True)
+        blank=False,
+        unique=True,
+    )
     firstname = models.CharField(
         verbose_name=_("First name"),
-        max_length=40, blank=False)
+        max_length=40,
+        blank=False,
+    )
     surname = models.CharField(
         verbose_name=_("Surname"),
-        max_length=40, blank=False)
+        max_length=40,
+        blank=False,
+    )
     email = models.CharField(
         verbose_name=_("Email"),
-        max_length=40, blank=True)
+        max_length=40,
+        blank=True,
+    )
     telephone = models.CharField(
         verbose_name=_("Telephone"),
-        max_length=30, blank=True)
+        max_length=30,
+        blank=True,
+    )
     note = models.TextField(
         verbose_name=_("Note"),
-        max_length=3000, blank=True)
+        max_length=3000,
+        blank=True,
+    )
     problem = models.BooleanField(
         verbose_name=_("Problem"),
         help_text=_("Check this field if there is a problem with this recruiter which "
                     "only be resolved later or by somebody else. Uncheck as soon as the problem is "
                     "resolved. If the problem is of permanent nature and no further action "
                     "is needed, leave it unchecked and lower the rating bellow accordingly."),
-        default=False)
+        default=False,
+    )
     rating = models.IntegerField(
         verbose_name=_("Rating"),
         help_text=_("5 = ordinary (modestly good), 0 = hopelessly bad "
                     "10 = excelent much above average"),
         choices=[(i, str(i)) for i in range(0, 11)],
         default=5,
-        blank=False)
-    campaigns = models.ManyToManyField(Campaign,
-                                       help_text=_("Associated campaigns"),
-                                       blank=True,
-                                       editable=True)
+        blank=False,
+    )
+    campaigns = models.ManyToManyField(
+        Campaign,
+        help_text=_("Associated campaigns"),
+        blank=True,
+        editable=True,
+    )
 
     def __str__(self):
         return str(self.person_name())
@@ -265,14 +337,19 @@ class Source(models.Model):
     slug = models.SlugField(
         verbose_name=_("Slug"),
         help_text=_("Identifier of the source"),
-        max_length=100, blank=False)
+        max_length=100,
+        blank=False,
+    )
     name = models.CharField(
         verbose_name=_("Name"),
         help_text=_("Name of the source"),
-        max_length=100, blank=False)
+        max_length=100,
+        blank=False,
+    )
     direct_dialogue = models.BooleanField(
         verbose_name=_("Is from Direct Dialogue"),
-        default=False)
+        default=False,
+    )
 
     def __str__(self):
         return str(self.name)
@@ -303,23 +380,29 @@ class UserProfile(models.Model):
         Campaign,
         help_text=_("Associated campaigns"),
         blank=True,
-        editable=True)
+        editable=True,
+    )
     title_after = models.CharField(
         verbose_name=_("Title after name"),
-        max_length=15, blank=True)
+        max_length=15, blank=True,
+    )
     title_before = models.CharField(
         verbose_name=_("Title before name"),
-        max_length=15, blank=True)
+        max_length=15, blank=True,
+    )
     sex = models.CharField(
         verbose_name=_("Gender"),
         choices=GENDER,
-        max_length=50)
+        max_length=50,
+    )
     addressment = models.CharField(
         verbose_name=_("Addressment in letter"),
-        max_length=40, blank=True)
+        max_length=40, blank=True,
+    )
     addressment_on_envelope = models.CharField(
         verbose_name=_("Addressment on envelope"),
-        max_length=40, blank=True)
+        max_length=40, blank=True,
+    )
     language = models.CharField(
         verbose_name=_("Language"),
         help_text=_("This is the language which will be used to "
@@ -328,40 +411,57 @@ class UserProfile(models.Model):
                     "this language in phone calls and personal contacts."),
         choices=LANGUAGE,
         default="cs",
-        max_length=50)
+        max_length=50,
+    )
     telephone = models.CharField(
         verbose_name=_("Telephone"),
-        max_length=30, blank=True)
+        max_length=30,
+        blank=True,
+    )
     street = models.CharField(
         verbose_name=_("Street and number"),
-        max_length=80, blank=True)
+        max_length=80,
+        blank=True,
+    )
     city = models.CharField(
         verbose_name=_("City/City part"),
-        max_length=40, blank=True)
+        max_length=40, blank=True,
+    )
     country = models.CharField(
         verbose_name=_("Country"),
         # TODO: Default country should come from app settings
         default=u"Česká republika",
-        max_length=40, blank=True)
+        max_length=40,
+        blank=True,
+    )
     zip_code = models.CharField(
         verbose_name=_("ZIP Code"),
-        max_length=10, blank=True)
+        max_length=10,
+        blank=True,
+    )
     different_correspondence_address = models.BooleanField(
         verbose_name=_("Different correspondence address"),
         help_text=_("User has different correspondence address"),
-        default=False)
+        default=False,
+    )
     other_support = models.TextField(
         verbose_name=_("Other support"),
         help_text=_(
             "If the user supports us in other ways, please specify here."),
-        max_length=500, blank=True)
+        max_length=500,
+        blank=True,
+    )
     public = models.BooleanField(
         verbose_name=_("Publish my name in the list of supporters"),
-        default=True)
+        default=True,
+    )
     profile_text = models.TextField(
         verbose_name=_("What is your reason?"),
         help_text=_("Tell others why you support Auto*Mat"),
-        max_length=3000, blank=True, null=True)
+        max_length=3000,
+        blank=True,
+        null=True,
+    )
     profile_picture = stdimage.StdImageField(
         verbose_name=_("Profile picture"),
         help_text=_("Your profile picture, which others will see."),
@@ -369,23 +469,31 @@ class UserProfile(models.Model):
         variations={
             'thumbnail': (100, 100, True),
         },
-        blank=True, null=True)
+        blank=True,
+        null=True,
+    )
     # Benefits
     club_card_available = models.BooleanField(
         verbose_name=_("Club card available"),
-        default=False, help_text=_("Is he entitled to posses a club card?"))
+        default=False, help_text=_("Is he entitled to posses a club card?"),
+    )
     club_card_dispatched = models.BooleanField(
         verbose_name=_("Club card dispatched?"),
         help_text=_("Did we send him the club card already?"),
-        default=False)
+        default=False,
+    )
     other_benefits = models.TextField(
         verbose_name=_("Other benefits"),
         help_text=_("Did he receive some other benefits?"),
-        max_length=500, blank=True)
+        max_length=500,
+        blank=True,
+    )
     # -- Notes (club administrators private notes)
     note = models.TextField(
         verbose_name=_("Note for making a boring form more lively"),
-        max_length=2000, blank=True)
+        max_length=2000,
+        blank=True,
+    )
     created = models.DateTimeField(
         verbose_name=_("Date of creation"),
         auto_now_add=True,
@@ -407,8 +515,12 @@ class UserProfile(models.Model):
     def userattendance_links(self):
         from .admin import admin_links
         return admin_links(
-            [(reverse('admin:aklub_userincampaign_change', args=(u.pk,)), str(u.campaign))
-                for u in self.userincampaign_set.all()])
+            [
+                (
+                    reverse('admin:aklub_userincampaign_change', args=(u.pk,)), str(u.campaign)
+                ) for u in self.userincampaign_set.all()
+            ]
+        )
     userattendance_links.short_description = _('Users in campaign')
 
     def __str__(self):
@@ -422,7 +534,7 @@ class UserInCampaign(models.Model):
         verbose_name = _("User in campaign")
         verbose_name_plural = _("Users in campaign")
         unique_together = ('userprofile', 'campaign',)
-        ordering = ("userprofile__user__last_name", "userprofile__user__last_name")
+        ordering = ["userprofile__user__last_name", "userprofile__user__first_name"]
 
     GENDER = (
         ('male', _('Male')),
@@ -454,18 +566,25 @@ class UserInCampaign(models.Model):
         blank=True,
         on_delete=models.CASCADE,
         null=True,
-        editable=True)
+        editable=True,
+    )
     # -- Additional Info
     knows_us_from = models.CharField(
         verbose_name=_("Where does he/she know us from?"),
-        max_length=80, blank=True)
+        max_length=80,
+        blank=True,
+    )
     why_supports = models.TextField(
         verbose_name=_("Why does he/she support us?"),
-        max_length=500, blank=True)
+        max_length=500,
+        blank=True,
+    )
     field_of_work = models.CharField(
         verbose_name=_("Field of work"),
         help_text="His/her area of expertise and/or interest",
-        max_length=80, blank=True)
+        max_length=80,
+        blank=True,
+    )
     source = models.ForeignKey(
         Source,
         verbose_name=_("Source"),
@@ -473,65 +592,90 @@ class UserInCampaign(models.Model):
                     "between partial form (he still needs to send a permanent order into his bank) "
                     "and full form (we are going to submit his form directly into bank, no further "
                     "action is needed from him)."),
-        max_length=80, blank=True, null=True, default=None, on_delete=models.SET_NULL)
+        max_length=80,
+        blank=True,
+        null=True,
+        default=None,
+        on_delete=models.SET_NULL,
+    )
     additional_information = models.TextField(
         verbose_name=_("Additional information"),
-        max_length=500, blank=True)
+        max_length=500,
+        blank=True,
+    )
     # -- Support
     variable_symbol = models.CharField(
         verbose_name=_("Variable symbol"),
         default="",
         unique=True,
-        max_length=30, blank=False)
+        max_length=30,
+        blank=False,
+    )
     registered_support = models.DateTimeField(
         verbose_name=_("Registered support"),
         help_text=_("When did this user register to support us"),
         default=timezone.now,
-        blank=True)
+        blank=True,
+    )
     exceptional_membership = models.BooleanField(
         verbose_name=_("Exceptional membership"),
         help_text=_("In special cases, people can become members of "
                     "the club even if they do not pay any money. This should "
                     "be justified in the note."),
-        default=False)
+        default=False,
+    )
     regular_payments = models.CharField(
         verbose_name=_("Regular payments"),
         help_text=_("Is this user registered for regular payments?"),
         max_length=20,
         choices=REGULAR_PAYMENT_CHOICES,
-        default="true")
+        default="true",
+    )
     old_account = models.BooleanField(
         verbose_name=_("Old account"),
         help_text=_("User has old account"),
-        default=False)
+        default=False,
+    )
     # TODO: This needs to be replaced by amount and periodicity fields to
     # account also for quaterly and annual payments
     regular_amount = models.PositiveIntegerField(
         verbose_name=_("Regularly (amount)"),
         help_text=_(u"Minimum yearly payment is 1800 Kč"),
-        blank=True, null=True)
+        blank=True,
+        null=True,
+    )
     regular_frequency = models.CharField(
         verbose_name=_("Frequency of regular payments"),
         choices=REGULAR_PAYMENT_FREQUENCIES,
-        max_length=20, blank=True, null=True)
+        max_length=20,
+        blank=True,
+        null=True,
+    )
     expected_date_of_first_payment = models.DateField(
         verbose_name=_("Expected date of first payment"),
         help_text=("When should the first payment arrive on our account"),
-        blank=True, null=True)
+        blank=True,
+        null=True,
+    )
     other_support = models.TextField(
         verbose_name=_("Other support"),
         help_text=_(
             "If the user supports us in other ways, please specify here."),
-        max_length=500, blank=True)
+        max_length=500,
+        blank=True,
+    )
 
     # -- Notes (club administrators private notes)
     note = models.TextField(
         verbose_name=_("Note for making a boring form more lively"),
-        max_length=2000, blank=True)
+        max_length=2000,
+        blank=True,
+    )
     verified = models.BooleanField(
         _("Verified"),
         help_text=_("Was the the user information verified by a club administrator?"),
-        default=False)
+        default=False,
+    )
     verified_by = models.ForeignKey(
         'auth.User',
         verbose_name=_("Verified by"),
@@ -544,7 +688,8 @@ class UserInCampaign(models.Model):
         verbose_name=_("Activity points"),
         help_text=_("Points for users activity"),
         default=0,
-        blank=False)
+        blank=False,
+    )
     updated = models.DateTimeField(
         verbose_name=_("Date of last change"),
         auto_now=True,
@@ -558,18 +703,33 @@ class UserInCampaign(models.Model):
     )
     wished_tax_confirmation = models.BooleanField(
         verbose_name=_("Send tax confirmation"),
-        default=True)
+        default=True,
+    )
     wished_welcome_letter = models.BooleanField(
         verbose_name=_("Send welcome letter"),
-        default=True)
+        default=True,
+    )
     wished_information = models.BooleanField(
         verbose_name=_("Send regular news via email"),
-        default=True)
+        default=True,
+    )
     end_of_regular_payments = models.DateField(
         verbose_name=_("End of regular payments (for payments by card)"),
         blank=True,
         null=True,
-        )
+    )
+    next_communication_date = models.DateField(
+        verbose_name=_("Date of next communication"),
+        blank=True,
+        null=True,
+    )
+    next_communication_method = models.CharField(
+        verbose_name=_("Method of next communication"),
+        max_length=30,
+        choices=COMMUNICATION_METHOD,
+        blank=True,
+        null=True,
+    )
 
     def __str__(self):
         return str(self.person_name())
@@ -637,10 +797,12 @@ class UserInCampaign(models.Model):
 
     def regular_frequency_td(self):
         """Return regular frequency as timedelta"""
-        interval_in_days = {'monthly': 31,
-                            'quaterly': 92,
-                            'biannually': 183,
-                            'annually': 366}
+        interval_in_days = {
+            'monthly': 31,
+            'quaterly': 92,
+            'biannually': 183,
+            'annually': 366,
+        }
         try:
             return datetime.timedelta(days=interval_in_days[self.regular_frequency])
         except KeyError:
@@ -662,15 +824,15 @@ class UserInCampaign(models.Model):
             freq = self.regular_frequency_td()
             if not freq:
                 return None
-            expected = last_payment_date+freq
+            expected = last_payment_date + freq
             if self.expected_date_of_first_payment:
                 expected = max(expected, self.expected_date_of_first_payment)
         elif self.expected_date_of_first_payment:
             # Expected date + 3 days tolerance on user side
-            expected = self.expected_date_of_first_payment+datetime.timedelta(days=3)
+            expected = self.expected_date_of_first_payment + datetime.timedelta(days=3)
         else:
             # Registration + month (always, even for quaterly and annual payments)
-            expected = self.registered_support.date()+datetime.timedelta(days=31)
+            expected = self.registered_support.date() + datetime.timedelta(days=31)
         return expected
 
     def regular_payments_delay(self):
@@ -686,7 +848,7 @@ class UserInCampaign(models.Model):
                 expected_with_tolerance = expected_regular_payment_date + datetime.timedelta(days=10)
                 if (expected_with_tolerance <
                         datetime.date.today()):
-                    return datetime.date.today()-expected_with_tolerance
+                    return datetime.date.today() - expected_with_tolerance
         return False
 
     @denormalized(models.IntegerField, null=True)
@@ -697,9 +859,13 @@ class UserInCampaign(models.Model):
             freq = self.regular_frequency_td()
             if not freq:
                 return None
-            total = sum([p.amount for p in Payment.objects.filter(
-                        user=self, date__gt=datetime.date.today() - freq +
-                        datetime.timedelta(days=3))])
+            total = sum(
+                p.amount for p in Payment.objects.filter(
+                    user=self,
+                    date__gt=datetime.date.today() - freq +
+                    datetime.timedelta(days=3),
+                )
+            )
             if self.regular_amount and total > self.regular_amount:
                 return total - self.regular_amount
         return None
@@ -806,8 +972,8 @@ class UserInCampaign(models.Model):
             return False
         payments_year_before = Payment.objects.filter(
             user=self,
-            date__lt=datetime.datetime.now()-datetime.timedelta(days=365)
-            ).order_by('-date')
+            date__lt=datetime.datetime.now() - datetime.timedelta(days=365),
+        ).order_by('-date')
         if (len(payments_year_before) == 0):
             return False
         if (payment_now.amount == payments_year_before[0].amount):
@@ -820,7 +986,8 @@ class UserInCampaign(models.Model):
             'monthly': 12,
             'quaterly': 4,
             'biannually': 2,
-            'annually': 1}
+            'annually': 1,
+        }
         if self.regular_frequency and self.regular_amount:
             return self.regular_amount * times[self.regular_frequency]
         else:
@@ -866,16 +1033,24 @@ def str_to_datetime(date):
     if not date:
         return None
     return datetime.date(
-        **dict(zip(
-            ['day', 'month', 'year'],
-            [int(val) for val in date.split('.')])))
+        **dict(
+            zip(
+                ['day', 'month', 'year'],
+                [int(val) for val in date.split('.')],
+            ),
+        )
+    )
 
 
 def str_to_datetime_xml(date):
     return datetime.date(
-        **dict(zip(
-            ['year', 'month', 'day'],
-            [int(val) for val in date.split('-')])))
+        **dict(
+            zip(
+                ['year', 'month', 'day'],
+                [int(val) for val in date.split('-')],
+            ),
+        )
+    )
 
 
 class AccountStatements(models.Model):
@@ -901,11 +1076,15 @@ class AccountStatements(models.Model):
         upload_to='account-statements',
         null=False,
         blank=False,
-        )
+    )
     date_from = models.DateField(
-        blank=True, null=True)
+        blank=True,
+        null=True,
+    )
     date_to = models.DateField(
-        blank=True, null=True)
+        blank=True,
+        null=True,
+    )
 
     def clean(self, *args, **kwargs):
         super(AccountStatements, self).clean(*args, **kwargs)
@@ -945,8 +1124,9 @@ class AccountStatements(models.Model):
                 'operation_id', 'date', 'amount', 'currency', 'account', 'account_name',
                 'bank_code', 'bank_name', 'KS', 'VS',
                 'SS', 'user_identification', 'recipient_message', 'transfer_type', 'done_by',
-                'specification', 'transfer_note', 'BIC', 'order_id'
-                ])
+                'specification', 'transfer_note', 'BIC', 'order_id',
+            ],
+        )
         payments = []
         in_header = True
 
@@ -969,8 +1149,7 @@ class AccountStatements(models.Model):
                 logging.debug(payment['date'])
                 d, m, y = payment['date'].split('.')
                 payment['date'] = "%04d-%02d-%02d" % (int(y), int(m), int(d))
-                payment['amount'] = int(round(float(
-                    payment['amount'].replace(',', '.').replace(' ', ''))))
+                payment['amount'] = int(round(float(payment['amount'].replace(',', '.').replace(' ', ''))))
                 if payment['amount'] < 0:
                     # Skip transfers from the club account,
                     # only process contributions
@@ -1013,82 +1192,126 @@ class Payment(models.Model):
         ('cash', _('In cash')),
         ('expected', _('Expected payment')),
         ('darujme', 'Darujme.cz'),
-        )
+    )
 
     date = models.DateField(
-        verbose_name=_("Date of payment"))
+        verbose_name=_("Date of payment"),
+    )
     amount = models.PositiveIntegerField(
         verbose_name=_("Amount"),
-        help_text=_("Amount of money in the main used curency"))
+        help_text=_("Amount of money in the main used curency"),
+    )
     account = models.CharField(
         verbose_name=("Account"),
         help_text=_("Bank account from which money was received"),
-        max_length=100, blank=True)
+        max_length=100,
+        blank=True,
+    )
     bank_code = models.CharField(
         verbose_name=_("Bank code"),
         help_text=_("Code of bank from which money was received"),
-        max_length=30, blank=True)
+        max_length=30,
+        blank=True,
+    )
     VS = models.CharField(
         verbose_name=_("VS"),
         help_text=_("Variable symbol"),
-        max_length=30, blank=True, null=True)
+        max_length=30,
+        blank=True,
+        null=True,
+    )
     SS = models.CharField(
         _("SS"),
         help_text=_("Specific symbol"),
-        max_length=30, blank=True)
+        max_length=30,
+        blank=True,
+    )
     KS = models.CharField(
         verbose_name=_("CS"),
         help_text=_("Constant symbol"),
-        max_length=30, blank=True)
+        max_length=30,
+        blank=True,
+    )
     BIC = models.CharField(
         verbose_name=_("BIC"),
         help_text=_("BIC"),
         max_length=30,
         blank=True,
         null=True,
-        )
+    )
     user_identification = models.CharField(
         verbose_name=_("Sender identification"),
         help_text=_("Sender identification string on the account statement"),
-        max_length=30, blank=True)
+        max_length=30,
+        blank=True,
+    )
     type = models.CharField(
         verbose_name=_("Type"),
         help_text=_("Type of payment"),
         choices=TYPE_OF_PAYMENT,
-        max_length=200, blank=True)
+        max_length=200,
+        blank=True,
+    )
     done_by = models.CharField(
         verbose_name=_("Done by"),
         help_text=_("This is a column imported from the account statements. "
                     "It's purpose is not clear. It has been usually blank on "
                     "the account statement we have received so far."),
-        max_length=500, blank=True)
+        max_length=500,
+        blank=True,
+    )
     account_name = models.CharField(
         verbose_name=_("Account name"),
-        max_length=200, blank=True)
+        max_length=200,
+        blank=True,
+    )
     bank_name = models.CharField(
         verbose_name=_("Bank name"),
-        max_length=500, blank=True)
+        max_length=500,
+        blank=True,
+    )
     transfer_note = models.CharField(
         verbose_name=_("Transfer note"),
-        max_length=200, blank=True, null=True)
+        max_length=200,
+        blank=True,
+        null=True,
+    )
     currency = models.CharField(
         verbose_name=_("Currency"),
-        max_length=200, blank=True, null=True)
+        max_length=200,
+        blank=True,
+        null=True,
+    )
     recipient_message = models.CharField(
         verbose_name=_("Recipient message"),
-        max_length=200, blank=True, null=True)
+        max_length=200,
+        blank=True,
+        null=True,
+    )
     operation_id = models.CharField(
         verbose_name=_("Operation ID"),
-        max_length=200, blank=True, null=True)
+        max_length=200,
+        blank=True,
+        null=True,
+    )
     transfer_type = models.CharField(
         verbose_name=_("Transfer type"),
-        max_length=200, blank=True, null=True)
+        max_length=200,
+        blank=True,
+        null=True,
+    )
     specification = models.CharField(
         verbose_name=_("Specification"),
-        max_length=200, blank=True, null=True)
+        max_length=200,
+        blank=True,
+        null=True,
+    )
     order_id = models.CharField(
         verbose_name=_("Order ID"),
-        max_length=200, blank=True, null=True)
+        max_length=200,
+        blank=True,
+        null=True,
+    )
     # Pairing of payments with a specific club system user
     user = models.ForeignKey(
         UserInCampaign,
@@ -1142,14 +1365,6 @@ class Payment(models.Model):
     def __str__(self):
         return str(self.amount)
 
-COMMUNICATION_METHOD = (
-    ('email', _("Email")),
-    ('phonecall', _("Phonecall")),
-    ('mail', _("Mail")),
-    ('personal', _("Personal")),
-    ('internal', _("Internal")),
-)
-
 COMMUNICATION_TYPE = (
     ('mass', _("Mass")),
     ('auto', _("Automatic")),
@@ -1179,30 +1394,39 @@ class Communication(models.Model):
     )
     method = models.CharField(
         verbose_name=_("Method"),
-        max_length=30, choices=COMMUNICATION_METHOD)
+        max_length=30,
+        choices=COMMUNICATION_METHOD,
+    )
     type = models.CharField(
         verbose_name=_("Type of communication"),
         max_length=30, choices=COMMUNICATION_TYPE,
-        default='individual')
+        default='individual',
+    )
     date = models.DateTimeField(
-        verbose_name=_("Date"))
+        verbose_name=_("Date"),
+    )
     subject = models.CharField(
         verbose_name=_("Subject"),
         help_text=_("The topic of this communication"),
-        max_length=100)
+        max_length=100,
+    )
     summary = models.TextField(
         verbose_name=_("Text"),
         help_text=_("Text or summary of this communication"),
-        max_length=50000)
+        max_length=50000,
+    )
     attachment = models.FileField(
         verbose_name=_("Attachment"),
         upload_to='communication-attachments',
-        blank=True, null=True
-        )
+        blank=True,
+        null=True,
+    )
     note = models.TextField(
         verbose_name=_("Notes"),
         help_text=_("Internal notes about this communication"),
-        max_length=3000, blank=True)
+        max_length=3000,
+        blank=True,
+    )
     created_by = models.ForeignKey(
         'auth.User',
         verbose_name=_("Created by"),
@@ -1219,16 +1443,25 @@ class Communication(models.Model):
         blank=True,
         on_delete=models.SET_NULL,
     )
+    result = models.ForeignKey(
+        Result,
+        verbose_name=_("Result of communication"),
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
     send = models.BooleanField(
         verbose_name=_("Send / Handle"),
         help_text=_("Request sending or resolving this communication. For emails, this means that "
                     "the email will be immediatelly sent to the user. In other types of "
                     "communications, someone must handle this manually."),
-        default=False)
+        default=False,
+    )
     dispatched = models.BooleanField(
         verbose_name=_("Dispatched / Done"),
         help_text=_("Was this message already sent, communicated and/or resolved?"),
-        default=False)
+        default=False,
+    )
 
     def save(self, *args, **kwargs):
         """Record save hook
@@ -1261,7 +1494,8 @@ class Communication(models.Model):
                 body=self.summary_txt(),
                 from_email='Klub pratel Auto*Matu <kp@auto-mat.cz>',
                 to=[self.user.userprofile.user.email],
-                bcc=bcc)
+                bcc=bcc,
+            )
             if self.type != 'individual':
                 email.attach_alternative(self.summary, "text/html")
             if self.attachment:
@@ -1330,7 +1564,7 @@ class ConditionValues(object):
         try:
             name, secondary_name, verbose_name, condition_type, choices = self._columns[self._index]
             if secondary_name:
-                val = name+"."+secondary_name
+                val = name + "." + secondary_name
             else:
                 val = name
             name = u"%s: %s %s" % (verbose_name, condition_type, choices)
@@ -1365,30 +1599,38 @@ class Condition(models.Model):
         ('and', _(u'and')),
         ('or', _(u'or')),
         ('nor', _(u'nor')),
-        )
+    )
 
     name = models.CharField(
         verbose_name=_("Name of condition"),
-        max_length=200, blank=False, null=True)
+        max_length=200,
+        blank=False,
+        null=True,
+    )
     # One of variable or conds must be non-null
     operation = models.CharField(
         verbose_name=_("Operation"),
         choices=OPERATORS,
-        max_length=30)
-    conds = models.ManyToManyField('self',
-                                   related_name='conds_rel',
-                                   symmetrical=False,
-                                   verbose_name=_("Conditions"),
-                                   blank=True)
+        max_length=30,
+    )
+    conds = models.ManyToManyField(
+        'self',
+        related_name='conds_rel',
+        symmetrical=False,
+        verbose_name=_("Conditions"),
+        blank=True,
+    )
     as_filter = models.BooleanField(
         verbose_name=_("Display as filter?"),
         help_text=_("Determines whether this condition is available as a filter"
                     "in the table of Users"),
-        default=False)
+        default=False,
+    )
     on_dashboard = models.BooleanField(
         verbose_name=_("Display on dashboard?"),
         help_text=_("Determines whether this condition is available on dashboard"),
-        default=False)
+        default=False,
+    )
 
     def __str__(self):
         return str(self.name)
@@ -1433,7 +1675,7 @@ class Condition(models.Model):
             self.name,
             op_string.join(condition_list + terminalcondition_list),
             sufix
-            )
+        )
 
 
 class TerminalCondition(models.Model):
@@ -1471,11 +1713,15 @@ class TerminalCondition(models.Model):
         verbose_name=_("Variable"),
         choices=ConditionValues(('User', 'UserProfile', 'UserInCampaign', 'User.source', 'User.last_payment')),
         help_text=_("Value or variable on left-hand side"),
-        max_length=50, blank=True, null=True)
+        max_length=50,
+        blank=True,
+        null=True,
+    )
     operation = models.CharField(
         verbose_name=_("Operation"),
         choices=OPERATORS,
-        max_length=30)
+        max_length=30,
+    )
     # One of value or conds must be non-null
     value = models.CharField(
         verbose_name=_("Value"),
@@ -1484,7 +1730,10 @@ class TerminalCondition(models.Model):
             "\naction: daily, new-user<br/>"
             "\nDateField: month_ago, one_day, one_week, two_weeks, one_month<br/>"
             "\nBooleanField: True, False"),
-        max_length=50, blank=True, null=True)
+        max_length=50,
+        blank=True,
+        null=True,
+    )
     condition = models.ForeignKey(
         Condition,
         on_delete=models.CASCADE,
@@ -1507,7 +1756,7 @@ class TerminalCondition(models.Model):
             variable = spec
 
         spec_dict = {
-            'month_ago': datetime.datetime.now()-datetime.timedelta(days=30),
+            'month_ago': datetime.datetime.now() - datetime.timedelta(days=30),
             'one_day': datetime.timedelta(days=1),
             'one_week': datetime.timedelta(days=7),
             'two_weeks': datetime.timedelta(days=14),
@@ -1585,7 +1834,9 @@ class AutomaticCommunication(models.Model):
     name = models.CharField(
         verbose_name=_("Name"),
         max_length=50,
-        blank=False, null=True)
+        blank=False,
+        null=True,
+    )
     condition = models.ForeignKey(
         Condition,
         null=True,
@@ -1594,40 +1845,49 @@ class AutomaticCommunication(models.Model):
     method = models.CharField(
         verbose_name=_("Method"),
         max_length=30,
-        choices=COMMUNICATION_METHOD)
+        choices=COMMUNICATION_METHOD,
+    )
     subject = models.CharField(
         verbose_name=_("Subject"),
-        max_length=100)
+        max_length=100,
+    )
     subject_en = models.CharField(
         verbose_name=_("English subject"),
         max_length=100,
-        blank=True, null=True)
+        blank=True,
+        null=True,
+    )
     template = models.TextField(
         verbose_name=_("Template"),
         help_text=_("Template can contain variable substitutions like addressment, name, "
                     "variable symbol etc."),
-        max_length=50000)
+        max_length=50000,
+    )
     template_en = models.TextField(
         verbose_name=_("English template"),
         max_length=50000,
-        blank=True, null=True)
+        blank=True,
+        null=True,
+    )
     only_once = models.BooleanField(
         verbose_name=_("Only once"),
         help_text=_("If checked, never send this communication twice to one user"),
-        default=True)
+        default=True,
+    )
     dispatch_auto = models.BooleanField(
         verbose_name=_("Dispatch auto"),
         help_text=_("If checked, the communication might be dispatched by the system "
                     "(e.g. an email sent) as soon as condition becomes true, without "
                     "any further action from the administrator. If not, the communication "
                     "is created, but the administrator must send it manually."),
-        default=False)
+        default=False,
+    )
     sent_to_users = models.ManyToManyField(
         UserInCampaign,
         help_text=_(
             "List of users to whom this communication was already sent"),
         blank=True,
-        )
+    )
 
     def __str__(self):
         return str(self.name)
@@ -1643,55 +1903,73 @@ class MassCommunication(models.Model):
     name = models.CharField(
         verbose_name=_("Name"),
         max_length=50,
-        blank=False, null=True)
+        blank=False,
+        null=True,
+    )
     date = models.DateField(
         verbose_name=_("Date"),
-        default=None, blank=False, null=False)
+        default=None,
+        blank=False,
+        null=False,
+    )
     method = models.CharField(
         verbose_name=_("Method"),
         max_length=30,
-        choices=COMMUNICATION_METHOD)
+        choices=COMMUNICATION_METHOD,
+    )
     subject = models.CharField(
         verbose_name=_("Subject"),
-        max_length=100)
+        max_length=100,
+    )
     subject_en = models.CharField(
         verbose_name=_("English subject"),
         help_text=_("English version of the subject. If empty, English speaking users will not receive this communication."),
         max_length=100,
-        blank=True, null=True)
+        blank=True,
+        null=True,
+    )
     template = models.TextField(
         verbose_name=_("Template"),
         help_text=_(
             "Template can contain variable substitutions like addressment, name, "
             "variable symbol etc."),
         max_length=50000,
-        blank=True, null=True)
+        blank=True,
+        null=True,
+    )
     template_en = models.TextField(
         verbose_name=_("English template"),
         max_length=50000,
-        blank=True, null=True)
+        blank=True,
+        null=True,
+    )
     attachment = models.FileField(
         verbose_name=_("Attachment"),
         upload_to='mass-communication-attachments',
-        blank=True, null=True)
+        blank=True,
+        null=True,
+    )
     attach_tax_confirmation = models.BooleanField(
         verbose_name=_("Attach tax confirmation"),
         help_text=_("If this field is checked, the tax confirmation "
                     "for last year is appended to the message."),
-        default=False
-        )
+        default=False,
+    )
     send_to_users = models.ManyToManyField(
         UserInCampaign,
         verbose_name=_("send to users"),
         help_text=_(
             "All users who should receive the communication"),
         limit_choices_to={'userprofile__user__is_active': 'True', 'wished_information': 'True'},
-        blank=True)
+        blank=True,
+    )
     note = models.TextField(
         verbose_name=_("note"),
         help_text=_("Note"),
         max_length=500,
-        blank=True, null=True)
+        blank=True,
+        null=True,
+    )
 
     def __str__(self):
         return str(self.name)

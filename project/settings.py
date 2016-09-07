@@ -112,6 +112,8 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.locale.LocaleMiddleware',
 )
 
+DATA_UPLOAD_MAX_NUMBER_FIELDS = None  # To allow more fields in administration
+
 CACHES = {
     'default': dict(
         BACKEND='django.core.cache.backends.memcached.MemcachedCache',
@@ -150,7 +152,6 @@ INSTALLED_APPS = (
     'chart_tools',
     'massadmin',
     'import_export',
-    'debug_toolbar',
     'corsheaders',
     'daterange_filter',
     'denorm',
