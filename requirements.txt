@@ -28,3 +28,8 @@ gunicorn
 pypdf2  # for pdf result testing
 django-betterforms
 -e git+https://github.com/PetrDlouhy/django-adminactions.git@devel#egg=django-adminactions  # for Django 1.10 compatibility
+
+
+django-admin-tools-stats
+-e git+https://github.com/freeyoung/django-bower.git@fix-django-1.10#egg=django-bower
+-e git+https://github.com/Thermondo/django-cache-utils.git#egg=django-cache-utils

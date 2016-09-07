@@ -73,7 +73,7 @@ STATIC_URL = '/media/'
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-    # 'django.contrib.staticfiles.finders.DefaultStorageFinder',
+    'djangobower.finders.BowerFinder',
 )
 
 TEMPLATES = [
@@ -156,7 +156,17 @@ INSTALLED_APPS = (
     'denorm',
     'related_admin',
     'adminactions',
+    'djangobower',
+    'admin_tools_stats',
+    'django_nvd3',
     'aklub'
+)
+
+BOWER_INSTALLED_APPS = (
+    'jquery#2.0.3',
+    'jquery-ui#~1.10.3',
+    'd3#3.3.6',
+    'nvd3#1.1.12-beta',
 )
 
 ADMIN_TOOLS_INDEX_DASHBOARD = 'aklub.dashboard.AklubIndexDashboard'

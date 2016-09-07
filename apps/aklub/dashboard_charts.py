@@ -17,99 +17,21 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+from admin_tools_stats.modules import DashboardChart, DashboardCharts
+
 from django.utils.translation import ugettext_lazy as _
-from django.db.models import Sum, Count
-from admin_user_stats.base_modules import BaseChart, BaseCharts
-from aklub.models import Payment, UserInCampaign
 
 
-class PaymentCountChart(BaseChart):
-    """
-    Dashboard module with Activity charts.
-    """
-    title = _('Payments count')
-    template = 'admin_user_stats/modules/chart.html'
-    chart_size = "900x200"
-    values_count = 50
-    interval = 'months'
-    queryset = Payment.objects
-    date_field = 'date'
-    aggregate = Count('pk')
+class YearDashboardChart(DashboardChart):
+    def get_day_intervals(self):
+        return {'days': 30, 'weeks': 30*7, 'months': 30*12, 'years': 365*12}[self.interval]
 
 
-class PaymentCountCharts(BaseCharts):
-    """ Group module with 3 default registration charts """
-    title = _('Payments count')
-    chart_model = PaymentCountChart
-
-    def get_charts(self):
-        """ Returns 3 basic chart modules (per-day, per-week and per-month) """
+class YearDashboardCharts(DashboardCharts):
+    def get_registration_charts(self, **kwargs):
         return [
-            self.chart_model(_('By Day'), interval='days'),
-            self.chart_model(_('By Week'), interval='weeks'),
-            self.chart_model(_('By Month'), interval='months'),
-            self.chart_model(_('By Month from regular'), interval='months', queryset=Payment.objects.filter(user__regular_payments="regular")),
-            self.chart_model(_('By Month from onetimers'), interval='months', queryset=Payment.objects.exclude(user__regular_payments="regular")),
-            self.chart_model(_('By Year'), interval='years'),
-        ]
-
-
-class PaymentChart(BaseChart):
-    """
-    Dashboard module with Activity charts.
-    """
-    title = _('Payments')
-    template = 'admin_user_stats/modules/chart.html'
-    chart_size = "900x200"
-    values_count = 50
-    interval = 'months'
-    queryset = Payment.objects
-    date_field = 'date'
-    aggregate = Sum('amount')
-
-
-class PaymentCharts(BaseCharts):
-    """ Group module with 3 default registration charts """
-    title = _('Payments')
-    chart_model = PaymentChart
-
-    def get_charts(self):
-        """ Returns 3 basic chart modules (per-day, per-week and per-month) """
-        return [
-            self.chart_model(_('By Day'), interval='days'),
-            self.chart_model(_('By Week'), interval='weeks'),
-            self.chart_model(_('By Month'), interval='months'),
-            self.chart_model(_('By Month from regular'), interval='months', queryset=Payment.objects.filter(user__regular_payments="regular")),
-            self.chart_model(_('By Month from onetimers'), interval='months', queryset=Payment.objects.exclude(user__regular_payments="regular")),
-            self.chart_model(_('By Year'), interval='years'),
-        ]
-
-
-class UserChart(BaseChart):
-    """
-    Dashboard module with Activity charts.
-    """
-    title = _(u'New users')
-    template = 'admin_user_stats/modules/chart.html'
-    chart_size = "900x200"
-    values_count = 50
-    interval = 'months'
-    queryset = UserInCampaign.objects
-    date_field = 'registered_support'
-
-
-class UserCharts(BaseCharts):
-    """ Group module with 3 default registration charts """
-    title = _('New users')
-    chart_model = UserChart
-
-    def get_charts(self):
-        """ Returns 3 basic chart modules (per-day, per-week and per-month) """
-        return [
-            self.chart_model(_('By Day'), interval='days'),
-            self.chart_model(_('By Week'), interval='weeks'),
-            self.chart_model(_('By Month'), interval='months'),
-            self.chart_model(_('Regular By Month'), interval='months', queryset=UserInCampaign.objects.filter(regular_payments="regular")),
-            self.chart_model(_('Onetime By Month'), interval='months', queryset=UserInCampaign.objects.exclude(regular_payments="regular")),
-            self.chart_model(_('By Year'), interval='years'),
+            YearDashboardChart(_('By Day'), interval='days', **kwargs),
+            YearDashboardChart(_('By Week'), interval='weeks', **kwargs),
+            YearDashboardChart(_('By Month'), interval='months', **kwargs),
+            YearDashboardChart(_('By Year'), interval='years', **kwargs),
         ]

@@ -28,17 +28,19 @@ To activate your index dashboard add the following to your settings.py::
 And to activate the app index dashboard::
     ADMIN_TOOLS_APP_INDEX_DASHBOARD = 'aklub.dashboard.AklubAppIndexDashboard'
 """
-
-from django.utils.translation import ugettext_lazy as _
-from django.core.urlresolvers import reverse
-
-from admin_tools.dashboard import modules, Dashboard, AppIndexDashboard
-from admin_tools.utils import get_admin_site_name
-from .dashboard_charts import PaymentCharts, UserCharts, PaymentCountCharts
-from .models import Condition, UserInCampaign, AccountStatements, MassCommunication
 import datetime
-from . import models
+
+from admin_tools.dashboard import AppIndexDashboard, Dashboard, modules
+from admin_tools.utils import get_admin_site_name
+
 from django.core.cache import caches
+from django.core.urlresolvers import reverse
+from django.utils.translation import ugettext_lazy as _
+
+from . import models
+from .dashboard_charts import YearDashboardCharts
+from .models import AccountStatements, Condition, MassCommunication, UserInCampaign
+
 cache = caches['default']
 
 
@@ -105,10 +107,6 @@ class AklubIndexDashboard(Dashboard):
             ]
         ))
 
-        self.children += [PaymentCountCharts()]
-        self.children += [PaymentCharts()]
-        self.children += [UserCharts()]
-
         # Modules for conditions:
         children = []
         if AccountStatements.objects.exists():
@@ -159,6 +157,26 @@ class AklubIndexDashboard(Dashboard):
                 children=children,
                 pre_content=_(u"Total number of items: %i") % members.count(),
                 ))
+
+        # append an app list module
+        self.children.append(modules.AppList(
+            _('Dashboard Stats Settings'),
+            models=('admin_tools_stats.*', ),
+        ))
+
+        # Copy following code into your custom dashboard
+        # append following code after recent actions module or
+        # a link list module for "quick links"
+        graph_list = get_active_graph()
+        for i in graph_list:
+            kwargs = {}
+            kwargs['require_chart_jscss'] = True
+            kwargs['graph_key'] = i.graph_key
+
+            if context['request'].POST.get('select_box_' + i.graph_key):
+                kwargs['select_box_' + i.graph_key] = context['request'].POST['select_box_' + i.graph_key]
+
+            self.children.append(YearDashboardCharts(**kwargs))
 
 
 class AklubAppIndexDashboard(AppIndexDashboard):
