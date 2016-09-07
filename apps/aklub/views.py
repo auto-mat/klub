@@ -455,8 +455,9 @@ def profiles(request):
 
     users = (
         UserInCampaign.objects.filter(registered_support__gte=from_date).order_by('-registered_support') |
-        UserInCampaign.objects.filter(id__in=(493, 89, 98, 921, 33, 886, 1181, 842, 954, 25))).exclude(
-            userprofile__public=False, userprofile__profile_picture__isnull=False)
+        UserInCampaign.objects.filter(id__in=(493, 89, 98, 921, 33, 886, 1181, 842, 954, 25))).\
+        exclude(userprofile__public=False, userprofile__profile_picture__isnull=False).\
+        order_by("-userprofile__user__last_name", "userprofile__user__first_name")
 
     result = [{'firstname': u.userprofile.public and u.userprofile.user.first_name or '',
                'surname': u.userprofile.public and u.userprofile.user.last_name or '',
