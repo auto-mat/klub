@@ -38,6 +38,7 @@ if [ "$1" = "migrate" ]; then
    python ./manage.py migrate
 fi
 (cd apps/aklub/ && django-admin.py compilemessages)
+python ./manage.py bower_install
 python ./manage.py collectstatic --noinput
 touch wsgi.py
 type supervisorctl && sudo supervisorctl restart $app_name

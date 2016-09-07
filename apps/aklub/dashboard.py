@@ -33,6 +33,8 @@ import datetime
 from admin_tools.dashboard import AppIndexDashboard, Dashboard, modules
 from admin_tools.utils import get_admin_site_name
 
+from admin_tools_stats.modules import get_active_graph
+
 from django.core.cache import caches
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
