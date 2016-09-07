@@ -82,7 +82,7 @@ class Campaign(models.Model):
         max_length=100,
         blank=True,
         null=True,
-        )
+    )
     darujme_api_id = models.IntegerField(
         verbose_name=_("Darujme.cz API ID"),
         default=None,
@@ -105,7 +105,7 @@ class Campaign(models.Model):
     acquisition_campaign = models.BooleanField(
         verbose_name=_("Acquisition campaign"),
         default=False,
-        )
+    )
     real_yield = models.FloatField(
         verbose_name=_("Real yield"),
         help_text=_("Use if yield differs from counted value"),
@@ -476,8 +476,12 @@ class UserProfile(models.Model):
     def userattendance_links(self):
         from .admin import admin_links
         return admin_links(
-            [(reverse('admin:aklub_userincampaign_change', args=(u.pk,)), str(u.campaign))
-                for u in self.userincampaign_set.all()])
+            [
+                (
+                    reverse('admin:aklub_userincampaign_change', args=(u.pk,)), str(u.campaign)
+                ) for u in self.userincampaign_set.all()
+            ]
+        )
     userattendance_links.short_description = _('Users in campaign')
 
     def __str__(self):
@@ -674,7 +678,7 @@ class UserInCampaign(models.Model):
         verbose_name=_("End of regular payments (for payments by card)"),
         blank=True,
         null=True,
-        )
+    )
 
     def __str__(self):
         return str(self.person_name())
@@ -769,15 +773,15 @@ class UserInCampaign(models.Model):
             freq = self.regular_frequency_td()
             if not freq:
                 return None
-            expected = last_payment_date+freq
+            expected = last_payment_date + freq
             if self.expected_date_of_first_payment:
                 expected = max(expected, self.expected_date_of_first_payment)
         elif self.expected_date_of_first_payment:
             # Expected date + 3 days tolerance on user side
-            expected = self.expected_date_of_first_payment+datetime.timedelta(days=3)
+            expected = self.expected_date_of_first_payment + datetime.timedelta(days=3)
         else:
             # Registration + month (always, even for quaterly and annual payments)
-            expected = self.registered_support.date()+datetime.timedelta(days=31)
+            expected = self.registered_support.date() + datetime.timedelta(days=31)
         return expected
 
     def regular_payments_delay(self):
@@ -793,7 +797,7 @@ class UserInCampaign(models.Model):
                 expected_with_tolerance = expected_regular_payment_date + datetime.timedelta(days=10)
                 if (expected_with_tolerance <
                         datetime.date.today()):
-                    return datetime.date.today()-expected_with_tolerance
+                    return datetime.date.today() - expected_with_tolerance
         return False
 
     @denormalized(models.IntegerField, null=True)
@@ -917,8 +921,8 @@ class UserInCampaign(models.Model):
             return False
         payments_year_before = Payment.objects.filter(
             user=self,
-            date__lt=datetime.datetime.now()-datetime.timedelta(days=365),
-            ).order_by('-date')
+            date__lt=datetime.datetime.now() - datetime.timedelta(days=365),
+        ).order_by('-date')
         if (len(payments_year_before) == 0):
             return False
         if (payment_now.amount == payments_year_before[0].amount):
@@ -1021,7 +1025,7 @@ class AccountStatements(models.Model):
         upload_to='account-statements',
         null=False,
         blank=False,
-        )
+    )
     date_from = models.DateField(
         blank=True,
         null=True,
@@ -1070,8 +1074,8 @@ class AccountStatements(models.Model):
                 'bank_code', 'bank_name', 'KS', 'VS',
                 'SS', 'user_identification', 'recipient_message', 'transfer_type', 'done_by',
                 'specification', 'transfer_note', 'BIC', 'order_id',
-                ],
-            )
+            ],
+        )
         payments = []
         in_header = True
 
@@ -1137,7 +1141,7 @@ class Payment(models.Model):
         ('cash', _('In cash')),
         ('expected', _('Expected payment')),
         ('darujme', 'Darujme.cz'),
-        )
+    )
 
     date = models.DateField(
         verbose_name=_("Date of payment"),
@@ -1183,7 +1187,7 @@ class Payment(models.Model):
         max_length=30,
         blank=True,
         null=True,
-        )
+    )
     user_identification = models.CharField(
         verbose_name=_("Sender identification"),
         help_text=_("Sender identification string on the account statement"),
@@ -1373,7 +1377,7 @@ class Communication(models.Model):
         upload_to='communication-attachments',
         blank=True,
         null=True,
-        )
+    )
     note = models.TextField(
         verbose_name=_("Notes"),
         help_text=_("Internal notes about this communication"),
@@ -1510,7 +1514,7 @@ class ConditionValues(object):
         try:
             name, secondary_name, verbose_name, condition_type, choices = self._columns[self._index]
             if secondary_name:
-                val = name+"."+secondary_name
+                val = name + "." + secondary_name
             else:
                 val = name
             name = u"%s: %s %s" % (verbose_name, condition_type, choices)
@@ -1545,7 +1549,7 @@ class Condition(models.Model):
         ('and', _(u'and')),
         ('or', _(u'or')),
         ('nor', _(u'nor')),
-        )
+    )
 
     name = models.CharField(
         verbose_name=_("Name of condition"),
@@ -1621,7 +1625,7 @@ class Condition(models.Model):
             self.name,
             op_string.join(condition_list + terminalcondition_list),
             sufix
-            )
+        )
 
 
 class TerminalCondition(models.Model):
@@ -1702,7 +1706,7 @@ class TerminalCondition(models.Model):
             variable = spec
 
         spec_dict = {
-            'month_ago': datetime.datetime.now()-datetime.timedelta(days=30),
+            'month_ago': datetime.datetime.now() - datetime.timedelta(days=30),
             'one_day': datetime.timedelta(days=1),
             'one_week': datetime.timedelta(days=7),
             'two_weeks': datetime.timedelta(days=14),
@@ -1833,7 +1837,7 @@ class AutomaticCommunication(models.Model):
         help_text=_(
             "List of users to whom this communication was already sent"),
         blank=True,
-        )
+    )
 
     def __str__(self):
         return str(self.name)
@@ -1900,7 +1904,7 @@ class MassCommunication(models.Model):
         help_text=_("If this field is checked, the tax confirmation "
                     "for last year is appended to the message."),
         default=False,
-        )
+    )
     send_to_users = models.ManyToManyField(
         UserInCampaign,
         verbose_name=_("send to users"),
