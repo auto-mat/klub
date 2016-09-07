@@ -19,13 +19,14 @@
 
 """Definition of administration interface for club management application"""
 
-from . import filters, mailing, darujme
-from .models import (
-    UserInCampaign, UserProfile, Payment, Communication, Expense,
-    TerminalCondition, UserYearPayments, NewUser, AccountStatements,
-    AutomaticCommunication, MassCommunication, Condition, Campaign,
-    Recruiter, Source, TaxConfirmation)
+import copy
+import datetime
+
+from adminactions import actions
+
 from daterange_filter.filter import DateRangeFilter
+
+import django.forms
 from django.contrib import admin, messages
 from django.contrib.admin import site
 from django.contrib.auth.admin import UserAdmin
@@ -33,22 +34,31 @@ from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.db.models import Sum
 from django.http import HttpResponseRedirect
-from django.utils.html import mark_safe, format_html, format_html_join
+from django.utils.html import format_html, format_html_join, mark_safe
 from django.utils.translation import ugettext as _
+
 from import_export.admin import ImportExportMixin
 from import_export.resources import ModelResource
+
 from related_admin import RelatedFieldAdmin
-import adminactions.actions as actions
-import copy
-import datetime
-import django.forms
+
+
+from . import darujme, filters, mailing
+from .models import (
+    AccountStatements, AutomaticCommunication, Campaign,
+    Communication, Condition, Expense, MassCommunication,
+    NewUser, Payment, Recruiter, Source,
+    TaxConfirmation, TerminalCondition, UserInCampaign,
+    UserProfile, UserYearPayments,
+)
 
 
 def admin_links(args_generator):
     return format_html_join(
         mark_safe('<br/>'),
         '<a href="{}">{}</a>',
-        args_generator)
+        args_generator,
+    )
 
 
 # -- INLINE FORMS --
@@ -107,11 +117,12 @@ class ExpenseInline(admin.TabularInline):
 def show_payments_by_year(self, request, queryset):
     payments = Payment.objects.filter(user__in=queryset)
     payment_dates = payments.dates('date', 'year')
-    amount_string = ["%s: %s" % (
-        date_year.year,
-        payments.filter(date__year=date_year.year)
-        .aggregate(Sum('amount'))['amount__sum'])
-        for date_year in payment_dates]
+    amount_string = [
+        "%s: %s" % (
+            date_year.year,
+            payments.filter(date__year=date_year.year)
+            .aggregate(Sum('amount'))['amount__sum'],
+        ) for date_year in payment_dates]
     amount_string += (_("TOT.: %s") % payments.aggregate(Sum('amount'))['amount__sum'], )
     self.message_user(request, mark_safe("<br/>".join(amount_string)))
 show_payments_by_year.short_description = _("Show payments by year")
@@ -119,31 +130,41 @@ show_payments_by_year.short_description = _("Show payments by year")
 
 userprofile_fieldsets = [
     (_('Basic personal'), {
-        'fields': ['user', ('sex', 'language', 'public')]}),
+        'fields': ['user', ('sex', 'language', 'public')],
+    }),
     (_('Titles and addressments'), {
-        'fields': [('title_before', 'title_after'),
-                   ('addressment', 'addressment_on_envelope')],
-        'classes': ['collapse']
-        }),
+        'fields': [
+            ('title_before', 'title_after'),
+            ('addressment', 'addressment_on_envelope'),
+        ],
+        'classes': ['collapse'],
+    }),
     (_('Contacts'), {
-        'fields': [('telephone'),
-                   ('street', 'city', 'country'),
-                   'zip_code', 'different_correspondence_address'],
-        }),
+        'fields': [
+            ('telephone'),
+            ('street', 'city', 'country'),
+            'zip_code', 'different_correspondence_address',
+        ],
+    }),
     (_('Benefits'), {
-        'fields': [('club_card_available', 'club_card_dispatched'),
-                   'other_benefits'],
-        'classes': ['collapse']}),
+        'fields': [
+            ('club_card_available', 'club_card_dispatched'),
+            'other_benefits',
+        ],
+        'classes': ['collapse'],
+    }),
     (_('Notes'), {
         'fields': ['campaigns'],
-        'classes': ['collapse']}),
+        'classes': ['collapse'],
+    }),
     (_('Profile'), {
         'fields': ['profile_text', 'profile_picture'],
-        'classes': ['collapse']}),
+        'classes': ['collapse'],
+    }),
     (_('Links'), {
         'fields': ['userattendance_links'],
-        }),
-    ]
+    }),
+]
 
 
 class UserProfileInline(admin.StackedInline):
@@ -230,16 +251,27 @@ class UserInCampaignResource(ModelResource):
 
 # -- ADMIN FORMS --
 class UserInCampaignAdmin(ImportExportMixin, RelatedFieldAdmin):
-    list_display = ('person_name', 'userprofile__user__email', 'source', 'campaign',
-                    'variable_symbol', 'registered_support_date',
-                    'regular_payments_info', 'payment_delay', 'extra_payments',
-                    'number_of_payments', 'total_contrib_string', 'regular_amount',
-                    'userprofile__user__is_active', 'last_payment_date')
+    list_display = (
+        'person_name',
+        'userprofile__user__email',
+        'source',
+        'campaign',
+        'variable_symbol',
+        'registered_support_date',
+        'regular_payments_info',
+        'payment_delay', 'extra_payments',
+        'number_of_payments',
+        'total_contrib_string',
+        'regular_amount',
+        'userprofile__user__is_active',
+        'last_payment_date',
+    )
     date_hierarchy = 'registered_support'
     list_filter = [
         'regular_payments', 'userprofile__language', 'userprofile__user__is_active', 'wished_information', 'old_account',
         'source', 'campaign', ('registered_support', DateRangeFilter),
-        filters.UserConditionFilter, filters.UserConditionFilter1]
+        filters.UserConditionFilter, filters.UserConditionFilter1,
+    ]
     search_fields = ['userprofile__user__first_name', 'userprofile__user__last_name', 'variable_symbol', 'userprofile__user__email', 'userprofile__telephone']
     ordering = ('userprofile__user__last_name',)
     actions = ('send_mass_communication',
@@ -254,25 +286,40 @@ class UserInCampaignAdmin(ImportExportMixin, RelatedFieldAdmin):
     readonly_fields = ('verified_by',)
     fieldsets = [
         (_('Basic personal'), {
-            'fields': ['campaign', 'userprofile']}),
+            'fields': ['campaign', 'userprofile'],
+        }),
         (_('Additional'), {
-            'fields': ['knows_us_from',  'why_supports',
-                       'field_of_work', 'additional_information'],
-            'classes': ['collapse']}),
+            'fields': [
+                'knows_us_from', 'why_supports',
+                'field_of_work', 'additional_information',
+            ],
+            'classes': ['collapse'],
+        }),
         (_('Support'), {
-            'fields': ['variable_symbol',
-                       'registered_support',
-                       ('regular_payments', 'regular_frequency',
-                        'regular_amount', 'expected_date_of_first_payment',
-                        'exceptional_membership'),
-                       'other_support', 'old_account']}),
+            'fields': [
+                'variable_symbol',
+                'registered_support',
+                (
+                    'regular_payments', 'regular_frequency',
+                    'regular_amount', 'expected_date_of_first_payment',
+                    'exceptional_membership'
+                ),
+                'other_support', 'old_account',
+            ],
+        }),
         (_('Communications'), {
-            'fields': ['wished_information', 'wished_tax_confirmation', 'wished_welcome_letter'],
-            'classes': ['collapse']}),
+            'fields': [
+                'wished_information',
+                'wished_tax_confirmation',
+                'wished_welcome_letter',
+            ],
+            'classes': ['collapse'],
+        }),
         (_('Notes'), {
             'fields': ['note', 'source', 'verified', 'verified_by', 'activity_points', 'recruiter'],
-            'classes': ['collapse']}),
-        ]
+            'classes': ['collapse'],
+        }),
+    ]
 
     def save_formset(self, request, form, formset, change):
         # We need to save the request.user to inline Communication
@@ -302,8 +349,9 @@ class UserInCampaignAdmin(ImportExportMixin, RelatedFieldAdmin):
         with the send_to_users M2M field prefilled with these
         users."""
         selected = [str(e.pk) for e in queryset.all()]
-        return HttpResponseRedirect("/admin/aklub/masscommunication/add/?send_to_users=%s" %
-                                    (",".join(selected),))
+        return HttpResponseRedirect(
+            "/admin/aklub/masscommunication/add/?send_to_users=%s" % (",".join(selected),),
+        )
     send_mass_communication.short_description = _("Send mass communication")
 
 
@@ -315,7 +363,8 @@ class UserYearPaymentsAdmin(UserInCampaignAdmin):
     list_filter = [
         ('payment__date', DateRangeFilter), 'regular_payments', 'userprofile__language', 'userprofile__user__is_active',
         'wished_information', 'old_account', 'source', 'userprofile__campaigns',
-        ('registered_support', DateRangeFilter), filters.UserConditionFilter, filters.UserConditionFilter1]
+        ('registered_support', DateRangeFilter), filters.UserConditionFilter, filters.UserConditionFilter1,
+    ]
 
     def payment_total_by_year(self, obj):
         if self.from_date and self.to_date:
@@ -335,16 +384,19 @@ class PaymentAdmin(ImportExportMixin, admin.ModelAdmin):
         (_("Basic"), {
             'fields': [
                 'user', 'date', 'amount',
-                ('type', )]
-            }),
+                ('type', ),
+            ],
+        }),
         (_("Details"), {
-            'fields': [('account', 'bank_code'),
-                       ('account_name', 'bank_name'),
-                       ('VS', 'KS', 'SS'),
-                       'user_identification',
-                       'account_statement']
-            }),
-        ]
+            'fields': [
+                ('account', 'bank_code'),
+                ('account_name', 'bank_name'),
+                ('VS', 'KS', 'SS'),
+                'user_identification',
+                'account_statement',
+            ],
+        }),
+    ]
     readonly_fields = ('account_statement',)
     raw_id_fields = ('user',)
     list_filter = ['type', 'date', filters.PaymentsAssignmentsFilter]
@@ -359,9 +411,11 @@ class NewUserAdmin(UserInCampaignAdmin):
 
 
 class CommunicationAdmin(admin.ModelAdmin):
-    list_display = ('subject', 'dispatched', 'user', 'method',  'created_by', 'handled_by',
-                    'user__regular_payments_info', 'user__payment_delay', 'user__extra_payments',
-                    'date', 'type')
+    list_display = (
+        'subject', 'dispatched', 'user', 'method', 'created_by', 'handled_by',
+        'user__regular_payments_info', 'user__payment_delay', 'user__extra_payments',
+        'date', 'type',
+    )
     raw_id_fields = ('user', )
     readonly_fields = ('type', 'created_by', 'handled_by', )
     list_filter = ['dispatched', 'send', 'date', 'method', 'type', ]
@@ -370,17 +424,19 @@ class CommunicationAdmin(admin.ModelAdmin):
 
     fieldsets = [
         (_("Header"), {
-            'fields': [('user', 'method', 'date')]
-            }),
+            'fields': [('user', 'method', 'date')],
+        }),
         (_("Content"), {
-            'fields': ['subject',
-                       ('summary', 'attachment'),
-                       'note']
-            }),
+            'fields': [
+                'subject',
+                ('summary', 'attachment'),
+                'note',
+            ],
+        }),
         (_("Sending"), {
-            'fields': [('created_by', 'handled_by', 'send', 'dispatched')]
-            }),
-        ]
+            'fields': [('created_by', 'handled_by', 'send', 'dispatched')],
+        }),
+    ]
 
     def user__regular_payments_info(self, obj):
         return obj.user.regular_payments_info()
@@ -434,17 +490,19 @@ class MassCommunicationAdmin(admin.ModelAdmin):
 
     fieldsets = [
         (_("Basic"), {
-            'fields': [('name', 'method', 'date', 'note')]
-            }),
+            'fields': [('name', 'method', 'date', 'note')],
+        }),
         (_("Content"), {
-            'fields': [('subject', 'subject_en'),
-                       ('template', 'template_en'),
-                       ('attachment', 'attach_tax_confirmation')]
-            }),
+            'fields': [
+                ('subject', 'subject_en'),
+                ('template', 'template_en'),
+                ('attachment', 'attach_tax_confirmation'),
+            ],
+        }),
         (_("Sending"), {
-            'fields': ['send_to_users']
-            }),
-        ]
+            'fields': ['send_to_users'],
+        }),
+    ]
 
     def save_form(self, request, form, change):
         super(MassCommunicationAdmin, self).save_form(request, form, change)
@@ -479,18 +537,18 @@ class ConditionAdmin(ImportExportMixin, admin.ModelAdmin):
     inlines = [TerminalConditionInline, ]
     fieldsets = [
         (_("Description"), {
-            'fields': ['name']
-            }),
+            'fields': ['name'],
+        }),
         (_("Operator"), {
-            'fields': ['operation']
-            }),
+            'fields': ['operation'],
+        }),
         (_("Logical conditions operands"), {
-            'fields': ['conds']
-            }),
+            'fields': ['conds'],
+        }),
         (_("Usage"), {
-            'fields': ['as_filter', 'on_dashboard']
-            }),
-        ]
+            'fields': ['as_filter', 'on_dashboard'],
+        }),
+    ]
 
     ordering = ('name',)
 
@@ -533,10 +591,14 @@ def download_darujme_statement(self, request, queryset):
         payment, skipped = darujme.create_statement_from_API(campaign)
         payments.append(payment)
         skipped_payments += skipped
-    self.message_user(request, format_html(
-        "Created following account statements: {}<br/>Skipped payments: {}",
-        ", ".join([str(p.id) if p else "" for p in payments]),
-        skipped_payments))
+    self.message_user(
+        request,
+        format_html(
+            "Created following account statements: {}<br/>Skipped payments: {}",
+            ", ".join([str(p.id) if p else "" for p in payments]),
+            skipped_payments,
+        ),
+    )
 download_darujme_statement.short_description = _("Download darujme statements")
 
 

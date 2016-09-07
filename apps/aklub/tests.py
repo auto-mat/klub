@@ -677,7 +677,7 @@ class ViewsTests(ClearCacheMixin, TestCase):
             '<li class="even"><a href="aklub/user/2978">User Test</a></li>'
             '</ul> </div>',
             html=True,
-            )
+        )
 
     def test_donators(self):
         address = reverse('donators')
@@ -686,12 +686,12 @@ class ViewsTests(ClearCacheMixin, TestCase):
             response,
             '<p>Celkem již podpořilo činnost Auto*Matu 2 lidí<br/>Z toho 1 přispívá na jeho činnost pravidelně</p>',
             html=True,
-            )
+        )
         self.assertContains(
             response,
             '<ul><li>Test&nbsp;User</li><li>Test&nbsp;User 1</li></ul>',
             html=True,
-            )
+        )
 
     def test_profiles(self):
         address = reverse('profiles')
@@ -883,7 +883,7 @@ class ModelTests(TestCase):
         self.assertEqual(self.u.last_payment_date(), None)
         self.assertEqual(self.u.last_payment_type(), None)
         self.assertEqual(self.u.requires_action(), False)
-        self.assertEqual(self.u.payment_delay(),  ICON_FALSE)
+        self.assertEqual(self.u.payment_delay(), ICON_FALSE)
         self.assertEqual(self.u.expected_regular_payment_date, None)
         self.assertEqual(self.u.regular_payments_delay(), False)
         self.assertEqual(self.u.extra_payments(), ICON_FALSE)
@@ -903,7 +903,7 @@ class ModelTests(TestCase):
         self.assertEqual(self.u1.regular_payments_delay(), datetime.timedelta(12))
         self.assertEqual(self.u1.extra_money, None)
         self.assertEqual(self.u1.regular_payments_info(), datetime.date(2016, 4, 9))
-        self.assertEqual(self.u1.extra_payments(),  ICON_FALSE)
+        self.assertEqual(self.u1.extra_payments(), ICON_FALSE)
         self.assertEqual(self.u1.mail_communications_count(), False)
         self.assertEqual(self.u1.payment_delay(), '3\xa0týdny, 1\xa0den')
         self.assertEqual(self.u1.payment_total, 350.0)
