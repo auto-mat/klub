@@ -24,7 +24,13 @@ from django.utils.translation import ugettext_lazy as _
 
 class YearDashboardChart(DashboardChart):
     def get_day_intervals(self):
-        return {'days': 30, 'weeks': 30*7, 'months': 30*12, 'years': 365*12}[self.interval]
+        values = 30
+        return {
+            'days': values,
+            'weeks': values * 7,
+            'months': values * 30,
+            'years': values * 365,
+        }[self.interval]
 
 
 class YearDashboardCharts(DashboardCharts):
