@@ -16,8 +16,10 @@ framework.
 import os
 import site
 import sys
-from project.settings import PROJECT_ROOT
+
 from django.core.wsgi import get_wsgi_application
+
+from project.settings import PROJECT_ROOT
 
 ALLDIRS = [os.path.join(PROJECT_ROOT, 'env/lib/python2.6/site-packages'), ]
 

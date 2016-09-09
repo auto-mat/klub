@@ -1,12 +1,14 @@
 # custom filters
 
-from . import models
-from .models import Condition
 from datetime import date
+
 from django.contrib.admin import SimpleListFilter
 from django.contrib.auth.models import User
 from django.db.models import Count, Q
 from django.utils.translation import ugettext as _
+
+from . import models
+from .models import Condition
 
 
 class NullFieldFilter(SimpleListFilter):

@@ -1,14 +1,16 @@
 # coding=utf-8
-from datetime import datetime
 import os
+from datetime import datetime
+
 import reportlab
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image
+
 from reportlab.lib.enums import TA_CENTER
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import cm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.platypus import Image, Paragraph, SimpleDocTemplate, Spacer
 
 
 def makepdf(outfile, name, sex, street, city, year, amount):
@@ -54,7 +56,8 @@ def makepdf(outfile, name, sex, street, city, year, amount):
     doc = SimpleDocTemplate(
         outfile, pagesize=A4,
         rightMargin=72, leftMargin=72,
-        topMargin=72, bottomMargin=18)
+        topMargin=72, bottomMargin=18,
+    )
     Story = []
 
     # STYLES
@@ -68,7 +71,7 @@ def makepdf(outfile, name, sex, street, city, year, amount):
     styles['Indented'].fontName = 'DejaVu'
 
     # START OF THE DOCUMENT
-    im = Image(logo, 5.98*cm, 2.54*cm)
+    im = Image(logo, 5.98 * cm, 2.54 * cm)
     Story.append(im)
     Story.append(Spacer(1, 30))
 
@@ -100,7 +103,7 @@ def makepdf(outfile, name, sex, street, city, year, amount):
     def firstPageGraphics(canvas, doc):
         canvas.saveState()
 
-        im = Image(signature, 5.8*cm, 3.05*cm)
+        im = Image(signature, 5.8 * cm, 3.05 * cm)
         im.drawOn(canvas, 100, 100)
         canvas.setLineWidth(.3)
         canvas.line(45, 80, 550, 80)
