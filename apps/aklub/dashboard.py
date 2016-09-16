@@ -64,50 +64,60 @@ class AklubIndexDashboard(Dashboard):
     def init_with_context(self, context):
         site_name = get_admin_site_name(context)
         # append a link list module for "quick links"
-        self.children.append(modules.LinkList(
-            _('Quick links'),
-            layout='inline',
-            draggable=False,
-            deletable=False,
-            collapsible=False,
-            children=[
-                [_('Return to site'), '/'],
-                [_('Change password'),
-                 reverse('%s:password_change' % site_name)],
-                [_('Log out'), reverse('%s:logout' % site_name)],
-            ]
-        ))
+        self.children.append(
+            modules.LinkList(
+                _('Quick links'),
+                layout='inline',
+                draggable=False,
+                deletable=False,
+                collapsible=False,
+                children=[
+                    [_('Return to site'), '/'],
+                    [
+                        _('Change password'),
+                        reverse('%s:password_change' % site_name),
+                    ],
+                    [_('Log out'), reverse('%s:logout' % site_name)],
+                ],
+            ),
+        )
 
         # append an app list module for "Applications"
-        self.children.append(modules.AppList(
-            _('Applications'),
-            exclude=('django.contrib.*',),
-        ))
+        self.children.append(
+            modules.AppList(
+                _('Applications'),
+                exclude=('django.contrib.*',),
+            ),
+        )
 
         # append an app list module for "Administration"
-        self.children.append(modules.AppList(
-            _('Administration'),
-            models=('django.contrib.*',),
-        ))
+        self.children.append(
+            modules.AppList(
+                _('Administration'),
+                models=('django.contrib.*',),
+            ),
+        )
 
         # append a recent actions module
         self.children.append(modules.RecentActions(_('Recent Actions'), 5))
 
-        self.children.append(modules.LinkList(
-            _('Statistics'),
-            children=[
-                {
-                    'title': _('Members'),
-                    'url': '/admin/aklub/stat-members',
-                    'external': False,
-                },
-                {
-                    'title': _('Payments'),
-                    'url': '/admin/aklub/stat-payments',
-                    'external': False,
-                },
-            ]
-        ))
+        self.children.append(
+            modules.LinkList(
+                _('Statistics'),
+                children=[
+                    {
+                        'title': _('Members'),
+                        'url': '/admin/aklub/stat-members',
+                        'external': False,
+                    },
+                    {
+                        'title': _('Payments'),
+                        'url': '/admin/aklub/stat-payments',
+                        'external': False,
+                    },
+                ],
+            ),
+        )
 
         # Modules for conditions:
         children = []
@@ -118,7 +128,7 @@ class AklubIndexDashboard(Dashboard):
                     'url': "aklub/accountstatements/",
                     'external': False,
                 }
-                )
+            )
         if MassCommunication.objects.exists():
             children.append(
                 {
@@ -128,7 +138,7 @@ class AklubIndexDashboard(Dashboard):
                     'url': "aklub/masscommunication/",
                     'external': False,
                 }
-                )
+            )
         for cond in Condition.objects.filter(on_dashboard=True):
             children.append(
                 {
@@ -136,11 +146,13 @@ class AklubIndexDashboard(Dashboard):
                     'url': "aklub/user/?user_condition=%i" % cond.id,
                     'external': False,
                 }
-                )
-        self.children.append(modules.LinkList(
-            _('Conditions'),
-            children=children
-        ))
+            )
+        self.children.append(
+            modules.LinkList(
+                _('Conditions'),
+                children=children,
+            ),
+        )
 
         for cond in Condition.objects.filter(on_dashboard=True):
             children = []
@@ -152,19 +164,23 @@ class AklubIndexDashboard(Dashboard):
                         'url': "aklub/user/%i" % member.id,
                         'external': False,
                     }
-                    )
-            self.children.append(modules.LinkList(
-                title=cond.name,
-                title_url="aklub/user/?user_condition=%i" % cond.id,
-                children=children,
-                pre_content=_(u"Total number of items: %i") % members.count(),
-                ))
+                )
+            self.children.append(
+                modules.LinkList(
+                    title=cond.name,
+                    title_url="aklub/user/?user_condition=%i" % cond.id,
+                    children=children,
+                    pre_content=_(u"Total number of items: %i") % members.count(),
+                ),
+            )
 
         # append an app list module
-        self.children.append(modules.AppList(
-            _('Dashboard Stats Settings'),
-            models=('admin_tools_stats.*', ),
-        ))
+        self.children.append(
+            modules.AppList(
+                _('Dashboard Stats Settings'),
+                models=('admin_tools_stats.*', ),
+            ),
+        )
 
         # Copy following code into your custom dashboard
         # append following code after recent actions module or
@@ -175,8 +191,9 @@ class AklubIndexDashboard(Dashboard):
             kwargs['require_chart_jscss'] = True
             kwargs['graph_key'] = i.graph_key
 
-            if context['request'].POST.get('select_box_' + i.graph_key):
-                kwargs['select_box_' + i.graph_key] = context['request'].POST['select_box_' + i.graph_key]
+            for key in context['request'].POST:
+                if key.startswith('select_box_'):
+                    kwargs[key] = context['request'].POST[key]
 
             self.children.append(YearDashboardCharts(**kwargs))
 
@@ -198,8 +215,8 @@ class AklubAppIndexDashboard(AppIndexDashboard):
             modules.RecentActions(
                 _('Recent Actions'),
                 include_list=self.get_app_content_types(),
-                limit=5
-            )
+                limit=5,
+            ),
         ]
 
     def init_with_context(self, context):

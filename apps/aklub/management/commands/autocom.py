@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
-from django.core.management.base import BaseCommand
 import aklub
+
+from django.core.management.base import BaseCommand
 
 
 class Command(BaseCommand):

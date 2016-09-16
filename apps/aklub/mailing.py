@@ -16,14 +16,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
-from aklub import autocom
-from aklub.models import Communication, TaxConfirmation, UserInCampaign, Payment, UserProfile
-from django.contrib.auth.models import User as DjangoUser
-from django.utils.translation import ugettext as _
 import copy
 import datetime
 
+from aklub import autocom
+from aklub.models import Communication, Payment, TaxConfirmation, UserInCampaign, UserProfile
+
+from django.contrib.auth.models import User as DjangoUser
+from django.utils.translation import ugettext as _
 """Mailing"""
 
 
@@ -64,16 +64,20 @@ def send_mass_communication(obj, users, sending_user, save=True):
                 attachment = copy.copy(obj.attachment)
             else:
                 tax_confirmations = TaxConfirmation.objects.filter(
-                    user=userincampaign, year=datetime.datetime.now().year-1)
+                    user=userincampaign,
+                    year=datetime.datetime.now().year - 1,
+                )
                 if len(tax_confirmations) > 0:
                     attachment = copy.copy(tax_confirmations[0].file)
                 else:
                     attachment = None
-            c = Communication(user=userincampaign, method=obj.method, date=datetime.datetime.now(),
-                              subject=subject,
-                              summary=autocom.process_template(template, userincampaign),
-                              attachment=attachment,
-                              note=_("Prepared by auto*mated mass communications at %s") % datetime.datetime.now(),
-                              send=True, created_by=sending_user, handled_by=sending_user,
-                              type='mass')
+            c = Communication(
+                user=userincampaign, method=obj.method, date=datetime.datetime.now(),
+                subject=subject,
+                summary=autocom.process_template(template, userincampaign),
+                attachment=attachment,
+                note=_("Prepared by auto*mated mass communications at %s") % datetime.datetime.now(),
+                send=True, created_by=sending_user, handled_by=sending_user,
+                type='mass',
+            )
             c.dispatch(save=save)

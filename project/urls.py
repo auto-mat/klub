@@ -1,4 +1,5 @@
-from aklub.views import stat_payments, stat_members
+from aklub.views import stat_members, stat_payments
+
 from django.conf.urls import include, url
 from django.contrib import admin
 from django.contrib.auth import views as auth_views

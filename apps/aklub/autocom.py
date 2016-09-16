@@ -18,11 +18,11 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 """Automatic communications for club management"""
-
-from .models import UserInCampaign, Communication, AutomaticCommunication
 import datetime
-import string
 import logging
+import string
+
+from .models import AutomaticCommunication, Communication, UserInCampaign
 logger = logging.getLogger(__name__)
 
 
@@ -71,8 +71,8 @@ def process_template(template_string, user):
         regular_amount=user.regular_amount,
         regular_frequency=_localize_enum(UserInCampaign.REGULAR_PAYMENT_FREQUENCIES, user.regular_frequency, user.userprofile.language),
         var_symbol=user.variable_symbol,
-        last_payment_amount=user.last_payment and user.last_payment.amount or None
-        )
+        last_payment_amount=user.last_payment and user.last_payment.amount or None,
+    )
 
     # Modify text according to gender
     # Example: Vazeny{y|a} {pane|pani} -> [male] -> Vazeny pane
@@ -86,15 +86,15 @@ def process_template(template_string, user):
             end_pos = text.find('}', i)
             assert sep_pos > i
             assert end_pos > sep_pos, "Wrong format of template, no separator | or after end mark }"
-            male_variant = text[i+1:sep_pos]
-            female_variant = text[sep_pos+1:end_pos]
+            male_variant = text[i + 1:sep_pos]
+            female_variant = text[sep_pos + 1:end_pos]
             if user.userprofile.sex == 'male':
                 gender_text += male_variant
             elif user.userprofile.sex == 'female':
                 gender_text += female_variant
             else:
                 gender_text += male_variant + "/" + female_variant
-            o = end_pos+1
+            o = end_pos + 1
             i = end_pos
         i += 1
     gender_text += text[o:]
@@ -120,9 +120,11 @@ def check(users=None, action=None):
                 subject = auto_comm.subject_en
             if template and template != '':
                 logger.info(u"Added new automatic communication \"%s\" for user \"%s\", action \"%s\"" % (auto_comm, user, action))
-                c = Communication(user=user, method=auto_comm.method, date=datetime.datetime.now(),
-                                  subject=subject, summary=process_template(template, user),
-                                  note="Prepared by auto*mated mailer at %s" % datetime.datetime.now(),
-                                  send=auto_comm.dispatch_auto, type='auto')
+                c = Communication(
+                    user=user, method=auto_comm.method, date=datetime.datetime.now(),
+                    subject=subject, summary=process_template(template, user),
+                    note="Prepared by auto*mated mailer at %s" % datetime.datetime.now(),
+                    send=auto_comm.dispatch_auto, type='auto',
+                )
                 auto_comm.sent_to_users.add(user)
                 c.save()

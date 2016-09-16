@@ -119,7 +119,7 @@ CACHES = {
         BACKEND='django.core.cache.backends.memcached.MemcachedCache',
         LOCATION=['127.0.0.1:11211'],
         KEY_PREFIX='aklub',
-    )
+    ),
 }
 
 LOCALE_PATHS = [
@@ -182,16 +182,16 @@ LOGGING = {
     'disable_existing_loggers': True,
     'formatters': {
         'verbose': {
-            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s',
         },
         'simple': {
-            'format': '%(levelname)s %(message)s'
+            'format': '%(levelname)s %(message)s',
         },
     },
     'filters': {
         'require_debug_false': {
-            '()': 'django.utils.log.RequireDebugFalse'
-        }
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
     },
     'handlers': {
         'null': {
@@ -201,7 +201,7 @@ LOGGING = {
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
-            'formatter': 'simple'
+            'formatter': 'simple',
         },
         'logfile': {
             'level': 'DEBUG',
@@ -216,7 +216,7 @@ LOGGING = {
             'filters': ['require_debug_false'],
             'class': 'django.utils.log.AdminEmailHandler',
             'include_html': True,
-        }
+        },
     },
     'loggers': {
         'django': {
@@ -232,8 +232,8 @@ LOGGING = {
         'aklub': {
             'handlers': ['console', 'mail_admins', 'logfile'],
             'level': 'DEBUG',
-        }
-    }
+        },
+    },
 }
 
 TEST_RUNNER = 'aklub.tests.AklubTestSuiteRunner'

@@ -1,4 +1,5 @@
 from settings import *  # noqa
+from settings import LOGGING
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
