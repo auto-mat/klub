@@ -376,7 +376,7 @@ class UserProfile(models.Model):
     )
     telephone = models.CharField(
         verbose_name=_("Telephone"),
-        max_length=30,
+        max_length=100,
         blank=True,
     )
     street = models.CharField(
