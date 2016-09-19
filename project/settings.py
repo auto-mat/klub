@@ -166,8 +166,8 @@ INSTALLED_APPS = (
 BOWER_INSTALLED_APPS = (
     'jquery#2.2.4',
     'jquery-ui#~1.10.4',
-    'd3#3.4.4',
-    'nvd3#1.8.1',
+    'd3#3.3.13',
+    'nvd3#1.7.1',
 )
 
 ADMIN_TOOLS_INDEX_DASHBOARD = 'aklub.dashboard.AklubIndexDashboard'
