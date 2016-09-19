@@ -1,0 +1,91 @@
+[
+    {
+        "fields": {
+            "created_date": "2016-09-08T11:22:25.501",
+            "criteria": [
+                1
+            ],
+            "date_field_name": "date",
+            "graph_key": "payment_amount",
+            "graph_title": "Mno\u017estv\u00ed plateb (K\u010d)",
+            "is_visible": true,
+            "model_app_name": "aklub",
+            "model_name": "Payment",
+            "operation_field_name": "amount",
+            "type_operation_field_name": "Sum",
+            "updated_date": "2016-09-08T13:54:25.702"
+        },
+        "model": "admin_tools_stats.dashboardstats",
+        "pk": 1
+    },
+    {
+        "fields": {
+            "created_date": "2016-09-08T11:34:41.780",
+            "criteria": [],
+            "date_field_name": "date_joined",
+            "graph_key": "user_count",
+            "graph_title": "Po\u010det d\u00e1rc\u016f",
+            "is_visible": true,
+            "model_app_name": "auth",
+            "model_name": "User",
+            "operation_field_name": "",
+            "type_operation_field_name": "Count",
+            "updated_date": "2016-09-08T15:19:42.003"
+        },
+        "model": "admin_tools_stats.dashboardstats",
+        "pk": 2
+    },
+    {
+        "fields": {
+            "created_date": "2016-09-08T13:46:17.327",
+            "criteria": [
+                1
+            ],
+            "date_field_name": "date",
+            "graph_key": "payment_count",
+            "graph_title": "Po\u010det plateb",
+            "is_visible": true,
+            "model_app_name": "aklub",
+            "model_name": "Payment",
+            "operation_field_name": "",
+            "type_operation_field_name": "Count",
+            "updated_date": "2016-09-08T15:19:09.624"
+        },
+        "model": "admin_tools_stats.dashboardstats",
+        "pk": 3
+    },
+    {
+        "fields": {
+            "created_date": "2016-09-08T11:31:45.465",
+            "criteria_dynamic_mapping": {
+                "-": "V\u0161ichni",
+                "onetime": "Jednor\u00e1zov\u00ed",
+                "promise": "P\u0159\u00edslib",
+                "regular": "Pravideln\u00ed"
+            },
+            "criteria_fix_mapping": "",
+            "criteria_name": "Typ d\u00e1rce",
+            "dynamic_criteria_field_name": "user__regular_payments",
+            "updated_date": "2016-09-08T13:49:18.126"
+        },
+        "model": "admin_tools_stats.dashboardstatscriteria",
+        "pk": 1
+    },
+    {
+        "fields": {
+            "created_date": "2016-09-08T15:14:23.681",
+            "criteria_dynamic_mapping": {
+                "-": "V\u0161ichni",
+                "onetime": "Jednor\u00e1zov\u00ed",
+                "promise": "P\u0159\u00edslib",
+                "regular": "Pravideln\u00ed"
+            },
+            "criteria_fix_mapping": "",
+            "criteria_name": "Typ d\u00e1rce (pro u\u017eivatele)",
+            "dynamic_criteria_field_name": "userprofile__regular_payments",
+            "updated_date": "2016-09-08T15:14:23.681"
+        },
+        "model": "admin_tools_stats.dashboardstatscriteria",
+        "pk": 2
+    }
+]
