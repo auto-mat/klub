@@ -166,7 +166,7 @@ INSTALLED_APPS = (
 BOWER_INSTALLED_APPS = (
     'jquery#2.2.4',
     'jquery-ui#~1.10.4',
-    'd3#4.2.2',
+    'd3#3.4.4',
     'nvd3#1.8.1',
 )
 
