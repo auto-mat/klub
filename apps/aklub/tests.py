@@ -684,6 +684,12 @@ class ViewsTests(ClearCacheMixin, TestCase):
         response = self.client.get(address)
         self.assertContains(response, "<h2>Nedávné akce</h2>", html=True)
 
+    def test_stat_payments(self):
+        address = reverse('stat-payments')
+        response = self.client.get(address)
+        self.assertContains(response, "<tr><td>2016</td><td>Bře</td><td>1</td><td>100 Kč</td><td>480 Kč</td></tr>", html=True)
+        self.assertContains(response, "<h1>Statistiky plateb</h1>", html=True)
+
     def test_change_dashboard_chart(self):
         address = "/"
         post_data = {

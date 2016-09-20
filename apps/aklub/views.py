@@ -32,8 +32,8 @@ from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
 from django.core.validators import MinLengthValidator, RegexValidator
 from django.db.models import Count, Q, Sum
+from django.db.models.functions import TruncMonth
 from django.shortcuts import get_object_or_404, render_to_response
-from django.template import RequestContext
 from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext as _
 from django.views.decorators.cache import cache_page, never_cache
@@ -43,7 +43,7 @@ from django.views.generic.edit import FormView
 from formtools.wizard.views import SessionWizardView
 
 from . import autocom
-from .models import Campaign, Payment, Source, StatMemberCountsByMonths, StatPaymentsByMonths, UserInCampaign, UserProfile
+from .models import Campaign, Payment, Source, StatMemberCountsByMonths, UserInCampaign, UserProfile
 
 
 class RegularUserForm_User(forms.ModelForm):
@@ -476,17 +476,25 @@ def stat_members(request):
 
 
 def stat_payments(request):
+    payments_by_months = Payment.objects\
+        .filter(~Q(type='expected'))\
+        .annotate(month=TruncMonth('date'))\
+        .values('month')\
+        .annotate(total=Sum('amount'), donors=Count('user'))\
+        .order_by('month')\
+        .all()
+    run_total = 0
+    for payment in payments_by_months:
+        run_total += payment['total']
+        payment['run_total'] = run_total
     return render_to_response(
         'stat-payments.html',
         {
-            'payments_by_months': StatPaymentsByMonths.objects.all(),
+            'payments_by_months': payments_by_months,
             'total_amount': Payment.objects.all().filter(~Q(type='expected')).aggregate(Sum('amount'))['amount__sum'],
+            'site_header': _("Payments statistics"),
         },
     )
-
-    return render_to_response(
-        'stat-finance.html',
-        RequestContext(request, {}),)
 
 
 def profiles(request):
