@@ -31,7 +31,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
 from django.core.validators import MinLengthValidator, RegexValidator
-from django.db.models import Case, Count, IntegerField, Q, Sum, Value, When
+from django.db.models import Case, Count, IntegerField, Q, Sum, When
 from django.db.models.functions import TruncMonth
 from django.shortcuts import get_object_or_404, render_to_response
 from django.utils.decorators import method_decorator
@@ -213,6 +213,44 @@ class RegularView(FormView):
             {
                 'amount': amount,
                 'user_id': user_id,
+            },
+        )
+
+
+class DarujmeView(FormView):
+    template_name = 'regular.html'
+    form_class = RegularUserForm
+    success_template = 'thanks.html'
+    source_slug = 'web'
+
+    def dispatch(self, request, *args, **kwargs):
+        request.POST = request.POST.copy()
+        regular_frequency_map = {
+            '28': 'monthly',
+        }
+        if self.request.GET.get('payment_data____jmeno'):
+            request.POST['user-first_name'] = self.request.GET.get('payment_data____jmeno')
+        if self.request.GET.get('payment_data____prijmeni'):
+            request.POST['user-last_name'] = self.request.GET.get('payment_data____prijmeni')
+        if self.request.GET.get('payment_data____email'):
+            request.POST['user-email'] = self.request.GET.get('payment_data____email')
+        if self.request.GET.get('payment_data____telefon'):
+            request.POST['userprofile-telephone'] = self.request.GET.get('payment_data____telefon')
+        if self.request.GET.get('recurringfrequency'):
+            request.POST['userincampaign-regular_frequency'] = regular_frequency_map[self.request.GET.get('recurringfrequency')]
+        if self.request.GET.get('ammount'):
+            request.POST['userincampaign-regular_amount'] = self.request.GET.get('ammount')
+        request.POST['submit'] = 'Odeslat'
+        request.method = 'POST'
+        return super().dispatch(request, args, kwargs)
+
+    def form_valid(self, form):
+        user_id = new_user(form, regular="promise", source_slug=self.source_slug)
+        userincampaign = UserInCampaign.objects.get(id=user_id)
+        return render_to_response(
+            self.success_template,
+            {
+                'userincampaign': userincampaign,
             },
         )
 

@@ -2,7 +2,7 @@
 
 
 <div>
-<form id="aklub-form" method="post" class="form-horizontal" action="http://{{ request.get_host }}{% url "regular-dpnk" %}">{% csrf_token %}
+<form id="aklub-form" method="post" class="form-horizontal" action="{{ request.path }}">{% csrf_token %}
 
 Chcete mít startovné každý rok zdarma a města, ve kterých je radost jezdit (do práce) na kole?
 <br/>
