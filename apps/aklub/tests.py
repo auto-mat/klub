@@ -632,7 +632,7 @@ def print_response(response):
 
 
 class ViewsTests(ClearCacheMixin, TestCase):
-    fixtures = ['conditions', 'users', 'communications']
+    fixtures = ['conditions', 'users', 'communications', 'dashboard_stats']
 
     def setUp(self):
         self.user = User.objects.create_superuser(
@@ -676,6 +676,23 @@ class ViewsTests(ClearCacheMixin, TestCase):
             '<li class="odd"><a href="aklub/user/3">Payments Without</a></li>'
             '<li class="even"><a href="aklub/user/2978">User Test</a></li>'
             '</ul> </div>',
+            html=True,
+        )
+
+    def test_aklub_admin_page(self):
+        address = "/admin/aklub/"
+        response = self.client.get(address)
+        self.assertContains(response, "<h2>Nedávné akce</h2>", html=True)
+
+    def test_change_dashboard_chart(self):
+        address = "/"
+        post_data = {
+            'select_box_payment_amount': 'regular',
+        }
+        response = self.client.post(address, post_data)
+        self.assertContains(
+            response,
+            '<option value="regular" selected=selected>Pravidelní</option>',
             html=True,
         )
 
