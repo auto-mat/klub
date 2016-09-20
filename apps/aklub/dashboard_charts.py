@@ -25,11 +25,12 @@ from django.utils.translation import ugettext_lazy as _
 class YearDashboardChart(DashboardChart):
     interval_dateformat_map = {
         'hours': ("%d %b %Y %H:%S", "%H"),
-        'days': ("%d %b %Y", "%a"),
+        'days': ("%a %d %b %Y", "%a"),
         'months': ("%b %Y", "%b"),
         'weeks': ("%d %b %Y", "%U"),
         'years': ("%Y", "%Y"),
     }
+
     def get_day_intervals(self):
         values = 30
         return {
