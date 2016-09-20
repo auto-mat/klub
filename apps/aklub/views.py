@@ -31,7 +31,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
 from django.core.validators import MinLengthValidator, RegexValidator
-from django.db.models import Count, Q, Sum
+from django.db.models import Case, Count, IntegerField, Q, Sum, Value, When
 from django.db.models.functions import TruncMonth
 from django.shortcuts import get_object_or_404, render_to_response
 from django.utils.decorators import method_decorator
@@ -43,7 +43,7 @@ from django.views.generic.edit import FormView
 from formtools.wizard.views import SessionWizardView
 
 from . import autocom
-from .models import Campaign, Payment, Source, StatMemberCountsByMonths, UserInCampaign, UserProfile
+from .models import Campaign, Payment, Source, UserInCampaign, UserProfile
 
 
 class RegularUserForm_User(forms.ModelForm):
@@ -466,11 +466,27 @@ def onetime(request):
 
 
 def stat_members(request):
+    members_by_months = UserInCampaign.objects\
+        .filter(userprofile__user__is_active=True)\
+        .annotate(month=TruncMonth('userprofile__user__date_joined'))\
+        .values('month')\
+        .annotate(
+            total=Count('id'),
+            regular=Count(Case(When(regular_payments="regular", then=1), output_field=IntegerField())),
+            irregular=Count(Case(When(~Q(regular_payments="regular"), then=1), output_field=IntegerField())),
+        )\
+        .order_by('month')\
+        .all()
+    run_total = 0
+    for payment in members_by_months:
+        run_total += payment['total']
+        payment['run_total'] = run_total
     return render_to_response(
         'stat-members.html',
         {
-            'members_by_months': StatMemberCountsByMonths.objects.all(),
+            'members_by_months': members_by_months,
             'total_members': UserInCampaign.objects.all().filter(userprofile__user__is_active=True).aggregate(Count('id'))['id__count'],
+            'site_header': _("Member statistics"),
         },
     )
 

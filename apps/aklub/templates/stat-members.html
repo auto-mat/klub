@@ -14,7 +14,7 @@
       <table>
       <tr><td>Rok</td><td>Měsíc</td><td>Pravidelní</td><td>Nepravidelní</td><td>Celkem za měsíc</td><td>Celkem</td></tr>
       {% for m in members_by_months %}
-      <tr><td>{{ m.year }}</td><td>{{ m.month }}</td><td>{{ m.regular }}</td><td>{{ m.irregular }}</td><td>{{ m.total }}</td><td>{{ m.run_total }}</td></tr>
+      <tr><td>{{ m.month|date:"Y" }}</td><td>{{ m.month|date:"M" }}</td><td>{{ m.regular }}</td><td>{{ m.irregular }}</td><td>{{ m.total }}</td><td>{{ m.run_total }}</td></tr>
       {% endfor %}
       </table>
 
