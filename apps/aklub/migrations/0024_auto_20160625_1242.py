@@ -10,29 +10,6 @@ def create_userprofiles(apps, schema_editor):
     UserProfile = apps.get_model("aklub", "UserProfile")
     UserInCampaign = apps.get_model("aklub", "UserInCampaign")
     Campaign = apps.get_model("aklub", "Campaign")
-    Campaign.objects.create(
-        created=datetime.date.today(),
-        name="Zažít město jinak",
-        slug="zmj",
-        darujme_name="Zažít město jinak",
-        acquisition_campaign=True,
-    )
-    Campaign.objects.create(
-        created=datetime.date.today(),
-        name="Prahou na kole",
-        slug="pnk",
-        darujme_name="Prahounakole.cz",
-        acquisition_campaign=True,
-    )
-    campaign = Campaign.objects.create(
-        created=datetime.date.today(),
-        name="Klub přátel",
-        slug="klub",
-        allow_statistics=True,
-        description="Základní kampaň KP",
-        darujme_name="Klub přátel Auto*Matu",
-        acquisition_campaign=True,
-    )
     for uic in UserInCampaign.objects.all():
         user = User.objects.create(
             username='%s%s' % (uic.email.split('@', 1)[0], User.objects.count()),

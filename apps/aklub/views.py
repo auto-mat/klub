@@ -28,7 +28,6 @@ from betterforms.multiform import MultiModelForm
 
 from django import forms, http
 from django.contrib.auth.models import User
-from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
 from django.core.validators import MinLengthValidator, RegexValidator
 from django.db.models import Case, Count, IntegerField, Q, Sum, When
@@ -64,18 +63,6 @@ class RegularUserForm_User(forms.ModelForm):
         super().clean()
         return self.cleaned_data
 
-    def clean_email(self):
-        email = self.cleaned_data['email']
-        if UserInCampaign.objects.filter(userprofile__user__email=email).exists():
-            user = UserInCampaign.objects.get(userprofile__user__email=email)
-            autocom.check(users=UserInCampaign.objects.filter(pk=user.pk), action='resend-data')
-            raise ValidationError(
-                _("Oops! This email address is already registered in our Auto*Mat support club, you are not registering for the first time."
-                  " We respect your inclination, but your registration is not need to repeat..."
-                  " All info you need has been sent to your email."),
-            )
-        return email
-
     class Meta:
         model = User
         fields = ('first_name', 'last_name', 'email', 'username')
@@ -105,7 +92,6 @@ class RegularUserForm_UserProfile(forms.ModelForm):
 class RegularUserForm_UserInCampaign(forms.ModelForm):
     required_css_class = 'required'
 
-    regular_payments = forms.ChoiceField(label=_("Regular payments"), choices=UserInCampaign.REGULAR_PAYMENT_CHOICES, required=True, widget=forms.RadioSelect())
     regular_frequency = forms.ChoiceField(label=_("Regular payments"), choices=UserInCampaign.REGULAR_PAYMENT_FREQUENCIES, required=False, widget=forms.RadioSelect())
     regular_amount = forms.IntegerField(
         label=_("Regularly (amount)"),
@@ -113,9 +99,20 @@ class RegularUserForm_UserInCampaign(forms.ModelForm):
         min_value=1,
     )
 
+    def __init__(self, *args, **kwargs):
+        return super().__init__(*args, **kwargs)
+
     class Meta:
         model = UserInCampaign
         fields = ('regular_frequency', 'regular_amount')
+
+
+class RegularDarujmeUserForm_UserInCampaign(RegularUserForm_UserInCampaign):
+    regular_payments = forms.ChoiceField(label=_("Regular payments"), choices=UserInCampaign.REGULAR_PAYMENT_CHOICES, required=True, widget=forms.RadioSelect())
+
+    class Meta:
+        model = UserInCampaign
+        fields = ('regular_payments', 'regular_frequency', 'regular_amount')
 
 
 class RegularUserForm(MultiModelForm):
@@ -142,6 +139,14 @@ class RegularUserFormDPNK(RegularUserFormWithProfile):
     )
 
 
+class RegularDarujmeUserForm(RegularUserForm):
+    form_classes = OrderedDict([
+        ('user', RegularUserForm_User),
+        ('userprofile', RegularUserForm_UserProfile),
+        ('userincampaign', RegularDarujmeUserForm_UserInCampaign),
+    ])
+
+
 def generate_variable_symbol():
     now = datetime.datetime.now()
     reg_n_today = len(
@@ -161,7 +166,7 @@ def generate_variable_symbol():
     return variable_symbol
 
 
-def new_user(form, regular, source_slug='web'):
+def new_user(form, regular, campaign, source_slug='web'):
     # Check number of registrations so far today
     # TODO: Lock DB access here (to ensure uniqueness of VS)
     variable_symbol = generate_variable_symbol()
@@ -174,6 +179,7 @@ def new_user(form, regular, source_slug='web'):
     new_user_in_campaign.regular_payments = regular
     new_user_in_campaign.variable_symbol = variable_symbol
     new_user_in_campaign.source = Source.objects.get(slug=source_slug)
+    new_user_in_campaign.campaign = campaign
     # Save new user instance
     new_user.save()
     new_user_profile.user = new_user
@@ -189,6 +195,25 @@ class RegularView(FormView):
     form_class = RegularUserForm
     success_template = 'thanks.html'
     source_slug = 'web'
+
+    def success_page(self, userincampaign):
+        return render_to_response(
+            self.success_template,
+            {
+                'amount': userincampaign.monthly_regular_amount(),
+                'user_id': userincampaign.id,
+                'userincampaign': userincampaign,
+            },
+        )
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.POST.get('user-email'):
+            email = request.POST.get('user-email')
+            if UserInCampaign.objects.filter(userprofile__user__email=email, campaign=self.campaign).exists():
+                userincampaign = UserInCampaign.objects.get(userprofile__user__email=email, campaign=self.campaign)
+                autocom.check(users=UserInCampaign.objects.filter(pk=userincampaign.pk), action='resend-data')
+                return self.success_page(userincampaign)
+        return super().dispatch(request, args, kwargs)
 
     def get_initial(self):
         initial = super().get_initial()
@@ -207,59 +232,46 @@ class RegularView(FormView):
         return initial
 
     def form_valid(self, form):
-        user_id = new_user(form, regular="promise", source_slug=self.source_slug)
-        amount = UserInCampaign.objects.get(id=user_id).monthly_regular_amount()
-        return render_to_response(
-            self.success_template,
-            {
-                'amount': amount,
-                'user_id': user_id,
-            },
-        )
+        user_id = new_user(form, regular="promise", campaign=self.campaign, source_slug=self.source_slug)
+        userincampaign = UserInCampaign.objects.get(id=user_id)
+        return self.success_page(userincampaign)
+
+    def __init__(self, *args, **kwargs):
+        self.campaign = Campaign.objects.get(slug='klub')
+        return super().__init__(*args, **kwargs)
 
 
-class DarujmeView(FormView):
-    template_name = 'regular.html'
-    form_class = RegularUserForm
-    success_template = 'thanks.html'
-    source_slug = 'web'
+class DarujmeView(RegularView):
+    form_class = RegularDarujmeUserForm
 
     def dispatch(self, request, *args, **kwargs):
-        request.POST = request.POST.copy()
-        regular_frequency_map = {
-            '28': 'monthly',
-            '': None,
-        }
-        regular_payment_map = {
-            '28': 'regular',
-            '': 'onetime',
-        }
-        if self.request.GET.get('payment_data____jmeno'):
-            request.POST['user-first_name'] = self.request.GET.get('payment_data____jmeno')
-        if self.request.GET.get('payment_data____prijmeni'):
-            request.POST['user-last_name'] = self.request.GET.get('payment_data____prijmeni')
-        if self.request.GET.get('payment_data____email'):
-            request.POST['user-email'] = self.request.GET.get('payment_data____email')
-        if self.request.GET.get('payment_data____telefon'):
-            request.POST['userprofile-telephone'] = self.request.GET.get('payment_data____telefon')
-        if 'recurringfrequency' in self.request.GET:
-            request.POST['userincampaign-regular_frequency'] = regular_frequency_map[self.request.GET.get('recurringfrequency')]
-            request.POST['userincampaign-regular_payments'] = regular_payment_map[self.request.GET.get('recurringfrequency')]
-        if self.request.GET.get('ammount'):
-            request.POST['userincampaign-regular_amount'] = self.request.GET.get('ammount')
-        request.POST['submit'] = 'Odeslat'
-        request.method = 'POST'
-        return super().dispatch(request, args, kwargs)
+        if request.method == 'GET':
+            request.POST = request.POST.copy()
+            regular_frequency_map = {
+                '28': 'monthly',
+                '': None,
+            }
+            regular_payment_map = {
+                '28': 'regular',
+                '': 'onetime',
+            }
+            if self.request.GET.get('payment_data____jmeno'):
+                request.POST['user-first_name'] = self.request.GET.get('payment_data____jmeno')
+            if self.request.GET.get('payment_data____prijmeni'):
+                request.POST['user-last_name'] = self.request.GET.get('payment_data____prijmeni')
+            if self.request.GET.get('payment_data____email'):
+                request.POST['user-email'] = self.request.GET.get('payment_data____email')
+            if self.request.GET.get('payment_data____telefon'):
+                request.POST['userprofile-telephone'] = self.request.GET.get('payment_data____telefon')
+            if 'recurringfrequency' in self.request.GET:
+                request.POST['userincampaign-regular_frequency'] = regular_frequency_map[self.request.GET.get('recurringfrequency')]
+                request.POST['userincampaign-regular_payments'] = regular_payment_map[self.request.GET.get('recurringfrequency')]
+            if self.request.GET.get('ammount'):
+                request.POST['userincampaign-regular_amount'] = self.request.GET.get('ammount')
+            request.POST['submit'] = 'Odeslat'
+            request.method = 'POST'
 
-    def form_valid(self, form):
-        user_id = new_user(form, regular="promise", source_slug=self.source_slug)
-        userincampaign = UserInCampaign.objects.get(id=user_id)
-        return render_to_response(
-            self.success_template,
-            {
-                'userincampaign': userincampaign,
-            },
-        )
+        return super().dispatch(request, args, kwargs)
 
 
 def donators(request):
@@ -361,6 +373,10 @@ class OneTimePaymentWizardFormUnknown(MultiModelForm):
 class OneTimePaymentWizard(SessionWizardView):
     success_template = 'thanks.html'
 
+    def __init__(self, *args, **kwargs):
+        self.campaign = Campaign.objects.get(slug='klub')
+        return super().__init__(*args, **kwargs)
+
     def is_possibly_known(self):
         f = self._step_data(OneTimePaymentWizardFormBase)
         if f:
@@ -420,7 +436,7 @@ class OneTimePaymentWizard(SessionWizardView):
     def done(self, form_list, form_dict, **kwargs):
         for form in form_list:
                 if isinstance(form, OneTimePaymentWizardFormUnknown):
-                        uid = new_user(form, "onetime")
+                        uid = new_user(form, "onetime", self.campaign)
                 elif isinstance(form, OneTimePaymentWizardFormWhoIs):
                         uid = form.cleaned_data['uid']
         user = UserInCampaign.objects.filter(id=uid)[0]

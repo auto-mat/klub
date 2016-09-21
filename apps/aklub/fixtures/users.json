@@ -216,8 +216,8 @@
         "fields": {
             "name": "Prahou na kole",
             "created": "2015-12-16",
-            "slug": "pnk1",
-            "darujme_name": "Prahounakole.cz1"
+            "slug": "pnk",
+            "darujme_name": "Prahounakole.cz"
         },
         "model": "aklub.campaign",
         "pk": 1
@@ -226,14 +226,27 @@
         "fields": {
             "name": "Klub přátel Auto*Matu",
             "created": "2015-12-16",
-            "slug": "klub1",
+            "slug": "klub",
             "allow_statistics": true,
-            "darujme_api_id": 13934713,
+            "darujme_api_id": 38571205,
             "acquisition_campaign": true,
-            "darujme_name": "Klub přátel Auto*Matu1"
+            "darujme_name": "Klub přátel Auto*Matu"
         },
         "model": "aklub.campaign",
         "pk": 2
+    },
+    {
+        "fields": {
+            "name": "Zažít město jinak",
+            "created": "2015-12-16",
+            "slug": "zmj",
+            "allow_statistics": true,
+            "darujme_api_id": 13934713,
+            "acquisition_campaign": true,
+            "darujme_name": "Zažít město jinak"
+        },
+        "model": "aklub.campaign",
+        "pk": 3
     },
     {
         "fields": {

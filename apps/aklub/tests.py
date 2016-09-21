@@ -65,7 +65,7 @@ class AklubTestSuiteRunner(DiscoverRunner):
     class InvalidStringError(str):
         def __mod__(self, other):
             raise Exception("empty string")  # pragma: no cover
-            return ""  # pragma: no cover
+            return "!!!!!empty string!!!!!"  # pragma: no cover
 
     def __init__(self, *args, **kwargs):
         settings.TEMPLATES[0]['OPTIONS']['string_if_invalid'] = self.InvalidStringError("%s")
@@ -265,7 +265,8 @@ class CommunicationTest(TestCase):
     def setUp(self):
         self.user = User.objects.create()
         self.userprofile = UserProfile.objects.create(sex='male', user=self.user)
-        self.userincampaign = UserInCampaign.objects.create(userprofile=self.userprofile)
+        self.campaign = Campaign.objects.create(created=datetime.date(2010, 10, 10))
+        self.userincampaign = UserInCampaign.objects.create(userprofile=self.userprofile, campaign=self.campaign)
 
     def test_communication(self):
         Communication.objects.create(
@@ -298,7 +299,8 @@ class AutocomTest(TestCase):
     def setUp(self):
         self.user = User.objects.create()
         self.userprofile = UserProfile.objects.create(sex='male', user=self.user)
-        self.userincampaign = UserInCampaign.objects.create(userprofile=self.userprofile)
+        self.campaign = Campaign.objects.create(created=datetime.date(2010, 10, 10))
+        self.userincampaign = UserInCampaign.objects.create(userprofile=self.userprofile, campaign=self.campaign)
         c = Condition.objects.create(operation="nor")
         TerminalCondition.objects.create(
             variable="action",
@@ -652,7 +654,7 @@ class ViewsTests(ClearCacheMixin, TestCase):
     }
 
     def test_campaign_statistics(self):
-        address = reverse('campaign-statistics', kwargs={'campaign_slug': 'klub1'})
+        address = reverse('campaign-statistics', kwargs={'campaign_slug': 'klub'})
         response = self.client.get(address)
         self.assertJSONEqual(
             response.content.decode(),
@@ -687,7 +689,6 @@ class ViewsTests(ClearCacheMixin, TestCase):
     def test_stat_members(self):
         address = reverse('stat-members')
         response = self.client.get(address)
-        print_response(response)
         self.assertContains(response, "<tr><td>2016</td><td>Zář</td><td>2</td><td>1</td><td>3</td><td>3</td></tr>", html=True)
         self.assertContains(response, "<h1>Statistiky členů klubu</h1>", html=True)
 
@@ -742,10 +743,14 @@ class ViewsTests(ClearCacheMixin, TestCase):
         response = self.client.post(address, regular_post_data, follow=False)
         self.assertContains(
             response,
-            'Jejda! Tenhle mail už známe, vypadá to, že se do Klubu přátel Auto*Matu neregistrujete poprvé. '
-            'Vaší náklonnosti si vážíme, registraci ale není nutné opakovat... '
-            'Poslali jsme Vám do mailu údaje potřebné k dalším příspěvkům i radu, kam se obrátit, pokud potřebujete ještě něco jiného.',
+            '<h1>Děkujeme!</h1>',
+            html=True,
         )
+        self.assertEqual(len(mail.outbox), 1)
+        msg = mail.outbox[0]
+        self.assertEqual(msg.recipients(), ['test.user@email.cz', 'kp@auto-mat.cz'])
+        self.assertEqual(msg.subject, 'Resending data')
+        self.assertEqual(msg.body, 'Resending data to Jméno: Test Příjmení: User Ulice: Město: Praha 4 PSC:\nE-mail: test.user@email.cz Telefon:\n\n')
 
     def test_regular_dpnk(self):
         address = "%s?firstname=Uest&surname=Tser&email=uest.tser@email.cz&telephone=1211221" % reverse('regular-dpnk')
@@ -1099,7 +1104,7 @@ class AccountStatementTests(TestCase):
         with open("apps/aklub/test_data/darujme.xml", "r") as f:
             m = MagicMock()
             urllib_request.urlopen = MagicMock(return_value=f)
-            admin.download_darujme_statement(m, request, Campaign.objects.filter(slug="klub1"))
+            admin.download_darujme_statement(m, request, Campaign.objects.filter(slug="klub"))
 
         a1 = self.check_account_statement_data()
         m.message_user.assert_called_once_with(
