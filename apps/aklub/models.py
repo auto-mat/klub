@@ -563,9 +563,9 @@ class UserInCampaign(models.Model):
         Campaign,
         help_text=_("Campaign"),
         default=None,
-        blank=True,
+        blank=False,
         on_delete=models.CASCADE,
-        null=True,
+        null=False,
         editable=True,
     )
     # -- Additional Info
