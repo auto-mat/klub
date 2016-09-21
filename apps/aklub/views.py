@@ -105,7 +105,8 @@ class RegularUserForm_UserProfile(forms.ModelForm):
 class RegularUserForm_UserInCampaign(forms.ModelForm):
     required_css_class = 'required'
 
-    regular_frequency = forms.ChoiceField(label=_("Regular payments"), choices=UserInCampaign.REGULAR_PAYMENT_FREQUENCIES, required=True, widget=forms.RadioSelect())
+    regular_payments = forms.ChoiceField(label=_("Regular payments"), choices=UserInCampaign.REGULAR_PAYMENT_CHOICES, required=True, widget=forms.RadioSelect())
+    regular_frequency = forms.ChoiceField(label=_("Regular payments"), choices=UserInCampaign.REGULAR_PAYMENT_FREQUENCIES, required=False, widget=forms.RadioSelect())
     regular_amount = forms.IntegerField(
         label=_("Regularly (amount)"),
         help_text=_(u"Minimum yearly payment is 1800 Kč"),
@@ -227,6 +228,11 @@ class DarujmeView(FormView):
         request.POST = request.POST.copy()
         regular_frequency_map = {
             '28': 'monthly',
+            '': None,
+        }
+        regular_payment_map = {
+            '28': 'regular',
+            '': 'onetime',
         }
         if self.request.GET.get('payment_data____jmeno'):
             request.POST['user-first_name'] = self.request.GET.get('payment_data____jmeno')
@@ -236,8 +242,9 @@ class DarujmeView(FormView):
             request.POST['user-email'] = self.request.GET.get('payment_data____email')
         if self.request.GET.get('payment_data____telefon'):
             request.POST['userprofile-telephone'] = self.request.GET.get('payment_data____telefon')
-        if self.request.GET.get('recurringfrequency'):
+        if 'recurringfrequency' in self.request.GET:
             request.POST['userincampaign-regular_frequency'] = regular_frequency_map[self.request.GET.get('recurringfrequency')]
+            request.POST['userincampaign-regular_payments'] = regular_payment_map[self.request.GET.get('recurringfrequency')]
         if self.request.GET.get('ammount'):
             request.POST['userincampaign-regular_amount'] = self.request.GET.get('ammount')
         request.POST['submit'] = 'Odeslat'
