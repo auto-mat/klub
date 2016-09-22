@@ -858,7 +858,7 @@ class ViewsTests(ClearCacheMixin, TestCase):
         self.assertContains(
             response,
             '<label for="id_userincampaign-regular_payments_1"><input checked="checked" id="id_userincampaign-regular_payments_1" name="userincampaign-regular_payments" '
-            'type="radio" value="onetime" required /> No regular payments</label>',
+            'type="radio" value="onetime" required /> Nemá pravidelné platby</label>',
             html=True,
         )
         self.assertContains(
