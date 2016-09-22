@@ -803,6 +803,70 @@ class ViewsTests(ClearCacheMixin, TestCase):
         self.assertEqual(UserProfile.objects.get(user__email="test@test.cz").telephone, '111222333')
         self.assertEqual(UserInCampaign.objects.get(userprofile__user__email="test@test.cz").regular_amount, 321)
 
+    def test_regular_darujme(self):
+        address = reverse('regular-darujme')
+        address += (
+            "?recurringfrequency=28"
+            "&ammount=200"
+            "&payment_data____jmeno=test_name"
+            "&payment_data____prijmeni=test_surname"
+            "&payment_data____email=test@email.cz"
+            "&payment_data____telefon=123456789"
+            "&transaction_type=2"
+        )
+        response = self.client.get(address)
+        self.assertContains(response, '<h1>Děkujeme!</h1>', html=True)
+        self.assertContains(response, '<tr><th>Jméno: </th><td>test_surname test_name</td></tr>', html=True)
+        self.assertContains(response, '<tr><th>Číslo účtu: </th><td>2400063333 / 2010</td></tr>', html=True)
+        self.assertContains(response, '<tr><th>Email: </th><td>test@email.cz</td></tr>', html=True)
+        self.assertContains(response, '<tr><th>Částka: </th><td>200 Kč</td></tr>', html=True)
+        self.assertContains(response, '<tr><th>Frekvence: </th><td>monthly</td></tr>', html=True)
+
+    def test_regular_darujme_known_email(self):
+        address = reverse('regular-darujme')
+        address += (
+            "?recurringfrequency=28"
+            "&ammount=200"
+            "&payment_data____jmeno=test_name"
+            "&payment_data____prijmeni=test_surname"
+            "&payment_data____email=test.user@email.cz"
+            "&payment_data____telefon=123456789"
+            "&transaction_type=2"
+        )
+        response = self.client.get(address)
+        self.assertContains(response, '<h1>Děkujeme!</h1>', html=True)
+        self.assertContains(response, '<tr><th>Jméno: </th><td>User Test</td></tr>', html=True)
+        self.assertContains(response, '<tr><th>Číslo účtu: </th><td>2400063333 / 2010</td></tr>', html=True)
+        self.assertContains(response, '<tr><th>Variabilní symbol: </th><td>120127010</td></tr>', html=True)
+        self.assertContains(response, '<tr><th>Email: </th><td>test.user@email.cz</td></tr>', html=True)
+        self.assertContains(response, '<tr><th>Částka: </th><td>100 Kč</td></tr>', html=True)
+        self.assertContains(response, '<tr><th>Frekvence: </th><td>monthly</td></tr>', html=True)
+
+    def test_regular_darujme_short_telephone(self):
+        address = reverse('regular-darujme')
+        address += (
+            "?recurringfrequency="
+            "&ammount=200"
+            "&payment_data____jmeno=test_name"
+            "&payment_data____prijmeni=test_surname"
+            "&payment_data____email=test@email.cz"
+            "&payment_data____telefon=12345"
+            "&transaction_type=2"
+        )
+        response = self.client.get(address)
+        self.assertContains(response, '<ul class="errorlist"><li>Tato hodnota má mít nejméně 9 znaků (nyní má 5).</li></ul>', html=True)
+        self.assertContains(
+            response,
+            '<label for="id_userincampaign-regular_payments_1"><input checked="checked" id="id_userincampaign-regular_payments_1" name="userincampaign-regular_payments" '
+            'type="radio" value="onetime" required /> No regular payments</label>',
+            html=True,
+        )
+        self.assertContains(
+            response,
+            '<input id="id_userprofile-telephone" maxlength="30" name="userprofile-telephone" type="text" value="12345" required>',
+            html=True,
+        )
+
     def test_regular_wp(self):
         address = reverse('regular-wp')
         response = self.client.get(address)
