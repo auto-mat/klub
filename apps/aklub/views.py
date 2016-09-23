@@ -206,14 +206,14 @@ class RegularView(FormView):
             },
         )
 
-    def dispatch(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         if request.POST.get('user-email'):
             email = request.POST.get('user-email')
             if UserInCampaign.objects.filter(userprofile__user__email=email, campaign=self.campaign).exists():
                 userincampaign = UserInCampaign.objects.get(userprofile__user__email=email, campaign=self.campaign)
                 autocom.check(users=UserInCampaign.objects.filter(pk=userincampaign.pk), action='resend-data')
                 return self.success_page(userincampaign)
-        return super().dispatch(request, args, kwargs)
+        return super().post(request, args, kwargs)
 
     def get_initial(self):
         initial = super().get_initial()
@@ -244,34 +244,31 @@ class RegularView(FormView):
 class DarujmeView(RegularView):
     form_class = RegularDarujmeUserForm
 
-    def dispatch(self, request, *args, **kwargs):
-        if request.method == 'GET':
-            request.POST = request.POST.copy()
-            regular_frequency_map = {
-                '28': 'monthly',
-                '': None,
-            }
-            regular_payment_map = {
-                '28': 'regular',
-                '': 'onetime',
-            }
-            if self.request.GET.get('payment_data____jmeno'):
-                request.POST['user-first_name'] = self.request.GET.get('payment_data____jmeno')
-            if self.request.GET.get('payment_data____prijmeni'):
-                request.POST['user-last_name'] = self.request.GET.get('payment_data____prijmeni')
-            if self.request.GET.get('payment_data____email'):
-                request.POST['user-email'] = self.request.GET.get('payment_data____email')
-            if self.request.GET.get('payment_data____telefon'):
-                request.POST['userprofile-telephone'] = self.request.GET.get('payment_data____telefon')
-            if 'recurringfrequency' in self.request.GET:
-                request.POST['userincampaign-regular_frequency'] = regular_frequency_map[self.request.GET.get('recurringfrequency')]
-                request.POST['userincampaign-regular_payments'] = regular_payment_map[self.request.GET.get('recurringfrequency')]
-            if self.request.GET.get('ammount'):
-                request.POST['userincampaign-regular_amount'] = self.request.GET.get('ammount')
-            request.POST['submit'] = 'Odeslat'
-            request.method = 'POST'
-
-        return super().dispatch(request, args, kwargs)
+    def post(self, request, *args, **kwargs):
+        request.POST = request.POST.copy()
+        regular_frequency_map = {
+            '28': 'monthly',
+            '': None,
+        }
+        regular_payment_map = {
+            '28': 'regular',
+            '': 'onetime',
+        }
+        if self.request.POST.get('payment_data____jmeno'):
+            request.POST['user-first_name'] = self.request.POST.get('payment_data____jmeno')
+        if self.request.POST.get('payment_data____prijmeni'):
+            request.POST['user-last_name'] = self.request.POST.get('payment_data____prijmeni')
+        if self.request.POST.get('payment_data____email'):
+            request.POST['user-email'] = self.request.POST.get('payment_data____email')
+        if self.request.POST.get('payment_data____telefon'):
+            request.POST['userprofile-telephone'] = self.request.POST.get('payment_data____telefon')
+        if 'recurringfrequency' in self.request.POST:
+            request.POST['userincampaign-regular_frequency'] = regular_frequency_map[self.request.POST.get('recurringfrequency')]
+            request.POST['userincampaign-regular_payments'] = regular_payment_map[self.request.POST.get('recurringfrequency')]
+        if self.request.POST.get('ammount'):
+            request.POST['userincampaign-regular_amount'] = self.request.POST.get('ammount')
+        request.POST['submit'] = 'Odeslat'
+        return super().post(request, args, kwargs)
 
 
 def donators(request):

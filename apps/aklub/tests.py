@@ -805,16 +805,16 @@ class ViewsTests(ClearCacheMixin, TestCase):
 
     def test_regular_darujme(self):
         address = reverse('regular-darujme')
-        address += (
-            "?recurringfrequency=28"
-            "&ammount=200"
-            "&payment_data____jmeno=test_name"
-            "&payment_data____prijmeni=test_surname"
-            "&payment_data____email=test@email.cz"
-            "&payment_data____telefon=123456789"
-            "&transaction_type=2"
-        )
-        response = self.client.get(address)
+        post_data = {
+            "recurringfrequency": "28",
+            "ammount": "200",
+            "payment_data____jmeno": "test_name",
+            "payment_data____prijmeni": "test_surname",
+            "payment_data____email": "test@email.cz",
+            "payment_data____telefon": "123456789",
+            "transaction_type": "2",
+        }
+        response = self.client.post(address, post_data)
         self.assertContains(response, '<h1>Děkujeme!</h1>', html=True)
         self.assertContains(response, '<tr><th>Jméno: </th><td>test_surname test_name</td></tr>', html=True)
         self.assertContains(response, '<tr><th>Číslo účtu: </th><td>2400063333 / 2010</td></tr>', html=True)
@@ -824,16 +824,16 @@ class ViewsTests(ClearCacheMixin, TestCase):
 
     def test_regular_darujme_known_email(self):
         address = reverse('regular-darujme')
-        address += (
-            "?recurringfrequency=28"
-            "&ammount=200"
-            "&payment_data____jmeno=test_name"
-            "&payment_data____prijmeni=test_surname"
-            "&payment_data____email=test.user@email.cz"
-            "&payment_data____telefon=123456789"
-            "&transaction_type=2"
-        )
-        response = self.client.get(address)
+        post_data = {
+            "recurringfrequency": "28",
+            "ammount": "200",
+            "payment_data____jmeno": "test_name",
+            "payment_data____prijmeni": "test_surname",
+            "payment_data____email": "test.user@email.cz",
+            "payment_data____telefon": "123456789",
+            "transaction_type": "2",
+        }
+        response = self.client.post(address, post_data)
         self.assertContains(response, '<h1>Děkujeme!</h1>', html=True)
         self.assertContains(response, '<tr><th>Jméno: </th><td>User Test</td></tr>', html=True)
         self.assertContains(response, '<tr><th>Číslo účtu: </th><td>2400063333 / 2010</td></tr>', html=True)
@@ -844,16 +844,16 @@ class ViewsTests(ClearCacheMixin, TestCase):
 
     def test_regular_darujme_short_telephone(self):
         address = reverse('regular-darujme')
-        address += (
-            "?recurringfrequency="
-            "&ammount=200"
-            "&payment_data____jmeno=test_name"
-            "&payment_data____prijmeni=test_surname"
-            "&payment_data____email=test@email.cz"
-            "&payment_data____telefon=12345"
-            "&transaction_type=2"
-        )
-        response = self.client.get(address)
+        post_data = {
+            "recurringfrequency": "",
+            "ammount": "200",
+            "payment_data____jmeno": "test_name",
+            "payment_data____prijmeni": "test_surname",
+            "payment_data____email": "test@email.cz",
+            "payment_data____telefon": "12345",
+            "transaction_type": "2",
+        }
+        response = self.client.post(address, post_data)
         self.assertContains(response, '<ul class="errorlist"><li>Tato hodnota má mít nejméně 9 znaků (nyní má 5).</li></ul>', html=True)
         self.assertContains(
             response,
