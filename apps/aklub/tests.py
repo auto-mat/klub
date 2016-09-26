@@ -1084,7 +1084,7 @@ class AccountStatementTests(TestCase):
         payment = unknown_user.payment_set.get(SS=22257)
         self.assertEqual(payment.amount, 150)
         self.assertEqual(payment.date, datetime.date(2016, 1, 19))
-        self.assertEqual(unknown_user.__str__(), "User 1 Testing")
+        self.assertEqual(unknown_user.__str__(), "User 1 Testing (Klub přátel Auto*Matu)")
         self.assertEqual(unknown_user.userprofile.telephone, "656 464 222")
         self.assertEqual(unknown_user.userprofile.street, "Ulice 321")
         self.assertEqual(unknown_user.userprofile.city, "Nová obec")
