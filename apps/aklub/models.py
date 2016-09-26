@@ -681,7 +681,7 @@ class UserInCampaign(models.Model):
     )
 
     def __str__(self):
-        return str(self.person_name())
+        return "%s (%s)" % (str(self.person_name()), self.campaign)
 
     def person_name(self):
         return self.userprofile.__str__()
