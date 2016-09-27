@@ -629,7 +629,7 @@ class UserInCampaign(models.Model):
         help_text=_("Is this user registered for regular payments?"),
         max_length=20,
         choices=REGULAR_PAYMENT_CHOICES,
-        default="true",
+        default="onetime",
     )
     old_account = models.BooleanField(
         verbose_name=_("Old account"),
