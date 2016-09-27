@@ -32,6 +32,7 @@ from django.core.mail import EmailMessage
 from django.core.validators import MinLengthValidator, RegexValidator
 from django.db.models import Case, Count, IntegerField, Q, Sum, When
 from django.db.models.functions import TruncMonth
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render_to_response
 from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext as _
@@ -99,20 +100,9 @@ class RegularUserForm_UserInCampaign(forms.ModelForm):
         min_value=1,
     )
 
-    def __init__(self, *args, **kwargs):
-        return super().__init__(*args, **kwargs)
-
     class Meta:
         model = UserInCampaign
         fields = ('regular_frequency', 'regular_amount')
-
-
-class RegularDarujmeUserForm_UserInCampaign(RegularUserForm_UserInCampaign):
-    regular_payments = forms.ChoiceField(label=_("Regular payments"), choices=UserInCampaign.REGULAR_PAYMENT_CHOICES, required=True, widget=forms.RadioSelect())
-
-    class Meta:
-        model = UserInCampaign
-        fields = ('regular_payments', 'regular_frequency', 'regular_amount')
 
 
 class RegularUserForm(MultiModelForm):
@@ -139,10 +129,63 @@ class RegularUserFormDPNK(RegularUserFormWithProfile):
     )
 
 
+class FieldNameMappingMixin(object):
+    def add_prefix(self, field_name):
+        field_name = self.FIELD_NAME_MAPPING.get(field_name, field_name)
+        return field_name
+
+
+class RegularDarujmeUserForm_User(FieldNameMappingMixin, RegularUserForm_User):
+    FIELD_NAME_MAPPING = {
+        'first_name': 'payment_data____jmeno',
+        'last_name': 'payment_data____prijmeni',
+        'email': 'payment_data____email',
+    }
+
+
+class RegularDarujmeUserForm_UserProfile(FieldNameMappingMixin, RegularUserForm_UserProfile):
+    FIELD_NAME_MAPPING = {
+        'telephone': 'payment_data____telefon',
+    }
+
+
+class RegularDarujmeUserForm_UserInCampaign(FieldNameMappingMixin, RegularUserForm_UserInCampaign):
+    REGULAR_PAYMENT_CHOICES = (
+        ('28', _('Monthly')),
+        ('', _('Jednorázová platba')),
+    )
+    regular_payments = forms.ChoiceField(label=_("Regular payments"), choices=REGULAR_PAYMENT_CHOICES, required=False, widget=forms.RadioSelect())
+    regular_frequency = forms.ChoiceField(label=_("Regular frequency"), choices=REGULAR_PAYMENT_CHOICES, required=False, widget=forms.HiddenInput())
+
+    FIELD_NAME_MAPPING = {
+        'regular_frequency': 'recurringfrequency',
+        'regular_payments': 'recurringfrequency',
+        'regular_amount': 'ammount',
+    }
+
+    def clean_regular_frequency(self):
+        regular_frequency_map = {
+            '28': 'monthly',
+            '': None,
+        }
+        return regular_frequency_map[self.cleaned_data['regular_frequency']]
+
+    def clean_regular_payments(self):
+        regular_payments_map = {
+            '28': 'regular',
+            '': 'onetime',
+        }
+        return regular_payments_map[self.cleaned_data['regular_payments']]
+
+    class Meta:
+        model = UserInCampaign
+        fields = ('regular_frequency', 'regular_payments', 'regular_amount')
+
+
 class RegularDarujmeUserForm(RegularUserForm):
     form_classes = OrderedDict([
-        ('user', RegularUserForm_User),
-        ('userprofile', RegularUserForm_UserProfile),
+        ('user', RegularDarujmeUserForm_User),
+        ('userprofile', RegularDarujmeUserForm_UserProfile),
         ('userincampaign', RegularDarujmeUserForm_UserInCampaign),
     ])
 
@@ -176,7 +219,8 @@ def new_user(form, regular, campaign, source_slug='web'):
     new_user = new_user_objects['user']
     new_user_profile = new_user_objects['userprofile']
     new_user_in_campaign = new_user_objects['userincampaign']
-    new_user_in_campaign.regular_payments = regular
+    if regular:
+        new_user_in_campaign.regular_payments = regular
     new_user_in_campaign.variable_symbol = variable_symbol
     new_user_in_campaign.source = Source.objects.get(slug=source_slug)
     new_user_in_campaign.campaign = campaign
@@ -197,7 +241,7 @@ class RegularView(FormView):
     source_slug = 'web'
 
     def success_page(self, userincampaign):
-        return render_to_response(
+        response = render_to_response(
             self.success_template,
             {
                 'amount': userincampaign.monthly_regular_amount(),
@@ -205,10 +249,24 @@ class RegularView(FormView):
                 'userincampaign': userincampaign,
             },
         )
+        if self.request.is_ajax():
+            data = {
+                'valid': True,
+                'account_number': "2400063333 / 2010",
+                'variable_symbol': userincampaign.variable_symbol,
+                'email': userincampaign.userprofile.user.email,
+                'amount': userincampaign.regular_amount,
+                'frequency': userincampaign.regular_frequency,
+            }
+            return JsonResponse(data)
+        return response
 
     def post(self, request, *args, **kwargs):
         if request.POST.get('user-email'):
             email = request.POST.get('user-email')
+        if request.POST.get('payment_data____email'):
+            email = request.POST.get('payment_data____email')
+        if email:
             if UserInCampaign.objects.filter(userprofile__user__email=email, campaign=self.campaign).exists():
                 userincampaign = UserInCampaign.objects.get(userprofile__user__email=email, campaign=self.campaign)
                 autocom.check(users=UserInCampaign.objects.filter(pk=userincampaign.pk), action='resend-data')
@@ -232,43 +290,20 @@ class RegularView(FormView):
         return initial
 
     def form_valid(self, form):
-        user_id = new_user(form, regular="promise", campaign=self.campaign, source_slug=self.source_slug)
+        user_id = new_user(form, regular=None, campaign=self.campaign, source_slug=self.source_slug)
         userincampaign = UserInCampaign.objects.get(id=user_id)
         return self.success_page(userincampaign)
+
+    def form_invalid(self, form):
+        response = super().form_invalid(form)
+        if self.request.is_ajax():
+            return JsonResponse(form.errors, status=400)
+        else:
+            return response
 
     def __init__(self, *args, **kwargs):
         self.campaign = Campaign.objects.get(slug='klub')
         return super().__init__(*args, **kwargs)
-
-
-class DarujmeView(RegularView):
-    form_class = RegularDarujmeUserForm
-
-    def post(self, request, *args, **kwargs):
-        request.POST = request.POST.copy()
-        regular_frequency_map = {
-            '28': 'monthly',
-            '': None,
-        }
-        regular_payment_map = {
-            '28': 'regular',
-            '': 'onetime',
-        }
-        if self.request.POST.get('payment_data____jmeno'):
-            request.POST['user-first_name'] = self.request.POST.get('payment_data____jmeno')
-        if self.request.POST.get('payment_data____prijmeni'):
-            request.POST['user-last_name'] = self.request.POST.get('payment_data____prijmeni')
-        if self.request.POST.get('payment_data____email'):
-            request.POST['user-email'] = self.request.POST.get('payment_data____email')
-        if self.request.POST.get('payment_data____telefon'):
-            request.POST['userprofile-telephone'] = self.request.POST.get('payment_data____telefon')
-        if 'recurringfrequency' in self.request.POST:
-            request.POST['userincampaign-regular_frequency'] = regular_frequency_map[self.request.POST.get('recurringfrequency')]
-            request.POST['userincampaign-regular_payments'] = regular_payment_map[self.request.POST.get('recurringfrequency')]
-        if self.request.POST.get('ammount'):
-            request.POST['userincampaign-regular_amount'] = self.request.POST.get('ammount')
-        request.POST['submit'] = 'Odeslat'
-        return super().post(request, args, kwargs)
 
 
 def donators(request):

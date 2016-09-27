@@ -803,68 +803,97 @@ class ViewsTests(ClearCacheMixin, TestCase):
         self.assertEqual(UserProfile.objects.get(user__email="test@test.cz").telephone, '111222333')
         self.assertEqual(UserInCampaign.objects.get(userprofile__user__email="test@test.cz").regular_amount, 321)
 
+    post_data_darujme = {
+        "recurringfrequency": "28",
+        "ammount": "200",
+        "payment_data____jmeno": "test_name",
+        "payment_data____prijmeni": "test_surname",
+        "payment_data____email": "test@email.cz",
+        "payment_data____telefon": "123456789",
+        "transaction_type": "2",
+    }
+
     def test_regular_darujme(self):
         address = reverse('regular-darujme')
-        post_data = {
-            "recurringfrequency": "28",
-            "ammount": "200",
-            "payment_data____jmeno": "test_name",
-            "payment_data____prijmeni": "test_surname",
-            "payment_data____email": "test@email.cz",
-            "payment_data____telefon": "123456789",
-            "transaction_type": "2",
-        }
-        response = self.client.post(address, post_data)
-        self.assertContains(response, '<h1>Děkujeme!</h1>', html=True)
+        response = self.client.post(address, self.post_data_darujme)
         self.assertContains(response, '<tr><th>Jméno: </th><td>test_surname test_name</td></tr>', html=True)
         self.assertContains(response, '<tr><th>Číslo účtu: </th><td>2400063333 / 2010</td></tr>', html=True)
         self.assertContains(response, '<tr><th>Email: </th><td>test@email.cz</td></tr>', html=True)
         self.assertContains(response, '<tr><th>Částka: </th><td>200 Kč</td></tr>', html=True)
-        self.assertContains(response, '<tr><th>Frekvence: </th><td>monthly</td></tr>', html=True)
+        self.assertContains(response, '<tr><th>Frekvence: </th><td>Měsíčně</td></tr>', html=True)
+        self.assertContains(response, '<tr><th>Pravidelné platby: </th><td>Pravidelné platby</td></tr>', html=True)
+
+    def test_regular_darujme_ajax(self):
+        address = reverse('regular-darujme')
+        response = self.client.post(address, self.post_data_darujme, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        userincampaign = UserInCampaign.objects.get(userprofile__user__email="test@email.cz")
+        self.assertJSONEqual(
+            response.content.decode(),
+            {
+                'account_number': '2400063333 / 2010',
+                'variable_symbol': userincampaign.variable_symbol,
+                'amount': 200,
+                'email': 'test@email.cz',
+                'frequency': 'monthly',
+                'valid': True,
+            }
+        )
+
+    post_data_darujme_known_email = post_data_darujme.copy()
+    post_data_darujme_known_email["payment_data____email"] = "test.user@email.cz"
 
     def test_regular_darujme_known_email(self):
         address = reverse('regular-darujme')
-        post_data = {
-            "recurringfrequency": "28",
-            "ammount": "200",
-            "payment_data____jmeno": "test_name",
-            "payment_data____prijmeni": "test_surname",
-            "payment_data____email": "test.user@email.cz",
-            "payment_data____telefon": "123456789",
-            "transaction_type": "2",
-        }
-        response = self.client.post(address, post_data)
+        response = self.client.post(address, self.post_data_darujme_known_email)
         self.assertContains(response, '<h1>Děkujeme!</h1>', html=True)
         self.assertContains(response, '<tr><th>Jméno: </th><td>User Test</td></tr>', html=True)
         self.assertContains(response, '<tr><th>Číslo účtu: </th><td>2400063333 / 2010</td></tr>', html=True)
         self.assertContains(response, '<tr><th>Variabilní symbol: </th><td>120127010</td></tr>', html=True)
         self.assertContains(response, '<tr><th>Email: </th><td>test.user@email.cz</td></tr>', html=True)
         self.assertContains(response, '<tr><th>Částka: </th><td>100 Kč</td></tr>', html=True)
-        self.assertContains(response, '<tr><th>Frekvence: </th><td>monthly</td></tr>', html=True)
+        self.assertContains(response, '<tr><th>Frekvence: </th><td>Měsíčně</td></tr>', html=True)
+        self.assertContains(response, '<tr><th>Pravidelné platby: </th><td>Pravidelné platby</td></tr>', html=True)
+
+    def test_regular_darujme_known_email_ajax(self):
+        address = reverse('regular-darujme')
+        response = self.client.post(address, self.post_data_darujme_known_email, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertJSONEqual(
+            response.content.decode(),
+            {
+                'account_number': '2400063333 / 2010',
+                'variable_symbol': '120127010',
+                'amount': 100,
+                'email': 'test.user@email.cz',
+                'frequency': 'monthly',
+                'valid': True,
+            }
+        )
+
+    post_data_short_telephone = post_data_darujme.copy()
+    post_data_short_telephone["payment_data____telefon"] = "12345"
 
     def test_regular_darujme_short_telephone(self):
         address = reverse('regular-darujme')
-        post_data = {
-            "recurringfrequency": "",
-            "ammount": "200",
-            "payment_data____jmeno": "test_name",
-            "payment_data____prijmeni": "test_surname",
-            "payment_data____email": "test@email.cz",
-            "payment_data____telefon": "12345",
-            "transaction_type": "2",
-        }
-        response = self.client.post(address, post_data)
+        response = self.client.post(address, self.post_data_short_telephone)
         self.assertContains(response, '<ul class="errorlist"><li>Tato hodnota má mít nejméně 9 znaků (nyní má 5).</li></ul>', html=True)
         self.assertContains(
             response,
-            '<label for="id_userincampaign-regular_payments_1"><input checked="checked" id="id_userincampaign-regular_payments_1" name="userincampaign-regular_payments" '
-            'type="radio" value="onetime" required /> Nemá pravidelné platby</label>',
+            '<li><label for="id_recurringfrequency_0"><input checked="checked" id="id_recurringfrequency_0" '
+            'name="recurringfrequency" type="radio" value="28" /> Měsíčně</label></li>',
             html=True,
         )
         self.assertContains(
             response,
-            '<input id="id_userprofile-telephone" maxlength="30" name="userprofile-telephone" type="text" value="12345" required>',
+            '<input id="id_payment_data____telefon" maxlength="30" name="payment_data____telefon" type="text" value="12345" required>',
             html=True,
+        )
+
+    def test_regular_darujme_short_telephone_ajax(self):
+        address = reverse('regular-darujme')
+        response = self.client.post(address, self.post_data_short_telephone, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertJSONEqual(
+            response.content.decode(),
+            {"userprofile-telephone": ["Tato hodnota má mít nejméně 9 znaků (nyní má 5)."]},
         )
 
     def test_regular_wp(self):
