@@ -891,9 +891,10 @@ class ViewsTests(ClearCacheMixin, TestCase):
     def test_regular_darujme_short_telephone_ajax(self):
         address = reverse('regular-darujme')
         response = self.client.post(address, self.post_data_short_telephone, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.status_code, 400)
         self.assertJSONEqual(
             response.content.decode(),
-            {"userprofile-telephone": ["Tato hodnota má mít nejméně 9 znaků (nyní má 5)."]},
+            {"payment_data____telefon": ["Tato hodnota má mít nejméně 9 znaků (nyní má 5)."]},
         )
 
     def test_regular_wp(self):
