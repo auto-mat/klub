@@ -26,7 +26,7 @@ django-related-admin
 -e git+https://github.com/PetrDlouhy/django-denorm.git@develop#egg=django-denorm
 gunicorn
 pypdf2  # for pdf result testing
--e git+https://github.com/PetrDlouhy/django-betterforms.git@devel#egg=django-betterforms  # for fields/errors support
+-e git+https://github.com/PetrDlouhy/django-betterforms.git#egg=django-betterforms  # for fields/errors support
 -e git+https://github.com/PetrDlouhy/django-adminactions.git@devel#egg=django-adminactions  # for Django 1.10 compatibility
 
 
