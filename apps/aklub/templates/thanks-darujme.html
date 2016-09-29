@@ -27,7 +27,8 @@ rekapitulací vámi zapsaných údajů.</p>
    <tr><th>Variabilní symbol: </th><td>{{ userincampaign.variable_symbol }}</td></tr>
    <tr><th>Číslo účtu: </th><td>2400063333 / 2010</td></tr>
    <tr><th>Částka: </th><td>{{ userincampaign.regular_amount }} Kč</td></tr>
-   <tr><th>Frekvence: </th><td>{{ userincampaign.regular_frequency }}</td></tr>
+   <tr><th>Frekvence: </th><td>{{ userincampaign.get_regular_frequency_display }}</td></tr>
+   <tr><th>Pravidelné platby: </th><td>{{ userincampaign.get_regular_payments_display }}</td></tr>
 </table>
 
 <p>Znovu děkujeme za vaši pomoc a důvěru!</p>

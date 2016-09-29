@@ -1,4 +1,4 @@
-from aklub.views import CampaignStatistics, DarujmeView, RegularDarujmeUserForm, RegularUserFormDPNK, RegularUserFormWithProfile, RegularView, donators, onetime, profiles
+from aklub.views import CampaignStatistics, RegularDarujmeUserForm, RegularUserFormDPNK, RegularUserFormWithProfile, RegularView, donators, onetime, profiles
 
 from django.conf.urls import url
 
@@ -25,7 +25,7 @@ urlpatterns = [
     ),
     url(
         r'^regular-darujme/',
-        DarujmeView.as_view(
+        RegularView.as_view(
             template_name='regular.html',
             form_class=RegularDarujmeUserForm,
             success_template='thanks-darujme.html',
