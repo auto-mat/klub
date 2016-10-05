@@ -1087,7 +1087,6 @@ class AccountStatements(models.Model):
                     name, date_start, dash, date_end = header_line.split()
                     self.date_from = str_to_datetime(date_start)
                     self.date_to = str_to_datetime(date_end)
-                    super(AccountStatements, self).save()
 
                 if header_line == "ID operace":
                     in_header = False
