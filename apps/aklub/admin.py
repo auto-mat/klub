@@ -194,6 +194,7 @@ class UserProfileAdmin(RelatedFieldAdmin):
         'person_name',
         'user__username',
         'user__email',
+        'addressment',
         'telephone',
         'user__first_name',
         'user__last_name',
@@ -201,6 +202,9 @@ class UserProfileAdmin(RelatedFieldAdmin):
         'sex',
         'user__date_joined',
         'user__last_login',
+    )
+    list_editable = (
+        'addressment',
     )
     search_fields = (
         'user__username',
@@ -572,6 +576,7 @@ pair_variable_symbols.short_description = _("Pair payments with users based on v
 
 class AccountStatementsAdmin(admin.ModelAdmin):
     list_display = ('type', 'import_date', 'payments_count', 'csv_file', 'date_from', 'date_to')
+    list_filter = ('type',)
     inlines = [PaymentsInlineNoExtra]
     readonly_fields = ('import_date', 'payments_count')
     fields = copy.copy(list_display)
