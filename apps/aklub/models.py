@@ -415,7 +415,7 @@ class UserProfile(models.Model):
     )
     telephone = models.CharField(
         verbose_name=_("Telephone"),
-        max_length=30,
+        max_length=100,
         blank=True,
     )
     street = models.CharField(
@@ -732,7 +732,7 @@ class UserInCampaign(models.Model):
     )
 
     def __str__(self):
-        return str(self.person_name())
+        return "%s (%s)" % (str(self.person_name()), self.campaign)
 
     def person_name(self):
         return self.userprofile.__str__()

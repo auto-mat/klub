@@ -194,6 +194,7 @@ class UserProfileAdmin(RelatedFieldAdmin):
         'person_name',
         'user__username',
         'user__email',
+        'addressment',
         'telephone',
         'user__first_name',
         'user__last_name',
@@ -201,6 +202,9 @@ class UserProfileAdmin(RelatedFieldAdmin):
         'sex',
         'user__date_joined',
         'user__last_login',
+    )
+    list_editable = (
+        'addressment',
     )
     search_fields = (
         'user__username',
