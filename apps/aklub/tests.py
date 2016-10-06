@@ -835,6 +835,37 @@ class ViewsTests(ClearCacheMixin, TestCase):
                 'amount': 200,
                 'email': 'test@email.cz',
                 'frequency': 'monthly',
+                'repeated_registration': False,
+                'valid': True,
+            }
+        )
+
+    post_data_darujme_onetime = post_data_darujme.copy()
+    post_data_darujme_onetime["recurringfrequency"] = ""
+
+    def test_regular_darujme_onetime(self):
+        address = reverse('regular-darujme')
+        response = self.client.post(address, self.post_data_darujme_onetime)
+        self.assertContains(response, '<tr><th>Jméno: </th><td>test_surname test_name</td></tr>', html=True)
+        self.assertContains(response, '<tr><th>Číslo účtu: </th><td>2400063333 / 2010</td></tr>', html=True)
+        self.assertContains(response, '<tr><th>Email: </th><td>test@email.cz</td></tr>', html=True)
+        self.assertContains(response, '<tr><th>Částka: </th><td>200 Kč</td></tr>', html=True)
+        self.assertContains(response, '<tr><th>Frekvence: </th><td>Jednorázově</td></tr>', html=True)
+        self.assertContains(response, '<tr><th>Pravidelné platby: </th><td>Nemá pravidelné platby</td></tr>', html=True)
+
+    def test_regular_darujme_ajax_onetime(self):
+        address = reverse('regular-darujme')
+        response = self.client.post(address, self.post_data_darujme_onetime, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        userincampaign = UserInCampaign.objects.get(userprofile__user__email="test@email.cz")
+        self.assertJSONEqual(
+            response.content.decode(),
+            {
+                'account_number': '2400063333 / 2010',
+                'variable_symbol': userincampaign.variable_symbol,
+                'amount': 200,
+                'email': 'test@email.cz',
+                'frequency': None,
+                'repeated_registration': False,
                 'valid': True,
             }
         )
@@ -862,9 +893,10 @@ class ViewsTests(ClearCacheMixin, TestCase):
             {
                 'account_number': '2400063333 / 2010',
                 'variable_symbol': '120127010',
-                'amount': 100,
+                'amount': '200',
                 'email': 'test.user@email.cz',
                 'frequency': 'monthly',
+                'repeated_registration': True,
                 'valid': True,
             }
         )

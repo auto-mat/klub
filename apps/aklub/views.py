@@ -149,10 +149,24 @@ class RegularDarujmeUserForm_UserProfile(FieldNameMappingMixin, RegularUserForm_
     }
 
 
+REGULAR_PAYMENTS_MAP = {
+    '28': 'regular',
+    '365': 'regular',
+    '': 'onetime',
+}
+
+REGULAR_FREQUENCY_MAP = {
+    '28': 'monthly',
+    '365': 'annually',
+    '': None,
+}
+
+
 class RegularDarujmeUserForm_UserInCampaign(FieldNameMappingMixin, RegularUserForm_UserInCampaign):
     REGULAR_PAYMENT_CHOICES = (
         ('28', _('Monthly')),
-        ('', _('Jednorázová platba')),
+        ('365', _('Anually')),
+        ('', _('Onetime payment')),
     )
     regular_payments = forms.ChoiceField(label=_("Regular payments"), choices=REGULAR_PAYMENT_CHOICES, required=False, widget=forms.RadioSelect())
     regular_frequency = forms.ChoiceField(label=_("Regular frequency"), choices=REGULAR_PAYMENT_CHOICES, required=False, widget=forms.HiddenInput())
@@ -164,18 +178,10 @@ class RegularDarujmeUserForm_UserInCampaign(FieldNameMappingMixin, RegularUserFo
     }
 
     def clean_regular_frequency(self):
-        regular_frequency_map = {
-            '28': 'monthly',
-            '': None,
-        }
-        return regular_frequency_map[self.cleaned_data['regular_frequency']]
+        return REGULAR_FREQUENCY_MAP[self.cleaned_data['regular_frequency']]
 
     def clean_regular_payments(self):
-        regular_payments_map = {
-            '28': 'regular',
-            '': 'onetime',
-        }
-        return regular_payments_map[self.cleaned_data['regular_payments']]
+        return REGULAR_PAYMENTS_MAP[self.cleaned_data['regular_payments']]
 
     class Meta:
         model = UserInCampaign
@@ -240,13 +246,19 @@ class RegularView(FormView):
     success_template = 'thanks.html'
     source_slug = 'web'
 
-    def success_page(self, userincampaign):
+    def success_page(self, userincampaign, amount=None, frequency=None, repeated_registration=False):
+        if not amount:
+            amount = userincampaign.regular_amount
+        if not frequency:
+            frequency = userincampaign.regular_frequency
         response = render_to_response(
             self.success_template,
             {
-                'amount': userincampaign.monthly_regular_amount(),
+                'amount': amount,
+                'frequency': UserInCampaign.REGULAR_PAYMENT_FREQUENCIES_MAP[frequency],
                 'user_id': userincampaign.id,
                 'userincampaign': userincampaign,
+                'repeated_registration': repeated_registration,
             },
         )
         if self.request.is_ajax():
@@ -255,8 +267,9 @@ class RegularView(FormView):
                 'account_number': "2400063333 / 2010",
                 'variable_symbol': userincampaign.variable_symbol,
                 'email': userincampaign.userprofile.user.email,
-                'amount': userincampaign.regular_amount,
-                'frequency': userincampaign.regular_frequency,
+                'amount': amount,
+                'frequency': frequency,
+                'repeated_registration': repeated_registration,
             }
             return JsonResponse(data)
         return response
@@ -270,7 +283,16 @@ class RegularView(FormView):
             if UserInCampaign.objects.filter(userprofile__user__email=email, campaign=self.campaign).exists():
                 userincampaign = UserInCampaign.objects.get(userprofile__user__email=email, campaign=self.campaign)
                 autocom.check(users=UserInCampaign.objects.filter(pk=userincampaign.pk), action='resend-data')
-                return self.success_page(userincampaign)
+                if 'recurringfrequency' in request.POST:
+                    frequency = REGULAR_FREQUENCY_MAP[request.POST.get('recurringfrequency')]
+                else:
+                    frequency = request.POST.get('userincampaign-regular_frequency')
+                return self.success_page(
+                    userincampaign,
+                    request.POST.get('ammount'),
+                    frequency,
+                    True,
+                )
         return super().post(request, args, kwargs)
 
     def get_initial(self):
