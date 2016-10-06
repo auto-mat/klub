@@ -576,6 +576,7 @@ pair_variable_symbols.short_description = _("Pair payments with users based on v
 
 class AccountStatementsAdmin(admin.ModelAdmin):
     list_display = ('type', 'import_date', 'payments_count', 'csv_file', 'date_from', 'date_to')
+    list_filter = ('type',)
     inlines = [PaymentsInlineNoExtra]
     readonly_fields = ('import_date', 'payments_count')
     fields = copy.copy(list_display)
