@@ -544,12 +544,16 @@ class UserInCampaign(models.Model):
         ('monthly', _('Monthly')),
         ('quaterly', _('Quaterly')),
         ('biannually', _('Bianually')),
-        ('annually', _('Anually')))
+        ('annually', _('Anually')),
+        (None, _('Onetime')),
+    )
+    REGULAR_PAYMENT_FREQUENCIES_MAP = dict(REGULAR_PAYMENT_FREQUENCIES)
     REGULAR_PAYMENT_CHOICES = (
         ('regular', _('Regular payments')),
         ('onetime', _('No regular payments')),
         ('promise', _('Promise of regular payments')),
     )
+    REGULAR_PAYMENT_CHOICES_MAP = dict(REGULAR_PAYMENT_CHOICES)
 
     # -- Basic personal information
     userprofile = models.ForeignKey(
