@@ -491,7 +491,8 @@ class AdminTest(tests.AdminSiteSmokeTest):
             self.assertEqual(request._messages._queued_messages[0].message, 'Skipped payments: Testing User 1 (test.user1@email.cz)')
             self.assertEqual(
                 request._messages._queued_messages[1].message,
-                'The Výpis z účtu "<a href="/admin/aklub/accountstatements/%(id)s/change/">%(id)s (2015-05-01 00:00:00)</a>" was added successfully.' % {'id': obj.id},
+                'Položka typu Výpis z účtu "<a href="/admin/aklub/accountstatements/%(id)s/change/">%(id)s (2015-05-01 00:00:00)</a>"'
+                ' byla úspěšně přidána.' % {'id': obj.id},
             )
 
     def test_mass_communication_changelist_post_send_mails(self):
@@ -521,8 +522,8 @@ class AdminTest(tests.AdminSiteSmokeTest):
         )
         self.assertEqual(
             request._messages._queued_messages[1].message,
-            'The Hromadná komunikace "<a href="/admin/aklub/masscommunication/%s/change/">test communication</a>"'
-            ' was added successfully. You may edit it again below.' % obj.id,
+            'Položka typu Hromadná komunikace "<a href="/admin/aklub/masscommunication/%s/change/">test communication</a>"'
+            ' byla úspěšně přidána. Níže ji můžete dále upravovat.' % obj.id,
         )
 
     def test_mass_communication_changelist_post(self):
@@ -837,7 +838,7 @@ class ViewsTests(ClearCacheMixin, TestCase):
                 'frequency': 'monthly',
                 'repeated_registration': False,
                 'valid': True,
-            }
+            },
         )
 
     post_data_darujme_onetime = post_data_darujme.copy()
@@ -867,7 +868,7 @@ class ViewsTests(ClearCacheMixin, TestCase):
                 'frequency': None,
                 'repeated_registration': False,
                 'valid': True,
-            }
+            },
         )
 
     post_data_darujme_known_email = post_data_darujme.copy()
@@ -898,7 +899,7 @@ class ViewsTests(ClearCacheMixin, TestCase):
                 'frequency': 'monthly',
                 'repeated_registration': True,
                 'valid': True,
-            }
+            },
         )
 
     post_data_short_telephone = post_data_darujme.copy()
