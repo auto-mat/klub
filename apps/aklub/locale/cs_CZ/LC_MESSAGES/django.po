@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: AKlub\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-10-06 16:36+0200\n"
+"POT-Creation-Date: 2016-10-07 11:54+0200\n"
 "PO-Revision-Date: 2013-04-24 00:59+0100\n"
 "Last-Translator: Hynek Hanke <hanke@brailcom.org>\n"
 "Language-Team: Auto*Mat <hynek.hanke@auto-mat.cz>\n"
@@ -197,7 +197,7 @@ msgstr "Celkový počet položek: %i"
 
 #: dashboard.py:180
 msgid "Dashboard Stats Settings"
-msgstr ""
+msgstr "Nastavení statistiky na palubní desce"
 
 #: dashboard_charts.py:47
 msgid "By Day"
@@ -282,7 +282,7 @@ msgstr "Interní"
 
 #: models.py:66
 msgid "Promise"
-msgstr ""
+msgstr "Příslib"
 
 #: models.py:67
 msgid "Ongoing communication"
