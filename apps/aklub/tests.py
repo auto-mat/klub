@@ -41,6 +41,7 @@ from django.db.models import Q
 from django.forms import ValidationError
 from django.test import RequestFactory, TestCase
 from django.test.runner import DiscoverRunner
+from django.test.utils import override_settings
 
 from django_admin_smoke_tests import tests
 
@@ -634,6 +635,9 @@ def print_response(response):
         f.write(response.content.decode())  # pragma: no cover
 
 
+@override_settings(
+    MANAGERS=(('Manager', 'manager@test.com'),),
+)
 class ViewsTests(ClearCacheMixin, TestCase):
     fixtures = ['conditions', 'users', 'communications', 'dashboard_stats']
 
@@ -747,11 +751,15 @@ class ViewsTests(ClearCacheMixin, TestCase):
             '<h1>Děkujeme!</h1>',
             html=True,
         )
-        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(len(mail.outbox), 2)
         msg = mail.outbox[0]
         self.assertEqual(msg.recipients(), ['test.user@email.cz', 'kp@auto-mat.cz'])
         self.assertEqual(msg.subject, 'Resending data')
         self.assertEqual(msg.body, 'Resending data to Jméno: Test Příjmení: User Ulice: Město: Praha 4 PSC:\nE-mail: test.user@email.cz Telefon:\n\n')
+        msg1 = mail.outbox[1]
+        self.assertEqual(msg1.recipients(), ['manager@test.com'])
+        self.assertEqual(msg1.subject, '[Django] Repeated registration')
+        self.assertEqual(msg1.body, 'Repeated registration for email test.user@email.cz\nname: None\nsurname: None\nfrequency: monthly\namount: None')
 
     def test_regular_dpnk(self):
         address = "%s?firstname=Uest&surname=Tser&email=uest.tser@email.cz&telephone=1211221" % reverse('regular-dpnk')
@@ -886,6 +894,16 @@ class ViewsTests(ClearCacheMixin, TestCase):
         self.assertContains(response, '<tr><th>Frekvence: </th><td>Měsíčně</td></tr>', html=True)
         self.assertContains(response, '<tr><th>Pravidelné platby: </th><td>Pravidelné platby</td></tr>', html=True)
 
+        self.assertEqual(len(mail.outbox), 2)
+        msg = mail.outbox[0]
+        self.assertEqual(msg.recipients(), ['test.user@email.cz', 'kp@auto-mat.cz'])
+        self.assertEqual(msg.subject, 'Resending data')
+        self.assertEqual(msg.body, 'Resending data to Jméno: Test Příjmení: User Ulice: Město: Praha 4 PSC:\nE-mail: test.user@email.cz Telefon:\n\n')
+        msg1 = mail.outbox[1]
+        self.assertEqual(msg1.recipients(), ['manager@test.com'])
+        self.assertEqual(msg1.subject, '[Django] Repeated registration')
+        self.assertEqual(msg1.body, 'Repeated registration for email test.user@email.cz\nname: test_name\nsurname: test_surname\nfrequency: monthly\namount: 200')
+
     def test_regular_darujme_known_email_ajax(self):
         address = reverse('regular-darujme')
         response = self.client.post(address, self.post_data_darujme_known_email, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
@@ -901,6 +919,16 @@ class ViewsTests(ClearCacheMixin, TestCase):
                 'valid': True,
             },
         )
+
+        self.assertEqual(len(mail.outbox), 2)
+        msg = mail.outbox[0]
+        self.assertEqual(msg.recipients(), ['test.user@email.cz', 'kp@auto-mat.cz'])
+        self.assertEqual(msg.subject, 'Resending data')
+        self.assertEqual(msg.body, 'Resending data to Jméno: Test Příjmení: User Ulice: Město: Praha 4 PSC:\nE-mail: test.user@email.cz Telefon:\n\n')
+        msg1 = mail.outbox[1]
+        self.assertEqual(msg1.recipients(), ['manager@test.com'])
+        self.assertEqual(msg1.subject, '[Django] Repeated registration')
+        self.assertEqual(msg1.body, 'Repeated registration for email test.user@email.cz\nname: test_name\nsurname: test_surname\nfrequency: monthly\namount: 200')
 
     post_data_short_telephone = post_data_darujme.copy()
     post_data_short_telephone["payment_data____telefon"] = "12345"

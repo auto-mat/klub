@@ -28,7 +28,7 @@ from betterforms.multiform import MultiModelForm
 
 from django import forms, http
 from django.contrib.auth.models import User
-from django.core.mail import EmailMessage
+from django.core.mail import EmailMessage, mail_managers
 from django.core.validators import MinLengthValidator, RegexValidator
 from django.db.models import Case, Count, IntegerField, Q, Sum, When
 from django.db.models.functions import TruncMonth
@@ -274,23 +274,39 @@ class RegularView(FormView):
             return JsonResponse(data)
         return response
 
+    def get_post_param(self, request, name, name1):
+        if request.POST.get(name):
+            return request.POST.get(name)
+        if request.POST.get(name1):
+            return request.POST.get(name1)
+
     def post(self, request, *args, **kwargs):
-        if request.POST.get('user-email'):
-            email = request.POST.get('user-email')
-        if request.POST.get('payment_data____email'):
-            email = request.POST.get('payment_data____email')
+        email = self.get_post_param(request, 'user-email', 'payment_data____email')
         if email:
             if UserInCampaign.objects.filter(userprofile__user__email=email, campaign=self.campaign).exists():
                 userincampaign = UserInCampaign.objects.get(userprofile__user__email=email, campaign=self.campaign)
                 autocom.check(users=UserInCampaign.objects.filter(pk=userincampaign.pk), action='resend-data')
+                user_data = {}
                 if 'recurringfrequency' in request.POST:
-                    frequency = REGULAR_FREQUENCY_MAP[request.POST.get('recurringfrequency')]
+                    user_data['frequency'] = REGULAR_FREQUENCY_MAP[request.POST.get('recurringfrequency')]
                 else:
-                    frequency = request.POST.get('userincampaign-regular_frequency')
+                    user_data['frequency'] = request.POST.get('userincampaign-regular_frequency')
+                user_data['name'] = self.get_post_param(request, 'name', 'payment_data____jmeno')
+                user_data['surname'] = self.get_post_param(request, 'surname', 'payment_data____prijmeni')
+                user_data['amount'] = self.get_post_param(request, 'amount', 'ammount')
+                user_data['email'] = email
+                mail_managers(
+                    _("Repeated registration"),
+                    "Repeated registration for email %(email)s\n"
+                    "name: %(name)s\n"
+                    "surname: %(surname)s\n"
+                    "frequency: %(frequency)s\n"
+                    "amount: %(amount)s" % user_data,
+                )
                 return self.success_page(
                     userincampaign,
-                    request.POST.get('ammount'),
-                    frequency,
+                    user_data['amount'],
+                    user_data['frequency'],
                     True,
                 )
         return super().post(request, args, kwargs)
