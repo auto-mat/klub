@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: AKlub\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-10-07 11:54+0200\n"
+"POT-Creation-Date: 2016-10-09 17:40+0200\n"
 "PO-Revision-Date: 2013-04-24 00:59+0100\n"
 "Last-Translator: Hynek Hanke <hanke@brailcom.org>\n"
 "Language-Team: Auto*Mat <hynek.hanke@auto-mat.cz>\n"
@@ -239,7 +239,7 @@ msgstr "Ano"
 msgid "No"
 msgstr "Ne"
 
-#: filters.py:81 models.py:56 models.py:285 views.py:350
+#: filters.py:81 models.py:56 models.py:285 views.py:366
 msgid "Email"
 msgstr "Email"
 
@@ -444,11 +444,11 @@ msgstr "Zaregistrován"
 msgid "Recruiter ID"
 msgstr "ID verbíře"
 
-#: models.py:275 views.py:348
+#: models.py:275 views.py:364
 msgid "First name"
 msgstr "Jméno"
 
-#: models.py:280 views.py:349
+#: models.py:280 views.py:365
 msgid "Surname"
 msgstr "Příjmení"
 
@@ -735,7 +735,7 @@ msgstr ""
 msgid "Additional information"
 msgstr "Rozšiřující informace"
 
-#: models.py:612 models.py:1221 views.py:363
+#: models.py:612 models.py:1221 views.py:379
 msgid "Variable symbol"
 msgstr "Variabilní symbol"
 
@@ -909,7 +909,7 @@ msgstr "V hotovosti"
 msgid "Date of payment"
 msgstr "Datum platby"
 
-#: models.py:1204 views.py:351
+#: models.py:1204 views.py:367
 msgid "Amount"
 msgstr "Částka"
 
@@ -1333,15 +1333,19 @@ msgstr "Jednorázová platba"
 msgid "Regular frequency"
 msgstr "Frekvence pravidelné platby"
 
-#: views.py:356
+#: views.py:299
+msgid "Repeated registration"
+msgstr "Opakovaná registrace"
+
+#: views.py:372
 msgid "Account"
 msgstr "Účet"
 
-#: views.py:516
+#: views.py:532
 msgid "Auto*Mat: Reminder of variable symbol"
 msgstr "Auto*Mat: Připomínka variabilního symbolu"
 
-#: views.py:518
+#: views.py:534
 #, python-format
 msgid ""
 "Dear friend,\n"
@@ -1377,15 +1381,15 @@ msgstr ""
 "S pozdravem,\n"
 "Auto*Mat\n"
 
-#: views.py:565
+#: views.py:581
 msgid "None of these accounts"
 msgstr "Žádný z těchto účtů"
 
-#: views.py:604
+#: views.py:620
 msgid "Member statistics"
 msgstr "Statistiky členů"
 
-#: views.py:626
+#: views.py:642
 msgid "Payments statistics"
 msgstr "Statistiky plateb"
 

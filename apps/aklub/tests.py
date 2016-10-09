@@ -758,7 +758,7 @@ class ViewsTests(ClearCacheMixin, TestCase):
         self.assertEqual(msg.body, 'Resending data to Jméno: Test Příjmení: User Ulice: Město: Praha 4 PSC:\nE-mail: test.user@email.cz Telefon:\n\n')
         msg1 = mail.outbox[1]
         self.assertEqual(msg1.recipients(), ['manager@test.com'])
-        self.assertEqual(msg1.subject, '[Django] Repeated registration')
+        self.assertEqual(msg1.subject, '[Django] Opakovaná registrace')
         self.assertEqual(msg1.body, 'Repeated registration for email test.user@email.cz\nname: None\nsurname: None\nfrequency: monthly\namount: None')
 
     def test_regular_dpnk(self):
@@ -901,7 +901,7 @@ class ViewsTests(ClearCacheMixin, TestCase):
         self.assertEqual(msg.body, 'Resending data to Jméno: Test Příjmení: User Ulice: Město: Praha 4 PSC:\nE-mail: test.user@email.cz Telefon:\n\n')
         msg1 = mail.outbox[1]
         self.assertEqual(msg1.recipients(), ['manager@test.com'])
-        self.assertEqual(msg1.subject, '[Django] Repeated registration')
+        self.assertEqual(msg1.subject, '[Django] Opakovaná registrace')
         self.assertEqual(msg1.body, 'Repeated registration for email test.user@email.cz\nname: test_name\nsurname: test_surname\nfrequency: monthly\namount: 200')
 
     def test_regular_darujme_known_email_ajax(self):
@@ -927,7 +927,7 @@ class ViewsTests(ClearCacheMixin, TestCase):
         self.assertEqual(msg.body, 'Resending data to Jméno: Test Příjmení: User Ulice: Město: Praha 4 PSC:\nE-mail: test.user@email.cz Telefon:\n\n')
         msg1 = mail.outbox[1]
         self.assertEqual(msg1.recipients(), ['manager@test.com'])
-        self.assertEqual(msg1.subject, '[Django] Repeated registration')
+        self.assertEqual(msg1.subject, '[Django] Opakovaná registrace')
         self.assertEqual(msg1.body, 'Repeated registration for email test.user@email.cz\nname: test_name\nsurname: test_surname\nfrequency: monthly\namount: 200')
 
     post_data_short_telephone = post_data_darujme.copy()
