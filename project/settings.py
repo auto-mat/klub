@@ -15,8 +15,7 @@ sys.path.append(normpath(PROJECT_ROOT, "apps"))
 DEBUG = True
 
 ADMINS = (
-    ('Hynek Hanke', 'hynek.hanke@auto-mat.cz'),
-    # ('Vaclav Rehak', 'vrehak@baf.cz'),
+    ('Petr Dlouhý', 'petr.dlouhy@auto-mat.cz'),
 )
 
 MANAGERS = ADMINS
