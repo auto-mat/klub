@@ -1506,7 +1506,7 @@ class Communication(models.Model):
                 email.attach(os.path.basename(att.name), att.read())
             try:
                 email.send(fail_silently=False)
-            except:
+            except AttributeError:
                 # TODO: At least warn about it!
                 pass
             else:
@@ -1746,10 +1746,10 @@ class TerminalCondition(models.Model):
         if self.variable:
             try:
                 return unicode(UserInCampaign._meta.get_field(self.variable.split(".")[1]).help_text)
-            except:
+            except NameError:
                 try:
                     return eval(self.variable).__doc__
-                except:
+                except NameError:
                     return "action"
 
     def get_val(self, spec):
