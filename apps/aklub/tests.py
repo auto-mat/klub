@@ -759,7 +759,10 @@ class ViewsTests(ClearCacheMixin, TestCase):
         msg1 = mail.outbox[1]
         self.assertEqual(msg1.recipients(), ['manager@test.com'])
         self.assertEqual(msg1.subject, '[Django] Opakovaná registrace')
-        self.assertEqual(msg1.body, 'Repeated registration for email test.user@email.cz\nname: None\nsurname: None\nfrequency: monthly\namount: None')
+        self.assertEqual(
+            msg1.body,
+            'Repeated registration for email test.user@email.cz\nname: Testing\nsurname: User\nfrequency: monthly\ntelephone: 111222333\namount: 321',
+        )
 
     def test_regular_dpnk(self):
         address = "%s?firstname=Uest&surname=Tser&email=uest.tser@email.cz&telephone=1211221" % reverse('regular-dpnk')
@@ -902,7 +905,10 @@ class ViewsTests(ClearCacheMixin, TestCase):
         msg1 = mail.outbox[1]
         self.assertEqual(msg1.recipients(), ['manager@test.com'])
         self.assertEqual(msg1.subject, '[Django] Opakovaná registrace')
-        self.assertEqual(msg1.body, 'Repeated registration for email test.user@email.cz\nname: test_name\nsurname: test_surname\nfrequency: monthly\namount: 200')
+        self.assertEqual(
+            msg1.body,
+            'Repeated registration for email test.user@email.cz\nname: test_name\nsurname: test_surname\nfrequency: monthly\ntelephone: 123456789\namount: 200',
+        )
 
     def test_regular_darujme_known_email_ajax(self):
         address = reverse('regular-darujme')
@@ -928,7 +934,10 @@ class ViewsTests(ClearCacheMixin, TestCase):
         msg1 = mail.outbox[1]
         self.assertEqual(msg1.recipients(), ['manager@test.com'])
         self.assertEqual(msg1.subject, '[Django] Opakovaná registrace')
-        self.assertEqual(msg1.body, 'Repeated registration for email test.user@email.cz\nname: test_name\nsurname: test_surname\nfrequency: monthly\namount: 200')
+        self.assertEqual(
+            msg1.body,
+            'Repeated registration for email test.user@email.cz\nname: test_name\nsurname: test_surname\nfrequency: monthly\ntelephone: 123456789\namount: 200',
+        )
 
     post_data_short_telephone = post_data_darujme.copy()
     post_data_short_telephone["payment_data____telefon"] = "12345"

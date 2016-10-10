@@ -291,9 +291,10 @@ class RegularView(FormView):
                     user_data['frequency'] = REGULAR_FREQUENCY_MAP[request.POST.get('recurringfrequency')]
                 else:
                     user_data['frequency'] = request.POST.get('userincampaign-regular_frequency')
-                user_data['name'] = self.get_post_param(request, 'name', 'payment_data____jmeno')
-                user_data['surname'] = self.get_post_param(request, 'surname', 'payment_data____prijmeni')
-                user_data['amount'] = self.get_post_param(request, 'amount', 'ammount')
+                user_data['name'] = self.get_post_param(request, 'user-first_name', 'payment_data____jmeno')
+                user_data['surname'] = self.get_post_param(request, 'user-last_name', 'payment_data____prijmeni')
+                user_data['amount'] = self.get_post_param(request, 'userincampaign-regular_amount', 'ammount')
+                user_data['telephone'] = self.get_post_param(request, 'userprofile-telephone', 'payment_data____telefon')
                 user_data['email'] = email
                 mail_managers(
                     _("Repeated registration"),
@@ -301,6 +302,7 @@ class RegularView(FormView):
                     "name: %(name)s\n"
                     "surname: %(surname)s\n"
                     "frequency: %(frequency)s\n"
+                    "telephone: %(telephone)s\n"
                     "amount: %(amount)s" % user_data,
                 )
                 return self.success_page(
