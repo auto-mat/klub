@@ -492,8 +492,6 @@ class OneTimePaymentWizard(SessionWizardView):
         for e in self.FORMS:
             if e[1] == form or isinstance(form, e[1]):
                 return e[0]
-        else:
-            raise ValueError(("No such form as requested", form))
 
     def _step_data(self, form):
         stepn = self._step_number(form)
