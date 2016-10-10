@@ -47,7 +47,7 @@ from django_admin_smoke_tests import tests
 
 from freezegun import freeze_time
 
-from . import admin, autocom, darujme, filters, mailing
+from . import admin, autocom, darujme, filters, mailing, views
 from .confirmation import makepdf
 from .models import (
     AccountStatements, AutomaticCommunication, Campaign, Communication, Condition, MassCommunication,
@@ -633,6 +633,18 @@ class AdminTest(tests.AdminSiteSmokeTest):
 def print_response(response):
     with open("response.html", "w") as f:  # pragma: no cover
         f.write(response.content.decode())  # pragma: no cover
+
+
+class VariableSymbolTests(TestCase):
+    fixtures = ['users']
+
+    def test_out_of_vs(self):
+        with self.assertRaises(AssertionError):
+            for i in range(1, 400):
+                vs = views.generate_variable_symbol()
+                user = User.objects.create(username=vs)
+                userprofile = UserProfile.objects.create(user=user)
+                UserInCampaign.objects.create(variable_symbol=vs, campaign_id=1, userprofile=userprofile)
 
 
 @override_settings(
