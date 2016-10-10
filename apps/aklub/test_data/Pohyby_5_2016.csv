@@ -12,3 +12,4 @@
 "123";"19.01.2016";"300";"CZK";"130430002";"Testing user 1";"5500";"Raiffeisenbank a.s.";"0000";"130430002";"";"Bezhotovostní příjem";"";"";"Testing user 1";"";"1232"
 "124";"19.01.2016";"-300";"CZK";"130430002";"Testing user 2";"5500";"Raiffeisenbank a.s.";"0000";"130430002";"";"Bezhotovostní příjem";"";"";"Testing user 2";"";"1232"
 "8753105153";"25.01.2016";"150";"CZK";"177632509";"KRE DAN";"0300";"ČSOB, a.s.";"0000";"130713218";"";"KRE DAN";"";"Bezhotovostní příjem";"";"";"KRE DAN";"";"9941429685"
+"8753105153";"25.01.2016";"150";"CZK";"177632509";"without variable symbol";"0300";"ČSOB, a.s.";"0000";"";"";"without variable symbol";"";"Bezhotovostní příjem";"";"";"without variable symbol";"";"9941429685"

@@ -525,9 +525,12 @@ class AdminTest(tests.AdminSiteSmokeTest):
             self.assertEqual(response.status_code, 302)
             obj = AccountStatements.objects.get(date_from="2016-01-25")
             self.assertEqual(response.url, "/admin/aklub/accountstatements/")
-            self.assertEqual(obj.payment_set.count(), 3)
+            self.assertEqual(obj.payment_set.count(), 4)
 
-            self.assertEqual(request._messages._queued_messages[0].message, 'Payments without user: Testing user 1 (Bezhotovostní příjem), KRE DAN (KRE DAN)')
+            self.assertEqual(
+                request._messages._queued_messages[0].message,
+                'Payments without user: Testing user 1 (Bezhotovostní příjem), KRE DAN (KRE DAN), without variable symbol (without variable symbol)',
+            )
             self.assertEqual(
                 request._messages._queued_messages[1].message,
                 'Položka typu Výpis z účtu "<a href="/admin/aklub/accountstatements/%(id)s/change/">%(id)s (2015-05-01 00:00:00)</a>"'
@@ -1189,7 +1192,7 @@ class AccountStatementTests(TestCase):
             a.save()
 
         a1 = AccountStatements.objects.get(pk=a.pk)
-        self.assertEqual(len(a1.payment_set.all()), 3)
+        self.assertEqual(len(a1.payment_set.all()), 4)
         self.assertEqual(a1.date_from, datetime.date(day=25, month=1, year=2016))
         self.assertEqual(a1.date_to, datetime.date(day=31, month=1, year=2016))
         user = UserInCampaign.objects.get(pk=2978)
