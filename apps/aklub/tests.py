@@ -51,7 +51,7 @@ from . import admin, autocom, darujme, filters, mailing, views
 from .confirmation import makepdf
 from .models import (
     AccountStatements, AutomaticCommunication, Campaign, Communication, Condition, MassCommunication,
-    Payment, Result, TaxConfirmation, TerminalCondition, UserInCampaign, UserProfile)
+    Payment, Result, TaxConfirmation, TerminalCondition, UserInCampaign, UserProfile, UserYearPayments)
 
 ICON_FALSE = '<img src="/media/admin/img/icon-no.svg" alt="False" />'
 
@@ -465,6 +465,15 @@ class AdminTest(tests.AdminSiteSmokeTest):
         self.assertEqual(response.url, "/admin/aklub/taxconfirmation/")
         self.assertEqual(TaxConfirmation.objects.get(user__id=2978, year=2016).amount, 350)
         self.assertEqual(request._messages._queued_messages[0].message, 'Generated 2 tax confirmations')
+
+    def test_useryearpayments(self):
+        model_admin = django_admin.site._registry[UserYearPayments]
+        request = self.get_request({
+            "drf__payment__date__gte": "01.07.2010",
+            "drf__payment__date__lte": "10.10.2016",
+        })
+        response = model_admin.changelist_view(request)
+        self.assertContains(response, '<td class="field-payment_total_by_year">350</td>', html=True)
 
     @freeze_time("2015-5-1")
     def test_account_statement_changelist_post(self):
