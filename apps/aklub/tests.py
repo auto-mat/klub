@@ -496,9 +496,9 @@ class AdminTest(tests.AdminSiteSmokeTest):
             self.assertEqual(response.status_code, 302)
             obj = AccountStatements.objects.get(date_from="2010-10-01")
             self.assertEqual(response.url, "/admin/aklub/accountstatements/")
-            self.assertEqual(obj.payment_set.count(), 6)
+            self.assertEqual(obj.payment_set.count(), 5)
 
-            self.assertEqual(request._messages._queued_messages[0].message, 'Skipped payments: Testing User 1 (test.user1@email.cz)')
+            self.assertEqual(request._messages._queued_messages[0].message, 'Skipped payments: Testing User 1 (test.user1@email.cz), Testing User 1 (unknown1@email.cz)')
             self.assertEqual(
                 request._messages._queued_messages[1].message,
                 'Položka typu Výpis z účtu "<a href="/admin/aklub/accountstatements/%(id)s/change/">%(id)s (2015-05-01 00:00:00)</a>"'
@@ -753,7 +753,7 @@ class ViewsTests(ClearCacheMixin, TestCase):
     def test_stat_payments(self):
         address = reverse('stat-payments')
         response = self.client.get(address)
-        self.assertContains(response, "<tr><td>2016</td><td>Bře</td><td>1</td><td>100 Kč</td><td>480 Kč</td></tr>", html=True)
+        self.assertContains(response, "<tr><td>2016</td><td>Bře</td><td>1</td><td>100 Kč</td><td>610 Kč</td></tr>", html=True)
         self.assertContains(response, "<h1>Statistiky plateb</h1>", html=True)
 
     def test_change_dashboard_chart(self):
@@ -1230,7 +1230,7 @@ class AccountStatementTests(TestCase):
 
     def check_account_statement_data(self):
         a1 = AccountStatements.objects.get(type="darujme")
-        self.assertEqual(len(a1.payment_set.all()), 6)
+        self.assertEqual(len(a1.payment_set.all()), 5)
         user = UserInCampaign.objects.get(pk=2978)
         self.assertEqual(user.payment_set.get(SS=17529), a1.payment_set.get(amount=200))
         unknown_user = UserInCampaign.objects.get(userprofile__user__email="unknown@email.cz")
@@ -1298,7 +1298,10 @@ class AccountStatementTests(TestCase):
         self.assertEqual(a, a1)
         self.assertListEqual(
             skipped,
-            [OrderedDict([('ss', '22258'), ('date', '2016-02-09'), ('name', 'Testing'), ('surname', 'User 1'), ('email', 'test.user1@email.cz')])],
+            [
+                OrderedDict([('ss', '22258'), ('date', '2016-02-09'), ('name', 'Testing'), ('surname', 'User 1'), ('email', 'test.user1@email.cz')]),
+                OrderedDict([('ss', ''), ('date', '2016-01-19'), ('name', 'Testing'), ('surname', 'User 1'), ('email', 'unknown1@email.cz')]),
+            ],
         )
 
     def test_darujme_xml_file_skipped(self):
@@ -1326,9 +1329,11 @@ class AccountStatementTests(TestCase):
         a1 = self.check_account_statement_data()
         m.message_user.assert_called_once_with(
             request,
-            'Created following account statements: %s<br/>Skipped payments: [OrderedDict([(&#39;ss&#39;, &#39;22258&#39;),'
-            ' (&#39;date&#39;, &#39;2016-02-09&#39;), (&#39;name&#39;, &#39;Testing&#39;), (&#39;surname&#39;, &#39;User 1&#39;),'
-            ' (&#39;email&#39;, &#39;test.user1@email.cz&#39;)])]' % a1.id,
+            'Created following account statements: %s<br/>Skipped payments: ['
+            'OrderedDict([(&#39;ss&#39;, &#39;22258&#39;), (&#39;date&#39;, &#39;2016-02-09&#39;), (&#39;name&#39;, &#39;Testing&#39;), '
+            '(&#39;surname&#39;, &#39;User 1&#39;), (&#39;email&#39;, &#39;test.user1@email.cz&#39;)]), '
+            'OrderedDict([(&#39;ss&#39;, &#39;&#39;), (&#39;date&#39;, &#39;2016-01-19&#39;), (&#39;name&#39;, &#39;Testing&#39;), '
+            '(&#39;surname&#39;, &#39;User 1&#39;), (&#39;email&#39;, &#39;unknown1@email.cz&#39;)])]' % a1.id,
         )
 
 
@@ -1373,7 +1378,7 @@ class FilterTests(TestCase):
     def test_payment_assignment_filter(self):
         f = filters.PaymentsAssignmentsFilter(self.request, {"user_assignment": "empty"}, User, None)
         q = f.queryset(self.request, Payment.objects.all())
-        self.assertEquals(q.count(), 0)
+        self.assertEquals(q.count(), 1)
 
     def test_user_condition_filter(self):
         f = filters.UserConditionFilter(self.request, {"user_condition": 2}, User, None)
