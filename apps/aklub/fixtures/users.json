@@ -376,6 +376,42 @@
         },
         "model": "aklub.userincampaign",
         "pk": 3
+    },
+    {
+        "fields": {
+            "userprofile": 3,
+            "wished_information": true,
+            "wished_tax_confirmation": true,
+            "wished_welcome_letter": true,
+            "recruiter": null,
+            "activity_points": 1,
+            "additional_information": "editor",
+            "exceptional_membership": false,
+            "expected_date_of_first_payment":  "2015-12-16",
+            "expected_regular_payment_date": null,
+            "extra_money": null,
+            "field_of_work": "",
+            "knows_us_from": "",
+            "last_payment": null,
+            "no_upgrade": false,
+            "note": "User without payments",
+            "number_of_payments": 0,
+            "old_account": false,
+            "other_support": "",
+            "payment_total": 0.0,
+            "registered_support": "2015-12-16T18:22:30.128",
+            "regular_amount": 100,
+            "regular_frequency": null,
+            "regular_payments": "promise",
+            "source": 10,
+            "variable_symbol": "121212",
+            "verified": false,
+            "verified_by": null,
+            "campaign": 1,
+            "why_supports": ""
+        },
+        "model": "aklub.userincampaign",
+        "pk": 4
     }
 ]
 

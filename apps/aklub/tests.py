@@ -54,6 +54,7 @@ from .models import (
     Payment, Result, TaxConfirmation, TerminalCondition, UserInCampaign, UserProfile, UserYearPayments)
 
 ICON_FALSE = '<img src="/media/admin/img/icon-no.svg" alt="False" />'
+ICON_UNKNOWN = '<img src="/media/admin/img/icon-unknown.svg" alt="None" />'
 
 
 class ClearCacheMixin(object):
@@ -422,16 +423,20 @@ class MailingTest(TestCase):
         )
         u = UserInCampaign.objects.all()
         mailing.send_mass_communication(c, u, sending_user, save=False)
-        self.assertEqual(len(mail.outbox), 3)
+        self.assertEqual(len(mail.outbox), 4)
         msg = mail.outbox[0]
         self.assertEqual(msg.recipients(), ['without_payments@email.cz'])
         self.assertEqual(msg.subject, 'Testing email')
         self.assertIn("Testing template", msg.body)
         msg = mail.outbox[1]
+        self.assertEqual(msg.recipients(), ['without_payments@email.cz'])
+        self.assertEqual(msg.subject, 'Testing email')
+        self.assertIn("Testing template", msg.body)
+        msg = mail.outbox[2]
         self.assertEqual(msg.recipients(), ['test.user@email.cz'])
         self.assertEqual(msg.subject, 'Testing email')
         self.assertIn("Testing template", msg.body)
-        msg1 = mail.outbox[2]
+        msg1 = mail.outbox[3]
         self.assertEqual(msg1.recipients(), ['test.user1@email.cz'])
         self.assertEqual(msg1.subject, 'Testing email en')
         self.assertIn("Testing template", msg1.body)
@@ -454,7 +459,7 @@ class AdminTest(tests.AdminSiteSmokeTest):
         queryset = UserInCampaign.objects.all()
         response = model_admin.send_mass_communication(request, queryset)
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, "/admin/aklub/masscommunication/add/?send_to_users=3,2978,2979")
+        self.assertEqual(response.url, "/admin/aklub/masscommunication/add/?send_to_users=3,4,2978,2979")
 
     @freeze_time("2017-5-1")
     def test_tax_confirmation_generate(self):
@@ -729,7 +734,7 @@ class ViewsTests(ClearCacheMixin, TestCase):
     def test_main_admin_page(self):
         address = "/"
         response = self.client.get(address)
-        self.assertContains(response, "Nestará registrace: 3 položek")
+        self.assertContains(response, "Nestará registrace: 4 položek")
         self.assertContains(
             response,
             '<div class="dashboard-module-content"> <p>Celkový počet položek: 2</p><ul class="stacked">'
@@ -747,7 +752,7 @@ class ViewsTests(ClearCacheMixin, TestCase):
     def test_stat_members(self):
         address = reverse('stat-members')
         response = self.client.get(address)
-        self.assertContains(response, "<tr><td>2016</td><td>Zář</td><td>2</td><td>1</td><td>3</td><td>3</td></tr>", html=True)
+        self.assertContains(response, "<tr><td>2016</td><td>Zář</td><td>2</td><td>2</td><td>4</td><td>4</td></tr>", html=True)
         self.assertContains(response, "<h1>Statistiky členů klubu</h1>", html=True)
 
     def test_stat_payments(self):
@@ -790,6 +795,7 @@ class ViewsTests(ClearCacheMixin, TestCase):
             [
                 {"firstname": "Test", "text": "", "picture": "", "surname": "User 1", "picture_thumbnail": ""},
                 {"firstname": "Test", "text": "", "picture": "", "surname": "User", "picture_thumbnail": ""},
+                {"firstname": "Without", "text": "", "picture": "", "surname": "Payments", "picture_thumbnail": ""},
                 {"firstname": "Without", "text": "", "picture": "", "surname": "Payments", "picture_thumbnail": ""},
             ],
         )
@@ -1115,6 +1121,7 @@ class ModelTests(TestCase):
         self.u1 = UserInCampaign.objects.get(pk=2978)
         self.u2 = UserInCampaign.objects.get(pk=3)
         self.u2.save()
+        self.u4 = UserInCampaign.objects.get(pk=4)
         self.p = Payment.objects.get(pk=1)
         self.p1 = Payment.objects.get(pk=2)
         self.p2 = Payment.objects.get(pk=3)
@@ -1142,6 +1149,7 @@ class ModelTests(TestCase):
         self.assertEqual(self.u.expected_regular_payment_date, None)
         self.assertEqual(self.u.regular_payments_delay(), False)
         self.assertEqual(self.u.extra_payments(), ICON_FALSE)
+        self.assertEqual(self.u.regular_payments_info(), ICON_FALSE)
         self.assertEqual(self.u.no_upgrade, False)
         self.assertEqual(self.u.monthly_regular_amount(), 0)
 
@@ -1173,6 +1181,10 @@ class ModelTests(TestCase):
 
         self.assertEqual(self.u2.expected_regular_payment_date, datetime.date(2015, 12, 19))
         self.assertEqual(self.u2.payment_delay(), '4\xa0měsíce, 2\xa0týdny')
+        self.assertEqual(self.u2.regular_payments_info(), datetime.date(2015, 12, 19))
+
+        self.assertEqual(self.u4.payment_delay(), ICON_FALSE)
+        self.assertEqual(self.u4.regular_payments_info(), ICON_UNKNOWN)
 
     def test_extra_payments(self):
         Payment.objects.create(date=datetime.date(year=2016, month=5, day=1), user=self.u1, amount=250)
@@ -1383,7 +1395,7 @@ class FilterTests(TestCase):
     def test_user_condition_filter(self):
         f = filters.UserConditionFilter(self.request, {"user_condition": 2}, User, None)
         q = f.queryset(self.request, UserInCampaign.objects.all())
-        self.assertEquals(q.count(), 3)
+        self.assertEquals(q.count(), 4)
 
     def test_active_camaign_filter_no(self):
         f = filters.ActiveCampaignFilter(self.request, {"active": "no"}, User, None)
