@@ -589,7 +589,7 @@ class AccountStatementsAdmin(admin.ModelAdmin):
         if getattr(obj, 'skipped_payments', None):
             skipped_payments_string = ', '.join(["%s %s (%s)" % (p['name'], p['surname'], p['email']) for p in obj.skipped_payments])
             messages.info(request, 'Skipped payments: %s' % skipped_payments_string)
-        payments_without_user = ', '.join(["%s (%s)" % (p.account_name, p.user_identification) for p in obj.payment_set.all() if not p.user])
+        payments_without_user = ', '.join(["%s (%s)" % (p.account_name, p.user_identification) for p in obj.payments if not p.user])
         if payments_without_user:
             messages.info(request, 'Payments without user: %s' % payments_without_user)
         obj.save()

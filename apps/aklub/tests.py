@@ -496,6 +496,35 @@ class AdminTest(tests.AdminSiteSmokeTest):
                 ' byla úspěšně přidána.' % {'id': obj.id},
             )
 
+    @freeze_time("2015-5-1")
+    def test_account_statement_changelist_post_bank_statement(self):
+        model_admin = django_admin.site._registry[AccountStatements]
+        request = self.get_request()
+        response = model_admin.add_view(request)
+        self.assertEqual(response.status_code, 200)
+
+        with open("apps/aklub/test_data/Pohyby_5_2016.csv", "rb") as f:
+            post_data = {
+                '_save': 'Save',
+                "type": "account",
+                "csv_file": f,
+                'payment_set-TOTAL_FORMS': 0,
+                'payment_set-INITIAL_FORMS': 0,
+            }
+            request = self.post_request(post_data)
+            response = model_admin.add_view(request)
+            self.assertEqual(response.status_code, 302)
+            obj = AccountStatements.objects.get(date_from="2016-01-25")
+            self.assertEqual(response.url, "/admin/aklub/accountstatements/")
+            self.assertEqual(obj.payment_set.count(), 3)
+
+            self.assertEqual(request._messages._queued_messages[0].message, 'Payments without user: Testing user 1 (Bezhotovostní příjem), KRE DAN (KRE DAN)')
+            self.assertEqual(
+                request._messages._queued_messages[1].message,
+                'Položka typu Výpis z účtu "<a href="/admin/aklub/accountstatements/%(id)s/change/">%(id)s (2015-05-01 00:00:00)</a>"'
+                ' byla úspěšně přidána.' % {'id': obj.id},
+            )
+
     def test_mass_communication_changelist_post_send_mails(self):
         model_admin = django_admin.site._registry[MassCommunication]
         request = self.get_request()
