@@ -428,7 +428,7 @@ class UserProfile(models.Model):
         help_text=_("Your profile picture, which others will see."),
         upload_to='profile-images',
         variations={
-            'thumbnail': (100, 100, True),
+            'thumbnail': (150, 150, True),
         },
         blank=True,
         null=True,
