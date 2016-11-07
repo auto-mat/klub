@@ -395,9 +395,8 @@ class UserProfile(models.Model):
         max_length=40,
         blank=True,
     )
-    zip_code = models.CharField(
+    zip_code = models.TextField(
         verbose_name=_("ZIP Code"),
-        max_length=10,
         blank=True,
     )
     different_correspondence_address = models.BooleanField(
