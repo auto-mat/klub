@@ -434,9 +434,8 @@ class UserProfile(models.Model):
         max_length=40,
         blank=True,
     )
-    zip_code = models.CharField(
+    zip_code = models.TextField(
         verbose_name=_("ZIP Code"),
-        max_length=10,
         blank=True,
     )
     different_correspondence_address = models.BooleanField(
@@ -467,7 +466,7 @@ class UserProfile(models.Model):
         help_text=_("Your profile picture, which others will see."),
         upload_to='profile-images',
         variations={
-            'thumbnail': (100, 100, True),
+            'thumbnail': (150, 150, True),
         },
         blank=True,
         null=True,
