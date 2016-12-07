@@ -28,6 +28,6 @@ pypdf2  # for pdf result testing
 django-adminactions
 
 
-django-admin-tools-stats
+-e git+https://github.com/PetrDlouhy/django-admin-tools-stats@develop#egg=django-admin-tools-stats
 django-bower
 -e git+https://github.com/infoscout/django-cache-utils.git#egg=django-cache-utils

@@ -1242,7 +1242,7 @@ class AccountStatementTests(TestCase):
 
     def check_account_statement_data(self):
         a1 = AccountStatements.objects.get(type="darujme")
-        self.assertEqual(len(a1.payment_set.all()), 5)
+        self.assertEqual(len(a1.payment_set.all()), 6)
         user = UserInCampaign.objects.get(pk=2978)
         self.assertEqual(user.payment_set.get(SS=17529), a1.payment_set.get(amount=200))
         unknown_user = UserInCampaign.objects.get(userprofile__user__email="unknown@email.cz")
@@ -1312,7 +1312,6 @@ class AccountStatementTests(TestCase):
             skipped,
             [
                 OrderedDict([('ss', '22258'), ('date', '2016-02-09'), ('name', 'Testing'), ('surname', 'User 1'), ('email', 'test.user1@email.cz')]),
-                OrderedDict([('ss', ''), ('date', '2016-01-19'), ('name', 'Testing'), ('surname', 'User 1'), ('email', 'unknown1@email.cz')]),
             ],
         )
 
@@ -1343,9 +1342,7 @@ class AccountStatementTests(TestCase):
             request,
             'Created following account statements: %s<br/>Skipped payments: ['
             'OrderedDict([(&#39;ss&#39;, &#39;22258&#39;), (&#39;date&#39;, &#39;2016-02-09&#39;), (&#39;name&#39;, &#39;Testing&#39;), '
-            '(&#39;surname&#39;, &#39;User 1&#39;), (&#39;email&#39;, &#39;test.user1@email.cz&#39;)]), '
-            'OrderedDict([(&#39;ss&#39;, &#39;&#39;), (&#39;date&#39;, &#39;2016-01-19&#39;), (&#39;name&#39;, &#39;Testing&#39;), '
-            '(&#39;surname&#39;, &#39;User 1&#39;), (&#39;email&#39;, &#39;unknown1@email.cz&#39;)])]' % a1.id,
+            '(&#39;surname&#39;, &#39;User 1&#39;), (&#39;email&#39;, &#39;test.user1@email.cz&#39;)])]' % a1.id,
         )
 
 

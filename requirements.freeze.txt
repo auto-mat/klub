@@ -3,7 +3,7 @@ diff-match-patch==20121119
 Django==1.10.4
 -e git+https://github.com/PetrDlouhy/django-admin-smoke-tests.git@0404bb4af9684644b137a939e57b1be0aa871520#egg=django_admin_smoke_tests
 django-admin-tools==0.8.0
-django-admin-tools-stats==0.7.1
+-e git+https://github.com/PetrDlouhy/django-admin-tools-stats@f2705df6684dd64e38599cef05e0a83a82ab4df7#egg=django_admin_tools_stats
 django-adminactions==1.2
 -e git+https://github.com/PetrDlouhy/django-betterforms.git@bd702c921842f2c816ee00a906bdfe061019f179#egg=django_betterforms
 django-bootstrap-form==3.2.1
