@@ -501,9 +501,9 @@ class AdminTest(tests.AdminSiteSmokeTest):
             self.assertEqual(response.status_code, 302)
             obj = AccountStatements.objects.get(date_from="2010-10-01")
             self.assertEqual(response.url, "/admin/aklub/accountstatements/")
-            self.assertEqual(obj.payment_set.count(), 5)
+            self.assertEqual(obj.payment_set.count(), 6)
 
-            self.assertEqual(request._messages._queued_messages[0].message, 'Skipped payments: Testing User 1 (test.user1@email.cz), Testing User 1 (unknown1@email.cz)')
+            self.assertEqual(request._messages._queued_messages[0].message, 'Skipped payments: Testing User 1 (test.user1@email.cz)')
             self.assertEqual(
                 request._messages._queued_messages[1].message,
                 'Položka typu Výpis z účtu "<a href="/admin/aklub/accountstatements/%(id)s/change/">%(id)s (2015-05-01 00:00:00)</a>"'

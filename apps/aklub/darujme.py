@@ -146,7 +146,7 @@ def create_payment(data, payments, skipped_payments):
     if data['email'] == '':
         return
 
-    if Payment.objects.filter(type='darujme', SS=data['id']).exists():
+    if Payment.objects.filter(type='darujme', SS=data['id'], date=data['datum_daru']).exists():
         skipped_payments.append(
             OrderedDict(
                 [
