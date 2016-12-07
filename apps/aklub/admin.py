@@ -422,7 +422,7 @@ class NewUserAdmin(UserInCampaignAdmin):
 
 class CommunicationAdmin(admin.ModelAdmin):
     list_display = (
-        'subject', 'dispatched', 'user', 'method', 'created_by', 'handled_by',
+        'subject', 'dispatched', 'user', 'method', 'result', 'created_by', 'handled_by',
         'user__regular_payments_info', 'user__payment_delay', 'user__extra_payments',
         'date', 'type',
     )
@@ -441,6 +441,7 @@ class CommunicationAdmin(admin.ModelAdmin):
                 'subject',
                 ('summary', 'attachment'),
                 'note',
+                'result',
             ],
         }),
         (_("Sending"), {
