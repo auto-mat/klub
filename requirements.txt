@@ -9,8 +9,6 @@ django-wysiwyg
 django-tinymce
 django-admin-tools
 feedparser
--e git+https://github.com/PetrDlouhy/django-admin-user-stats.git#egg=django-admin-user-stats  # for yearly statistics
-#django-admin-user-stats==0.2
 django-chart-tools
 django-mass-edit
 python-memcached
@@ -27,9 +25,9 @@ django-related-admin
 gunicorn
 pypdf2  # for pdf result testing
 -e git+https://github.com/PetrDlouhy/django-betterforms.git#egg=django-betterforms  # for fields/errors support
--e git+https://github.com/PetrDlouhy/django-adminactions.git@devel#egg=django-adminactions  # for Django 1.10 compatibility
+django-adminactions
 
 
--e git+https://github.com/PetrDlouhy/django-admin-tools-stats@develop#egg=django-admin-tools-stats
+django-admin-tools-stats
 django-bower
--e git+https://github.com/Thermondo/django-cache-utils.git#egg=django-cache-utils
+-e git+https://github.com/infoscout/django-cache-utils.git#egg=django-cache-utils

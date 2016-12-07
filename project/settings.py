@@ -147,7 +147,6 @@ INSTALLED_APPS = (
     'django_extensions',
     'django_wysiwyg',
     'tinymce',
-    'admin_user_stats',
     'chart_tools',
     'massadmin',
     'import_export',
