@@ -31,5 +31,5 @@ pypdf2  # for pdf result testing
 
 
 -e git+https://github.com/PetrDlouhy/django-admin-tools-stats@develop#egg=django-admin-tools-stats
--e git+https://github.com/freeyoung/django-bower.git@fix-django-1.10#egg=django-bower
+django-bower
 -e git+https://github.com/Thermondo/django-cache-utils.git#egg=django-cache-utils
