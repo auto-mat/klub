@@ -194,8 +194,22 @@ class UserProfileInline(admin.StackedInline):
     fieldsets = userprofile_fieldsets
 
 
+class UserForm(django.forms.ModelForm):
+    class Meta:
+        model = User
+        exclude = []
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        username = self.cleaned_data.get('username')
+        if email and User.objects.filter(email=email).exclude(username=username).count():
+            raise django.forms.ValidationError('Email addresses must be unique.')
+        return email
+
+
 class UserAdmin(RelatedFieldAdmin, UserAdmin):
     inlines = [UserProfileInline]
+    form = UserForm
     list_display = ('username', 'email', 'userprofile__telephone', 'first_name', 'last_name', 'is_staff', 'userprofile__sex', 'date_joined', 'last_login')
     search_fields = ('username', 'email', 'first_name', 'last_name', 'userprofile__telephone')
     list_filter = (
