@@ -148,14 +148,26 @@ def create_payment(data, payments, skipped_payments):
     if data['email'] == '':
         return
 
-    if data['id_platby'] and Payment.objects.filter(type='darujme', SS=data['id'], operation_id=None).exists():
+    if 'id_platby' in data:
+        id_platby = data['id_platby']
+    else:
+        id_platby = None
+
+    if id_platby and Payment.objects.filter(type='darujme', SS=data['id'], operation_id=None).exists():
         payment = Payment.objects.filter(type='darujme', SS=data['id'], operation_id=None).first()
-        payment.operation_id = data['id_platby']
+        payment.operation_id = id_platby
         payment.date = data['datum_prichozi_platby']
         payment.save()
         return None
 
-    if Payment.objects.filter(type='darujme', SS=data['id'], date=data['datum_prichozi_platby'], operation_id=data['id_platby']).exists():
+    filter_kwarg = {
+        "type": 'darujme',
+        "SS": data['id'],
+        "date": data['datum_prichozi_platby'],
+    }
+    if id_platby:
+        filter_kwarg["operation_id"] = id_platby
+    if Payment.objects.filter(**filter_kwarg).exists():
         skipped_payments.append(
             OrderedDict(
                 [
@@ -180,8 +192,8 @@ def create_payment(data, payments, skipped_payments):
         p = Payment()
         p.type = 'darujme'
         p.SS = data['id']
-        p.date = data['datum_prichozi_platby']
-        p.operation_id = data['id_platby']
+        p.date = data['datum_prichozi_platby'] or data['datum_daru']
+        p.operation_id = id_platby
         p.amount = amount
         p.account_name = u'%s, %s' % (data['prijmeni'], data['jmeno'])
         p.user_identification = data['email']

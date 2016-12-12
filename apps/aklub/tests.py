@@ -746,8 +746,8 @@ class ViewsTests(ClearCacheMixin, TestCase):
         self.assertContains(
             response,
             '<div class="dashboard-module-content"> <p>Celkový počet položek: 2</p><ul class="stacked">'
-            '<li class="odd"><a href="aklub/user/3">Payments Without</a></li>'
-            '<li class="even"><a href="aklub/user/2978">User Test</a></li>'
+            '<li class="odd"><a href="/admin/aklub/userincampaign/3/change/">Payments Without</a></li>'
+            '<li class="even"><a href="/admin/aklub/userincampaign/2978/change/">User Test</a></li>'
             '</ul> </div>',
             html=True,
         )
@@ -1250,7 +1250,17 @@ class AccountStatementTests(TestCase):
 
     def check_account_statement_data(self):
         a1 = AccountStatements.objects.get(type="darujme")
-        self.assertEqual(len(a1.payment_set.all()), 6)
+        self.assertEqual(
+            list(a1.payment_set.values_list("account_name", "date", "SS")),
+            [
+                ('Date, Blank', datetime.date(2016, 8, 9), '12345'),
+                ('User, Testing', datetime.date(2016, 1, 20), '17529'),
+                ('User 1, Testing', datetime.date(2016, 1, 19), '12121'),
+                ('User 1, Testing', datetime.date(2016, 1, 19), ''),
+                ('User 1, Testing', datetime.date(2016, 1, 19), '22257'),
+                ('User 1, Testing', datetime.date(2016, 1, 19), '22256'),
+            ],
+        )
         user = UserInCampaign.objects.get(pk=2978)
         self.assertEqual(user.payment_set.get(SS=17529), a1.payment_set.get(amount=200))
         unknown_user = UserInCampaign.objects.get(userprofile__user__email="unknown@email.cz")

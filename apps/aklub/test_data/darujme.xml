@@ -4,7 +4,7 @@
         <transaction_id>17529</transaction_id><cislo_klienta>01081301</cislo_klienta><cislo_projektu>38571205</cislo_projektu><projekt>Klub přátel Auto*Matu</projekt><typ>sporitelna</typ><datum_daru>2016-01-20</datum_daru><cetnost>měsíční</cetnost><cetnost_konec>na dobu neurčitou</cetnost_konec><mena>CZK</mena><uvedena_castka>200</uvedena_castka><vs>260116018</vs><stav>OK, převedeno</stav>
         <platby>
             <platba>
-                <id_platby>13952</id_platby><obdrzena_castka>200.00</obdrzena_castka><poplatek>4.00</poplatek><vysledna_castka>196.00</vysledna_castka><datum_prichozi_platby>2016-01-20</datum_prichozi_platby><datum_odchozi_platby>2014-09-23</datum_odchozi_platby><vs_odchozi_platby>230914020</vs_odchozi_platby><ucet_odchozi_platby>2400063333/2010</ucet_odchozi_platby>
+                <id_platby>13951</id_platby><obdrzena_castka>200.00</obdrzena_castka><poplatek>4.00</poplatek><vysledna_castka>196.00</vysledna_castka><datum_prichozi_platby>2016-01-20</datum_prichozi_platby><datum_odchozi_platby>2014-09-23</datum_odchozi_platby><vs_odchozi_platby>230914020</vs_odchozi_platby><ucet_odchozi_platby>2400063333/2010</ucet_odchozi_platby>
             </platba>
         </platby>
         <uzivatelska_pole>

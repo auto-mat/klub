@@ -43,6 +43,7 @@
             "date": "2016-2-9",
             "type": "darujme",
             "SS": "22258",
+            "operation_id": "13954",
             "user": "2978"
         },
         "model": "aklub.payment",
@@ -63,6 +64,7 @@
         "fields": {
             "amount": 130,
             "date": "2016-1-9",
+            "operation_id": "13950",
             "type": "darujme"
         },
         "model": "aklub.payment",
