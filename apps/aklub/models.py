@@ -35,6 +35,7 @@ from django.core.files.storage import FileSystemStorage
 from django.core.files.temp import NamedTemporaryFile
 from django.core.mail import EmailMultiAlternatives
 from django.core.urlresolvers import reverse
+from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import Count, Q, Sum
 from django.utils import timezone
@@ -417,6 +418,7 @@ class UserProfile(models.Model):
         verbose_name=_("Telephone"),
         max_length=100,
         blank=True,
+        validators=(RegexValidator(r'^[0-9+ ]*$', _("Telephone must consist of numbers, spaces and + sign")),),
     )
     street = models.CharField(
         verbose_name=_("Street and number"),
