@@ -229,7 +229,7 @@ class UserProfileAdmin(RelatedFieldAdmin):
         'user__username',
         'user__email',
         'addressment',
-        'telephone',
+        'telephone_url',
         'user__first_name',
         'user__last_name',
         'user__is_staff',

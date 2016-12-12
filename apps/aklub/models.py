@@ -38,7 +38,7 @@ from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models import Count, Q, Sum
 from django.utils import timezone
-from django.utils.html import mark_safe
+from django.utils.html import format_html, mark_safe
 from django.utils.timesince import timesince
 from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
@@ -524,6 +524,15 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return str(self.person_name())
+
+    def telephone_url(self):
+        if hasattr(self, 'telephone'):
+            return format_html(
+                "<a href='tel:{}'>{}</a>",
+                self.telephone,
+                self.telephone,
+            )
+    telephone_url.short_description = _("Telephone")
 
 
 class UserInCampaign(models.Model):
