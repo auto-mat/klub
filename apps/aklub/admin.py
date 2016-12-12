@@ -408,8 +408,8 @@ class UserYearPaymentsAdmin(UserInCampaignAdmin):
         return super(UserYearPaymentsAdmin, self).changelist_view(request, extra_context=extra_context)
 
 
-class PaymentAdmin(ImportExportMixin, admin.ModelAdmin):
-    list_display = ('date', 'account_statement', 'amount', 'person_name', 'account_name', 'account', 'bank_code',
+class PaymentAdmin(ImportExportMixin, RelatedFieldAdmin):
+    list_display = ('id', 'date', 'user__campaign', 'account_statement', 'amount', 'person_name', 'account_name', 'account', 'bank_code',
                     "transfer_note", "currency", "recipient_message", "operation_id", "transfer_type", "specification", "order_id",
                     'VS', 'SS', 'user_identification', 'type', 'paired_with_expected')
     fieldsets = [
@@ -434,6 +434,7 @@ class PaymentAdmin(ImportExportMixin, admin.ModelAdmin):
     list_filter = ['type', 'date', filters.PaymentsAssignmentsFilter]
     date_hierarchy = 'date'
     search_fields = ['user__userprofile__user__last_name', 'user__userprofile__user__first_name', 'amount', 'VS', 'SS', 'user_identification']
+    list_max_show_all = 10000
 
 
 class NewUserAdmin(UserInCampaignAdmin):

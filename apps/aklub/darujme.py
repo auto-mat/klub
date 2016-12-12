@@ -89,10 +89,12 @@ def parse_darujme_xml(xmlfile):
         platby = record.getElementsByTagName('platby')
         if len(platby) > 0:
             for platba in platby[0].getElementsByTagName('platba'):
+                data['id_platby'] = platba.getElementsByTagName('id_platby')[0].firstChild.nodeValue
                 data['datum_prichozi_platby'] = platba.getElementsByTagName('datum_prichozi_platby')[0].firstChild.nodeValue
                 data['obdrzena_castka'] = parse_float_to_int(platba.getElementsByTagName('obdrzena_castka')[0].firstChild.nodeValue)
                 create_payment(data, payments, skipped_payments)
         else:
+            data['id_platby'] = None
             data['datum_prichozi_platby'] = None
             data['obdrzena_castka'] = None
             create_payment(data, payments, skipped_payments)
@@ -146,7 +148,14 @@ def create_payment(data, payments, skipped_payments):
     if data['email'] == '':
         return
 
-    if Payment.objects.filter(type='darujme', SS=data['id'], date=data['datum_daru']).exists():
+    if data['id_platby'] and Payment.objects.filter(type='darujme', SS=data['id'], operation_id=None).exists():
+        payment = Payment.objects.filter(type='darujme', SS=data['id'], operation_id=None).first()
+        payment.operation_id = data['id_platby']
+        payment.date = data['datum_prichozi_platby']
+        payment.save()
+        return None
+
+    if Payment.objects.filter(type='darujme', SS=data['id'], date=data['datum_prichozi_platby'], operation_id=data['id_platby']).exists():
         skipped_payments.append(
             OrderedDict(
                 [
@@ -171,7 +180,8 @@ def create_payment(data, payments, skipped_payments):
         p = Payment()
         p.type = 'darujme'
         p.SS = data['id']
-        p.date = data['datum_daru']
+        p.date = data['datum_prichozi_platby']
+        p.operation_id = data['id_platby']
         p.amount = amount
         p.account_name = u'%s, %s' % (data['prijmeni'], data['jmeno'])
         p.user_identification = data['email']
