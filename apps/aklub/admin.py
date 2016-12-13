@@ -24,6 +24,8 @@ import datetime
 
 from adminactions import actions
 
+from adminfilters.filters import RelatedFieldCheckBoxFilter
+
 from daterange_filter.filter import DateRangeFilter
 
 import django.forms
@@ -310,7 +312,9 @@ class UserInCampaignAdmin(ImportExportMixin, RelatedFieldAdmin):
     date_hierarchy = 'registered_support'
     list_filter = [
         'regular_payments', 'userprofile__language', 'userprofile__user__is_active', 'wished_information', 'old_account',
-        'source', 'campaign', ('registered_support', DateRangeFilter),
+        'source',
+        ('campaign', RelatedFieldCheckBoxFilter),
+        ('registered_support', DateRangeFilter),
         filters.UserConditionFilter, filters.UserConditionFilter1,
     ]
     search_fields = ['userprofile__user__first_name', 'userprofile__user__last_name', 'variable_symbol', 'userprofile__user__email', 'userprofile__telephone']

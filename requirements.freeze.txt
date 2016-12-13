@@ -5,6 +5,7 @@ Django==1.10.4
 django-admin-tools==0.8.0
 -e git+https://github.com/PetrDlouhy/django-admin-tools-stats@f2705df6684dd64e38599cef05e0a83a82ab4df7#egg=django_admin_tools_stats
 django-adminactions==1.2
+-e git+https://github.com/PetrDlouhy/django-adminfilters.git@af22f3c6a6a826302e9b5b26890844bcc6a65983#egg=django_adminfilters
 -e git+https://github.com/PetrDlouhy/django-betterforms.git@bd702c921842f2c816ee00a906bdfe061019f179#egg=django_betterforms
 django-bootstrap-form==3.2.1
 django-bower==5.2.0

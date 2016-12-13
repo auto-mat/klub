@@ -158,6 +158,7 @@ INSTALLED_APPS = (
     'djangobower',
     'admin_tools_stats',
     'django_nvd3',
+    'adminfilters',
     'aklub'
 )
 
