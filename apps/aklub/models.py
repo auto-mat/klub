@@ -530,7 +530,7 @@ class UserProfile(models.Model):
     def telephone_url(self):
         if hasattr(self, 'telephone'):
             return format_html(
-                "<a href='tel:{}'>{}</a>",
+                "<a href='sip:{}'>{}</a>",
                 self.telephone,
                 self.telephone,
             )

@@ -445,13 +445,14 @@ class NewUserAdmin(UserInCampaignAdmin):
 
 class CommunicationAdmin(admin.ModelAdmin):
     list_display = (
-        'subject', 'dispatched', 'user', 'method', 'result', 'created_by', 'handled_by',
+        'subject', 'dispatched', 'user', 'user__telephone_url', 'user__next_communication_date',
+        'method', 'result', 'created_by', 'handled_by',
         'user__regular_payments_info', 'user__payment_delay', 'user__extra_payments',
         'date', 'type',
     )
     raw_id_fields = ('user', )
     readonly_fields = ('type', 'created_by', 'handled_by', )
-    list_filter = ['dispatched', 'send', 'date', 'method', 'type', ]
+    list_filter = ['dispatched', 'send', 'date', 'method', 'type', 'user__campaign']
     date_hierarchy = 'date'
     ordering = ('-date',)
 
@@ -472,14 +473,26 @@ class CommunicationAdmin(admin.ModelAdmin):
         }),
     ]
 
+    def user__next_communication_date(self, obj):
+        return obj.user.next_communication_date
+    user__next_communication_date.short_description=_("Date of next communication")
+    user__next_communication_date.admin_order_field='user__next_communication_date'
+
+    def user__telephone_url(self, obj):
+        return obj.user.userprofile.telephone_url()
+    user__telephone_url.short_description=_("Telephone")
+
     def user__regular_payments_info(self, obj):
         return obj.user.regular_payments_info()
+    user__regular_payments_info.short_description=_("Regular payments")
 
     def user__payment_delay(self, obj):
         return obj.user.payment_delay()
+    user__payment_delay.short_description=_("Payment delay")
 
     def user__extra_payments(self, obj):
         return obj.user.extra_payments()
+    user__extra_payments.short_description=_("Extra payments")
 
     def save_model(self, request, obj, form, change):
         if not obj.pk:
