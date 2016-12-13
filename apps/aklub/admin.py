@@ -218,7 +218,7 @@ class UserForm(django.forms.ModelForm):
         return email
 
 
-class UserAdmin(RelatedFieldAdmin, UserAdmin):
+class UserAdmin(ImportExportMixin, RelatedFieldAdmin, UserAdmin):
     inlines = [UserProfileInline]
     form = UserForm
     list_display = ('username', 'email', 'userprofile__telephone', 'first_name', 'last_name', 'is_staff', 'userprofile__sex', 'date_joined', 'last_login')
@@ -234,7 +234,7 @@ class UserAdmin(RelatedFieldAdmin, UserAdmin):
     )
 
 
-class UserProfileAdmin(RelatedFieldAdmin):
+class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin):
     list_display = (
         'person_name',
         'user__username',
