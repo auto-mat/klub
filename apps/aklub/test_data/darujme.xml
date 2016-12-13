@@ -78,6 +78,17 @@
             <hodnota nazev="jmeno" popis="Jméno">Testing</hodnota><hodnota nazev="prijmeni" popis="Příjmení">User 1</hodnota><hodnota nazev="email" popis="Email">unknown1@email.cz</hodnota><hodnota nazev="telefon" popis="Telefon">2158</hodnota><hodnota nazev="ulice" popis="Ulice, č.p.">Ulice 321</hodnota><hodnota nazev="mesto" popis="Obec">Nová obec</hodnota><hodnota nazev="psc" popis="PSČ">123 21</hodnota><hodnota nazev="potvrzeni_daru" popis="Chci obdržet potvrzení o daru">Ano</hodnota>
         </uzivatelska_pole>
     </record>
+    <record>
+        <transaction_id>22259</transaction_id><cislo_klienta>01081301</cislo_klienta><cislo_projektu>38571205</cislo_projektu><projekt>Klub přátel Auto*Matu</projekt><typ>sporitelna</typ><datum_daru>2016-02-09</datum_daru><cetnost>měsíční</cetnost><cetnost_konec></cetnost_konec><mena>CZK</mena><uvedena_castka>150</uvedena_castka><poplatek>4.00</poplatek><vs>260116018</vs><stav>OK, převedeno</stav>
+        <platby>
+            <platba>
+                <id_platby>13954</id_platby><obdrzena_castka>150.00</obdrzena_castka><poplatek>3.00</poplatek><vysledna_castka>147.00</vysledna_castka><datum_prichozi_platby>2016-02-09</datum_prichozi_platby><datum_odchozi_platby>2016-09-23</datum_odchozi_platby><vs_odchozi_platby>230914020</vs_odchozi_platby><ucet_odchozi_platby>2400063333/2010</ucet_odchozi_platby>
+            </platba>
+        </platby>
+        <uzivatelska_pole>
+            <hodnota nazev="jmeno" popis="Jméno">Testing</hodnota><hodnota nazev="prijmeni" popis="Příjmení">User 1</hodnota><hodnota nazev="email" popis="Email">test.user1@email.cz</hodnota><hodnota nazev="telefon" popis="Telefon">123 321</hodnota><hodnota nazev="ulice" popis="Ulice, č.p."></hodnota><hodnota nazev="mesto" popis="Obec"></hodnota><hodnota nazev="psc" popis="PSČ"></hodnota><hodnota nazev="potvrzeni_daru" popis="Chci obdržet potvrzení o daru">Ne</hodnota>
+        </uzivatelska_pole>
+    </record>
 </darujme_api>
 
 

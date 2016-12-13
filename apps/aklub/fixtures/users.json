@@ -39,6 +39,17 @@
     },
     {
         "fields": {
+            "amount": 0,
+            "date": "2016-9-23",
+            "type": "darujme",
+            "SS": "22259",
+            "user": "2979"
+        },
+        "model": "aklub.payment",
+        "pk": 6
+    },
+    {
+        "fields": {
             "amount": 100,
             "date": "2016-2-9",
             "type": "darujme",
