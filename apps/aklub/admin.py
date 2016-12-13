@@ -132,7 +132,7 @@ def show_payments_by_year(self, request, queryset):
 show_payments_by_year.short_description = _("Show payments by year")
 
 
-def send_mass_communication(self, req, queryset):
+def send_mass_communication(self, req, queryset, distinct=False):
     """Mass communication action
 
     Determine the list of user ids from the associated
@@ -140,7 +140,9 @@ def send_mass_communication(self, req, queryset):
     with the send_to_users M2M field prefilled with these
     users."""
     if queryset.model is UserProfile:
-        queryset = UserInCampaign.objects.filter(userprofile__in=queryset).order_by().distinct('userprofile')
+        queryset = UserInCampaign.objects.filter(userprofile__in=queryset)
+    if distinct:
+        queryset = queryset.order_by().distinct('userprofile')
     selected = [str(pk) for pk in queryset.values_list('pk', flat=True)]
     return HttpResponseRedirect(
         "/admin/aklub/masscommunication/add/?send_to_users=%s" % (",".join(selected),),
@@ -148,6 +150,13 @@ def send_mass_communication(self, req, queryset):
 
 
 send_mass_communication.short_description = _("Send mass communication")
+
+
+def send_mass_communication_distinct(self, req, queryset, distinct=False):
+    return send_mass_communication(self, req, queryset, True)
+
+
+send_mass_communication_distinct.short_description = _("Send mass communication withoud duplicities")
 
 
 userprofile_fieldsets = [
@@ -260,7 +269,7 @@ class UserProfileAdmin(RelatedFieldAdmin):
     filter_horizontal = ('campaigns',)
     fieldsets = userprofile_fieldsets
     readonly_fields = ('userattendance_links',)
-    actions = (send_mass_communication,)
+    actions = (send_mass_communication_distinct,)
 
 
 class UserInCampaignResource(ModelResource):
@@ -319,9 +328,11 @@ class UserInCampaignAdmin(ImportExportMixin, RelatedFieldAdmin):
     ]
     search_fields = ['userprofile__user__first_name', 'userprofile__user__last_name', 'variable_symbol', 'userprofile__user__email', 'userprofile__telephone']
     ordering = ('userprofile__user__last_name',)
-    actions = (send_mass_communication,
-               show_payments_by_year,
-               )
+    actions = (
+        send_mass_communication,
+        send_mass_communication_distinct,
+        show_payments_by_year,
+    )
     resource_class = UserInCampaignResource
     save_as = True
     list_max_show_all = 10000

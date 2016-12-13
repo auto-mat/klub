@@ -465,7 +465,7 @@ class AdminTest(tests.AdminSiteSmokeTest):
         model_admin = django_admin.site._registry[UserInCampaign]
         request = self.post_request({})
         queryset = UserProfile.objects.all()
-        response = admin.send_mass_communication(model_admin, request, queryset)
+        response = admin.send_mass_communication_distinct(model_admin, request, queryset)
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/admin/aklub/masscommunication/add/?send_to_users=3,2978,2979")
 
