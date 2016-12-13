@@ -56,7 +56,7 @@ python-dateutil==2.6.0
 python-memcached==1.58
 python-nvd3==0.14.2
 python-slugify==1.1.4
-python-utils==2.0.0
+python-utils==2.0.1
 pytz==2016.10
 reportlab==3.3.0
 six==1.10.0
