@@ -445,8 +445,8 @@ class MailingTest(TestCase):
 class AdminTest(tests.AdminSiteSmokeTest):
     fixtures = ['conditions', 'users']
 
-    def post_request(self, post_data):
-        request = self.factory.post('/', post_data)
+    def post_request(self, post_data={}, params=None):
+        request = self.factory.post('/', data=post_data)
         request.user = self.superuser
         request._dont_enforce_csrf_checks = True
         request.session = 'session'
@@ -504,7 +504,7 @@ class AdminTest(tests.AdminSiteSmokeTest):
                 'payment_set-TOTAL_FORMS': 0,
                 'payment_set-INITIAL_FORMS': 0,
             }
-            request = self.post_request(post_data)
+            request = self.post_request(post_data=post_data)
             response = model_admin.add_view(request)
             self.assertEqual(response.status_code, 302)
             obj = AccountStatements.objects.get(date_from="2010-10-01")
@@ -533,7 +533,7 @@ class AdminTest(tests.AdminSiteSmokeTest):
                 'payment_set-TOTAL_FORMS': 0,
                 'payment_set-INITIAL_FORMS': 0,
             }
-            request = self.post_request(post_data)
+            request = self.post_request(post_data=post_data)
             response = model_admin.add_view(request)
             self.assertEqual(response.status_code, 302)
             obj = AccountStatements.objects.get(date_from="2016-01-25")
@@ -565,7 +565,7 @@ class AdminTest(tests.AdminSiteSmokeTest):
             "send_to_users": [2978, 2979, 3],
             "template": "Test template",
         }
-        request = self.post_request(post_data)
+        request = self.post_request(post_data=post_data)
         response = model_admin.add_view(request)
         self.assertEqual(response.status_code, 302)
         obj = MassCommunication.objects.get(name="test communication")
@@ -598,7 +598,7 @@ class AdminTest(tests.AdminSiteSmokeTest):
             "attachment": attachment,
             "template": "Test template",
         }
-        request = self.post_request(post_data)
+        request = self.post_request(post_data=post_data)
         response = model_admin.add_view(request)
         self.assertEqual(response.status_code, 302)
         obj = MassCommunication.objects.get(name="test communication")
@@ -619,7 +619,7 @@ class AdminTest(tests.AdminSiteSmokeTest):
             "subject": "Subject",
             "template": "Test template",
         }
-        request = self.post_request(post_data)
+        request = self.post_request(post_data=post_data)
         response = model_admin.add_view(request)
         self.assertEqual(response.status_code, 302)
         obj = AutomaticCommunication.objects.get(name="test communication")
@@ -641,7 +641,7 @@ class AdminTest(tests.AdminSiteSmokeTest):
             "subject": "Subject 123",
             "summary": "Test template",
         }
-        request = self.post_request(post_data)
+        request = self.post_request(post_data=post_data)
         response = model_admin.add_view(request)
         self.assertEqual(response.status_code, 302)
         obj = Communication.objects.get(subject="Subject 123")
@@ -674,7 +674,7 @@ class AdminTest(tests.AdminSiteSmokeTest):
             "communications-0-date_0": "2010-01-01",
             "communications-0-date_1": "11:11",
         }
-        request = self.post_request(post_data)
+        request = self.post_request(post_data=post_data)
         response = model_admin.add_view(request)
         self.assertEqual(response.status_code, 302)
         userincampaign = UserInCampaign.objects.get(variable_symbol=1234)
