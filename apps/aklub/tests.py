@@ -265,7 +265,7 @@ class ConfirmationTest(TestCase):
 
 class CommunicationTest(TestCase):
     def setUp(self):
-        self.user = User.objects.create()
+        self.user = User.objects.create(email="test@test.cz")
         self.userprofile = UserProfile.objects.create(sex='male', user=self.user)
         self.campaign = Campaign.objects.create(created=datetime.date(2010, 10, 10))
         self.userincampaign = UserInCampaign.objects.create(userprofile=self.userprofile, campaign=self.campaign)
@@ -282,7 +282,7 @@ class CommunicationTest(TestCase):
         )
         self.assertEqual(len(mail.outbox), 1)
         msg = mail.outbox[0]
-        self.assertEqual(msg.recipients(), ['', 'kp@auto-mat.cz'])
+        self.assertEqual(msg.recipients(), ['test@test.cz', 'kp@auto-mat.cz'])
         self.assertEqual(msg.subject, 'Testing email')
         self.assertIn("Testing template", msg.body)
 
