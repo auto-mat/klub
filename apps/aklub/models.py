@@ -1503,26 +1503,28 @@ class Communication(models.Model):
             else:
                 bcc = ['kp@auto-mat.cz']
 
-            email = EmailMultiAlternatives(
-                subject=self.subject,
-                body=self.summary_txt(),
-                from_email='Klub pratel Auto*Matu <kp@auto-mat.cz>',
-                to=[self.user.userprofile.user.email],
-                bcc=bcc,
-            )
-            if self.type != 'individual':
-                email.attach_alternative(self.summary, "text/html")
-            if self.attachment:
-                att = self.attachment
-                email.attach(os.path.basename(att.name), att.read())
-            try:
-                email.send(fail_silently=False)
-            except AttributeError:
-                # TODO: At least warn about it!
-                pass
-            else:
-                self.dispatched = True
-            self.send = False
+            email_address = self.user.userprofile.user.email
+            if email_address and email_address != "":
+               email = EmailMultiAlternatives(
+                   subject=self.subject,
+                   body=self.summary_txt(),
+                   from_email='Klub pratel Auto*Matu <kp@auto-mat.cz>',
+                   to=[email_address],
+                   bcc=bcc,
+               )
+               if self.type != 'individual':
+                   email.attach_alternative(self.summary, "text/html")
+               if self.attachment:
+                   att = self.attachment
+                   email.attach(os.path.basename(att.name), att.read())
+               try:
+                   email.send(fail_silently=False)
+               except AttributeError:
+                   # TODO: At least warn about it!
+                   pass
+               else:
+                   self.dispatched = True
+               self.send = False
             if save:
                 self.save()
         else:
