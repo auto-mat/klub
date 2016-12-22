@@ -426,7 +426,7 @@ class UserYearPaymentsAdmin(UserInCampaignAdmin):
 class PaymentAdmin(ImportExportMixin, RelatedFieldAdmin):
     list_display = ('id', 'date', 'user__campaign', 'account_statement', 'amount', 'person_name', 'account_name', 'account', 'bank_code',
                     "transfer_note", "currency", "recipient_message", "operation_id", "transfer_type", "specification", "order_id",
-                    'VS', 'SS', 'user_identification', 'type', 'paired_with_expected')
+                    'VS', 'SS', 'user_identification', 'type', 'paired_with_expected', 'created', 'updated')
     fieldsets = [
         (_("Basic"), {
             'fields': [
@@ -444,7 +444,7 @@ class PaymentAdmin(ImportExportMixin, RelatedFieldAdmin):
             ],
         }),
     ]
-    readonly_fields = ('account_statement',)
+    readonly_fields = ('account_statement', 'created', 'updated')
     raw_id_fields = ('user',)
     list_filter = ['type', 'date', filters.PaymentsAssignmentsFilter]
     date_hierarchy = 'date'

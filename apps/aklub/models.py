@@ -538,7 +538,9 @@ class UserProfile(models.Model):
 
 
 class UserInCampaign(models.Model):
-    """Club user model and DB table"""
+    """
+    User instance in a campaign
+    """
 
     class Meta:
         verbose_name = _("User in campaign")
@@ -1338,6 +1340,16 @@ class Payment(models.Model):
         blank=True,
         null=True,
         on_delete=models.CASCADE,
+    )
+    created = models.DateTimeField(
+        verbose_name=_("Date of creation"),
+        auto_now_add=True,
+        null=True,
+    )
+    updated = models.DateTimeField(
+        verbose_name=_("Date of last change"),
+        auto_now=True,
+        null=True,
     )
 
     def person_name(self):
