@@ -161,7 +161,7 @@ class AklubIndexDashboard(Dashboard):
                 children.append(
                     {
                         'title': member.person_name(),
-                        'url': reverse('admin:aklub_userincampaign_change', args=[member.id]),# "aklub/userincampaign/%i" % member.id,
+                        'url': reverse('admin:aklub_userincampaign_change', args=[member.id]),
                         'external': False,
                     }
                 )
