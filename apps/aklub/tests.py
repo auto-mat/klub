@@ -1340,6 +1340,11 @@ class AccountStatementTests(TestCase):
         self.assertEqual(a, None)
         self.assertListEqual(skipped, [OrderedDict([('ss', '22258'), ('date', '2016-2-9'), ('name', 'Testing'), ('surname', 'User'), ('email', 'test.user@email.cz')])])
 
+    def test_darujme_xml_file_no_duplicates(self):
+        a, skipped = darujme.create_statement_from_file("apps/aklub/test_data/darujme_duplicate.xml")
+        self.assertEqual(a.payment_set.count(), 1)
+        self.assertListEqual(skipped, [OrderedDict([('ss', '23259'), ('date', '2016-3-9'), ('name', 'Testing'), ('surname', 'User'), ('email', 'test.user@email.cz')])])
+
     def test_darujme_xml_statement_duplicate_email(self):
         u2 = User.objects.get(pk=3)
         u2.email = "test.user@email.cz"

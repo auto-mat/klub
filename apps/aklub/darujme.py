@@ -156,14 +156,14 @@ def create_payment(data, payments, skipped_payments):
     if id_platby and Payment.objects.filter(type='darujme', SS=data['id'], operation_id=None).exists():
         payment = Payment.objects.filter(type='darujme', SS=data['id'], operation_id=None).first()
         payment.operation_id = id_platby
-        payment.date = data['datum_prichozi_platby']
+        payment.date = data['datum_prichozi_platby'] or data['datum_daru']
         payment.save()
         return None
 
     filter_kwarg = {
         "type": 'darujme',
         "SS": data['id'],
-        "date": data['datum_prichozi_platby'],
+        "date": data['datum_prichozi_platby'] or data['datum_daru'],
     }
     if id_platby:
         filter_kwarg["operation_id"] = id_platby
@@ -251,6 +251,7 @@ def create_payment(data, payments, skipped_payments):
 
     if p:
         p.user = userincampaign
+        p.save()
         payments.append(p)
 
 
