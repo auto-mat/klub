@@ -17,6 +17,7 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^', admin.site.urls),
     url(r'^admin/', include("massadmin.urls")),
+    url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
     url(r'^jsi18n', javascript_catalog),
     url(r'^tinymce/', include('tinymce.urls')),
     url(r'^admin_tools/', include('admin_tools.urls')),

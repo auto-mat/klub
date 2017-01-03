@@ -130,6 +130,7 @@ USE_L10N = True
 ROOT_URLCONF = 'urls'
 
 INSTALLED_APPS = (
+    'django.contrib.admindocs',
     'admin_tools',
     'admin_tools.theming',
     'admin_tools.menu',
