@@ -26,6 +26,7 @@ gunicorn
 pypdf2  # for pdf result testing
 -e git+https://github.com/PetrDlouhy/django-betterforms.git#egg=django-betterforms  # for fields/errors support
 django-adminactions
+django-admin-large-initial-data
 
 
 -e git+https://github.com/PetrDlouhy/django-admin-tools-stats@develop#egg=django-admin-tools-stats

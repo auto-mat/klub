@@ -1,6 +1,7 @@
 coverage==4.2
 diff-match-patch==20121119
 Django==1.10.4
+django-admin-large-initial-data==0.0.2
 -e git+https://github.com/greyside/django-admin-smoke-tests.git@3c43475c1ecae40c873bf087be1bfa324d62e56b#egg=django_admin_smoke_tests
 django-admin-tools==0.8.0
 -e git+https://github.com/PetrDlouhy/django-admin-tools-stats@f2705df6684dd64e38599cef05e0a83a82ab4df7#egg=django_admin_tools_stats

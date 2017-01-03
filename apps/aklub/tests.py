@@ -459,7 +459,7 @@ class AdminTest(tests.AdminSiteSmokeTest):
         queryset = UserInCampaign.objects.all()
         response = admin.send_mass_communication(model_admin, request, queryset)
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, "/admin/aklub/masscommunication/add/?send_to_users=3,4,2978,2979")
+        self.assertEqual(response.url, "/admin/aklub/masscommunication/add/?send_to_users=3%2C4%2C2978%2C2979")
 
     def test_send_mass_communication_userprofile(self):
         model_admin = django_admin.site._registry[UserInCampaign]
@@ -467,7 +467,7 @@ class AdminTest(tests.AdminSiteSmokeTest):
         queryset = UserProfile.objects.all()
         response = admin.send_mass_communication_distinct(model_admin, request, queryset)
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, "/admin/aklub/masscommunication/add/?send_to_users=3,2978,2979")
+        self.assertEqual(response.url, "/admin/aklub/masscommunication/add/?send_to_users=3%2C2978%2C2979")
 
     @freeze_time("2017-5-1")
     def test_tax_confirmation_generate(self):

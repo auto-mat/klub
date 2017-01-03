@@ -42,6 +42,8 @@ from django.utils.translation import ugettext as _
 from import_export.admin import ImportExportMixin
 from import_export.resources import ModelResource
 
+import large_initial
+
 from related_admin import RelatedFieldAdmin
 
 
@@ -132,7 +134,7 @@ def show_payments_by_year(self, request, queryset):
 show_payments_by_year.short_description = _("Show payments by year")
 
 
-def send_mass_communication(self, req, queryset, distinct=False):
+def send_mass_communication(self, request, queryset, distinct=False):
     """Mass communication action
 
     Determine the list of user ids from the associated
@@ -143,10 +145,12 @@ def send_mass_communication(self, req, queryset, distinct=False):
         queryset = UserInCampaign.objects.filter(userprofile__in=queryset)
     if distinct:
         queryset = queryset.order_by().distinct('userprofile')
-    selected = [str(pk) for pk in queryset.values_list('pk', flat=True)]
-    return HttpResponseRedirect(
-        "/admin/aklub/masscommunication/add/?send_to_users=%s" % (",".join(selected),),
+    redirect_url = large_initial.build_redirect_url(
+        request,
+        "admin:aklub_masscommunication_add",
+        params={'send_to_users': queryset},
     )
+    return HttpResponseRedirect(redirect_url)
 
 
 send_mass_communication.short_description = _("Send mass communication")
@@ -539,7 +543,7 @@ class AutomaticCommunicationAdmin(admin.ModelAdmin):
         return obj
 
 
-class MassCommunicationAdmin(admin.ModelAdmin):
+class MassCommunicationAdmin(large_initial.LargeInitialMixin, admin.ModelAdmin):
     save_as = True
     list_display = ('name', 'date', 'method', 'subject')
     ordering = ('date',)
