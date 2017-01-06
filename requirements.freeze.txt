@@ -23,6 +23,7 @@ django-import-export==0.5.1
 django-jsonfield==1.0.1
 django-mass-edit==2.7
 django-nvd3==0.9.7
+django-post-office==2.0.8
 -e git+https://github.com/PetrDlouhy/django-qsstats-magic.git@61bbe5e45adad16323ce83c0f5c6beabd903bc68#egg=django_qsstats_magic
 django-related-admin==0.4.0
 django-stdimage==2.3.3
