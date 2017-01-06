@@ -34,3 +34,5 @@ django-bower
 -e git+https://github.com/infoscout/django-cache-utils.git#egg=django-cache-utils
 
 -e git+https://github.com/PetrDlouhy/django-adminfilters.git@develop#egg=django-adminfilters  # for empty variable fix
+
+django-post-office

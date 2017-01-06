@@ -150,6 +150,7 @@ INSTALLED_APPS = (
     'tinymce',
     'chart_tools',
     'massadmin',
+    'post_office',
     'import_export',
     'corsheaders',
     'daterange_filter',
@@ -169,6 +170,8 @@ BOWER_INSTALLED_APPS = (
     'd3#3.3.13',
     'nvd3#1.7.1',
 )
+
+EMAIL_BACKEND = 'post_office.EmailBackend'
 
 ADMIN_TOOLS_INDEX_DASHBOARD = 'aklub.dashboard.AklubIndexDashboard'
 ADMIN_TOOLS_APP_INDEX_DASHBOARD = 'aklub.dashboard.AklubAppIndexDashboard'
