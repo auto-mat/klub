@@ -29,6 +29,7 @@ django-related-admin==0.4.0
 django-stdimage==2.3.3
 django-tinymce==2.4.0
 django-wysiwyg==0.8.0
+docutils==0.13.1
 enum-compat==0.0.2
 feedparser==5.2.1
 flake8==3.2.1
@@ -44,6 +45,7 @@ future==0.16.0
 gunicorn==19.6.0
 html2text==2016.9.19
 Jinja2==2.8
+jsonfield==1.0.3
 MarkupSafe==0.23
 mccabe==0.5.2
 Pillow==3.4.2
