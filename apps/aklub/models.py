@@ -1966,7 +1966,7 @@ class MassCommunication(models.Model):
             "Template can contain variable substitutions like addressment, name, "
             "variable symbol etc."),
         max_length=50000,
-        blank=True,
+        blank=False,
         null=True,
     )
     template_en = models.TextField(
