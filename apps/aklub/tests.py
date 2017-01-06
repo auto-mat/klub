@@ -1164,7 +1164,7 @@ class ModelTests(TestCase):
         self.assertEqual(self.u1.is_direct_dialogue(), False)
         self.assertEqual(self.u1.person_name(), 'User Test')
         self.assertEqual(self.u1.requires_action(), True)
-        self.assertListEqual(list(self.u1.payments()), [self.p1, self.p2, self.p])
+        self.assertSetEqual(set(self.u1.payment_set.all()), set((self.p1, self.p2, self.p)))
         self.assertEqual(self.u1.number_of_payments, 3)
         self.assertEqual(self.u1.last_payment, self.p1)
         self.assertEqual(self.u1.last_payment_date(), datetime.date(2016, 3, 9))

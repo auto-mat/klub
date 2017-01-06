@@ -772,9 +772,6 @@ class UserInCampaign(models.Model):
         else:
             return False
 
-    def payments(self):
-        return Payment.objects.filter(user=self)
-
     @denormalized(models.IntegerField, null=True)
     @depend_on_related('Payment', foreign_key="user")
     def number_of_payments(self):
@@ -786,7 +783,7 @@ class UserInCampaign(models.Model):
 
     def last_payment_function(self):
         """Return last payment"""
-        return self.payments().order_by('date').last()
+        return self.payment_set.order_by('date').last()
 
     @denormalized(models.ForeignKey, to='Payment', default=None, null=True, related_name="user_last_payment", on_delete=models.SET_NULL)
     def last_payment(self):
