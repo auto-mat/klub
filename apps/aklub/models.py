@@ -748,7 +748,11 @@ class UserInCampaign(models.Model):
     )
 
     def __str__(self):
-        return "%s (%s)" % (str(self.person_name()), self.campaign)
+        return "%s - %s (%s)" % (
+            str(self.person_name()),
+            self.userprofile.user.email,
+            self.campaign,
+        )
 
     def person_name(self):
         return self.userprofile.__str__()
