@@ -149,7 +149,6 @@ class Campaign(models.Model):
     result = models.ManyToManyField(
         Result,
         verbose_name=_("Acceptable results of communication"),
-        null=True,
         blank=True,
     )
     slug = models.SlugField(
