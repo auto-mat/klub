@@ -63,7 +63,6 @@
                 "promise": "P\u0159\u00edslib",
                 "regular": "Pravideln\u00ed"
             },
-            "criteria_fix_mapping": "",
             "criteria_name": "Typ d\u00e1rce",
             "dynamic_criteria_field_name": "user__regular_payments",
             "updated_date": "2016-09-08T13:49:18.126"
@@ -80,7 +79,6 @@
                 "promise": "P\u0159\u00edslib",
                 "regular": "Pravideln\u00ed"
             },
-            "criteria_fix_mapping": "",
             "criteria_name": "Typ d\u00e1rce (pro u\u017eivatele)",
             "dynamic_criteria_field_name": "userprofile__regular_payments",
             "updated_date": "2016-09-08T15:14:23.681"
