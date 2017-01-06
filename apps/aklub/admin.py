@@ -546,7 +546,7 @@ class AutomaticCommunicationAdmin(admin.ModelAdmin):
 class MassCommunicationAdmin(large_initial.LargeInitialMixin, admin.ModelAdmin):
     save_as = True
     list_display = ('name', 'date', 'method', 'subject')
-    ordering = ('date',)
+    ordering = ('-date',)
 
     filter_horizontal = ('send_to_users',)
 
