@@ -240,9 +240,3 @@ LOGGING = {
 }
 
 TEST_RUNNER = 'aklub.tests.AklubTestSuiteRunner'
-
-# import local settings
-try:
-    from settings_local import *  # noqa
-except ImportError:
-    pass
