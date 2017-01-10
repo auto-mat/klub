@@ -8,7 +8,7 @@ env:
 python:
   - "3.4"
   - "3.5"
-before_script:
+install:
   - pip install -r requirements.freeze.txt
 script:
   - ./runtests.sh
