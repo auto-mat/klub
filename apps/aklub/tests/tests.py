@@ -481,11 +481,11 @@ class AdminTest(tests.AdminSiteSmokeTest):
         self.assertEqual(obj.subject, "Subject")
         self.assertEqual(response.url, "/admin/aklub/masscommunication/%s/change/" % obj.id)
         self.assertEqual(
-            request._messages._queued_messages[0].message,
+            request._messages._queued_messages[1].message,
             'Emaily odeslány na následující adresy: without_payments@email.cz, test.user@email.cz',
         )
         self.assertEqual(
-            request._messages._queued_messages[1].message,
+            request._messages._queued_messages[0].message,
             'Odeslání na následující adresy nebylo možné kvůli problémům: test.user1@email.cz',
         )
         self.assertEqual(

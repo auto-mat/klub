@@ -104,6 +104,6 @@ def send_mass_communication(obj, users, sending_user, request, save=True):
                 sent_communications.append(userincampaign.userprofile.user.email)
         else:
             unsent_communications.append(userincampaign.userprofile.user.email)
-    report_emails(request, _("Emails sent to following addreses: %s"), sent_communications)
     if unsent_communications != []:
         report_emails(request, _("Following emails had errors: %s"), unsent_communications, level=messages.ERROR)
+    report_emails(request, _("Emails sent to following addreses: %s"), sent_communications)
