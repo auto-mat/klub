@@ -30,6 +30,7 @@ from denorm import denormalized, depend_on_related
 from django.contrib.admin.templatetags.admin_list import _boolean_icon
 from django.contrib.auth.models import User
 from django.contrib.humanize.templatetags.humanize import intcomma
+from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.core.files.storage import FileSystemStorage
 from django.core.files.temp import NamedTemporaryFile
@@ -1515,7 +1516,7 @@ class Communication(models.Model):
             else:
                 bcc = ['kp@auto-mat.cz']
 
-            email_address = self.user.userprofile.user.email
+            email_address = self.user.userprofile.user.email.strip()
             if email_address and email_address != "":
                 email = EmailMultiAlternatives(
                     subject=self.subject,
@@ -1531,7 +1532,7 @@ class Communication(models.Model):
                     email.attach(os.path.basename(att.name), att.read())
                 try:
                     email.send(fail_silently=False)
-                except AttributeError:
+                except (AttributeError, ValidationError):
                     # TODO: At least warn about it!
                     pass
                 else:

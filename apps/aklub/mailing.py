@@ -22,41 +22,58 @@ import datetime
 from aklub import autocom
 from aklub.models import Communication, Payment, TaxConfirmation, UserInCampaign, UserProfile
 
+from django.contrib import messages
 from django.contrib.auth.models import User as DjangoUser
 from django.utils.translation import ugettext as _
 """Mailing"""
 
 
-def send_mass_communication(obj, users, sending_user, save=True):
+def create_fake_userincampaign(sending_user):
+    # create fake values
+    user = DjangoUser(
+        email=sending_user.email,
+        first_name=sending_user.first_name,
+        last_name=sending_user.last_name,
+    )
+    userprofile = UserProfile(
+        user=user,
+        sex='male',
+        street=_('testing street'),
+        city=_('testing city'),
+        zip_code=12345,
+        telephone="123 456 789",
+        language='cs',
+        addressment=None,
+    )
+    userincampaign = UserInCampaign(
+        userprofile=userprofile,
+        regular_amount=123456,
+        regular_frequency="monthly",
+        variable_symbol=12345678,
+        last_payment=Payment(amount=12345),
+    )
+    return userincampaign
+
+
+def get_template_subject_for_language(obj, language):
+    if language == 'cs':
+        return obj.template, obj.subject
+    else:
+        return obj.template_en, obj.subject_en
+
+
+def report_emails(request, message, communications, level=messages.INFO):
+    messages.add_message(request, level, message % ", ".join(communications))
+
+
+def send_mass_communication(obj, users, sending_user, request, save=True):
+    sent_communications = []
+    unsent_communications = []
     for userincampaign in users:
         if userincampaign == "fake_user":
-            # create fake values
-            user = DjangoUser(
-                email=sending_user.email,
-                first_name=sending_user.first_name,
-                last_name=sending_user.last_name,
-            )
-            userprofile = UserProfile(
-                user=user,
-                sex='male',
-                street=_('testing street'),
-                city=_('testing city'),
-                zip_code=12345,
-                telephone="123 456 789",
-                language='cs',
-                addressment=None,
-            )
-            userincampaign = UserInCampaign(
-                userprofile=userprofile,
-                regular_amount=123456,
-                regular_frequency="monthly",
-                variable_symbol=12345678,
-                last_payment=Payment(amount=12345),
-            )
-        if userincampaign.userprofile.language == 'cs':
-            template, subject = obj.template, obj.subject
-        else:
-            template, subject = obj.template_en, obj.subject_en
+            userincampaign = create_fake_userincampaign(sending_user)
+
+        template, subject = get_template_subject_for_language(obj, userincampaign.userprofile.language)
         if userincampaign.userprofile.user.is_active and subject.strip() != '':
             if not subject or subject.strip() == '' or not template or template.strip('') == '':
                 raise Exception("Message template is empty for one of the language variants.")
@@ -81,3 +98,12 @@ def send_mass_communication(obj, users, sending_user, save=True):
                 type='mass',
             )
             c.dispatch(save=save)
+            if not c.dispatched:
+                unsent_communications.append(userincampaign.userprofile.user.email)
+            else:
+                sent_communications.append(userincampaign.userprofile.user.email)
+        else:
+            unsent_communications.append(userincampaign.userprofile.user.email)
+    report_emails(request, _("Emails sent to following addreses: %s"), sent_communications)
+    if unsent_communications != []:
+        report_emails(request, _("Following emails had errors: %s"), unsent_communications, level=messages.ERROR)
