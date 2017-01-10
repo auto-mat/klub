@@ -27,7 +27,6 @@ from unittest.mock import MagicMock, patch
 
 from PyPDF2 import PdfFileReader
 
-from django.conf import settings
 from django.contrib import admin as django_admin
 from django.contrib.auth.models import User
 from django.contrib.messages.storage.fallback import FallbackStorage
@@ -40,16 +39,15 @@ from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.forms import ValidationError
 from django.test import RequestFactory, TestCase
-from django.test.runner import DiscoverRunner
 from django.test.utils import override_settings
 
 from django_admin_smoke_tests import tests
 
 from freezegun import freeze_time
 
-from . import admin, autocom, darujme, filters, mailing, views
-from .confirmation import makepdf
-from .models import (
+from .. import admin, autocom, darujme, filters, views
+from ..confirmation import makepdf
+from ..models import (
     AccountStatements, AutomaticCommunication, Campaign, Communication, Condition, MassCommunication,
     Payment, Result, TaxConfirmation, TerminalCondition, UserInCampaign, UserProfile, UserYearPayments)
 
@@ -61,17 +59,6 @@ class ClearCacheMixin(object):
     def tearDown(self):
         super().tearDown()
         cache.clear()
-
-
-class AklubTestSuiteRunner(DiscoverRunner):
-    class InvalidStringError(str):
-        def __mod__(self, other):
-            raise Exception("empty string")  # pragma: no cover
-            return "!!!!!empty string!!!!!"  # pragma: no cover
-
-    def __init__(self, *args, **kwargs):
-        settings.TEMPLATES[0]['OPTIONS']['string_if_invalid'] = self.InvalidStringError("%s")
-        super().__init__(*args, **kwargs)
 
 
 class BaseTestCase(TestCase):
@@ -364,84 +351,6 @@ class AutocomTest(TestCase):
         self.assertIn("Dear sir", communication.summary)
 
 
-class MailingTest(TestCase):
-    fixtures = ['conditions', 'users']
-
-    @freeze_time("2015-5-1")
-    def test_mailing_fake_user(self):
-        sending_user = User.objects.create(
-            first_name="Testing",
-            last_name="UserInCampaign",
-            email="test@test.com",
-        )
-        c = AutomaticCommunication.objects.create(
-            condition=Condition.objects.create(),
-            template="Testing template",
-            subject="Testing email",
-            method="email",
-        )
-        mailing.send_mass_communication(c, ["fake_user"], sending_user, save=False)
-        self.assertEqual(len(mail.outbox), 1)
-        msg = mail.outbox[0]
-        self.assertEqual(msg.recipients(), ['test@test.com'])
-        self.assertEqual(msg.subject, 'Testing email')
-        self.assertIn("Testing template", msg.body)
-
-    @freeze_time("2015-5-1")
-    def test_mailing_fail(self):
-        sending_user = User.objects.create(
-            first_name="Testing",
-            last_name="UserInCampaign",
-            email="test@test.com",
-        )
-        c = AutomaticCommunication.objects.create(
-            condition=Condition.objects.create(),
-            template="Testing template",
-            subject="Testing email",
-            subject_en="Testing email",
-            method="email",
-        )
-        u = UserInCampaign.objects.all()
-        with self.assertRaises(Exception) as ex:
-            mailing.send_mass_communication(c, u, sending_user, save=False)
-        self.assertEqual(str(ex.exception), "Message template is empty for one of the language variants.")
-
-    @freeze_time("2015-5-1")
-    def test_mailing(self):
-        sending_user = User.objects.create(
-            first_name="Testing",
-            last_name="UserInCampaign",
-            email="test@test.com",
-        )
-        c = AutomaticCommunication.objects.create(
-            condition=Condition.objects.create(),
-            template="Testing template",
-            template_en="Testing template en",
-            subject="Testing email",
-            subject_en="Testing email en",
-            method="email",
-        )
-        u = UserInCampaign.objects.all()
-        mailing.send_mass_communication(c, u, sending_user, save=False)
-        self.assertEqual(len(mail.outbox), 4)
-        msg = mail.outbox[0]
-        self.assertEqual(msg.recipients(), ['without_payments@email.cz'])
-        self.assertEqual(msg.subject, 'Testing email')
-        self.assertIn("Testing template", msg.body)
-        msg = mail.outbox[1]
-        self.assertEqual(msg.recipients(), ['without_payments@email.cz'])
-        self.assertEqual(msg.subject, 'Testing email')
-        self.assertIn("Testing template", msg.body)
-        msg = mail.outbox[2]
-        self.assertEqual(msg.recipients(), ['test.user@email.cz'])
-        self.assertEqual(msg.subject, 'Testing email')
-        self.assertIn("Testing template", msg.body)
-        msg1 = mail.outbox[3]
-        self.assertEqual(msg1.recipients(), ['test.user1@email.cz'])
-        self.assertEqual(msg1.subject, 'Testing email en')
-        self.assertIn("Testing template", msg1.body)
-
-
 class AdminTest(tests.AdminSiteSmokeTest):
     fixtures = ['conditions', 'users']
 
@@ -572,11 +481,15 @@ class AdminTest(tests.AdminSiteSmokeTest):
         self.assertEqual(obj.subject, "Subject")
         self.assertEqual(response.url, "/admin/aklub/masscommunication/%s/change/" % obj.id)
         self.assertEqual(
-            request._messages._queued_messages[0].message,
-            'Emaily odeslány na následující adresy: without_payments@email.cz, test.user@email.cz, test.user1@email.cz',
+            request._messages._queued_messages[1].message,
+            'Emaily odeslány na následující adresy: without_payments@email.cz, test.user@email.cz',
         )
         self.assertEqual(
-            request._messages._queued_messages[1].message,
+            request._messages._queued_messages[0].message,
+            'Odeslání na následující adresy nebylo možné kvůli problémům: test.user1@email.cz',
+        )
+        self.assertEqual(
+            request._messages._queued_messages[2].message,
             'Položka typu Hromadná komunikace "<a href="/admin/aklub/masscommunication/%s/change/">test communication</a>"'
             ' byla úspěšně přidána. Níže ji můžete dále upravovat.' % obj.id,
         )

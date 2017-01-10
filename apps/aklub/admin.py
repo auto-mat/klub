@@ -538,8 +538,7 @@ class AutomaticCommunicationAdmin(admin.ModelAdmin):
         super(AutomaticCommunicationAdmin, self).save_form(request, form, change)
         obj = form.save()
         if "_continue" in request.POST and request.POST["_continue"] == "test_mail":
-            mailing.send_mass_communication(obj, ["fake_user"], request.user, False)
-            messages.info(request, _("Emails sent to following addreses: %s") % request.user.email)
+            mailing.send_mass_communication(obj, ["fake_user"], request.user, request, False)
         return obj
 
 
@@ -574,15 +573,13 @@ class MassCommunicationAdmin(large_initial.LargeInitialMixin, admin.ModelAdmin):
         super(MassCommunicationAdmin, self).save_form(request, form, change)
         obj = form.save()
         if "_continue" in request.POST and request.POST["_continue"] == "test_mail":
-            mailing.send_mass_communication(obj, ["fake_user"], request.user, False)
-            messages.info(request, _("Emails sent to following addreses: %s") % request.user.email)
+            mailing.send_mass_communication(obj, ["fake_user"], request.user, request, False)
 
         if "_continue" in request.POST and request.POST["_continue"] == "send_mails":
-            mailing.send_mass_communication(obj, obj.send_to_users.all(), request.user)
+            mailing.send_mass_communication(obj, obj.send_to_users.all(), request.user, request)
             # Sending was done, so revert the state of the 'send' checkbox back to False
             obj.date = datetime.datetime.now()
             obj.save()
-            messages.info(request, _("Emails sent to following addreses: %s") % ", ".join([u.userprofile.user.email for u in obj.send_to_users.all()]))
         return obj
 
 
