@@ -1136,7 +1136,7 @@ class AccountStatements(models.Model):
         # TODO: This should be separated into a dedicated module
         payments_reader = csv.DictReader(
             codecs.iterdecode(self.csv_file, 'utf-8'),
-            delimiter=';',
+            delimiter=',',
             fieldnames=[
                 'operation_id', 'date', 'amount', 'currency', 'account', 'account_name',
                 'bank_code', 'bank_name', 'KS', 'VS',
@@ -1151,10 +1151,10 @@ class AccountStatements(models.Model):
             if in_header:
                 header_line = payment["operation_id"]
                 logger.debug(header_line)
-                if header_line.startswith("Období:"):
-                    name, date_start, dash, date_end = header_line.split()
-                    self.date_from = str_to_datetime(date_start)
-                    self.date_to = str_to_datetime(date_end)
+                if header_line == "dateStart":
+                    self.date_from = str_to_datetime(payment["date"])
+                if header_line == "dateEnd":
+                    self.date_to = str_to_datetime(payment["date"])
 
                 if header_line == "ID operace":
                     in_header = False

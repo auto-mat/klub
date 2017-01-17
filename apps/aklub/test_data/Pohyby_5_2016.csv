@@ -1,15 +1,18 @@
-﻿"Výpis č. 5/2016 z účtu ""2400063333/2010"""
-"Majitel účtu: Auto*Mat, o.s., Lublaňská 18, Praha 2, 12000, Česká republika"
-"Vytvořeno v aplikaci Internetbanking 2.0: 01.02.2016 10:16:17"
-"Období: 25.01.2016 - 31.01.2016"
-"Počáteční stav účtu k 25.01.2016: 207163,14 CZK"
-"Koncový stav účtu k 31.01.2016: 219433,14 CZK"
-"Suma příjmů: +12270 CZK"
-"Suma výdajů: 0 CZK"
-
-"ID operace";"Datum";"Objem";"Měna";"Protiúčet";"Název protiúčtu";"Kód banky";"Název banky";"KS";"VS";"SS";"Poznámka";"Zpráva pro příjemce";"Typ";"Provedl";"Upřesnění";"Poznámka";"BIC";"ID pokynu"
-"12366";"18.01.2016";"250";"CZK";"2150508001";"Testing user account";"5500";"Raiffeisenbank a.s.";"0101";"120127010";"12321";"Account note";"Message for recepient";"Bezhotovostní příjem";"Done by";"Account specification";"Testing user note";"443322";"1232"
-"123";"19.01.2016";"300";"CZK";"130430002";"Testing user 1";"5500";"Raiffeisenbank a.s.";"0000";"130430002";"";"Bezhotovostní příjem";"";"";"Testing user 1";"";"1232"
-"124";"19.01.2016";"-300";"CZK";"130430002";"Testing user 2";"5500";"Raiffeisenbank a.s.";"0000";"130430002";"";"Bezhotovostní příjem";"";"";"Testing user 2";"";"1232"
-"8753105153";"25.01.2016";"150";"CZK";"177632509";"KRE DAN";"0300";"ČSOB, a.s.";"0000";"130713218";"";"KRE DAN";"";"Bezhotovostní příjem";"";"";"KRE DAN";"";"9941429685"
-"8753105153";"25.01.2016";"150";"CZK";"177632509";"without variable symbol";"0300";"ČSOB, a.s.";"0000";"";"";"without variable symbol";"";"Bezhotovostní příjem";"";"";"without variable symbol";"";"9941429685"
+﻿accountId,2400063333,,,,,,,,,,,,,,,,,
+bankId,2010,,,,,,,,,,,,,,,,,
+currency,CZK,,,,,,,,,,,,,,,,,
+iban,CZ8620100000002400063333,,,,,,,,,,,,,,,,,
+bic,FIOBCZPPXXX,,,,,,,,,,,,,,,,,
+openingBalance,"609819,39",,,,,,,,,,,,,,,,,
+closingBalance,"236823,29",,,,,,,,,,,,,,,,,
+dateStart,25.01.2016,,,,,,,,,,,,,,,,,
+dateEnd,31.01.2016,,,,,,,,,,,,,,,,,
+idFrom,13854760740,,,,,,,,,,,,,,,,,
+idTo,13872053100,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+"ID operace","Datum","Objem","Měna","Protiúčet","Název protiúčtu","Kód banky","Název banky","KS","VS","SS","Poznámka","Zpráva pro příjemce","Typ","Provedl","Upřesnění","Poznámka","BIC","ID pokynu"
+"12366","18.01.2016","250","CZK","2150508001","Testing user account","5500","Raiffeisenbank a.s.","0101","120127010","12321","Account note","Message for recepient","Bezhotovostní příjem","Done by","Account specification","Testing user note","443322","1232"
+"123","19.01.2016","300","CZK","130430002","Testing user 1","5500","Raiffeisenbank a.s.","0000","130430002","","Bezhotovostní příjem","","","Testing user 1","","1232"
+"124","19.01.2016","-300","CZK","130430002","Testing user 2","5500","Raiffeisenbank a.s.","0000","130430002","","Bezhotovostní příjem","","","Testing user 2","","1232"
+"8753105153","25.01.2016","150","CZK","177632509","KRE DAN","0300","ČSOB, a.s.","0000","130713218","","KRE DAN","","Bezhotovostní příjem","","","KRE DAN","","9941429685"
+"8753105153","25.01.2016","150","CZK","177632509","without variable symbol","0300","ČSOB, a.s.","0000","","","without variable symbol","","Bezhotovostní příjem","","","without variable symbol","","9941429685"
