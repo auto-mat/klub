@@ -11,6 +11,7 @@ DJANGO_WSGI_MODULE=wsgi # WSGI module name
 
 CURDIR=`dirname $0`
 source $CURDIR/../update_local.sh
+source $CURDIR/../local_environment.sh
  
 echo "Starting $NAME as `whoami`"
  

@@ -14,6 +14,7 @@ if [[ $EUID -eq 0 ]]; then
 fi
 
 source update_local.sh
+source local_environment.sh
 
 set -e
 
