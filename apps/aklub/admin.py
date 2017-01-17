@@ -703,17 +703,17 @@ class SourceAdmin(admin.ModelAdmin):
 
 class TaxConfirmationAdmin(ImportExportMixin, RelatedFieldAdmin):
     change_list_template = "admin/aklub/taxconfirmation/change_list.html"
-    list_display = ('user', 'year', 'amount', 'file', 'user__regular_payments')
-    ordering = ('user__userprofile__user__last_name', 'user__userprofile__user__first_name',)
-    list_filter = ['year', 'user__regular_payments']
-    search_fields = ('user__userprofile__user__last_name', 'user__userprofile__user__first_name', 'user__variable_symbol',)
-    raw_id_fields = ('user',)
+    list_display = ('user_profile', 'year', 'amount', 'file')
+    ordering = ('user_profile__user__last_name', 'user_profile__user__first_name',)
+    list_filter = ['year']
+    search_fields = ('user_profile__user__last_name', 'user_profile__user__first_name', 'variable_symbol',)
+    raw_id_fields = ('user_profile',)
     list_max_show_all = 10000
 
     def generate(self, request):
         year = datetime.datetime.now().year - 1
         payed = Payment.objects.filter(date__year=year).exclude(type='expected').values_list('user_id', flat=True)
-        donors = UserInCampaign.objects.filter(id__in=payed).order_by('userprofile__user__last_name')
+        donors = UserInCampaign.objects.filter(id__in=payed).order_by('user_profile__user__last_name')
         count = 0
         for d in donors:
             c = d.make_tax_confirmation(year)

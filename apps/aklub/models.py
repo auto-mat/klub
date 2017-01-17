@@ -524,6 +524,23 @@ class UserProfile(models.Model):
         )
     userattendance_links.short_description = _('Users in campaign')
 
+    def make_tax_confirmation(self, year):
+        amount = self.payment_set.exclude(type='expected').filter(date__year=year).aggregate(Sum('amount'))['amount__sum']
+        if not amount:
+                return
+        temp = NamedTemporaryFile()
+        name = u"%s %s" % (self.userprofile.user.first_name, self.userprofile.user.last_name)
+        addr_city = u"%s %s" % (self.userprofile.zip_code, self.userprofile.city)
+        confirmation.makepdf(temp, name, self.userprofile.sex, self.userprofile.street, addr_city, year, amount)
+        try:
+                conf = TaxConfirmation.objects.get(user=self, year=year)
+        except TaxConfirmation.DoesNotExist:
+                conf = TaxConfirmation(user=self, year=year)
+        conf.file = File(temp)
+        conf.amount = amount
+        conf.save()
+        return conf
+
     def __str__(self):
         return str(self.person_name())
 
@@ -952,23 +969,6 @@ class UserInCampaign(models.Model):
         super().save(*args, **kwargs)
         from .autocom import check as autocom_check
         autocom_check(users=UserInCampaign.objects.filter(pk=self.pk), action=(insert and 'new-user' or None))
-
-    def make_tax_confirmation(self, year):
-        amount = self.payment_set.exclude(type='expected').filter(date__year=year).aggregate(Sum('amount'))['amount__sum']
-        if not amount:
-                return
-        temp = NamedTemporaryFile()
-        name = u"%s %s" % (self.userprofile.user.first_name, self.userprofile.user.last_name)
-        addr_city = u"%s %s" % (self.userprofile.zip_code, self.userprofile.city)
-        confirmation.makepdf(temp, name, self.userprofile.sex, self.userprofile.street, addr_city, year, amount)
-        try:
-                conf = TaxConfirmation.objects.get(user=self, year=year)
-        except TaxConfirmation.DoesNotExist:
-                conf = TaxConfirmation(user=self, year=year)
-        conf.file = File(temp)
-        conf.amount = amount
-        conf.save()
-        return conf
 
     @denormalized(models.NullBooleanField, null=True)
     @depend_on_related('Payment', foreign_key="user")
@@ -2021,10 +2021,10 @@ def confirmation_upload_to(instance, filename):
 
 
 class TaxConfirmation(models.Model):
-
-        user = models.ForeignKey(
-            UserInCampaign,
+        user_profile = models.ForeignKey(
+            UserProfile,
             on_delete=models.CASCADE,
+            null=True,
         )
         year = models.PositiveIntegerField()
         amount = models.PositiveIntegerField(default=0)
@@ -2033,4 +2033,4 @@ class TaxConfirmation(models.Model):
         class Meta:
             verbose_name = _("Tax confirmation")
             verbose_name_plural = _("Tax confirmations")
-            unique_together = ('user', 'year',)
+            unique_together = ('user_profile', 'year',)
