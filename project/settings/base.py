@@ -7,7 +7,7 @@ def normpath(*args):
     return os.path.normpath(os.path.abspath(os.path.join(*args)))
 
 
-PROJECT_ROOT = normpath(__file__, "..", "..")
+PROJECT_ROOT = normpath(__file__, "..", "..", "..")
 
 sys.path.append(normpath(PROJECT_ROOT, "project"))
 sys.path.append(normpath(PROJECT_ROOT, "apps"))
@@ -23,14 +23,15 @@ MANAGERS = ADMINS
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'klub',
-        'USER': 'django',
-        'PASSWORD': 'osmiznak',
-        'HOST': 'localhost',
-        'PORT': '',
+        'NAME': os.environ.get('DATABASE_NAME', ''),
+        'USER': os.environ.get('DATABASE_USER', ''),
+        'PASSWORD': os.environ.get('DATABASE_PASSWORD', ''),
+        'HOST': os.environ.get('DATABASE_HOST', ''),
+        'PORT': os.environ.get('DATABASE_PORT', ''),
     },
 }
 
+SECRET_KEY = os.environ.get('SECRET_KEY', '')
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
 # although not all choices may be available on all operating systems.
@@ -240,9 +241,3 @@ LOGGING = {
 }
 
 TEST_RUNNER = 'aklub.tests.AklubTestSuiteRunner'
-
-# import local settings
-try:
-    from settings_local import *  # noqa
-except ImportError:
-    pass
