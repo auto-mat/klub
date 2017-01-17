@@ -1,6 +1,6 @@
 coverage
 django_coverage_plugin
--e git+https://github.com/greyside/django-admin-smoke-tests.git#egg=django-admin-smoke-tests  # the non-PIP source is for newest django-polymorphic, that defined both get_queryset and queryset
+django-admin-smoke-tests
 freezegun
 django-debug-toolbar
 pudb
@@ -12,3 +12,4 @@ flake8-tidy-imports
 flake8-class
 flake8-builtins
 flake8-strict
+coveralls

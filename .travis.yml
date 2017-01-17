@@ -10,6 +10,10 @@ python:
   - "3.5"
 install:
   - pip install -r requirements.freeze.txt
+before_script:
+  - cd apps/aklub/
+  - DJANGO_SETTINGS_MODULE="" django-admin compilemessages
+  - cd ../..
 script:
   - ./runtests.sh
 after_script:
