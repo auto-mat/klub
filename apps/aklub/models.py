@@ -1625,6 +1625,7 @@ class Condition(models.Model):
     class Meta:
         verbose_name = _("Condition")
         verbose_name_plural = _("Conditions")
+        ordering = ('name',)
 
     OPERATORS = (
         ('and', _(u'and')),
