@@ -386,6 +386,12 @@ class AdminTest(tests.AdminSiteSmokeTest):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/admin/aklub/taxconfirmation/")
         self.assertEqual(TaxConfirmation.objects.get(user_profile__id=2978, year=2016).amount, 350)
+        confirmation_values = TaxConfirmation.objects.filter(year=2016).values('user_profile', 'amount', 'year').order_by('user_profile')
+        expected_confirmation_values = [
+            {'year': 2016, 'user': 2978, 'amount': 350},
+            {'year': 2016, 'user': 2979, 'amount': 130},
+        ]
+        self.assertListEqual(list(confirmation_values), expected_confirmation_values)
         self.assertEqual(request._messages._queued_messages[0].message, 'Generated 2 tax confirmations')
 
     def test_useryearpayments(self):
