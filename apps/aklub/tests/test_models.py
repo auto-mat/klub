@@ -27,17 +27,15 @@ from django.contrib.auth.models import User
 from django.core import mail
 from django.core.files import File
 from django.core.management import call_command
-from django.db.models import Q
 from django.forms import ValidationError
 from django.test import RequestFactory, TestCase
 
 from freezegun import freeze_time
 
-# from ..models import Campaign, Communication, Condition, Payment, Result, TerminalCondition, UserInCampaign, UserProfile
 from .. import admin, darujme
 from ..models import (
-    AccountStatements, Campaign, Communication, Condition,
-    Payment, Result, TerminalCondition, UserInCampaign, UserProfile,
+    AccountStatements, Campaign, Communication,
+    Payment, Result, UserInCampaign, UserProfile,
 )
 
 ICON_FALSE = '<img src="/media/admin/img/icon-no.svg" alt="False" />'
@@ -125,177 +123,6 @@ class ModelTests(TestCase):
         self.u1 = UserInCampaign.objects.get(pk=2978)
         self.assertEqual(self.u1.extra_money, 150)
         self.assertEqual(self.u1.extra_payments(), "150&nbsp;Kč")
-
-
-class BaseTestCase(TestCase):
-    def assertQuerysetEquals(self, qs1, qs2):
-        def pk(o):  # pragma: no cover
-            return o.pk  # pragma: no cover
-        return self.assertEqual(  # pragma: no cover
-            list(sorted(qs1, key=pk)),
-            list(sorted(qs2, key=pk)),
-        )
-
-    def assertQueryEquals(self, q1, q2):
-        return self.assertEqual(
-            q1.__str__(),
-            q2.__str__(),
-        )
-
-
-@freeze_time("2010-1-1")
-class ConditionsTests(BaseTestCase):
-    """ Test conditions infrastructure and conditions in fixtures """
-    maxDiff = None
-
-    def test_date_condition(self):
-        c = Condition.objects.create(operation="and")
-        TerminalCondition.objects.create(
-            variable="UserInCampaign.date_condition",
-            value="datetime.2010-09-24 00:00",
-            operation=">",
-            condition=c,
-        )
-        self.assertQueryEquals(c.get_query(), Q(date_condition__gt=datetime.datetime(2010, 9, 24, 0, 0)))
-        self.assertQueryEquals(c.condition_string(), "None(UserInCampaign.date_condition > datetime.2010-09-24 00:00)")
-
-    def test_boolean_condition(self):
-        c = Condition.objects.create(operation="or")
-        TerminalCondition.objects.create(
-            variable="UserInCampaign.boolean_condition",
-            value="true",
-            operation="=",
-            condition=c,
-        )
-        self.assertQueryEquals(c.get_query(), Q(boolean_condition=True))
-        self.assertQueryEquals(c.condition_string(), "None(UserInCampaign.boolean_condition = true)")
-
-    def test_time_condition(self):
-        c = Condition.objects.create(operation="or")
-        TerminalCondition.objects.create(
-            variable="UserInCampaign.time_condition",
-            value="month_ago",
-            operation="<",
-            condition=c,
-        )
-        self.assertQueryEquals(c.get_query(), Q(time_condition__lt=datetime.datetime(2009, 12, 2, 0, 0)))
-        self.assertQueryEquals(c.condition_string(), "None(UserInCampaign.time_condition < month_ago)")
-
-    def test_text_condition(self):
-        c = Condition.objects.create(operation="or")
-        TerminalCondition.objects.create(
-            variable="UserInCampaign.text_condition",
-            value="asdf",
-            operation="contains",
-            condition=c,
-        )
-        self.assertQueryEquals(c.get_query(), Q(text_condition__contains="asdf"))
-        self.assertQueryEquals(c.condition_string(), "None(UserInCampaign.text_condition contains asdf)")
-
-    def test_text_icontains_condition(self):
-        c = Condition.objects.create(operation="or")
-        TerminalCondition.objects.create(
-            variable="UserInCampaign.text_condition",
-            value="asdf",
-            operation="icontains",
-            condition=c,
-        )
-        self.assertQueryEquals(c.get_query(), Q(text_condition__icontains="asdf"))
-        self.assertQueryEquals(c.condition_string(), "None(UserInCampaign.text_condition icontains asdf)")
-
-    def test_action_condition_equals(self):
-        c = Condition.objects.create(operation="or")
-        TerminalCondition.objects.create(
-            variable="action",
-            value="asdf",
-            operation="=",
-            condition=c,
-        )
-        self.assertQueryEquals(c.get_query(action="asdf"), Q())
-
-    def test_action_condition_not_equals(self):
-        c = Condition.objects.create(operation="or")
-        TerminalCondition.objects.create(
-            variable="action",
-            value="asdf",
-            operation="=",
-            condition=c,
-        )
-        self.assertQueryEquals(c.get_query(), Q(pk__in=[]))
-        self.assertQueryEquals(c.condition_string(), "None(action = asdf)")
-
-    def test_blank_condition(self):
-        c = Condition.objects.create(operation="and")
-        TerminalCondition.objects.create(
-            variable="UserInCampaign.regular_payments",
-            value="regular",
-            operation="=",
-            condition=c,
-        )
-        self.assertQueryEquals(c.get_query(), Q(regular_payments="regular"))
-        self.assertQueryEquals(c.condition_string(), "None(UserInCampaign.regular_payments = regular)")
-
-    def test_combined_condition(self):
-        c = Condition.objects.create(operation="and")
-        TerminalCondition.objects.create(
-            variable="UserInCampaign.time_condition",
-            value="timedelta.5",
-            operation=">=",
-            condition=c,
-        )
-        TerminalCondition.objects.create(
-            variable="UserInCampaign.days_ago_condition",
-            value="days_ago.6",
-            operation="!=",
-            condition=c,
-        )
-        self.assertQueryEquals(
-            c.get_query(),
-            ~Q(days_ago_condition=datetime.datetime(2009, 12, 26, 0, 0)) & Q(time_condition__gte=datetime.timedelta(5)),
-        )
-        self.assertQueryEquals(
-            c.condition_string(),
-            "None(UserInCampaign.days_ago_condition != days_ago.6 and UserInCampaign.time_condition >= timedelta.5)",
-        )
-
-    def test_multiple_combined_conditions(self):
-        c1 = Condition.objects.create(operation="and")
-        c2 = Condition.objects.create(operation="nor")
-        c2.conds.add(c1)
-        TerminalCondition.objects.create(
-            variable="UserInCampaign.time_condition",
-            value="timedelta.5",
-            operation=">=",
-            condition=c1,
-        )
-        TerminalCondition.objects.create(
-            variable="UserInCampaign.days_ago_condition",
-            value="days_ago.6",
-            operation="!=",
-            condition=c1,
-        )
-        TerminalCondition.objects.create(
-            variable="UserInCampaign.int_condition",
-            value="5",
-            operation="<=",
-            condition=c2,
-        )
-        TerminalCondition.objects.create(
-            variable="UserInCampaign.int_condition",
-            value="4",
-            operation="=",
-            condition=c2,
-        )
-        test_query = ~(
-            (~Q(days_ago_condition=datetime.datetime(2009, 12, 26, 0, 0)) & Q(time_condition__gte=datetime.timedelta(5))) |
-            Q(int_condition=4) | Q(int_condition__lte=5)
-        )
-        self.assertQueryEquals(c2.get_query(), test_query)
-        self.assertQueryEquals(
-            c2.condition_string(),
-            "not(None(None(UserInCampaign.days_ago_condition != days_ago.6 and UserInCampaign.time_condition >= timedelta.5) "
-            "or UserInCampaign.int_condition = 4 or UserInCampaign.int_condition <= 5))",
-        )
 
 
 class CommunicationTest(TestCase):
