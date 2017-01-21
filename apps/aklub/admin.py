@@ -715,9 +715,9 @@ class TaxConfirmationAdmin(ImportExportMixin, RelatedFieldAdmin):
         payed = Payment.objects.filter(date__year=year).exclude(type='expected')
         donors = UserProfile.objects.filter(userincampaign__payment__in=payed).order_by('user__last_name')
         count = 0
-        for donor in donors:
-            c = donor.make_tax_confirmation(year)
-            if c:
+        for d in donors:
+            confirmation, created = d.make_tax_confirmation(year)
+            if created:
                 count += 1
         messages.info(request, 'Generated %d tax confirmations' % count)
         return HttpResponseRedirect(reverse('admin:aklub_taxconfirmation_changelist'))

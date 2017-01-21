@@ -528,19 +528,20 @@ class UserProfile(models.Model):
         payment_set = Payment.objects.filter(user__userprofile=self)
         amount = payment_set.exclude(type='expected').filter(date__year=year).aggregate(Sum('amount'))['amount__sum']
         if not amount:
-                return
+            return
         temp = NamedTemporaryFile()
         name = u"%s %s" % (self.user.first_name, self.user.last_name)
         addr_city = u"%s %s" % (self.zip_code, self.city)
         confirmation.makepdf(temp, name, self.sex, self.street, addr_city, year, amount)
-        try:
-                conf = TaxConfirmation.objects.get(user_profile=self, year=year)
-        except TaxConfirmation.DoesNotExist:
-                conf = TaxConfirmation(user_profile=self, year=year)
-        conf.file = File(temp)
-        conf.amount = amount
-        conf.save()
-        return conf
+        confirm, created = TaxConfirmation.objects.update_or_create(
+            user_profile=self,
+            year=year,
+            defaults={
+                'file': File(temp),
+                'amount': amount,
+            },
+        )
+        return confirm, created
 
     def __str__(self):
         return str(self.person_name())
