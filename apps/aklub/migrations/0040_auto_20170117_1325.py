@@ -28,4 +28,8 @@ class Migration(migrations.Migration):
             name='template',
             field=models.TextField(help_text='Template can contain variable substitutions like addressment, name, variable symbol etc.', max_length=50000, null=True, verbose_name='Template'),
         ),
+        migrations.AlterUniqueTogether(
+            name='taxconfirmation',
+            unique_together=set([('user_profile', 'year')]),
+        ),
     ]

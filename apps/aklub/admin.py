@@ -706,17 +706,17 @@ class TaxConfirmationAdmin(ImportExportMixin, RelatedFieldAdmin):
     list_display = ('user_profile', 'year', 'amount', 'file')
     ordering = ('user_profile__user__last_name', 'user_profile__user__first_name',)
     list_filter = ['year']
-    search_fields = ('user_profile__user__last_name', 'user_profile__user__first_name', 'variable_symbol',)
+    search_fields = ('user_profile__user__last_name', 'user_profile__user__first_name', 'user_profile__userincampaign__variable_symbol',)
     raw_id_fields = ('user_profile',)
     list_max_show_all = 10000
 
     def generate(self, request):
         year = datetime.datetime.now().year - 1
-        payed = Payment.objects.filter(date__year=year).exclude(type='expected').values_list('user_id', flat=True)
-        donors = UserInCampaign.objects.filter(id__in=payed).order_by('user_profile__user__last_name')
+        payed = Payment.objects.filter(date__year=year).exclude(type='expected')
+        donors = UserProfile.objects.filter(userincampaign__payment__in=payed).order_by('user__last_name')
         count = 0
-        for d in donors:
-            c = d.make_tax_confirmation(year)
+        for donor in donors:
+            c = donor.make_tax_confirmation(year)
             if c:
                 count += 1
         messages.info(request, 'Generated %d tax confirmations' % count)

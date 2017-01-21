@@ -385,7 +385,7 @@ class AdminTest(tests.AdminSiteSmokeTest):
         response = model_admin.generate(request)
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/admin/aklub/taxconfirmation/")
-        self.assertEqual(TaxConfirmation.objects.get(user__id=2978, year=2016).amount, 350)
+        self.assertEqual(TaxConfirmation.objects.get(user_profile__id=2978, year=2016).amount, 350)
         self.assertEqual(request._messages._queued_messages[0].message, 'Generated 2 tax confirmations')
 
     def test_useryearpayments(self):
@@ -1050,7 +1050,7 @@ class ModelTests(TestCase):
         self.p1.save()
         call_command('denorm_flush')
         self.u1 = UserInCampaign.objects.get(pk=2978)
-        self.tax_confirmation = self.u1.make_tax_confirmation(2016)
+        self.tax_confirmation = self.u1.userprofile.make_tax_confirmation(2016)
 
     def test_payment_model(self):
         self.assertEqual(self.p.person_name(), 'User Test')

@@ -81,7 +81,7 @@ def send_mass_communication(obj, users, sending_user, request, save=True):
                 attachment = copy.copy(obj.attachment)
             else:
                 tax_confirmations = TaxConfirmation.objects.filter(
-                    user=userincampaign,
+                    user_profile=userincampaign.userprofile,
                     year=datetime.datetime.now().year - 1,
                 )
                 if len(tax_confirmations) > 0:

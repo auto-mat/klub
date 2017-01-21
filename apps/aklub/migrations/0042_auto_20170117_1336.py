@@ -16,8 +16,4 @@ class Migration(migrations.Migration):
             model_name='taxconfirmation',
             name='user',
         ),
-        migrations.AlterUniqueTogether(
-            name='taxconfirmation',
-            unique_together=set([('user_profile', 'year')]),
-        ),
     ]

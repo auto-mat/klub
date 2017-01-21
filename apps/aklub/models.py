@@ -525,17 +525,18 @@ class UserProfile(models.Model):
     userattendance_links.short_description = _('Users in campaign')
 
     def make_tax_confirmation(self, year):
-        amount = self.payment_set.exclude(type='expected').filter(date__year=year).aggregate(Sum('amount'))['amount__sum']
+        payment_set = Payment.objects.filter(user__userprofile=self)
+        amount = payment_set.exclude(type='expected').filter(date__year=year).aggregate(Sum('amount'))['amount__sum']
         if not amount:
                 return
         temp = NamedTemporaryFile()
-        name = u"%s %s" % (self.userprofile.user.first_name, self.userprofile.user.last_name)
-        addr_city = u"%s %s" % (self.userprofile.zip_code, self.userprofile.city)
-        confirmation.makepdf(temp, name, self.userprofile.sex, self.userprofile.street, addr_city, year, amount)
+        name = u"%s %s" % (self.user.first_name, self.user.last_name)
+        addr_city = u"%s %s" % (self.zip_code, self.city)
+        confirmation.makepdf(temp, name, self.sex, self.street, addr_city, year, amount)
         try:
-                conf = TaxConfirmation.objects.get(user=self, year=year)
+                conf = TaxConfirmation.objects.get(user_profile=self, year=year)
         except TaxConfirmation.DoesNotExist:
-                conf = TaxConfirmation(user=self, year=year)
+                conf = TaxConfirmation(user_profile=self, year=year)
         conf.file = File(temp)
         conf.amount = amount
         conf.save()
@@ -2017,7 +2018,7 @@ class OverwriteStorage(FileSystemStorage):
 
 
 def confirmation_upload_to(instance, filename):
-        return "confirmations/%s_%s.pdf" % (instance.user.id, instance.year)
+        return "confirmations/%s_%s.pdf" % (instance.user_profile.id, instance.year)
 
 
 class TaxConfirmation(models.Model):
