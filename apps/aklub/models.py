@@ -1817,7 +1817,7 @@ class TerminalCondition(models.Model):
     def get_querystring(self, spec, operation):
         spec_ = spec.split('.')
         if spec_[0] != 'UserInCampaign':
-            NotImplementedError("Unknown spec %s" % spec_[0])
+            raise NotImplementedError("Unknown spec %s" % spec_[0])
 
         join_querystring = "__".join(spec_[1:])
 
