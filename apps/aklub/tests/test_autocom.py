@@ -1,0 +1,94 @@
+# -*- coding: utf-8 -*-
+
+# Author: Petr Dlouhý <petr.dlouhy@auto-mat.cz>
+#
+# Copyright (C) 2017 o.s. Auto*Mat
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+import datetime
+
+from django.contrib.auth.models import User
+from django.test import TestCase
+
+from .. import autocom
+from ..models import AutomaticCommunication, Campaign, Communication, Condition, TerminalCondition, UserInCampaign, UserProfile
+
+
+class AutocomTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create()
+        self.userprofile = UserProfile.objects.create(sex='male', user=self.user)
+        self.campaign = Campaign.objects.create(created=datetime.date(2010, 10, 10))
+        self.userincampaign = UserInCampaign.objects.create(userprofile=self.userprofile, campaign=self.campaign)
+        c = Condition.objects.create(operation="nor")
+        TerminalCondition.objects.create(
+            variable="action",
+            value="test-autocomm",
+            operation="==",
+            condition=c,
+        )
+        AutomaticCommunication.objects.create(
+            condition=c,
+            template="Vazen{y|a} {pane|pani} $addressment $regular_frequency testovací šablona",
+            template_en="Dear {sir|miss} $addressment $regular_frequency test template",
+            subject="Testovací komunikace",
+            subject_en="Testing communication",
+        )
+
+    def test_autocom(self):
+        autocom.check(action="test-autocomm")
+        communication = Communication.objects.get(user=self.userincampaign)
+        self.assertTrue("testovací šablona" in communication.summary)
+        self.assertTrue("člene Klubu přátel Auto*Matu" in communication.summary)
+        self.assertTrue("Vazeny pane" in communication.summary)
+
+    def test_autocom_female(self):
+        self.userprofile.sex = 'female'
+        self.userprofile.save()
+        autocom.check(action="test-autocomm")
+        communication = Communication.objects.get(user=self.userincampaign)
+        self.assertIn("testovací šablona", communication.summary)
+        self.assertIn("členko Klubu přátel Auto*Matu", communication.summary)
+        self.assertIn("Vazena pani", communication.summary)
+
+    def test_autocom_unknown(self):
+        self.userprofile.sex = 'unknown'
+        self.userprofile.save()
+        autocom.check(action="test-autocomm")
+        communication = Communication.objects.get(user=self.userincampaign)
+        self.assertIn("testovací šablona", communication.summary)
+        self.assertIn("člene/členko Klubu přátel Auto*Matu", communication.summary)
+        self.assertIn("Vazeny/a pane/pani", communication.summary)
+
+    def test_autocom_addressment(self):
+        self.user.userprofile.sex = 'male'
+        self.user.userprofile.addressment = 'own addressment'
+        self.user.userprofile.save()
+        autocom.check(action="test-autocomm")
+        communication = Communication.objects.get(user=self.userincampaign)
+        self.assertIn("testovací šablona", communication.summary)
+        self.assertIn("own addressment", communication.summary)
+        self.assertIn("Vazeny pane", communication.summary)
+
+    def test_autocom_en(self):
+        self.user.userprofile.sex = 'unknown'
+        self.user.userprofile.language = 'en'
+        self.user.userprofile.save()
+        autocom.check(action="test-autocomm")
+        communication = Communication.objects.get(user=self.userincampaign)
+        self.assertIn("test template", communication.summary)
+        self.assertIn("member of the Auto*Mat friends club", communication.summary)
+        self.assertIn("Dear sir", communication.summary)
