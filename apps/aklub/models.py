@@ -1038,10 +1038,6 @@ class NewUser(UserInCampaign):
 
 
 class UserYearPayments(UserInCampaign):
-
-    def get_queryset(self):
-        return super(NewUserManager, self).get_queryset().filter(verified=False)
-
     class Meta:
         proxy = True
         verbose_name = _("Payment for users in time period")
