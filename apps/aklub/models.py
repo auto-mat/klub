@@ -1017,9 +1017,6 @@ class UserInCampaign(models.Model):
 
 
 def filter_by_condition(queryset, cond):
-    # Hack: It would be better to work directly on the objects
-    # of the queryset rather than extracting ids from another
-    # DB query and then filtering the former queryset
     return queryset.filter(cond.get_query())
 
 
