@@ -36,7 +36,7 @@ from .utils import ICON_FALSE, ICON_UNKNOWN
 from .. import admin, darujme
 from ..models import (
     AccountStatements, Campaign, Communication,
-    Payment, Result, UserInCampaign, UserProfile,
+    Payment, UserInCampaign, UserProfile,
 )
 
 
@@ -59,15 +59,6 @@ class ModelTests(TestCase):
         call_command('denorm_flush')
         self.u1 = UserInCampaign.objects.get(pk=2978)
         self.tax_confirmation, created = self.u1.userprofile.make_tax_confirmation(2016)
-
-    def test_payment_model(self):
-        self.assertEqual(self.p.person_name(), 'User Test')
-
-    def test_user_person_name(self):
-        self.assertEqual(self.u.person_name(), 'User 1 Test')
-
-    def test_result_str(self):
-        self.assertEqual(Result(name="Test result").__str__(), 'Test result')
 
     def test_user_model(self):
         self.assertEqual(self.u.is_direct_dialogue(), False)

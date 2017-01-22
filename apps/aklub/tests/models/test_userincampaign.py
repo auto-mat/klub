@@ -173,3 +173,22 @@ class TestExtraMoney(TestCase):
         )
         self.assertEqual(user_in_campaign.extra_money, None)
         self.assertEqual(user_in_campaign.extra_payments(), ICON_FALSE)
+
+
+class TestNameFunctions(TestCase):
+    """ Test UserInCampaign.person_name(), UserInCampaign.__str__() """
+
+    def setUp(self):
+        self.user_in_campaign = mommy.make(
+            "aklub.UserInCampaign",
+            campaign__name="Foo campaign",
+            userprofile__user__last_name="User 1",
+            userprofile__user__first_name="Test",
+            userprofile__user__email="test@test.com",
+        )
+
+    def test_user_person_name(self):
+        self.assertEqual(self.user_in_campaign.person_name(), 'User 1 Test')
+
+    def test_str(self):
+        self.assertEqual(self.user_in_campaign.__str__(), 'User 1 Test - test@test.com (Foo campaign)')
