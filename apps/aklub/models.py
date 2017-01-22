@@ -508,9 +508,12 @@ class UserProfile(models.Model):
 
     def person_name(self):
         if hasattr(self, 'user'):
-            return " ".join((self.user.last_name, self.user.first_name))
+            if self.user.first_name or self.user.last_name:
+                return " ".join((self.user.last_name, self.user.first_name))
+            else:
+                return self.user.username
         else:
-            return "UserProfile: %s " % self.id
+            return "UserProfile: %s" % self.id
     person_name.short_description = _("Full name")
 
     def userattendance_links(self):
