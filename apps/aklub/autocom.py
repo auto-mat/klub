@@ -106,7 +106,14 @@ def check(users=None, action=None):
     if not users:
         users = UserInCampaign.objects.all()
     for auto_comm in AutomaticCommunication.objects.all():
-        logger.info(u"Processin condition \"%s\" for autocom \"%s\", method: \"%s\", action: \"%s\"" % (auto_comm.condition, auto_comm, auto_comm.method, action))
+        logger.info(
+            u"Processin condition \"%s\" for autocom \"%s\", method: \"%s\", action: \"%s\"" % (
+                auto_comm.condition,
+                auto_comm,
+                auto_comm.method,
+                action,
+            ),
+        )
 
         filtered_users = users.filter(auto_comm.condition.get_query(action))
         for user in filtered_users:

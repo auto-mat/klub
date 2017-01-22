@@ -113,7 +113,10 @@ def create_statement_from_file(xmlfile):
 
 
 def create_statement_from_API(campaign):
-    url = 'https://www.darujme.cz/dar/api/darujme_api.php?api_id=%s&api_secret=%s&typ_dotazu=1' % (campaign.darujme_api_id, campaign.darujme_api_secret)
+    url = 'https://www.darujme.cz/dar/api/darujme_api.php?api_id=%s&api_secret=%s&typ_dotazu=1' % (
+        campaign.darujme_api_id,
+        campaign.darujme_api_secret,
+    )
     response = urllib.request.urlopen(url)
     return create_statement_from_file(response)
 

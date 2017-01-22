@@ -93,7 +93,12 @@ class RegularUserForm_UserProfile(forms.ModelForm):
 class RegularUserForm_UserInCampaign(forms.ModelForm):
     required_css_class = 'required'
 
-    regular_frequency = forms.ChoiceField(label=_("Regular payments"), choices=UserInCampaign.REGULAR_PAYMENT_FREQUENCIES, required=False, widget=forms.RadioSelect())
+    regular_frequency = forms.ChoiceField(
+        label=_("Regular payments"),
+        choices=UserInCampaign.REGULAR_PAYMENT_FREQUENCIES,
+        required=False,
+        widget=forms.RadioSelect(),
+    )
     regular_amount = forms.IntegerField(
         label=_("Regularly (amount)"),
         help_text=_(u"Minimum yearly payment is 1800 Kč"),
@@ -168,8 +173,18 @@ class RegularDarujmeUserForm_UserInCampaign(FieldNameMappingMixin, RegularUserFo
         ('365', _('Anually')),
         ('', _('Onetime payment')),
     )
-    regular_payments = forms.ChoiceField(label=_("Regular payments"), choices=REGULAR_PAYMENT_CHOICES, required=False, widget=forms.RadioSelect())
-    regular_frequency = forms.ChoiceField(label=_("Regular frequency"), choices=REGULAR_PAYMENT_CHOICES, required=False, widget=forms.HiddenInput())
+    regular_payments = forms.ChoiceField(
+        label=_("Regular payments"),
+        choices=REGULAR_PAYMENT_CHOICES,
+        required=False,
+        widget=forms.RadioSelect(),
+    )
+    regular_frequency = forms.ChoiceField(
+        label=_("Regular frequency"),
+        choices=REGULAR_PAYMENT_CHOICES,
+        required=False,
+        widget=forms.HiddenInput(),
+    )
 
     FIELD_NAME_MAPPING = {
         'regular_frequency': 'recurringfrequency',
@@ -552,8 +567,10 @@ class OneTimePaymentWizard(SessionWizardView):
         ).send()
 
     def _find_matching_users(self, email, firstname, surname):
-        users = (set(UserInCampaign.objects.filter(userprofile__user__email=email, userprofile__user__is_active=True).all()) |
-                 set(UserInCampaign.objects.filter(userprofile__user__first_name=firstname, userprofile__user__last_name=surname, userprofile__user__is_active=True)))
+        users = (
+            set(UserInCampaign.objects.filter(userprofile__user__email=email, userprofile__user__is_active=True).all()) |
+            set(UserInCampaign.objects.filter(userprofile__user__first_name=firstname, userprofile__user__last_name=surname, userprofile__user__is_active=True)),
+        )
         return list(users)
 
     def get_form(self, step=None, data=None, files=None):
@@ -575,7 +592,11 @@ class OneTimePaymentWizard(SessionWizardView):
                         [
                             (
                                 u.id,
-                                "%s %s <%s>" % (u.userprofile.user.first_name, u.userprofile.user.last_name, obfuscate(u.userprofile.user.email))
+                                "%s %s <%s>" % (
+                                    u.userprofile.user.first_name,
+                                    u.userprofile.user.last_name,
+                                    obfuscate(u.userprofile.user.email),
+                                )
                             ) for u in users
                         ] +
                         [('None', _("None of these accounts"))])

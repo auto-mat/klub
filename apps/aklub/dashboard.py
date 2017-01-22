@@ -124,7 +124,9 @@ class AklubIndexDashboard(Dashboard):
         if AccountStatements.objects.exists():
             children.append(
                 {
-                    'title': _(u"Days from last bill upload: %(days)s days") % {"days": (datetime.datetime.now() - AccountStatements.objects.first().import_date).days},
+                    'title': _(u"Days from last bill upload: %(days)s days") % {
+                        "days": (datetime.datetime.now() - AccountStatements.objects.first().import_date).days,
+                    },
                     'url': "aklub/accountstatements/",
                     'external': False,
                 }
@@ -142,7 +144,10 @@ class AklubIndexDashboard(Dashboard):
         for cond in Condition.objects.filter(on_dashboard=True):
             children.append(
                 {
-                    'title': _(u"%(name)s: %(items)s items") % {"name": str(cond.name), "items": get_users_by_condition_cached(cond).count()},
+                    'title': _(u"%(name)s: %(items)s items") % {
+                        "name": str(cond.name),
+                        "items": get_users_by_condition_cached(cond).count(),
+                    },
                     'url': "aklub/user/?user_condition=%i" % cond.id,
                     'external': False,
                 }

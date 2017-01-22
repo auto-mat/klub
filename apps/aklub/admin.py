@@ -225,8 +225,24 @@ class UserForm(django.forms.ModelForm):
 class UserAdmin(ImportExportMixin, RelatedFieldAdmin, UserAdmin):
     inlines = [UserProfileInline]
     form = UserForm
-    list_display = ('username', 'email', 'userprofile__telephone', 'first_name', 'last_name', 'is_staff', 'userprofile__sex', 'date_joined', 'last_login')
-    search_fields = ('username', 'email', 'first_name', 'last_name', 'userprofile__telephone')
+    list_display = (
+        'username',
+        'email',
+        'userprofile__telephone',
+        'first_name',
+        'last_name',
+        'is_staff',
+        'userprofile__sex',
+        'date_joined',
+        'last_login',
+    )
+    search_fields = (
+        'username',
+        'email',
+        'first_name',
+        'last_name',
+        'userprofile__telephone',
+    )
     list_filter = (
         'is_staff',
         'is_superuser',
@@ -330,7 +346,13 @@ class UserInCampaignAdmin(ImportExportMixin, RelatedFieldAdmin):
         ('registered_support', DateRangeFilter),
         filters.UserConditionFilter, filters.UserConditionFilter1,
     ]
-    search_fields = ['userprofile__user__first_name', 'userprofile__user__last_name', 'variable_symbol', 'userprofile__user__email', 'userprofile__telephone']
+    search_fields = [
+        'userprofile__user__first_name',
+        'userprofile__user__last_name',
+        'variable_symbol',
+        'userprofile__user__email',
+        'userprofile__telephone',
+    ]
     ordering = ('userprofile__user__last_name',)
     actions = (
         send_mass_communication,
@@ -419,7 +441,10 @@ class UserYearPaymentsAdmin(UserInCampaignAdmin):
 
     def payment_total_by_year(self, obj):
         if self.from_date and self.to_date:
-            return obj.payment_total_range(datetime.datetime.strptime(self.from_date, '%d.%m.%Y'), datetime.datetime.strptime(self.to_date, '%d.%m.%Y'))
+            return obj.payment_total_range(
+                datetime.datetime.strptime(self.from_date, '%d.%m.%Y'),
+                datetime.datetime.strptime(self.to_date, '%d.%m.%Y'),
+            )
 
     def changelist_view(self, request, extra_context=None):
         self.from_date = request.GET.get('drf__payment__date__gte', None)
@@ -428,9 +453,31 @@ class UserYearPaymentsAdmin(UserInCampaignAdmin):
 
 
 class PaymentAdmin(ImportExportMixin, RelatedFieldAdmin):
-    list_display = ('id', 'date', 'user__campaign', 'account_statement', 'amount', 'person_name', 'account_name', 'account', 'bank_code',
-                    "transfer_note", "currency", "recipient_message", "operation_id", "transfer_type", "specification", "order_id",
-                    'VS', 'SS', 'user_identification', 'type', 'paired_with_expected', 'created', 'updated')
+    list_display = (
+        'id',
+        'date',
+        'user__campaign',
+        'account_statement',
+        'amount',
+        'person_name',
+        'account_name',
+        'account',
+        'bank_code',
+        "transfer_note",
+        "currency",
+        "recipient_message",
+        "operation_id",
+        "transfer_type",
+        "specification",
+        "order_id",
+        'VS',
+        'SS',
+        'user_identification',
+        'type',
+        'paired_with_expected',
+        'created',
+        'updated',
+    )
     fieldsets = [
         (_("Basic"), {
             'fields': [
@@ -452,7 +499,14 @@ class PaymentAdmin(ImportExportMixin, RelatedFieldAdmin):
     raw_id_fields = ('user',)
     list_filter = ['type', 'date', filters.PaymentsAssignmentsFilter]
     date_hierarchy = 'date'
-    search_fields = ['user__userprofile__user__last_name', 'user__userprofile__user__first_name', 'amount', 'VS', 'SS', 'user_identification']
+    search_fields = [
+        'user__userprofile__user__last_name',
+        'user__userprofile__user__first_name',
+        'amount',
+        'VS',
+        'SS',
+        'user_identification',
+    ]
     list_max_show_all = 10000
 
 
@@ -680,11 +734,31 @@ class ResultAdmin(admin.ModelAdmin):
 
 class CampaignAdmin(admin.ModelAdmin):
     list_display = (
-        'name', 'darujme_name', 'darujme_api_id', 'created', 'terminated', 'number_of_members', 'number_of_recruiters', 'acquisition_campaign', 'yield_total',
-        'total_expenses', 'expected_monthly_income', 'return_of_investmensts', 'average_yield', 'average_expense')
+        'name',
+        'darujme_name',
+        'darujme_api_id',
+        'created',
+        'terminated',
+        'number_of_members',
+        'number_of_recruiters',
+        'acquisition_campaign',
+        'yield_total',
+        'total_expenses',
+        'expected_monthly_income',
+        'return_of_investmensts',
+        'average_yield',
+        'average_expense',
+    )
     readonly_fields = (
-        'number_of_members', 'number_of_recruiters', 'yield_total', 'total_expenses',
-        'expected_monthly_income', 'return_of_investmensts', 'average_yield', 'average_expense')
+        'number_of_members',
+        'number_of_recruiters',
+        'yield_total',
+        'total_expenses',
+        'expected_monthly_income',
+        'return_of_investmensts',
+        'average_yield',
+        'average_expense',
+    )
     list_filter = ('acquisition_campaign', filters.ActiveCampaignFilter)
     inlines = (ExpenseInline, )
     actions = (download_darujme_statement,)
