@@ -27,8 +27,18 @@ from django.test import TestCase
 
 from django.test.utils import override_settings
 
+from model_mommy.recipe import Recipe, seq
+
 from .. import views
 from ..models import UserInCampaign, UserProfile
+
+
+userincampaign_recipe = Recipe(
+    "aklub.UserInCampaign",
+    campaign__name="Foo campaign",
+    userprofile__user__is_active=True,
+    variable_symbol=seq(1),
+)
 
 
 class ClearCacheMixin(object):
@@ -496,3 +506,19 @@ class VariableSymbolTests(TestCase):
                 user = User.objects.create(username=vs)
                 userprofile = UserProfile.objects.create(user=user)
                 UserInCampaign.objects.create(variable_symbol=vs, campaign_id=1, userprofile=userprofile)
+
+
+class TestOneTimePaymentWizard(TestCase):
+    def test_find_matching_users(self):
+        """ Test that OneTimePaymentWizard._find_matching_users() works correctly """
+        userincampaign_recipe.make(
+            userprofile__user__email="foo@email.com",
+        )
+        userincampaign_recipe.make(
+            userprofile__user__first_name="Foo",
+            userprofile__user__last_name="User",
+        )
+
+        users = views.OneTimePaymentWizard._find_matching_users(None, "foo@email.com", "Foo", "User")
+        expected_users = ['<UserInCampaign:   - foo@email.com (Foo campaign)>', '<UserInCampaign: User Foo -  (Foo campaign)>']
+        self.assertQuerysetEqual(users, expected_users)

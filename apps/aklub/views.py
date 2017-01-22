@@ -567,11 +567,11 @@ class OneTimePaymentWizard(SessionWizardView):
         ).send()
 
     def _find_matching_users(self, email, firstname, surname):
-        users = (
-            set(UserInCampaign.objects.filter(userprofile__user__email=email, userprofile__user__is_active=True).all()) |
-            set(UserInCampaign.objects.filter(userprofile__user__first_name=firstname, userprofile__user__last_name=surname, userprofile__user__is_active=True)),
+        return UserInCampaign.objects.filter(
+            Q(userprofile__user__email=email) |
+            Q(userprofile__user__first_name=firstname, userprofile__user__last_name=surname),
+            userprofile__user__is_active=True,
         )
-        return list(users)
 
     def get_form(self, step=None, data=None, files=None):
         form = super().get_form(step, data, files)
@@ -596,7 +596,7 @@ class OneTimePaymentWizard(SessionWizardView):
                                     u.userprofile.user.first_name,
                                     u.userprofile.user.last_name,
                                     obfuscate(u.userprofile.user.email),
-                                )
+                                ),
                             ) for u in users
                         ] +
                         [('None', _("None of these accounts"))])
