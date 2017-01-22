@@ -673,11 +673,9 @@ class ConditionAdmin(ImportExportMixin, admin.ModelAdmin):
 def pair_variable_symbols(self, request, queryset):
     for account_statement in queryset:
         for payment in account_statement.payment_set.all():
-            try:
-                account_statement.pair_vs(payment)
-                payment.save()
-            except Exception as e:
-                messages.error(request, _('Exception during pairing: %s' % e))
+            account_statement.pair_vs(payment)
+            payment.save()
+    messages.info(request, _('Variable symbols succesfully paired.'))
 
 
 pair_variable_symbols.short_description = _("Pair payments with users based on variable symboles")

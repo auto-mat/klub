@@ -356,6 +356,20 @@ class AdminTest(TestCase):
         self.assertEqual(userincampaign.activity_points, 13)
         self.assertEqual(userincampaign.verified_by.username, 'testuser')
 
+    def test_pair_variable_symbols(self):
+        """ Test pair_variable_symbols action """
+        user_in_campaign = userincampaign_recipe.make(variable_symbol=123)
+        payment = mommy.make("aklub.Payment", VS=123)
+        account_statement = mommy.make(
+            "aklub.AccountStatements",
+            payment_set=[payment],
+        )
+        request = self.post_request()
+        admin.pair_variable_symbols(None, request, [account_statement])
+        payment.refresh_from_db()
+        self.assertEqual(payment.user, user_in_campaign)
+        self.assertEqual(request._messages._queued_messages[0].message, 'Variable symbols succesfully paired.')
+
 
 class AdminImportExportTests(TestCase):
     fixtures = ['conditions', 'users', 'communications']

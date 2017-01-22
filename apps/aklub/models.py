@@ -1120,8 +1120,9 @@ class AccountStatements(models.Model):
             try:
                 user_with_vs = UserInCampaign.objects.get(variable_symbol=payment.VS)
                 payment.user = user_with_vs
+                return True
             except UserInCampaign.DoesNotExist:
-                return
+                return False
 
     def parse_bank_csv(self):
         # Read and parse the account statement
