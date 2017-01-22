@@ -27,18 +27,10 @@ from django.test import TestCase
 
 from django.test.utils import override_settings
 
-from model_mommy.recipe import Recipe, seq
 
+from .recipes import userincampaign_recipe
 from .. import views
 from ..models import UserInCampaign, UserProfile
-
-
-userincampaign_recipe = Recipe(
-    "aklub.UserInCampaign",
-    campaign__name="Foo campaign",
-    userprofile__user__is_active=True,
-    variable_symbol=seq(1),
-)
 
 
 class ClearCacheMixin(object):

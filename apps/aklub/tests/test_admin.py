@@ -31,6 +31,8 @@ from freezegun import freeze_time
 
 from model_mommy import mommy
 
+from .utils import print_response  # noqa
+from .recipes import userincampaign_recipe
 from .. import admin
 from ..models import (
     AccountStatements, AutomaticCommunication, Communication, MassCommunication,
@@ -51,8 +53,6 @@ class AdminSmokeTest(tests.AdminSiteSmokeTest):
 
 
 class AdminTest(TestCase):
-    fixtures = ['conditions', 'users']
-
     def setUp(self):
         self.factory = RequestFactory()
         self.superuser = auth.get_user_model().objects.create_superuser(
@@ -76,6 +76,10 @@ class AdminTest(TestCase):
         return request
 
     def test_send_mass_communication(self):
+        userincampaign_recipe.make(id=3)
+        userincampaign_recipe.make(id=4)
+        userincampaign_recipe.make(id=2978)
+        userincampaign_recipe.make(id=2979)
         model_admin = django_admin.site._registry[UserInCampaign]
         request = self.post_request({})
         queryset = UserInCampaign.objects.all()
@@ -84,6 +88,15 @@ class AdminTest(TestCase):
         self.assertEqual(response.url, "/admin/aklub/masscommunication/add/?send_to_users=3%2C4%2C2978%2C2979")
 
     def test_send_mass_communication_userprofile(self):
+        """
+        Test, that sending mass communication works for UserProfileAdmin.
+        Communication shoul be send only once for every userprofile.
+        """
+        mutual_userprofile = mommy.make("aklub.Userprofile")
+        userincampaign_recipe.make(id=3, userprofile=mutual_userprofile)
+        userincampaign_recipe.make(id=4, userprofile=mutual_userprofile)
+        userincampaign_recipe.make(id=2978)
+        userincampaign_recipe.make(id=2979)
         model_admin = django_admin.site._registry[UserInCampaign]
         request = self.post_request({})
         queryset = UserProfile.objects.all()
@@ -93,6 +106,10 @@ class AdminTest(TestCase):
 
     @freeze_time("2017-5-1")
     def test_tax_confirmation_generate(self):
+        foo_user = userincampaign_recipe.make(userprofile__user__first_name="Foo", userprofile__id=2978)
+        bar_user = userincampaign_recipe.make(userprofile__user__first_name="Bar", userprofile__id=2979)
+        mommy.make("aklub.Payment", amount=350, date="2016-01-02", user=foo_user, type="cash")
+        mommy.make("aklub.Payment", amount=130, date="2016-01-02", user=bar_user, type="cash")
         model_admin = django_admin.site._registry[TaxConfirmation]
         request = self.post_request({})
         response = model_admin.generate(request)
@@ -108,6 +125,17 @@ class AdminTest(TestCase):
         self.assertEqual(request._messages._queued_messages[0].message, 'Generated 2 tax confirmations')
 
     def test_useryearpayments(self):
+        """
+        Test, that the resulting amount in selected period matches
+        """
+        userincampaign_recipe.make(
+            payment_set=[
+                mommy.make("aklub.Payment", date="2016-2-9", amount=150),
+                mommy.make("aklub.Payment", date="2016-1-9", amount=100),
+                mommy.make("aklub.Payment", date="2012-1-9", amount=100),
+                mommy.make("aklub.Payment", date="2016-12-9", amount=100),  # Payment outside of selected period
+            ],
+        )
         model_admin = django_admin.site._registry[UserYearPayments]
         request = self.get_request({
             "drf__payment__date__gte": "01.07.2010",
@@ -118,6 +146,9 @@ class AdminTest(TestCase):
 
     @freeze_time("2015-5-1")
     def test_account_statement_changelist_post(self):
+        mommy.make("aklub.Campaign", darujme_name="Klub přátel Auto*Matu")
+        mommy.make("aklub.Payment", SS=22258, type="darujme", operation_id="13954", date="2016-02-09")
+        userincampaign_recipe.make(id=2979, userprofile__user__email="bar@email.com", userprofile__language="cs")
         model_admin = django_admin.site._registry[AccountStatements]
         request = self.get_request()
         response = model_admin.add_view(request)
@@ -148,6 +179,7 @@ class AdminTest(TestCase):
 
     @freeze_time("2015-5-1")
     def test_account_statement_changelist_post_bank_statement(self):
+        userincampaign_recipe.make(variable_symbol=120127010)
         model_admin = django_admin.site._registry[AccountStatements]
         request = self.get_request()
         response = model_admin.add_view(request)
@@ -181,6 +213,9 @@ class AdminTest(TestCase):
             )
 
     def test_mass_communication_changelist_post_send_mails(self):
+        userincampaign_recipe.make(id=2978, userprofile__user__email="foo@email.com", userprofile__language="cs")
+        userincampaign_recipe.make(id=2979, userprofile__user__email="bar@email.com", userprofile__language="cs")
+        userincampaign_recipe.make(id=3, userprofile__user__email="baz@email.com", userprofile__language="en")
         model_admin = django_admin.site._registry[MassCommunication]
         request = self.get_request()
         response = model_admin.add_view(request)
@@ -203,11 +238,11 @@ class AdminTest(TestCase):
         self.assertEqual(response.url, "/admin/aklub/masscommunication/%s/change/" % obj.id)
         self.assertEqual(
             request._messages._queued_messages[1].message,
-            'Emaily odeslány na následující adresy: without_payments@email.cz, test.user@email.cz',
+            'Emaily odeslány na následující adresy: foo@email.com, bar@email.com',
         )
         self.assertEqual(
             request._messages._queued_messages[0].message,
-            'Odeslání na následující adresy nebylo možné kvůli problémům: test.user1@email.cz',
+            'Odeslání na následující adresy nebylo možné kvůli problémům: baz@email.com',
         )
         self.assertEqual(
             request._messages._queued_messages[2].message,
@@ -240,6 +275,7 @@ class AdminTest(TestCase):
         self.assertEqual(response.url, "/admin/aklub/masscommunication/%s/change/" % obj.id)
 
     def test_automatic_communication_changelist_post(self):
+        mommy.make("aklub.Condition", id=1)
         model_admin = django_admin.site._registry[AutomaticCommunication]
         request = self.get_request()
         response = model_admin.add_view(request)
@@ -261,6 +297,7 @@ class AdminTest(TestCase):
         self.assertEqual(response.url, "/admin/aklub/automaticcommunication/%s/change/" % obj.id)
 
     def test_communication_changelist_post(self):
+        userincampaign_recipe.make(id=1)
         model_admin = django_admin.site._registry[Communication]
         request = self.get_request()
         response = model_admin.add_view(request)
@@ -268,7 +305,7 @@ class AdminTest(TestCase):
 
         post_data = {
             '_save': 'test_mail',
-            "user": "2978",
+            "user": "1",
             "date_0": "2015-03-1",
             "date_1": "12:43",
             "method": "email",
@@ -283,6 +320,8 @@ class AdminTest(TestCase):
         self.assertEqual(response.url, "/admin/aklub/communication/")
 
     def test_user_in_campaign_changelist_post(self):
+        mommy.make("aklub.Campaign", id=1)
+        mommy.make("aklub.Userprofile", id=2978)
         model_admin = django_admin.site._registry[UserInCampaign]
         request = self.get_request()
         response = model_admin.add_view(request)
