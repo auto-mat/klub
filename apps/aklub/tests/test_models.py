@@ -32,14 +32,12 @@ from django.test import RequestFactory, TestCase
 
 from freezegun import freeze_time
 
+from .utils import ICON_FALSE, ICON_UNKNOWN
 from .. import admin, darujme
 from ..models import (
     AccountStatements, Campaign, Communication,
     Payment, Result, UserInCampaign, UserProfile,
 )
-
-ICON_FALSE = '<img src="/media/admin/img/icon-no.svg" alt="False" />'
-ICON_UNKNOWN = '<img src="/media/admin/img/icon-unknown.svg" alt="None" />'
 
 
 @freeze_time("2016-5-1")
@@ -116,13 +114,6 @@ class ModelTests(TestCase):
 
         self.assertEqual(self.u4.payment_delay(), ICON_FALSE)
         self.assertEqual(self.u4.regular_payments_info(), ICON_UNKNOWN)
-
-    def test_extra_payments(self):
-        Payment.objects.create(date=datetime.date(year=2016, month=5, day=1), user=self.u1, amount=250)
-        call_command('denorm_flush')
-        self.u1 = UserInCampaign.objects.get(pk=2978)
-        self.assertEqual(self.u1.extra_money, 150)
-        self.assertEqual(self.u1.extra_payments(), "150&nbsp;Kč")
 
 
 class CommunicationTest(TestCase):
