@@ -19,11 +19,11 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import django
-from django.contrib import admin as django_admin
+from django.contrib import admin as django_admin, auth
 from django.contrib.auth.models import User
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase
+from django.test import RequestFactory, TestCase
 
 from django_admin_smoke_tests import tests
 
@@ -38,8 +38,34 @@ from ..models import (
 )
 
 
-class AdminTest(tests.AdminSiteSmokeTest):
+class AdminSmokeTest(tests.AdminSiteSmokeTest):
     fixtures = ['conditions', 'users']
+
+    def post_request(self, post_data={}, params=None):
+        request = self.factory.post('/', data=post_data)
+        request.user = self.superuser
+        request._dont_enforce_csrf_checks = True
+        request.session = 'session'
+        request._messages = FallbackStorage(request)
+        return request
+
+
+class AdminTest(TestCase):
+    fixtures = ['conditions', 'users']
+
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.superuser = auth.get_user_model().objects.create_superuser(
+            'testuser',
+            'testuser@example.com',
+            'foo',
+        )
+
+    def get_request(self, params=None):
+        request = self.factory.get('/', params)
+
+        request.user = self.superuser
+        return request
 
     def post_request(self, post_data={}, params=None):
         request = self.factory.post('/', data=post_data)
@@ -322,11 +348,13 @@ class TestUserForm(TestCase):
     """ Tests for UserForm """
 
     def test_clean_email(self):
+        """ Ensure, that email is cleaned correctly """
         form = admin.UserForm()
         form.cleaned_data = {'email': 'foo@email.com'}
         self.assertEquals(form.clean_email(), 'foo@email.com')
 
     def test_clean_email_not_unique(self):
+        """ Test that the form doesn't allow to set used email """
         mommy.make("auth.User", email="foo@email.com")
         form = admin.UserForm()
         form.cleaned_data = {'email': 'foo@email.com'}
