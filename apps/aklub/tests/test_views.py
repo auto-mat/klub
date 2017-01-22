@@ -512,5 +512,5 @@ class TestOneTimePaymentWizard(TestCase):
         )
 
         users = views.OneTimePaymentWizard._find_matching_users(None, "foo@email.com", "Foo", "User")
-        expected_users = ['<UserInCampaign:   - foo@email.com (Foo campaign)>', '<UserInCampaign: User Foo -  (Foo campaign)>']
+        expected_users = ['<UserInCampaign: username1 - foo@email.com (Foo campaign)>', '<UserInCampaign: User Foo -  (Foo campaign)>']
         self.assertQuerysetEqual(users, expected_users)

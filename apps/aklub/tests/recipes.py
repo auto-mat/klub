@@ -25,5 +25,6 @@ userincampaign_recipe = Recipe(
     "aklub.UserInCampaign",
     campaign__name="Foo campaign",
     userprofile__user__is_active=True,
+    userprofile__user__username=seq("username"),
     variable_symbol=seq(1),
 )
