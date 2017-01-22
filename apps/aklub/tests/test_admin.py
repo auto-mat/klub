@@ -18,6 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+import django
 from django.contrib import admin as django_admin
 from django.contrib.auth.models import User
 from django.contrib.messages.storage.fallback import FallbackStorage
@@ -27,6 +28,8 @@ from django.test import TestCase
 from django_admin_smoke_tests import tests
 
 from freezegun import freeze_time
+
+from model_mommy import mommy
 
 from .. import admin
 from ..models import (
@@ -313,3 +316,19 @@ class AdminImportExportTests(TestCase):
             '"Domníváte se, že má město po zprovoznění tunelu Blanka omezit tranzit historickým centrem? '
             'Ano, hned se zprovozněním tunelu",editor,1,cs',
         )
+
+
+class TestUserForm(TestCase):
+    """ Tests for UserForm """
+
+    def test_clean_email(self):
+        form = admin.UserForm()
+        form.cleaned_data = {'email': 'foo@email.com'}
+        self.assertEquals(form.clean_email(), 'foo@email.com')
+
+    def test_clean_email_not_unique(self):
+        mommy.make("auth.User", email="foo@email.com")
+        form = admin.UserForm()
+        form.cleaned_data = {'email': 'foo@email.com'}
+        with self.assertRaises(django.forms.ValidationError):
+            form.clean_email()
