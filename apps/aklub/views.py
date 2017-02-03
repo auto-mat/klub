@@ -193,7 +193,7 @@ class RegularDarujmeUserForm_UserInCampaign(FieldNameMappingMixin, RegularUserFo
         fields = ('regular_frequency', 'regular_payments', 'regular_amount')
 
 
-class RegularDarujmeUserForm_UserInCampaignDPNK(RegularDarujmeUserForm_UserInCampaign):
+class RegularUserForm_UserInCampaignDPNK(RegularUserForm_UserInCampaign):
     regular_frequency = forms.CharField(
         label=_("Regular frequency adf"),
         required=False,
@@ -215,9 +215,9 @@ class RegularDarujmeUserForm_UserInCampaignDPNK(RegularDarujmeUserForm_UserInCam
 
 class RegularUserFormDPNK(RegularUserFormWithProfile):
     form_classes = OrderedDict([
-        ('user', RegularDarujmeUserForm_User),
-        ('userprofile', RegularDarujmeUserForm_UserProfile),
-        ('userincampaign', RegularDarujmeUserForm_UserInCampaignDPNK),
+        ('user', RegularUserForm_User),
+        ('userprofile', RegularUserForm_UserProfile),
+        ('userincampaign', RegularUserForm_UserInCampaignDPNK),
     ])
 
 

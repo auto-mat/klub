@@ -29,6 +29,7 @@ from django.test.utils import override_settings
 
 
 from .recipes import userincampaign_recipe
+from .utils import print_response  # noqa
 from .. import views
 from ..models import UserInCampaign, UserProfile
 
@@ -493,7 +494,7 @@ class VariableSymbolTests(TestCase):
 
     def test_out_of_vs(self):
         with self.assertRaises(AssertionError):
-            for i in range(1, 400):
+            for _ in range(1, 400):
                 vs = views.generate_variable_symbol()
                 user = User.objects.create(username=vs)
                 userprofile = UserProfile.objects.create(user=user)
