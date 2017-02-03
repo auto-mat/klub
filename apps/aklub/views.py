@@ -124,16 +124,6 @@ class RegularUserFormWithProfile(RegularUserForm):
     pass
 
 
-class RegularUserFormDPNK(RegularUserFormWithProfile):
-    profile_text = forms.CharField(
-        label=_("What is your reason (will be used on nakrmteautomat.cz page)?"),
-        help_text=_("Tell others why you support Auto*Mat"),
-        max_length=3000,
-        widget=forms.Textarea,
-        required=False,
-    )
-
-
 class FieldNameMappingMixin(object):
     def add_prefix(self, field_name):
         field_name = self.FIELD_NAME_MAPPING.get(field_name, field_name)
@@ -201,6 +191,34 @@ class RegularDarujmeUserForm_UserInCampaign(FieldNameMappingMixin, RegularUserFo
     class Meta:
         model = UserInCampaign
         fields = ('regular_frequency', 'regular_payments', 'regular_amount')
+
+
+class RegularDarujmeUserForm_UserInCampaignDPNK(RegularDarujmeUserForm_UserInCampaign):
+    regular_frequency = forms.CharField(
+        label=_("Regular frequency adf"),
+        required=False,
+        widget=forms.HiddenInput(),
+    )
+
+    regular_payments = forms.CharField(
+        label=_("Regular payments"),
+        required=False,
+        widget=forms.HiddenInput(),
+    )
+
+    def clean_regular_payments(self):
+        return 'regular'
+
+    def clean_regular_frequency(self):
+        return 'monthly'
+
+
+class RegularUserFormDPNK(RegularUserFormWithProfile):
+    form_classes = OrderedDict([
+        ('user', RegularDarujmeUserForm_User),
+        ('userprofile', RegularDarujmeUserForm_UserProfile),
+        ('userincampaign', RegularDarujmeUserForm_UserInCampaignDPNK),
+    ])
 
 
 class RegularDarujmeUserForm(RegularUserForm):
