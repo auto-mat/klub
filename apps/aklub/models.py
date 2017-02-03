@@ -1135,7 +1135,7 @@ class AccountStatements(models.Model):
         # TODO: This should be separated into a dedicated module
         payments_reader = csv.DictReader(
             codecs.iterdecode(self.csv_file, 'utf-8'),
-            delimiter=',',
+            delimiter=';',
             fieldnames=[
                 'operation_id', 'date', 'amount', 'currency', 'account', 'account_name',
                 'bank_code', 'bank_name', 'KS', 'VS',
