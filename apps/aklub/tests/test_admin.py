@@ -368,7 +368,7 @@ class AdminTest(TestCase):
         admin.pair_variable_symbols(None, request, [account_statement])
         payment.refresh_from_db()
         self.assertEqual(payment.user, user_in_campaign)
-        self.assertEqual(request._messages._queued_messages[0].message, 'Variable symbols succesfully paired.')
+        self.assertEqual('Variabilní symboly úspěšně spárovány.', request._messages._queued_messages[0].message)
 
 
 class AdminImportExportTests(TestCase):
@@ -404,7 +404,7 @@ class TestUserForm(TestCase):
         """ Ensure, that email is cleaned correctly """
         form = admin.UserForm()
         form.cleaned_data = {'email': 'foo@email.com'}
-        self.assertEquals(form.clean_email(), 'foo@email.com')
+        self.assertEqual(form.clean_email(), 'foo@email.com')
 
     def test_clean_email_not_unique(self):
         """ Test that the form doesn't allow to set used email """
