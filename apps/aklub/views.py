@@ -195,7 +195,7 @@ class RegularDarujmeUserForm_UserInCampaign(FieldNameMappingMixin, RegularUserFo
 
 class RegularUserForm_UserInCampaignDPNK(RegularUserForm_UserInCampaign):
     regular_frequency = forms.CharField(
-        label=_("Regular frequency adf"),
+        label=_("Regular frequency"),
         required=False,
         widget=forms.HiddenInput(),
     )
@@ -204,6 +204,12 @@ class RegularUserForm_UserInCampaignDPNK(RegularUserForm_UserInCampaign):
         label=_("Regular payments"),
         required=False,
         widget=forms.HiddenInput(),
+    )
+
+    regular_amount = forms.IntegerField(
+        label=_("Regular monthly amount"),
+        help_text=_("We are glad for every contribution. Minimum monthly payment is 150 Kč monthly"),
+        min_value=1,
     )
 
     def clean_regular_payments(self):
