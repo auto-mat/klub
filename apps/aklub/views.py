@@ -385,6 +385,25 @@ class RegularView(FormView):
         return super().__init__(*args, **kwargs)
 
 
+class RegularDPNKView(RegularView):
+    template_name = 'regular-dpnk.html'
+    form_class = RegularUserFormDPNK
+    success_template = 'thanks-dpnk.html'
+    source_slug = 'dpnk'
+
+
+class RegularWPView(RegularView):
+    template_name = 'regular-wp.html'
+    form_class = RegularUserFormWithProfile
+    success_template = 'thanks-wp.html'
+
+
+class RegularDarujmeView(RegularView):
+    template_name = 'regular.html'
+    form_class = RegularDarujmeUserForm
+    success_template = 'thanks-darujme.html'
+
+
 def donators(request):
     payed = Payment.objects.exclude(type='expected').values_list('user_id', flat=True)
     donators = UserInCampaign.objects.filter(userprofile__public=True, id__in=payed).order_by('userprofile__user__last_name')
