@@ -35,7 +35,7 @@ from django.db.models.functions import TruncMonth
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render_to_response
 from django.utils.decorators import method_decorator
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.cache import cache_page, never_cache
 from django.views.generic import View
 from django.views.generic.edit import FormView
@@ -207,8 +207,8 @@ class RegularUserForm_UserInCampaignDPNK(RegularUserForm_UserInCampaign):
     )
 
     regular_amount = forms.IntegerField(
-        label=_("Regular monthly amount"),
-        help_text=_("We are glad for every contribution. Minimum monthly payment is 150 Kč monthly"),
+        label=_("Amount of monthly donation"),
+        help_text=_("We are happy for any donation. However, full membership with advantages, starts from CZK 150 per month."),
         min_value=1,
     )
 

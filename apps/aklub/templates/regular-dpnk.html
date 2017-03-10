@@ -1,20 +1,24 @@
 {% load bootstrap %}
+{% load i18n %}
 
 
 <div>
 <form id="aklub-form" method="post" class="form-horizontal" action="http://{{ request.get_host }}{{ request.path }}">{% csrf_token %}
 
-Chcete bydlet ve městech, ve kterých je radost jezdit (do práce) na kole?
-Chcete se účastni soutěže do práce na kole bez nutnosti platit účastnický poplatek?
-Staňte se členem Klubu přátel Auto*Matu a buďte pravidelným dárcem.
-Stačí jen pár minut času a nevelký měsíční příspěvek.
-<br/>
-Pozn.: Pro nárok na nulový účastnický poplatek pro soutěž Do práce na kole je třeba, aby se váš první dar připsal na náš účet do konce dubna.
-<br/>
+  {% blocktrans %}
+  Do you prefer to live in cities, where cycling to work is a pleasure?
+  Would you like to participate in Do práce na kole competition without having to pay the fee?
+  Become a member of Friends club and donate regulary small contribution!
+  <br/>
+  To have Do Prace na kole participation fee for free, it is necessary, that your first donation is credited to our account by the end of April.
+  <br/>
+  {% endblocktrans %}
 
   {{ form|bootstrap }}
   <p>
-  Odesláním tohoto formuláře souhlasím se <a target="_blank" href="http://www.auto-mat.cz/zasady">Zásadami ochrany osobních údajů Auto*Matu</a>.
+  {% blocktrans %}
+  By sending this form, you aggree with <a target="_blank" href="http://www.auto-mat.cz/zasady">Auto*Mat privacy policy</a>.
+  {% endblocktrans %}
   </p>
   <input type="button" name="prev" value="Předchozí" class="btn btn-default" id="button-id-prev" onclick="window.location.href='/cs/zmenit_triko/'">
   <input type="submit" id="submit-id-submit" class="btn btn-primary" value="Odeslat" name="submit">

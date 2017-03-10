@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: AKlub\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-03-08 15:12+0100\n"
+"POT-Creation-Date: 2017-03-10 18:04+0100\n"
 "PO-Revision-Date: 2013-04-24 00:59+0100\n"
 "Last-Translator: Hynek Hanke <hanke@brailcom.org>\n"
 "Language-Team: Auto*Mat <hynek.hanke@auto-mat.cz>\n"
@@ -241,7 +241,7 @@ msgstr "Ano"
 msgid "No"
 msgstr "Ne"
 
-#: filters.py:81 models.py:58 models.py:286 views.py:407
+#: filters.py:81 models.py:58 models.py:286 views.py:426
 msgid "Email"
 msgstr "Email"
 
@@ -456,11 +456,11 @@ msgstr "Zaregistrován"
 msgid "Recruiter ID"
 msgstr "ID verbíře"
 
-#: models.py:276 views.py:405
+#: models.py:276 views.py:424
 msgid "First name"
 msgstr "Jméno"
 
-#: models.py:281 views.py:406
+#: models.py:281 views.py:425
 msgid "Surname"
 msgstr "Příjmení"
 
@@ -751,7 +751,7 @@ msgstr ""
 msgid "Additional information"
 msgstr "Rozšiřující informace"
 
-#: models.py:646 models.py:1233 views.py:420
+#: models.py:646 models.py:1233 views.py:439
 msgid "Variable symbol"
 msgstr "Variabilní symbol"
 
@@ -921,7 +921,7 @@ msgstr "V hotovosti"
 msgid "Date of payment"
 msgstr "Datum platby"
 
-#: models.py:1216 views.py:408
+#: models.py:1216 views.py:427
 msgid "Amount"
 msgstr "Částka"
 
@@ -1325,6 +1325,38 @@ msgstr "Naverbovaní uživatelé"
 msgid "Generate"
 msgstr "Generuj"
 
+#: templates/regular-dpnk.html:8
+msgid ""
+"\n"
+"  Do you prefer to live in cities, where cycling to work is a pleasure?\n"
+"  Would you like to participate in Do práce na kole competition without "
+"having to pay the fee?\n"
+"  Become a member of Friends club and donate regulary small contribution!\n"
+"  <br/>\n"
+"  To have Do Prace na kole participation fee for free, it is necessary, that "
+"your first donation is credited to our account by the end of April.\n"
+"  <br/>\n"
+"  "
+msgstr ""
+"\n"
+"Chcete bydlet ve městech, ve kterých je radost jezdit (do práce) na kole? "
+"Chcete se účastni soutěže do práce na kole bez nutnosti platit účastnický "
+"poplatek? Staňte se členem Klubu přátel Auto*Matu a buďte pravidelným dárcem."
+"Stačí jen pár minut času a nevelký měsíční příspěvek.<br/>Pozn.: Pro nárok "
+"na nulový účastnický poplatek pro soutěž Do práce na kole je třeba, aby se "
+"váš první dar připsal na náš účet do konce dubna.<br/>"
+
+#: templates/regular-dpnk.html:19
+msgid ""
+"\n"
+"  By sending this form, you aggree with <a target=\"_blank\" href=\"http://"
+"www.auto-mat.cz/zasady\">Auto*Mat privacy policy</a>.\n"
+"  "
+msgstr ""
+"\n"
+"Odesláním tohoto formuláře souhlasím se <a target=\"_blank\" href=\"http://"
+"www.auto-mat.cz/zasady\">Zásadami ochrany osobních údajů Auto*Matu</a>."
+
 #: views.py:82
 msgid "Telefon"
 msgstr "Telefon"
@@ -1342,12 +1374,13 @@ msgid "Regular frequency"
 msgstr "Frekvence pravidelné platby"
 
 #: views.py:210
-msgid "Regular monthly amount"
+msgid "Amount of monthly donation"
 msgstr "Částka pravidelné měsíční platby"
 
 #: views.py:211
 msgid ""
-"We are glad for every contribution. Minimum monthly payment is 150 Kč monthly"
+"We are happy for any donation. However, full membership with advantages, "
+"starts from CZK 150 per month."
 msgstr ""
 "Jsme rádi za jakýkoliv dar. Plné členství s výhodami však začíná od 150 Kč "
 "měsíčně"
@@ -1356,15 +1389,15 @@ msgstr ""
 msgid "Repeated registration"
 msgstr "Opakovaná registrace"
 
-#: views.py:413
+#: views.py:432
 msgid "Account"
 msgstr "Účet"
 
-#: views.py:571
+#: views.py:590
 msgid "Auto*Mat: Reminder of variable symbol"
 msgstr "Auto*Mat: Připomínka variabilního symbolu"
 
-#: views.py:573
+#: views.py:592
 #, python-format
 msgid ""
 "Dear friend,\n"
@@ -1400,22 +1433,17 @@ msgstr ""
 "S pozdravem,\n"
 "Auto*Mat\n"
 
-#: views.py:626
+#: views.py:645
 msgid "None of these accounts"
 msgstr "Žádný z těchto účtů"
 
-#: views.py:665
+#: views.py:684
 msgid "Member statistics"
 msgstr "Statistiky členů"
 
-#: views.py:687
+#: views.py:706
 msgid "Payments statistics"
 msgstr "Statistiky plateb"
-
-#, fuzzy
-#~| msgid "Regular frequency"
-#~ msgid "Regular frequency adf"
-#~ msgstr "Frekvence pravidelné platby"
 
 #~ msgid "Exception during pairing: %s"
 #~ msgstr "Výjimka během párování: %s"
