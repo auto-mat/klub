@@ -41,7 +41,7 @@ TIME_ZONE = 'Europe/Prague'
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
-LANGUAGE_CODE = 'cs-CZ'
+LANGUAGE_CODE = 'cs'
 
 SITE_ID = 3
 
