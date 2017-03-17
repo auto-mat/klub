@@ -777,9 +777,9 @@ class UserInCampaign(models.Model):
 
     def person_name(self):
         try:
-           return self.userprofile.__str__()
+            return self.userprofile.__str__()
         except UserProfile.DoesNotExist:  # This happens, when UserInCampaign is cached, but it is deleted already
-           return "No UserProfile"
+            return "No UserProfile"
     person_name.short_description = _("Full name")
 
     def requires_action(self):

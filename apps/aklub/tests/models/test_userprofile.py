@@ -33,7 +33,7 @@ class TestStr(TestCase):
             user__first_name="Foo",
             user__last_name="User",
         )
-        self.assertEquals(str(t), "User Foo")
+        self.assertEqual(str(t), "User Foo")
 
     def test_username(self):
         """ Test, that __str__ works, when only username is set """
@@ -41,7 +41,7 @@ class TestStr(TestCase):
             "aklub.UserProfile",
             user__username="foo_user",
         )
-        self.assertEquals(str(t), "foo_user")
+        self.assertEqual(str(t), "foo_user")
 
     def test_id(self):
         """ Test, that __str__ works, when no user is set """
@@ -50,4 +50,4 @@ class TestStr(TestCase):
             user=None,
             id=1,
         )
-        self.assertEquals(str(t), "UserProfile: 1")
+        self.assertEqual(str(t), "UserProfile: 1")

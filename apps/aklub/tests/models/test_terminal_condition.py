@@ -39,7 +39,7 @@ class TestVariableDescription(TestCase):
             "aklub.TerminalCondition",
             variable="UserInCampaign.regular_payments",
         )
-        self.assertEquals(
+        self.assertEqual(
             t.variable_description(),
             "\n"
             "    A wrapper for a deferred-loading field. When the value is read from this\n"
@@ -53,7 +53,7 @@ class TestVariableDescription(TestCase):
             "aklub.TerminalCondition",
             variable="action",
         )
-        self.assertEquals(
+        self.assertEqual(
             t.variable_description(),
             "action",
         )
@@ -64,7 +64,7 @@ class TestVariableDescription(TestCase):
             "aklub.TerminalCondition",
             variable=None,
         )
-        self.assertEquals(
+        self.assertEqual(
             t.variable_description(),
             None,
         )
@@ -81,35 +81,35 @@ class TestGetQuerystring(TestCase):
 
     def test_equals(self):
         """ Test if '=' as @operation works """
-        self.assertEquals(self.t.get_querystring("UserInCampaign.foo.bar", "="), "foo__bar")
+        self.assertEqual(self.t.get_querystring("UserInCampaign.foo.bar", "="), "foo__bar")
 
     def test_notequals(self):
         """ Test if '!=' as @operation works """
-        self.assertEquals(self.t.get_querystring("UserInCampaign.foo.bar", "!="), "foo__bar")
+        self.assertEqual(self.t.get_querystring("UserInCampaign.foo.bar", "!="), "foo__bar")
 
     def test_lt(self):
         """ Test if '<' as @operation works """
-        self.assertEquals(self.t.get_querystring("UserInCampaign.foo.bar", "<"), "foo__bar__lt")
+        self.assertEqual(self.t.get_querystring("UserInCampaign.foo.bar", "<"), "foo__bar__lt")
 
     def test_gt(self):
         """ Test if '>' as @operation works """
-        self.assertEquals(self.t.get_querystring("UserInCampaign.foo.bar", ">"), "foo__bar__gt")
+        self.assertEqual(self.t.get_querystring("UserInCampaign.foo.bar", ">"), "foo__bar__gt")
 
     def test_lte(self):
         """ Test if '<=' as @operation works """
-        self.assertEquals(self.t.get_querystring("UserInCampaign.foo.bar", "<="), "foo__bar__lte")
+        self.assertEqual(self.t.get_querystring("UserInCampaign.foo.bar", "<="), "foo__bar__lte")
 
     def test_gte(self):
         """ Test if '>=' as @operation works """
-        self.assertEquals(self.t.get_querystring("UserInCampaign.foo.bar", ">="), "foo__bar__gte")
+        self.assertEqual(self.t.get_querystring("UserInCampaign.foo.bar", ">="), "foo__bar__gte")
 
     def test_contains(self):
         """ Test if 'contains' as @operation works """
-        self.assertEquals(self.t.get_querystring("UserInCampaign.foo.bar", "contains"), "foo__bar__contains")
+        self.assertEqual(self.t.get_querystring("UserInCampaign.foo.bar", "contains"), "foo__bar__contains")
 
     def test_icontains(self):
         """ Test if 'icontains' as @operation works """
-        self.assertEquals(self.t.get_querystring("UserInCampaign.foo.bar", "icontains"), "foo__bar__icontains")
+        self.assertEqual(self.t.get_querystring("UserInCampaign.foo.bar", "icontains"), "foo__bar__icontains")
 
 
 class BaseTestCase(TestCase):

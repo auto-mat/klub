@@ -45,7 +45,7 @@ class TestNoUpgrade(TestCase):
         user_in_campaign = self.userincampaign.make(
             regular_payments="onetime",
         )
-        self.assertEquals(
+        self.assertEqual(
             user_in_campaign.no_upgrade,
             False,
         )
@@ -55,7 +55,7 @@ class TestNoUpgrade(TestCase):
         user_in_campaign = self.userincampaign.make(
             regular_payments="regular",
         )
-        self.assertEquals(
+        self.assertEqual(
             user_in_campaign.no_upgrade,
             False,
         )
@@ -69,7 +69,7 @@ class TestNoUpgrade(TestCase):
             ],
         )
         user_in_campaign.save()
-        self.assertEquals(
+        self.assertEqual(
             user_in_campaign.no_upgrade,
             False,
         )
@@ -84,7 +84,7 @@ class TestNoUpgrade(TestCase):
             ],
         )
         user_in_campaign.save()
-        self.assertEquals(
+        self.assertEqual(
             user_in_campaign.no_upgrade,
             False,
         )
@@ -99,7 +99,7 @@ class TestNoUpgrade(TestCase):
             ],
         )
         user_in_campaign.save()
-        self.assertEquals(
+        self.assertEqual(
             user_in_campaign.no_upgrade,
             True,
         )

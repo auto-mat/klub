@@ -43,37 +43,37 @@ class FilterTests(TestCase):
     def test_payment_assignment_filter(self):
         f = filters.PaymentsAssignmentsFilter(self.request, {"user_assignment": "empty"}, User, None)
         q = f.queryset(self.request, Payment.objects.all())
-        self.assertEquals(q.count(), 1)
+        self.assertEqual(q.count(), 1)
 
     def test_user_condition_filter(self):
         f = filters.UserConditionFilter(self.request, {"user_condition": 2}, User, None)
         q = f.queryset(self.request, UserInCampaign.objects.all())
-        self.assertEquals(q.count(), 4)
+        self.assertEqual(q.count(), 4)
 
     def test_active_camaign_filter_no(self):
         f = filters.ActiveCampaignFilter(self.request, {"active": "no"}, User, None)
         q = f.queryset(self.request, Campaign.objects.all())
-        self.assertEquals(q.count(), 0)
+        self.assertEqual(q.count(), 0)
 
     def test_active_camaign_filter_yes(self):
         f = filters.ActiveCampaignFilter(self.request, {"active": "yes"}, User, None)
         q = f.queryset(self.request, Campaign.objects.all())
-        self.assertEquals(q.count(), 3)
+        self.assertEqual(q.count(), 3)
 
     def test_email_filter(self):
         f = filters.EmailFilter(self.request, {}, User, None)
         q = f.queryset(self.request, User.objects.all())
-        self.assertEquals(q.count(), 4)
+        self.assertEqual(q.count(), 4)
 
     def test_email_filter_duplicate(self):
         f = filters.EmailFilter(self.request, {"email": "duplicate"}, User, None)
         q = f.queryset(self.request, User.objects.all())
-        self.assertEquals(q.count(), 0)
+        self.assertEqual(q.count(), 0)
 
     def test_email_filter_blank(self):
         f = filters.EmailFilter(self.request, {"email": "blank"}, User, None)
         q = f.queryset(self.request, User.objects.all())
-        self.assertEquals(q.count(), 0)
+        self.assertEqual(q.count(), 0)
 
     def test_show_payments_by_year_blank(self):
         m = MagicMock()

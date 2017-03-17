@@ -30,7 +30,7 @@ class TestStr(TestCase):
             "aklub.Condition",
             name="Foo condition",
         )
-        self.assertEquals(str(t), "Foo condition")
+        self.assertEqual(str(t), "Foo condition")
 
 
 class TestConditionString(TestCase):
@@ -43,7 +43,7 @@ class TestConditionString(TestCase):
             name="Foo condition",
             operation="and",
         )
-        self.assertEquals(t.condition_string(), "Foo condition()")
+        self.assertEqual(t.condition_string(), "Foo condition()")
 
     def test_nor(self):
         """ Test if nor operation works """
@@ -52,7 +52,7 @@ class TestConditionString(TestCase):
             name="Foo condition",
             operation="nor",
         )
-        self.assertEquals(t.condition_string(), "not(Foo condition())")
+        self.assertEqual(t.condition_string(), "not(Foo condition())")
 
     def test_more_operands(self):
         """ Testing more operands """
@@ -65,4 +65,4 @@ class TestConditionString(TestCase):
                 mommy.make("aklub.Condition", operation="nor"),
             ],
         )
-        self.assertEquals(t.condition_string(), "not(Foo condition(None() or not(None())))")
+        self.assertEqual(t.condition_string(), "not(Foo condition(None() or not(None())))")
