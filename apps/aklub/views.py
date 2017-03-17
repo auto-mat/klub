@@ -93,6 +93,11 @@ class RegularUserForm_UserProfile(forms.ModelForm):
 class RegularUserForm_UserInCampaign(forms.ModelForm):
     required_css_class = 'required'
 
+    regular_payments = forms.CharField(
+        label=_("Regular payments"),
+        required=False,
+        widget=forms.HiddenInput(),
+    )
     regular_frequency = forms.ChoiceField(
         label=_("Regular payments"),
         choices=UserInCampaign.REGULAR_PAYMENT_FREQUENCIES,
@@ -105,9 +110,12 @@ class RegularUserForm_UserInCampaign(forms.ModelForm):
         min_value=1,
     )
 
+    def clean_regular_payments(self):
+        return 'regular'
+
     class Meta:
         model = UserInCampaign
-        fields = ('regular_frequency', 'regular_amount')
+        fields = ('regular_frequency', 'regular_amount', 'regular_payments')
 
 
 class RegularUserForm(MultiModelForm):
@@ -194,14 +202,9 @@ class RegularDarujmeUserForm_UserInCampaign(FieldNameMappingMixin, RegularUserFo
 
 
 class RegularUserForm_UserInCampaignDPNK(RegularUserForm_UserInCampaign):
+
     regular_frequency = forms.CharField(
         label=_("Regular frequency"),
-        required=False,
-        widget=forms.HiddenInput(),
-    )
-
-    regular_payments = forms.CharField(
-        label=_("Regular payments"),
         required=False,
         widget=forms.HiddenInput(),
     )
@@ -211,9 +214,6 @@ class RegularUserForm_UserInCampaignDPNK(RegularUserForm_UserInCampaign):
         help_text=_("We are happy for any donation. However, full membership with advantages, starts from CZK 150 per month."),
         min_value=1,
     )
-
-    def clean_regular_payments(self):
-        return 'regular'
 
     def clean_regular_frequency(self):
         return 'monthly'

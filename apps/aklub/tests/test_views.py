@@ -217,7 +217,10 @@ class ViewsTests(ClearCacheMixin, TestCase):
         self.assertEqual(User.objects.get(email="test@test.cz").get_full_name(), "Testing User")
         self.assertEqual(User.objects.get(email="test@test.cz").username, "test4")
         self.assertEqual(UserProfile.objects.get(user__email="test@test.cz").telephone, '111222333')
-        self.assertEqual(UserInCampaign.objects.get(userprofile__user__email="test@test.cz").regular_amount, 321)
+        new_user = UserInCampaign.objects.get(userprofile__user__email="test@test.cz")
+        self.assertEqual(new_user.regular_amount, 321)
+        self.assertEqual(new_user.regular_payments, 'regular')
+        self.assertEqual(new_user.regular_frequency, 'monthly')
 
     def test_regular(self):
         address = reverse('regular')
@@ -234,7 +237,9 @@ class ViewsTests(ClearCacheMixin, TestCase):
         self.assertEqual(User.objects.get(email="test@test.cz").get_full_name(), "Testing User")
         self.assertEqual(User.objects.get(email="test@test.cz").username, "test4")
         self.assertEqual(UserProfile.objects.get(user__email="test@test.cz").telephone, '111222333')
-        self.assertEqual(UserInCampaign.objects.get(userprofile__user__email="test@test.cz").regular_amount, 321)
+        new_user = UserInCampaign.objects.get(userprofile__user__email="test@test.cz")
+        self.assertEqual(new_user.regular_amount, 321)
+        self.assertEqual(new_user.regular_payments, 'regular')
 
     post_data_darujme = {
         "recurringfrequency": "28",
@@ -255,6 +260,9 @@ class ViewsTests(ClearCacheMixin, TestCase):
         self.assertContains(response, '<tr><th>Částka: </th><td>200 Kč</td></tr>', html=True)
         self.assertContains(response, '<tr><th>Frekvence: </th><td>Měsíčně</td></tr>', html=True)
         self.assertContains(response, '<tr><th>Pravidelné platby: </th><td>Pravidelné platby</td></tr>', html=True)
+        new_user = UserInCampaign.objects.get(userprofile__user__email="test@email.cz")
+        self.assertEqual(new_user.regular_amount, 200)
+        self.assertEqual(new_user.regular_payments, 'regular')
 
     def test_regular_darujme_ajax(self):
         address = reverse('regular-darujme')
@@ -272,6 +280,9 @@ class ViewsTests(ClearCacheMixin, TestCase):
                 'valid': True,
             },
         )
+        new_user = UserInCampaign.objects.get(userprofile__user__email="test@email.cz")
+        self.assertEqual(new_user.regular_amount, 200)
+        self.assertEqual(new_user.regular_payments, 'regular')
 
     post_data_darujme_onetime = post_data_darujme.copy()
     post_data_darujme_onetime["recurringfrequency"] = ""
@@ -411,7 +422,9 @@ class ViewsTests(ClearCacheMixin, TestCase):
         self.assertEqual(User.objects.get(email="test@test.cz").get_full_name(), "Testing User")
         self.assertEqual(User.objects.get(email="test@test.cz").username, "test4")
         self.assertEqual(UserProfile.objects.get(user__email="test@test.cz").telephone, '111222333')
-        self.assertEqual(UserInCampaign.objects.get(userprofile__user__email="test@test.cz").regular_amount, 321)
+        new_user = UserInCampaign.objects.get(userprofile__user__email="test@test.cz")
+        self.assertEqual(new_user.regular_amount, 321)
+        self.assertEqual(new_user.regular_payments, 'regular')
 
     def test_onetime(self):
         address = reverse('onetime')
@@ -457,7 +470,9 @@ class ViewsTests(ClearCacheMixin, TestCase):
         self.assertEqual(User.objects.get(email="test@test.cz").get_full_name(), "Testing User")
         self.assertEqual(User.objects.get(email="test@test.cz").username, "test4")
         self.assertEqual(UserProfile.objects.get(user__email="test@test.cz").telephone, '+420123456789')
-        self.assertEqual(UserInCampaign.objects.get(userprofile__user__email="test@test.cz").note, 'Note')
+        new_user = UserInCampaign.objects.get(userprofile__user__email="test@test.cz")
+        self.assertEqual(new_user.note, 'Note')
+        self.assertEqual(new_user.regular_payments, 'onetime')
 
     def test_onetime_existing_email(self):
         address = reverse('onetime')
