@@ -1433,7 +1433,7 @@ class Communication(models.Model):
     subject = models.CharField(
         verbose_name=_("Subject"),
         help_text=_("The topic of this communication"),
-        max_length=100,
+        max_length=130,
     )
     summary = models.TextField(
         verbose_name=_("Text"),
@@ -1883,11 +1883,11 @@ class AutomaticCommunication(models.Model):
     )
     subject = models.CharField(
         verbose_name=_("Subject"),
-        max_length=100,
+        max_length=130,
     )
     subject_en = models.CharField(
         verbose_name=_("English subject"),
-        max_length=100,
+        max_length=130,
         blank=True,
         null=True,
     )
@@ -1953,12 +1953,12 @@ class MassCommunication(models.Model):
     )
     subject = models.CharField(
         verbose_name=_("Subject"),
-        max_length=100,
+        max_length=130,
     )
     subject_en = models.CharField(
         verbose_name=_("English subject"),
         help_text=_("English version of the subject. If empty, English speaking users will not receive this communication."),
-        max_length=100,
+        max_length=130,
         blank=True,
         null=True,
     )
