@@ -24,7 +24,7 @@ django-related-admin
 -e git+https://github.com/PetrDlouhy/django-denorm.git@develop#egg=django-denorm
 gunicorn
 pypdf2  # for pdf result testing
--e git+https://github.com/PetrDlouhy/django-betterforms.git#egg=django-betterforms  # for fields/errors support
+-e git+https://github.com/fusionbox/django-betterforms.git#egg=django-betterforms  # for fields/errors support
 django-adminactions
 django-admin-large-initial-data
 
