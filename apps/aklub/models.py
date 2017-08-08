@@ -418,7 +418,7 @@ class UserProfile(models.Model):
         verbose_name=_("Telephone"),
         max_length=100,
         blank=True,
-        validators=(RegexValidator(r'^[0-9+ ]*$', _("Telephone must consist of numbers, spaces and + sign")),),
+        validators=[RegexValidator(r'^[0-9+ ]*$', _("Telephone must consist of numbers, spaces and + sign")), ],
     )
     street = models.CharField(
         verbose_name=_("Street and number"),
