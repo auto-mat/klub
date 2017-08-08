@@ -522,7 +522,7 @@ class CommunicationAdmin(RelatedFieldAdmin, admin.ModelAdmin):
         'dispatched',
         'user__userprofile',
         'user__campaign',
-        'user__telephone_url',
+        'user__userprofile__telephone_url',
         'user__next_communication_date',
         'method',
         'result',
