@@ -225,9 +225,9 @@ def create_payment(data, payments, skipped_payments):
         user=user,
         defaults={
             'telephone': data['telefon'],
-            'street': data['ulice'],
-            'city': data['mesto'],
-            'zip_code': data['psc'],
+            'street': data.get('ulice', ""),
+            'city': data.get('mesto', ""),
+            'zip_code': data.get('psc', ""),
         },
     )
     userincampaign, userincampaign_created = UserInCampaign.objects.get_or_create(
@@ -235,7 +235,7 @@ def create_payment(data, payments, skipped_payments):
         campaign=campaign,
         defaults={
             'variable_symbol': generate_variable_symbol(),
-            'wished_tax_confirmation': data['potvrzeni_daru'],
+            'wished_tax_confirmation': data.get('potvrzeni_daru', True),
             'regular_frequency': cetnost,
             'regular_payments': regular_payments,
             'regular_amount': amount if cetnost else None,
