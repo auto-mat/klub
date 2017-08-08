@@ -13,7 +13,7 @@ django-chart-tools
 django-mass-edit
 python-memcached
 django-import-export
--e git+https://github.com/PetrDlouhy/django-qsstats-magic.git#egg=django-qsstats-magic  # for Python 3 fixes
+django-qsstats-magic
 python-dateutil
 html2text
 xlrd
@@ -31,8 +31,8 @@ django-admin-large-initial-data
 
 -e git+https://github.com/PetrDlouhy/django-admin-tools-stats@develop#egg=django-admin-tools-stats
 django-bower
--e git+https://github.com/infoscout/django-cache-utils.git#egg=django-cache-utils
+djcacheutils
 
--e git+https://github.com/PetrDlouhy/django-adminfilters.git@develop#egg=django-adminfilters  # for empty variable fix
+django-adminfilters
 
 django-post-office
