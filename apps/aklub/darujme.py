@@ -123,7 +123,7 @@ def create_statement_from_API(campaign):
 
 def get_campaign(data):
     if 'cislo_projektu' in data:
-        return Campaign.objects.get(darujme_api_id=data['cislo_projektu'])
+        return Campaign.objects.get(darujme_project_id=data['cislo_projektu'])
     else:
         return Campaign.objects.get(darujme_name=data['projekt'])
 

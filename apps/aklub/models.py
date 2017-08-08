@@ -118,6 +118,12 @@ class Campaign(models.Model):
         blank=True,
         null=True,
     )
+    darujme_project_id = models.IntegerField(
+        verbose_name=_("Darujme.cz project ID"),
+        default=None,
+        blank=True,
+        null=True,
+    )
     darujme_api_id = models.IntegerField(
         verbose_name=_("Darujme.cz API ID"),
         default=None,

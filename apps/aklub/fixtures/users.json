@@ -253,6 +253,7 @@
             "slug": "klub",
             "allow_statistics": true,
             "darujme_api_id": 38571205,
+            "darujme_project_id": 38571205,
             "acquisition_campaign": true,
             "darujme_name": "Klub přátel Auto*Matu"
         },
@@ -266,6 +267,7 @@
             "slug": "zmj",
             "allow_statistics": true,
             "darujme_api_id": 13934713,
+            "darujme_project_id": 13934713,
             "acquisition_campaign": true,
             "darujme_name": "Zažít město jinak"
         },

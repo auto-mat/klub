@@ -735,6 +735,7 @@ class CampaignAdmin(admin.ModelAdmin):
         'name',
         'darujme_name',
         'darujme_api_id',
+        'darujme_project_id',
         'created',
         'terminated',
         'number_of_members',
