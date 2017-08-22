@@ -9,7 +9,7 @@ from collections import OrderedDict
 from xml.dom import minidom
 
 from aklub.models import AccountStatements, Campaign, Payment, UserInCampaign, UserProfile, str_to_datetime, str_to_datetime_xml
-from aklub.views import generate_variable_symbol
+from aklub.views import generate_variable_symbol, get_unique_username
 
 from django.contrib.auth.models import User
 
@@ -200,12 +200,7 @@ def create_payment(data, payments, skipped_payments):
         p.user_identification = data['email']
 
     campaign = get_campaign(data)
-    i = User.objects.count()
-    while True:
-        username = '%s%s' % (data['email'].split('@', 1)[0], i)
-        i += 1
-        if not User.objects.filter(username=username).exists():
-            break
+    username = get_unique_username(data['email'])
 
     user, user_created = User.objects.get_or_create(
         email=data['email'],

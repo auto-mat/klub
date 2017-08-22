@@ -60,7 +60,7 @@ class RegularUserForm_User(forms.ModelForm):
 
     def clean(self):
         if not self.errors:
-            self.cleaned_data['username'] = '%s%s' % (self.cleaned_data['email'].split('@', 1)[0], User.objects.count())
+            self.cleaned_data['username'] = get_unique_username(self.cleaned_data['email'])
         super().clean()
         return self.cleaned_data
 
@@ -233,6 +233,16 @@ class RegularDarujmeUserForm(RegularUserForm):
         ('userprofile', RegularDarujmeUserForm_UserProfile),
         ('userincampaign', RegularDarujmeUserForm_UserInCampaign),
     ])
+
+
+def get_unique_username(email):
+    i = User.objects.count()
+    while True:
+        username = '%s%s' % (email.split('@', 1)[0], i)
+        i += 1
+        if not User.objects.filter(username=username).exists():
+            break
+    return username
 
 
 def generate_variable_symbol():
@@ -481,7 +491,7 @@ class OneTimePaymentWizardFormUnknown_User(forms.ModelForm):
 
     def clean(self):
         if not self.errors:
-            self.cleaned_data['username'] = '%s%s' % (self.cleaned_data['email'].split('@', 1)[0], User.objects.count())
+            self.cleaned_data['username'] = get_unique_username(self.cleaned_data['email'])
         super().clean()
         return self.cleaned_data
 
