@@ -149,10 +149,7 @@ def create_payment(data, payments, skipped_payments):
     if data['email'] == '':
         return
 
-    if 'id_platby' in data:
-        id_platby = data['id_platby']
-    else:
-        id_platby = None
+    id_platby = data.get('id_platby')
 
     if id_platby and Payment.objects.filter(type='darujme', SS=data['id'], operation_id=None).exists():
         payment = Payment.objects.filter(type='darujme', SS=data['id'], operation_id=None).first()
