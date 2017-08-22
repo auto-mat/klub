@@ -2045,3 +2045,6 @@ class TaxConfirmation(models.Model):
             verbose_name = _("Tax confirmation")
             verbose_name_plural = _("Tax confirmations")
             unique_together = ('user_profile', 'year',)
+
+
+User._meta.get_field('email').__dict__['_unique'] = True

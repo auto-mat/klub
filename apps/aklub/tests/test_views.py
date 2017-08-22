@@ -509,9 +509,9 @@ class VariableSymbolTests(TestCase):
 
     def test_out_of_vs(self):
         with self.assertRaises(AssertionError):
-            for _ in range(1, 400):
+            for i in range(1, 400):
                 vs = views.generate_variable_symbol()
-                user = User.objects.create(username=vs)
+                user = User.objects.create(username=vs, email="test%s@test.cz" % i)
                 userprofile = UserProfile.objects.create(user=user)
                 UserInCampaign.objects.create(variable_symbol=vs, campaign_id=1, userprofile=userprofile)
 
@@ -528,5 +528,8 @@ class TestOneTimePaymentWizard(TestCase):
         )
 
         users = views.OneTimePaymentWizard._find_matching_users(None, "foo@email.com", "Foo", "User")
-        expected_users = ['<UserInCampaign: username1 - foo@email.com (Foo campaign)>', '<UserInCampaign: User Foo -  (Foo campaign)>']
+        expected_users = [
+            '<UserInCampaign: username1 - foo@email.com (Foo campaign)>',
+            '<UserInCampaign: User Foo - test@email.cz1 (Foo campaign)>',
+        ]
         self.assertQuerysetEqual(users, expected_users)

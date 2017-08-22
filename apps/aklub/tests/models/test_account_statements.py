@@ -23,9 +23,7 @@ import datetime
 from collections import OrderedDict
 from unittest.mock import MagicMock, patch
 
-from django.contrib.auth.models import User
 from django.core.files import File
-from django.forms import ValidationError
 from django.test import RequestFactory, TestCase
 
 from model_mommy import mommy
@@ -204,13 +202,6 @@ class AccountStatementTests(TestCase):
                 ),
             ],
         )
-
-    def test_darujme_xml_statement_duplicate_email(self):
-        u2 = User.objects.get(pk=3)
-        u2.email = "test.user@email.cz"
-        u2.save()
-        with self.assertRaises(ValidationError):
-            darujme.create_statement_from_file("apps/aklub/test_data/darujme.xml")
 
     @patch("urllib.request")
     def test_darujme_action(self, urllib_request):

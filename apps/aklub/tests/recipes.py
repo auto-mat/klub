@@ -26,5 +26,6 @@ userincampaign_recipe = Recipe(
     campaign__name="Foo campaign",
     userprofile__user__is_active=True,
     userprofile__user__username=seq("username"),
+    userprofile__user__email=seq("test@email.cz"),
     variable_symbol=seq(1),
 )

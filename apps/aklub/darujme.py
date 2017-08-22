@@ -12,8 +12,6 @@ from aklub.models import AccountStatements, Campaign, Payment, UserInCampaign, U
 from aklub.views import generate_variable_symbol
 
 from django.contrib.auth.models import User
-from django.forms import ValidationError
-from django.utils.translation import ugettext_lazy as _
 
 import xlrd
 
@@ -202,25 +200,21 @@ def create_payment(data, payments, skipped_payments):
         p.user_identification = data['email']
 
     campaign = get_campaign(data)
-    try:
-        i = User.objects.count()
-        while True:
-            username = '%s%s' % (data['email'].split('@', 1)[0], i)
-            i += 1
-            if not User.objects.filter(username=username).exists():
-                break
+    i = User.objects.count()
+    while True:
+        username = '%s%s' % (data['email'].split('@', 1)[0], i)
+        i += 1
+        if not User.objects.filter(username=username).exists():
+            break
 
-        user, user_created = User.objects.get_or_create(
-            email=data['email'],
-            defaults={
-                'first_name': data['jmeno'],
-                'last_name': data['prijmeni'],
-                'username': username,
-            },
-        )
-    except User.MultipleObjectsReturned:
-        log.info('Duplicate email %s' % data['email'])
-        raise ValidationError(_('Duplicate email %(email)s'), params={'email': data['email']})
+    user, user_created = User.objects.get_or_create(
+        email=data['email'],
+        defaults={
+            'first_name': data['jmeno'],
+            'last_name': data['prijmeni'],
+            'username': username,
+        },
+    )
     userprofile, userprofile_created = UserProfile.objects.get_or_create(
         user=user,
         defaults={
