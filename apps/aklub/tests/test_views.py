@@ -85,14 +85,14 @@ class ViewsTests(ClearCacheMixin, TestCase):
         self.assertContains(
             response,
             '<div class="dashboard-module-content"> <p>Celkový počet položek: 2</p><ul class="stacked">'
-            '<li class="odd"><a href="/admin/aklub/userincampaign/3/change/">Payments Without</a></li>'
-            '<li class="even"><a href="/admin/aklub/userincampaign/2978/change/">User Test</a></li>'
+            '<li class="odd"><a href="/aklub/userincampaign/3/change/">Payments Without</a></li>'
+            '<li class="even"><a href="/aklub/userincampaign/2978/change/">User Test</a></li>'
             '</ul> </div>',
             html=True,
         )
 
     def test_aklub_admin_page(self):
-        address = "/admin/aklub/"
+        address = "/aklub/"
         response = self.client.get(address)
         self.assertContains(response, "<h2>Nedávné akce</h2>", html=True)
 
