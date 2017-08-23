@@ -85,7 +85,7 @@ class AdminTest(TestCase):
         queryset = UserInCampaign.objects.all()
         response = admin.send_mass_communication(model_admin, request, queryset)
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, "/admin/aklub/masscommunication/add/?send_to_users=3%2C4%2C2978%2C2979")
+        self.assertEqual(response.url, "/aklub/masscommunication/add/?send_to_users=3%2C4%2C2978%2C2979")
 
     def test_send_mass_communication_userprofile(self):
         """
@@ -102,7 +102,7 @@ class AdminTest(TestCase):
         queryset = UserProfile.objects.all()
         response = admin.send_mass_communication_distinct(model_admin, request, queryset)
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, "/admin/aklub/masscommunication/add/?send_to_users=3%2C2978%2C2979")
+        self.assertEqual(response.url, "/aklub/masscommunication/add/?send_to_users=3%2C2978%2C2979")
 
     @freeze_time("2017-5-1")
     def test_tax_confirmation_generate(self):
@@ -114,7 +114,7 @@ class AdminTest(TestCase):
         request = self.post_request({})
         response = model_admin.generate(request)
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, "/admin/aklub/taxconfirmation/")
+        self.assertEqual(response.url, "/aklub/taxconfirmation/")
         self.assertEqual(TaxConfirmation.objects.get(user_profile__id=2978, year=2016).amount, 350)
         confirmation_values = TaxConfirmation.objects.filter(year=2016).values('user_profile', 'amount', 'year').order_by('user_profile')
         expected_confirmation_values = [
@@ -167,13 +167,13 @@ class AdminTest(TestCase):
             response = model_admin.add_view(request)
             self.assertEqual(response.status_code, 302)
             obj = AccountStatements.objects.get(date_from="2010-10-01")
-            self.assertEqual(response.url, "/admin/aklub/accountstatements/")
+            self.assertEqual(response.url, "/aklub/accountstatements/")
             self.assertEqual(obj.payment_set.count(), 6)
 
             self.assertEqual(request._messages._queued_messages[0].message, 'Skipped payments: Testing User 1 (test.user1@email.cz)')
             self.assertEqual(
                 request._messages._queued_messages[1].message,
-                'Položka typu Výpis z účtu "<a href="/admin/aklub/accountstatements/%(id)s/change/">%(id)s (2015-05-01 00:00:00)</a>"'
+                'Položka typu Výpis z účtu "<a href="/aklub/accountstatements/%(id)s/change/">%(id)s (2015-05-01 00:00:00)</a>"'
                 ' byla úspěšně přidána.' % {'id': obj.id},
             )
 
@@ -197,7 +197,7 @@ class AdminTest(TestCase):
             response = model_admin.add_view(request)
             self.assertEqual(response.status_code, 302)
             obj = AccountStatements.objects.get(date_from="2016-01-25")
-            self.assertEqual(response.url, "/admin/aklub/accountstatements/")
+            self.assertEqual(response.url, "/aklub/accountstatements/")
             self.assertEqual(obj.payment_set.count(), 4)
 
             self.assertEqual(
@@ -208,7 +208,7 @@ class AdminTest(TestCase):
             )
             self.assertEqual(
                 request._messages._queued_messages[1].message,
-                'Položka typu Výpis z účtu "<a href="/admin/aklub/accountstatements/%(id)s/change/">%(id)s (2015-05-01 00:00:00)</a>"'
+                'Položka typu Výpis z účtu "<a href="/aklub/accountstatements/%(id)s/change/">%(id)s (2015-05-01 00:00:00)</a>"'
                 ' byla úspěšně přidána.' % {'id': obj.id},
             )
 
@@ -235,7 +235,7 @@ class AdminTest(TestCase):
         self.assertEqual(response.status_code, 302)
         obj = MassCommunication.objects.get(name="test communication")
         self.assertEqual(obj.subject, "Subject")
-        self.assertEqual(response.url, "/admin/aklub/masscommunication/%s/change/" % obj.id)
+        self.assertEqual(response.url, "/aklub/masscommunication/%s/change/" % obj.id)
         self.assertEqual(
             request._messages._queued_messages[1].message,
             'Emaily odeslány na následující adresy: foo@email.com, bar@email.com',
@@ -246,7 +246,7 @@ class AdminTest(TestCase):
         )
         self.assertEqual(
             request._messages._queued_messages[2].message,
-            'Položka typu Hromadná komunikace "<a href="/admin/aklub/masscommunication/%s/change/">test communication</a>"'
+            'Položka typu Hromadná komunikace "<a href="/aklub/masscommunication/%s/change/">test communication</a>"'
             ' byla úspěšně přidána. Níže ji můžete dále upravovat.' % obj.id,
         )
 
@@ -272,7 +272,7 @@ class AdminTest(TestCase):
         self.assertEqual(response.status_code, 302)
         obj = MassCommunication.objects.get(name="test communication")
         self.assertEqual(obj.subject, "Subject")
-        self.assertEqual(response.url, "/admin/aklub/masscommunication/%s/change/" % obj.id)
+        self.assertEqual(response.url, "/aklub/masscommunication/%s/change/" % obj.id)
 
     def test_automatic_communication_changelist_post(self):
         mommy.make("aklub.Condition", id=1)
@@ -294,7 +294,7 @@ class AdminTest(TestCase):
         self.assertEqual(response.status_code, 302)
         obj = AutomaticCommunication.objects.get(name="test communication")
         self.assertEqual(obj.subject, "Subject")
-        self.assertEqual(response.url, "/admin/aklub/automaticcommunication/%s/change/" % obj.id)
+        self.assertEqual(response.url, "/aklub/automaticcommunication/%s/change/" % obj.id)
 
     def test_communication_changelist_post(self):
         userincampaign_recipe.make(id=1)
@@ -317,7 +317,7 @@ class AdminTest(TestCase):
         self.assertEqual(response.status_code, 302)
         obj = Communication.objects.get(subject="Subject 123")
         self.assertEqual(obj.summary, "Test template")
-        self.assertEqual(response.url, "/admin/aklub/communication/")
+        self.assertEqual(response.url, "/aklub/communication/")
 
     def test_user_in_campaign_changelist_post(self):
         mommy.make("aklub.Campaign", id=1)
@@ -351,7 +351,7 @@ class AdminTest(TestCase):
         response = model_admin.add_view(request)
         self.assertEqual(response.status_code, 302)
         userincampaign = UserInCampaign.objects.get(variable_symbol=1234)
-        self.assertEqual(response.url, "/admin/aklub/userincampaign/%s/change/" % userincampaign.id)
+        self.assertEqual(response.url, "/aklub/userincampaign/%s/change/" % userincampaign.id)
 
         self.assertEqual(userincampaign.activity_points, 13)
         self.assertEqual(userincampaign.verified_by.username, 'testuser')
@@ -384,7 +384,7 @@ class AdminImportExportTests(TestCase):
         self.client.force_login(self.user)
 
     def test_userattendance_export(self):
-        address = "/admin/aklub/userincampaign/export/"
+        address = "/aklub/userincampaign/export/"
         post_data = {
             'file_format': 0,
         }

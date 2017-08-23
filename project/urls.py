@@ -19,7 +19,6 @@ urlpatterns = [
     url(r'^admin/passresetcomplete/$', auth_views.password_reset_complete, name='password_reset_complete'),
     url(r'^admin/aklub/stat-members/', stat_members, name="stat-members"),
     url(r'^admin/aklub/stat-payments/', stat_payments, name="stat-payments"),
-    url(r'^admin/', admin.site.urls),
     url(r'^', admin.site.urls),
     url(r'^admin/', include("massadmin.urls")),
     url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
