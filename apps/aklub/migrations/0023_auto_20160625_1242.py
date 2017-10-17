@@ -11,7 +11,7 @@ import stdimage.models
 class Migration(migrations.Migration):
 
     dependencies = [
-        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
+        migrations.swappable_dependency('auth.User'),
         ('aklub', '0022_auto_20160623_1837'),
     ]
 
@@ -41,7 +41,7 @@ class Migration(migrations.Migration):
                 ('other_benefits', models.TextField(blank=True, help_text='Did he receive some other benefits?', max_length=500, verbose_name='Other benefits')),
                 ('note', models.TextField(blank=True, max_length=2000, verbose_name='Note for making a boring form more lively')),
                 ('campaigns', models.ManyToManyField(blank=True, help_text='Associated campaigns', to='aklub.Campaign')),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='userprofile', to=settings.AUTH_USER_MODEL)),
+                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='userprofile', to='auth.User')),
             ],
         ),
         migrations.AddField(

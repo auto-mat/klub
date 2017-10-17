@@ -60,13 +60,13 @@ def process_template(template_string, user):
     # Make variable substitutions
     text = template.substitute(
         addressment=addressment,
-        name=user.userprofile.user.first_name,
-        firstname=user.userprofile.user.first_name,
-        surname=user.userprofile.user.last_name,
+        name=user.userprofile.first_name,
+        firstname=user.userprofile.first_name,
+        surname=user.userprofile.last_name,
         street=user.userprofile.street,
         city=user.userprofile.city,
         zipcode=user.userprofile.zip_code,
-        email=user.userprofile.user.email,
+        email=user.userprofile.email,
         telephone=user.userprofile.telephone,
         regular_amount=user.regular_amount,
         regular_frequency=_localize_enum(UserInCampaign.REGULAR_PAYMENT_FREQUENCIES, user.regular_frequency, user.userprofile.language),

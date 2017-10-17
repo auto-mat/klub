@@ -246,4 +246,7 @@ TEST_RUNNER = 'aklub.tests.AklubTestSuiteRunner'
 
 MIGRATION_MODULES = {
     'auth': 'auth_migrations',
+    'admin': 'migrations_admin',
 }
+
+AUTH_USER_MODEL = "aklub.UserProfile"

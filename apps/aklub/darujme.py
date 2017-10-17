@@ -145,6 +145,11 @@ def get_cetnost_regular_payments(data):
             return cetnost, "promise"
 
 
+# class PaymentForm(forms.ModelForm):
+#     class Meta:
+#         model = Payment
+
+
 def create_payment(data, payments, skipped_payments):
     if data['email'] == '':
         return

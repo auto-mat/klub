@@ -28,7 +28,7 @@ import os.path
 from denorm import denormalized, depend_on_related
 
 from django.contrib.admin.templatetags.admin_list import _boolean_icon
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser, User
 from django.contrib.humanize.templatetags.humanize import intcomma
 from django.core.exceptions import ValidationError
 from django.core.files import File
@@ -362,7 +362,7 @@ class Source(models.Model):
         return str(self.name)
 
 
-class UserProfile(models.Model):
+class UserProfile(AbstractUser):
     class Meta:
         verbose_name = _("User profile")
         verbose_name_plural = _("User profiles")
@@ -375,13 +375,11 @@ class UserProfile(models.Model):
         # TODO: List of languages used in the club should come from app settings
         ('cs', _('Czech')),
         ('en', _('English')))
-    user = models.OneToOneField(
-        User,
-        related_name='userprofile',
-        unique=True,
-        null=False,
-        on_delete=models.CASCADE,
+    email = models.EmailField(  # Retype email to be unique and required
+        _('email address'),
         blank=False,
+        null=False,
+        unique=True,
     )
     campaigns = models.ManyToManyField(
         Campaign,
@@ -513,14 +511,12 @@ class UserProfile(models.Model):
     )
 
     def person_name(self):
-        if hasattr(self, 'user'):
-            if self.user.first_name or self.user.last_name:
-                return " ".join((self.user.last_name, self.user.first_name))
-            else:
-                return self.user.username
+        if self.first_name or self.last_name:
+            return " ".join((self.last_name, self.first_name))
         else:
-            return "UserProfile: %s" % self.id
+            return self.username
     person_name.short_description = _("Full name")
+    person_name.admin_order_field = 'last_name'
 
     def userattendance_links(self):
         from .admin import admin_links
@@ -539,7 +535,7 @@ class UserProfile(models.Model):
         if not amount:
             return
         temp = NamedTemporaryFile()
-        name = u"%s %s" % (self.user.first_name, self.user.last_name)
+        name = u"%s %s" % (self.first_name, self.last_name)
         addr_city = u"%s %s" % (self.zip_code, self.city)
         confirmation.makepdf(temp, name, self.sex, self.street, addr_city, year, amount)
         confirm, created = TaxConfirmation.objects.update_or_create(
@@ -574,7 +570,7 @@ class UserInCampaign(models.Model):
         verbose_name = _("User in campaign")
         verbose_name_plural = _("Users in campaign")
         unique_together = ('userprofile', 'campaign',)
-        ordering = ["userprofile__user__last_name", "userprofile__user__first_name"]
+        ordering = ["userprofile__last_name", "userprofile__first_name"]
 
     GENDER = (
         ('male', _('Male')),
@@ -720,7 +716,7 @@ class UserInCampaign(models.Model):
         default=False,
     )
     verified_by = models.ForeignKey(
-        'auth.User',
+        UserProfile,
         verbose_name=_("Verified by"),
         related_name='verified_users',
         null=True,
@@ -777,7 +773,7 @@ class UserInCampaign(models.Model):
     def __str__(self):
         return "%s - %s (%s)" % (
             str(self.person_name()),
-            self.userprofile.user.email,
+            self.userprofile.email,
             self.campaign,
         )
 
@@ -1459,7 +1455,7 @@ class Communication(models.Model):
         blank=True,
     )
     created_by = models.ForeignKey(
-        'auth.User',
+        UserProfile,
         verbose_name=_("Created by"),
         related_name='created_by_communication',
         null=True,
@@ -1467,7 +1463,7 @@ class Communication(models.Model):
         on_delete=models.SET_NULL,
     )
     handled_by = models.ForeignKey(
-        'auth.User',
+        UserProfile,
         verbose_name=_("Last handled by"),
         related_name='handled_by_communication',
         null=True,
@@ -1520,7 +1516,7 @@ class Communication(models.Model):
             else:
                 bcc = ['kp@auto-mat.cz']
 
-            email_address = self.user.userprofile.user.email.strip()
+            email_address = self.user.userprofile.email.strip()
             if email_address and email_address != "":
                 email = EmailMultiAlternatives(
                     subject=self.subject,
@@ -2000,7 +1996,7 @@ class MassCommunication(models.Model):
         verbose_name=_("send to users"),
         help_text=_(
             "All users who should receive the communication"),
-        limit_choices_to={'userprofile__user__is_active': 'True', 'wished_information': 'True'},
+        limit_choices_to={'userprofile__is_active': 'True', 'wished_information': 'True'},
         blank=True,
     )
     note = models.TextField(

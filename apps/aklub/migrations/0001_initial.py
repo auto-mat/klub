@@ -11,7 +11,7 @@ from django.conf import settings
 class Migration(migrations.Migration):
 
     dependencies = [
-        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
+        migrations.swappable_dependency('auth.User'),
     ]
 
     operations = [
@@ -250,7 +250,7 @@ class Migration(migrations.Migration):
                 ('activity_points', models.IntegerField(default=0, help_text='Points for users activity', verbose_name='Activity points')),
                 ('campaigns', models.ManyToManyField(help_text='Associated campaigns', related_name=b'members', to='aklub.Campaign', blank=True)),
                 ('recruiter', models.ForeignKey(blank=True, to='aklub.Recruiter', null=True)),
-                ('verified_by', models.ForeignKey(related_name=b'verified_users', verbose_name='Verified by', blank=True, to=settings.AUTH_USER_MODEL, null=True)),
+                ('verified_by', models.ForeignKey(related_name=b'verified_users', verbose_name='Verified by', blank=True, to='auth.User', null=True)),
             ],
             options={
                 'ordering': ('surname', 'firstname'),
@@ -284,13 +284,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='communication',
             name='created_by',
-            field=models.ForeignKey(related_name=b'created_by_communication', verbose_name='Created by', blank=True, to=settings.AUTH_USER_MODEL, null=True),
+            field=models.ForeignKey(related_name=b'created_by_communication', verbose_name='Created by', blank=True, to='auth.User', null=True),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='communication',
             name='handled_by',
-            field=models.ForeignKey(related_name=b'handled_by_communication', verbose_name='Last handled by', blank=True, to=settings.AUTH_USER_MODEL, null=True),
+            field=models.ForeignKey(related_name=b'handled_by_communication', verbose_name='Last handled by', blank=True, to='auth.User', null=True),
             preserve_default=True,
         ),
         migrations.AddField(

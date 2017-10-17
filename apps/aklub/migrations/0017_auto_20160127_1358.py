@@ -22,12 +22,12 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='communication',
             name='created_by',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='created_by_communication', to=settings.AUTH_USER_MODEL, verbose_name='Created by'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='created_by_communication', to='auth.User', verbose_name='Created by'),
         ),
         migrations.AlterField(
             model_name='communication',
             name='handled_by',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='handled_by_communication', to=settings.AUTH_USER_MODEL, verbose_name='Last handled by'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='handled_by_communication', to='auth.User', verbose_name='Last handled by'),
         ),
         migrations.AlterField(
             model_name='terminalcondition',
@@ -57,6 +57,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='user',
             name='verified_by',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='verified_users', to=settings.AUTH_USER_MODEL, verbose_name='Verified by'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='verified_users', to='auth.User', verbose_name='Verified by'),
         ),
     ]

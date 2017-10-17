@@ -32,7 +32,6 @@ import django.forms
 from django.contrib import admin, messages
 from django.contrib.admin import site
 from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.db.models import Sum
 from django.http import HttpResponseRedirect
@@ -163,131 +162,92 @@ def send_mass_communication_distinct(self, req, queryset, distinct=False):
 send_mass_communication_distinct.short_description = _("Send mass communication withoud duplicities")
 
 
-userprofile_fieldsets = [
-    (_('Basic personal'), {
-        'fields': ['user', ('sex', 'language', 'public')],
-    }),
-    (_('Titles and addressments'), {
-        'fields': [
-            ('title_before', 'title_after'),
-            ('addressment', 'addressment_on_envelope'),
-        ],
-        'classes': ['collapse'],
-    }),
-    (_('Contacts'), {
-        'fields': [
-            ('telephone'),
-            ('street', 'city', 'country'),
-            'zip_code', 'different_correspondence_address',
-        ],
-    }),
-    (_('Benefits'), {
-        'fields': [
-            ('club_card_available', 'club_card_dispatched'),
-            'other_benefits',
-        ],
-        'classes': ['collapse'],
-    }),
-    (_('Notes'), {
-        'fields': ['campaigns'],
-        'classes': ['collapse'],
-    }),
-    (_('Profile'), {
-        'fields': ['profile_text', 'profile_picture'],
-        'classes': ['collapse'],
-    }),
-    (_('Links'), {
-        'fields': ['userattendance_links'],
-    }),
-]
-
-
-class UserProfileInline(admin.StackedInline):
-    model = UserProfile
-    filter_horizontal = ('campaigns',)
-    readonly_fields = ('userattendance_links',)
-    fieldsets = userprofile_fieldsets
-
-
 class UserForm(django.forms.ModelForm):
     class Meta:
-        model = User
+        model = UserProfile
         exclude = []
 
     def clean_email(self):
         email = self.cleaned_data.get('email')
         username = self.cleaned_data.get('username')
-        if email and User.objects.filter(email=email).exclude(username=username).count():
+        if email and UserProfile.objects.filter(email=email).exclude(username=username).count():
             raise django.forms.ValidationError('Email addresses must be unique.')
         return email
 
 
-class UserAdmin(ImportExportMixin, RelatedFieldAdmin, UserAdmin):
-    inlines = [UserProfileInline]
+class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, UserAdmin):
     form = UserForm
+
     list_display = (
+        'person_name',
         'username',
         'email',
-        'userprofile__telephone',
+        'addressment',
+        'telephone_url',
         'first_name',
         'last_name',
         'is_staff',
-        'userprofile__sex',
+        'sex',
         'date_joined',
         'last_login',
+    )
+    list_editable = (
+        'addressment',
     )
     search_fields = (
         'username',
         'email',
         'first_name',
         'last_name',
-        'userprofile__telephone',
+        'telephone',
     )
     list_filter = (
         'is_staff',
         'is_superuser',
         'is_active',
         'groups',
-        'userprofile__language',
-        'userprofile__campaigns',
-        filters.EmailFilter,
-    )
-
-
-class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin):
-    list_display = (
-        'person_name',
-        'user__username',
-        'user__email',
-        'addressment',
-        'telephone_url',
-        'user__first_name',
-        'user__last_name',
-        'user__is_staff',
-        'sex',
-        'user__date_joined',
-        'user__last_login',
-    )
-    list_editable = (
-        'addressment',
-    )
-    search_fields = (
-        'user__username',
-        'user__email',
-        'user__first_name',
-        'user__last_name',
-        'telephone',
-    )
-    list_filter = (
-        'user__is_staff',
-        'user__is_superuser',
-        'user__is_active',
-        'user__groups',
         'language',
         'campaigns',
     )
     filter_horizontal = ('campaigns',)
-    fieldsets = userprofile_fieldsets
+    fieldsets = [
+        (_('Basic personal'), {
+            'fields': [('sex', 'language', 'public')],
+        }),
+        (_('Titles and addressments'), {
+            'fields': [
+                ('title_before', 'title_after'),
+                ('addressment', 'addressment_on_envelope'),
+            ],
+            'classes': ['collapse'],
+        }),
+        (_('Contacts'), {
+            'fields': [
+                ('telephone'),
+                ('street', 'city', 'country'),
+                'zip_code', 'different_correspondence_address',
+            ],
+        }),
+        (_('Benefits'), {
+            'fields': [
+                ('club_card_available', 'club_card_dispatched'),
+                'other_benefits',
+            ],
+            'classes': ['collapse'],
+        }),
+        (_('Notes'), {
+            'fields': ['campaigns'],
+            'classes': ['collapse'],
+        }),
+        (_('Profile'), {
+            'fields': ['profile_text', 'profile_picture'],
+            'classes': ['collapse'],
+        }),
+        (_('Links'), {
+            'fields': ['userattendance_links'],
+        }),
+    ]
+
     readonly_fields = ('userattendance_links',)
     actions = (send_mass_communication_distinct,)
 
@@ -296,13 +256,16 @@ class UserInCampaignResource(ModelResource):
     class Meta:
         model = UserInCampaign
         fields = (
+            'id',
+            'campaign',
+            'userprofile',
             'userprofile__title_before',
-            'userprofile__user__first_name',
-            'userprofile__user__last_name',
+            'userprofile__first_name',
+            'userprofile__last_name',
             'userprofile__title_after',
             'userprofile__sex',
             'userprofile__telephone',
-            'userprofile__user__email',
+            'userprofile__email',
             'userprofile__street',
             'userprofile__city',
             'userprofile__zip_code',
@@ -313,7 +276,7 @@ class UserInCampaignResource(ModelResource):
             'registered_support',
             'note',
             'additional_information',
-            'userprofile__user__is_active',
+            'userprofile__is_active',
             'userprofile__language',
         )
         export_order = fields
@@ -323,7 +286,7 @@ class UserInCampaignResource(ModelResource):
 class UserInCampaignAdmin(ImportExportMixin, RelatedFieldAdmin):
     list_display = (
         'person_name',
-        'userprofile__user__email',
+        'userprofile__email',
         'source',
         'campaign',
         'variable_symbol',
@@ -335,25 +298,25 @@ class UserInCampaignAdmin(ImportExportMixin, RelatedFieldAdmin):
         'regular_amount',
         'next_communication_date',
         'next_communication_method',
-        'userprofile__user__is_active',
+        'userprofile__is_active',
         'last_payment_date',
     )
     date_hierarchy = 'registered_support'
     list_filter = [
-        'regular_payments', 'userprofile__language', 'userprofile__user__is_active', 'wished_information', 'old_account',
+        'regular_payments', 'userprofile__language', 'userprofile__is_active', 'wished_information', 'old_account',
         'source',
         ('campaign', RelatedFieldCheckBoxFilter),
         ('registered_support', DateRangeFilter),
         filters.UserConditionFilter, filters.UserConditionFilter1,
     ]
     search_fields = [
-        'userprofile__user__first_name',
-        'userprofile__user__last_name',
+        'userprofile__first_name',
+        'userprofile__last_name',
         'variable_symbol',
-        'userprofile__user__email',
+        'userprofile__email',
         'userprofile__telephone',
     ]
-    ordering = ('userprofile__user__last_name',)
+    ordering = ('userprofile__last_name',)
     actions = (
         send_mass_communication,
         send_mass_communication_distinct,
@@ -429,12 +392,12 @@ class UserInCampaignAdmin(ImportExportMixin, RelatedFieldAdmin):
 
 
 class UserYearPaymentsAdmin(UserInCampaignAdmin):
-    list_display = ('person_name', 'userprofile__user__email', 'source',
+    list_display = ('person_name', 'userprofile__email', 'source',
                     'variable_symbol', 'registered_support_date',
                     'payment_total_by_year',
-                    'userprofile__user__is_active', 'last_payment_date')
+                    'userprofile__is_active', 'last_payment_date')
     list_filter = [
-        ('payment__date', DateRangeFilter), 'regular_payments', 'userprofile__language', 'userprofile__user__is_active',
+        ('payment__date', DateRangeFilter), 'regular_payments', 'userprofile__language', 'userprofile__is_active',
         'wished_information', 'old_account', 'source', 'userprofile__campaigns',
         ('registered_support', DateRangeFilter), filters.UserConditionFilter, filters.UserConditionFilter1,
     ]
@@ -500,8 +463,8 @@ class PaymentAdmin(ImportExportMixin, RelatedFieldAdmin):
     list_filter = ['type', 'date', filters.PaymentsAssignmentsFilter]
     date_hierarchy = 'date'
     search_fields = [
-        'user__userprofile__user__last_name',
-        'user__userprofile__user__first_name',
+        'user__userprofile__last_name',
+        'user__userprofile__first_name',
         'amount',
         'VS',
         'SS',
@@ -513,7 +476,7 @@ class PaymentAdmin(ImportExportMixin, RelatedFieldAdmin):
 class NewUserAdmin(UserInCampaignAdmin):
     list_display = ('person_name', 'is_direct_dialogue',
                     'variable_symbol', 'regular_payments', 'registered_support',
-                    'recruiter', 'userprofile__user__is_active')
+                    'recruiter', 'userprofile__is_active')
 
 
 class CommunicationAdmin(RelatedFieldAdmin, admin.ModelAdmin):
@@ -526,6 +489,7 @@ class CommunicationAdmin(RelatedFieldAdmin, admin.ModelAdmin):
         'user__next_communication_date',
         'method',
         'result',
+        'created_by',
         'handled_by',
         'user__regular_payments_info',
         'user__payment_delay',
@@ -538,9 +502,9 @@ class CommunicationAdmin(RelatedFieldAdmin, admin.ModelAdmin):
     search_fields = (
         'subject',
         'user__userprofile__telephone',
-        'user__userprofile__user__first_name',
-        'user__userprofile__user__last_name',
-        'user__userprofile__user__email',
+        'user__userprofile__first_name',
+        'user__userprofile__last_name',
+        'user__userprofile__email',
     )
     date_hierarchy = 'date'
     ordering = ('-date',)
@@ -824,9 +788,6 @@ admin.site.register(Recruiter, RecruiterAdmin)
 admin.site.register(TaxConfirmation, TaxConfirmationAdmin)
 admin.site.register(Source, SourceAdmin)
 admin.site.register(UserProfile, UserProfileAdmin)
-
-admin.site.unregister(User)
-admin.site.register(User, UserAdmin)
 
 # register all adminactions
 actions.add_to_site(site)
