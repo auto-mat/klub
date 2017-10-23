@@ -32,7 +32,10 @@ import django.forms
 from django.contrib import admin, messages
 from django.contrib.admin import site
 from django.contrib.auth.admin import UserAdmin
-from django.core.urlresolvers import reverse
+try:
+    from django.urls import reverse
+except ImportError:  # Django<2.0
+    from django.core.urlresolvers import reverse
 from django.db.models import Sum
 from django.http import HttpResponseRedirect
 from django.utils.html import format_html, format_html_join, mark_safe
@@ -144,7 +147,7 @@ def send_mass_communication(self, request, queryset, distinct=False):
     if queryset.model is UserProfile:
         queryset = UserInCampaign.objects.filter(userprofile__in=queryset)
     if distinct:
-        queryset = queryset.order_by().distinct('userprofile')
+        queryset = queryset.order_by('userprofile__id').distinct('userprofile')
     redirect_url = large_initial.build_redirect_url(
         request,
         "admin:aklub_masscommunication_add",

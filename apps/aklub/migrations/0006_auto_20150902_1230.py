@@ -42,6 +42,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='user',
             name='source_foreign',
-            field=models.ForeignKey(default=None, to='aklub.Source', max_length=80, blank=True, help_text='How did he contact us / became a member? In direct dialog, please distinguish between partial form (he still needs to send a permanent order into his bank) and full form (we are going to submit his form directly into bank, no further action is needed from him).', null=True, verbose_name='Source'),
+            field=models.ForeignKey(default=None, to='aklub.Source', max_length=80, blank=True, help_text='How did he contact us / became a member? In direct dialog, please distinguish between partial form (he still needs to send a permanent order into his bank) and full form (we are going to submit his form directly into bank, no further action is needed from him).', null=True, verbose_name='Source', on_delete=models.CASCADE),
         ),
     ]

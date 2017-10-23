@@ -35,14 +35,22 @@ from django.core.files import File
 from django.core.files.storage import FileSystemStorage
 from django.core.files.temp import NamedTemporaryFile
 from django.core.mail import EmailMultiAlternatives
-from django.core.urlresolvers import reverse
+try:
+    from django.urls import reverse
+except ImportError:  # Django<2.0
+    from django.core.urlresolvers import reverse
 from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import Count, Q, Sum
 from django.utils import timezone
 from django.utils.html import format_html, mark_safe
+try:
+    from django.utils.text import format_lazy
+except ImportError:  # Django<1.11
+    def format_lazy(string, name, verbose_name):
+        from django.utils.translation import string_concat
+        return string_concat(name, " ", verbose_name)
 from django.utils.timesince import timesince
-from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
 
 import html2text
@@ -1615,7 +1623,7 @@ class ConditionValues(object):
                 (
                     name,
                     field.name,
-                    string_concat(name, " ", field.verbose_name),
+                    format_lazy('{} {}', name, field.verbose_name),
                     field.get_internal_type(),
                     list(zip(*field.choices))[0] if field.choices else "",
                 )

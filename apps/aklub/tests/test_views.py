@@ -18,9 +18,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+import django
 from django.core import mail
 from django.core.cache import cache
-from django.core.urlresolvers import reverse
+try:
+    from django.urls import reverse
+except ImportError:  # Django<2.0
+    from django.core.urlresolvers import reverse
 
 from django.test import TestCase
 
@@ -184,8 +188,8 @@ class ViewsTests(ClearCacheMixin, TestCase):
         )
         self.assertContains(
             response,
-            '<input class=" form-control" id="id_userprofile-last_name" maxlength="30" '
-            'name="userprofile-last_name" type="text" required value="Tser" />',
+            '<input class=" form-control" id="id_userprofile-last_name" maxlength="%s" '
+            'name="userprofile-last_name" type="text" required value="Tser" />' % (150 if django.VERSION >= (2, 0) else 30),
             html=True,
         )
         self.assertContains(

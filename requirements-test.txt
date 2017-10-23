@@ -12,4 +12,4 @@ flake8-tidy-imports
 flake8-builtins
 flake8-strict
 coveralls
-model_mommy
+-e git+https://github.com/vandersonmota/model_mommy@development#egg=model_mommy  # for Django 2.0 fixes

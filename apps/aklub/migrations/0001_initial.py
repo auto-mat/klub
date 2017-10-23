@@ -112,7 +112,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('amount', models.FloatField(verbose_name='amount')),
                 ('item', models.CharField(max_length=300, verbose_name='item', blank=True)),
-                ('campaign', models.ForeignKey(related_name=b'expenses', verbose_name='campaign', to='aklub.Campaign')),
+                ('campaign', models.ForeignKey(related_name=b'expenses', verbose_name='campaign', to='aklub.Campaign', on_delete=models.CASCADE)),
             ],
             options={
                 'verbose_name': 'expense',
@@ -158,7 +158,7 @@ class Migration(migrations.Migration):
                 ('done_by', models.CharField(help_text="This is a column imported from the account statements. It's purpose is not clear. It has been usually blank on the account statement we have received so far.", max_length=500, verbose_name='Done by', blank=True)),
                 ('account_name', models.CharField(max_length=200, verbose_name='Account name', blank=True)),
                 ('bank_name', models.CharField(max_length=500, verbose_name='Bank name', blank=True)),
-                ('account_statement', models.ForeignKey(blank=True, to='aklub.AccountStatements', null=True)),
+                ('account_statement', models.ForeignKey(blank=True, to='aklub.AccountStatements', null=True, on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['-date'],
@@ -249,8 +249,8 @@ class Migration(migrations.Migration):
                 ('verified', models.BooleanField(default=False, help_text='Was the the user information verified by a club administrator?', verbose_name='Verified')),
                 ('activity_points', models.IntegerField(default=0, help_text='Points for users activity', verbose_name='Activity points')),
                 ('campaigns', models.ManyToManyField(help_text='Associated campaigns', related_name=b'members', to='aklub.Campaign', blank=True)),
-                ('recruiter', models.ForeignKey(blank=True, to='aklub.Recruiter', null=True)),
-                ('verified_by', models.ForeignKey(related_name=b'verified_users', verbose_name='Verified by', blank=True, to='auth.User', null=True)),
+                ('recruiter', models.ForeignKey(blank=True, to='aklub.Recruiter', null=True, on_delete=models.CASCADE)),
+                ('verified_by', models.ForeignKey(related_name=b'verified_users', verbose_name='Verified by', blank=True, to='auth.User', null=True, on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ('surname', 'firstname'),
@@ -262,7 +262,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='taxconfirmation',
             name='user',
-            field=models.ForeignKey(to='aklub.User'),
+            field=models.ForeignKey(to='aklub.User', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AlterUniqueTogether(
@@ -272,7 +272,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='payment',
             name='user',
-            field=models.ForeignKey(blank=True, to='aklub.User', null=True),
+            field=models.ForeignKey(blank=True, to='aklub.User', null=True, on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
@@ -284,25 +284,25 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='communication',
             name='created_by',
-            field=models.ForeignKey(related_name=b'created_by_communication', verbose_name='Created by', blank=True, to='auth.User', null=True),
+            field=models.ForeignKey(related_name=b'created_by_communication', verbose_name='Created by', blank=True, to='auth.User', null=True, on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='communication',
             name='handled_by',
-            field=models.ForeignKey(related_name=b'handled_by_communication', verbose_name='Last handled by', blank=True, to='auth.User', null=True),
+            field=models.ForeignKey(related_name=b'handled_by_communication', verbose_name='Last handled by', blank=True, to='auth.User', null=True, on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='communication',
             name='user',
-            field=models.ForeignKey(related_name=b'communications', to='aklub.User'),
+            field=models.ForeignKey(related_name=b'communications', to='aklub.User', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='automaticcommunication',
             name='condition',
-            field=models.ForeignKey(to='aklub.Condition'),
+            field=models.ForeignKey(to='aklub.Condition', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(

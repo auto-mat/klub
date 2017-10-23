@@ -36,7 +36,10 @@ from admin_tools.utils import get_admin_site_name
 from admin_tools_stats.modules import get_active_graph
 
 from django.core.cache import caches
-from django.core.urlresolvers import reverse
+try:
+    from django.urls import reverse
+except ImportError:  # Django<2.0
+    from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
 
 from . import models

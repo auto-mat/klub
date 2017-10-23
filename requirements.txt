@@ -10,7 +10,7 @@ django-tinymce
 django-admin-tools
 feedparser
 django-chart-tools
-django-mass-edit
+-e git+https://github.com/PetrDlouhy/django-mass-edit@feature/django20#egg=django-mass-edit  # for Django 2.0 support
 python-memcached
 django-import-export
 django-qsstats-magic
@@ -21,7 +21,7 @@ django-daterange-filter
 django-cors-headers
 django-formtools
 django-related-admin
--e git+https://github.com/PetrDlouhy/django-denorm.git@develop#egg=django-denorm
+-e git+https://github.com/PetrDlouhy/django-denorm.git@feature/django20#egg=django-denorm
 gunicorn
 pypdf2  # for pdf result testing
 -e git+https://github.com/fusionbox/django-betterforms.git#egg=django-betterforms  # for fields/errors support
@@ -29,7 +29,7 @@ django-adminactions
 django-admin-large-initial-data
 
 
--e git+https://github.com/PetrDlouhy/django-admin-tools-stats@develop#egg=django-admin-tools-stats
+-e git+https://github.com/PetrDlouhy/django-admin-tools-stats@feature/django20#egg=django-admin-tools-stats
 django-bower
 djcacheutils
 

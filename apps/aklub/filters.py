@@ -6,6 +6,7 @@ from functools import reduce
 
 from django.contrib.admin import SimpleListFilter
 from django.db.models import Count, Q
+from django.db.models.functions import Lower
 from django.utils.translation import ugettext as _
 
 from . import models
@@ -93,9 +94,10 @@ class EmailFilter(SimpleListFilter):
         if self.value() == 'duplicate':
             duplicates = UserProfile.objects.filter(email__isnull=False).\
                 exclude(email__exact='').\
-                values('email').\
+                annotate(email_lower=Lower('email')).\
+                values('email_lower').\
                 annotate(Count('id')).\
-                values('email').\
+                values('email_lower').\
                 order_by().\
                 filter(id__count__gt=1).\
                 values_list('email', flat=True)
