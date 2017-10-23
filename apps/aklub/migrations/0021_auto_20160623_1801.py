@@ -16,4 +16,13 @@ class Migration(migrations.Migration):
             "User",
             "UserInCampaign"
         ),
+        migrations.RemoveField(
+            model_name='masscommunication',
+            name='send_to_users',
+        ),
+        migrations.AddField(
+            model_name='masscommunication',
+            name='send_to_users',
+            field=models.ManyToManyField(blank=True, help_text='All users who should receive the communication', to='aklub.UserInCampaign', verbose_name='send to users'),
+        ),
     ]
