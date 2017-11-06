@@ -163,19 +163,6 @@ def send_mass_communication_distinct(self, req, queryset, distinct=False):
 send_mass_communication_distinct.short_description = _("Send mass communication withoud duplicities")
 
 
-class UserForm(django.forms.ModelForm):
-    class Meta:
-        model = UserProfile
-        exclude = []
-
-    def clean_email(self):
-        email = self.cleaned_data.get('email')
-        username = self.cleaned_data.get('username')
-        if email and UserProfile.objects.filter(email=email).exclude(username=username).count():
-            raise django.forms.ValidationError('Email addresses must be unique.')
-        return email
-
-
 class UserProfileResource(ModelResource):
     class Meta:
         model = UserProfile
@@ -204,7 +191,6 @@ class UserProfileResource(ModelResource):
 
 
 class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, UserAdmin):
-    form = UserForm
     resource_class = UserProfileResource
 
     list_display = (
@@ -239,9 +225,11 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, UserAdmin):
         'campaigns',
     )
     filter_horizontal = ('campaigns',)
-    fieldsets = [
+    profile_fieldsets = (
         (_('Basic personal'), {
-            'fields': [('sex', 'language', 'public')],
+            'fields': [
+                ('sex', 'language', 'public',),
+            ],
         }),
         (_('Titles and addressments'), {
             'fields': [
@@ -275,7 +263,10 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, UserAdmin):
         (_('Links'), {
             'fields': ['userattendance_links'],
         }),
-    ]
+    )
+
+    def get_fieldsets(self, request, obj=None):
+        return super().get_fieldsets(request, obj) + self.profile_fieldsets
 
     readonly_fields = ('userattendance_links',)
     actions = (send_mass_communication_distinct,)
