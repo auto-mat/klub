@@ -115,15 +115,8 @@
             "first_name": "Test",
             "last_name": "User 1",
             "date_joined": "2016-09-16T18:22:30.128",
-            "email": "test.user1@email.cz"
-        },
-        "model": "auth.user",
-        "pk": 2979
-    },
-    {
-        "fields": {
+            "email": "test.user1@email.cz",
             "profile_picture": "",
-            "user": 2979,
             "sex": "male",
             "other_benefits": "",
             "addressment": "Zbyn\u011bku",
@@ -188,15 +181,8 @@
             "first_name": "Test",
             "last_name": "User",
             "date_joined": "2016-09-16T18:22:30.128",
-            "email": "test.user@email.cz"
-        },
-        "model": "auth.user",
-        "pk": 2978
-    },
-    {
-        "fields": {
+            "email": "test.user@email.cz",
             "profile_picture": "",
-            "user": 2978,
             "sex": "male",
             "street": "",
             "addressment": "Zbyn\u011bku",
@@ -325,15 +311,8 @@
             "first_name": "Without",
             "last_name": "Payments",
             "date_joined": "2016-09-16T18:22:30.128",
-            "email": "without_payments@email.cz"
-        },
-        "model": "auth.user",
-        "pk": 3
-    },
-    {
-        "fields": {
+            "email": "without_payments@email.cz",
             "profile_picture": "",
-            "user": 3,
             "sex": "male",
             "street": "",
             "addressment": "Street",

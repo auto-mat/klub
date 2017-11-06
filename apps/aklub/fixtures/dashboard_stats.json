@@ -26,8 +26,8 @@
             "graph_key": "user_count",
             "graph_title": "Po\u010det d\u00e1rc\u016f",
             "is_visible": true,
-            "model_app_name": "auth",
-            "model_name": "User",
+            "model_app_name": "aklub",
+            "model_name": "UserProfile",
             "operation_field_name": "",
             "type_operation_field_name": "Count",
             "updated_date": "2016-09-08T15:19:42.003"
@@ -64,7 +64,7 @@
                 "regular": "Pravideln\u00ed"
             },
             "criteria_name": "Typ d\u00e1rce",
-            "dynamic_criteria_field_name": "user__regular_payments",
+            "dynamic_criteria_field_name": "userprofile__regular_payments",
             "updated_date": "2016-09-08T13:49:18.126"
         },
         "model": "admin_tools_stats.dashboardstatscriteria",

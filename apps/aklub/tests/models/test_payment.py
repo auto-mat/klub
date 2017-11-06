@@ -30,8 +30,8 @@ class TestPersonName(TestCase):
         result = mommy.make(
             "aklub.Payment",
             campaign__name="Foo campaign",
-            user__userprofile__user__first_name="Foo",
-            user__userprofile__user__last_name="Name",
+            user__userprofile__first_name="Foo",
+            user__userprofile__last_name="Name",
         )
         self.assertEqual(result.person_name(), 'Name Foo')
 

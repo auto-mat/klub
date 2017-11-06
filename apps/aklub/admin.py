@@ -100,7 +100,7 @@ class PaymentsInlineNoExtra(PaymentsInline):
     extra = 0
 
     def user__campaign(self, obj):
-        return obj.user.campaign
+            return obj.user.campaign
 
 
 class CommunicationInline(admin.TabularInline):
@@ -503,7 +503,7 @@ class CommunicationAdmin(RelatedFieldAdmin, admin.ModelAdmin):
     list_display = (
         'subject',
         'dispatched',
-        'user__userprofile',
+        'user',
         'user__campaign',
         'user__userprofile__telephone_url',
         'user__next_communication_date',
@@ -545,11 +545,6 @@ class CommunicationAdmin(RelatedFieldAdmin, admin.ModelAdmin):
             'fields': [('created_by', 'handled_by', 'send', 'dispatched')],
         }),
     ]
-
-    def user__next_communication_date(self, obj):
-        return obj.user.next_communication_date
-    user__next_communication_date.short_description = _("Date of next communication")
-    user__next_communication_date.admin_order_field = 'user__next_communication_date'
 
     def save_model(self, request, obj, form, change):
         if not obj.pk:
@@ -761,16 +756,16 @@ class SourceAdmin(admin.ModelAdmin):
 class TaxConfirmationAdmin(ImportExportMixin, RelatedFieldAdmin):
     change_list_template = "admin/aklub/taxconfirmation/change_list.html"
     list_display = ('user_profile', 'year', 'amount', 'file')
-    ordering = ('user_profile__user__last_name', 'user_profile__user__first_name',)
+    ordering = ('user_profile__last_name', 'user_profile__first_name',)
     list_filter = ['year']
-    search_fields = ('user_profile__user__last_name', 'user_profile__user__first_name', 'user_profile__userincampaign__variable_symbol',)
+    search_fields = ('user_profile__last_name', 'user_profile__first_name', 'user_profile__userincampaign__variable_symbol',)
     raw_id_fields = ('user_profile',)
     list_max_show_all = 10000
 
     def generate(self, request):
         year = datetime.datetime.now().year - 1
         payed = Payment.objects.filter(date__year=year).exclude(type='expected')
-        donors = UserProfile.objects.filter(userincampaign__payment__in=payed).order_by('user__last_name')
+        donors = UserProfile.objects.filter(userincampaign__payment__in=payed).order_by('last_name')
         count = 0
         for d in donors:
             confirmation, created = d.make_tax_confirmation(year)

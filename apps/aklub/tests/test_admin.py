@@ -18,9 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-import django
 from django.contrib import admin as django_admin, auth
-from django.contrib.auth.models import User
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory, TestCase
@@ -106,8 +104,8 @@ class AdminTest(TestCase):
 
     @freeze_time("2017-5-1")
     def test_tax_confirmation_generate(self):
-        foo_user = userincampaign_recipe.make(userprofile__user__first_name="Foo", userprofile__id=2978)
-        bar_user = userincampaign_recipe.make(userprofile__user__first_name="Bar", userprofile__id=2979)
+        foo_user = userincampaign_recipe.make(userprofile__first_name="Foo", userprofile__id=2978)
+        bar_user = userincampaign_recipe.make(userprofile__first_name="Bar", userprofile__id=2979)
         mommy.make("aklub.Payment", amount=350, date="2016-01-02", user=foo_user, type="cash")
         mommy.make("aklub.Payment", amount=130, date="2016-01-02", user=bar_user, type="cash")
         model_admin = django_admin.site._registry[TaxConfirmation]
@@ -148,7 +146,7 @@ class AdminTest(TestCase):
     def test_account_statement_changelist_post(self):
         mommy.make("aklub.Campaign", darujme_name="Klub přátel Auto*Matu")
         mommy.make("aklub.Payment", SS=22258, type="darujme", operation_id="13954", date="2016-02-09")
-        userincampaign_recipe.make(id=2979, userprofile__user__email="bar@email.com", userprofile__language="cs")
+        userincampaign_recipe.make(id=2979, userprofile__email="bar@email.com", userprofile__language="cs")
         model_admin = django_admin.site._registry[AccountStatements]
         request = self.get_request()
         response = model_admin.add_view(request)
@@ -213,9 +211,9 @@ class AdminTest(TestCase):
             )
 
     def test_mass_communication_changelist_post_send_mails(self):
-        userincampaign_recipe.make(id=2978, userprofile__user__email="foo@email.com", userprofile__language="cs")
-        userincampaign_recipe.make(id=2979, userprofile__user__email="bar@email.com", userprofile__language="cs")
-        userincampaign_recipe.make(id=3, userprofile__user__email="baz@email.com", userprofile__language="en")
+        userincampaign_recipe.make(id=2978, userprofile__email="foo@email.com", userprofile__language="cs")
+        userincampaign_recipe.make(id=2979, userprofile__email="bar@email.com", userprofile__language="cs")
+        userincampaign_recipe.make(id=3, userprofile__email="baz@email.com", userprofile__language="en")
         model_admin = django_admin.site._registry[MassCommunication]
         request = self.get_request()
         response = model_admin.add_view(request)
@@ -376,7 +374,7 @@ class AdminImportExportTests(TestCase):
 
     def setUp(self):
         super().setUp()
-        self.user = User.objects.create_superuser(
+        self.user = UserProfile.objects.create_superuser(
             username='admin',
             email='test_user@test_user.com',
             password='admin',
@@ -395,21 +393,3 @@ class AdminImportExportTests(TestCase):
             '"Domníváte se, že má město po zprovoznění tunelu Blanka omezit tranzit historickým centrem? '
             'Ano, hned se zprovozněním tunelu",editor,1,cs',
         )
-
-
-class TestUserForm(TestCase):
-    """ Tests for UserForm """
-
-    def test_clean_email(self):
-        """ Ensure, that email is cleaned correctly """
-        form = admin.UserForm()
-        form.cleaned_data = {'email': 'foo@email.com'}
-        self.assertEqual(form.clean_email(), 'foo@email.com')
-
-    def test_clean_email_not_unique(self):
-        """ Test that the form doesn't allow to set used email """
-        mommy.make("auth.User", email="foo@email.com")
-        form = admin.UserForm()
-        form.cleaned_data = {'email': 'foo@email.com'}
-        with self.assertRaises(django.forms.ValidationError):
-            form.clean_email()

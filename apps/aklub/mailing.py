@@ -23,20 +23,16 @@ from aklub import autocom
 from aklub.models import Communication, Payment, TaxConfirmation, UserInCampaign, UserProfile
 
 from django.contrib import messages
-from django.contrib.auth.models import User as DjangoUser
 from django.utils.translation import ugettext as _
 """Mailing"""
 
 
 def create_fake_userincampaign(sending_user):
     # create fake values
-    user = DjangoUser(
+    userprofile = UserProfile(
         email=sending_user.email,
         first_name=sending_user.first_name,
         last_name=sending_user.last_name,
-    )
-    userprofile = UserProfile(
-        user=user,
         sex='male',
         street=_('testing street'),
         city=_('testing city'),
@@ -74,7 +70,7 @@ def send_mass_communication(obj, users, sending_user, request, save=True):
             userincampaign = create_fake_userincampaign(sending_user)
 
         template, subject = get_template_subject_for_language(obj, userincampaign.userprofile.language)
-        if userincampaign.userprofile.user.is_active and subject and subject.strip() != '':
+        if userincampaign.userprofile.is_active and subject and subject.strip() != '':
             if not subject or subject.strip() == '' or not template or template.strip('') == '':
                 raise Exception("Message template is empty for one of the language variants.")
             if hasattr(obj, "attach_tax_confirmation") and not obj.attach_tax_confirmation:
@@ -99,11 +95,11 @@ def send_mass_communication(obj, users, sending_user, request, save=True):
             )
             c.dispatch(save=save)
             if not c.dispatched:
-                unsent_communications.append(userincampaign.userprofile.user.email)
+                unsent_communications.append(userincampaign.userprofile.email)
             else:
-                sent_communications.append(userincampaign.userprofile.user.email)
+                sent_communications.append(userincampaign.userprofile.email)
         else:
-            unsent_communications.append(userincampaign.userprofile.user.email)
+            unsent_communications.append(userincampaign.userprofile.email)
     if unsent_communications != []:
         report_emails(request, _("Following emails had errors: %s"), unsent_communications, level=messages.ERROR)
     report_emails(request, _("Emails sent to following addreses: %s"), sent_communications)

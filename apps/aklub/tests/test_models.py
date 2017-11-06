@@ -20,7 +20,6 @@
 
 import datetime
 
-from django.contrib.auth.models import User
 from django.core import mail
 from django.core.management import call_command
 from django.test import TestCase
@@ -100,8 +99,7 @@ class ModelTests(TestCase):
 
 class CommunicationTest(TestCase):
     def setUp(self):
-        self.user = User.objects.create(email="test@test.cz")
-        self.userprofile = UserProfile.objects.create(sex='male', user=self.user)
+        self.userprofile = UserProfile.objects.create(sex='male', email="test@test.cz")
         self.campaign = Campaign.objects.create(created=datetime.date(2010, 10, 10))
         self.userincampaign = UserInCampaign.objects.create(userprofile=self.userprofile, campaign=self.campaign)
 

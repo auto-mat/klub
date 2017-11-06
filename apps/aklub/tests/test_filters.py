@@ -20,11 +20,10 @@
 
 from unittest.mock import MagicMock
 
-from django.contrib.auth.models import User
 from django.test import RequestFactory, TestCase
 
 from .. import admin, filters
-from ..models import Campaign, Payment, UserInCampaign
+from ..models import Campaign, Payment, UserInCampaign, UserProfile
 
 
 class FilterTests(TestCase):
@@ -32,7 +31,7 @@ class FilterTests(TestCase):
 
     def setUp(self):
         self.factory = RequestFactory()
-        self.user = User.objects.create_superuser(
+        self.user = UserProfile.objects.create_superuser(
             username='admin',
             email='test_user@test_user.com',
             password='admin',
@@ -41,38 +40,38 @@ class FilterTests(TestCase):
         self.request = self.factory.get("")
 
     def test_payment_assignment_filter(self):
-        f = filters.PaymentsAssignmentsFilter(self.request, {"user_assignment": "empty"}, User, None)
+        f = filters.PaymentsAssignmentsFilter(self.request, {"user_assignment": "empty"}, UserProfile, None)
         q = f.queryset(self.request, Payment.objects.all())
         self.assertEqual(q.count(), 1)
 
     def test_user_condition_filter(self):
-        f = filters.UserConditionFilter(self.request, {"user_condition": 2}, User, None)
+        f = filters.UserConditionFilter(self.request, {"user_condition": 2}, UserProfile, None)
         q = f.queryset(self.request, UserInCampaign.objects.all())
         self.assertEqual(q.count(), 4)
 
     def test_active_camaign_filter_no(self):
-        f = filters.ActiveCampaignFilter(self.request, {"active": "no"}, User, None)
+        f = filters.ActiveCampaignFilter(self.request, {"active": "no"}, UserProfile, None)
         q = f.queryset(self.request, Campaign.objects.all())
         self.assertEqual(q.count(), 0)
 
     def test_active_camaign_filter_yes(self):
-        f = filters.ActiveCampaignFilter(self.request, {"active": "yes"}, User, None)
+        f = filters.ActiveCampaignFilter(self.request, {"active": "yes"}, UserProfile, None)
         q = f.queryset(self.request, Campaign.objects.all())
         self.assertEqual(q.count(), 3)
 
     def test_email_filter(self):
-        f = filters.EmailFilter(self.request, {}, User, None)
-        q = f.queryset(self.request, User.objects.all())
+        f = filters.EmailFilter(self.request, {}, UserProfile, None)
+        q = f.queryset(self.request, UserProfile.objects.all())
         self.assertEqual(q.count(), 4)
 
     def test_email_filter_duplicate(self):
-        f = filters.EmailFilter(self.request, {"email": "duplicate"}, User, None)
-        q = f.queryset(self.request, User.objects.all())
+        f = filters.EmailFilter(self.request, {"email": "duplicate"}, UserProfile, None)
+        q = f.queryset(self.request, UserProfile.objects.all())
         self.assertEqual(q.count(), 0)
 
     def test_email_filter_blank(self):
-        f = filters.EmailFilter(self.request, {"email": "blank"}, User, None)
-        q = f.queryset(self.request, User.objects.all())
+        f = filters.EmailFilter(self.request, {"email": "blank"}, UserProfile, None)
+        q = f.queryset(self.request, UserProfile.objects.all())
         self.assertEqual(q.count(), 0)
 
     def test_show_payments_by_year_blank(self):

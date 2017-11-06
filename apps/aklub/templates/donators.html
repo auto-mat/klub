@@ -21,7 +21,7 @@ Z toho {{ n_regular }} přispívá na jeho činnost pravidelně
 
 <ul>
     {% for u in donators %}
-       <li>{{ u.userprofile.user.first_name }}&nbsp;{{ u.userprofile.user.last_name }}</li>
+       <li>{{ u.userprofile.first_name }}&nbsp;{{ u.userprofile.last_name }}</li>
     {% endfor %}
 </ul>
 

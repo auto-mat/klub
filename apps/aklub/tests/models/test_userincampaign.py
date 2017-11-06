@@ -37,7 +37,7 @@ class TestNoUpgrade(TestCase):
         self.userincampaign = Recipe(
             "aklub.UserInCampaign",
             campaign__name="Foo campaign",
-            userprofile__user__first_name="Foo userprofile",
+            userprofile__first_name="Foo userprofile",
         )
 
     def test_not_regular(self):
@@ -113,7 +113,7 @@ class TestExtraMoney(TestCase):
         self.userincampaign = Recipe(
             "aklub.UserInCampaign",
             campaign__name="Foo campaign",
-            userprofile__user__first_name="Foo userprofile",
+            userprofile__first_name="Foo userprofile",
         )
 
     def test_extra_payment(self):
@@ -182,9 +182,9 @@ class TestNameFunctions(TestCase):
         self.user_in_campaign = mommy.make(
             "aklub.UserInCampaign",
             campaign__name="Foo campaign",
-            userprofile__user__last_name="User 1",
-            userprofile__user__first_name="Test",
-            userprofile__user__email="test@test.com",
+            userprofile__last_name="User 1",
+            userprofile__first_name="Test",
+            userprofile__email="test@test.com",
         )
 
     def test_user_person_name(self):

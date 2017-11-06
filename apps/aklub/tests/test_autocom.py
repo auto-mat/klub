@@ -20,7 +20,6 @@
 
 import datetime
 
-from django.contrib.auth.models import User
 from django.test import TestCase
 
 from .. import autocom
@@ -29,8 +28,7 @@ from ..models import AutomaticCommunication, Campaign, Communication, Condition,
 
 class AutocomTest(TestCase):
     def setUp(self):
-        self.user = User.objects.create()
-        self.userprofile = UserProfile.objects.create(sex='male', user=self.user)
+        self.userprofile = UserProfile.objects.create(sex='male')
         self.campaign = Campaign.objects.create(created=datetime.date(2010, 10, 10))
         self.userincampaign = UserInCampaign.objects.create(userprofile=self.userprofile, campaign=self.campaign)
         c = Condition.objects.create(operation="nor")
@@ -74,9 +72,9 @@ class AutocomTest(TestCase):
         self.assertIn("Vazeny/a pane/pani", communication.summary)
 
     def test_autocom_addressment(self):
-        self.user.userprofile.sex = 'male'
-        self.user.userprofile.addressment = 'own addressment'
-        self.user.userprofile.save()
+        self.userprofile.sex = 'male'
+        self.userprofile.addressment = 'own addressment'
+        self.userprofile.save()
         autocom.check(action="test-autocomm")
         communication = Communication.objects.get(user=self.userincampaign)
         self.assertIn("testovací šablona", communication.summary)
@@ -84,9 +82,9 @@ class AutocomTest(TestCase):
         self.assertIn("Vazeny pane", communication.summary)
 
     def test_autocom_en(self):
-        self.user.userprofile.sex = 'unknown'
-        self.user.userprofile.language = 'en'
-        self.user.userprofile.save()
+        self.userprofile.sex = 'unknown'
+        self.userprofile.language = 'en'
+        self.userprofile.save()
         autocom.check(action="test-autocomm")
         communication = Communication.objects.get(user=self.userincampaign)
         self.assertIn("test template", communication.summary)

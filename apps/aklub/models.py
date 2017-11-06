@@ -655,7 +655,8 @@ class UserInCampaign(models.Model):
         default="",
         unique=True,
         max_length=30,
-        blank=False,
+        blank=True,
+        null=False,
     )
     registered_support = models.DateTimeField(
         verbose_name=_("Registered support"),

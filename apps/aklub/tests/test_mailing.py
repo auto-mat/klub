@@ -18,7 +18,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from django.contrib.auth.models import User
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core import mail
 from django.test import RequestFactory, TestCase
@@ -40,7 +39,7 @@ class MailingTest(TestCase):
 
     @freeze_time("2015-5-1")
     def test_mailing_fake_user(self):
-        sending_user = User.objects.create(
+        sending_user = models.UserProfile.objects.create(
             first_name="Testing",
             last_name="UserInCampaign",
             email="test@test.com",
@@ -60,7 +59,7 @@ class MailingTest(TestCase):
 
     @freeze_time("2015-5-1")
     def test_mailing_fail(self):
-        sending_user = User.objects.create(
+        sending_user = models.UserProfile.objects.create(
             first_name="Testing",
             last_name="UserInCampaign",
             email="test@test.com",
@@ -79,7 +78,7 @@ class MailingTest(TestCase):
 
     @freeze_time("2015-5-1")
     def test_mailing(self):
-        sending_user = User.objects.create(
+        sending_user = models.UserProfile.objects.create(
             first_name="Testing",
             last_name="UserInCampaign",
             email="test@test.com",

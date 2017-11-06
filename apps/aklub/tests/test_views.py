@@ -18,7 +18,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from django.contrib.auth.models import User
 from django.core import mail
 from django.core.cache import cache
 from django.core.urlresolvers import reverse
@@ -47,7 +46,7 @@ class ViewsTests(ClearCacheMixin, TestCase):
     fixtures = ['conditions', 'users', 'communications', 'dashboard_stats']
 
     def setUp(self):
-        self.user = User.objects.create_superuser(
+        self.user = UserProfile.objects.create_superuser(
             username='admin',
             email='test_user@test_user.com',
             password='admin',
@@ -55,9 +54,9 @@ class ViewsTests(ClearCacheMixin, TestCase):
         self.client.force_login(self.user)
 
     regular_post_data = {
-        'user-email': 'test@test.cz',
-        'user-first_name': 'Testing',
-        'user-last_name': 'User',
+        'userprofile-email': 'test@test.cz',
+        'userprofile-first_name': 'Testing',
+        'userprofile-last_name': 'User',
         'userprofile-telephone': 111222333,
         'userincampaign-regular_frequency': 'monthly',
         'userincampaign-regular_amount': '321',
@@ -150,7 +149,7 @@ class ViewsTests(ClearCacheMixin, TestCase):
     def test_regular_existing_email(self):
         address = reverse('regular')
         regular_post_data = self.regular_post_data.copy()
-        regular_post_data['user-email'] = 'test.user@email.cz'
+        regular_post_data['userprofile-email'] = 'test.user@email.cz'
         response = self.client.post(address, regular_post_data, follow=False)
         self.assertContains(
             response,
@@ -179,14 +178,14 @@ class ViewsTests(ClearCacheMixin, TestCase):
         response = self.client.get(address)
         self.assertContains(
             response,
-            '<input class=" form-control" id="id_user-first_name" maxlength="30" '
-            'name="user-first_name" type="text" required value="Uest" />',
+            '<input class=" form-control" id="id_userprofile-first_name" maxlength="30" '
+            'name="userprofile-first_name" type="text" required value="Uest" />',
             html=True,
         )
         self.assertContains(
             response,
-            '<input class=" form-control" id="id_user-last_name" maxlength="30" '
-            'name="user-last_name" type="text" required value="Tser" />',
+            '<input class=" form-control" id="id_userprofile-last_name" maxlength="30" '
+            'name="userprofile-last_name" type="text" required value="Tser" />',
             html=True,
         )
         self.assertContains(
@@ -197,7 +196,7 @@ class ViewsTests(ClearCacheMixin, TestCase):
         )
         self.assertContains(
             response,
-            '<input class=" form-control" id="id_user-email" name="user-email" type="email" '
+            '<input class=" form-control" id="id_userprofile-email" name="userprofile-email" type="email" '
             'required value="uest.tser@email.cz" />',
             html=True,
         )
@@ -214,10 +213,10 @@ class ViewsTests(ClearCacheMixin, TestCase):
             'New user has been created Jméno: Testing Příjmení: User Ulice: Město: PSC:\nE-mail: test@test.cz Telefon: 111222333\n\n',
         )
 
-        self.assertEqual(User.objects.get(email="test@test.cz").get_full_name(), "Testing User")
-        self.assertEqual(User.objects.get(email="test@test.cz").username, "test4")
-        self.assertEqual(UserProfile.objects.get(user__email="test@test.cz").telephone, '111222333')
-        new_user = UserInCampaign.objects.get(userprofile__user__email="test@test.cz")
+        self.assertEqual(UserProfile.objects.get(email="test@test.cz").get_full_name(), "Testing User")
+        self.assertEqual(UserProfile.objects.get(email="test@test.cz").username, "test4")
+        self.assertEqual(UserProfile.objects.get(email="test@test.cz").telephone, '111222333')
+        new_user = UserInCampaign.objects.get(userprofile__email="test@test.cz")
         self.assertEqual(new_user.regular_amount, 321)
         self.assertEqual(new_user.regular_payments, 'regular')
         self.assertEqual(new_user.regular_frequency, 'monthly')
@@ -227,17 +226,17 @@ class ViewsTests(ClearCacheMixin, TestCase):
         response = self.client.get(address)
         self.assertContains(
             response,
-            '<input id="id_user-first_name" maxlength="30" name="user-first_name" type="text" required />',
+            '<input id="id_userprofile-first_name" maxlength="30" name="userprofile-first_name" type="text" required />',
             html=True,
         )
 
         response = self.client.post(address, self.regular_post_data, follow=True)
         self.assertContains(response, '<h1>Děkujeme!</h1>', html=True)
 
-        self.assertEqual(User.objects.get(email="test@test.cz").get_full_name(), "Testing User")
-        self.assertEqual(User.objects.get(email="test@test.cz").username, "test4")
-        self.assertEqual(UserProfile.objects.get(user__email="test@test.cz").telephone, '111222333')
-        new_user = UserInCampaign.objects.get(userprofile__user__email="test@test.cz")
+        self.assertEqual(UserProfile.objects.get(email="test@test.cz").get_full_name(), "Testing User")
+        self.assertEqual(UserProfile.objects.get(email="test@test.cz").username, "test4")
+        self.assertEqual(UserProfile.objects.get(email="test@test.cz").telephone, '111222333')
+        new_user = UserInCampaign.objects.get(userprofile__email="test@test.cz")
         self.assertEqual(new_user.regular_amount, 321)
         self.assertEqual(new_user.regular_payments, 'regular')
 
@@ -260,14 +259,14 @@ class ViewsTests(ClearCacheMixin, TestCase):
         self.assertContains(response, '<tr><th>Částka: </th><td>200 Kč</td></tr>', html=True)
         self.assertContains(response, '<tr><th>Frekvence: </th><td>Měsíčně</td></tr>', html=True)
         self.assertContains(response, '<tr><th>Pravidelné platby: </th><td>Pravidelné platby</td></tr>', html=True)
-        new_user = UserInCampaign.objects.get(userprofile__user__email="test@email.cz")
+        new_user = UserInCampaign.objects.get(userprofile__email="test@email.cz")
         self.assertEqual(new_user.regular_amount, 200)
         self.assertEqual(new_user.regular_payments, 'regular')
 
     def test_regular_darujme_ajax(self):
         address = reverse('regular-darujme')
         response = self.client.post(address, self.post_data_darujme, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-        userincampaign = UserInCampaign.objects.get(userprofile__user__email="test@email.cz")
+        userincampaign = UserInCampaign.objects.get(userprofile__email="test@email.cz")
         self.assertJSONEqual(
             response.content.decode(),
             {
@@ -280,7 +279,7 @@ class ViewsTests(ClearCacheMixin, TestCase):
                 'valid': True,
             },
         )
-        new_user = UserInCampaign.objects.get(userprofile__user__email="test@email.cz")
+        new_user = UserInCampaign.objects.get(userprofile__email="test@email.cz")
         self.assertEqual(new_user.regular_amount, 200)
         self.assertEqual(new_user.regular_payments, 'regular')
 
@@ -300,7 +299,7 @@ class ViewsTests(ClearCacheMixin, TestCase):
     def test_regular_darujme_ajax_onetime(self):
         address = reverse('regular-darujme')
         response = self.client.post(address, self.post_data_darujme_onetime, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-        userincampaign = UserInCampaign.objects.get(userprofile__user__email="test@email.cz")
+        userincampaign = UserInCampaign.objects.get(userprofile__email="test@email.cz")
         self.assertJSONEqual(
             response.content.decode(),
             {
@@ -412,17 +411,18 @@ class ViewsTests(ClearCacheMixin, TestCase):
         response = self.client.get(address)
         self.assertContains(
             response,
-            '<input class=" form-control" id="id_user-first_name" maxlength="30" name="user-first_name" type="text" required />',
+            '<input class=" form-control" id="id_userprofile-first_name" maxlength="30" '
+            'name="userprofile-first_name" type="text" required />',
             html=True,
         )
 
         response = self.client.post(address, self.regular_post_data, follow=True)
         self.assertContains(response, '<h1>Děkujeme!</h1>', html=True)
 
-        self.assertEqual(User.objects.get(email="test@test.cz").get_full_name(), "Testing User")
-        self.assertEqual(User.objects.get(email="test@test.cz").username, "test4")
-        self.assertEqual(UserProfile.objects.get(user__email="test@test.cz").telephone, '111222333')
-        new_user = UserInCampaign.objects.get(userprofile__user__email="test@test.cz")
+        self.assertEqual(UserProfile.objects.get(email="test@test.cz").get_full_name(), "Testing User")
+        self.assertEqual(UserProfile.objects.get(email="test@test.cz").username, "test4")
+        self.assertEqual(UserProfile.objects.get(email="test@test.cz").telephone, '111222333')
+        new_user = UserInCampaign.objects.get(userprofile__email="test@test.cz")
         self.assertEqual(new_user.regular_amount, 321)
         self.assertEqual(new_user.regular_payments, 'regular')
 
@@ -448,9 +448,9 @@ class ViewsTests(ClearCacheMixin, TestCase):
         post_data = {
             'one_time_payment_wizard-current_step': 1,
             'userincampaign__1-note': 'Note',
-            'user__1-first_name': 'Testing',
-            'user__1-last_name': 'User',
-            'user__1-email': 'test@test.cz',
+            'userprofile__1-first_name': 'Testing',
+            'userprofile__1-last_name': 'User',
+            'userprofile__1-email': 'test@test.cz',
             'userprofile__1-title_before': 'Tit.',
             'userprofile__1-title_after': '',
             'userprofile__1-street': 'On Street 1',
@@ -467,10 +467,10 @@ class ViewsTests(ClearCacheMixin, TestCase):
         response = self.client.post(address, post_data, follow=True)
         self.assertContains(response, '<h1>Děkujeme!</h1>', html=True)
 
-        self.assertEqual(User.objects.get(email="test@test.cz").get_full_name(), "Testing User")
-        self.assertEqual(User.objects.get(email="test@test.cz").username, "test4")
-        self.assertEqual(UserProfile.objects.get(user__email="test@test.cz").telephone, '+420123456789')
-        new_user = UserInCampaign.objects.get(userprofile__user__email="test@test.cz")
+        self.assertEqual(UserProfile.objects.get(email="test@test.cz").get_full_name(), "Testing User")
+        self.assertEqual(UserProfile.objects.get(email="test@test.cz").username, "test4")
+        self.assertEqual(UserProfile.objects.get(email="test@test.cz").telephone, '+420123456789')
+        new_user = UserInCampaign.objects.get(userprofile__email="test@test.cz")
         self.assertEqual(new_user.note, 'Note')
         self.assertEqual(new_user.regular_payments, 'onetime')
 
@@ -510,9 +510,8 @@ class VariableSymbolTests(TestCase):
     def test_out_of_vs(self):
         with self.assertRaises(AssertionError):
             for i in range(1, 400):
-                vs = views.generate_variable_symbol()
-                user = User.objects.create(username=vs, email="test%s@test.cz" % i)
-                userprofile = UserProfile.objects.create(user=user)
+                vs = views.generate_variable_symbol(99)
+                userprofile = UserProfile.objects.create(username=vs, email="test%s@test.cz" % i)
                 UserInCampaign.objects.create(variable_symbol=vs, campaign_id=1, userprofile=userprofile)
 
 
@@ -520,11 +519,11 @@ class TestOneTimePaymentWizard(TestCase):
     def test_find_matching_users(self):
         """ Test that OneTimePaymentWizard._find_matching_users() works correctly """
         userincampaign_recipe.make(
-            userprofile__user__email="foo@email.com",
+            userprofile__email="foo@email.com",
         )
         userincampaign_recipe.make(
-            userprofile__user__first_name="Foo",
-            userprofile__user__last_name="User",
+            userprofile__first_name="Foo",
+            userprofile__last_name="User",
         )
 
         users = views.OneTimePaymentWizard._find_matching_users(None, "foo@email.com", "Foo", "User")

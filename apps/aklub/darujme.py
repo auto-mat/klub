@@ -11,8 +11,6 @@ from xml.dom import minidom
 from aklub.models import AccountStatements, Campaign, Payment, UserInCampaign, UserProfile, str_to_datetime, str_to_datetime_xml
 from aklub.views import generate_variable_symbol, get_unique_username
 
-from django.contrib.auth.models import User
-
 import xlrd
 
 
@@ -204,17 +202,12 @@ def create_payment(data, payments, skipped_payments):
     campaign = get_campaign(data)
     username = get_unique_username(data['email'])
 
-    user, user_created = User.objects.get_or_create(
+    userprofile, userprofile_created = UserProfile.objects.get_or_create(
         email=data['email'],
         defaults={
             'first_name': data['jmeno'],
             'last_name': data['prijmeni'],
             'username': username,
-        },
-    )
-    userprofile, userprofile_created = UserProfile.objects.get_or_create(
-        user=user,
-        defaults={
             'telephone': data['telefon'],
             'street': data.get('ulice', ""),
             'city': data.get('mesto', ""),

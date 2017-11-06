@@ -30,8 +30,8 @@ class TestStr(TestCase):
         """ Test, that __str__ works, when full name is set """
         t = mommy.make(
             "aklub.UserProfile",
-            user__first_name="Foo",
-            user__last_name="User",
+            first_name="Foo",
+            last_name="User",
         )
         self.assertEqual(str(t), "User Foo")
 
@@ -39,15 +39,6 @@ class TestStr(TestCase):
         """ Test, that __str__ works, when only username is set """
         t = mommy.make(
             "aklub.UserProfile",
-            user__username="foo_user",
+            username="foo_user",
         )
         self.assertEqual(str(t), "foo_user")
-
-    def test_id(self):
-        """ Test, that __str__ works, when no user is set """
-        t = mommy.prepare(
-            "aklub.UserProfile",
-            user=None,
-            id=1,
-        )
-        self.assertEqual(str(t), "UserProfile: 1")

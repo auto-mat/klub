@@ -45,7 +45,7 @@ from . import autocom
 from .models import Campaign, Payment, Source, UserInCampaign, UserProfile
 
 
-class RegularUserForm_User(forms.ModelForm):
+class RegularUserForm_UserProfile(forms.ModelForm):
     required_css_class = 'required'
 
     email = forms.EmailField(
@@ -63,18 +63,11 @@ class RegularUserForm_User(forms.ModelForm):
         super().clean()
         return self.cleaned_data
 
-    class Meta:
-        model = UserProfile
-        fields = ('first_name', 'last_name', 'email', 'username')
-        required = ('first_name', 'last_name', 'email')
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field in self.Meta.required:
             self.fields[field].required = True
 
-
-class RegularUserForm_UserProfile(forms.ModelForm):
     required_css_class = 'required'
 
     telephone = forms.CharField(
@@ -85,8 +78,8 @@ class RegularUserForm_UserProfile(forms.ModelForm):
 
     class Meta:
         model = UserProfile
-        fields = ('telephone',)
-        required = ('telephone',)
+        fields = ('first_name', 'last_name', 'email', 'username', 'telephone',)
+        required = ('first_name', 'last_name', 'email', 'telephone',)
 
 
 class RegularUserForm_UserInCampaign(forms.ModelForm):
@@ -121,7 +114,6 @@ class RegularUserForm(MultiModelForm):
     required_css_class = 'required'
     base_fields = {}
     form_classes = OrderedDict([
-        ('user', RegularUserForm_User),
         ('userprofile', RegularUserForm_UserProfile),
         ('userincampaign', RegularUserForm_UserInCampaign),
     ])
@@ -137,16 +129,11 @@ class FieldNameMappingMixin(object):
         return field_name
 
 
-class RegularDarujmeUserForm_User(FieldNameMappingMixin, RegularUserForm_User):
+class RegularDarujmeUserForm_UserProfile(FieldNameMappingMixin, RegularUserForm_UserProfile):
     FIELD_NAME_MAPPING = {
         'first_name': 'payment_data____jmeno',
         'last_name': 'payment_data____prijmeni',
         'email': 'payment_data____email',
-    }
-
-
-class RegularDarujmeUserForm_UserProfile(FieldNameMappingMixin, RegularUserForm_UserProfile):
-    FIELD_NAME_MAPPING = {
         'telephone': 'payment_data____telefon',
     }
 
@@ -220,7 +207,6 @@ class RegularUserForm_UserInCampaignDPNK(RegularUserForm_UserInCampaign):
 
 class RegularUserFormDPNK(RegularUserFormWithProfile):
     form_classes = OrderedDict([
-        ('user', RegularUserForm_User),
         ('userprofile', RegularUserForm_UserProfile),
         ('userincampaign', RegularUserForm_UserInCampaignDPNK),
     ])
@@ -228,7 +214,6 @@ class RegularUserFormDPNK(RegularUserFormWithProfile):
 
 class RegularDarujmeUserForm(RegularUserForm):
     form_classes = OrderedDict([
-        ('user', RegularDarujmeUserForm_User),
         ('userprofile', RegularDarujmeUserForm_UserProfile),
         ('userincampaign', RegularDarujmeUserForm_UserInCampaign),
     ])
@@ -244,7 +229,7 @@ def get_unique_username(email):
     return username
 
 
-def generate_variable_symbol():
+def generate_variable_symbol(max_variable_symbol=9999):
     now = datetime.datetime.now()
     reg_n_today = len(
         UserInCampaign.objects.filter(
@@ -253,7 +238,7 @@ def generate_variable_symbol():
             ),
         ),
     )
-    for i in range(reg_n_today + 1, 9999):
+    for i in range(reg_n_today + 1, max_variable_symbol):
         variable_symbol = '%s%02d%02d%04d' % (
             str(now.year)[-2:], now.month, now.day, i)
         if len(UserInCampaign.objects.filter(variable_symbol=variable_symbol)) == 0:
@@ -270,7 +255,6 @@ def new_user(form, regular, campaign, source_slug='web'):
     # variable_symbol is now unique in database
     # Create new user instance and fill in additional data
     new_user_objects = form.save(commit=False)
-    new_user = new_user_objects['user']
     new_user_profile = new_user_objects['userprofile']
     new_user_in_campaign = new_user_objects['userincampaign']
     if regular:
@@ -279,8 +263,6 @@ def new_user(form, regular, campaign, source_slug='web'):
     new_user_in_campaign.source = Source.objects.get(slug=source_slug)
     new_user_in_campaign.campaign = campaign
     # Save new user instance
-    new_user.save()
-    new_user_profile.user = new_user
     new_user_profile.save()
     new_user_in_campaign.userprofile = new_user_profile
     new_user_in_campaign.save()
@@ -314,7 +296,7 @@ class RegularView(FormView):
                 'valid': True,
                 'account_number': "2400063333 / 2010",
                 'variable_symbol': userincampaign.variable_symbol,
-                'email': userincampaign.userprofile.user.email,
+                'email': userincampaign.userprofile.email,
                 'amount': amount,
                 'frequency': frequency,
                 'repeated_registration': repeated_registration,
@@ -329,18 +311,18 @@ class RegularView(FormView):
             return request.POST.get(name1)
 
     def post(self, request, *args, **kwargs):
-        email = self.get_post_param(request, 'user-email', 'payment_data____email')
+        email = self.get_post_param(request, 'userprofile-email', 'payment_data____email')
         if email:
-            if UserInCampaign.objects.filter(userprofile__user__email=email, campaign=self.campaign).exists():
-                userincampaign = UserInCampaign.objects.get(userprofile__user__email=email, campaign=self.campaign)
+            if UserInCampaign.objects.filter(userprofile__email=email, campaign=self.campaign).exists():
+                userincampaign = UserInCampaign.objects.get(userprofile__email=email, campaign=self.campaign)
                 autocom.check(users=UserInCampaign.objects.filter(pk=userincampaign.pk), action='resend-data')
                 user_data = {}
                 if 'recurringfrequency' in request.POST:
                     user_data['frequency'] = REGULAR_FREQUENCY_MAP[request.POST.get('recurringfrequency')]
                 else:
                     user_data['frequency'] = request.POST.get('userincampaign-regular_frequency')
-                user_data['name'] = self.get_post_param(request, 'user-first_name', 'payment_data____jmeno')
-                user_data['surname'] = self.get_post_param(request, 'user-last_name', 'payment_data____prijmeni')
+                user_data['name'] = self.get_post_param(request, 'userprofile-first_name', 'payment_data____jmeno')
+                user_data['surname'] = self.get_post_param(request, 'userprofile-last_name', 'payment_data____prijmeni')
                 user_data['amount'] = self.get_post_param(request, 'userincampaign-regular_amount', 'ammount')
                 user_data['telephone'] = self.get_post_param(request, 'userprofile-telephone', 'payment_data____telefon')
                 user_data['email'] = email
@@ -363,17 +345,15 @@ class RegularView(FormView):
 
     def get_initial(self):
         initial = super().get_initial()
-        initial_user = {}
         initial_userprofile = {}
         if self.request.GET.get('firstname'):
-            initial_user['first_name'] = self.request.GET.get('firstname')
+            initial_userprofile['first_name'] = self.request.GET.get('firstname')
         if self.request.GET.get('surname'):
-            initial_user['last_name'] = self.request.GET.get('surname')
+            initial_userprofile['last_name'] = self.request.GET.get('surname')
         if self.request.GET.get('email'):
-            initial_user['email'] = self.request.GET.get('email')
+            initial_userprofile['email'] = self.request.GET.get('email')
         if self.request.GET.get('telephone'):
             initial_userprofile['telephone'] = self.request.GET.get('telephone')
-        initial['user'] = initial_user
         initial['userprofile'] = initial_userprofile
         return initial
 
@@ -415,9 +395,9 @@ class RegularDarujmeView(RegularView):
 
 def donators(request):
     payed = Payment.objects.exclude(type='expected').values_list('user_id', flat=True)
-    donators = UserInCampaign.objects.filter(userprofile__public=True, id__in=payed).order_by('userprofile__user__last_name')
+    donators = UserInCampaign.objects.filter(userprofile__public=True, id__in=payed).order_by('userprofile__last_name')
     n_donators = len(donators)
-    n_regular = len(donators.filter(userprofile__user__is_active=True, regular_payments="regular"))
+    n_regular = len(donators.filter(userprofile__is_active=True, regular_payments="regular"))
     return render_to_response(
         'donators.html',
         {
@@ -465,24 +445,24 @@ class OneTimePaymentWizardFormUnknown_UserInCampaign(forms.ModelForm):
 
 
 class OneTimePaymentWizardFormUnknown_UserProfile(forms.ModelForm):
+    username = forms.CharField(widget=forms.HiddenInput, required=False)
+
     class Meta:
         model = UserProfile
         fields = (
+            'first_name', 'last_name', 'email', 'username',
             'title_before', 'title_after',
             'street', 'city', 'country', 'zip_code',
             'language', 'telephone',
             'public', 'note'
         )
         required = (
+            'first_name', 'last_name', 'email',
             'street', 'city', 'country', 'zip_code',
             'language', 'telephone')
         widgets = {
             'language': forms.RadioSelect,  # should be set automatically
         }
-
-
-class OneTimePaymentWizardFormUnknown_User(forms.ModelForm):
-    username = forms.CharField(widget=forms.HiddenInput, required=False)
 
     def clean_username(self):
         "This function is required to overwrite an inherited username clean"
@@ -494,16 +474,10 @@ class OneTimePaymentWizardFormUnknown_User(forms.ModelForm):
         super().clean()
         return self.cleaned_data
 
-    class Meta:
-        model = UserProfile
-        fields = ('first_name', 'last_name', 'email', 'username')
-        required = ('first_name', 'last_name', 'email')
-
 
 class OneTimePaymentWizardFormUnknown(MultiModelForm):
     base_fields = {}
     form_classes = {
-        'user': OneTimePaymentWizardFormUnknown_User,
         'userprofile': OneTimePaymentWizardFormUnknown_UserProfile,
         'userincampaign': OneTimePaymentWizardFormUnknown_UserInCampaign,
     }
@@ -615,14 +589,14 @@ class OneTimePaymentWizard(SessionWizardView):
             subject=mail_subject,
             body=mail_body,
             from_email='kp@auto-mat.cz',
-            to=[user.userprofile.user.email],
+            to=[user.userprofile.email],
         ).send()
 
     def _find_matching_users(self, email, firstname, surname):
         return UserInCampaign.objects.filter(
-            Q(userprofile__user__email=email) |
-            Q(userprofile__user__first_name=firstname, userprofile__user__last_name=surname),
-            userprofile__user__is_active=True,
+            Q(userprofile__email=email) |
+            Q(userprofile__first_name=firstname, userprofile__last_name=surname),
+            userprofile__is_active=True,
         )
 
     def get_form(self, step=None, data=None, files=None):
@@ -631,7 +605,7 @@ class OneTimePaymentWizard(SessionWizardView):
                 cd0 = self._step_data(OneTimePaymentWizardFormBase)
                 if cd0:
                         for f in ['first_name', 'last_name', 'email']:
-                                form.forms['user'].fields .initial = cd0[f]
+                                form.forms['userprofile'].fields.initial = cd0[f]
         elif step == self._step_number(OneTimePaymentWizardFormWhoIs):
                 def obfuscate(email):
                         m = re.match('(?P<b1>.).*(?P<b2>.)@(?P<a>.).*\.(?P<d>.+)', email)
@@ -645,9 +619,9 @@ class OneTimePaymentWizard(SessionWizardView):
                             (
                                 u.id,
                                 "%s %s <%s>" % (
-                                    u.userprofile.user.first_name,
-                                    u.userprofile.user.last_name,
-                                    obfuscate(u.userprofile.user.email),
+                                    u.userprofile.first_name,
+                                    u.userprofile.last_name,
+                                    obfuscate(u.userprofile.email),
                                 ),
                             ) for u in users
                         ] +
@@ -671,8 +645,8 @@ def onetime(request):
 
 def stat_members(request):
     members_by_months = UserInCampaign.objects\
-        .filter(userprofile__user__is_active=True)\
-        .annotate(month=TruncMonth('userprofile__user__date_joined'))\
+        .filter(userprofile__is_active=True)\
+        .annotate(month=TruncMonth('userprofile__date_joined'))\
         .values('month')\
         .annotate(
             total=Count('id'),
@@ -689,7 +663,7 @@ def stat_members(request):
         'stat-members.html',
         {
             'members_by_months': members_by_months,
-            'total_members': UserInCampaign.objects.all().filter(userprofile__user__is_active=True).aggregate(Count('id'))['id__count'],
+            'total_members': UserInCampaign.objects.all().filter(userprofile__is_active=True).aggregate(Count('id'))['id__count'],
             'site_header': _("Member statistics"),
         },
     )
@@ -725,12 +699,12 @@ def profiles(request):
         UserInCampaign.objects.filter(registered_support__gte=from_date).order_by('-registered_support') |
         UserInCampaign.objects.filter(id__in=(493, 89, 98, 921, 33, 886, 1181, 842, 954, 25))).\
         exclude(userprofile__public=False, userprofile__profile_picture__isnull=False).\
-        order_by("-userprofile__user__last_name", "userprofile__user__first_name")
+        order_by("-userprofile__last_name", "userprofile__first_name")
 
     result = [
         {
-            'firstname': u.userprofile.public and u.userprofile.user.first_name or '',
-            'surname': u.userprofile.public and u.userprofile.user.last_name or '',
+            'firstname': u.userprofile.public and u.userprofile.first_name or '',
+            'surname': u.userprofile.public and u.userprofile.last_name or '',
             'text': u.userprofile.profile_text or '',
             'picture': u.userprofile.profile_picture and u.userprofile.profile_picture.url or '',
             'picture_thumbnail': u.userprofile.profile_picture and u.userprofile.profile_picture.thumbnail.url or '',
