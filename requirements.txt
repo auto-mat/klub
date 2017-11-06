@@ -36,3 +36,4 @@ djcacheutils
 django-adminfilters
 
 django-post-office
+django-bulk-update
