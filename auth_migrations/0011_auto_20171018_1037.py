@@ -17,4 +17,12 @@ class Migration(migrations.Migration):
             name='email',
             field=models.EmailField(blank=True, max_length=254, unique=True, verbose_name='email address'),
         ),
+        migrations.RemoveField(
+            model_name='user',
+            name='groups',
+        ),
+        migrations.RemoveField(
+            model_name='user',
+            name='user_permissions',
+        ),
     ]
