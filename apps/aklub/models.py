@@ -560,6 +560,12 @@ class UserProfile(AbstractUser):
             )
     telephone_url.short_description = _("Telephone")
 
+    def save(self, *args, **kwargs):
+        if not self.username and not self.id:
+            from .views import get_unique_username
+            self.username = get_unique_username(self.email)
+        super().save(*args, **kwargs)
+
 
 class UserInCampaign(models.Model):
     """
@@ -972,6 +978,11 @@ class UserInCampaign(models.Model):
             insert = True
         else:
             insert = False
+
+        if not self.variable_symbol:  # and not self.id:
+            from .views import generate_variable_symbol
+            self.variable_symbol = generate_variable_symbol()
+
         super().save(*args, **kwargs)
         from .autocom import check as autocom_check
         autocom_check(users=UserInCampaign.objects.filter(pk=self.pk), action=(insert and 'new-user' or None))

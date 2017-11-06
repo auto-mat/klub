@@ -38,6 +38,7 @@ from django.http import HttpResponseRedirect
 from django.utils.html import format_html, format_html_join, mark_safe
 from django.utils.translation import ugettext as _
 
+from import_export import fields, widgets
 from import_export.admin import ImportExportMixin
 from import_export.resources import ModelResource
 
@@ -175,8 +176,36 @@ class UserForm(django.forms.ModelForm):
         return email
 
 
+class UserProfileResource(ModelResource):
+    class Meta:
+        model = UserProfile
+        exclude = ('id',)
+        import_id_fields = ('email',)
+
+    create_users_in_campaign = fields.Field(widget=widgets.IntegerWidget)
+
+    def skip_row(self, instance, original):
+        if not instance.email:
+            return True
+        return super().skip_row(instance, original)
+
+    def import_field(self, field, obj, data):
+        if field.attribute and field.column_name in data and not getattr(obj, field.column_name):  # data[field.column_name]:
+            field.save(obj, data)
+        if field.column_name == 'create_users_in_campaign':
+            obj.create_users_in_campaign = data[field.column_name]
+
+    def dehydrate_create_users_in_campaign(self, user_profile):
+        return ", ".join(str(x) for x in user_profile.userincampaign_set.values_list('campaign', flat=True))
+
+    def after_save_instance(self, instance, using_transactions, dry_run):
+        if instance.create_users_in_campaign:
+            UserInCampaign.objects.get_or_create(campaign_id=instance.create_users_in_campaign, userprofile=instance)
+
+
 class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, UserAdmin):
     form = UserForm
+    resource_class = UserProfileResource
 
     list_display = (
         'person_name',
