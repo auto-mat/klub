@@ -27,7 +27,6 @@ from betterforms.multiform import MultiModelForm
 
 
 from django import forms, http
-from django.contrib.auth.models import User
 from django.core.mail import EmailMessage, mail_managers
 from django.core.validators import MinLengthValidator, RegexValidator
 from django.db.models import Case, Count, IntegerField, Q, Sum, When
@@ -65,7 +64,7 @@ class RegularUserForm_User(forms.ModelForm):
         return self.cleaned_data
 
     class Meta:
-        model = User
+        model = UserProfile
         fields = ('first_name', 'last_name', 'email', 'username')
         required = ('first_name', 'last_name', 'email')
 
@@ -236,11 +235,11 @@ class RegularDarujmeUserForm(RegularUserForm):
 
 
 def get_unique_username(email):
-    i = User.objects.count()
+    i = UserProfile.objects.count()
     while True:
         username = '%s%s' % (email.split('@', 1)[0], i)
         i += 1
-        if not User.objects.filter(username=username).exists():
+        if not UserProfile.objects.filter(username=username).exists():
             break
     return username
 
@@ -254,8 +253,8 @@ def generate_variable_symbol():
             ),
         ),
     )
-    for i in range(reg_n_today + 1, 299):
-        variable_symbol = '%s%02d%02d%03d' % (
+    for i in range(reg_n_today + 1, 9999):
+        variable_symbol = '%s%02d%02d%04d' % (
             str(now.year)[-2:], now.month, now.day, i)
         if len(UserInCampaign.objects.filter(variable_symbol=variable_symbol)) == 0:
             break
@@ -496,7 +495,7 @@ class OneTimePaymentWizardFormUnknown_User(forms.ModelForm):
         return self.cleaned_data
 
     class Meta:
-        model = User
+        model = UserProfile
         fields = ('first_name', 'last_name', 'email', 'username')
         required = ('first_name', 'last_name', 'email')
 
