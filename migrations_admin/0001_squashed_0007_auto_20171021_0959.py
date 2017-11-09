@@ -28,7 +28,7 @@ class Migration(migrations.Migration):
         ('aklub', '0046_auto_20171020_1510'),
     ]
 
-   operations = [
+    operations = [
         migrations.CreateModel(
             name='LogEntry',
             fields=[
