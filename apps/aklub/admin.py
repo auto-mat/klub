@@ -192,6 +192,7 @@ class UserProfileResource(ModelResource):
 
 class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, UserAdmin):
     resource_class = UserProfileResource
+    import_template_name = "admin/import_export/userprofile_import.html"
 
     list_display = (
         'person_name',
