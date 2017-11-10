@@ -1,6 +1,8 @@
 # custom filters
 
+import operator
 from datetime import date
+from functools import reduce
 
 from django.contrib.admin import SimpleListFilter
 from django.db.models import Count, Q
@@ -99,4 +101,64 @@ class EmailFilter(SimpleListFilter):
             return queryset.filter(email__in=duplicates)
         if self.value() == 'blank':
             return queryset.filter(Q(email__exact='') or Q(email__isnull=True))
+        return queryset
+
+
+class TelephoneFilter(SimpleListFilter):
+    title = _("Telephone")
+    parameter_name = 'telephone'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('duplicate', _('Duplicate')),
+            ('blank', _('Blank')),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == 'duplicate':
+            duplicates = UserProfile.objects.filter(telephone__isnull=False).\
+                exclude(telephone__exact='').\
+                values('telephone').\
+                annotate(Count('id')).\
+                values('telephone').\
+                order_by().\
+                filter(id__count__gt=1).\
+                values_list('telephone', flat=True)
+            return queryset.filter(telephone__in=duplicates)
+        if self.value() == 'blank':
+            return queryset.filter(Q(telephone__exact='') or Q(telephone__isnull=True))
+        return queryset
+
+
+class NameFilter(SimpleListFilter):
+    title = _("Name")
+    parameter_name = 'name'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('duplicate', _('Duplicate')),
+            ('blank', _('Blank')),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == 'duplicate':
+            duplicates = UserProfile.objects.filter(first_name__isnull=False, last_name__isnull=False)
+            duplicates = duplicates.exclude(first_name__exact='', last_name__exact='')
+            duplicates = duplicates.values('first_name', 'last_name')
+            duplicates = duplicates.annotate(Count('id'))
+            duplicates = duplicates.values('first_name', 'last_name', 'id')
+            duplicates = duplicates.order_by()
+            duplicates = duplicates.filter(id__count__gt=1)
+            duplicates = duplicates.values_list('first_name', 'last_name')
+            print(duplicates)
+            query = reduce(
+                operator.or_,
+                (Q(first_name=fn, last_name=ln) for fn, ln in duplicates),
+            )
+            return queryset.filter(query)
+        if self.value() == 'blank':
+            return queryset.filter(
+                (Q(first_name__exact='') or Q(first_name__isnull=True)) and
+                (Q(last_name__exact='') or Q(last_name__isnull=True)),
+            )
         return queryset

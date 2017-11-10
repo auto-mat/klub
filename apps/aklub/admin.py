@@ -224,6 +224,9 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, UserAdmin):
         'groups',
         'language',
         'campaigns',
+        filters.EmailFilter,
+        filters.TelephoneFilter,
+        filters.NameFilter,
     )
     filter_horizontal = ('campaigns',)
     profile_fieldsets = (

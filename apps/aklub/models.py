@@ -559,6 +559,7 @@ class UserProfile(AbstractUser):
                 self.telephone,
             )
     telephone_url.short_description = _("Telephone")
+    telephone_url.admin_order_field = "telephone"
 
     def save(self, *args, **kwargs):
         if not self.username and not self.id:
