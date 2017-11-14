@@ -233,6 +233,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, UserAdmin):
         (_('Basic personal'), {
             'fields': [
                 ('sex', 'language', 'public',),
+                ('note',),
             ],
         }),
         (_('Titles and addressments'), {
@@ -374,10 +375,14 @@ class UserInCampaignAdmin(ImportExportMixin, RelatedFieldAdmin):
     list_per_page = 100
     inlines = [PaymentsInline, CommunicationInline]
     raw_id_fields = ('userprofile', 'recruiter',)
-    readonly_fields = ('verified_by',)
+    readonly_fields = ('verified_by', 'userprofile_telephone_url', 'userprofile_note')
     fieldsets = [
         (_('Basic personal'), {
-            'fields': ['campaign', 'userprofile'],
+            'fields': [
+                ('campaign', 'userprofile'),
+                ('userprofile_telephone_url',),
+                ('userprofile_note',),
+            ],
         }),
         (_('Additional'), {
             'fields': [
@@ -415,6 +420,12 @@ class UserInCampaignAdmin(ImportExportMixin, RelatedFieldAdmin):
             'classes': ['collapse'],
         }),
     ]
+
+    def userprofile_note(self, obj):
+        return obj.userprofile.note
+
+    def userprofile_telephone_url(self, obj):
+        return obj.userprofile.telephone_url()
 
     def save_formset(self, request, form, formset, change):
         # We need to save the request.user to inline Communication
