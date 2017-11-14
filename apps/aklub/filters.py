@@ -85,6 +85,7 @@ class EmailFilter(SimpleListFilter):
     def lookups(self, request, model_admin):
         return (
             ('duplicate', _(u'Duplicate')),
+            ('email-format', _('Not in e-mail format')),
             ('blank', _(u'Blank')),
         )
 
@@ -101,6 +102,8 @@ class EmailFilter(SimpleListFilter):
             return queryset.filter(email__in=duplicates)
         if self.value() == 'blank':
             return queryset.filter(Q(email__exact='') or Q(email__isnull=True))
+        if self.value() == 'email-format':
+            return queryset.exclude(email__iregex=r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9.-]+$)")
         return queryset
 
 
