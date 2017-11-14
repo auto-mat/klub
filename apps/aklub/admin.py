@@ -309,9 +309,21 @@ class UserInCampaignResource(ModelResource):
             'additional_information',
             'userprofile__is_active',
             'userprofile__language',
+            'expected_regular_payment_date',
+            'expected_regular_payment_date',
+            'extra_money',
+            'number_of_payments',
+            'payment_total',
+            'regular_amount',
+            'last_payment_date',
         )
         export_order = fields
         import_id_fields = ('userprofile_email', 'campaign')
+
+    last_payment_date = fields.Field()
+
+    def dehydrate_last_payment_date(self, user_in_campaign):
+        return user_in_campaign.last_payment_date()
 
 
 # -- ADMIN FORMS --
@@ -319,12 +331,14 @@ class UserInCampaignAdmin(ImportExportMixin, RelatedFieldAdmin):
     list_display = (
         'person_name',
         'userprofile__email',
+        'userprofile__telephone_url',
         'source',
         'campaign',
         'variable_symbol',
         'registered_support_date',
         'regular_payments_info',
-        'payment_delay', 'extra_payments',
+        'payment_delay',
+        'extra_payments',
         'number_of_payments',
         'total_contrib_string',
         'regular_amount',
