@@ -177,7 +177,7 @@ class UserProfileResource(ModelResource):
         return super().skip_row(instance, original)
 
     def import_field(self, field, obj, data):
-        if field.attribute and field.column_name in data and not getattr(obj, field.column_name):  # data[field.column_name]:
+        if field.attribute and field.column_name in data and not getattr(obj, field.column_name):
             field.save(obj, data)
         if field.column_name == 'create_users_in_campaign':
             obj.create_users_in_campaign = data[field.column_name]
@@ -277,6 +277,12 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, UserAdmin):
 
 
 class UserInCampaignResource(ModelResource):
+    userprofile_email = fields.Field(
+        column_name='userprofile_email',
+        attribute='userprofile',
+        widget=widgets.ForeignKeyWidget(UserProfile, 'email'),
+    )
+
     class Meta:
         model = UserInCampaign
         fields = (
@@ -289,12 +295,13 @@ class UserInCampaignResource(ModelResource):
             'userprofile__title_after',
             'userprofile__sex',
             'userprofile__telephone',
-            'userprofile__email',
+            'userprofile_email',
             'userprofile__street',
             'userprofile__city',
             'userprofile__zip_code',
             'variable_symbol',
             'userprofile__club_card_available',
+            'wished_information',
             'regular_payments',
             'regular_frequency',
             'registered_support',
@@ -304,6 +311,7 @@ class UserInCampaignResource(ModelResource):
             'userprofile__language',
         )
         export_order = fields
+        import_id_fields = ('userprofile_email', 'campaign')
 
 
 # -- ADMIN FORMS --
