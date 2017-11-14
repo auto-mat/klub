@@ -114,6 +114,7 @@ class TelephoneFilter(SimpleListFilter):
     def lookups(self, request, model_admin):
         return (
             ('duplicate', _('Duplicate')),
+            ('bad-format', _('Not in telephone format')),
             ('blank', _('Blank')),
         )
 
@@ -130,6 +131,8 @@ class TelephoneFilter(SimpleListFilter):
             return queryset.filter(telephone__in=duplicates)
         if self.value() == 'blank':
             return queryset.filter(Q(telephone__exact='') or Q(telephone__isnull=True))
+        if self.value() == 'bad-format':
+            return queryset.exclude(telephone__iregex=r'^\+?([0-9] *){9,}$').exclude(telephone__exact='').exclude(telephone__isnull=True)
         return queryset
 
 
