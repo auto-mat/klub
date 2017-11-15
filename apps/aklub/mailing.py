@@ -95,11 +95,11 @@ def send_mass_communication(obj, users, sending_user, request, save=True):
             )
             c.dispatch(save=save)
             if not c.dispatched:
-                unsent_communications.append(userincampaign.userprofile.email)
+                unsent_communications.append(userincampaign.userprofile.get_email_str())
             else:
-                sent_communications.append(userincampaign.userprofile.email)
+                sent_communications.append(userincampaign.userprofile.get_email_str())
         else:
-            unsent_communications.append(userincampaign.userprofile.email)
+            unsent_communications.append(userincampaign.userprofile.get_email_str())
     if unsent_communications != []:
         report_emails(request, _("Following emails had errors: %s"), unsent_communications, level=messages.ERROR)
     report_emails(request, _("Emails sent to following addreses: %s"), sent_communications)

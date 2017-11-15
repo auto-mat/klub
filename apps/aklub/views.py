@@ -220,6 +220,8 @@ class RegularDarujmeUserForm(RegularUserForm):
 
 
 def get_unique_username(email):
+    if not email:
+        email = ""
     i = UserProfile.objects.count()
     while True:
         username = '%s%s' % (email.split('@', 1)[0], i)

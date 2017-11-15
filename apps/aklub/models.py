@@ -375,10 +375,10 @@ class UserProfile(AbstractUser):
         # TODO: List of languages used in the club should come from app settings
         ('cs', _('Czech')),
         ('en', _('English')))
-    email = models.EmailField(  # Retype email to be unique and required
+    email = models.EmailField(  # Retype email to be unique
         _('email address'),
-        blank=False,
-        null=False,
+        blank=True,
+        null=True,
         unique=True,
     )
     campaigns = models.ManyToManyField(
@@ -510,6 +510,12 @@ class UserProfile(AbstractUser):
         null=True,
     )
 
+    def get_email_str(self):
+        if self.email:
+            return self.email.strip()
+        else:
+            return ""
+
     def person_name(self):
         if self.first_name or self.last_name:
             return " ".join(
@@ -569,6 +575,10 @@ class UserProfile(AbstractUser):
             )
     telephone_url.short_description = _("Telephone")
     telephone_url.admin_order_field = "telephone"
+
+    def clean(self):
+        if self.email == "":
+            self.email = None
 
     def save(self, *args, **kwargs):
         if not self.username and not self.id:
@@ -1538,13 +1548,12 @@ class Communication(models.Model):
             else:
                 bcc = ['kp@auto-mat.cz']
 
-            email_address = self.user.userprofile.email.strip()
-            if email_address and email_address != "":
+            if self.user.userprofile.get_email_str() != "":
                 email = EmailMultiAlternatives(
                     subject=self.subject,
                     body=self.summary_txt(),
                     from_email='Klub pratel Auto*Matu <kp@auto-mat.cz>',
-                    to=[email_address],
+                    to=[self.user.userprofile.get_email_str()],
                     bcc=bcc,
                 )
                 if self.type != 'individual':
