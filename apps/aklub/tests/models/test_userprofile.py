@@ -35,6 +35,25 @@ class TestStr(TestCase):
         )
         self.assertEqual(str(t), "User Foo")
 
+    def test_str_titles(self):
+        """ Test, that __str__ works, when full name is set """
+        t = mommy.make(
+            "aklub.UserProfile",
+            title_before="Ing.",
+            first_name="Foo",
+            last_name="User",
+            title_after="CSc.",
+        )
+        self.assertEqual(str(t), "Ing. User Foo, CSc.")
+
+    def test_str_only_surname(self):
+        """ Test, that __str__ works, when full name is set """
+        t = mommy.make(
+            "aklub.UserProfile",
+            last_name="User",
+        )
+        self.assertEqual(str(t), "User")
+
     def test_username(self):
         """ Test, that __str__ works, when only username is set """
         t = mommy.make(

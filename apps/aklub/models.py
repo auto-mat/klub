@@ -512,7 +512,16 @@ class UserProfile(AbstractUser):
 
     def person_name(self):
         if self.first_name or self.last_name:
-            return " ".join((self.last_name, self.first_name))
+            return " ".join(
+                filter(
+                    None,
+                    [
+                        self.title_before,
+                        self.last_name,
+                        self.first_name,
+                    ],
+                ),
+            ) + (", %s" % self.title_after if self.title_after else "")
         else:
             return self.username
     person_name.short_description = _("Full name")

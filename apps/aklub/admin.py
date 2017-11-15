@@ -200,10 +200,12 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, UserAdmin):
         'email',
         'addressment',
         'telephone_url',
+        'title_before',
         'first_name',
         'last_name',
-        'is_staff',
+        'title_after',
         'sex',
+        'is_staff',
         'date_joined',
         'last_login',
     )
@@ -213,8 +215,10 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, UserAdmin):
     search_fields = (
         'username',
         'email',
+        'title_before',
         'first_name',
         'last_name',
+        'title_after',
         'telephone',
     )
     list_filter = (
@@ -232,13 +236,12 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, UserAdmin):
     profile_fieldsets = (
         (_('Basic personal'), {
             'fields': [
-                ('sex', 'language', 'public',),
+                ('language', 'public',),
                 ('note',),
             ],
         }),
-        (_('Titles and addressments'), {
+        (_('Addressments'), {
             'fields': [
-                ('title_before', 'title_after'),
                 ('addressment', 'addressment_on_envelope'),
             ],
             'classes': ['collapse'],
@@ -271,7 +274,10 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, UserAdmin):
     )
 
     def get_fieldsets(self, request, obj=None):
-        return super().get_fieldsets(request, obj) + self.profile_fieldsets
+        original_fields = super().get_fieldsets(request, obj)
+        if obj:
+            original_fields[1][1]['fields'] = ('title_before', 'first_name', 'last_name', 'title_after', 'sex', 'email')
+        return original_fields + self.profile_fieldsets
 
     readonly_fields = ('userattendance_links',)
     actions = (send_mass_communication_distinct,)
