@@ -110,6 +110,9 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.middleware.locale.LocaleMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.middleware.security.SecurityMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = None  # To allow more fields in administration
@@ -250,3 +253,13 @@ MIGRATION_MODULES = {
 }
 
 AUTH_USER_MODEL = "aklub.UserProfile"
+
+CSRF_COOKIE_SECURE = True
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTOCOL', 'https')
+SECURE_SSL_REDIRECT = True
+SECURE_HSTS_SECONDS = 60
+SECURE_HSTS_PRELOAD = True
+SESSION_COOKIE_SECURE = True
+X_FRAME_OPTIONS = 'DENY'
