@@ -33,3 +33,10 @@ EMAIL_FILE_PATH = '/tmp/aklub-emails'
 LOGGING['handlers']['logfile']['filename'] = "aklub.log"
 
 CORS_ORIGIN_ALLOW_ALL = True
+
+CSRF_COOKIE_SECURE = False
+SECURE_BROWSER_XSS_FILTER = False
+SECURE_CONTENT_TYPE_NOSNIFF = False
+SECURE_SSL_REDIRECT = False
+SECURE_HSTS_PRELOAD = False
+SESSION_COOKIE_SECURE = False
