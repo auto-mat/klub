@@ -3,7 +3,7 @@ Django==1.11.6
 django-admin-large-initial-data==0.0.2
 django-admin-tools==0.8.1
 -e git+https://github.com/PetrDlouhy/django-admin-tools-stats@3a579eb0a4675a1599c2cfa581c8ac84e8fcaf36#egg=django_admin_tools_stats
-django-adminactions==1.5
+-e git+https://github.com/PetrDlouhy/django-adminactions@develop#egg=django-adminactions
 django-adminfilters==0.3.1
 -e git+https://github.com/fusionbox/django-betterforms.git@28d598bcd5c9b9e9f14c6e2e79fdf6a15a887712#egg=django_betterforms
 django-bootstrap-form==3.3
