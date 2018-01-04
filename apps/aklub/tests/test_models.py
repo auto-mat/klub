@@ -48,7 +48,6 @@ class ModelTests(TestCase):
         self.p1.save()
         call_command('denorm_flush')
         self.u1 = UserInCampaign.objects.get(pk=2978)
-        self.tax_confirmation, created = self.u1.userprofile.make_tax_confirmation(2016)
 
     def test_user_model(self):
         self.assertEqual(self.u.is_direct_dialogue(), False)
@@ -83,9 +82,6 @@ class ModelTests(TestCase):
         self.assertEqual(self.u1.total_contrib_string(), "350&nbsp;Kč")
         self.assertEqual(self.u1.registered_support_date(), "16. 12. 2015")
         self.assertEqual(self.u1.payment_total_range(datetime.date(2016, 1, 1), datetime.date(2016, 2, 1)), 0)
-        self.assertEqual(self.tax_confirmation.year, 2016)
-        self.assertTrue("PDF-1.4" in str(self.tax_confirmation.file.read()))
-        self.assertEqual(self.tax_confirmation.amount, 350)
         self.assertEqual(self.u1.no_upgrade, False)
         self.assertEqual(self.u1.monthly_regular_amount(), 100)
 

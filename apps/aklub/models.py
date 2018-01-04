@@ -30,7 +30,6 @@ from denorm import denormalized, depend_on_related
 from django.contrib.admin.templatetags.admin_list import _boolean_icon
 from django.contrib.auth.models import AbstractUser, User
 from django.contrib.humanize.templatetags.humanize import intcomma
-from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.core.files.storage import FileSystemStorage
 from django.core.files.temp import NamedTemporaryFile
@@ -575,7 +574,7 @@ class UserProfile(AbstractUser):
         payment_set = Payment.objects.filter(user__userprofile=self)
         amount = payment_set.exclude(type='expected').filter(date__year=year).aggregate(Sum('amount'))['amount__sum']
         if not amount:
-            return
+            return None, False
         temp = NamedTemporaryFile()
         name = u"%s %s" % (self.first_name, self.last_name)
         addr_city = u"%s %s" % (self.zip_code, self.city)
@@ -1585,13 +1584,8 @@ class Communication(models.Model):
                 if self.attachment:
                     att = self.attachment
                     email.attach(os.path.basename(att.name), att.read())
-                try:
-                    email.send(fail_silently=False)
-                except (AttributeError, ValidationError):
-                    # TODO: At least warn about it!
-                    pass
-                else:
-                    self.dispatched = True
+                email.send(fail_silently=False)
+                self.dispatched = True
                 self.send = False
             if save:
                 self.save()

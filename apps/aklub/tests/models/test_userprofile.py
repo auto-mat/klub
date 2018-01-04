@@ -18,7 +18,11 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+from PyPDF2 import PdfFileReader
+
 from django.test import TestCase
+
+from freezegun import freeze_time
 
 from model_mommy import mommy
 
@@ -94,3 +98,48 @@ class TestStr(TestCase):
             sex='unknown',
         )
         self.assertEqual(t.get_addressment(), "člene/členko Klubu přátel Auto*Matu")
+
+    def test_get_email_str_blank(self):
+        """ Test, that get_email_str works when no email is set """
+        t = mommy.make(
+            "aklub.UserProfile",
+        )
+        self.assertEqual(t.get_email_str(), "")
+
+    def test_get_email_str(self):
+        """ Test, that get_email_str strips the email """
+        t = mommy.make(
+            "aklub.UserProfile",
+            email='  test@test.cz',
+        )
+        self.assertEqual(t.get_email_str(), "test@test.cz")
+
+    def test_clean_email(self):
+        """ Test, that clean function cleanes the email """
+        t = mommy.make(
+            "aklub.UserProfile",
+            email='',
+        )
+        t.clean()
+        self.assertEqual(t.email, None)
+
+    def test_make_tax_confirmation_no_payment(self):
+        """ Test, that make_tax_confirmation function without any payment """
+        t = mommy.make("aklub.UserProfile")
+        tax_confirmation, created = t.make_tax_confirmation(2016)
+        self.assertEqual(tax_confirmation, None)
+        self.assertEqual(created, False)
+
+    @freeze_time("2016-5-1")
+    def test_make_tax_confirmation(self):
+        """ Test, that make_tax_confirmation function """
+        t = mommy.make("aklub.UserProfile", sex='male')
+        uc = mommy.make("aklub.UserInCampaign", userprofile=t, campaign=mommy.make("Campaign"))
+        mommy.make("aklub.Payment", amount=350, date="2016-01-01", type='regular', user=uc)
+        tax_confirmation, created = t.make_tax_confirmation(2016)
+        self.assertEqual(t.email, None)
+        self.assertEqual(tax_confirmation.year, 2016)
+        pdf = PdfFileReader(tax_confirmation.file)
+        pdf_string = pdf.pages[0].extractText()
+        self.assertTrue("spolku Auto*Mat dar ve vƒ⁄i 350,-" in pdf_string)
+        self.assertEqual(tax_confirmation.amount, 350)
