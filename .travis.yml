@@ -14,6 +14,7 @@ install:
   - pip install -r requirements-test.txt
   - pip install -q $DJANGO_VERSION
 before_script:
+  - flake8
   - cd apps/aklub/
   - DJANGO_SETTINGS_MODULE="" django-admin compilemessages
   - cd ../..
