@@ -2003,6 +2003,9 @@ class MassCommunication(models.Model):
         max_length=50000,
         blank=False,
         null=True,
+        validators=[
+            RegexValidator(r'^((\{\w*\|\w*\})?[^{}]*)*$', _("Gender strings must look like {male_variant|female_variant}")),
+        ],
     )
     template_en = models.TextField(
         verbose_name=_("English template"),
