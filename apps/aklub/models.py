@@ -1126,7 +1126,7 @@ class AccountStatements(models.Model):
         ('darujme', 'Darujme.cz'),
     )
 
-    type = models.CharField(max_length=20, choices=TYPE_OF_STATEMENT)
+    type = models.CharField(max_length=20, choices=TYPE_OF_STATEMENT)  # noqa
     import_date = models.DateTimeField(auto_now=True)
     csv_file = models.FileField(
         upload_to='account-statements',
@@ -1301,7 +1301,7 @@ class Payment(models.Model):
         max_length=50,
         blank=True,
     )
-    type = models.CharField(
+    type = models.CharField(  # noqa
         verbose_name=_("Type"),
         help_text=_("Type of payment"),
         choices=TYPE_OF_PAYMENT,
@@ -1464,7 +1464,7 @@ class Communication(models.Model):
         max_length=30,
         choices=COMMUNICATION_METHOD,
     )
-    type = models.CharField(
+    type = models.CharField(  # noqa
         verbose_name=_("Type of communication"),
         max_length=30, choices=COMMUNICATION_TYPE,
         default='individual',
@@ -1551,10 +1551,7 @@ class Communication(models.Model):
         filling on the envelope should be displayed to the admin.
         """
         if self.method == 'email':
-            if self.type == 'mass':
-                bcc = []
-            else:
-                bcc = ['kp@auto-mat.cz']
+            bcc = [] if self.type == 'mass' else ['kp@auto-mat.cz']
 
             if self.user.userprofile.get_email_str() != "":
                 email = EmailMultiAlternatives(

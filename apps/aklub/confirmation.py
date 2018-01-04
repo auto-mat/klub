@@ -3,7 +3,6 @@ import os
 from datetime import datetime
 
 import reportlab
-
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet

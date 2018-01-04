@@ -29,8 +29,8 @@ from freezegun import freeze_time
 
 from model_mommy import mommy
 
-from .utils import print_response  # noqa
 from .recipes import userincampaign_recipe
+from .utils import print_response  # noqa
 from .. import admin
 from ..models import (
     AccountStatements, AutomaticCommunication, Communication, MassCommunication,

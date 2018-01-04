@@ -25,11 +25,8 @@ try:
     from django.urls import reverse
 except ImportError:  # Django<2.0
     from django.core.urlresolvers import reverse
-
 from django.test import TestCase
-
 from django.test.utils import override_settings
-
 
 from .recipes import userincampaign_recipe
 from .utils import print_response  # noqa

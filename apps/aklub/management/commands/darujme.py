@@ -7,7 +7,7 @@ from django.core.management.base import BaseCommand
 
 
 class Command(BaseCommand):
-    help = 'Checks Darujme.cz for new payments'
+    help = 'Checks Darujme.cz for new payments'  # noqa
 
     def handle(self, *args, **options):
         for campaign in Campaign.objects.filter(darujme_api_secret__isnull=False).exclude(darujme_api_secret=""):
