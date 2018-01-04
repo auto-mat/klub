@@ -250,7 +250,7 @@ ALLOWED_HOSTS = os.environ.get('AKLUB_ALLOWED_HOSTS', '').split(',')
 TEST_RUNNER = 'aklub.tests.AklubTestSuiteRunner'
 
 MIGRATION_MODULES = {
-    'auth': 'auth_migrations',
+    'auth': 'migrations_auth',
     'admin': 'migrations_admin',
 }
 
