@@ -61,3 +61,36 @@ class TestStr(TestCase):
             username="foo_user",
         )
         self.assertEqual(str(t), "foo_user")
+
+    def test_get_addressment(self):
+        """ Test, that get_addresment function makes vokativ """
+        t = mommy.make(
+            "aklub.UserProfile",
+            first_name="Petr",
+        )
+        self.assertEqual(t.get_addressment(), "Petře")
+
+    def test_get_addressment_override(self):
+        """ Test, that get_addresment function takes addressment override """
+        t = mommy.make(
+            "aklub.UserProfile",
+            first_name="Petr",
+            addressment="Petříčku",
+        )
+        self.assertEqual(t.get_addressment(), "Petříčku")
+
+    def test_get_addressment_default_female(self):
+        """ Test, that get_addresment function returns default for female """
+        t = mommy.make(
+            "aklub.UserProfile",
+            sex='female',
+        )
+        self.assertEqual(t.get_addressment(), "členko Klubu přátel Auto*Matu")
+
+    def test_get_addressment_default(self):
+        """ Test, that get_addresment function returns default """
+        t = mommy.make(
+            "aklub.UserProfile",
+            sex='unknown',
+        )
+        self.assertEqual(t.get_addressment(), "člene/členko Klubu přátel Auto*Matu")

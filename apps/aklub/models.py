@@ -57,6 +57,8 @@ import html2text
 
 import stdimage
 
+from vokativ import vokativ
+
 from . import confirmation
 
 logger = logging.getLogger(__name__)
@@ -517,6 +519,23 @@ class UserProfile(AbstractUser):
         auto_now=True,
         null=True,
     )
+
+    def get_addressment(self):
+        if self.addressment:
+            return self.addressment
+        if self.first_name:
+            return vokativ(self.first_name).title()
+        if self.language == 'cs':
+            if self.sex == 'male':
+                return 'člene Klubu přátel Auto*Matu'
+            elif self.sex == 'female':
+                return 'členko Klubu přátel Auto*Matu'
+            else:
+                return 'člene/členko Klubu přátel Auto*Matu'
+        else:
+            return 'member of the Auto*Mat friends club'
+    get_addressment.short_description = _("Addressment")
+    get_addressment.admin_order_field = 'addressment'
 
     def get_email_str(self):
         if self.email:

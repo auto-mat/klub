@@ -202,6 +202,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, UserAdmin):
         'username',
         'email',
         'addressment',
+        'get_addressment',
         'telephone_url',
         'title_before',
         'first_name',

@@ -45,21 +45,9 @@ def _localize_enum(descr, val, lang):
 def process_template(template_string, user):
     template = string.Template(template_string)
 
-    if user.userprofile.addressment and user.userprofile.addressment != '':
-        addressment = user.userprofile.addressment
-    else:
-        if user.userprofile.language == 'cs':
-            if user.userprofile.sex == 'male':
-                addressment = u'člene Klubu přátel Auto*Matu'
-            elif user.userprofile.sex == 'female':
-                addressment = u'členko Klubu přátel Auto*Matu'
-            else:
-                addressment = u'člene/členko Klubu přátel Auto*Matu'
-        else:
-            addressment = u'member of the Auto*Mat friends club'
     # Make variable substitutions
     text = template.substitute(
-        addressment=addressment,
+        addressment=user.userprofile.get_addressment(),
         name=user.userprofile.first_name,
         firstname=user.userprofile.first_name,
         surname=user.userprofile.last_name,
