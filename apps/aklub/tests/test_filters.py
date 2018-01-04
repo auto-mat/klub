@@ -22,30 +22,104 @@ from unittest.mock import MagicMock
 
 from django.test import RequestFactory, TestCase
 
+from model_mommy import mommy
+
 from .. import admin, filters
 from ..models import Campaign, Payment, UserInCampaign, UserProfile
 
 
-class FilterTests(TestCase):
-    fixtures = ['conditions', 'users', 'communications']
-
+class FilterTestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
-        self.user = UserProfile.objects.create_superuser(
-            username='admin',
-            email='test_user@test_user.com',
-            password='admin',
-        )
-        self.client.force_login(self.user)
         self.request = self.factory.get("")
+
+
+class FilterTests(FilterTestCase):
+    def test_email_filter_duplicate(self):
+        """ Test that email duplicate filter works case-insensitively """
+        mommy.make('UserProfile', email='foo@Email.com', first_name="Foo", last_name="")
+        mommy.make('UserProfile', email='foo@email.com', first_name="Bar", last_name="")
+        f = filters.EmailFilter(self.request, {"email": "duplicate"}, UserProfile, None)
+        q = f.queryset(self.request, UserProfile.objects.all())
+        self.assertQuerysetEqual(q, ["<UserProfile: Foo>", "<UserProfile: Bar>"], ordered=False)
+
+    def test_email_filter_blank(self):
+        mommy.make('UserProfile', email="", first_name="Foo", last_name="")
+        f = filters.EmailFilter(self.request, {"email": "blank"}, UserProfile, None)
+        q = f.queryset(self.request, UserProfile.objects.all())
+        self.assertQuerysetEqual(q, ["<UserProfile: Foo>"])
+
+    def test_email_filter_format(self):
+        mommy.make('UserProfile', email='foo', first_name="Foo", last_name="")
+        f = filters.EmailFilter(self.request, {"email": "email-format"}, UserProfile, None)
+        q = f.queryset(self.request, UserProfile.objects.all())
+        self.assertQuerysetEqual(q, ["<UserProfile: Foo>"])
+
+    def test_telephone_filter_duplicate(self):
+        mommy.make('UserProfile', telephone='123456', first_name="Foo", last_name="")
+        mommy.make('UserProfile', telephone='123456', first_name="Bar", last_name="")
+        f = filters.TelephoneFilter(self.request, {"telephone": "duplicate"}, UserProfile, None)
+        q = f.queryset(self.request, UserProfile.objects.all())
+        self.assertQuerysetEqual(q, ["<UserProfile: Foo>", "<UserProfile: Bar>"], ordered=False)
+
+    def test_telephone_filter_blank(self):
+        mommy.make('UserProfile', telephone="", first_name="Foo", last_name="")
+        f = filters.TelephoneFilter(self.request, {"telephone": "blank"}, UserProfile, None)
+        q = f.queryset(self.request, UserProfile.objects.all())
+        self.assertQuerysetEqual(q, ["<UserProfile: Foo>"])
+
+    def test_telephone_filter_format(self):
+        mommy.make('UserProfile', telephone='1111', first_name="Foo", last_name="")
+        f = filters.TelephoneFilter(self.request, {"telephone": "bad-format"}, UserProfile, None)
+        q = f.queryset(self.request, UserProfile.objects.all())
+        self.assertQuerysetEqual(q, ["<UserProfile: Foo>"])
+
+    def test_telephone_filter_without_query(self):
+        mommy.make('UserProfile', telephone='1111', first_name="Foo", last_name="")
+        f = filters.TelephoneFilter(self.request, {}, UserProfile, None)
+        q = f.queryset(self.request, UserProfile.objects.all())
+        self.assertQuerysetEqual(q, ["<UserProfile: Foo>"])
+
+    def test_name_filter_duplicate(self):
+        mommy.make('UserProfile', first_name="Foo", last_name="")
+        mommy.make('UserProfile', first_name="Foo", last_name="")
+        f = filters.NameFilter(self.request, {"name": "duplicate"}, UserProfile, None)
+        q = f.queryset(self.request, UserProfile.objects.all())
+        self.assertQuerysetEqual(q, ["<UserProfile: Foo>", "<UserProfile: Foo>"], ordered=False)
+
+    def test_name_filter_blank(self):
+        mommy.make('UserProfile', first_name="", last_name="", username="foo_username")
+        f = filters.NameFilter(self.request, {"name": "blank"}, UserProfile, None)
+        q = f.queryset(self.request, UserProfile.objects.all())
+        self.assertQuerysetEqual(q, ["<UserProfile: foo_username>"])
+
+    def test_name_filter_without_query(self):
+        mommy.make('UserProfile', first_name="", last_name="", username="foo_username")
+        f = filters.NameFilter(self.request, {}, UserProfile, None)
+        q = f.queryset(self.request, UserProfile.objects.all())
+        self.assertQuerysetEqual(q, ["<UserProfile: foo_username>"])
+
+
+class FixtureFilterTests(FilterTestCase):
+    fixtures = ['conditions', 'users', 'communications']
 
     def test_payment_assignment_filter(self):
         f = filters.PaymentsAssignmentsFilter(self.request, {"user_assignment": "empty"}, UserProfile, None)
         q = f.queryset(self.request, Payment.objects.all())
         self.assertEqual(q.count(), 1)
 
+    def test_payment_assignment_filter_without_query(self):
+        f = filters.PaymentsAssignmentsFilter(self.request, {}, UserProfile, None)
+        q = f.queryset(self.request, Payment.objects.all())
+        self.assertEqual(q.count(), 6)
+
     def test_user_condition_filter(self):
         f = filters.UserConditionFilter(self.request, {"user_condition": 2}, UserProfile, None)
+        q = f.queryset(self.request, UserInCampaign.objects.all())
+        self.assertEqual(q.count(), 4)
+
+    def test_user_condition_filter_without_query(self):
+        f = filters.UserConditionFilter(self.request, {}, UserProfile, None)
         q = f.queryset(self.request, UserInCampaign.objects.all())
         self.assertEqual(q.count(), 4)
 
@@ -59,22 +133,17 @@ class FilterTests(TestCase):
         q = f.queryset(self.request, Campaign.objects.all())
         self.assertEqual(q.count(), 3)
 
-    def test_email_filter(self):
-        f = filters.EmailFilter(self.request, {}, UserProfile, None)
-        q = f.queryset(self.request, UserProfile.objects.all())
-        self.assertEqual(q.count(), 4)
-
-    def test_email_filter_duplicate(self):
-        f = filters.EmailFilter(self.request, {"email": "duplicate"}, UserProfile, None)
-        q = f.queryset(self.request, UserProfile.objects.all())
-        self.assertEqual(q.count(), 0)
-
-    def test_email_filter_blank(self):
-        f = filters.EmailFilter(self.request, {"email": "blank"}, UserProfile, None)
-        q = f.queryset(self.request, UserProfile.objects.all())
-        self.assertEqual(q.count(), 0)
+    def test_active_camaign_filter_yes_without_query(self):
+        f = filters.ActiveCampaignFilter(self.request, {}, UserProfile, None)
+        q = f.queryset(self.request, Campaign.objects.all())
+        self.assertEqual(q.count(), 3)
 
     def test_show_payments_by_year_blank(self):
         m = MagicMock()
         admin.show_payments_by_year(m, self.request, UserInCampaign.objects.all())
         m.message_user.assert_called_once_with(self.request, '2016: 480<br/>TOT.: 480')
+
+    def test_email_filter(self):
+        f = filters.EmailFilter(self.request, {}, UserProfile, None)
+        q = f.queryset(self.request, UserProfile.objects.all())
+        self.assertEqual(q.count(), 3)

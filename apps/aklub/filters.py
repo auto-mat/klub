@@ -77,6 +77,7 @@ class ActiveCampaignFilter(SimpleListFilter):
             return queryset.filter(Q(terminated__gte=date.today()) | Q(terminated=None), created__lte=date.today())
         if self.value() == 'no':
             return queryset.exclude(Q(terminated__gte=date.today()) | Q(terminated=None), created__lte=date.today())
+        return queryset
 
 
 class EmailFilter(SimpleListFilter):
@@ -100,8 +101,8 @@ class EmailFilter(SimpleListFilter):
                 values('email_lower').\
                 order_by().\
                 filter(id__count__gt=1).\
-                values_list('email', flat=True)
-            return queryset.filter(email__in=duplicates)
+                values_list('email_lower', flat=True)
+            return queryset.annotate(email_lower=Lower('email')).filter(email_lower__in=duplicates)
         if self.value() == 'blank':
             return queryset.filter(Q(email__exact='') or Q(email__isnull=True))
         if self.value() == 'email-format':
@@ -158,7 +159,6 @@ class NameFilter(SimpleListFilter):
             duplicates = duplicates.order_by()
             duplicates = duplicates.filter(id__count__gt=1)
             duplicates = duplicates.values_list('first_name', 'last_name')
-            print(duplicates)
             query = reduce(
                 operator.or_,
                 (Q(first_name=fn, last_name=ln) for fn, ln in duplicates),
