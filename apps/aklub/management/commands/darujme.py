@@ -14,4 +14,4 @@ class Command(BaseCommand):
             print(campaign)
             payment, skipped = darujme.create_statement_from_API(campaign)
             print(payment)
-            print(skipped)
+            print("Skipped: ", skipped)

@@ -3,9 +3,8 @@
 import datetime
 import logging
 import urllib
-
+import xml
 from collections import OrderedDict
-
 from xml.dom import minidom
 
 from aklub.models import AccountStatements, Campaign, Payment, UserInCampaign, UserProfile, str_to_datetime, str_to_datetime_xml
@@ -114,7 +113,11 @@ def create_statement_from_API(campaign):
         campaign.darujme_api_secret,
     )
     response = urllib.request.urlopen(url)
-    return create_statement_from_file(response)
+    try:
+        return create_statement_from_file(response)
+    except xml.parsers.expat.ExpatError as e:
+        print("Error while parsing url: %s" % url)
+        raise e
 
 
 def get_campaign(data):
