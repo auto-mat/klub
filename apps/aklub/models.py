@@ -1583,7 +1583,7 @@ class Communication(models.Model):
                     email.attach_alternative(self.summary, "text/html")
                 if self.attachment:
                     att = self.attachment
-                    email.attach(os.path.basename(att.name), att.read())
+                    email.attach(os.path.basename(att.name), str(att.read()))
                 email.send(fail_silently=False)
                 self.dispatched = True
                 self.send = False
