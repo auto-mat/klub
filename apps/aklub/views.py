@@ -36,6 +36,7 @@ from django.shortcuts import get_object_or_404, render_to_response
 from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.cache import cache_page, never_cache
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
 from django.views.generic.edit import FormView
 
@@ -389,6 +390,7 @@ class RegularWPView(RegularView):
     success_template = 'thanks-wp.html'
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class RegularDarujmeView(RegularView):
     template_name = 'regular.html'
     form_class = RegularDarujmeUserForm
