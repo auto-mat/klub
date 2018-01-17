@@ -384,7 +384,7 @@ class UserProfile(AbstractUser):
         # TODO: List of languages used in the club should come from app settings
         ('cs', _('Czech')),
         ('en', _('English')))
-    email = models.EmailField(  # Retype email to be unique
+    email = models.EmailField(
         _('email address'),
         blank=True,
         null=True,

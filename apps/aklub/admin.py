@@ -32,6 +32,8 @@ import django.forms
 from django.contrib import admin, messages
 from django.contrib.admin import site
 from django.contrib.auth.admin import UserAdmin
+from django.core.exceptions import ValidationError
+from django.core.validators import EmailValidator
 try:
     from django.urls import reverse
 except ImportError:  # Django<2.0
@@ -622,12 +624,31 @@ class AutomaticCommunicationAdmin(admin.ModelAdmin):
         return obj
 
 
+class MassCommunicationForm(django.forms.ModelForm):
+    class Meta:
+        model = MassCommunication
+        fields = "__all__"
+
+    def clean_send_to_users(self):
+        v = EmailValidator()
+        for user in self.cleaned_data['send_to_users']:
+            try:
+                v.__call__(user.userprofile.email)
+            except ValidationError as e:
+                raise ValidationError(
+                    _("Invalid email '%s' of user %s: %s") % (user.userprofile.email, user, e),
+                )
+        return self.cleaned_data['send_to_users']
+
+
 class MassCommunicationAdmin(large_initial.LargeInitialMixin, admin.ModelAdmin):
     save_as = True
     list_display = ('name', 'date', 'method', 'subject')
     ordering = ('-date',)
 
     filter_horizontal = ('send_to_users',)
+
+    form = MassCommunicationForm
 
     formfield_overrides = {
         django.db.models.CharField: {'widget': django.forms.TextInput(attrs={'size': '60'})},
@@ -656,7 +677,11 @@ class MassCommunicationAdmin(large_initial.LargeInitialMixin, admin.ModelAdmin):
             mailing.send_mass_communication(obj, ["fake_user"], request.user, request, False)
 
         if "_continue" in request.POST and request.POST["_continue"] == "send_mails":
-            mailing.send_mass_communication(obj, obj.send_to_users.all(), request.user, request)
+            try:
+                mailing.send_mass_communication(obj, obj.send_to_users.all(), request.user, request)
+            except Exception as e:
+                messages.error(request, _('While sending e-mails the problem occurred: %s') % e)
+                raise e
             # Sending was done, so revert the state of the 'send' checkbox back to False
             obj.date = datetime.datetime.now()
             obj.save()
