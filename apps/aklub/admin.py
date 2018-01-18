@@ -632,12 +632,14 @@ class MassCommunicationForm(django.forms.ModelForm):
     def clean_send_to_users(self):
         v = EmailValidator()
         for user in self.cleaned_data['send_to_users']:
-            try:
-                v.__call__(user.userprofile.email)
-            except ValidationError as e:
-                raise ValidationError(
-                    _("Invalid email '%s' of user %s: %s") % (user.userprofile.email, user, e),
-                )
+            email = user.userprofile.email
+            if email:
+                try:
+                    v.__call__(email)
+                except ValidationError as e:
+                    raise ValidationError(
+                        _("Invalid email '%s' of user %s: %s") % (email, user, e),
+                    )
         return self.cleaned_data['send_to_users']
 
 
