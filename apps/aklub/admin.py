@@ -176,6 +176,10 @@ class UserProfileResource(ModelResource):
 
     create_users_in_campaign = fields.Field(widget=widgets.IntegerWidget)
 
+    def before_save_instance(self, instance, using_transactions, dry_run):
+        v = EmailValidator()
+        v.__call__(instance.email)
+
     def import_field(self, field, obj, data):
         if field.attribute and field.column_name in data and not getattr(obj, field.column_name):
             field.save(obj, data)
