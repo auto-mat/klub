@@ -16,9 +16,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+import os
 
 from .base import *  # noqa
-from .base import LOGGING
+from .base import INSTALLED_APPS, LOGGING, MIDDLEWARE
 
 DEBUG = True
 
@@ -27,6 +28,19 @@ POST_OFFICE = {
         'default': 'django.core.mail.backends.filebased.EmailBackend',
     },
 }
+
+if os.environ.get('AKLUB_DEBUG_TOOLBAR', False):
+    INSTALLED_APPS += (
+        'debug_toolbar',
+    )
+
+    MIDDLEWARE += (
+        'debug_toolbar.middleware.DebugToolbarMiddleware',
+    )
+
+    DEBUG_TOOLBAR_CONFIG = {
+        "SHOW_TOOLBAR_CALLBACK": lambda x: True,
+    }
 
 EMAIL_FILE_PATH = '/tmp/aklub-emails'
 
