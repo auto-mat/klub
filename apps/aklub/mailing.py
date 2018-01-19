@@ -86,7 +86,7 @@ def send_mass_communication(obj, users, sending_user, request, save=True):
                     attachment = None
             c = Communication(
                 user=userincampaign, method=obj.method, date=datetime.datetime.now(),
-                subject=subject,
+                subject=autocom.process_template(subject, userincampaign),
                 summary=autocom.process_template(template, userincampaign),
                 attachment=attachment,
                 note=_("Prepared by auto*mated mass communications at %s") % datetime.datetime.now(),

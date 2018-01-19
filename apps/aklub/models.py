@@ -43,14 +43,13 @@ from django.db import models
 from django.db.models import Count, Q, Sum
 from django.utils import timezone
 from django.utils.html import format_html, mark_safe
+from django.utils.timesince import timesince
+from django.utils.translation import string_concat, ugettext_lazy as _
 try:
     from django.utils.text import format_lazy
 except ImportError:  # Django<1.11
     def format_lazy(string, name, verbose_name):
-        from django.utils.translation import string_concat
         return string_concat(name, " ", verbose_name)
-from django.utils.timesince import timesince
-from django.utils.translation import ugettext_lazy as _
 
 import html2text
 
@@ -59,6 +58,7 @@ import stdimage
 from vokativ import vokativ
 
 from . import confirmation
+from .autocom import KNOWN_VARIABLES
 
 logger = logging.getLogger(__name__)
 
@@ -1978,6 +1978,10 @@ class AutomaticCommunication(models.Model):
         return str(self.name)
 
 
+gender_strings_validator = RegexValidator(r'^((\{\w*\|\w*\})?[^{}]*)*$', _("Gender strings must look like {male_variant|female_variant}"))
+variable_validator = RegexValidator(r'^([^$]*(\$(%s)\b)?)*$' % '|'.join(KNOWN_VARIABLES), _("Unknown variable"))
+
+
 class MassCommunication(models.Model):
     """MassCommunication entry and DB model"""
 
@@ -2005,31 +2009,38 @@ class MassCommunication(models.Model):
     subject = models.CharField(
         verbose_name=_("Subject"),
         max_length=130,
+        help_text=_("Same variables as in template can be used"),
+        validators=[gender_strings_validator, variable_validator],
     )
     subject_en = models.CharField(
         verbose_name=_("English subject"),
-        help_text=_("English version of the subject. If empty, English speaking users will not receive this communication."),
+        help_text=string_concat(
+            _("English version of the subject. If empty, English speaking users will not receive this communication."),
+            "<br/>",
+            _("Same variables as in template can be used"),
+        ),
         max_length=130,
         blank=True,
         null=True,
+        validators=[gender_strings_validator, variable_validator],
     )
     template = models.TextField(
         verbose_name=_("Template"),
-        help_text=_(
-            "Template can contain variable substitutions like addressment, name, "
-            "variable symbol etc."),
+        help_text=_("Template can contain following variable substitutions: <br/>") + (
+            "{mr|mrs}, $" + ", $".join(KNOWN_VARIABLES)
+        ),
         max_length=50000,
         blank=False,
         null=True,
-        validators=[
-            RegexValidator(r'^((\{\w*\|\w*\})?[^{}]*)*$', _("Gender strings must look like {male_variant|female_variant}")),
-        ],
+        validators=[gender_strings_validator, variable_validator],
     )
     template_en = models.TextField(
         verbose_name=_("English template"),
         max_length=50000,
         blank=True,
         null=True,
+        help_text=_("Same variables as in template can be used"),
+        validators=[gender_strings_validator, variable_validator],
     )
     attachment = models.FileField(
         verbose_name=_("Attachment"),

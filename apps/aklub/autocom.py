@@ -22,7 +22,6 @@ import datetime
 import logging
 import string
 
-from .models import AutomaticCommunication, Communication, UserInCampaign
 logger = logging.getLogger(__name__)
 
 
@@ -42,7 +41,14 @@ def _localize_enum(descr, val, lang):
     return val
 
 
+KNOWN_VARIABLES = [
+    "addressment", "name", "firstname", "surname", "street", "city", "zipcode", "email",
+    "telephone", "regular_amount", "regular_frequency", "var_symbol", "last_payment_amount",
+]
+
+
 def process_template(template_string, user):
+    from .models import UserInCampaign
     template = string.Template(template_string)
 
     # Make variable substitutions
@@ -91,6 +97,7 @@ def process_template(template_string, user):
 
 
 def check(users=None, action=None):
+    from .models import AutomaticCommunication, Communication, UserInCampaign
     if not users:
         users = UserInCampaign.objects.all()
     for auto_comm in AutomaticCommunication.objects.all():
