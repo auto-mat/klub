@@ -176,11 +176,6 @@ class UserProfileResource(ModelResource):
 
     create_users_in_campaign = fields.Field(widget=widgets.IntegerWidget)
 
-    def skip_row(self, instance, original):
-        if not instance.email:
-            return True
-        return super().skip_row(instance, original)
-
     def import_field(self, field, obj, data):
         if field.attribute and field.column_name in data and not getattr(obj, field.column_name):
             field.save(obj, data)
