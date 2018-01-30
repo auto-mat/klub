@@ -167,6 +167,7 @@ INSTALLED_APPS = (
     'admin_tools_stats',
     'django_nvd3',
     'adminfilters',
+    'advanced_filters',
     'aklub'
 )
 

@@ -5,6 +5,8 @@ django-admin-tools==0.8.1
 django-admin-tools-stats==0.9.0
 django-adminactions==1.5
 django-adminfilters==0.3.1
+-e git+https://github.com/PetrDlouhy/django-advanced-filters@develop#egg=django-advanced-filters  # for Django 2.0 fix
+-e git+https://github.com/PetrDlouhy/django-braces@2.0#egg=django-braces  # for Django 2.0 fix
 -e git+https://github.com/fusionbox/django-betterforms.git@28d598bcd5c9b9e9f14c6e2e79fdf6a15a887712#egg=django_betterforms
 django-bootstrap-form==3.3
 django-bower==5.2.0

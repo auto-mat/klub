@@ -26,6 +26,8 @@ from adminactions import actions
 
 from adminfilters.filters import RelatedFieldCheckBoxFilter
 
+from advanced_filters.admin import AdminAdvancedFiltersMixin
+
 from daterange_filter.filter import DateRangeFilter
 
 import django.forms
@@ -194,11 +196,27 @@ class UserProfileResource(ModelResource):
             UserInCampaign.objects.get_or_create(campaign_id=instance.create_users_in_campaign, userprofile=instance)
 
 
-class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, UserAdmin):
+class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFiltersMixin, UserAdmin):
     resource_class = UserProfileResource
     import_template_name = "admin/import_export/userprofile_import.html"
 
     list_display = (
+        'person_name',
+        'username',
+        'email',
+        'addressment',
+        'get_addressment',
+        'telephone_url',
+        'title_before',
+        'first_name',
+        'last_name',
+        'title_after',
+        'sex',
+        'is_staff',
+        'date_joined',
+        'last_login',
+    )
+    advanced_filter_fields = (
         'person_name',
         'username',
         'email',
@@ -339,8 +357,27 @@ class UserInCampaignResource(ModelResource):
 
 
 # -- ADMIN FORMS --
-class UserInCampaignAdmin(ImportExportMixin, RelatedFieldAdmin):
+class UserInCampaignAdmin(ImportExportMixin, AdminAdvancedFiltersMixin, RelatedFieldAdmin):
     list_display = (
+        'person_name',
+        'userprofile__email',
+        'userprofile__telephone_url',
+        'source',
+        'campaign',
+        'variable_symbol',
+        'registered_support_date',
+        'regular_payments_info',
+        'payment_delay',
+        'extra_payments',
+        'number_of_payments',
+        'total_contrib_string',
+        'regular_amount',
+        'next_communication_date',
+        'next_communication_method',
+        'userprofile__is_active',
+        'last_payment_date',
+    )
+    advanced_filter_fields = (
         'person_name',
         'userprofile__email',
         'userprofile__telephone_url',

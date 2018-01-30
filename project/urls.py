@@ -27,6 +27,7 @@ urlpatterns = [
     url(r'^tinymce/', include('tinymce.urls')),
     url(r'^admin_tools/', include('admin_tools.urls')),
     url(r'^adminactions/', include('adminactions.urls')),
+    url(r'^advanced_filters/', include('advanced_filters.urls')),
     url(r'', include("aklub.urls")),
 ]
 
