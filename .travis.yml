@@ -5,7 +5,6 @@ env:
   - DJANGO_VERSION="Django>=2.0,<2.1"
   - DJANGO_VERSION='https://github.com/django/django/archive/master.tar.gz'
 python:
-  - "3.4"
   - "3.5"
   - "3.6"
 install:
@@ -25,8 +24,5 @@ after_script:
 addons:
   postgresql: "9.3"
 matrix:
-   exclude:
-      - python: "3.4"
-        env: DJANGO_VERSION='https://github.com/django/django/archive/master.tar.gz'
    allow_failures:
       - env: DJANGO_VERSION='https://github.com/django/django/archive/master.tar.gz'
