@@ -231,6 +231,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         'is_staff',
         'date_joined',
         'last_login',
+        'campaigns',
     )
     list_editable = (
         'addressment',
