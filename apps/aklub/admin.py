@@ -36,14 +36,14 @@ from django.contrib.admin import site
 from django.contrib.auth.admin import UserAdmin
 from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator
-try:
-    from django.urls import reverse
-except ImportError:  # Django<2.0
-    from django.core.urlresolvers import reverse
 from django.db.models import Sum
 from django.http import HttpResponseRedirect
 from django.utils.html import format_html, format_html_join, mark_safe
 from django.utils.translation import ugettext as _
+try:
+    from django.urls import reverse
+except ImportError:  # Django<2.0
+    from django.core.urlresolvers import reverse
 
 from import_export import fields, widgets
 from import_export.admin import ImportExportMixin
@@ -556,15 +556,54 @@ class PaymentAdmin(ImportExportMixin, RelatedFieldAdmin):
         }),
         (_("Details"), {
             'fields': [
-                ('account', 'bank_code'),
-                ('account_name', 'bank_name'),
-                ('VS', 'KS', 'SS'),
+                'account',
+                'bank_code',
+                'account_name',
+                'bank_name',
+                'VS',
+                'KS',
+                'SS',
+                'BIC',
+                'user',
                 'user_identification',
                 'account_statement',
+                'done_by',
+                'transfer_note',
+                'currency',
+                'recipient_message',
+                'operation_id',
+                'transfer_type',
+                'specification',
+                'order_id',
+                'created',
+                'updated',
             ],
         }),
     ]
-    readonly_fields = ('account_statement', 'created', 'updated')
+    readonly_fields = (
+        'BIC',
+        'KS',
+        'SS',
+        'VS',
+        'account',
+        'account_name',
+        'account_statement',
+        'bank_code',
+        'bank_name',
+        'currency',
+        'operation_id',
+        'order_id',
+        'recipient_message',
+        'specification',
+        'transfer_note',
+        'transfer_type',
+        'user',
+        'user_identification',
+        'done_by',
+        'updated',
+        'account_statement',
+        'created',
+    )
     raw_id_fields = ('user',)
     list_filter = ['type', 'date', filters.PaymentsAssignmentsFilter]
     date_hierarchy = 'date'
