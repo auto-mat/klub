@@ -151,7 +151,7 @@ def get_cetnost_regular_payments(data):
 #         model = Payment
 
 
-def create_payment(data, payments, skipped_payments):
+def create_payment(data, payments, skipped_payments):  # noqa
     if data['email'] == '':
         return
 
@@ -205,18 +205,22 @@ def create_payment(data, payments, skipped_payments):
     campaign = get_campaign(data)
     username = get_unique_username(data['email'])
 
-    userprofile, userprofile_created = UserProfile.objects.get_or_create(
-        email=data['email'],
-        defaults={
-            'first_name': data['jmeno'],
-            'last_name': data['prijmeni'],
-            'username': username,
-            'telephone': data['telefon'],
-            'street': data.get('ulice', ""),
-            'city': data.get('mesto', ""),
-            'zip_code': data.get('psc', ""),
-        },
-    )
+    try:
+        userprofile, userprofile_created = UserProfile.objects.get_or_create(
+            email__iexact=data['email'],
+            defaults={
+                'first_name': data['jmeno'],
+                'last_name': data['prijmeni'],
+                'username': username,
+                'telephone': data['telefon'],
+                'street': data.get('ulice', ""),
+                'city': data.get('mesto', ""),
+                'zip_code': data.get('psc', ""),
+                'email': data['email'],
+            },
+        )
+    except UserProfile.MultipleObjectsReturned:
+        raise Exception("Duplicate email %s" % data['email'])
     userincampaign, userincampaign_created = UserInCampaign.objects.get_or_create(
         userprofile=userprofile,
         campaign=campaign,
