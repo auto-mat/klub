@@ -604,7 +604,7 @@ class UserProfile(AbstractUser):
     telephone_url.admin_order_field = "telephone"
 
     def clean(self):
-        if UserProfile.objects.filter(email__iexact=self.email).exclude(id=self.pk).exists():
+        if self.email and UserProfile.objects.filter(email__iexact=self.email).exclude(id=self.pk).exists():
             raise ValidationError(
                 {
                     'email': _("This e-mail is already used."),
