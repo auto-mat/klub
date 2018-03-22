@@ -22,7 +22,7 @@
 import copy
 import datetime
 
-from adminactions import actions
+from adminactions import actions, merge
 
 from adminfilters.filters import RelatedFieldCheckBoxFilter
 
@@ -197,9 +197,21 @@ class UserProfileResource(ModelResource):
             UserInCampaign.objects.get_or_create(campaign_id=instance.create_users_in_campaign, userprofile=instance)
 
 
+class UserProfileMergeForm(merge.MergeForm):
+    def __init__(self, *args, **kwargs):
+        ret_val = super().__init__(*args, **kwargs)
+        self.fields['sex'].required = False
+        return ret_val
+
+    class Meta:
+        model = UserProfile
+        fields = '__all__'
+
+
 class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFiltersMixin, UserAdmin):
     resource_class = UserProfileResource
     import_template_name = "admin/import_export/userprofile_import.html"
+    merge_form = UserProfileMergeForm
 
     list_display = (
         'person_name',

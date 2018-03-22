@@ -391,6 +391,12 @@ class UserProfile(AbstractUser):
         null=True,
         unique=True,
     )
+    password = models.CharField(
+        _('password'),
+        max_length=128,
+        blank=True,
+        null=True,
+    )
     campaigns = models.ManyToManyField(
         Campaign,
         help_text=_("Associated campaigns"),
