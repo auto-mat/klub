@@ -598,7 +598,6 @@ class PaymentAdmin(ImportExportMixin, RelatedFieldAdmin):
         'specification',
         'transfer_note',
         'transfer_type',
-        'user',
         'user_identification',
         'done_by',
         'updated',
