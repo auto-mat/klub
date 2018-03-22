@@ -377,6 +377,7 @@ class RegularView(FormView):
         return super().__init__(*args, **kwargs)
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class RegularDPNKView(RegularView):
     template_name = 'regular-dpnk.html'
     form_class = RegularUserFormDPNK
