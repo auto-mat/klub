@@ -577,7 +577,6 @@ class PaymentAdmin(ImportExportMixin, RelatedFieldAdmin):
                 'KS',
                 'SS',
                 'BIC',
-                'user',
                 'user_identification',
                 'account_statement',
                 'done_by',
