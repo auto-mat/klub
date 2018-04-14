@@ -1125,7 +1125,7 @@ def str_to_datetime(date):
                 ['day', 'month', 'year'],
                 [int(val) for val in date.split('.')],
             ),
-        )
+        ),
     )
 
 
@@ -1136,7 +1136,7 @@ def str_to_datetime_xml(date):
                 ['year', 'month', 'day'],
                 [int(val) for val in date.split('-')],
             ),
-        )
+        ),
     )
 
 

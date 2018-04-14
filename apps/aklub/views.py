@@ -618,7 +618,8 @@ class OneTimePaymentWizard(SessionWizardView):
                 cd0 = self._step_data(OneTimePaymentWizardFormBase)
                 if cd0:
                     users = self._find_matching_users(
-                        *[cd0[key] for key in ['email', 'first_name', 'last_name']])
+                        *[cd0[key] for key in ['email', 'first_name', 'last_name']],
+                    )
                     candidates = (
                         [
                             (
