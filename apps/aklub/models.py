@@ -623,6 +623,8 @@ class UserProfile(AbstractUser):
         if not self.username and not self.id:
             from .views import get_unique_username
             self.username = get_unique_username(self.email)
+        if self.email:
+            self.email = self.email.lower()
         super().save(*args, **kwargs)
 
 
