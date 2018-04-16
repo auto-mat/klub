@@ -176,23 +176,12 @@ class UserProfileResource(ModelResource):
         exclude = ('id',)
         import_id_fields = ('email',)
 
-    create_users_in_campaign = fields.Field(widget=widgets.IntegerWidget)
-
     def before_import_row(self, row, **kwargs):
         row['email'] = row['email'].lower()
 
     def import_field(self, field, obj, data):
         if field.attribute and field.column_name in data and not getattr(obj, field.column_name):
             field.save(obj, data)
-        if field.column_name == 'create_users_in_campaign':
-            obj.create_users_in_campaign = data[field.column_name]
-
-    def dehydrate_create_users_in_campaign(self, user_profile):
-        return ", ".join(str(x) for x in user_profile.userincampaign_set.values_list('campaign', flat=True))
-
-    def after_save_instance(self, instance, using_transactions, dry_run):
-        if instance.create_users_in_campaign:
-            UserInCampaign.objects.get_or_create(campaign_id=instance.create_users_in_campaign, userprofile=instance)
 
 
 class UserProfileMergeForm(merge.MergeForm):
