@@ -99,6 +99,14 @@ class TestStr(TestCase):
         )
         self.assertEqual(t.get_addressment(), "člene/členko Klubu přátel Auto*Matu")
 
+    def test_email_lowercase(self):
+        """ Test, that email is stored in lowercase """
+        t = mommy.make(
+            "aklub.UserProfile",
+            email='tEsT@TeSt.cz',
+        )
+        self.assertEqual(t.email, "test@test.cz")
+
     def test_get_email_str_blank(self):
         """ Test, that get_email_str works when no email is set """
         t = mommy.make(

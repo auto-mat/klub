@@ -35,14 +35,6 @@ class FilterTestCase(TestCase):
 
 
 class FilterTests(FilterTestCase):
-    def test_email_filter_duplicate(self):
-        """ Test that email duplicate filter works case-insensitively """
-        mommy.make('UserProfile', email='foo@Email.com', first_name="Foo", last_name="")
-        mommy.make('UserProfile', email='foo@email.com', first_name="Bar", last_name="")
-        f = filters.EmailFilter(self.request, {"email": "duplicate"}, UserProfile, None)
-        q = f.queryset(self.request, UserProfile.objects.all())
-        self.assertQuerysetEqual(q, ["<UserProfile: Foo>", "<UserProfile: Bar>"], ordered=False)
-
     def test_email_filter_blank(self):
         mommy.make('UserProfile', email="", first_name="Foo", last_name="")
         f = filters.EmailFilter(self.request, {"email": "blank"}, UserProfile, None)
