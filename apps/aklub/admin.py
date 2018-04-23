@@ -231,7 +231,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         'is_staff',
         'date_joined',
         'last_login',
-        'campaigns',
+        'userincampaign__campaign',
     )
     list_editable = (
         'addressment',
@@ -251,12 +251,11 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         'is_active',
         'groups',
         'language',
-        'campaigns',
+        'userincampaign__campaign',
         filters.EmailFilter,
         filters.TelephoneFilter,
         filters.NameFilter,
     )
-    filter_horizontal = ('campaigns',)
     profile_fieldsets = (
         (_('Basic personal'), {
             'fields': [
