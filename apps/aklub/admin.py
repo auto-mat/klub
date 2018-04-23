@@ -231,7 +231,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         'is_staff',
         'date_joined',
         'last_login',
-        'userincampaign__campaign',
+        ('userincampaign__campaign__name', _("Jméno kampaně")),
     )
     list_editable = (
         'addressment',
@@ -382,7 +382,7 @@ class UserInCampaignAdmin(ImportExportMixin, AdminAdvancedFiltersMixin, RelatedF
         'userprofile__email',
         'userprofile__telephone_url',
         'source',
-        'campaign',
+        ('campaign__name', _("Jméno kampaně")),
         'variable_symbol',
         'registered_support_date',
         'regular_payments_info',
