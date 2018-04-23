@@ -1,6 +1,6 @@
 coverage
 django_coverage_plugin
-django-admin-smoke-tests
+-e git+https://github.com/jnoortheen/django-admin-smoke-tests#egg=django_admin_smoke_tests  # for fix for reverse_accessor fields
 freezegun
 django-debug-toolbar
 pudb
