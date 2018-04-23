@@ -217,12 +217,10 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         'last_login',
     )
     advanced_filter_fields = (
-        'person_name',
         'username',
         'email',
         'addressment',
-        'get_addressment',
-        'telephone_url',
+        'telephone',
         'title_before',
         'first_name',
         'last_name',
@@ -378,23 +376,23 @@ class UserInCampaignAdmin(ImportExportMixin, AdminAdvancedFiltersMixin, RelatedF
         'last_payment_date',
     )
     advanced_filter_fields = (
-        'person_name',
+        'userprofile__first_name',
+        'userprofile__last_name',
         'userprofile__email',
-        'userprofile__telephone_url',
+        'userprofile__telephone',
         'source',
         ('campaign__name', _("Jméno kampaně")),
         'variable_symbol',
-        'registered_support_date',
-        'regular_payments_info',
-        'payment_delay',
-        'extra_payments',
+        'registered_support',
+        'regular_payments',
+        'extra_money',
         'number_of_payments',
-        'total_contrib_string',
+        'payment_total',
         'regular_amount',
         'next_communication_date',
         'next_communication_method',
         'userprofile__is_active',
-        'last_payment_date',
+        'last_payment__date',
     )
     date_hierarchy = 'registered_support'
     list_filter = [
