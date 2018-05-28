@@ -64,6 +64,14 @@ class RegularUserForm_UserProfile(forms.ModelForm):
         super().clean()
         return self.cleaned_data
 
+    def _post_clean(self):
+        email = self.cleaned_data['email']
+        r = super()._post_clean()
+        if self._errors.get('email') == ['This e-mail is already used.']:
+            del self._errors['email']
+            self.email_used = email
+        return r
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field in self.Meta.required:
@@ -266,7 +274,10 @@ def new_user(form, regular, campaign, source_slug='web'):
     new_user_in_campaign.source = Source.objects.get(slug=source_slug)
     new_user_in_campaign.campaign = campaign
     # Save new user instance
-    new_user_profile.save()
+    if hasattr(form.forms['userprofile'], 'email_used') and form.forms['userprofile'].email_used:
+        new_user_profile = UserProfile.objects.get(email=form.forms['userprofile'].email_used)
+    else:
+        new_user_profile.save()
     new_user_in_campaign.userprofile = new_user_profile
     new_user_in_campaign.save()
     # TODO: Unlock DB access here
@@ -344,7 +355,8 @@ class RegularView(FormView):
                     user_data['frequency'],
                     True,
                 )
-        return super().post(request, args, kwargs)
+
+        return super().post(request, *args, **kwargs)
 
     def get_initial(self):
         initial = super().get_initial()

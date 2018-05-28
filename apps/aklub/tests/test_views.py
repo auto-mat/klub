@@ -28,6 +28,8 @@ except ImportError:  # Django<2.0
 from django.test import TestCase
 from django.test.utils import override_settings
 
+from model_mommy import mommy
+
 from .recipes import userincampaign_recipe
 from .utils import print_response  # noqa
 from .. import views
@@ -173,6 +175,33 @@ class ViewsTests(ClearCacheMixin, TestCase):
             'Repeated registration for email test.user@email.cz\n'
             'name: Testing\nsurname: User\nfrequency: monthly\ntelephone: 111222333\namount: 321',
         )
+
+    def test_darujme_existing_email_different_campaign(self):
+        """ Test, that if the user exists in different campaign, he is able to register """
+        address = reverse('regular-darujme')
+        user_in_campaign = mommy.make(
+            "aklub.UserInCampaign",
+            userprofile__email='test@email.cz',
+            userprofile__first_name='Foo',
+            userprofile__last_name='Duplabar',
+            campaign__id=1,
+        )
+        response = self.client.post(address, self.post_data_darujme, follow=False)
+        self.assertContains(
+            response,
+            '<h1>Děkujeme!</h1>',
+            html=True,
+        )
+        self.assertEqual(len(mail.outbox), 2)
+        msg = mail.outbox[0]
+        self.assertEqual(msg.recipients(), ['test@email.cz', 'kp@auto-mat.cz'])
+        self.assertEqual(msg.subject, 'New user')
+        self.assertEqual(
+            msg.body,
+            'New user has been created Jméno: Foo Příjmení: Duplabar Ulice: Město: PSC:\nE-mail: test@email.cz Telefon:\n\n',
+        )
+        self.assertEqual(user_in_campaign.userprofile.last_name, 'Duplabar')
+        self.assertEqual(user_in_campaign.userprofile.userincampaign_set.count(), 2)
 
     def test_regular_dpnk(self):
         address = "%s?firstname=Uest&surname=Tser&email=uest.tser@email.cz&telephone=1211221" % reverse('regular-dpnk')
