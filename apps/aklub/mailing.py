@@ -20,7 +20,7 @@ import copy
 import datetime
 
 from aklub import autocom
-from aklub.models import Communication, Payment, TaxConfirmation, UserInCampaign, UserProfile
+from aklub.models import Communication, Payment, TaxConfirmation, UserInCampaign
 
 from django.contrib import messages
 from django.utils.translation import ugettext as _
@@ -29,18 +29,7 @@ from django.utils.translation import ugettext as _
 
 def create_fake_userincampaign(sending_user):
     # create fake values
-    userprofile = UserProfile(
-        email=sending_user.email,
-        first_name=sending_user.first_name,
-        last_name=sending_user.last_name,
-        sex='male',
-        street=_('testing street'),
-        city=_('testing city'),
-        zip_code=12345,
-        telephone="123 456 789",
-        language='cs',
-        addressment=None,
-    )
+    userprofile = sending_user
     userincampaign = UserInCampaign(
         userprofile=userprofile,
         regular_amount=123456,

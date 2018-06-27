@@ -44,11 +44,14 @@ def _localize_enum(descr, val, lang):
 KNOWN_VARIABLES = [
     "addressment", "name", "firstname", "surname", "street", "city", "zipcode", "email",
     "telephone", "regular_amount", "regular_frequency", "var_symbol", "last_payment_amount",
+    "auth_token",
 ]
 
 
 def process_template(template_string, user):
     from .models import UserInCampaign
+    from sesame import utils as sesame_utils
+
     template = string.Template(template_string)
 
     # Make variable substitutions
@@ -66,6 +69,7 @@ def process_template(template_string, user):
         regular_frequency=_localize_enum(UserInCampaign.REGULAR_PAYMENT_FREQUENCIES, user.regular_frequency, user.userprofile.language),
         var_symbol=user.variable_symbol,
         last_payment_amount=user.last_payment and user.last_payment.amount or None,
+        auth_token=sesame_utils.get_query_string(user.userprofile),
     )
 
     # Modify text according to gender

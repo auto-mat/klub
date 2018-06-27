@@ -40,5 +40,6 @@ django-adminfilters
 django-post-office
 django-bulk-update
 django-extra-views
+django-sesame
 
 vokativ
