@@ -11,4 +11,5 @@ urlpatterns = [
     url(r'^onetime/', views.onetime, name="onetime"),
     url(r'^donators/', views.donators, name="donators"),
     url(r'^profiles/', views.profiles, name="profiles"),
+    url(r'^mailing/', views.MailingFormSetView.as_view(), name="mailing-configuration"),
 ]

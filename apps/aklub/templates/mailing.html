@@ -1,0 +1,28 @@
+{% load bootstrap %}
+{% load i18n %}
+
+
+<div>
+<form id="aklub-form" method="post" class="form-horizontal">
+   {% csrf_token %}
+   {{ form }}
+   <table>
+   {% for formset in inlines %}
+      {{ formset.management_form }}
+      {% for form in formset %}
+         <tr>
+            <td>
+               {{ form.instance.campaign }}:
+            </td>
+            <td>
+               {{ form.as_p }}
+            </td>
+         </tr>
+      {% endfor %}
+   {% endfor %}
+   </table>
+   <div class="form-group">
+       <button type="submit" class="btn btn-primary">Submit</button>
+   </div>
+</form>
+</div>

@@ -33,12 +33,15 @@ from django.db.models import Case, Count, IntegerField, Q, Sum, When
 from django.db.models.functions import TruncMonth
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render_to_response
+from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.cache import cache_page, never_cache
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
 from django.views.generic.edit import FormView
+
+from extra_views import InlineFormSet, UpdateWithInlinesView
 
 from formtools.wizard.views import SessionWizardView
 
@@ -750,3 +753,25 @@ class CampaignStatistics(View):
             ),
             content_type='application/json',
         )
+
+
+class UserInCampaignInline(InlineFormSet):
+    model = UserInCampaign
+    factory_kwargs = {
+        'fk_name': 'userprofile',
+        'fields': ('wished_information',),
+        'can_delete': False,
+        'extra': 0,
+    }
+    fields = ('wished_information',)
+
+
+class MailingFormSetView(UpdateWithInlinesView):
+    model = UserProfile
+    template_name = 'mailing.html'
+    success_url = reverse_lazy('mailing-configuration')
+    inlines = [UserInCampaignInline, ]
+    fields = ('send_mailing_lists',)
+
+    def get_object(self):
+        return self.request.user

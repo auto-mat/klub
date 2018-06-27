@@ -525,6 +525,10 @@ class UserProfile(AbstractUser):
         auto_now=True,
         null=True,
     )
+    send_mailing_lists = models.BooleanField(
+        verbose_name=_("Sending of mailing lists allowed"),
+        default=True,
+    )
 
     def get_addressment(self):
         if self.addressment:
