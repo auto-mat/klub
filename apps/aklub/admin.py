@@ -269,6 +269,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         }),
         (_('Contacts'), {
             'fields': [
+                ('send_mailing_lists'),
                 ('telephone'),
                 ('street', 'city', 'country'),
                 'zip_code', 'different_correspondence_address',
