@@ -19,7 +19,6 @@ html2text
 xlrd
 django-daterange-filter
 django-cors-headers
-django-formtools
 django-related-admin
 django-denorm
 gunicorn

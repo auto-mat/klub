@@ -20,14 +20,13 @@
 # Create your views here.
 import datetime
 import json
-import re
 from collections import OrderedDict
 
 from betterforms.multiform import MultiModelForm
 
 
 from django import forms, http
-from django.core.mail import EmailMessage, mail_managers
+from django.core.mail import mail_managers
 from django.core.validators import MinLengthValidator, RegexValidator
 from django.db.models import Case, Count, IntegerField, Q, Sum, When
 from django.db.models.functions import TruncMonth
@@ -42,8 +41,6 @@ from django.views.generic import View
 from django.views.generic.edit import FormView
 
 from extra_views import InlineFormSet, UpdateWithInlinesView
-
-from formtools.wizard.views import SessionWizardView
 
 from . import autocom
 from .models import Campaign, Payment, Source, UserInCampaign, UserProfile
@@ -426,242 +423,6 @@ def donators(request):
             'donators': donators,
         },
     )
-
-
-class OneTimePaymentWizardFormBase(forms.Form):
-    required_css_class = 'required'
-    first_name = forms.CharField(label=_("First name"), max_length=40, required=True)
-    last_name = forms.CharField(label=_("Surname"), max_length=40, required=True)
-    email = forms.CharField(label=_("Email"), max_length=40, required=True)
-    amount = forms.IntegerField(label=_("Amount"), required=True)
-
-
-class OneTimePaymentWizardFormWhoIs(forms.Form):
-    required_css_class = 'required'
-    uid = forms.CharField(label=_("Account"))
-
-
-class OneTimePaymentWizardFormConfirm(forms.Form):
-    required_css_class = 'required'
-    # Type in variable symbol for verification (sent by mail)
-    vs_check = forms.CharField(
-        label=_("Variable symbol"),
-        max_length=40,
-        required=False,
-    )
-
-
-class OneTimePaymentWizardFormKnown(forms.Form):
-    required_css_class = 'required'
-    note = forms.CharField(max_length=40)
-
-
-class OneTimePaymentWizardFormUnknown_UserInCampaign(forms.ModelForm):
-    required_css_class = 'required'
-
-    class Meta:
-        model = UserInCampaign
-        fields = ('note', 'wished_tax_confirmation', 'wished_information',)
-
-
-class OneTimePaymentWizardFormUnknown_UserProfile(forms.ModelForm):
-    username = forms.CharField(widget=forms.HiddenInput, required=False)
-
-    class Meta:
-        model = UserProfile
-        fields = (
-            'first_name', 'last_name', 'email', 'username',
-            'title_before', 'title_after',
-            'street', 'city', 'country', 'zip_code',
-            'language', 'telephone',
-            'public', 'note'
-        )
-        required = (
-            'first_name', 'last_name', 'email',
-            'street', 'city', 'country', 'zip_code',
-            'language', 'telephone')
-        widgets = {
-            'language': forms.RadioSelect,  # should be set automatically
-        }
-
-    def clean_username(self):
-        "This function is required to overwrite an inherited username clean"
-        return self.cleaned_data['username']
-
-    def clean(self):
-        if not self.errors:
-            self.cleaned_data['username'] = get_unique_username(self.cleaned_data['email'])
-        super().clean()
-        return self.cleaned_data
-
-
-class OneTimePaymentWizardFormUnknown(MultiModelForm):
-    base_fields = {}
-    form_classes = {
-        'userprofile': OneTimePaymentWizardFormUnknown_UserProfile,
-        'userincampaign': OneTimePaymentWizardFormUnknown_UserInCampaign,
-    }
-
-
-class OneTimePaymentWizard(SessionWizardView):
-    success_template = 'thanks.html'
-
-    def __init__(self, *args, **kwargs):
-        self.campaign = Campaign.objects.get(slug='klub')
-        return super().__init__(*args, **kwargs)
-
-    def is_possibly_known(self):
-        f = self._step_data(OneTimePaymentWizardFormBase)
-        if f:
-            return len(self._find_matching_users(f['email'], f['first_name'], f['last_name'])) > 0
-        return True
-
-    def is_unknown(self):
-        return not self.is_possibly_known()
-
-    def is_unknown_after_whois(self):
-        u = self._step_data(OneTimePaymentWizardFormUnknown)
-        f = self._step_data(OneTimePaymentWizardFormWhoIs)
-        if u:
-            return False
-        elif f:
-            return f['uid'] == 'None'
-        else:
-            return True
-
-    def is_unknown_after_confirm(self):
-        u = self._step_data(OneTimePaymentWizardFormUnknown)
-        w = self._step_data(OneTimePaymentWizardFormWhoIs)
-        c = self._step_data(OneTimePaymentWizardFormConfirm)
-        if u:
-            return False
-        elif w and c:
-            return c['vs_check'] != UserInCampaign.objects.filter(id=w['uid'])[0].variable_symbol
-        else:
-            return True
-
-    FORMS = [
-        ['0', OneTimePaymentWizardFormBase, True, 'onetime_base.html'],
-        ['1', OneTimePaymentWizardFormUnknown, is_unknown, 'onetime_unknown.html'],
-        ['2', OneTimePaymentWizardFormWhoIs, is_possibly_known, 'onetime_whois.html'],
-        ['3', OneTimePaymentWizardFormUnknown, is_unknown_after_whois, 'onetime_unknown.html'],
-        ['4', OneTimePaymentWizardFormConfirm, is_possibly_known, 'onetime_confirm.html'],
-        ['5', OneTimePaymentWizardFormUnknown, is_unknown_after_confirm, 'onetime_unknown.html'],
-    ]
-
-    def _step_number(self, form):
-        for e in self.FORMS:
-            if e[1] == form or isinstance(form, e[1]):
-                return e[0]
-
-    def _step_data(self, form):
-        stepn = self._step_number(form)
-        try:
-            return self.get_cleaned_data_for_step(stepn)
-        except TypeError:
-            return None
-
-    def get_template_names(self):
-        return self.FORMS[int(self.steps.current)][3]
-
-    def done(self, form_list, form_dict, **kwargs):
-        for form in form_list:
-                if isinstance(form, OneTimePaymentWizardFormUnknown):
-                        uid = new_user(form, "onetime", self.campaign)
-                elif isinstance(form, OneTimePaymentWizardFormWhoIs):
-                        uid = form.cleaned_data['uid']
-        user = UserInCampaign.objects.filter(id=uid)[0]
-        payment = Payment(
-            date=datetime.datetime.now(),
-            amount=form_dict['0'].cleaned_data['amount'],
-            VS=user.variable_symbol,
-            type='expected',
-            user=user,
-        )
-        payment.save()
-        return render_to_response(
-            self.success_template,
-            {
-                'amount': payment.amount,
-                'user_id': user.id,
-            },
-        )
-
-    def send_vs_reminder(self, sender_id):
-        user = UserInCampaign.objects.filter(id=sender_id)[0]
-        mail_subject = _(
-            "Auto*Mat: Reminder of variable symbol")
-        mail_body = _(
-            "Dear friend,\n\n"
-            "if it is you who was just trying to let us know about his\n"
-            "planned donation to us, thank you very much and for your\n"
-            "convenience, here is your variable symbol:\n\n"
-            "                %s\n\n"
-            "If you do not know what this mean, it is possible that\n"
-            "sombody else has entered your name into our system. In such\n"
-            "a case, you can safely ignore this email, nothing will happen\n"
-            "without your authorization, or if you receive it repeatedly,\n"
-            "you can contact us on kp@auto-mat.cz.\n\n"
-            "Best Regards,\n"
-            "Auto*Mat\n" % user.variable_symbol,
-        )
-        EmailMessage(
-            subject=mail_subject,
-            body=mail_body,
-            from_email='kp@auto-mat.cz',
-            to=[user.userprofile.email],
-        ).send()
-
-    def _find_matching_users(self, email, firstname, surname):
-        return UserInCampaign.objects.filter(
-            Q(userprofile__email=email) |
-            Q(userprofile__first_name=firstname, userprofile__last_name=surname),
-            userprofile__is_active=True,
-        )
-
-    def get_form(self, step=None, data=None, files=None):
-        form = super().get_form(step, data, files)
-        if step == self._step_number(OneTimePaymentWizardFormUnknown):
-                cd0 = self._step_data(OneTimePaymentWizardFormBase)
-                if cd0:
-                        for f in ['first_name', 'last_name', 'email']:
-                                form.forms['userprofile'].fields.initial = cd0[f]
-        elif step == self._step_number(OneTimePaymentWizardFormWhoIs):
-                def obfuscate(email):
-                        m = re.match('(?P<b1>.).*(?P<b2>.)@(?P<a>.).*\.(?P<d>.+)', email)
-                        return m and ("%s***%s@%s***.%s" % m.groups()) or ""
-                cd0 = self._step_data(OneTimePaymentWizardFormBase)
-                if cd0:
-                    users = self._find_matching_users(
-                        *[cd0[key] for key in ['email', 'first_name', 'last_name']],
-                    )
-                    candidates = (
-                        [
-                            (
-                                u.id,
-                                "%s %s <%s>" % (
-                                    u.userprofile.first_name,
-                                    u.userprofile.last_name,
-                                    obfuscate(u.userprofile.email),
-                                ),
-                            ) for u in users
-                        ] +
-                        [('None', _("None of these accounts"))])
-                    form.fields['uid'] = forms.ChoiceField(choices=candidates)
-        elif step == self._step_number(OneTimePaymentWizardFormConfirm):
-                d2 = self._step_data(OneTimePaymentWizardFormWhoIs)
-                if d2['uid'] != 'None':
-                        self.send_vs_reminder(d2['uid'])
-        return form
-
-
-def onetime(request):
-    forms = OneTimePaymentWizard.FORMS
-    cw = OneTimePaymentWizard.as_view(
-        [form[1] for form in forms],
-        condition_dict={form[0]: form[2] for form in forms},
-    )
-    return cw(request)
 
 
 def stat_members(request):

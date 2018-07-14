@@ -30,7 +30,6 @@ from django.test.utils import override_settings
 
 from model_mommy import mommy
 
-from .recipes import userincampaign_recipe
 from .utils import print_response  # noqa
 from .. import views
 from ..models import UserInCampaign, UserProfile
@@ -456,83 +455,6 @@ class ViewsTests(ClearCacheMixin, TestCase):
         self.assertEqual(new_user.regular_amount, 321)
         self.assertEqual(new_user.regular_payments, 'regular')
 
-    def test_onetime(self):
-        address = reverse('onetime')
-        response = self.client.get(address)
-        self.assertContains(response, '<input id="id_0-first_name" maxlength="40" name="0-first_name" type="text" required />', html=True)
-
-        post_data = {
-            'one_time_payment_wizard-current_step': 0,
-            '0-email': 'test@test.cz',
-            '0-first_name': 'Testing',
-            '0-last_name': 'User',
-            '0-amount': '321',
-        }
-        response = self.client.post(address, post_data, follow=True)
-        self.assertContains(
-            response,
-            '<input id="id_userprofile__1-title_before" maxlength="15" name="userprofile__1-title_before" type="text" />',
-            html=True,
-        )
-
-        post_data = {
-            'one_time_payment_wizard-current_step': 1,
-            'userincampaign__1-note': 'Note',
-            'userprofile__1-first_name': 'Testing',
-            'userprofile__1-last_name': 'User',
-            'userprofile__1-email': 'test@test.cz',
-            'userprofile__1-title_before': 'Tit.',
-            'userprofile__1-title_after': '',
-            'userprofile__1-street': 'On Street 1',
-            'userprofile__1-city': 'City',
-            'userprofile__1-country': 'Country',
-            'userprofile__1-zip_code': '100 00',
-            'userprofile__1-language': 'cs',
-            'userprofile__1-telephone': '+420123456789',
-            'userprofile__1-wished_tax_confirmation': 'on',
-            'userprofile__1-wished_information': 'on',
-            'userprofile__1-public': 'on',
-            'userprofile__1-note': 'asdf',
-        }
-        response = self.client.post(address, post_data, follow=True)
-        self.assertContains(response, '<h1>Děkujeme!</h1>', html=True)
-
-        self.assertEqual(UserProfile.objects.get(email="test@test.cz").get_full_name(), "Testing User")
-        self.assertEqual(UserProfile.objects.get(email="test@test.cz").username, "test4")
-        self.assertEqual(UserProfile.objects.get(email="test@test.cz").telephone, '+420123456789')
-        new_user = UserInCampaign.objects.get(userprofile__email="test@test.cz")
-        self.assertEqual(new_user.note, 'Note')
-        self.assertEqual(new_user.regular_payments, 'onetime')
-
-    def test_onetime_existing_email(self):
-        address = reverse('onetime')
-        response = self.client.get(address)
-        self.assertContains(response, '<input id="id_0-first_name" maxlength="40" name="0-first_name" type="text" required />', html=True)
-
-        post_data = {
-            'one_time_payment_wizard-current_step': 0,
-            '0-email': 'test.user@email.cz',
-            '0-first_name': 'Testing',
-            '0-last_name': 'User',
-            '0-amount': '321',
-        }
-        response = self.client.post(address, post_data, follow=True)
-        self.assertContains(response, '<option value="2978">Test User &lt;t***r@e***.cz&gt;</option>', html=True)
-
-        post_data = {
-            'one_time_payment_wizard-current_step': 2,
-            '2-uid': 2978,
-        }
-        response = self.client.post(address, post_data, follow=True)
-        self.assertContains(response, '<input id="id_4-vs_check" maxlength="40" name="4-vs_check" type="text" />', html=True)
-
-        post_data = {
-            'one_time_payment_wizard-current_step': 4,
-            '4-vs_check': 120127010,
-        }
-        response = self.client.post(address, post_data, follow=True)
-        self.assertContains(response, '<h1>Děkujeme!</h1>', html=True)
-
 
 class VariableSymbolTests(TestCase):
     fixtures = ['users']
@@ -543,22 +465,3 @@ class VariableSymbolTests(TestCase):
                 vs = views.generate_variable_symbol(99)
                 userprofile = UserProfile.objects.create(username=vs, email="test%s@test.cz" % i)
                 UserInCampaign.objects.create(variable_symbol=vs, campaign_id=1, userprofile=userprofile)
-
-
-class TestOneTimePaymentWizard(TestCase):
-    def test_find_matching_users(self):
-        """ Test that OneTimePaymentWizard._find_matching_users() works correctly """
-        userincampaign_recipe.make(
-            userprofile__email="foo@email.com",
-        )
-        userincampaign_recipe.make(
-            userprofile__first_name="Foo",
-            userprofile__last_name="User",
-        )
-
-        users = views.OneTimePaymentWizard._find_matching_users(None, "foo@email.com", "Foo", "User")
-        expected_users = [
-            '<UserInCampaign: username1 - foo@email.com (Foo campaign)>',
-            '<UserInCampaign: User Foo - test@email.cz1 (Foo campaign)>',
-        ]
-        self.assertQuerysetEqual(users, expected_users)
