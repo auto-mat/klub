@@ -7,6 +7,7 @@ urlpatterns = [
     url(r'^regular-wp/', views.RegularWPView.as_view(), name="regular-wp"),
     url(r'^regular-dpnk/', views.RegularDPNKView.as_view(), name="regular-dpnk"),
     url(r'^regular-darujme/', views.RegularDarujmeView.as_view(), name="regular-darujme"),
+    url(r'^sign-petition/', views.PetitionView.as_view(), name="petition"),
     url(r'^campaign-statistics/(?P<campaign_slug>[^&]+)/$', views.CampaignStatistics.as_view(), name="campaign-statistics"),
     url(r'^donators/', views.donators, name="donators"),
     url(r'^profiles/', views.profiles, name="profiles"),

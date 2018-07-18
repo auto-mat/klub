@@ -147,6 +147,15 @@ class RegularDarujmeUserForm_UserProfile(FieldNameMappingMixin, RegularUserForm_
     }
 
 
+class PetitionUserForm_UserProfile(FieldNameMappingMixin, RegularUserForm_UserProfile):
+    FIELD_NAME_MAPPING = {
+        'first_name': 'payment_data____jmeno',
+        'last_name': 'payment_data____prijmeni',
+        'email': 'payment_data____email',
+        'telephone': 'payment_data____telefon',
+    }
+
+
 REGULAR_PAYMENTS_MAP = {
     '28': 'regular',
     '365': 'regular',
@@ -225,6 +234,12 @@ class RegularDarujmeUserForm(RegularUserForm):
     form_classes = OrderedDict([
         ('userprofile', RegularDarujmeUserForm_UserProfile),
         ('userincampaign', RegularDarujmeUserForm_UserInCampaign),
+    ])
+
+
+class PetitionUserForm(RegularUserForm):
+    form_classes = OrderedDict([
+        ('userprofile', PetitionUserForm_UserProfile),
     ])
 
 
@@ -407,6 +422,13 @@ class RegularWPView(RegularView):
 class RegularDarujmeView(RegularView):
     template_name = 'regular.html'
     form_class = RegularDarujmeUserForm
+    success_template = 'thanks-darujme.html'
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class PetitionView(RegularView):
+    template_name = 'regular.html'
+    form_class = PetitionUserForm
     success_template = 'thanks-darujme.html'
 
 
