@@ -110,13 +110,17 @@ class RegularUserForm_UserInCampaign(forms.ModelForm):
         help_text=_(u"Minimum yearly payment is 1800 Kč"),
         min_value=1,
     )
+    campaign = forms.ModelChoiceField(
+        queryset=Campaign.objects.filter(slug__isnull=False).exclude(slug=""),
+        to_field_name="slug",
+    )
 
     def clean_regular_payments(self):
         return 'regular'
 
     class Meta:
         model = UserInCampaign
-        fields = ('regular_frequency', 'regular_amount', 'regular_payments')
+        fields = ('regular_frequency', 'regular_amount', 'regular_payments', 'campaign')
 
 
 class RegularUserForm(MultiModelForm):
@@ -202,7 +206,7 @@ class RegularDarujmeUserForm_UserInCampaign(FieldNameMappingMixin, RegularUserFo
 
     class Meta:
         model = UserInCampaign
-        fields = ('regular_frequency', 'regular_payments', 'regular_amount')
+        fields = ('regular_frequency', 'regular_payments', 'regular_amount', 'campaign')
 
 
 class RegularUserForm_UserInCampaignDPNK(RegularUserForm_UserInCampaign):
@@ -223,6 +227,12 @@ class RegularUserForm_UserInCampaignDPNK(RegularUserForm_UserInCampaign):
         return 'monthly'
 
 
+class PetitionUserForm_UserInCampaign(forms.ModelForm):
+    class Meta:
+        model = UserInCampaign
+        fields = ('campaign', )
+
+
 class RegularUserFormDPNK(RegularUserFormWithProfile):
     form_classes = OrderedDict([
         ('userprofile', RegularUserForm_UserProfile),
@@ -240,6 +250,7 @@ class RegularDarujmeUserForm(RegularUserForm):
 class PetitionUserForm(RegularUserForm):
     form_classes = OrderedDict([
         ('userprofile', PetitionUserForm_UserProfile),
+        ('userincampaign', PetitionUserForm_UserInCampaign),
     ])
 
 
@@ -274,7 +285,7 @@ def generate_variable_symbol(max_variable_symbol=9999):
     return variable_symbol
 
 
-def new_user(form, regular, campaign, source_slug='web'):
+def new_user(form, regular, source_slug='web'):
     # Check number of registrations so far today
     # TODO: Lock DB access here (to ensure uniqueness of VS)
     variable_symbol = generate_variable_symbol()
@@ -287,7 +298,6 @@ def new_user(form, regular, campaign, source_slug='web'):
         new_user_in_campaign.regular_payments = regular
     new_user_in_campaign.variable_symbol = variable_symbol
     new_user_in_campaign.source = Source.objects.get(slug=source_slug)
-    new_user_in_campaign.campaign = campaign
     # Save new user instance
     if hasattr(form.forms['userprofile'], 'email_used') and form.forms['userprofile'].email_used:
         new_user_profile = UserProfile.objects.get(email=form.forms['userprofile'].email_used)
@@ -341,9 +351,10 @@ class RegularView(FormView):
 
     def post(self, request, *args, **kwargs):
         email = self.get_post_param(request, 'userprofile-email', 'payment_data____email')
+        campaign = self.get_post_param(request, 'userincampaign-campaign', 'campaign')
         if email:
-            if UserInCampaign.objects.filter(userprofile__email=email, campaign=self.campaign).exists():
-                userincampaign = UserInCampaign.objects.get(userprofile__email=email, campaign=self.campaign)
+            if UserInCampaign.objects.filter(userprofile__email=email, campaign__slug=campaign).exists():
+                userincampaign = UserInCampaign.objects.get(userprofile__email=email, campaign__slug=campaign)
                 autocom.check(users=UserInCampaign.objects.filter(pk=userincampaign.pk), action='resend-data')
                 user_data = {}
                 if 'recurringfrequency' in request.POST:
@@ -388,7 +399,7 @@ class RegularView(FormView):
         return initial
 
     def form_valid(self, form):
-        user_id = new_user(form, regular=None, campaign=self.campaign, source_slug=self.source_slug)
+        user_id = new_user(form, regular=None, source_slug=self.source_slug)
         userincampaign = UserInCampaign.objects.get(id=user_id)
         return self.success_page(userincampaign)
 
@@ -398,10 +409,6 @@ class RegularView(FormView):
             return JsonResponse(form.errors, status=400)
         else:
             return response
-
-    def __init__(self, *args, **kwargs):
-        self.campaign = Campaign.objects.get(slug='klub')
-        return super().__init__(*args, **kwargs)
 
 
 @method_decorator(csrf_exempt, name='dispatch')

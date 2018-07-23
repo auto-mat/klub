@@ -62,6 +62,7 @@ class ViewsTests(ClearCacheMixin, TestCase):
         'userprofile-telephone': 111222333,
         'userincampaign-regular_frequency': 'monthly',
         'userincampaign-regular_amount': '321',
+        'userincampaign-campaign': 'klub',
     }
 
     def test_campaign_statistics(self):
@@ -277,6 +278,7 @@ class ViewsTests(ClearCacheMixin, TestCase):
         "payment_data____email": "test@email.cz",
         "payment_data____telefon": "123456789",
         "transaction_type": "2",
+        "campaign": 'klub',
     }
 
     def test_regular_darujme(self):
