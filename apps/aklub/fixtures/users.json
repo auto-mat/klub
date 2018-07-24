@@ -241,6 +241,8 @@
             "darujme_api_id": 38571205,
             "darujme_project_id": 38571205,
             "acquisition_campaign": true,
+            "enable_signing_petitions": true,
+            "enable_registration": true,
             "darujme_name": "Klub přátel Auto*Matu"
         },
         "model": "aklub.campaign",

@@ -111,7 +111,7 @@ class RegularUserForm_UserInCampaign(forms.ModelForm):
         min_value=1,
     )
     campaign = forms.ModelChoiceField(
-        queryset=Campaign.objects.filter(slug__isnull=False).exclude(slug=""),
+        queryset=Campaign.objects.filter(slug__isnull=False, enable_registration=True).exclude(slug=""),
         to_field_name="slug",
     )
 
@@ -228,6 +228,10 @@ class RegularUserForm_UserInCampaignDPNK(RegularUserForm_UserInCampaign):
 
 
 class PetitionUserForm_UserInCampaign(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['campaign'].queryset = Campaign.objects.filter(slug__isnull=False, enable_signing_petitions=True).exclude(slug="")
+
     class Meta:
         model = UserInCampaign
         fields = ('campaign', )

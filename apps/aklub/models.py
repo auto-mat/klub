@@ -177,6 +177,14 @@ class Campaign(models.Model):
         blank=True,
         null=True,
     )
+    enable_signing_petitions = models.BooleanField(
+        verbose_name=_("Enable registration through petition/mailing list forms"),
+        default=False,
+    )
+    enable_registration = models.BooleanField(
+        verbose_name=_("Enable registration through donation forms"),
+        default=False,
+    )
     allow_statistics = models.BooleanField(
         verbose_name=_("Allow statistics exports"),
         default=False,
