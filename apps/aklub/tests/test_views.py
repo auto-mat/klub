@@ -457,6 +457,34 @@ class ViewsTests(ClearCacheMixin, TestCase):
         self.assertEqual(new_user.regular_amount, 321)
         self.assertEqual(new_user.regular_payments, 'regular')
 
+    def test_sign_petition_ajax(self):
+        address = reverse('petition')
+        response = self.client.get(address)
+        post_data = {
+            "payment_data____jmeno": "test_name",
+            "payment_data____prijmeni": "test_surname",
+            "payment_data____email": "test@email.cz",
+            "payment_data____telefon": "123456789",
+            "userincampaign-campaign": "klub",
+        }
+        response = self.client.post(address, post_data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        userincampaign = UserInCampaign.objects.get(userprofile__email="test@email.cz")
+        self.assertJSONEqual(
+            response.content.decode(),
+            {
+                'account_number': '2400063333 / 2010',
+                'variable_symbol': userincampaign.variable_symbol,
+                'amount': None,
+                'email': 'test@email.cz',
+                'frequency': None,
+                'repeated_registration': False,
+                'valid': True,
+            },
+        )
+        new_user = UserInCampaign.objects.get(userprofile__email="test@email.cz")
+        self.assertEqual(new_user.regular_amount, None)
+        self.assertEqual(new_user.regular_payments, '')
+
 
 class VariableSymbolTests(TestCase):
     fixtures = ['users']

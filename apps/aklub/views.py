@@ -91,7 +91,14 @@ class RegularUserForm_UserProfile(forms.ModelForm):
         required = ('first_name', 'last_name', 'email', 'telephone',)
 
 
-class RegularUserForm_UserInCampaign(forms.ModelForm):
+class CampaignMixin(forms.ModelForm):
+    campaign = forms.ModelChoiceField(
+        queryset=Campaign.objects.filter(slug__isnull=False, enable_registration=True).exclude(slug=""),
+        to_field_name="slug",
+    )
+
+
+class RegularUserForm_UserInCampaign(CampaignMixin, forms.ModelForm):
     required_css_class = 'required'
 
     regular_payments = forms.CharField(
@@ -109,10 +116,6 @@ class RegularUserForm_UserInCampaign(forms.ModelForm):
         label=_("Regularly (amount)"),
         help_text=_(u"Minimum yearly payment is 1800 Kč"),
         min_value=1,
-    )
-    campaign = forms.ModelChoiceField(
-        queryset=Campaign.objects.filter(slug__isnull=False, enable_registration=True).exclude(slug=""),
-        to_field_name="slug",
     )
 
     def clean_regular_payments(self):
@@ -227,7 +230,7 @@ class RegularUserForm_UserInCampaignDPNK(RegularUserForm_UserInCampaign):
         return 'monthly'
 
 
-class PetitionUserForm_UserInCampaign(forms.ModelForm):
+class PetitionUserForm_UserInCampaign(CampaignMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['campaign'].queryset = Campaign.objects.filter(slug__isnull=False, enable_signing_petitions=True).exclude(slug="")
