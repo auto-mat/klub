@@ -162,7 +162,7 @@ class PetitionUserForm_UserProfile(RegularUserForm_UserProfile):
 
     class Meta:
         model = UserProfile
-        fields = ('sex', 'first_name', 'last_name', 'email', 'username', 'telephone',)
+        fields = ('age_group', 'sex', 'first_name', 'last_name', 'email', 'username', 'telephone',)
         required = ('first_name', 'last_name', 'email', 'telephone',)
 
 

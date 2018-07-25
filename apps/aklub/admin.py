@@ -298,7 +298,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
     def get_fieldsets(self, request, obj=None):
         original_fields = super().get_fieldsets(request, obj)
         if obj:
-            original_fields[1][1]['fields'] = ('title_before', 'first_name', 'last_name', 'title_after', 'sex', 'email')
+            original_fields[1][1]['fields'] = ('title_before', 'first_name', 'last_name', 'title_after', 'sex', 'age_group', 'email')
         return original_fields + self.profile_fieldsets
 
     readonly_fields = ('userattendance_links',)

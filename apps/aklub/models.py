@@ -537,6 +537,13 @@ class UserProfile(AbstractUser):
         verbose_name=_("Sending of mailing lists allowed"),
         default=True,
     )
+    age_group = models.PositiveIntegerField(
+        verbose_name=_("Ročník narození"),
+        help_text=_("Nepovinné, slouží pouze pro účely statistky"),
+        null=True,
+        blank=True,
+        choices=[(i, i) for i in range(datetime.date.today().year, datetime.date.today().year - 100, -1)],
+    )
 
     def get_addressment(self):
         if self.addressment:
