@@ -461,10 +461,10 @@ class ViewsTests(ClearCacheMixin, TestCase):
         address = reverse('petition')
         response = self.client.get(address)
         post_data = {
-            "payment_data____jmeno": "test_name",
-            "payment_data____prijmeni": "test_surname",
-            "payment_data____email": "test@email.cz",
-            "payment_data____telefon": "123456789",
+            'userprofile-email': 'test@email.cz',
+            'userprofile-first_name': 'Testing',
+            'userprofile-last_name': 'User',
+            'userprofile-telephone': 111222333,
             "userincampaign-campaign": "klub",
         }
         response = self.client.post(address, post_data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')

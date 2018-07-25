@@ -154,13 +154,16 @@ class RegularDarujmeUserForm_UserProfile(FieldNameMappingMixin, RegularUserForm_
     }
 
 
-class PetitionUserForm_UserProfile(FieldNameMappingMixin, RegularUserForm_UserProfile):
-    FIELD_NAME_MAPPING = {
-        'first_name': 'payment_data____jmeno',
-        'last_name': 'payment_data____prijmeni',
-        'email': 'payment_data____email',
-        'telephone': 'payment_data____telefon',
-    }
+class PetitionUserForm_UserProfile(RegularUserForm_UserProfile):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['sex'].required = False
+
+    class Meta:
+        model = UserProfile
+        fields = ('sex', 'first_name', 'last_name', 'email', 'username', 'telephone',)
+        required = ('first_name', 'last_name', 'email', 'telephone',)
 
 
 REGULAR_PAYMENTS_MAP = {
