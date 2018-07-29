@@ -308,6 +308,7 @@ class ViewsTests(ClearCacheMixin, TestCase):
                 'frequency': 'monthly',
                 'repeated_registration': False,
                 'valid': True,
+                'addressment': 'Test_Name',
             },
         )
         new_user = UserInCampaign.objects.get(userprofile__email="test@email.cz")
@@ -341,6 +342,7 @@ class ViewsTests(ClearCacheMixin, TestCase):
                 'frequency': None,
                 'repeated_registration': False,
                 'valid': True,
+                'addressment': 'Test_Name',
             },
         )
 
@@ -389,6 +391,7 @@ class ViewsTests(ClearCacheMixin, TestCase):
                 'frequency': 'monthly',
                 'repeated_registration': True,
                 'valid': True,
+                'addressment': 'Zbyněku',
             },
         )
 
@@ -478,6 +481,7 @@ class ViewsTests(ClearCacheMixin, TestCase):
                 'frequency': None,
                 'repeated_registration': False,
                 'valid': True,
+                'addressment': 'Testingu',
             },
         )
         new_user = UserInCampaign.objects.get(userprofile__email="test@email.cz")
@@ -507,6 +511,7 @@ class ViewsTests(ClearCacheMixin, TestCase):
                 'frequency': None,
                 'repeated_registration': False,
                 'valid': True,
+                'addressment': 'Testingu',
             },
         )
         new_user = UserInCampaign.objects.get(userprofile__email="test@email.cz")

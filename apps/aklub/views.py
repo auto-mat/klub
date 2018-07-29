@@ -338,6 +338,7 @@ class RegularView(FormView):
                 'user_id': userincampaign.id,
                 'userincampaign': userincampaign,
                 'repeated_registration': repeated_registration,
+                'addressment': userincampaign.userprofile.get_addressment(),
             },
         )
         if self.request.is_ajax():
@@ -349,6 +350,7 @@ class RegularView(FormView):
                 'amount': amount,
                 'frequency': frequency,
                 'repeated_registration': repeated_registration,
+                'addressment': userincampaign.userprofile.get_addressment(),
             }
             return JsonResponse(data)
         return response
