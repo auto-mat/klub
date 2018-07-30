@@ -551,6 +551,7 @@ class CampaignStatistics(View):
                 'number-of-onetime-members': campaign.number_of_onetime_members(),
                 'number-of-regular-members': campaign.number_of_regular_members(),
                 'number-of-active-members': campaign.number_of_active_members(),
+                'number-of-all-members': campaign.number_of_all_members(),
             }
             ),
             content_type='application/json',

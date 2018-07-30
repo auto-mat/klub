@@ -203,6 +203,9 @@ class Campaign(models.Model):
     def number_of_active_members(self):
         return self.userincampaign_set.filter(payment__amount__gt=0).distinct().count()
 
+    def number_of_all_members(self):
+        return self.userincampaign_set.distinct().count()
+
     def recruiters(self):
         return Recruiter.objects.filter(campaigns=self)
     recruiters.short_description = _("recruiters")
