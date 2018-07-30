@@ -26,6 +26,7 @@ from betterforms.multiform import MultiModelForm
 
 
 from django import forms, http
+from django.core.cache import cache
 from django.core.mail import mail_managers
 from django.core.validators import MinLengthValidator, RegexValidator
 from django.db.models import Case, Count, IntegerField, Q, Sum, When
@@ -316,6 +317,8 @@ def new_user(form, regular, source_slug='web'):
     new_user_in_campaign.userprofile = new_user_profile
     new_user_in_campaign.save()
     # TODO: Unlock DB access here
+
+    cache.clear()
     return new_user_in_campaign.id
 
 
@@ -566,10 +569,14 @@ class PetitionSignatures(View):
 
     def get(self, request, *args, **kwargs):
         campaign = get_object_or_404(Campaign, slug=kwargs['campaign_slug'], allow_statistics=True, enable_signing_petitions=True)
-        signatures = UserInCampaign.objects.filter(campaign=campaign).values(
+        signatures = UserInCampaign.objects.filter(campaign=campaign)
+        signatures = signatures.order_by('-created')
+        signatures = signatures.values(
             'userprofile__first_name',
             'userprofile__last_name',
+            'created',
         )
+        signatures = signatures[:100]
         return JsonResponse(list(signatures), safe=False)
 
 

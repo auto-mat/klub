@@ -863,6 +863,16 @@ class UserInCampaign(models.Model):
         verbose_name=_("Publish my name in the list of supporters/petitents of this campaign"),
         default=False,
     )
+    created = models.DateTimeField(
+        verbose_name=_("Date of creation"),
+        auto_now_add=True,
+        null=True,
+    )
+    updated = models.DateTimeField(
+        verbose_name=_("Date of last change"),
+        auto_now=True,
+        null=True,
+    )
 
     def __str__(self):
         return "%s - %s (%s)" % (
