@@ -856,6 +856,10 @@ class UserInCampaign(models.Model):
         blank=True,
         null=True,
     )
+    public = models.BooleanField(
+        verbose_name=_("Publish my name in the list of supporters/petitents of this campaign"),
+        default=True,
+    )
 
     def __str__(self):
         return "%s - %s (%s)" % (

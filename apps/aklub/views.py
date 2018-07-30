@@ -240,7 +240,7 @@ class PetitionUserForm_UserInCampaign(CampaignMixin, forms.ModelForm):
 
     class Meta:
         model = UserInCampaign
-        fields = ('campaign', )
+        fields = ('campaign', 'public')
 
 
 class RegularUserFormDPNK(RegularUserFormWithProfile):
