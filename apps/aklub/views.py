@@ -29,7 +29,7 @@ from django import forms, http
 from django.core.cache import cache
 from django.core.mail import mail_managers
 from django.core.validators import MinLengthValidator, RegexValidator
-from django.db.models import Case, Count, IntegerField, Q, Sum, When
+from django.db.models import Case, CharField, Count, IntegerField, Q, Sum, Value, When
 from django.db.models.functions import TruncMonth
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render_to_response
@@ -571,9 +571,21 @@ class PetitionSignatures(View):
         campaign = get_object_or_404(Campaign, slug=kwargs['campaign_slug'], allow_statistics=True, enable_signing_petitions=True)
         signatures = UserInCampaign.objects.filter(campaign=campaign)
         signatures = signatures.order_by('-created')
+        signatures = signatures.annotate(
+            first_name=Case(
+                When(public=True, then='userprofile__first_name'),
+                default=Value('------'),
+                output_field=CharField(),
+            ),
+            last_name=Case(
+                When(public=True, then='userprofile__last_name'),
+                default=Value('------'),
+                output_field=CharField(),
+            ),
+        )
         signatures = signatures.values(
-            'userprofile__first_name',
-            'userprofile__last_name',
+            'first_name',
+            'last_name',
             'created',
         )
         signatures = signatures[:100]

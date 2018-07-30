@@ -455,6 +455,7 @@ class UserInCampaignAdmin(ImportExportMixin, AdminAdvancedFiltersMixin, RelatedF
                 'wished_information',
                 'wished_tax_confirmation',
                 'wished_welcome_letter',
+                'public',
                 (
                     'next_communication_date',
                     'next_communication_method',
