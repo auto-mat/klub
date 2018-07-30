@@ -863,6 +863,7 @@ class ResultAdmin(admin.ModelAdmin):
 class CampaignAdmin(admin.ModelAdmin):
     list_display = (
         'name',
+        'slug',
         'darujme_name',
         'darujme_api_id',
         'darujme_project_id',

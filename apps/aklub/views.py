@@ -538,7 +538,7 @@ def profiles(request):
 
 class CampaignStatistics(View):
     @method_decorator(never_cache)
-    @method_decorator(cache_page(24 * 60))  # cache in memcached for 1h
+    @method_decorator(cache_page(60))  # cache in memcached for 1 minute
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
@@ -555,6 +555,21 @@ class CampaignStatistics(View):
             ),
             content_type='application/json',
         )
+
+
+class PetitionSignatures(View):
+    @method_decorator(never_cache)
+    @method_decorator(cache_page(60))  # cache in memcached for 1 minute
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+        campaign = get_object_or_404(Campaign, slug=kwargs['campaign_slug'], allow_statistics=True, enable_signing_petitions=True)
+        signatures = UserInCampaign.objects.filter(campaign=campaign).values(
+            'userprofile__first_name',
+            'userprofile__last_name',
+        )
+        return JsonResponse(list(signatures), safe=False)
 
 
 class UserInCampaignInline(InlineFormSet):
