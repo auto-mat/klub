@@ -23,7 +23,7 @@ django-related-admin
 django-denorm
 gunicorn
 pypdf2  # for pdf result testing
--e git+https://github.com/fusionbox/django-betterforms.git#egg=django-betterforms  # for fields/errors support
+django-betterforms
 django-adminactions
 django-admin-large-initial-data
 
@@ -34,7 +34,7 @@ djcacheutils
 
 django-adminfilters
 
--e git+https://github.com/PetrDlouhy/django-advanced-filters@develop#egg=django-advanced-filters  # for Django 2.0 fix
+-e git+https://github.com/modlinltd/django-advanced-filters@develop#egg=django-advanced-filters  # for Django 2.0 fix
 
 django-post-office
 django-bulk-update
