@@ -301,6 +301,7 @@
             "variable_symbol": "120127010",
             "verified": false,
             "verified_by": null,
+            "public": true,
             "campaign": 2,
             "why_supports": ""
         },

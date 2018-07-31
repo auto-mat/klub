@@ -76,7 +76,21 @@ class ViewsTests(ClearCacheMixin, TestCase):
                 "number-of-regular-members": 1,
                 "number-of-onetime-members": 1,
                 "number-of-active-members": 2,
+                "number-of-all-members": 3,
             },
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_petition_signatures(self):
+        address = reverse('petition-signatures', kwargs={'campaign_slug': 'klub'})
+        response = self.client.get(address)
+        self.assertJSONEqual(
+            response.content.decode(),
+            [
+                {"created": None, "first_name": "------", "last_name": "------"},
+                {"created": None, "first_name": "Test", "last_name": "User"},
+                {"created": None, "first_name": "------", "last_name": "------"},
+            ],
         )
         self.assertEqual(response.status_code, 200)
 
