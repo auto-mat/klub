@@ -572,7 +572,7 @@ class PetitionSignatures(View):
 
     def get(self, request, *args, **kwargs):
         campaign = get_object_or_404(Campaign, slug=kwargs['campaign_slug'], allow_statistics=True, enable_signing_petitions=True)
-        signatures = UserInCampaign.objects.filter(campaign=campaign)
+        signatures = UserInCampaign.objects.filter(campaign=campaign, email_confirmed=True)
         signatures = signatures.order_by('-created')
         signatures = signatures.annotate(
             first_name=Case(
@@ -629,3 +629,12 @@ class MailingFormSetView(SesameUserMixin, UpdateWithInlinesView):
     success_url = reverse_lazy('mailing-configuration')
     inlines = [UserInCampaignInline, ]
     fields = ('send_mailing_lists',)
+
+
+class ConfirmEmailView(SesameUserMixin, View):
+
+    def get(self, *args, **kwargs):
+        user_in_campaign = UserInCampaign.objects.get(campaign__slug=kwargs['campaign_slug'], userprofile=self.get_object())
+        user_in_campaign.email_confirmed = True
+        user_in_campaign.save()
+        return http.HttpResponse(_("Your petition signature was confirmed"))

@@ -13,4 +13,5 @@ urlpatterns = [
     url(r'^donators/', views.donators, name="donators"),
     url(r'^profiles/', views.profiles, name="profiles"),
     url(r'^mailing/', views.MailingFormSetView.as_view(), name="mailing-configuration"),
+    url(r'^email_confirmation/(?P<campaign_slug>[^&]+)/$', views.ConfirmEmailView.as_view(), name="email-confirmation"),
 ]

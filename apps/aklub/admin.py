@@ -375,6 +375,7 @@ class UserInCampaignAdmin(ImportExportMixin, AdminAdvancedFiltersMixin, RelatedF
         'next_communication_method',
         'userprofile__is_active',
         'last_payment_date',
+        'email_confirmed',
     )
     advanced_filter_fields = (
         'userprofile__first_name',
@@ -455,6 +456,7 @@ class UserInCampaignAdmin(ImportExportMixin, AdminAdvancedFiltersMixin, RelatedF
                 'wished_information',
                 'wished_tax_confirmation',
                 'wished_welcome_letter',
+                'email_confirmed',
                 'public',
                 (
                     'next_communication_date',

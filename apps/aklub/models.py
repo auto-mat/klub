@@ -873,6 +873,10 @@ class UserInCampaign(models.Model):
         auto_now=True,
         null=True,
     )
+    email_confirmed = models.BooleanField(
+        verbose_name=_("Is confirmed via e-mail"),
+        default=False,
+    )
 
     def __str__(self):
         return "%s - %s (%s)" % (
