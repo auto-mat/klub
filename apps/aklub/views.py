@@ -26,6 +26,7 @@ from betterforms.multiform import MultiModelForm
 
 
 from django import forms, http
+from django.contrib import messages
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.core.mail import mail_managers
@@ -595,6 +596,27 @@ class PetitionSignatures(View):
         return JsonResponse(list(signatures), safe=False)
 
 
+class SuccessMessageMixin (object):
+    """
+    From https://github.com/AndrewIngram/django-extra-views/pull/147/files
+    Adds success message on views with inlines if django.contrib.messages framework is used.
+    In order to use just add mixin in to inheritance before main class, e.g.:
+    class MyCreateWithInlinesView (SuccessMessageMixin, CreateWithInlinesView):
+        success_message='Something was created!'
+    """
+    success_message = ''
+
+    def forms_valid(self, form, inlines):
+        response = super(SuccessMessageMixin, self).forms_valid(form, inlines)
+        success_message = self.get_success_message(form.cleaned_data)
+        if success_message:
+            messages.success(self.request, success_message)
+        return response
+
+    def get_success_message(self, cleaned_data):
+        return self.success_message % cleaned_data
+
+
 class SesameUserMixin():
     """
     We don't want to use django-sesame to authenticate system-wide,
@@ -623,9 +645,10 @@ class UserInCampaignInline(InlineFormSet):
     fields = ('wished_information',)
 
 
-class MailingFormSetView(SesameUserMixin, UpdateWithInlinesView):
+class MailingFormSetView(SuccessMessageMixin, SesameUserMixin, UpdateWithInlinesView):
     model = UserProfile
     template_name = 'mailing.html'
+    success_message = "Nastavení emailů úspěšně změněno"
     success_url = reverse_lazy('mailing-configuration')
     inlines = [UserInCampaignInline, ]
     fields = ('send_mailing_lists',)
