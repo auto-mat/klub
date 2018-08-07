@@ -27,6 +27,7 @@ from betterforms.multiform import MultiModelForm
 
 from django import forms, http
 from django.core.cache import cache
+from django.core.exceptions import PermissionDenied
 from django.core.mail import mail_managers
 from django.core.validators import MinLengthValidator, RegexValidator
 from django.db.models import Case, CharField, Count, IntegerField, Q, Sum, Value, When
@@ -42,6 +43,8 @@ from django.views.generic import View
 from django.views.generic.edit import FormView
 
 from extra_views import InlineFormSet, UpdateWithInlinesView
+
+from sesame.backends import ModelBackend
 
 from . import autocom
 from .models import Campaign, Payment, Source, UserInCampaign, UserProfile
@@ -592,6 +595,23 @@ class PetitionSignatures(View):
         return JsonResponse(list(signatures), safe=False)
 
 
+class SesameUserMixin():
+    """
+    We don't want to use django-sesame to authenticate system-wide,
+    so we use it only to authenticate in certain views
+    """
+    def get_object(self):
+        backend = ModelBackend()
+        self.token = self.request.GET['url_auth_token']
+        self.user = backend.parse_token(self.token)
+        if self.user is None:
+            raise PermissionDenied("bad token")
+        return self.user
+
+    def get_success_url(self):
+        return "%s?url_auth_token=%s" % (super().get_success_url(), self.token)
+
+
 class UserInCampaignInline(InlineFormSet):
     model = UserInCampaign
     factory_kwargs = {
@@ -603,12 +623,9 @@ class UserInCampaignInline(InlineFormSet):
     fields = ('wished_information',)
 
 
-class MailingFormSetView(UpdateWithInlinesView):
+class MailingFormSetView(SesameUserMixin, UpdateWithInlinesView):
     model = UserProfile
     template_name = 'mailing.html'
     success_url = reverse_lazy('mailing-configuration')
     inlines = [UserInCampaignInline, ]
     fields = ('send_mailing_lists',)
-
-    def get_object(self):
-        return self.request.user

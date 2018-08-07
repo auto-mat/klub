@@ -110,7 +110,6 @@ MIDDLEWARE = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'sesame.middleware.AuthenticationMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     # 'django.middleware.csrf.CsrfViewMiddleware',
@@ -258,7 +257,6 @@ MIGRATION_MODULES = {
 AUTH_USER_MODEL = "aklub.UserProfile"
 
 AUTHENTICATION_BACKENDS = [
-    'sesame.backends.ModelBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
 
