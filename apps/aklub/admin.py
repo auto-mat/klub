@@ -383,7 +383,7 @@ class UserInCampaignAdmin(ImportExportMixin, AdminAdvancedFiltersMixin, RelatedF
         'userprofile__email',
         'userprofile__telephone',
         'source',
-        ('campaign__name', _("Jméno kampaně")),
+        ('campaign__name', _("Campaign name")),
         'variable_symbol',
         'registered_support',
         'regular_payments',
@@ -713,7 +713,11 @@ class MassCommunicationForm(django.forms.ModelForm):
                     v.__call__(email)
                 except ValidationError as e:
                     raise ValidationError(
-                        _("Invalid email '%s' of user %s: %s") % (email, user, e),
+                        _("Invalid email '%(email)s' of user %(user)s: %(exception)s") % {
+                            'email': email,
+                            'user': user,
+                            'exception': e,
+                        },
                     )
         return self.cleaned_data['send_to_users']
 

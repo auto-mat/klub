@@ -544,8 +544,7 @@ class UserProfile(AbstractUser):
         default=True,
     )
     age_group = models.PositiveIntegerField(
-        verbose_name=_("Ročník narození"),
-        help_text=_("Nepovinné, slouží pouze pro účely statistky"),
+        verbose_name=_("Birth year"),
         null=True,
         blank=True,
         choices=[(i, i) for i in range(datetime.date.today().year, datetime.date.today().year - 100, -1)],
