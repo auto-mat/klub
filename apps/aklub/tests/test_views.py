@@ -77,6 +77,7 @@ class ViewsTests(ClearCacheMixin, TestCase):
                 "number-of-onetime-members": 1,
                 "number-of-active-members": 2,
                 "number-of-all-members": 3,
+                'number-of-confirmed-members': 3,
             },
         )
         self.assertEqual(response.status_code, 200)

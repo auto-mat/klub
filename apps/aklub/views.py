@@ -559,6 +559,7 @@ class CampaignStatistics(View):
                 'number-of-regular-members': campaign.number_of_regular_members(),
                 'number-of-active-members': campaign.number_of_active_members(),
                 'number-of-all-members': campaign.number_of_all_members(),
+                'number-of-confirmed-members': campaign.number_of_confirmed_members(),
             }
             ),
             content_type='application/json',
@@ -660,4 +661,5 @@ class ConfirmEmailView(SesameUserMixin, View):
         user_in_campaign = UserInCampaign.objects.get(campaign__slug=kwargs['campaign_slug'], userprofile=self.get_object())
         user_in_campaign.email_confirmed = True
         user_in_campaign.save()
+        cache.clear()
         return http.HttpResponse(_("Your petition signature was confirmed"))

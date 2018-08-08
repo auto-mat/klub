@@ -206,6 +206,9 @@ class Campaign(models.Model):
     def number_of_all_members(self):
         return self.userincampaign_set.distinct().count()
 
+    def number_of_confirmed_members(self):
+        return self.userincampaign_set.filter(email_confirmed=True).distinct().count()
+
     def recruiters(self):
         return Recruiter.objects.filter(campaigns=self)
     recruiters.short_description = _("recruiters")
