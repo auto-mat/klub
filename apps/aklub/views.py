@@ -56,6 +56,7 @@ class RegularUserForm_UserProfile(forms.ModelForm):
 
     email = forms.EmailField(
         required=True,
+        error_messages={'unique': "This e-mail is already used."},
     )
     username = forms.CharField(widget=forms.HiddenInput, required=False)
 
