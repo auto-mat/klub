@@ -24,12 +24,6 @@ ALLOWED_HOSTS += [
     'localhost',
 ]
 
-DEBUG = True
-TEMPLATE_DEBUG = DEBUG
-
-ADMINS = ()
-MANAGERS = ADMINS
-
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Make log in execution directory when testing

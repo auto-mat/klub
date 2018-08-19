@@ -2,6 +2,10 @@
 import os
 import sys
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 #  BEGIN activacte virtualenv
 # from project.settings import PROJECT_ROOT, normpath
 #

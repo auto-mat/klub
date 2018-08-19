@@ -4,7 +4,8 @@
 *.swp
 *~
 env/
-project/settings_local.py
+.env
+project/settings/local.py
 data/
 trash/
 logs/
