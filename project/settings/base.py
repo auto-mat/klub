@@ -183,8 +183,8 @@ INSTALLED_APPS = (
     'django_nvd3',
     'adminfilters',
     'advanced_filters',
-    'helpdesk',
     'aklub',
+    'helpdesk',
 )
 
 BOWER_INSTALLED_APPS = (
