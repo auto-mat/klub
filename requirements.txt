@@ -21,6 +21,7 @@ django-daterange-filter
 django-cors-headers
 django-related-admin
 django-denorm
+django-helpdesk
 gunicorn
 pypdf2  # for pdf result testing
 django-betterforms
