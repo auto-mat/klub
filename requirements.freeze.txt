@@ -45,6 +45,7 @@ progressbar2==3.38.0
 psycopg2==2.7.5
 PyPDF2==1.26.0
 python-dateutil==2.7.3
+python-dotenv==0.9.1
 python-memcached==1.59
 python-nvd3==0.14.2
 python-slugify==1.1.4

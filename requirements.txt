@@ -12,6 +12,7 @@ feedparser
 django-chart-tools
 django-mass-edit
 python-memcached
+python-dotenv
 django-import-export
 django-qsstats-magic
 python-dateutil
