@@ -5,6 +5,7 @@
 *~
 env/
 project/settings_local.py
+project/settings/settings_local.py
 data/
 trash/
 logs/
