@@ -40,6 +40,7 @@ from ..models import (
 
 class AdminSmokeTest(tests.AdminSiteSmokeTest):
     fixtures = ['conditions', 'users']
+    exclude_apps = ['helpdesk']
 
     def post_request(self, post_data={}, params=None):
         request = self.factory.post('/', data=post_data)

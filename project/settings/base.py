@@ -149,6 +149,7 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.messages',
     'django.contrib.sessions',
+    'django.contrib.sites',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'stdimage',
@@ -158,6 +159,7 @@ INSTALLED_APPS = (
     'tinymce',
     'chart_tools',
     'massadmin',
+    'markdown_deux',
     'post_office',
     'import_export',
     'corsheaders',
@@ -170,6 +172,7 @@ INSTALLED_APPS = (
     'django_nvd3',
     'adminfilters',
     'advanced_filters',
+    'helpdesk',
     'aklub',
 )
 
@@ -262,6 +265,32 @@ AUTH_USER_MODEL = "aklub.UserProfile"
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
+
+HELPDESK_DEFAULT_SETTINGS = {
+    'use_email_as_submitter': True,
+    'email_on_ticket_assign': True,
+    'email_on_ticket_change': True,
+    'login_view_ticketlist': True,
+    'email_on_ticket_apichange': True,
+    'preset_replies': True,
+    'tickets_per_page': 25,
+}
+
+# Should the public web portal be enabled?
+HELPDESK_VIEW_A_TICKET_PUBLIC = False
+HELPDESK_SUBMIT_A_TICKET_PUBLIC = True
+
+HELPDESK_PUBLIC_TICKET_PRIORITY = 3
+HELPDESK_PUBLIC_TICKET_DUE_DATE = ''
+
+# Should the Knowledgebase be enabled?
+HELPDESK_KB_ENABLED = True
+
+# Instead of showing the public web portal first,
+# we can instead redirect users straight to the login page.
+HELPDESK_REDIRECT_TO_LOGIN_BY_DEFAULT = False
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/login/'
 
 CSRF_COOKIE_SECURE = True
 SECURE_BROWSER_XSS_FILTER = True
