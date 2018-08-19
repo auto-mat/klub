@@ -1,0 +1,28 @@
+version: '2'
+services:
+ web:
+  build: .
+  entrypoint: /bin/bash
+  ports:
+   - "8000:8000"
+  links:
+   - postgres
+  tty: true
+  stdin_open: true
+  environment:
+   DATABASE_NAME: klub
+   DATABASE_USER: klub
+   DATABASE_PASSWORD: foobar
+   DATABASE_HOST: postgres
+  working_dir: /klub-v/
+  volumes:
+   - ./:/klub-v/
+ postgres:
+  image: mdillon/postgis:9.6
+  volumes:
+   - ./db:/var/lib/postgresql/data
+  environment:
+   POSTGRES_PASSWORD: foobar
+   POSTGRES_USER: klub
+   PGDATA: /var/lib/postgresql/data
+
