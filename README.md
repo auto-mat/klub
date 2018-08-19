@@ -11,7 +11,7 @@ Ke zprovoznění je zapotřebí následující
 * Virtualenv
 * Postgres 8.4 + postgis 1.5
 
-Vzorová lokální konfigurace je v project/settings\_local\_sample.py, stačí přejmenovat na settings\_local.py a doplnit přístup k DB a SECRET\_KEY.
+Vzorová lokální konfigurace je v `.env-sample`, stačí přejmenovat na `.env` a doplnit SECRET\_KEY.
 
 Instalace probíhá pomocí následujícíh příkazů:
 
@@ -20,6 +20,18 @@ Instalace probíhá pomocí následujícíh příkazů:
 * sudo apt-get install libgraphviz-dev
 * env/bin/pip install -r requirements
 * cd apps/aklub && django-admin.py compilemessages -l "cs\_CZ"
+
+Instalace (Docker compose)
+==========================
+
+    $ docker-compose build
+    $ docker-compose up
+
+    $ docker attach klub_web_1
+    # su test
+    $ cd apps/aklub && django-admin.py compilemessages -l "cs\_CZ"
+    $ django-admin.py migrate
+    $ django-admin.py createsuperuser
 
 Spuštění
 ============

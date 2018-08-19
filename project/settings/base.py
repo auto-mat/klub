@@ -12,13 +12,8 @@ PROJECT_ROOT = normpath(__file__, "..", "..", "..")
 sys.path.append(normpath(PROJECT_ROOT, "project"))
 sys.path.append(normpath(PROJECT_ROOT, "apps"))
 
-DEBUG = True
-
-ADMINS = (
-    ('Petr Dlouhý', 'petr.dlouhy@auto-mat.cz'),
-)
-
-MANAGERS = ADMINS
+DEBUG = os.environ.get('AKLUB_DEBUG', False) in (True, "True")
+TEMPLATE_DEBUG = DEBUG
 
 DATABASES = {
     'default': {
@@ -32,6 +27,22 @@ DATABASES = {
 }
 
 SECRET_KEY = os.environ.get('SECRET_KEY', '')
+
+SERVER_EMAIL = ""
+try:
+    SERVER_EMAIL = os.environ['AKLUB_SERVER_EMAIL']
+except KeyError:
+    pass
+
+DEFAULT_FROM_EMAIL = ""
+try:
+    DEFAULT_FROM_EMAIL = os.environ['AKLUB_DEFAULT_FROM_EMAIL']
+except KeyError:
+    pass
+
+ADMINS = [[s.strip() for s in admin.split(",")] for admin in os.environ.get('AKLUB_ADMINS', '').strip().split("\n")]
+MANAGERS = ADMINS
+
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
 # although not all choices may be available on all operating systems.
@@ -51,7 +62,7 @@ USE_I18N = True
 
 # Absolute path to the directory that holds media.
 # Example: "/home/media/media.lawrence.com/"
-MEDIA_ROOT = normpath(PROJECT_ROOT, 'data')
+MEDIA_ROOT = os.environ.get('AKLUB_MEDIA_ROOT', normpath(PROJECT_ROOT, 'data'))
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash if there is a path component (optional in other cases).
@@ -62,7 +73,7 @@ MEDIA_URL = '/upload/'
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/home/media/media.lawrence.com/static/"
-STATIC_ROOT = normpath(PROJECT_ROOT, 'static')
+STATIC_ROOT = os.environ.get('AKLUB_STATIC_ROOT', normpath(PROJECT_ROOT, 'static'))
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
@@ -169,8 +180,8 @@ INSTALLED_APPS = (
     'django_nvd3',
     'adminfilters',
     'advanced_filters',
-    'helpdesk',
     'aklub',
+    'helpdesk',
 )
 
 BOWER_INSTALLED_APPS = (
@@ -248,7 +259,8 @@ LOGGING = {
     },
 }
 
-ALLOWED_HOSTS = os.environ.get('AKLUB_ALLOWED_HOSTS', '').split(',')
+ALLOWED_HOSTS = os.environ.get('AKLUB_ALLOWED_HOSTS', '').split(':')
+AKLUB_CORS_ORIGIN_REGEX_WHITELIST = os.environ.get('AKLUB_CORS_ORIGIN_REGEX_WHITELIST', '').split(':')
 
 TEST_RUNNER = 'aklub.tests.AklubTestSuiteRunner'
 

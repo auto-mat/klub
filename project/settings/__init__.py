@@ -19,3 +19,7 @@
 
 
 from .base import *  # noqa
+try:
+    from .settings_local import * # noqa
+except ImportError:
+    pass
