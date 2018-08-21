@@ -18,6 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+import django
 from django.contrib import admin as django_admin, auth
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -243,10 +244,14 @@ class AdminTest(TestCase):
             request._messages._queued_messages[0].message,
             'Odeslání na následující adresy nebylo možné kvůli problémům: baz@email.com',
         )
+        if django.VERSION < (2, 1):
+            edit_text = 'Níže ji můžete dále upravovat.'
+        else:
+            edit_text = 'Níže můžete údaje znovu upravovat.'
         self.assertEqual(
             request._messages._queued_messages[2].message,
             'Položka typu Hromadná komunikace "<a href="/aklub/masscommunication/%s/change/">test communication</a>"'
-            ' byla úspěšně přidána. Níže ji můžete dále upravovat.' % obj.id,
+            ' byla úspěšně přidána. %s' % (obj.id, edit_text),
         )
 
     def test_mass_communication_changelist_post(self):

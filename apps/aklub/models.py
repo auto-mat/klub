@@ -43,13 +43,9 @@ from django.db import models
 from django.db.models import Count, Q, Sum
 from django.utils import timezone
 from django.utils.html import format_html, mark_safe
+from django.utils.text import format_lazy
 from django.utils.timesince import timesince
-from django.utils.translation import string_concat, ugettext_lazy as _
-try:
-    from django.utils.text import format_lazy
-except ImportError:  # Django<1.11
-    def format_lazy(string, name, verbose_name):
-        return string_concat(name, " ", verbose_name)
+from django.utils.translation import ugettext_lazy as _
 
 import html2text
 
@@ -2093,9 +2089,9 @@ class MassCommunication(models.Model):
     )
     subject_en = models.CharField(
         verbose_name=_("English subject"),
-        help_text=string_concat(
+        help_text=format_lazy(
+            "{}<br/>{}",
             _("English version of the subject. If empty, English speaking users will not receive this communication."),
-            "<br/>",
             _("Same variables as in template can be used"),
         ),
         max_length=130,

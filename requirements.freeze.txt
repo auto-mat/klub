@@ -5,7 +5,7 @@ django-admin-tools==0.8.1
 django-admin-tools-stats==0.9.0
 django-adminactions==1.5
 django-adminfilters==1.0.0
--e git+https://github.com/modlinltd/django-advanced-filters@develop#egg=django_advanced_filters
+-e git+https://github.com/gnrgomes/django-advanced-filters@develop#egg=django_advanced_filters  # for Django 2.0 and 2.1 fix
 django-betterforms==1.2
 django-bootstrap-form==3.4
 django-bower==5.2.0
@@ -17,9 +17,9 @@ django-daterange-filter==1.3.0
 django-denorm==1.0.0
 django-extensions==2.1.0
 django-extra-views==0.11.0
-django-import-export==1.0.1
+-e git+https://github.com/django-import-export/django-import-export.git#egg=django-import-export  # for Django 2.1 fix
 django-jsonfield==1.0.1
-django-mass-edit==3.1
+django-mass-edit==3.2.0
 django-nvd3==0.9.7
 django-post-office==3.1.0
 django-qsstats-magic==1.0.0

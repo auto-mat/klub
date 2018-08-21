@@ -1,5 +1,5 @@
 coverage
-django_coverage_plugin
+-e git+https://github.com/federicobond/django_coverage_plugin@fix-django-21#egg=django_coverage_plugin  # for Django 2.1 fix
 -e git+https://github.com/jnoortheen/django-admin-smoke-tests#egg=django_admin_smoke_tests  # for fix for reverse_accessor fields
 freezegun
 django-debug-toolbar
