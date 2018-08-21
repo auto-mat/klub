@@ -36,7 +36,7 @@ djcacheutils
 
 django-adminfilters
 
--e git+https://github.com/modlinltd/django-advanced-filters@develop#egg=django-advanced-filters  # for Django 2.0 fix
+-e git+https://github.com/gnrgomes/django-advanced-filters@develop#egg=django-advanced-filters  # for Django 2.0 and 2.1 fix
 
 django-post-office
 django-bulk-update

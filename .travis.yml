@@ -23,8 +23,7 @@ script:
 after_script:
   - coveralls
 addons:
-  postgresql: "9.3"
+  postgresql: "9.6"
 matrix:
    allow_failures:
-      - env: DJANGO_VERSION="Django>=2.1,<2.2"
       - env: DJANGO_VERSION='https://github.com/django/django/archive/master.tar.gz'
