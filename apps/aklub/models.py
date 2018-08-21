@@ -549,11 +549,16 @@ class UserProfile(AbstractUser):
         choices=[(i, i) for i in range(datetime.date.today().year, datetime.date.today().year - 100, -1)],
     )
 
+    def get_last_name_vokativ(self):
+        return vokativ(self.last_name.strip(), last_name=True).title()
+    get_last_name_vokativ.short_description = _("Last name vokativ")
+    get_last_name_vokativ.admin_order_field = 'last_name'
+
     def get_addressment(self):
         if self.addressment:
             return self.addressment
         if self.first_name:
-            return vokativ(self.first_name).title()
+            return vokativ(self.first_name.strip()).title()
         if self.language == 'cs':
             if self.sex == 'male':
                 return 'člene Klubu přátel Auto*Matu'
@@ -1996,8 +2001,24 @@ class AutomaticCommunication(models.Model):
     )
     template = models.TextField(
         verbose_name=_("Template"),
-        help_text=_("Template can contain variable substitutions like addressment, name, "
-                    "variable symbol etc."),
+        help_text=_(
+            "Template can contain following variable substitutions: "
+            "$addressment  "
+            "$last_name_vokativ  "
+            "$name  "
+            "$firstname  "
+            "$surname  "
+            "$street  "
+            "$city  "
+            "$zipcode  "
+            "$email  "
+            "$telephone  "
+            "$regular_amount  "
+            "$regular_frequency  "
+            "$var_symbol  "
+            "$last_payment_amount  "
+            "$auth_token  "
+        ),
         max_length=50000,
     )
     template_en = models.TextField(

@@ -206,6 +206,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         'email',
         'addressment',
         'get_addressment',
+        'get_last_name_vokativ',
         'telephone_url',
         'title_before',
         'first_name',

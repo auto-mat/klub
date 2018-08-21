@@ -57,6 +57,7 @@ def process_template(template_string, user):
     # Make variable substitutions
     text = template.substitute(
         addressment=user.userprofile.get_addressment(),
+        last_name_vokativ=user.userprofile.get_last_name_vokativ(),
         name=user.userprofile.first_name,
         firstname=user.userprofile.first_name,
         surname=user.userprofile.last_name,
