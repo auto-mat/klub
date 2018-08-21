@@ -479,6 +479,31 @@ class ViewsTests(ClearCacheMixin, TestCase):
         address = reverse('petition')
         post_data = {
             'userprofile-email': 'test@email.cz',
+            "userincampaign-campaign": "klub",
+        }
+        response = self.client.post(address, post_data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        userincampaign = UserInCampaign.objects.get(userprofile__email="test@email.cz")
+        self.assertJSONEqual(
+            response.content.decode(),
+            {
+                'account_number': '2400063333 / 2010',
+                'variable_symbol': userincampaign.variable_symbol,
+                'amount': None,
+                'email': 'test@email.cz',
+                'frequency': None,
+                'repeated_registration': False,
+                'valid': True,
+                'addressment': 'člene/členko Klubu přátel Auto*Matu',
+            },
+        )
+        new_user = UserInCampaign.objects.get(userprofile__email="test@email.cz")
+        self.assertEqual(new_user.regular_amount, None)
+        self.assertEqual(new_user.regular_payments, '')
+
+    def test_sign_petition_ajax_some_fields(self):
+        address = reverse('petition')
+        post_data = {
+            'userprofile-email': 'test@email.cz',
             'userprofile-first_name': 'Testing',
             'userprofile-last_name': 'User',
             'userprofile-telephone': 111222333,

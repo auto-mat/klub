@@ -165,11 +165,12 @@ class PetitionUserForm_UserProfile(RegularUserForm_UserProfile):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['sex'].required = False
+        self.fields['telephone'].required = False
 
     class Meta:
         model = UserProfile
         fields = ('age_group', 'sex', 'first_name', 'last_name', 'email', 'username', 'telephone',)
-        required = ('first_name', 'last_name', 'email', 'telephone',)
+        required = ('email',)
 
 
 REGULAR_PAYMENTS_MAP = {
