@@ -50,7 +50,7 @@ class AutocomTest(TestCase):
         autocom.check(action="test-autocomm")
         communication = Communication.objects.get(user=self.userincampaign)
         self.assertTrue("testovací šablona" in communication.summary)
-        self.assertTrue("člene Klubu přátel Auto*Matu" in communication.summary)
+        self.assertTrue("příteli Auto*Matu" in communication.summary)
         self.assertTrue("Vazeny pane" in communication.summary)
 
     def test_autocom_female(self):
@@ -59,7 +59,7 @@ class AutocomTest(TestCase):
         autocom.check(action="test-autocomm")
         communication = Communication.objects.get(user=self.userincampaign)
         self.assertIn("testovací šablona", communication.summary)
-        self.assertIn("členko Klubu přátel Auto*Matu", communication.summary)
+        self.assertIn("přítelkyně Auto*Matu", communication.summary)
         self.assertIn("Vazena pani", communication.summary)
 
     def test_autocom_unknown(self):
@@ -68,7 +68,7 @@ class AutocomTest(TestCase):
         autocom.check(action="test-autocomm")
         communication = Communication.objects.get(user=self.userincampaign)
         self.assertIn("testovací šablona", communication.summary)
-        self.assertIn("člene/členko Klubu přátel Auto*Matu", communication.summary)
+        self.assertIn("příteli/kyně Auto*Matu", communication.summary)
         self.assertIn("Vazeny/a pane/pani", communication.summary)
 
     def test_autocom_addressment(self):
@@ -88,5 +88,5 @@ class AutocomTest(TestCase):
         autocom.check(action="test-autocomm")
         communication = Communication.objects.get(user=self.userincampaign)
         self.assertIn("test template", communication.summary)
-        self.assertIn("member of the Auto*Mat friends club", communication.summary)
+        self.assertIn("Auto*Mat friend", communication.summary)
         self.assertIn("Dear sir", communication.summary)

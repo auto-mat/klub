@@ -89,7 +89,7 @@ class TestStr(TestCase):
             "aklub.UserProfile",
             sex='female',
         )
-        self.assertEqual(t.get_addressment(), "členko Klubu přátel Auto*Matu")
+        self.assertEqual(t.get_addressment(), "přítelkyně Auto*Matu")
 
     def test_get_addressment_default(self):
         """ Test, that get_addresment function returns default """
@@ -97,7 +97,7 @@ class TestStr(TestCase):
             "aklub.UserProfile",
             sex='unknown',
         )
-        self.assertEqual(t.get_addressment(), "člene/členko Klubu přátel Auto*Matu")
+        self.assertEqual(t.get_addressment(), "příteli/kyně Auto*Matu")
 
     def test_email_lowercase(self):
         """ Test, that email is stored in lowercase """

@@ -493,7 +493,7 @@ class ViewsTests(ClearCacheMixin, TestCase):
                 'frequency': None,
                 'repeated_registration': False,
                 'valid': True,
-                'addressment': 'člene/členko Klubu přátel Auto*Matu',
+                'addressment': 'příteli/kyně Auto*Matu',
             },
         )
         new_user = UserInCampaign.objects.get(userprofile__email="test@email.cz")

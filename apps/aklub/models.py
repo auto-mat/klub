@@ -561,13 +561,13 @@ class UserProfile(AbstractUser):
             return vokativ(self.first_name.strip()).title()
         if self.language == 'cs':
             if self.sex == 'male':
-                return 'člene Klubu přátel Auto*Matu'
+                return 'příteli Auto*Matu'
             elif self.sex == 'female':
-                return 'členko Klubu přátel Auto*Matu'
+                return 'přítelkyně Auto*Matu'
             else:
-                return 'člene/členko Klubu přátel Auto*Matu'
+                return 'příteli/kyně Auto*Matu'
         else:
-            return 'member of the Auto*Mat friends club'
+            return 'Auto*Mat friend'
     get_addressment.short_description = _("Addressment")
     get_addressment.admin_order_field = 'addressment'
 
