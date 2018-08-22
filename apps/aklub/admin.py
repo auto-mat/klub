@@ -459,6 +459,7 @@ class UserInCampaignAdmin(ImportExportMixin, AdminAdvancedFiltersMixin, RelatedF
                 'wished_welcome_letter',
                 'email_confirmed',
                 'public',
+                'gdpr_consent',
                 (
                     'next_communication_date',
                     'next_communication_method',
