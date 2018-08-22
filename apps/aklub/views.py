@@ -147,7 +147,7 @@ class RegularUserFormWithProfile(RegularUserForm):
 
 class FieldNameMappingMixin(object):
     def add_prefix(self, field_name):
-        field_name = self.FIELD_NAME_MAPPING.get(field_name, field_name)
+        field_name = self.FIELD_NAME_MAPPING.get(field_name, super().add_prefix(field_name))
         return field_name
 
 
@@ -240,14 +240,19 @@ class RegularUserForm_UserInCampaignDPNK(RegularUserForm_UserInCampaign):
         return 'monthly'
 
 
-class PetitionUserForm_UserInCampaign(CampaignMixin, forms.ModelForm):
+class PetitionUserForm_UserInCampaign(FieldNameMappingMixin, CampaignMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['campaign'].queryset = Campaign.objects.filter(slug__isnull=False, enable_signing_petitions=True).exclude(slug="")
+        self.fields['gdpr_consent'].required = True
 
     class Meta:
         model = UserInCampaign
-        fields = ('campaign', 'public')
+        fields = ('campaign', 'public', 'gdpr_consent')
+
+    FIELD_NAME_MAPPING = {
+        'gdpr_consent': 'gdpr',
+    }
 
 
 class RegularUserFormDPNK(RegularUserFormWithProfile):

@@ -293,7 +293,7 @@ class ViewsTests(ClearCacheMixin, TestCase):
         "payment_data____email": "test@email.cz",
         "payment_data____telefon": "123456789",
         "transaction_type": "2",
-        "campaign": 'klub',
+        "userincampaign-campaign": 'klub',
     }
 
     def test_regular_darujme(self):
@@ -475,11 +475,27 @@ class ViewsTests(ClearCacheMixin, TestCase):
         self.assertEqual(new_user.regular_amount, 321)
         self.assertEqual(new_user.regular_payments, 'regular')
 
+    def test_sign_petition_no_gdpr_consent(self):
+        address = reverse('petition')
+        post_data = {
+            'userprofile-email': 'test@email.cz',
+            "userincampaign-campaign": "klub",
+            "gdpr": False,
+        }
+        response = self.client.post(address, post_data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertJSONEqual(
+            response.content.decode(),
+            {
+                'gdpr': ['Toto pole je třeba vyplnit.'],
+            },
+        )
+
     def test_sign_petition_ajax_only_required(self):
         address = reverse('petition')
         post_data = {
             'userprofile-email': 'test@email.cz',
             "userincampaign-campaign": "klub",
+            "gdpr": True,
         }
         response = self.client.post(address, post_data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
         userincampaign = UserInCampaign.objects.get(userprofile__email="test@email.cz")
@@ -508,6 +524,7 @@ class ViewsTests(ClearCacheMixin, TestCase):
             'userprofile-last_name': 'User',
             'userprofile-telephone': 111222333,
             "userincampaign-campaign": "klub",
+            "gdpr": True,
         }
         response = self.client.post(address, post_data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
         userincampaign = UserInCampaign.objects.get(userprofile__email="test@email.cz")
@@ -538,6 +555,7 @@ class ViewsTests(ClearCacheMixin, TestCase):
             'userprofile-age_group': 1986,
             'userprofile-sex': 'male',
             "userincampaign-campaign": "klub",
+            "gdpr": True,
         }
         response = self.client.post(address, post_data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
         userincampaign = UserInCampaign.objects.get(userprofile__email="test@email.cz")

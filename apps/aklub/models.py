@@ -807,6 +807,10 @@ class UserInCampaign(models.Model):
         help_text=_("Was the the user information verified by a club administrator?"),
         default=False,
     )
+    gdpr_consent = models.BooleanField(
+        _("GDPR consent"),
+        default=False,
+    )
     verified_by = models.ForeignKey(
         UserProfile,
         verbose_name=_("Verified by"),
