@@ -554,6 +554,10 @@ class ViewsTests(ClearCacheMixin, TestCase):
             'userprofile-telephone': 111222333,
             'userprofile-age_group': 1986,
             'userprofile-sex': 'male',
+            'userprofile-city': 'Some city',
+            'userprofile-street': 'Some street',
+            'userprofile-country': 'Some country',
+            'userprofile-zip_code': 11333,
             "userincampaign-campaign": "klub",
             "gdpr": True,
         }
