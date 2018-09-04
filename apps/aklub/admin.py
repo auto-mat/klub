@@ -251,6 +251,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         'groups',
         'language',
         'userincampaign__campaign',
+        filters.RegularPaymentsFilter,
         filters.EmailFilter,
         filters.TelephoneFilter,
         filters.NameFilter,
