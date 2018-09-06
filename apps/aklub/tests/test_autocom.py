@@ -20,6 +20,7 @@
 
 import datetime
 
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 
 from .. import autocom
@@ -90,3 +91,36 @@ class AutocomTest(TestCase):
         self.assertIn("test template", communication.summary)
         self.assertIn("Auto*Mat friend", communication.summary)
         self.assertIn("Dear sir", communication.summary)
+
+
+class GenderStringsValidatorTest(TestCase):
+    def test_matches(self):
+        self.assertEquals(autocom.gendrify_text('', 'male'), '')
+        self.assertEquals(autocom.gendrify_text('asdfasdf', 'male'), 'asdfasdf')
+        self.assertEquals(autocom.gendrify_text('{ý|á}', 'male'), 'ý')
+        self.assertEquals(autocom.gendrify_text('{ý|á}', 'female'), 'á')
+        self.assertEquals(autocom.gendrify_text('{ý/á}', 'female'), 'á')
+        self.assertEquals(autocom.gendrify_text('{|á}', 'male'), '')
+        self.assertEquals(autocom.gendrify_text('{|á}', 'female'), 'á')
+        self.assertEquals(autocom.gendrify_text('{|á}', ''), '/á')
+        self.assertEquals(autocom.gendrify_text('asdfasdf{ý|á}', 'male'), 'asdfasdfý')
+        self.assertEquals(autocom.gendrify_text('{ý|á}asdfadsfasd', 'male'), 'ýasdfadsfasd')
+        self.assertEquals(autocom.gendrify_text('asdfasdf{ý|á}asdfadsfasd', ''), 'asdfasdfý/áasdfadsfasd')
+        self.assertEquals(autocom.gendrify_text('asdfasdf{ý/á}asdfadsfasd', ''), 'asdfasdfý/áasdfadsfasd')
+        self.assertEquals(autocom.gendrify_text('{ý|á}{ý|á}', 'male'), 'ýý')
+        self.assertEquals(autocom.gendrify_text('{ý|á}asdfasdf{ý|á}', 'male'), 'ýasdfasdfý')
+        self.assertEquals(autocom.gendrify_text('{ý/á}asdfasdf{ý|á}', 'male'), 'ýasdfasdfý')
+
+    def test_mismatches(self):
+        with self.assertRaises(ValidationError):
+            autocom.gendrify_text('{ý.á}', 'male')
+        with self.assertRaises(ValidationError):
+            autocom.gendrify_text('{ý|á}{ý.á}', 'male')
+        with self.assertRaises(ValidationError):
+            autocom.gendrify_text('{ý.á}{ý|á}', 'male')
+        with self.assertRaises(ValidationError):
+            autocom.gendrify_text('{ý.á}asdfasdfasdf', 'male')
+        with self.assertRaises(ValidationError):
+            autocom.gendrify_text('asdfasdfasdf{ý.á}', 'male')
+        with self.assertRaises(ValidationError):
+            autocom.gendrify_text('asdfasfasfaiasdfasfasdfsdfsfasdfasfasfasfasdfasd{ý.á}')

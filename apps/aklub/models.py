@@ -57,8 +57,7 @@ import stdimage
 
 from vokativ import vokativ
 
-from . import confirmation
-from .autocom import KNOWN_VARIABLES
+from . import autocom, confirmation
 
 logger = logging.getLogger(__name__)
 
@@ -2055,8 +2054,8 @@ class AutomaticCommunication(models.Model):
         return str(self.name)
 
 
-gender_strings_validator = RegexValidator(r'^((\{\w*\|\w*\})?[^{}]*)*$', _("Gender strings must look like {male_variant|female_variant}"))
-variable_validator = RegexValidator(r'^([^$]*(\$(%s)\b)?)*$' % '|'.join(KNOWN_VARIABLES), _("Unknown variable"))
+gender_strings_validator = autocom.gendrify_text
+variable_validator = RegexValidator(r'^([^$]*(\$(%s)\b)?)*$' % '|'.join(autocom.KNOWN_VARIABLES), _("Unknown variable"))
 
 
 class MassCommunication(models.Model):
@@ -2104,7 +2103,7 @@ class MassCommunication(models.Model):
     template = models.TextField(
         verbose_name=_("Template"),
         help_text=_("Template can contain following variable substitutions: <br/>") + (
-            "{mr|mrs}, $" + ", $".join(KNOWN_VARIABLES)
+            "{mr|mrs} or {mr/mrs}, $" + ", $".join(autocom.KNOWN_VARIABLES)
         ),
         max_length=50000,
         blank=False,

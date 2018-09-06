@@ -22,6 +22,8 @@ import datetime
 import logging
 import string
 
+from django.core.exceptions import ValidationError
+
 logger = logging.getLogger(__name__)
 
 
@@ -46,6 +48,42 @@ KNOWN_VARIABLES = [
     "telephone", "regular_amount", "regular_frequency", "var_symbol", "last_payment_amount",
     "auth_token",
 ]
+
+
+def min_non_negative(i, j):
+    if i < 0:
+        return j
+    if j < 0:
+        return i
+    return min(i, j)
+
+
+def gendrify_text(text, sex=''):
+    # Modify text according to gender
+    # Example: Vazen{y|a} {pane|pani} -> [male] -> Vazeny pane
+    gender_text = ""
+    o = 0
+    i = 0
+    while i < len(text):
+        if text[i] == '{':
+            gender_text += text[o:i]
+            sep_pos = min_non_negative(text.find('|', i), text.find('/', i))
+            end_pos = text.find('}', i)
+            if sep_pos <= i or end_pos <= sep_pos:
+                raise ValidationError("Gender strings must look like {male_variant|female_variant} or {male_variant/female_variant}")
+            male_variant = text[i + 1:sep_pos]
+            female_variant = text[sep_pos + 1:end_pos]
+            if sex == 'male':
+                gender_text += male_variant
+            elif sex == 'female':
+                gender_text += female_variant
+            else:
+                gender_text += male_variant + "/" + female_variant
+            o = end_pos + 1
+            i = end_pos
+        i += 1
+    gender_text += text[o:]
+    return gender_text
 
 
 def process_template(template_string, user):
@@ -73,32 +111,7 @@ def process_template(template_string, user):
         auth_token=sesame_utils.get_query_string(user.userprofile),
     )
 
-    # Modify text according to gender
-    # Example: Vazeny{y|a} {pane|pani} -> [male] -> Vazeny pane
-    gender_text = ""
-    o = 0
-    i = 0
-    while i < len(text):
-        if text[i] == '{':
-            gender_text += text[o:i]
-            sep_pos = text.find('|', i)
-            end_pos = text.find('}', i)
-            assert sep_pos > i
-            assert end_pos > sep_pos, "Wrong format of template, no separator | or after end mark }"
-            male_variant = text[i + 1:sep_pos]
-            female_variant = text[sep_pos + 1:end_pos]
-            if user.userprofile.sex == 'male':
-                gender_text += male_variant
-            elif user.userprofile.sex == 'female':
-                gender_text += female_variant
-            else:
-                gender_text += male_variant + "/" + female_variant
-            o = end_pos + 1
-            i = end_pos
-        i += 1
-    gender_text += text[o:]
-
-    return gender_text
+    return gendrify_text(text, user.userprofile.sex)
 
 
 def check(users=None, action=None):
