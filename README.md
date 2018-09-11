@@ -21,6 +21,18 @@ Instalace probíhá pomocí následujícíh příkazů:
 * env/bin/pip install -r requirements
 * cd apps/aklub && django-admin.py compilemessages -l "cs\_CZ"
 
+Instalace (Docker compose)
+==========================
+
+    $ docker-compose build
+    $ docker-compose up
+
+    $ docker attach klub_web_1
+    # su test
+    $ cd apps/aklub && django-admin.py compilemessages -l "cs\_CZ"
+    $ django-admin.py migrate
+    $ django-admin.py createsuperuser
+
 Spuštění
 ============
 
