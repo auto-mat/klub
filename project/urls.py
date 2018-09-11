@@ -10,6 +10,7 @@ from django.views.i18n import JavaScriptCatalog
 admin.autodiscover()
 
 urlpatterns = [
+    url(r'^desk/', include("helpdesk.urls")),
     url(r'^admin/passreset/$', auth_views.password_reset, name='password_reset'),
     url(r'^admin/passresetdone/$', auth_views.password_reset_done, name='password_reset_done'),
     url(
