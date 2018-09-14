@@ -34,7 +34,7 @@ from django.core.validators import MinLengthValidator, RegexValidator
 from django.db.models import Case, CharField, Count, IntegerField, Q, Sum, Value, When
 from django.db.models.functions import TruncMonth
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, render_to_response
+from django.shortcuts import get_object_or_404, redirect, render_to_response
 from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext_lazy as _
@@ -669,4 +669,4 @@ class ConfirmEmailView(SesameUserMixin, View):
         user_in_campaign.email_confirmed = True
         user_in_campaign.save()
         cache.clear()
-        return http.HttpResponse(_("Your petition signature was confirmed"))
+        return redirect(user_in_campaign.campaign.email_confirmation_redirect, permanent=False)

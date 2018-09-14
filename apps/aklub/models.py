@@ -187,6 +187,10 @@ class Campaign(models.Model):
         verbose_name=_("Allow statistics exports"),
         default=False,
     )
+    email_confirmation_redirect = models.URLField(
+        blank=True,
+        null=True,
+    )
 
     def number_of_members(self):
         return self.userincampaign_set.count()
