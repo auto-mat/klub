@@ -400,7 +400,12 @@ class UserInCampaignAdmin(ImportExportMixin, AdminAdvancedFiltersMixin, RelatedF
     )
     date_hierarchy = 'registered_support'
     list_filter = [
-        'regular_payments', 'userprofile__language', 'userprofile__is_active', 'wished_information', 'old_account',
+        'regular_payments',
+        'userprofile__language',
+        'userprofile__is_active',
+        'wished_information',
+        'old_account',
+        'email_confirmed',
         'source',
         ('campaign', RelatedFieldCheckBoxFilter),
         ('registered_support', DateRangeFilter),
