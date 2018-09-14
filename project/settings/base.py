@@ -81,7 +81,6 @@ TEMPLATES = [
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
             normpath(PROJECT_ROOT, 'apps/aklub/templates'),
-            normpath(PROJECT_ROOT, 'env/lib/python2.6/site-packages/debug_toolbar/templates'),
         ],
         'APP_DIRS': False,
         'OPTIONS': {

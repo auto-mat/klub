@@ -1,6 +1,5 @@
 from aklub.views import stat_members, stat_payments
 
-from django.conf import settings
 from django.conf.urls import include, url
 from django.conf.urls.i18n import i18n_patterns
 from django.contrib import admin
@@ -35,8 +34,10 @@ urlpatterns += i18n_patterns(
     url(r'', include("aklub.urls")),
 )
 
-if settings.DEBUG:
+try:
     import debug_toolbar
-    urlpatterns = [
+    urlpatterns += [
         url(r'^__debug__/', include(debug_toolbar.urls)),
-    ] + urlpatterns
+    ]
+except ImportError:
+    pass
