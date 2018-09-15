@@ -118,6 +118,10 @@ MIDDLEWARE = (
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = None  # To allow more fields in administration
 
+CORS_ORIGIN_WHITELIST = [
+    'vyzva.auto-mat.cz',
+] + os.environ.get('AKLUB_CORS_ORIGIN_WHITELIST', '').split(',')
+
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
@@ -166,7 +170,7 @@ INSTALLED_APPS = (
     'django_nvd3',
     'adminfilters',
     'advanced_filters',
-    'aklub'
+    'aklub',
 )
 
 BOWER_INSTALLED_APPS = (
