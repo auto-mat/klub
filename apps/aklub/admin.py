@@ -179,9 +179,9 @@ class UserProfileResource(ModelResource):
     def before_import_row(self, row, **kwargs):
         row['email'] = row['email'].lower()
 
-    def import_field(self, field, obj, data):
+    def import_field(self, field, obj, data, is_m2m=False):
         if field.attribute and field.column_name in data and not getattr(obj, field.column_name):
-            field.save(obj, data)
+            field.save(obj, data, is_m2m)
 
 
 class UserProfileMergeForm(merge.MergeForm):
