@@ -2,6 +2,8 @@
 import os
 import sys
 
+import raven
+
 
 def normpath(*args):
     return os.path.normpath(os.path.abspath(os.path.join(*args)))
@@ -111,6 +113,11 @@ TEMPLATES = [
     },
 ]
 
+RAVEN_CONFIG = {
+    'dsn': os.environ.get('AKLUB_RAVEN_DNS', ''),
+    'release': raven.fetch_git_sha(PROJECT_ROOT),
+}
+
 MIDDLEWARE = (
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -172,6 +179,7 @@ INSTALLED_APPS = (
     'massadmin',
     'markdown_deux',
     'post_office',
+    'raven.contrib.django.raven_compat',
     'import_export',
     'corsheaders',
     'daterange_filter',

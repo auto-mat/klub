@@ -41,6 +41,7 @@ vokativ = "*"
 Django = "<2.2"
 "PyPDF2" = "*"
 django-post_office = "*"
+raven = "*"
 
 [dev-packages]
 coverage = "*"
