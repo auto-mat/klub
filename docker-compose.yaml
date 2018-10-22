@@ -18,7 +18,7 @@ services:
   volumes:
    - ./:/klub-v/
  postgres:
-  image: mdillon/postgis:9.6
+  image: mdillon/postgis:9.6-alpine
   volumes:
    - ./db:/var/lib/postgresql/data
   environment:
