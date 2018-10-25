@@ -10,15 +10,14 @@ Ke zprovoznění je zapotřebí následující
 
 * Virtualenv
 * Postgres 8.4 + postgis 1.5
+* pipenv
 
 Vzorová lokální konfigurace je v `.env-sample`, stačí přejmenovat na `.env` a doplnit SECRET\_KEY.
 
 Instalace probíhá pomocí následujícíh příkazů:
 
-* virtualenv --no-site-packages env
-* env/bin/pip install distribute --upgrade
 * sudo apt-get install libgraphviz-dev
-* env/bin/pip install -r requirements
+* pipenv install
 * cd apps/aklub && django-admin.py compilemessages -l "cs\_CZ"
 
 Instalace (Docker compose)
