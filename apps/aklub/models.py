@@ -1006,8 +1006,7 @@ class UserInCampaign(models.Model):
             # (Allow 7 days for payment processing)
             if expected_regular_payment_date:
                 expected_with_tolerance = expected_regular_payment_date + datetime.timedelta(days=10)
-                if (expected_with_tolerance <
-                        datetime.date.today()):
+                if (expected_with_tolerance < datetime.date.today()):
                     return datetime.date.today() - expected_with_tolerance
         return False
 

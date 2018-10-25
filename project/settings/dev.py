@@ -43,3 +43,12 @@ SECURE_HSTS_SECONDS = 60
 SECURE_HSTS_PRELOAD = False
 SESSION_COOKIE_SECURE = False
 X_FRAME_OPTIONS = 'ALLOW'
+
+
+class InvalidStringError(str):
+    def __mod__(self, other):
+        raise Exception("empty string %s" % other)
+        return "!!!!!empty string %s!!!!!" % other
+
+
+TEMPLATES[0]['OPTIONS']['string_if_invalid'] = InvalidStringError("%s")
