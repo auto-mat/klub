@@ -42,6 +42,7 @@ Django = "<2.2"
 "PyPDF2" = "*"
 django-post_office = "*"
 raven = "*"
+django-helpdesk = {editable = true, ref = "a3bc6ed46bb1a00ce4664dfeac155e4b11b842a8", git = "https://github.com/django-helpdesk/django-helpdesk.git"}
 
 [dev-packages]
 coverage = "*"
