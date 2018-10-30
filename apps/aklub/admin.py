@@ -696,8 +696,12 @@ class CommunicationAdmin(RelatedFieldAdmin, admin.ModelAdmin):
 
 class AutomaticCommunicationAdmin(admin.ModelAdmin):
     list_display = ('name', 'method', 'subject', 'condition', 'only_once', 'dispatch_auto')
-    filter_horizontal = ('sent_to_users',)
     ordering = ('name',)
+    readonly_fields = ('sent_to_users_count',)
+    exclude = ('sent_to_users',)
+
+    def sent_to_users_count(self, obj):
+        return obj.sent_to_users.count()
 
     def save_form(self, request, form, change):
         super(AutomaticCommunicationAdmin, self).save_form(request, form, change)
