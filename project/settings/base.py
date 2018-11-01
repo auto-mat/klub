@@ -43,8 +43,10 @@ try:
 except KeyError:
     pass
 
-ADMINS = [[s.strip() for s in admin.split(",")] for admin in os.environ.get('AKLUB_ADMINS', '').strip().split("\n")]
-MANAGERS = ADMINS
+AKLUB_ADMINS = os.environ.get('AKLUB_ADMINS', '')
+if AKLUB_ADMINS:
+    ADMINS = [[s.strip() for s in admin.split(",")] for admin in AKLUB_ADMINS.strip().split("\n")]
+    MANAGERS = ADMINS
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
