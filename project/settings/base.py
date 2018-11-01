@@ -10,6 +10,7 @@ def normpath(*args):
 
 
 PROJECT_ROOT = normpath(__file__, "..", "..", "..")
+BASE_DIR = PROJECT_ROOT
 
 sys.path.append(normpath(PROJECT_ROOT, "project"))
 sys.path.append(normpath(PROJECT_ROOT, "apps"))
@@ -113,9 +114,14 @@ TEMPLATES = [
     },
 ]
 
+try:
+    RELEASE = raven.fetch_git_sha(PROJECT_ROOT)
+except raven.exceptions.InvalidGitRepository:
+    RELEASE = os.getenv('HEROKU_SLUG_COMMIT')
+
 RAVEN_CONFIG = {
     'dsn': os.environ.get('AKLUB_RAVEN_DNS', ''),
-    'release': raven.fetch_git_sha(PROJECT_ROOT),
+    'release': RELEASE,
 }
 
 MIDDLEWARE = (
