@@ -2,10 +2,10 @@ setup:
   addons:
     - plan: 'heroku-postgresql:hobby-dev'
       as: DATABASE
-    - plan: 'scheduler:standard'
-      as: SCHEDULER
     - plan: 'sendgrid:starter'
       as: SENDGRID
+    - plan: 'redis:hobby-dev'
+      as: REDIS
   config:
     AKLUB_DEFAULT_FROM_EMAIL: info@auto-mat.cz
     DJANGO_SETTINGS_MODULE: project.settings.heroku
@@ -18,10 +18,17 @@ build:
     SECRET_KEY: "build_secret_key"
     DISABLE_COLLECTSTATIC: '1'
     DJANGO_SETTINGS_MODULE: project.settings.heroku
-run:
-  web: gunicorn wsgi --timeout ${GUNICORN_TIMEOUT:-"60"} --workers ${GUNICORN_WORKERS:-"6"}
 release:
   command:
      - python manage.py migrate
      - python ./manage.py denorm_drop
      - python ./manage.py denorm_init
+
+
+#####################################################################
+# DO NOT SET RUN! USE THE Procfile INSTEAD.
+# WITH A Procfile RUN DOES NOTHING!
+#run:
+#  web: ./launch_on_heroku
+#  worker: ./launch_celery
+#####################################################################

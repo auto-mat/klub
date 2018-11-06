@@ -17,4 +17,6 @@ ALLOWED_HOSTS = [
     "devel-klub.auto-mat.cz",
 ]
 
+LOGGING['handlers']['logfile']['filename'] = "aklub.log" # noqa
+
 django_heroku.settings(locals())
