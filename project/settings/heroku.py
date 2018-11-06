@@ -11,4 +11,10 @@ if 'SENDGRID_USERNAME' in os.environ:
     EMAIL_USE_TLS = True
     EMAIL_HOST_PASSWORD = os.environ['SENDGRID_PASSWORD']
 
+ALLOWED_HOSTS = [
+    "klub-pratel-devel.herokuapp.com",
+    "klub.auto-mat.cz",
+    "devel-klub.auto-mat.cz",
+]
+
 django_heroku.settings(locals())
