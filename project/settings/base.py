@@ -151,11 +151,14 @@ CORS_ORIGIN_WHITELIST = [
     'vyzva.auto-mat.cz',
 ] + os.environ.get('AKLUB_CORS_ORIGIN_WHITELIST', '').split(',')
 
+REDIS_URL = os.environ.get('REDIS_URL', 'redis://127.0.0.1:6379')
+
 CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-        'LOCATION': ['127.0.0.1:11211'],
-        'KEY_PREFIX': 'aklub',
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": REDIS_URL + "/0",
+        "KEY_PREFIX": 'aklub_default',
+        "TIMEOUT": None,
     },
 }
 
