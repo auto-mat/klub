@@ -1,5 +1,7 @@
 sudo: false
 language: python
+services:
+  - redis-server
 env:
   global:
     - PIPENV_VENV_IN_PROJECT=1
