@@ -16,11 +16,9 @@ build:
     - nodejs
     - python
 run:
-  web:
-    -gunicorn wsgi --timeout ${GUNICORN_TIMEOUT:-"60"} --workers ${GUNICORN_WORKERS:-"6"}
+  web: gunicorn wsgi --timeout ${GUNICORN_TIMEOUT:-"60"} --workers ${GUNICORN_WORKERS:-"6"}
 release:
-  image: web
   command:
-    - python manage.py migrate
-    - python ./manage.py denorm_drop 
-    - python ./manage.py denorm_init
+     - python manage.py migrate
+     - python ./manage.py denorm_drop
+     - python ./manage.py denorm_init
