@@ -1,0 +1,2 @@
+#!/bin/bash
+./launch_celery_beat & ./launch_celery_worker

@@ -4,6 +4,8 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+celery = "*"
+django-celery-beat = "==1.1.1"
 django-stdimage = "*"
 reportlab = "*"
 django-extensions = "*"
@@ -47,6 +49,8 @@ python-dotenv = "*"
 django-heroku = "*"
 whitenoise = "*"
 django-redis = "*"
+single-beat = "*"
+redis = "==2.10.6"
 
 [dev-packages]
 coverage = "*"

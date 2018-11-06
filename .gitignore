@@ -5,6 +5,7 @@
 *~
 env/
 .env
+pipenv/
 project/settings/local.py
 data/
 trash/

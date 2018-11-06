@@ -54,6 +54,7 @@ if AKLUB_ADMINS:
 # If running in a Windows environment this must be set to the same as your
 # system time zone.
 TIME_ZONE = 'Europe/Prague'
+USE_TZ = True
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
@@ -207,6 +208,7 @@ INSTALLED_APPS = (
     'advanced_filters',
     'aklub',
     'helpdesk',
+    'django_celery_beat',
 )
 
 BOWER_INSTALLED_APPS = (
@@ -335,3 +337,5 @@ SECURE_HSTS_SECONDS = 60
 SECURE_HSTS_PRELOAD = True
 SESSION_COOKIE_SECURE = True
 X_FRAME_OPTIONS = 'DENY'
+
+BROKER_URL = os.environ.get('REDIS_URL', 'redis://redis')
