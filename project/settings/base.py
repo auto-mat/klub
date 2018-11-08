@@ -209,6 +209,7 @@ INSTALLED_APPS = (
     'aklub',
     'helpdesk',
     'django_celery_beat',
+    'djcelery_email',
 )
 
 BOWER_INSTALLED_APPS = (
@@ -218,7 +219,7 @@ BOWER_INSTALLED_APPS = (
     'nvd3#1.1.12-beta',
 )
 
-EMAIL_BACKEND = 'post_office.EmailBackend'
+EMAIL_BACKEND = 'djcelery_email.backends.CeleryEmailBackend'
 
 ADMIN_TOOLS_INDEX_DASHBOARD = 'aklub.dashboard.AklubIndexDashboard'
 ADMIN_TOOLS_APP_INDEX_DASHBOARD = 'aklub.dashboard.AklubAppIndexDashboard'

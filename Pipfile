@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 celery = "*"
 django-celery-beat = "==1.1.1"
+django-celery-email = "*"
 django-stdimage = "*"
 reportlab = "*"
 django-extensions = "*"
