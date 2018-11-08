@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "bc68ff5d8cdf6218ffc38bc9c26b0840cf4f345d33fc8e5a4056e7ef768018bb"
+            "sha256": "966b07d039218d1ec723046428c68de421ac725e2cab0f7186233caf248701f4"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -110,6 +110,13 @@
             "index": "pypi",
             "version": "==1.1.0"
         },
+        "django-appconf": {
+            "hashes": [
+                "sha256:6a4d9aea683b4c224d97ab8ee11ad2d29a37072c0c6c509896dd9857466fb261",
+                "sha256:ddab987d14b26731352c01ee69c090a4ebfc9141ed223bef039d79587f22acd9"
+            ],
+            "version": "==1.0.2"
+        },
         "django-betterforms": {
             "hashes": [
                 "sha256:7d61ad6302793daba6f5f15fbb1dbe68785b6fe31a508df1da404814bc537acc"
@@ -154,6 +161,14 @@
             ],
             "index": "pypi",
             "version": "==1.1.1"
+        },
+        "django-celery-email": {
+            "hashes": [
+                "sha256:1b2e0e31c6266007463befdc23934696fc93dcf320dfc85b8bb6b063cfe9558a",
+                "sha256:e5f9122c02ec58d3e49653475ad1b8612fd752681ce2f006d9c0792c57046283"
+            ],
+            "index": "pypi",
+            "version": "==2.0.1"
         },
         "django-chart-tools": {
             "hashes": [
