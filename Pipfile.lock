@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "966b07d039218d1ec723046428c68de421ac725e2cab0f7186233caf248701f4"
+            "sha256": "dacb91737b4759cec1fe9df9eedbe5384e064807dc855eca8434da34b676a3e5"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -216,8 +216,8 @@
         },
         "django-helpdesk": {
             "editable": true,
-            "git": "https://github.com/django-helpdesk/django-helpdesk.git",
-            "ref": "a3bc6ed46bb1a00ce4664dfeac155e4b11b842a8"
+            "git": "https://github.com/auto-mat/django-helpdesk.git",
+            "ref": "e96f1559e72285897c79e9d6bfa6d8c9b14868be"
         },
         "django-heroku": {
             "hashes": [
@@ -254,6 +254,13 @@
             ],
             "index": "pypi",
             "version": "==3.2.0"
+        },
+        "django-model-utils": {
+            "hashes": [
+                "sha256:2c057f3bf0859aba27f04389f0cedd2d48f8c9b3848acb86fd9970794e58f477",
+                "sha256:8cd377744aa45f9f131d652ec460c57d1aaa88d3e9b586c8e27eb709341b9084"
+            ],
+            "version": "==3.1.2"
         },
         "django-nvd3": {
             "hashes": [
@@ -322,6 +329,13 @@
             ],
             "index": "pypi",
             "version": "==0.8.0"
+        },
+        "djangorestframework": {
+            "hashes": [
+                "sha256:607865b0bb1598b153793892101d881466bd5a991de12bd6229abb18b1c86136",
+                "sha256:63f76cbe1e7d12b94c357d7e54401103b2e52aef0f7c1650d6c820ad708776e5"
+            ],
+            "version": "==3.9.0"
         },
         "djcacheutils": {
             "hashes": [
