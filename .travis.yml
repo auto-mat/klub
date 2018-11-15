@@ -21,6 +21,7 @@ install:
   - pipenv run pip install -q $DJANGO_VERSION
 before_script:
   - pipenv run flake8
+  - pipenv run python manage.py bower install
   - pipenv run python manage.py collectstatic --noinput
   - cd apps/aklub/
   - DJANGO_SETTINGS_MODULE="" pipenv run django-admin compilemessages
