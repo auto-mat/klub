@@ -20,6 +20,7 @@ install:
   - pipenv run pip install flake8-strict  # not installable with pipenv, move ther when repaired
   - pipenv run pip install -q $DJANGO_VERSION
 before_script:
+  - npm install -g bower
   - pipenv run flake8
   - pipenv run python manage.py bower install
   - pipenv run python manage.py collectstatic --noinput
