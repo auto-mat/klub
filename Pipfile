@@ -71,3 +71,5 @@ model_mommy = "*"
 
 [requires]
 python_version = "3.6"
+
+[dev-dependencies]
