@@ -24,7 +24,7 @@ django-denorm
 gunicorn
 pypdf2  # for pdf result testing
 django-betterforms
-django-adminactions
+-e git+https://github.com/saxix/django-advanced-filters@master#egg=django_advanced_filters  # For merge fixes
 django-admin-large-initial-data
 
 
