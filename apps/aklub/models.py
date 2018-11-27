@@ -678,6 +678,7 @@ class UserInCampaign(models.Model):
         (None, _('Onetime')),
     )
     REGULAR_PAYMENT_FREQUENCIES_MAP = dict(REGULAR_PAYMENT_FREQUENCIES)
+    REGULAR_PAYMENT_FREQUENCIES_MAP[''] = REGULAR_PAYMENT_FREQUENCIES_MAP[None]
     REGULAR_PAYMENT_CHOICES = (
         ('regular', _('Regular payments')),
         ('onetime', _('No regular payments')),
