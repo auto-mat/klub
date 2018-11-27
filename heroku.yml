@@ -11,9 +11,6 @@ setup:
     DJANGO_SETTINGS_MODULE: project.settings.heroku
     GUNICORN_WORKERS: '2'
 build:
-  post:
-    - python manage.py bower install
-    - python manage.py collectstatic --noinput
   languages:
     - nodejs
     - python
