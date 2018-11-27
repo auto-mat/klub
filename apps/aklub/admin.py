@@ -179,7 +179,7 @@ class UserProfileResource(ModelResource):
     def before_import_row(self, row, **kwargs):
         row['email'] = row['email'].lower()
 
-    def import_field(self, field, obj, data):
+    def import_field(self, field, obj, data, *args, **kwargs):
         if field.attribute and field.column_name in data and not getattr(obj, field.column_name):
             field.save(obj, data)
 
