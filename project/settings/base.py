@@ -210,10 +210,10 @@ INSTALLED_APPS = (
 )
 
 BOWER_INSTALLED_APPS = (
-    'jquery#2.2.4',
-    'jquery-ui#~1.10.4',
-    'd3#3.5.5',
-    'nvd3#1.7.1',
+    'jquery#2.0.3',
+    'jquery-ui#~1.10.3',
+    'd3#3.3.6',
+    'nvd3#1.1.12-beta',
 )
 
 EMAIL_BACKEND = 'post_office.EmailBackend'
