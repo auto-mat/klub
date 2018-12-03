@@ -40,6 +40,7 @@ try:
     from django.urls import reverse
 except ImportError:  # Django<2.0
     from django.core.urlresolvers import reverse
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
 from . import models
@@ -53,7 +54,7 @@ def get_users_by_condition_cached(cond):
     items = cache.get('condition_filter_%i' % cond.pk, None)
     if not items:
         items = models.filter_by_condition(UserInCampaign.objects, cond)
-        now = datetime.datetime.now()
+        now = timezone.now()
         td = now.replace(hour=23, minute=59, second=59, microsecond=999) - now
         seconds_till_midnight = td.seconds + (td.days * 24 * 3600)
         cache.set('condition_filter_%i' % cond.pk, items, seconds_till_midnight)
@@ -129,7 +130,7 @@ class AklubIndexDashboard(Dashboard):
             children.append(
                 {
                     'title': _(u"Days from last bill upload: %(days)s days") % {
-                        "days": (datetime.datetime.now() - AccountStatements.objects.first().import_date).days,
+                        "days": (timezone.now() - AccountStatements.objects.first().import_date).days,
                     },
                     'url': "aklub/accountstatements/",
                     'external': False,
