@@ -173,7 +173,7 @@ class AdminTest(TestCase):
             self.assertEqual(request._messages._queued_messages[0].message, 'Skipped payments: Testing User 1 (test.user1@email.cz)')
             self.assertEqual(
                 request._messages._queued_messages[1].message,
-                'Položka typu Výpis z účtu "<a href="/aklub/accountstatements/%(id)s/change/">%(id)s (2015-05-01 00:00:00)</a>"'
+                'Položka typu Výpis z účtu "<a href="/aklub/accountstatements/%(id)s/change/">%(id)s (2015-05-01 00:00:00+00:00)</a>"'
                 ' byla úspěšně přidána.' % {'id': obj.id},
             )
 
@@ -208,7 +208,7 @@ class AdminTest(TestCase):
             )
             self.assertEqual(
                 request._messages._queued_messages[1].message,
-                'Položka typu Výpis z účtu "<a href="/aklub/accountstatements/%(id)s/change/">%(id)s (2015-05-01 00:00:00)</a>"'
+                'Položka typu Výpis z účtu "<a href="/aklub/accountstatements/%(id)s/change/">%(id)s (2015-05-01 00:00:00+00:00)</a>"'
                 ' byla úspěšně přidána.' % {'id': obj.id},
             )
 
@@ -395,7 +395,7 @@ class AdminImportExportTests(TestCase):
         response = self.client.post(address, post_data)
         self.assertContains(
             response,
-            ',Test,User,,male,,test.user@email.cz,,Praha 4,,120127010,0,1,regular,monthly,2015-12-16 18:22:30,'
+            ',Test,User,,male,,test.user@email.cz,,Praha 4,,120127010,0,1,regular,monthly,2015-12-16 17:22:30,'
             '"Domníváte se, že má město po zprovoznění tunelu Blanka omezit tranzit historickým centrem? '
             'Ano, hned se zprovozněním tunelu",editor,1,cs,,,,0,0.0,100',
         )
