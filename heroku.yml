@@ -18,6 +18,8 @@ build:
     SECRET_KEY: "build_secret_key"
     DISABLE_COLLECTSTATIC: '1'
     DJANGO_SETTINGS_MODULE: project.settings.heroku
+  post:
+     - bin/post_compile
 release:
   command:
      - ./release.sh
