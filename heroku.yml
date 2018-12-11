@@ -20,15 +20,7 @@ build:
     DJANGO_SETTINGS_MODULE: project.settings.heroku
 release:
   command:
-     - python manage.py migrate
-     - python ./manage.py denorm_drop
-     - python ./manage.py denorm_init
-
-
-#####################################################################
-# DO NOT SET RUN! USE THE Procfile INSTEAD.
-# WITH A Procfile RUN DOES NOTHING!
-#run:
-#  web: ./launch_on_heroku
-#  worker: ./launch_celery
-#####################################################################
+     - ./release.sh
+run:
+  web: ./launch_on_heroku
+  worker: ./launch_celery
