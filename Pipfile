@@ -45,7 +45,7 @@ Django = "<2.2"
 "PyPDF2" = "*"
 django-post_office = "*"
 raven = "*"
-django-helpdesk = {editable = true, ref = "03fc062ac1c6ac26ef9420aff939ae00a4095752", git = "https://github.com/auto-mat/django-helpdesk.git"}
+django-helpdesk = {editable = true, ref = "0d16b2771f395a7fa6214b5f6378041c44d56de3", git = "https://github.com/auto-mat/django-helpdesk.git"}
 python-dotenv = "*"
 django-heroku = "*"
 whitenoise = "*"
