@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "39bedf1c12c12d1df4a98729fbb39b5213dce507e40431f9a71174b82bad81e8"
+            "sha256": "a3bb079a541b520a3dd9a8c4a50e9efc9363a4e1b359cc025ca182d759c2dcc0"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -36,6 +36,14 @@
                 "sha256:42d9a227401ac4fba892918bba0a0c409def5435c4b483267ebfe821afaaba0e"
             ],
             "version": "==3.5.0.5"
+        },
+        "boto": {
+            "hashes": [
+                "sha256:147758d41ae7240dc989f0039f27da8ca0d53734be0eb869ef16e3adcfa462e8",
+                "sha256:ea0d3b40a2d852767be77ca343b58a9e3a4b00d9db440efb8da74b4e58025e5a"
+            ],
+            "index": "pypi",
+            "version": "==2.49.0"
         },
         "celery": {
             "hashes": [
@@ -222,7 +230,7 @@
         "django-helpdesk": {
             "editable": true,
             "git": "https://github.com/auto-mat/django-helpdesk.git",
-            "ref": "0d16b2771f395a7fa6214b5f6378041c44d56de3"
+            "ref": "e66c42890c5ef3db4f1683c404708b5486ee4e7d"
         },
         "django-heroku": {
             "hashes": [
@@ -318,6 +326,14 @@
             ],
             "index": "pypi",
             "version": "==4.0.1"
+        },
+        "django-storages": {
+            "hashes": [
+                "sha256:8e35d2c7baeda5dc6f0b4f9a0fc142d25f9a1bf72b8cebfcbc5db4863abc552d",
+                "sha256:b1a63cd5ea286ee5a9fb45de6c3c5c0ae132d58308d06f1ce9865cfcd5e470a7"
+            ],
+            "index": "pypi",
+            "version": "==1.7.1"
         },
         "django-tinymce": {
             "hashes": [
