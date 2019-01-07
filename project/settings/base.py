@@ -187,6 +187,7 @@ INSTALLED_APPS = (
     'django.contrib.humanize',
     'stdimage',
     'bootstrapform',
+    'bootstrap4form',
     'django_extensions',
     'django_wysiwyg',
     'tinymce',
