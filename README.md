@@ -40,3 +40,11 @@ Spuštění
 Pro testovací účely spustíte projekt pomocí následujícího příkazu:
 
 * env/bin/python manage.py runserver 0.0.0.0:8000
+
+
+Heroku
+======
+
+Je důležité, aby buildpacky byli ve správném pořádi. Tj. nodejs, musí mít index=1.
+
+Více informace o buildpackech nalezntete [zde](https://devcenter.heroku.com/articles/using-multiple-buildpacks-for-an-app).
