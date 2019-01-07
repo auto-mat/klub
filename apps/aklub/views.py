@@ -632,7 +632,10 @@ class SesameUserMixin():
     """
     def get_object(self):
         backend = ModelBackend()
-        self.token = self.request.GET['url_auth_token']
+        try:
+           self.token = self.request.GET['url_auth_token']
+        except KeyError:
+            raise PermissionDenied("No auth token set")
         self.user = backend.parse_token(self.token)
         if self.user is None:
             raise PermissionDenied("bad token")
