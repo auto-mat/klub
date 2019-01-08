@@ -622,16 +622,6 @@ class UserProfile(AbstractUser):
     def __str__(self):
         return str(self.person_name())
 
-    def telephone_url(self):
-        if hasattr(self, 'telephone'):
-            return format_html(
-                "<a href='sip:{}'>{}</a>",
-                self.telephone,
-                self.telephone,
-            )
-    telephone_url.short_description = _("Telephone")
-    telephone_url.admin_order_field = "telephone"
-
     def clean(self):
         if self.email:
             self.email = self.email.lower()

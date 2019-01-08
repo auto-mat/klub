@@ -231,7 +231,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         'username',
         'email',
         'addressment',
-        #'telephone',
+        'telephone__telephone',
         'title_before',
         'first_name',
         'last_name',
@@ -252,7 +252,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         'first_name',
         'last_name',
         'title_after',
-        #'telephone',
+        'telephone__telephone',
     )
     list_filter = (
         'is_staff',
@@ -263,7 +263,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         'userincampaign__campaign',
         filters.RegularPaymentsFilter,
         filters.EmailFilter,
-        #filters.TelephoneFilter,
+        filters.TelephoneFilter,
         filters.NameFilter,
     )
     profile_fieldsets = (
@@ -282,7 +282,6 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         (_('Contacts'), {
             'fields': [
                 ('send_mailing_lists'),
-                #('telephone'),
                 ('street', 'city', 'country'),
                 'zip_code', 'different_correspondence_address',
             ],
@@ -311,14 +310,24 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         active_numbers = obj.telephone_set.all()
         numbers = []
         for number in active_numbers:
+            number = format_html("<a href='tel:{}'>{}</a>",
+            number,
+            number,)
             numbers.append(number)
-        return numbers
+
+        return mark_safe('\n'.join(numbers))
+
+    get_main_telephone.short_description = _("Telephone")
+    get_main_telephone.admin_order_field = "telephone"
 
 
     def save_formset(self, request, form, formset, change):
         instances = formset.save(commit=True)
         for instance in instances:
-            instance.telephone = '+420' + instance.telephone[-9:]
+            if len(instance.telephone)>9:
+                instance.telephone = '+' + instance.telephone[-12:]
+            else:
+                instance.telephone = '+420' + instance.telephone[-9:]
         formset.save()
 
 
@@ -351,7 +360,7 @@ class UserInCampaignResource(ModelResource):
             'userprofile__last_name',
             'userprofile__title_after',
             'userprofile__sex',
-            'userprofile__telephone',
+            #'userprofile__telephone',
             'userprofile_email',
             'userprofile__street',
             'userprofile__city',
@@ -388,7 +397,7 @@ class UserInCampaignAdmin(ImportExportMixin, AdminAdvancedFiltersMixin, RelatedF
     list_display = (
         'person_name',
         'userprofile__email',
-        'userprofile__telephone_url',
+        #'userprofile__telephone_url',
         'source',
         'campaign',
         'variable_symbol',
@@ -409,7 +418,7 @@ class UserInCampaignAdmin(ImportExportMixin, AdminAdvancedFiltersMixin, RelatedF
         'userprofile__first_name',
         'userprofile__last_name',
         'userprofile__email',
-        'userprofile__telephone',
+        #'userprofile__telephone',
         'source',
         ('campaign__name', _("Campaign name")),
         'variable_symbol',
@@ -442,7 +451,7 @@ class UserInCampaignAdmin(ImportExportMixin, AdminAdvancedFiltersMixin, RelatedF
         'userprofile__last_name',
         'variable_symbol',
         'userprofile__email',
-        'userprofile__telephone',
+        #'userprofile__telephone',
     ]
     ordering = ('userprofile__last_name',)
     actions = (
