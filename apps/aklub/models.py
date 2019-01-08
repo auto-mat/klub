@@ -55,6 +55,8 @@ from vokativ import vokativ
 
 from . import autocom, confirmation
 
+from django_grapesjs.models import GrapesJsHtmlField
+
 logger = logging.getLogger(__name__)
 
 
@@ -383,7 +385,6 @@ class Source(models.Model):
     def __str__(self):
         return str(self.name)
 
-
 class UserProfile(AbstractUser):
     class Meta:
         verbose_name = _("User profile")
@@ -446,12 +447,7 @@ class UserProfile(AbstractUser):
         default="cs",
         max_length=50,
     )
-    telephone = models.CharField(
-        verbose_name=_("Telephone"),
-        max_length=100,
-        blank=True,
-        validators=[RegexValidator(r'^[0-9+ ]*$', _("Telephone must consist of numbers, spaces and + sign")), ],
-    )
+
     street = models.CharField(
         verbose_name=_("Street and number"),
         max_length=80,
@@ -649,6 +645,31 @@ class UserProfile(AbstractUser):
         if self.email:
             self.email = self.email.lower()
         super().save(*args, **kwargs)
+
+class Telephone(models.Model):
+    telephone = models.CharField(
+        max_length=100,
+        blank=True,
+        validators=[RegexValidator(r'^\+?(42(0|1){1})?\s?\d{3}\s?\d{3}\s?\d{3}$', _("Telephone must consist of numbers, spaces and + sign or maximum number count is higher.")), ]
+    )
+    is_primary = models.BooleanField(
+        verbose_name=_("Primary phone"),
+        blank=True,
+        default = False
+    )
+    user = models.ForeignKey(
+        UserProfile,
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL
+    )
+
+    class Meta:
+        verbose_name=_("Telephone")
+        verbose_name_plural =_("Telephones")
+
+    def __str__(self):
+        return u"%s" %(self.telephone)
 
 
 class UserInCampaign(models.Model):
@@ -2099,16 +2120,7 @@ class MassCommunication(models.Model):
         null=True,
         validators=[gender_strings_validator, variable_validator],
     )
-    template = models.TextField(
-        verbose_name=_("Template"),
-        help_text=_("Template can contain following variable substitutions: <br/>") + (
-            "{mr|mrs} or {mr/mrs}, $" + ", $".join(autocom.KNOWN_VARIABLES)
-        ),
-        max_length=50000,
-        blank=False,
-        null=True,
-        validators=[gender_strings_validator, variable_validator],
-    )
+    template = GrapesJsHtmlField()
     template_en = models.TextField(
         verbose_name=_("English template"),
         max_length=50000,

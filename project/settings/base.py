@@ -157,6 +157,7 @@ USE_L10N = True
 ROOT_URLCONF = 'urls'
 
 INSTALLED_APPS = (
+    'django_grapesjs',
     'django.contrib.admindocs',
     'admin_tools',
     'admin_tools.theming',

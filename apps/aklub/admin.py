@@ -54,13 +54,16 @@ import large_initial
 from related_admin import RelatedFieldAdmin
 
 
+from django.contrib import admin
+from django_grapesjs.admin import GrapesJsAdminMixin
+
 from . import darujme, filters, mailing
 from .models import (
     AccountStatements, AutomaticCommunication, Campaign,
     Communication, Condition, Expense, MassCommunication,
     NewUser, Payment, Recruiter, Result, Source,
     TaxConfirmation, TerminalCondition, UserInCampaign,
-    UserProfile, UserYearPayments,
+    UserProfile, UserYearPayments, Telephone
 )
 
 
@@ -195,6 +198,13 @@ class UserProfileMergeForm(merge.MergeForm):
         fields = '__all__'
 
 
+class TelephoneInline(admin.StackedInline):
+    model = Telephone
+    extra = 0
+    can_delete = True
+    show_change_link = True
+
+
 class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFiltersMixin, UserAdmin):
     resource_class = UserProfileResource
     import_template_name = "admin/import_export/userprofile_import.html"
@@ -207,7 +217,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         'addressment',
         'get_addressment',
         'get_last_name_vokativ',
-        'telephone_url',
+        'get_main_telephone',
         'title_before',
         'first_name',
         'last_name',
@@ -221,7 +231,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         'username',
         'email',
         'addressment',
-        'telephone',
+        #'telephone',
         'title_before',
         'first_name',
         'last_name',
@@ -242,7 +252,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         'first_name',
         'last_name',
         'title_after',
-        'telephone',
+        #'telephone',
     )
     list_filter = (
         'is_staff',
@@ -253,7 +263,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         'userincampaign__campaign',
         filters.RegularPaymentsFilter,
         filters.EmailFilter,
-        filters.TelephoneFilter,
+        #filters.TelephoneFilter,
         filters.NameFilter,
     )
     profile_fieldsets = (
@@ -272,7 +282,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         (_('Contacts'), {
             'fields': [
                 ('send_mailing_lists'),
-                ('telephone'),
+                #('telephone'),
                 ('street', 'city', 'country'),
                 'zip_code', 'different_correspondence_address',
             ],
@@ -297,6 +307,21 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         }),
     )
 
+    def get_main_telephone(self, obj):
+        active_numbers = obj.telephone_set.all()
+        numbers = []
+        for number in active_numbers:
+            numbers.append(number)
+        return numbers
+
+
+    def save_formset(self, request, form, formset, change):
+        instances = formset.save(commit=True)
+        for instance in instances:
+            instance.telephone = '+420' + instance.telephone[-9:]
+        formset.save()
+
+
     def get_fieldsets(self, request, obj=None):
         original_fields = super().get_fieldsets(request, obj)
         if obj:
@@ -305,6 +330,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
 
     readonly_fields = ('userattendance_links',)
     actions = (send_mass_communication_distinct,)
+    inlines = [TelephoneInline, ]
 
 
 class UserInCampaignResource(ModelResource):
@@ -714,7 +740,7 @@ class AutomaticCommunicationAdmin(admin.ModelAdmin):
 class MassCommunicationForm(django.forms.ModelForm):
     class Meta:
         model = MassCommunication
-        fields = "__all__"
+        fields = '__all__'
 
     def clean_send_to_users(self):
         v = EmailValidator()
@@ -734,7 +760,7 @@ class MassCommunicationForm(django.forms.ModelForm):
         return self.cleaned_data['send_to_users']
 
 
-class MassCommunicationAdmin(large_initial.LargeInitialMixin, admin.ModelAdmin):
+class MassCommunicationAdmin(GrapesJsAdminMixin, large_initial.LargeInitialMixin, admin.ModelAdmin):
     save_as = True
     list_display = ('name', 'date', 'method', 'subject')
     ordering = ('-date',)
@@ -747,9 +773,10 @@ class MassCommunicationAdmin(large_initial.LargeInitialMixin, admin.ModelAdmin):
         django.db.models.CharField: {'widget': django.forms.TextInput(attrs={'size': '60'})},
     }
 
+    """
     fieldsets = [
         (_("Basic"), {
-            'fields': [('name', 'method', 'date', 'note')],
+            'fields': [('name', 'method', 'date', 'note',)],
         }),
         (_("Content"), {
             'fields': [
@@ -762,7 +789,7 @@ class MassCommunicationAdmin(large_initial.LargeInitialMixin, admin.ModelAdmin):
             'fields': ['send_to_users'],
         }),
     ]
-
+    """
     def get_field_queryset(self, db, db_field, request):
         if db_field.name == 'send_to_users':  # optimize queryset
             return super().get_field_queryset(db, db_field, request).select_related('campaign', 'userprofile')
