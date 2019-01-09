@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-django-stdimage = "*"
+django-stdimage =
 reportlab = "*"
 django-extensions = "*"
 "psycopg2" = "*"
@@ -37,7 +37,7 @@ django-advanced-filters = "*"
 django-bulk-update = "*"
 django-extra-views = "*"
 django-sesame = "*"
-vokativ = "*"
+vokativ = {editable = true, ref = "master", git = "https://github.com/auto-mat/vokativ.git"}
 Django = "<2.2"
 "PyPDF2" = "*"
 django-post_office = "*"

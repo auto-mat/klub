@@ -15,3 +15,6 @@ aklub.log*
 db_backup
 .coverage
 htmlcov/
+venv/
+.idea/
+

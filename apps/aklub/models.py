@@ -427,6 +427,7 @@ class UserProfile(AbstractUser):
         verbose_name=_("Gender"),
         choices=GENDER,
         max_length=50,
+        default = 'unknown'
     )
     addressment = models.CharField(
         verbose_name=_("Addressment in letter"),
