@@ -389,6 +389,8 @@ class UserProfile(AbstractUser):
         verbose_name = _("User profile")
         verbose_name_plural = _("User profiles")
 
+
+
     GENDER = (
         ('male', _('Male')),
         ('female', _('Female')),
@@ -506,6 +508,8 @@ class UserProfile(AbstractUser):
         blank=True,
         null=True,
     )
+
+
     # Benefits
     club_card_available = models.BooleanField(
         verbose_name=_("Club card available"),

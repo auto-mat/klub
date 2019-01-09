@@ -50,7 +50,7 @@ from import_export.admin import ImportExportMixin
 from import_export.resources import ModelResource
 
 import large_initial
-
+from .forms import UserCreateForm, UserUpdateForm
 from related_admin import RelatedFieldAdmin
 
 
@@ -199,6 +199,8 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
     resource_class = UserProfileResource
     import_template_name = "admin/import_export/userprofile_import.html"
     merge_form = UserProfileMergeForm
+    add_form = UserCreateForm
+    form = UserUpdateForm
 
     list_display = (
         'person_name',
@@ -209,8 +211,8 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         'get_last_name_vokativ',
         'telephone_url',
         'title_before',
-        'first_name',
-        'last_name',
+        #'first_name',
+        #'last_name',
         'title_after',
         'sex',
         'is_staff',
@@ -256,6 +258,8 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         filters.TelephoneFilter,
         filters.NameFilter,
     )
+
+
     profile_fieldsets = (
         (_('Basic personal'), {
             'fields': [
@@ -297,13 +301,22 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         }),
     )
 
+    add_fieldsets = (
+                        (None, {
+                         'classes': ('wide',),
+                        'fields': ('username','title_before', 'first_name', 'last_name', 'title_after', 'sex', 'age_group', 'email'),
+    }),
+    )
+
     def get_fieldsets(self, request, obj=None):
         original_fields = super().get_fieldsets(request, obj)
+        print(original_fields)
+
         if obj:
             original_fields[1][1]['fields'] = ('title_before', 'first_name', 'last_name', 'title_after', 'sex', 'age_group', 'email')
-        return original_fields + self.profile_fieldsets
+        return self.add_fieldsets + self.profile_fieldsets
 
-    readonly_fields = ('userattendance_links',)
+    readonly_fields = ('userattendance_links', 'date_joined', 'last_login')
     actions = (send_mass_communication_distinct,)
 
 
