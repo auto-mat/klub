@@ -41,10 +41,10 @@ if AWS_ACCESS_KEY_ID:
 LOGGING['handlers']['logfile']['filename'] = "aklub.log" # noqa
 
 CORS_ORIGIN_REGEX_WHITELIST = (
-   '.*\.dopracenakole\.cz$',
-   '.*\.zazitmestojinak\.cz',
-   '.*\.nakrmteautomat\.cz$',
-   '.*\.auto-mat\.cz$',
+   r'.*\.dopracenakole\.cz$',
+   r'.*\.zazitmestojinak\.cz',
+   r'.*\.nakrmteautomat\.cz$',
+   r'.*\.auto-mat\.cz$',
 )
 
 django_heroku.settings(locals())
