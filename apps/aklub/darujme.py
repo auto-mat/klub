@@ -300,3 +300,13 @@ def parse_darujme(xlsfile):
 
         create_payment(data, payments, skipped_payments)
     return payments, skipped_payments
+
+
+def check_for_new_payments(log_function=None):
+    if log_function is None:
+        log_function = lambda _: None # noqa
+    for campaign in Campaign.objects.filter(darujme_api_secret__isnull=False).exclude(darujme_api_secret=""):
+        log_function(campaign)
+        payment, skipped = create_statement_from_API(campaign)
+        log_function(payment)
+        log_function("Skipped: ", skipped)

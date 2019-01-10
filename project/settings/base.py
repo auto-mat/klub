@@ -2,23 +2,21 @@
 import os
 import sys
 
+import raven
+
 
 def normpath(*args):
     return os.path.normpath(os.path.abspath(os.path.join(*args)))
 
 
 PROJECT_ROOT = normpath(__file__, "..", "..", "..")
+BASE_DIR = PROJECT_ROOT
 
 sys.path.append(normpath(PROJECT_ROOT, "project"))
 sys.path.append(normpath(PROJECT_ROOT, "apps"))
 
-DEBUG = True
-
-ADMINS = (
-    ('Petr Dlouhý', 'petr.dlouhy@auto-mat.cz'),
-)
-
-MANAGERS = ADMINS
+DEBUG = os.environ.get('AKLUB_DEBUG', False) in (True, "True")
+TEMPLATE_DEBUG = DEBUG
 
 DATABASES = {
     'default': {
@@ -32,12 +30,31 @@ DATABASES = {
 }
 
 SECRET_KEY = os.environ.get('SECRET_KEY', '')
+
+SERVER_EMAIL = ""
+try:
+    SERVER_EMAIL = os.environ['AKLUB_SERVER_EMAIL']
+except KeyError:
+    pass
+
+DEFAULT_FROM_EMAIL = ""
+try:
+    DEFAULT_FROM_EMAIL = os.environ['AKLUB_DEFAULT_FROM_EMAIL']
+except KeyError:
+    pass
+
+AKLUB_ADMINS = os.environ.get('AKLUB_ADMINS', '')
+if AKLUB_ADMINS:
+    ADMINS = [[s.strip() for s in admin.split(",")] for admin in AKLUB_ADMINS.strip().split("\n")]
+    MANAGERS = ADMINS
+
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
 # although not all choices may be available on all operating systems.
 # If running in a Windows environment this must be set to the same as your
 # system time zone.
 TIME_ZONE = 'Europe/Prague'
+USE_TZ = True
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
@@ -51,7 +68,7 @@ USE_I18N = True
 
 # Absolute path to the directory that holds media.
 # Example: "/home/media/media.lawrence.com/"
-MEDIA_ROOT = normpath(PROJECT_ROOT, 'data')
+MEDIA_ROOT = os.environ.get('AKLUB_MEDIA_ROOT', normpath(PROJECT_ROOT, 'data'))
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash if there is a path component (optional in other cases).
@@ -62,11 +79,13 @@ MEDIA_URL = '/upload/'
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/home/media/media.lawrence.com/static/"
-STATIC_ROOT = normpath(PROJECT_ROOT, 'static')
+STATIC_ROOT = os.environ.get('AKLUB_STATIC_ROOT', normpath(PROJECT_ROOT, 'static'))
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
 STATIC_URL = '/media/'
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # List of finder classes that know how to find static files in
 # various locations.
@@ -100,6 +119,16 @@ TEMPLATES = [
     },
 ]
 
+try:
+    RELEASE = raven.fetch_git_sha(PROJECT_ROOT)
+except raven.exceptions.InvalidGitRepository:
+    RELEASE = os.getenv('HEROKU_SLUG_COMMIT')
+
+RAVEN_CONFIG = {
+    'dsn': os.environ.get('AKLUB_RAVEN_DNS', ''),
+    'release': RELEASE,
+}
+
 MIDDLEWARE = (
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -114,6 +143,7 @@ MIDDLEWARE = (
     # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 )
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = None  # To allow more fields in administration
@@ -122,11 +152,14 @@ CORS_ORIGIN_WHITELIST = [
     'vyzva.auto-mat.cz',
 ] + os.environ.get('AKLUB_CORS_ORIGIN_WHITELIST', '').split(',')
 
+REDIS_URL = os.environ.get('REDIS_URL', 'redis://127.0.0.1:6379')
+
 CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-        'LOCATION': ['127.0.0.1:11211'],
-        'KEY_PREFIX': 'aklub',
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": REDIS_URL + "/0",
+        "KEY_PREFIX": 'aklub_default',
+        "TIMEOUT": None,
     },
 }
 
@@ -149,16 +182,20 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.messages',
     'django.contrib.sessions',
+    'django.contrib.sites',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'stdimage',
     'bootstrapform',
+    'bootstrap4form',
     'django_extensions',
     'django_wysiwyg',
     'tinymce',
     'chart_tools',
     'massadmin',
+    'markdown_deux',
     'post_office',
+    'raven.contrib.django.raven_compat',
     'import_export',
     'corsheaders',
     'daterange_filter',
@@ -171,16 +208,19 @@ INSTALLED_APPS = (
     'adminfilters',
     'advanced_filters',
     'aklub',
+    'helpdesk',
+    'django_celery_beat',
+    'djcelery_email',
 )
 
 BOWER_INSTALLED_APPS = (
-    'jquery#2.2.4',
-    'jquery-ui#~1.10.4',
-    'd3#3.3.13',
-    'nvd3#1.7.1',
+    'jquery#2.0.3',
+    'jquery-ui#~1.10.3',
+    'd3#3.3.6',
+    'nvd3#1.1.12-beta',
 )
 
-EMAIL_BACKEND = 'post_office.EmailBackend'
+EMAIL_BACKEND = 'djcelery_email.backends.CeleryEmailBackend'
 
 ADMIN_TOOLS_INDEX_DASHBOARD = 'aklub.dashboard.AklubIndexDashboard'
 ADMIN_TOOLS_APP_INDEX_DASHBOARD = 'aklub.dashboard.AklubAppIndexDashboard'
@@ -248,7 +288,8 @@ LOGGING = {
     },
 }
 
-ALLOWED_HOSTS = os.environ.get('AKLUB_ALLOWED_HOSTS', '').split(',')
+ALLOWED_HOSTS = os.environ.get('AKLUB_ALLOWED_HOSTS', '').split(':')
+AKLUB_CORS_ORIGIN_REGEX_WHITELIST = os.environ.get('AKLUB_CORS_ORIGIN_REGEX_WHITELIST', '').split(':')
 
 TEST_RUNNER = 'aklub.tests.AklubTestSuiteRunner'
 
@@ -263,6 +304,32 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
 
+HELPDESK_DEFAULT_SETTINGS = {
+    'use_email_as_submitter': True,
+    'email_on_ticket_assign': True,
+    'email_on_ticket_change': True,
+    'login_view_ticketlist': True,
+    'email_on_ticket_apichange': True,
+    'preset_replies': True,
+    'tickets_per_page': 25,
+}
+
+# Should the public web portal be enabled?
+HELPDESK_VIEW_A_TICKET_PUBLIC = False
+HELPDESK_SUBMIT_A_TICKET_PUBLIC = True
+
+HELPDESK_PUBLIC_TICKET_PRIORITY = 3
+HELPDESK_PUBLIC_TICKET_DUE_DATE = ''
+
+# Should the Knowledgebase be enabled?
+HELPDESK_KB_ENABLED = True
+
+# Instead of showing the public web portal first,
+# we can instead redirect users straight to the login page.
+HELPDESK_REDIRECT_TO_LOGIN_BY_DEFAULT = False
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/login/'
+
 CSRF_COOKIE_SECURE = True
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
@@ -272,3 +339,5 @@ SECURE_HSTS_SECONDS = 60
 SECURE_HSTS_PRELOAD = True
 SESSION_COOKIE_SECURE = True
 X_FRAME_OPTIONS = 'DENY'
+
+BROKER_URL = os.environ.get('REDIS_URL', 'redis://redis')

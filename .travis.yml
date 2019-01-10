@@ -1,30 +1,39 @@
 sudo: false
 language: python
+services:
+  - redis-server
 env:
-  - DJANGO_VERSION="Django>=1.11,<1.12"
-  - DJANGO_VERSION="Django>=2.0,<2.1"
-  - DJANGO_VERSION="Django>=2.1,<2.2"
-  - DJANGO_VERSION='https://github.com/django/django/archive/master.tar.gz'
+  global:
+    - PIPENV_VENV_IN_PROJECT=1
+    - PIPENV_IGNORE_VIRTUALENVS=1
+  matrix:
+    - DJANGO_VERSION="Django>=1.11,<1.12"
+    - DJANGO_VERSION="Django>=2.0,<2.1"
+    - DJANGO_VERSION="Django>=2.1,<2.2"
+    - DJANGO_VERSION='https://github.com/django/django/archive/master.tar.gz'
 python:
   - "3.5"
   - "3.6"
 install:
-  - pip install -r requirements.freeze.txt
-  - pip install -r requirements-test.txt
-  - pip install -q $DJANGO_VERSION
+  - pip install pipenv
+  - pipenv install --dev --ignore-pipfile
+  - pipenv run pip install flake8-strict  # not installable with pipenv, move ther when repaired
+  - pipenv run pip install -q $DJANGO_VERSION
 before_script:
-  - flake8
+  - npm install -g bower
+  - pipenv run flake8
+  - pipenv run python manage.py bower install
+  - pipenv run python manage.py collectstatic --noinput
   - cd apps/aklub/
-  - DJANGO_SETTINGS_MODULE="" django-admin compilemessages
+  - DJANGO_SETTINGS_MODULE="" pipenv run django-admin compilemessages
   - cd ../..
 script:
-  - python manage.py --version
-  - ./runtests.sh
+  - pipenv run python manage.py --version
+  - pipenv run ./runtests.sh
 after_script:
   - coveralls
 addons:
-  postgresql: "9.3"
+  postgresql: "9.6"
 matrix:
    allow_failures:
-      - env: DJANGO_VERSION="Django>=2.1,<2.2"
       - env: DJANGO_VERSION='https://github.com/django/django/archive/master.tar.gz'

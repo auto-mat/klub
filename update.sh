@@ -28,9 +28,9 @@ git pull
 
 if [ "$1" != "no_virtualenv" ]; then
    echo activate
-   source env/bin/activate
+   pipenv shell
 fi
-pip install --process-dependency-links -r requirements.freeze.txt
+pipenv install
 if [ "$1" = "migrate" ]; then
    echo "Backuping db..."
    mkdir -p db_backup

@@ -10,16 +10,29 @@ Ke zprovoznění je zapotřebí následující
 
 * Virtualenv
 * Postgres 8.4 + postgis 1.5
+* pipenv
 
-Vzorová lokální konfigurace je v project/settings\_local\_sample.py, stačí přejmenovat na settings\_local.py a doplnit přístup k DB a SECRET\_KEY.
+Vzorová lokální konfigurace je v `.env-sample`, stačí přejmenovat na `.env` a doplnit SECRET\_KEY.
 
 Instalace probíhá pomocí následujícíh příkazů:
 
-* virtualenv --no-site-packages env
-* env/bin/pip install distribute --upgrade
 * sudo apt-get install libgraphviz-dev
-* env/bin/pip install -r requirements
+* pipenv install
 * cd apps/aklub && django-admin.py compilemessages -l "cs\_CZ"
+
+Instalace (Docker compose)
+==========================
+
+    $ docker-compose build
+    $ docker-compose up
+
+    $ docker attach klub_web_1
+    # su test
+    $ pipenv install --dev --python python3
+    $ pipenv shell
+    $ cd apps/aklub && django-admin.py compilemessages -l "cs\_CZ"
+    $ django-admin.py migrate
+    $ django-admin.py createsuperuser
 
 Spuštění
 ============
@@ -27,3 +40,11 @@ Spuštění
 Pro testovací účely spustíte projekt pomocí následujícího příkazu:
 
 * env/bin/python manage.py runserver 0.0.0.0:8000
+
+
+Heroku
+======
+
+Je důležité, aby buildpacky byli ve správném pořádi. Tj. nodejs, musí mít index=1.
+
+Více informace o buildpackech nalezntete [zde](https://devcenter.heroku.com/articles/using-multiple-buildpacks-for-an-app).

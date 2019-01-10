@@ -18,6 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+import django
 from django.contrib import admin as django_admin, auth
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -40,6 +41,7 @@ from ..models import (
 
 class AdminSmokeTest(tests.AdminSiteSmokeTest):
     fixtures = ['conditions', 'users']
+    exclude_apps = ['helpdesk', 'postoffice']
 
     def post_request(self, post_data={}, params=None):
         request = self.factory.post('/', data=post_data)
@@ -171,7 +173,7 @@ class AdminTest(TestCase):
             self.assertEqual(request._messages._queued_messages[0].message, 'Skipped payments: Testing User 1 (test.user1@email.cz)')
             self.assertEqual(
                 request._messages._queued_messages[1].message,
-                'Položka typu Výpis z účtu "<a href="/aklub/accountstatements/%(id)s/change/">%(id)s (2015-05-01 00:00:00)</a>"'
+                'Položka typu Výpis z účtu "<a href="/aklub/accountstatements/%(id)s/change/">%(id)s (2015-05-01 00:00:00+00:00)</a>"'
                 ' byla úspěšně přidána.' % {'id': obj.id},
             )
 
@@ -206,7 +208,7 @@ class AdminTest(TestCase):
             )
             self.assertEqual(
                 request._messages._queued_messages[1].message,
-                'Položka typu Výpis z účtu "<a href="/aklub/accountstatements/%(id)s/change/">%(id)s (2015-05-01 00:00:00)</a>"'
+                'Položka typu Výpis z účtu "<a href="/aklub/accountstatements/%(id)s/change/">%(id)s (2015-05-01 00:00:00+00:00)</a>"'
                 ' byla úspěšně přidána.' % {'id': obj.id},
             )
 
@@ -242,10 +244,14 @@ class AdminTest(TestCase):
             request._messages._queued_messages[0].message,
             'Odeslání na následující adresy nebylo možné kvůli problémům: baz@email.com',
         )
+        if django.VERSION < (2, 1):
+            edit_text = 'Níže ji můžete dále upravovat.'
+        else:
+            edit_text = 'Níže můžete údaje znovu upravovat.'
         self.assertEqual(
             request._messages._queued_messages[2].message,
             'Položka typu Hromadná komunikace "<a href="/aklub/masscommunication/%s/change/">test communication</a>"'
-            ' byla úspěšně přidána. Níže ji můžete dále upravovat.' % obj.id,
+            ' byla úspěšně přidána. %s' % (obj.id, edit_text),
         )
 
     def test_mass_communication_changelist_post(self):
@@ -389,7 +395,7 @@ class AdminImportExportTests(TestCase):
         response = self.client.post(address, post_data)
         self.assertContains(
             response,
-            ',Test,User,,male,,test.user@email.cz,,Praha 4,,120127010,0,1,regular,monthly,2015-12-16 18:22:30,'
+            ',Test,User,,male,,test.user@email.cz,,Praha 4,,120127010,0,1,regular,monthly,2015-12-16 17:22:30,'
             '"Domníváte se, že má město po zprovoznění tunelu Blanka omezit tranzit historickým centrem? '
             'Ano, hned se zprovozněním tunelu",editor,1,cs,,,,0,0.0,100',
         )
