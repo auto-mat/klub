@@ -62,7 +62,7 @@ pytz = "*"
 six = "*"
 djangorestframework = "*"
 django-model-utils = "*"
-django_celery_beat = "==1.1.1"
+django_celery_beat = "*"
 email_reply_parser = "*"
 
 [dev-packages]
