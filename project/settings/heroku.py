@@ -12,9 +12,8 @@ if 'SENDGRID_USERNAME' in os.environ:
     EMAIL_HOST_PASSWORD = os.environ['SENDGRID_PASSWORD']
 
 ALLOWED_HOSTS = [
-    "klub-pratel-devel.herokuapp.com",
     "klub.auto-mat.cz",
-    "devel-klub.auto-mat.cz",
+    os.environ.get('HEROKU_APP_URL')
 ]
 
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
