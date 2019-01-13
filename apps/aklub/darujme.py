@@ -309,4 +309,4 @@ def check_for_new_payments(log_function=None):
         log_function(campaign)
         payment, skipped = create_statement_from_API(campaign)
         log_function(payment)
-        log_function("Skipped: ", skipped)
+        log_function("Skipped: %s" % skipped)

@@ -4,17 +4,9 @@ import django_heroku
 
 from .base import *  # noqa
 
-if 'SENDGRID_USERNAME' in os.environ:
-    EMAIL_HOST_USER = os.environ['SENDGRID_USERNAME']
-    EMAIL_HOST = 'smtp.sendgrid.net'
-    EMAIL_PORT = 587
-    EMAIL_USE_TLS = True
-    EMAIL_HOST_PASSWORD = os.environ['SENDGRID_PASSWORD']
-
 ALLOWED_HOSTS = [
-    "klub-pratel-devel.herokuapp.com",
     "klub.auto-mat.cz",
-    "devel-klub.auto-mat.cz",
+    os.environ.get('HEROKU_APP_URL')
 ]
 
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
@@ -27,7 +19,7 @@ AWS_QUERYSTRING_EXPIRE = os.environ.get('AWS_QUERYSTRING_EXPIRE', 60 * 60 * 24 *
 if AWS_ACCESS_KEY_ID:
     THUMBNAIL_DEFAULT_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
     DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
-    CELERY_EMAIL_BACKEND = os.environ.get('CELERY_EMAIL_BACKEND', 'django_ses.SESBackend')
+    #CELERY_EMAIL_BACKEND = os.environ.get('CELERY_EMAIL_BACKEND', 'django_ses.SESBackend') Waiting for address verification
     AWS_SES_REGION_NAME = 'eu-west-1'
     AWS_SES_REGION_ENDPOINT = 'email.eu-west-1.amazonaws.com'
 
