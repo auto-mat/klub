@@ -267,7 +267,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         (_('Basic personal'), {
             'fields': [
                 ('language', 'public',),
-                ('note',),
+                ('note', 'date_joined'),
             ],
         }),
         (_('Addressments'), {
@@ -313,9 +313,8 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
     def get_main_telephone(self, obj):
         active_numbers = obj.telephone_set.all()
         numbers = []
-        for number in active_numbers:
-            number = number.create_link()
-            numbers.append(number)
+        numbers = map(lambda number: number.create_link(), active_numbers)
+
         return mark_safe('\n'.join(numbers))
     get_main_telephone.short_description = _("Telephone")
     get_main_telephone.admin_order_field = "telephone"
