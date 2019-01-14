@@ -211,8 +211,6 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         'get_last_name_vokativ',
         'telephone_url',
         'title_before',
-        #'first_name',
-        #'last_name',
         'title_after',
         'sex',
         'is_staff',
@@ -259,7 +257,6 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         filters.NameFilter,
     )
 
-
     profile_fieldsets = (
         (_('Basic personal'), {
             'fields': [
@@ -304,16 +301,12 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
     add_fieldsets = (
                         (None, {
                          'classes': ('wide',),
-                        'fields': ('username','title_before', 'first_name', 'last_name', 'title_after', 'sex', 'age_group', 'email'),
+                        'fields': ('username','title_before', 'first_name', 'last_name', 'title_after', 'sex', 'age_group', 'email', 'password'),
     }),
     )
 
     def get_fieldsets(self, request, obj=None):
-        original_fields = super().get_fieldsets(request, obj)
-        print(original_fields)
-
-        if obj:
-            original_fields[1][1]['fields'] = ('title_before', 'first_name', 'last_name', 'title_after', 'sex', 'age_group', 'email')
+        super().get_fieldsets(request, obj)
         return self.add_fieldsets + self.profile_fieldsets
 
     readonly_fields = ('userattendance_links', 'date_joined', 'last_login')
