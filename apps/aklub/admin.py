@@ -60,7 +60,7 @@ from .models import (
     Communication, Condition, Expense, MassCommunication,
     NewUser, Payment, Recruiter, Result, Source,
     TaxConfirmation, TerminalCondition, UserInCampaign,
-    UserProfile, UserYearPayments,
+    UserProfile, UserYearPayments, Telephone
 )
 
 
@@ -194,6 +194,12 @@ class UserProfileMergeForm(merge.MergeForm):
         model = UserProfile
         fields = '__all__'
 
+class TelephoneInline(admin.StackedInline):
+    model = Telephone
+    extra = 0
+    can_delete = True
+    show_change_link = True
+
 
 class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFiltersMixin, UserAdmin):
     resource_class = UserProfileResource
@@ -209,7 +215,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         'addressment',
         'get_addressment',
         'get_last_name_vokativ',
-        'telephone_url',
+        'get_main_telephone',
         'title_before',
         'title_after',
         'sex',
@@ -221,7 +227,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         'username',
         'email',
         'addressment',
-        'telephone',
+        'telephone__telephone',
         'title_before',
         'first_name',
         'last_name',
@@ -242,7 +248,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         'first_name',
         'last_name',
         'title_after',
-        'telephone',
+        'telephone__telephone',
     )
     list_filter = (
         'is_staff',
@@ -253,7 +259,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         'userincampaign__campaign',
         filters.RegularPaymentsFilter,
         filters.EmailFilter,
-        filters.TelephoneFilter,
+        #filters.TelephoneFilter,
         filters.NameFilter,
     )
 
@@ -273,7 +279,6 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         (_('Contacts'), {
             'fields': [
                 ('send_mailing_lists'),
-                ('telephone'),
                 ('street', 'city', 'country'),
                 'zip_code', 'different_correspondence_address',
             ],
@@ -305,13 +310,32 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
     }),
     )
 
+    def get_main_telephone(self, obj):
+        active_numbers = obj.telephone_set.all()
+        numbers = []
+        for number in active_numbers:
+            number = number.create_link()
+            numbers.append(number)
+        return mark_safe('\n'.join(numbers))
+    get_main_telephone.short_description = _("Telephone")
+    get_main_telephone.admin_order_field = "telephone"
+
+    def save_formset(self, request, form, formset, change):
+        instances = formset.save(commit=True)
+        for instance in instances:
+            if len(instance.telephone) > 9:
+                instance.telephone = '+' + instance.telephone[-12:]
+            else:
+                instance.telephone = '+420' + instance.telephone[-9:]
+        formset.save()
+
     def get_fieldsets(self, request, obj=None):
         super().get_fieldsets(request, obj)
         return self.add_fieldsets + self.profile_fieldsets
 
     readonly_fields = ('userattendance_links', 'date_joined', 'last_login')
     actions = (send_mass_communication_distinct,)
-
+    inlines = [TelephoneInline, ]
 
 class UserInCampaignResource(ModelResource):
     userprofile_email = fields.Field(
