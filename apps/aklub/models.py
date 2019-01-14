@@ -544,6 +544,7 @@ class UserProfile(AbstractUser):
         choices=[(i, i) for i in range(datetime.date.today().year, datetime.date.today().year - 100, -1)],
     )
 
+
     def get_last_name_vokativ(self):
         return vokativ(self.last_name.strip(), last_name=True).title()
     get_last_name_vokativ.short_description = _("Last name vokativ")

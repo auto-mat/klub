@@ -209,10 +209,9 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
     resource_class = UserProfileResource
     import_template_name = "admin/import_export/userprofile_import.html"
     merge_form = UserProfileMergeForm
-
     list_display = (
         'person_name',
-        'username',
+        #'username',
         'email',
         'addressment',
         'get_addressment',
@@ -228,7 +227,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         'last_login',
     )
     advanced_filter_fields = (
-        'username',
+        #'username',
         'email',
         'addressment',
         'telephone__telephone',
@@ -246,7 +245,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         'addressment',
     )
     search_fields = (
-        'username',
+        #'username',
         'email',
         'title_before',
         'first_name',
@@ -306,6 +305,9 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         }),
     )
 
+    ordering = ('email',)
+    filter_horizontal = ('groups', 'user_permissions',)
+
     def get_main_telephone(self, obj):
         active_numbers = obj.telephone_set.all()
         numbers = []
@@ -337,7 +339,8 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
             original_fields[1][1]['fields'] = ('title_before', 'first_name', 'last_name', 'title_after', 'sex', 'age_group', 'email')
         return original_fields + self.profile_fieldsets
 
-    readonly_fields = ('userattendance_links',)
+
+    readonly_fields = ('userattendance_links', 'date_joined', 'last_login',)
     actions = (send_mass_communication_distinct,)
     inlines = [TelephoneInline, ]
 
