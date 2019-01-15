@@ -12,7 +12,6 @@ env:
     - DJANGO_VERSION="Django>=2.1,<2.2"
     - DJANGO_VERSION='https://github.com/django/django/archive/master.tar.gz'
 python:
-  - "3.5"
   - "3.6"
 install:
   - pip install pipenv
