@@ -1,2 +1,3 @@
 web: ./launch_on_heroku
-worker: ./launch_celery
+celery: ./launch_celery
+beat: ./launch_celery_beat
