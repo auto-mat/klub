@@ -5,7 +5,6 @@ from . import darujme
 from .autocom import check
 
 
-
 @task()
 def check_autocom_daily():
     check(action="daily")
@@ -14,6 +13,7 @@ def check_autocom_daily():
 @task()
 def check_darujme():
     darujme.check_for_new_payments()
+
 
 @task()
 def post_office_send_mail():

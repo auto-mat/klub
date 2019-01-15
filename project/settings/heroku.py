@@ -6,7 +6,7 @@ from .base import *  # noqa
 
 ALLOWED_HOSTS = [
     "klub.auto-mat.cz",
-    os.environ.get('HEROKU_APP_URL')
+    os.environ.get('HEROKU_APP_URL'),
 ]
 
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
