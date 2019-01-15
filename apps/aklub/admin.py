@@ -54,10 +54,10 @@ import large_initial
 
 
 from related_admin import RelatedFieldAdmin
+from . import darujme, filters, mailing
 
 from .forms import UserCreateForm, UserUpdateForm
 
-from . import darujme, filters, mailing
 from .models import (
     AccountStatements, AutomaticCommunication, Campaign,
     Communication, Condition, Expense, MassCommunication,
@@ -134,8 +134,7 @@ def show_payments_by_year(self, request, queryset):
     amount_string = [
         "%s: %s" % (
             date_year.year,
-            payments.filter(date__year=date_year.year)
-                .aggregate(Sum('amount'))['amount__sum'],
+            payments.filter(date__year=date_year.year).aggregate(Sum('amount'))['amount__sum'],
         ) for date_year in payment_dates]
     amount_string += (_("TOT.: %s") % payments.aggregate(Sum('amount'))['amount__sum'],)
     self.message_user(request, mark_safe("<br/>".join(amount_string)))
