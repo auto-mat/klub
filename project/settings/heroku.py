@@ -20,7 +20,11 @@ AWS_DEFAULT_ACL = "private"
 if AWS_ACCESS_KEY_ID:
     THUMBNAIL_DEFAULT_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
     DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
-    POST_OFFICE_BACKEND = 'django_ses.SESBackend'
+    POST_OFFICE = {
+        'BACKENDS': {
+            'default': 'django_ses.SESBackend',
+        },
+    }
     AWS_SES_REGION_NAME = 'eu-west-1'
     AWS_SES_REGION_ENDPOINT = 'email.eu-west-1.amazonaws.com'
 
