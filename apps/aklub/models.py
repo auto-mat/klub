@@ -653,12 +653,13 @@ class Telephone(models.Model):
        max_length=100,
        blank=True,
        validators=[RegexValidator(r'^\+?(42(0|1){1})?\s?\d{3}\s?\d{3}\s?\d{3}$',
-        _("Telephone must consist of numbers, spaces and + sign or maximum number count is higher.")), ]
+                    _("Telephone must consist of numbers, spaces and + sign or maximum number count is higher.")), ],
+
    )
     is_primary = models.BooleanField(
        verbose_name=_("Primary phone"),
        blank=True,
-       default=False
+       default=False,
    )
     user = models.ForeignKey(
        UserProfile,
@@ -668,16 +669,15 @@ class Telephone(models.Model):
    )
 
     class Meta:
-       verbose_name = _("Telephone")
-       verbose_name_plural = _("Telephones")
+        verbose_name = _("Telephone")
+        verbose_name_plural = _("Telephones")
 
     def __str__(self):
-       return u"%s" %(self.telephone)
+        return u"%s" % self.telephone
 
     def create_link(self):
-       return format_html("<a href='tel:{}'>{}</a>",
-            self.telephone,
-            self.telephone,)
+        return format_html("<a href='tel:{}'>{}</a>",
+            self.telephone, self.telephone,)
 
 
 class UserInCampaign(models.Model):
