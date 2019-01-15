@@ -23,7 +23,7 @@ if AWS_ACCESS_KEY_ID:
     POST_OFFICE = {
         'BACKENDS': {
             'default': 'django_ses.SESBackend',
-        }
+        },
     }
     AWS_SES_REGION_NAME = 'eu-west-1'
     AWS_SES_REGION_ENDPOINT = 'email.eu-west-1.amazonaws.com'
