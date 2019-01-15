@@ -1,0 +1,6 @@
+#!/bin/bash
+export AKLUB_DEFAULT_FROM_EMAIL=info@auto-mat.cz
+export DISABLE_COLLECTSTATIC=1
+export GUNICORN_WORKERS=2
+export DJANGO_SETTINGS_MODULE=project.settings.heroku
+gunicorn wsgi --timeout ${GUNICORN_TIMEOUT:-"60"} --workers ${GUNICORN_WORKERS:-"6"}

@@ -2,6 +2,8 @@ from aklub import views
 
 from django.conf.urls import url
 
+from . import tasks # noqa
+
 urlpatterns = [
     url(r'^regular/', views.RegularView.as_view(), name="regular"),
     url(r'^regular-wp/', views.RegularWPView.as_view(), name="regular-wp"),

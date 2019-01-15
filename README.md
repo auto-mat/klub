@@ -28,6 +28,8 @@ Instalace (Docker compose)
 
     $ docker attach klub_web_1
     # su test
+    $ pipenv install --dev --python python3
+    $ pipenv shell
     $ cd apps/aklub && django-admin.py compilemessages -l "cs\_CZ"
     $ django-admin.py migrate
     $ django-admin.py createsuperuser
@@ -38,3 +40,13 @@ Spuštění
 Pro testovací účely spustíte projekt pomocí následujícího příkazu:
 
 * env/bin/python manage.py runserver 0.0.0.0:8000
+
+
+Heroku
+======
+
+Nejdřív musíš [povolit heroku.yml](https://devcenter.heroku.com/articles/buildpack-builds-heroku-yml)
+
+Pak je důležité, aby buildpacky byli ve správném pořádi. Tj. nodejs, musí mít index=1.
+
+Více informace o buildpackech nalezntete [zde](https://devcenter.heroku.com/articles/using-multiple-buildpacks-for-an-app).

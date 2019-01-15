@@ -2,9 +2,11 @@
 import os
 import sys
 
-from dotenv import load_dotenv
-
-load_dotenv()
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    print("Warning: dotenv not loaded")
 
 #  BEGIN activacte virtualenv
 # from project.settings import PROJECT_ROOT, normpath

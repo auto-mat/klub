@@ -1,5 +1,7 @@
 sudo: false
 language: python
+services:
+  - redis-server
 env:
   global:
     - PIPENV_VENV_IN_PROJECT=1
@@ -14,11 +16,14 @@ python:
   - "3.6"
 install:
   - pip install pipenv
-  - pipenv install --dev
+  - pipenv install --dev --ignore-pipfile
   - pipenv run pip install flake8-strict  # not installable with pipenv, move ther when repaired
   - pipenv run pip install -q $DJANGO_VERSION
 before_script:
+  - npm install -g bower
   - pipenv run flake8
+  - pipenv run python manage.py bower install
+  - pipenv run python manage.py collectstatic --noinput
   - cd apps/aklub/
   - DJANGO_SETTINGS_MODULE="" pipenv run django-admin compilemessages
   - cd ../..

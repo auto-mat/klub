@@ -88,9 +88,9 @@ class ViewsTests(ClearCacheMixin, TestCase):
         self.assertJSONEqual(
             response.content.decode(),
             [
-                {"created": "2017-12-16T18:22:30.128", "first_name": "------", "last_name": "------"},
-                {"created": "2016-12-16T18:22:30.128", "first_name": "Test", "last_name": "User"},
-                {"created": "2015-12-16T18:22:30.128", "first_name": "------", "last_name": "------"},
+                {"created": "2017-12-16T17:22:30.128Z", "first_name": "------", "last_name": "------"},
+                {"created": "2016-12-16T17:22:30.128Z", "first_name": "Test", "last_name": "User"},
+                {"created": "2015-12-16T17:22:30.128Z", "first_name": "------", "last_name": "------"},
             ],
         )
         self.assertEqual(response.status_code, 200)

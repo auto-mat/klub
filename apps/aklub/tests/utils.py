@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-import django
+from django.contrib.admin.templatetags.admin_list import _boolean_icon
 
 
 def print_response(response):
@@ -25,5 +25,5 @@ def print_response(response):
         f.write(response.content.decode())  # pragma: no cover
 
 
-ICON_FALSE = '<img src="/media/admin/img/icon-no.svg" alt="False"%s>' % (' /' if django.VERSION < (2, 1) else '')
-ICON_UNKNOWN = '<img src="/media/admin/img/icon-unknown.svg" alt="None"%s>' % (' /' if django.VERSION < (2, 1) else '')
+ICON_FALSE = _boolean_icon(False)
+ICON_UNKNOWN = _boolean_icon(None)

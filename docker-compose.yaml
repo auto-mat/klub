@@ -7,16 +7,42 @@ services:
    - "8000:8000"
   links:
    - postgres
+   - redis
   tty: true
   stdin_open: true
-  environment:
-   DATABASE_NAME: klub
-   DATABASE_USER: klub
-   DATABASE_PASSWORD: foobar
-   DATABASE_HOST: postgres
   working_dir: /klub-v/
+  user: test
   volumes:
    - ./:/klub-v/
+   - ./pipenv:/home/test
+ celery:
+  build: .
+  entrypoint: pipenv run celery worker -A project.celery
+  links:
+   - postgres
+   - redis
+  tty: true
+  stdin_open: true
+  working_dir: /klub-v/
+  user: test
+  volumes:
+   - ./:/klub-v/
+   - ./pipenv:/home/test
+ celery-beat:
+  build: .
+  entrypoint: pipenv run celery beat -A project.celery
+  links:
+   - postgres
+   - redis
+  tty: true
+  stdin_open: true
+  working_dir: /klub-v/
+  user: test
+  volumes:
+   - ./:/klub-v/
+   - ./pipenv:/home/test
+ redis:
+  image: redis
  postgres:
   image: mdillon/postgis:9.6-alpine
   volumes:
@@ -25,4 +51,3 @@ services:
    POSTGRES_PASSWORD: foobar
    POSTGRES_USER: klub
    PGDATA: /var/lib/postgresql/data
-
