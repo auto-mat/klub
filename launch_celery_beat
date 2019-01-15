@@ -1,2 +1,0 @@
-#!/bin/bash
-SINGLE_BEAT_REDIS_SERVER=$REDIS_URL single-beat celery beat -A project.celery --scheduler django_celery_beat.schedulers:DatabaseScheduler $@
