@@ -1,0 +1,14 @@
+#!/bin/bash
+# Set env vars $PGUSER $PGPASSWORD (to the se.auto-mat values) and $HEROKU_DB_NAME
+aws s3 cp --recursive /home/aplikace/klub_django/data s3://automat-klub-prod/
+heroku pg:push klub $HEROKU_DB_NAME  --app klub-automat-production
+echo Now go to the heroku settings page https://dashboard.heroku.com/apps/klub-automat-production/settings
+echo and click "Add domain" and add the domain klub.auto-mat.cz
+echo then press "Configure SSL" and choose the default option
+echo You will see a crazy looking domain. Go to forpsi and set the CNAME for klub.auto-mat.cz to that domain.
+echo Now go to klub.auto-mat.cz and see if everything is working.
+echo After that, set up your periodic tasks:
+echo - aklub.tasks.post_office_send_mail
+echo - aklub.tasks.check_autocom_daily
+echo - aklub.tasks.check_darujme
+echo - helpdesk.tasks.helpdesk_process_email
