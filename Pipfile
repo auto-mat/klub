@@ -4,19 +4,12 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-<<<<<<< HEAD
-=======
 celery = "*"
 django-celery-email = "*"
->>>>>>> heroku
 django-stdimage = "*"
 reportlab = "*"
 django-extensions = "*"
 "psycopg2" = "*"
-<<<<<<< HEAD
-django-bootstrap-form = "*"
-=======
->>>>>>> heroku
 django-wysiwyg = "*"
 django-tinymce = "*"
 django-admin-tools = "*"
