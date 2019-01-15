@@ -40,6 +40,7 @@ from django.db.models import Sum
 from django.http import HttpResponseRedirect
 from django.utils.html import format_html, format_html_join, mark_safe
 from django.utils.translation import ugettext as _
+
 try:
     from django.urls import reverse
 except ImportError:  # Django<2.0
@@ -50,17 +51,18 @@ from import_export.admin import ImportExportMixin
 from import_export.resources import ModelResource
 
 import large_initial
-from .forms import UserCreateForm, UserUpdateForm
-from related_admin import RelatedFieldAdmin
 
+from .forms import UserCreateForm, UserUpdateForm
+
+from related_admin import RelatedFieldAdmin
 
 from . import darujme, filters, mailing
 from .models import (
     AccountStatements, AutomaticCommunication, Campaign,
     Communication, Condition, Expense, MassCommunication,
     NewUser, Payment, Recruiter, Result, Source,
-    TaxConfirmation, TerminalCondition, UserInCampaign,
-    UserProfile, UserYearPayments, Telephone
+    TaxConfirmation, Telephone, TerminalCondition, UserInCampaign,
+    UserProfile, UserYearPayments,
 )
 
 
@@ -107,7 +109,7 @@ class PaymentsInlineNoExtra(PaymentsInline):
     extra = 0
 
     def user__campaign(self, obj):
-            return obj.user.campaign
+        return obj.user.campaign
 
 
 class CommunicationInline(admin.TabularInline):
@@ -132,9 +134,9 @@ def show_payments_by_year(self, request, queryset):
         "%s: %s" % (
             date_year.year,
             payments.filter(date__year=date_year.year)
-            .aggregate(Sum('amount'))['amount__sum'],
+                .aggregate(Sum('amount'))['amount__sum'],
         ) for date_year in payment_dates]
-    amount_string += (_("TOT.: %s") % payments.aggregate(Sum('amount'))['amount__sum'], )
+    amount_string += (_("TOT.: %s") % payments.aggregate(Sum('amount'))['amount__sum'],)
     self.message_user(request, mark_safe("<br/>".join(amount_string)))
 
 
@@ -193,6 +195,7 @@ class UserProfileMergeForm(merge.MergeForm):
     class Meta:
         model = UserProfile
         fields = '__all__'
+
 
 class TelephoneInline(admin.StackedInline):
     model = Telephone
@@ -259,7 +262,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         'userincampaign__campaign',
         filters.RegularPaymentsFilter,
         filters.EmailFilter,
-        #filters.TelephoneFilter,
+        # filters.TelephoneFilter,
         filters.NameFilter,
     )
 
@@ -304,10 +307,11 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
     )
 
     add_fieldsets = (
-                        (None, {
-                         'classes': ('wide',),
-                        'fields': ('username','title_before', 'first_name', 'last_name', 'title_after', 'sex', 'age_group', 'email', 'password'),
-    }),
+        (None, {
+            'classes': ('wide',),
+            'fields': ('username', 'title_before', 'first_name', 'last_name', 'title_after', 'sex',
+                       'age_group', 'email', 'password'),
+        }),
     )
 
     def get_main_telephone(self, obj):
@@ -316,6 +320,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         numbers = map(lambda number: number.create_link(), active_numbers)
 
         return mark_safe('\n'.join(numbers))
+
     get_main_telephone.short_description = _("Telephone")
     get_main_telephone.admin_order_field = "telephone"
 
@@ -332,9 +337,11 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         super().get_fieldsets(request, obj)
         return self.add_fieldsets + self.profile_fieldsets
 
+
     readonly_fields = ('userattendance_links', 'date_joined', 'last_login')
     actions = (send_mass_communication_distinct,)
     inlines = [TelephoneInline, ]
+
 
 class UserInCampaignResource(ModelResource):
     userprofile_email = fields.Field(
@@ -589,7 +596,7 @@ class PaymentAdmin(ImportExportMixin, RelatedFieldAdmin):
         (_("Basic"), {
             'fields': [
                 'user', 'date', 'amount',
-                ('type', ),
+                ('type',),
             ],
         }),
         (_("Details"), {
@@ -677,8 +684,8 @@ class CommunicationAdmin(RelatedFieldAdmin, admin.ModelAdmin):
         'user__extra_payments',
         'date', 'type',
     )
-    raw_id_fields = ('user', )
-    readonly_fields = ('type', 'created_by', 'handled_by', )
+    raw_id_fields = ('user',)
+    readonly_fields = ('type', 'created_by', 'handled_by',)
     list_filter = ['dispatched', 'send', 'date', 'method', 'type', 'user__campaign']
     search_fields = (
         'subject',
@@ -872,9 +879,11 @@ class AccountStatementsAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         if getattr(obj, 'skipped_payments', None):
-            skipped_payments_string = ', '.join(["%s %s (%s)" % (p['name'], p['surname'], p['email']) for p in obj.skipped_payments])
+            skipped_payments_string = ', '.join(
+                ["%s %s (%s)" % (p['name'], p['surname'], p['email']) for p in obj.skipped_payments])
             messages.info(request, 'Skipped payments: %s' % skipped_payments_string)
-        payments_without_user = ', '.join(["%s (%s)" % (p.account_name, p.user_identification) for p in obj.payments if not p.user])
+        payments_without_user = ', '.join(
+            ["%s (%s)" % (p.account_name, p.user_identification) for p in obj.payments if not p.user])
         if payments_without_user:
             messages.info(request, 'Payments without user: %s' % payments_without_user)
         obj.save()
@@ -938,7 +947,7 @@ class CampaignAdmin(admin.ModelAdmin):
         'average_expense',
     )
     list_filter = ('acquisition_campaign', filters.ActiveCampaignFilter)
-    inlines = (ExpenseInline, )
+    inlines = (ExpenseInline,)
     actions = (download_darujme_statement,)
     save_as = True
 
@@ -958,7 +967,8 @@ class TaxConfirmationAdmin(ImportExportMixin, RelatedFieldAdmin):
     list_display = ('user_profile', 'year', 'amount', 'file')
     ordering = ('user_profile__last_name', 'user_profile__first_name',)
     list_filter = ['year']
-    search_fields = ('user_profile__last_name', 'user_profile__first_name', 'user_profile__userincampaign__variable_symbol',)
+    search_fields = (
+    'user_profile__last_name', 'user_profile__first_name', 'user_profile__userincampaign__variable_symbol',)
     raw_id_fields = ('user_profile',)
     list_max_show_all = 10000
 

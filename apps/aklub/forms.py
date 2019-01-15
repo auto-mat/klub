@@ -1,13 +1,14 @@
-from django import forms
-from django.contrib.auth.models import User
 import uuid
-from django.contrib.auth.forms import UserCreationForm, UserChangeForm
+
+from django.contrib.auth.forms import UserChangeForm, UserCreationForm
+
 
 def username_validation(user, fields):
     if user.username == '':
         user.username = uuid.uuid1()
     else:
         user.username = fields['username']
+
 
 class UserCreateForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
@@ -26,6 +27,7 @@ class UserCreateForm(UserCreationForm):
             user.save()
         return user
 
+
 class UserUpdateForm(UserChangeForm):
     def __init__(self, *args, **kwargs):
         super(UserChangeForm, self).__init__(*args, **kwargs)
@@ -40,8 +42,3 @@ class UserUpdateForm(UserChangeForm):
         if commit:
             user.save()
         return user
-
-
-
-
-

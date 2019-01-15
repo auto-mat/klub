@@ -390,7 +390,6 @@ class UserProfile(AbstractUser):
         verbose_name_plural = _("User profiles")
 
 
-
     GENDER = (
         ('male', _('Male')),
         ('female', _('Female')),
@@ -429,7 +428,7 @@ class UserProfile(AbstractUser):
         verbose_name=_("Gender"),
         choices=GENDER,
         max_length=50,
-        default = 'unknown'
+        default='unknown',
     )
     addressment = models.CharField(
         verbose_name=_("Addressment in letter"),
@@ -503,7 +502,6 @@ class UserProfile(AbstractUser):
         blank=True,
         null=True,
     )
-
 
     # Benefits
     club_card_available = models.BooleanField(
@@ -650,35 +648,38 @@ class UserProfile(AbstractUser):
             self.email = self.email.lower()
         super().save(*args, **kwargs)
 
+
 class Telephone(models.Model):
    telephone = models.CharField(
        max_length=100,
        blank=True,
-       validators=[RegexValidator(r'^\+?(42(0|1){1})?\s?\d{3}\s?\d{3}\s?\d{3}$', _("Telephone must consist of numbers, spaces and + sign or maximum number count is higher.")), ]
+       validators=[RegexValidator(r'^\+?(42(0|1){1})?\s?\d{3}\s?\d{3}\s?\d{3}$',
+        _("Telephone must consist of numbers, spaces and + sign or maximum number count is higher.")), ]
    )
-   is_primary = models.BooleanField(
+    is_primary = models.BooleanField(
        verbose_name=_("Primary phone"),
        blank=True,
-       default = False
+       default=False
    )
-   user = models.ForeignKey(
+    user = models.ForeignKey(
        UserProfile,
        blank=True,
        null=True,
-       on_delete=models.SET_NULL
+       on_delete=models.SET_NULL,
    )
 
-   class Meta:
-       verbose_name=_("Telephone")
-       verbose_name_plural =_("Telephones")
+    class Meta:
+       verbose_name = _("Telephone")
+       verbose_name_plural = _("Telephones")
 
-   def __str__(self):
+    def __str__(self):
        return u"%s" %(self.telephone)
 
-   def create_link(self):
+    def create_link(self):
        return format_html("<a href='tel:{}'>{}</a>",
             self.telephone,
             self.telephone,)
+
 
 class UserInCampaign(models.Model):
     """
