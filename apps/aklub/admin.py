@@ -52,9 +52,10 @@ from import_export.resources import ModelResource
 
 import large_initial
 
-from .forms import UserCreateForm, UserUpdateForm
 
 from related_admin import RelatedFieldAdmin
+
+from .forms import UserCreateForm, UserUpdateForm
 
 from . import darujme, filters, mailing
 from .models import (
@@ -336,7 +337,6 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
     def get_fieldsets(self, request, obj=None):
         super().get_fieldsets(request, obj)
         return self.add_fieldsets + self.profile_fieldsets
-
 
     readonly_fields = ('userattendance_links', 'date_joined', 'last_login')
     actions = (send_mass_communication_distinct,)

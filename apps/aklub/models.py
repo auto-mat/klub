@@ -389,7 +389,6 @@ class UserProfile(AbstractUser):
         verbose_name = _("User profile")
         verbose_name_plural = _("User profiles")
 
-
     GENDER = (
         ('male', _('Male')),
         ('female', _('Female')),
@@ -650,7 +649,7 @@ class UserProfile(AbstractUser):
 
 
 class Telephone(models.Model):
-   telephone = models.CharField(
+    telephone = models.CharField(
        max_length=100,
        blank=True,
        validators=[RegexValidator(r'^\+?(42(0|1){1})?\s?\d{3}\s?\d{3}\s?\d{3}$',
