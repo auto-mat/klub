@@ -272,6 +272,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
                 ('language', 'public',),
                 ('note', 'date_joined'),
             ],
+            'classes': ['collapse'],
         }),
         (_('Addressments'), {
             'fields': [
