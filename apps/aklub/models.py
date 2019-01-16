@@ -656,7 +656,6 @@ class Telephone(models.Model):
            RegexValidator(r'^\+?(42(0|1){1})?\s?\d{3}\s?\d{3}\s?\d{3}$',
                     _("Telephone must consist of numbers, spaces and + sign or maximum number count is higher.")),
        ],
-
     )
     is_primary = models.BooleanField(
        verbose_name=_("Primary phone"),
@@ -678,7 +677,7 @@ class Telephone(models.Model):
         return u"%s" % self.telephone
 
     def create_link(self):
-        return format_html("<a href='tel:{}'>{}</a>", self.telephone, self.telephone,)
+        return format_html("<a href='sip:{}'>{}</a>", self.telephone, self.telephone,)
 
 
 class UserInCampaign(models.Model):
