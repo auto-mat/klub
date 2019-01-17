@@ -1,5 +1,4 @@
 #!/bin/bash
 export DISABLE_COLLECTSTATIC=1
-export GUNICORN_WORKERS=2
 export DJANGO_SETTINGS_MODULE=project.settings.heroku
-gunicorn wsgi --timeout ${GUNICORN_TIMEOUT:-"60"} --workers ${GUNICORN_WORKERS:-"6"}
+NEW_RELIC_CONFIG_FILE=newrelic.ini newrelic-admin run-program gunicorn wsgi --timeout ${GUNICORN_TIMEOUT:-"60"} --workers ${GUNICORN_WORKERS:-"2"}
