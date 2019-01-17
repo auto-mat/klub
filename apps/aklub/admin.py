@@ -428,7 +428,8 @@ class UserInCampaignAdmin(ImportExportMixin, AdminAdvancedFiltersMixin, RelatedF
     save_as = True
     list_max_show_all = 10000
     list_per_page = 100
-    inlines = [PaymentsInline, CommunicationInline]
+    # TODO: quickfix: this is removed to get into 30s timeout on Heroku
+    # inlines = [PaymentsInline, CommunicationInline]
     raw_id_fields = ('userprofile', 'recruiter',)
     readonly_fields = ('verified_by', 'userprofile_telephone_url', 'userprofile_note')
     fieldsets = [
