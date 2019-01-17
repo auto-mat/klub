@@ -17,9 +17,9 @@ def makepdf(outfile, name, sex, street, city, year, amount):
     # CONFIGURATION
     logo = os.path.join(DIR, "logo.jpg")
     signature = os.path.join(DIR, "signature.jpg")
-    statutory_name = u"Hana Škodová"
+    statutory_name = u"Martin Šotola"
     statutory_titles = [
-        u"ředitelka z.s. Auto*Mat",
+        u"statutární zástupce z.s. Auto*Mat",
     ]
 
     # different wording based on user's sex
@@ -42,7 +42,7 @@ def makepdf(outfile, name, sex, street, city, year, amount):
     """
 
     footer1 = u"Auto*Mat, z.s.  – iniciativa pro lepší kvalitu života ve městě"
-    footer2 = u"Kancelář: Bořivojova 108, 130 00 Praha 3 | M: kp@auto-mat.cz | T: 212 240 666 | W: www.auto-mat.cz"
+    footer2 = u"Kancelář: Vodičková 36, 110 00 Praha 1 | M: kp@auto-mat.cz | T: 212 240 666 | W: www.auto-mat.cz"
     # footer3 = u"Sídlo: Lublaňská 18, 120 00 Praha 2 | IČ: 226 703 19 | Účet vedený u ČSOB v Praze 1: 217 359 444 / 0300"
 
     # END OF CONFIGURATION
@@ -74,6 +74,8 @@ def makepdf(outfile, name, sex, street, city, year, amount):
     Story.append(im)
     Story.append(Spacer(1, 30))
 
+    Story.append(Paragraph(u"Potvrzení o přijetí daru", styles["Heading1"]))
+    Story.append(Spacer(1, 36))
     Story.append(Paragraph(name, styles["Indented"]))
     Story.append(Spacer(1, 6))
     Story.append(Paragraph(street, styles["Indented"]))
@@ -81,8 +83,6 @@ def makepdf(outfile, name, sex, street, city, year, amount):
     Story.append(Paragraph(city, styles["Indented"]))
     Story.append(Spacer(1, 48))
 
-    Story.append(Paragraph(u"Potvrzení o přijetí daru", styles["Heading1"]))
-    Story.append(Spacer(1, 36))
 
     d = datetime.now()
     datestr = "%d. %d. %d" % (d.day, d.month, d.year)
@@ -102,7 +102,7 @@ def makepdf(outfile, name, sex, street, city, year, amount):
     def firstPageGraphics(canvas, doc):
         canvas.saveState()
 
-        im = Image(signature, 5.8 * cm, 3.05 * cm)
+        im = Image(signature, 11.0 * cm, 6.1 * cm)
         im.drawOn(canvas, 100, 100)
         canvas.setLineWidth(.3)
         canvas.line(45, 80, 550, 80)
