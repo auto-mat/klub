@@ -74,8 +74,14 @@ def admin_links(args_generator):
 
 # -- INLINE FORMS --
 class PaymentsInline(admin.TabularInline):
+    readonly_fields = ('account_statement',)
     model = Payment
     extra = 5
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        qs = qs.select_related('account_statement')
+        return qs
 
 
 class PaymentsInlineNoExtra(PaymentsInline):
