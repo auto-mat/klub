@@ -148,7 +148,7 @@ def show_payments_by_year(self, request, queryset):
 show_payments_by_year.short_description = _("Show payments by year")
 
 
-def send_mass_communication(self, request, queryset, distinct=False):
+def send_mass_communication_action(self, request, queryset, distinct=False):
     """Mass communication action
 
     Determine the list of user ids from the associated
@@ -167,14 +167,14 @@ def send_mass_communication(self, request, queryset, distinct=False):
     return HttpResponseRedirect(redirect_url)
 
 
-send_mass_communication.short_description = _("Send mass communication")
+send_mass_communication_action.short_description = _("Send mass communication")
 
 
-def send_mass_communication_distinct(self, req, queryset, distinct=False):
-    return send_mass_communication(self, req, queryset, True)
+def send_mass_communication_distinct_action(self, req, queryset, distinct=False):
+    return send_mass_communication_action(self, req, queryset, True)
 
 
-send_mass_communication_distinct.short_description = _("Send mass communication withoud duplicities")
+send_mass_communication_distinct_action.short_description = _("Send mass communication withoud duplicities")
 
 
 class UserProfileResource(ModelResource):
@@ -311,7 +311,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         return original_fields + self.profile_fieldsets
 
     readonly_fields = ('userattendance_links',)
-    actions = (send_mass_communication_distinct,)
+    actions = (send_mass_communication_distinct_action,)
 
 
 class UserInCampaignResource(ModelResource):
@@ -427,8 +427,8 @@ class UserInCampaignAdmin(ImportExportMixin, AdminAdvancedFiltersMixin, RelatedF
     ]
     ordering = ('userprofile__last_name',)
     actions = (
-        send_mass_communication,
-        send_mass_communication_distinct,
+        send_mass_communication_action,
+        send_mass_communication_distinct_action,
         show_payments_by_year,
     )
     resource_class = UserInCampaignResource

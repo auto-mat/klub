@@ -4,6 +4,7 @@ from django.core.management import call_command
 
 from . import darujme
 from .autocom import check
+from .mailing import send_communication_sync
 
 
 @task()
@@ -19,3 +20,9 @@ def check_darujme():
 @task()
 def post_office_send_mail():
     call_command('send_queued_mail', processes=1)
+
+
+@task()
+def send_mass_communication_task(mass_communication_id, userincampaign_id, sending_user_id, save):
+    print("sending to %s" % userincampaign_id)
+    send_communication_sync(mass_communication_id, userincampaign_id, sending_user_id, save)
