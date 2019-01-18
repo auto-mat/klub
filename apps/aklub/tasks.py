@@ -23,6 +23,6 @@ def post_office_send_mail():
 
 
 @task()
-def send_mass_communication_task(mass_communication_id, userincampaign_id, sending_user_id, save):
+def send_communication_task(mass_communication_id, communication_type, userincampaign_id, sending_user_id, save):
     print("sending to %s" % userincampaign_id)
-    send_communication_sync(mass_communication_id, userincampaign_id, sending_user_id, save)
+    send_communication_sync(mass_communication_id, communication_type, userincampaign_id, sending_user_id, save)

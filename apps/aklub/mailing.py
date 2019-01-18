@@ -23,7 +23,7 @@ from django.contrib import messages
 from django.utils.translation import ugettext as _
 
 from . import autocom
-from .models import Communication, MassCommunication, Payment, TaxConfirmation, UserInCampaign, UserProfile
+from .models import AutomaticCommunication, Communication, MassCommunication, Payment, TaxConfirmation, UserInCampaign, UserProfile
 """Mailing"""
 
 
@@ -47,24 +47,31 @@ def get_template_subject_for_language(obj, language):
         return obj.template_en, obj.subject_en
 
 
-def send_mass_communication(mass_communication, users, sending_user, request, save=True):
-    from .tasks import send_mass_communication_task
+def send_mass_communication(communication, users, sending_user, request, save=True):
+    from .tasks import send_communication_task
     for userincampaign in users:
         if userincampaign == 'fake_user':
             userincampaign_id = 'fake_user'
         else:
             userincampaign_id = userincampaign.id
-        send_mass_communication_task.apply_async(args=(mass_communication.id, userincampaign_id, sending_user.id, save))
+        if isinstance(communication, AutomaticCommunication):
+            communication_type = 'automatic'
+        else:
+            communication_type = 'mass'
+        send_communication_task.apply_async(args=(communication.id, communication_type, userincampaign_id, sending_user.id, save))
     messages.add_message(request, messages.INFO, _("Communication sending was queued for %s users") % len(users))
 
 
-def send_communication_sync(mass_communication_id, userincampaign_id, sending_user_id, save=True):
+def send_communication_sync(communication_id, communication_type, userincampaign_id, sending_user_id, save=True):
     sending_user = UserProfile.objects.get(id=sending_user_id)
     if userincampaign_id == "fake_user":
         userincampaign = create_fake_userincampaign(sending_user)
     else:
         userincampaign = UserInCampaign.objects.get(id=userincampaign_id)
-    mass_communication = MassCommunication.objects.get(id=mass_communication_id)
+    if communication_type == 'mass':
+        mass_communication = MassCommunication.objects.get(id=communication_id)
+    else:
+        mass_communication = AutomaticCommunication.objects.get(id=communication_id)
 
     template, subject = get_template_subject_for_language(mass_communication, userincampaign.userprofile.language)
     if userincampaign.userprofile.is_active and subject and subject.strip() != '':
@@ -73,7 +80,7 @@ def send_communication_sync(mass_communication_id, userincampaign_id, sending_us
         if hasattr(mass_communication, "attach_tax_confirmation") and not mass_communication.attach_tax_confirmation:
             attachment = copy.copy(mass_communication.attachment)
         else:
-            tax_confirmations = TaxConfirmation.mass_communicationects.filter(
+            tax_confirmations = TaxConfirmation.objects.filter(
                 user_profile=userincampaign.userprofile,
                 year=datetime.datetime.now().year - 1,
             )
