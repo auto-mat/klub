@@ -20,7 +20,7 @@ import copy
 import datetime
 
 from aklub import autocom
-from aklub.models import Communication, Payment, TaxConfirmation, UserInCampaign
+from aklub.models import Communication, Payment, TaxConfirmationPdf, UserInCampaign
 
 from django.contrib import messages
 from django.utils.translation import ugettext as _
@@ -65,12 +65,12 @@ def send_mass_communication(obj, users, sending_user, request, save=True):
             if hasattr(obj, "attach_tax_confirmation") and not obj.attach_tax_confirmation:
                 attachment = copy.copy(obj.attachment)
             else:
-                tax_confirmations = TaxConfirmation.objects.filter(
-                    user_profile=userincampaign.userprofile,
-                    year=datetime.datetime.now().year - 1,
+                tax_confirmations = TaxConfirmationPdf.objects.filter(
+                    obj__user_profile=userincampaign.userprofile,
+                    obj__year=datetime.datetime.now().year - 1,
                 )
                 if len(tax_confirmations) > 0:
-                    attachment = copy.copy(tax_confirmations[0].file)
+                    attachment = copy.copy(tax_confirmations[0].pdf)
                 else:
                     attachment = None
             c = Communication(

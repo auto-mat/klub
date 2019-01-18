@@ -65,6 +65,8 @@ djangorestframework = "*"
 django-model-utils = "*"
 django_celery_beat = "*"
 email_reply_parser = "*"
+django-smmapdfs = "*"
+flower = "*"
 
 [dev-packages]
 coverage = "*"
