@@ -118,6 +118,7 @@ class CommunicationInline(admin.TabularInline):
     def get_queryset(self, request):
         qs = super(CommunicationInline, self).get_queryset(request)
         qs = qs.filter(type__in=('individual', 'auto')).order_by('-date')
+        qs = qs.select_related('created_by', 'handled_by')
         return qs
 
 
