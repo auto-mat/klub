@@ -83,7 +83,7 @@ class AdminTest(TestCase):
         model_admin = django_admin.site._registry[UserInCampaign]
         request = self.post_request({})
         queryset = UserInCampaign.objects.all()
-        response = admin.send_mass_communication(model_admin, request, queryset)
+        response = admin.send_mass_communication_action(model_admin, request, queryset)
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/aklub/masscommunication/add/?send_to_users=3%2C4%2C2978%2C2979")
 
@@ -100,7 +100,7 @@ class AdminTest(TestCase):
         model_admin = django_admin.site._registry[UserInCampaign]
         request = self.post_request({})
         queryset = UserProfile.objects.all()
-        response = admin.send_mass_communication_distinct(model_admin, request, queryset)
+        response = admin.send_mass_communication_distinct_action(model_admin, request, queryset)
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/aklub/masscommunication/add/?send_to_users=3%2C2978%2C2979")
 
@@ -173,7 +173,7 @@ class AdminTest(TestCase):
             self.assertEqual(request._messages._queued_messages[0].message, 'Skipped payments: Testing User 1 (test.user1@email.cz)')
             self.assertEqual(
                 request._messages._queued_messages[1].message,
-                'Položka typu Výpis z účtu "<a href="/aklub/accountstatements/%(id)s/change/">%(id)s (2015-05-01 00:00:00)</a>"'
+                'Položka typu Výpis z účtu "<a href="/aklub/accountstatements/%(id)s/change/">%(id)s (2015-05-01 00:00:00+00:00)</a>"'
                 ' byla úspěšně přidána.' % {'id': obj.id},
             )
 
@@ -208,7 +208,7 @@ class AdminTest(TestCase):
             )
             self.assertEqual(
                 request._messages._queued_messages[1].message,
-                'Položka typu Výpis z účtu "<a href="/aklub/accountstatements/%(id)s/change/">%(id)s (2015-05-01 00:00:00)</a>"'
+                'Položka typu Výpis z účtu "<a href="/aklub/accountstatements/%(id)s/change/">%(id)s (2015-05-01 00:00:00+00:00)</a>"'
                 ' byla úspěšně přidána.' % {'id': obj.id},
             )
 
@@ -236,20 +236,18 @@ class AdminTest(TestCase):
         obj = MassCommunication.objects.get(name="test communication")
         self.assertEqual(obj.subject, "Subject")
         self.assertEqual(response.url, "/aklub/masscommunication/%s/change/" % obj.id)
-        self.assertEqual(
-            request._messages._queued_messages[1].message,
-            'Emaily odeslány na následující adresy: foo@email.com, bar@email.com',
-        )
+        print(request._messages._queued_messages[1].message)
+        print(request._messages._queued_messages[0].message)
         self.assertEqual(
             request._messages._queued_messages[0].message,
-            'Odeslání na následující adresy nebylo možné kvůli problémům: baz@email.com',
+            "Communication sending was queued for 3 users",
         )
         if django.VERSION < (2, 1):
             edit_text = 'Níže ji můžete dále upravovat.'
         else:
             edit_text = 'Níže můžete údaje znovu upravovat.'
         self.assertEqual(
-            request._messages._queued_messages[2].message,
+            request._messages._queued_messages[1].message,
             'Položka typu Hromadná komunikace "<a href="/aklub/masscommunication/%s/change/">test communication</a>"'
             ' byla úspěšně přidána. %s' % (obj.id, edit_text),
         )
@@ -395,7 +393,7 @@ class AdminImportExportTests(TestCase):
         response = self.client.post(address, post_data)
         self.assertContains(
             response,
-            ',Test,User,,male,,test.user@email.cz,,Praha 4,,120127010,0,1,regular,monthly,2015-12-16 18:22:30,'
+            ',Test,User,,male,,test.user@email.cz,,Praha 4,,120127010,0,1,regular,monthly,2015-12-16 17:22:30,'
             '"Domníváte se, že má město po zprovoznění tunelu Blanka omezit tranzit historickým centrem? '
             'Ano, hned se zprovozněním tunelu",editor,1,cs,,,,0,0.0,100',
         )
