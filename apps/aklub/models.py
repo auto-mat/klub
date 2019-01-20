@@ -30,9 +30,7 @@ from denorm import denormalized, depend_on_related
 from django.contrib.admin.templatetags.admin_list import _boolean_icon
 from django.contrib.auth.models import AbstractUser, User
 from django.contrib.humanize.templatetags.humanize import intcomma
-from django.core.files import File
 from django.core.files.storage import FileSystemStorage
-from django.core.files.temp import NamedTemporaryFile
 from django.core.mail import EmailMultiAlternatives
 try:
     from django.urls import reverse
@@ -49,8 +47,8 @@ from django.utils.translation import ugettext_lazy as _
 
 import html2text
 
+from smmapdfs.model_abcs import PdfSandwichABC, PdfSandwichFieldABC
 from smmapdfs.models import PdfSandwichType
-from smmapdfs.model_abcs import  PdfSandwichABC, PdfSandwichFieldABC
 
 import stdimage
 
@@ -2160,9 +2158,6 @@ class OverwriteStorage(FileSystemStorage):
         return name
 
 
-def confirmation_upload_to(instance, filename):
-        return "confirmations/%s_%s.pdf" % (instance.user_profile.id, instance.year)
-
 class TaxConfirmationField(PdfSandwichFieldABC):
         fields = {
          "year": (lambda tc: str(tc.year)),
@@ -2170,7 +2165,7 @@ class TaxConfirmationField(PdfSandwichFieldABC):
          "name": (lambda tc: tc.get_name()),
          "street": (lambda tc: tc.get_street()),
          "addr_city": (lambda tc: tc.get_addr_city()),
-         "date": (lambda tc: atetime.date.today().strftime("%d.%m.%Y")),
+         "date": (lambda tc: datetime.date.today().strftime("%d.%m.%Y")),
         }
 
 
@@ -2193,7 +2188,7 @@ class TaxConfirmation(models.Model):
         )
         year = models.PositiveIntegerField()
         amount = models.PositiveIntegerField(default=0)
-        file = models.FileField(upload_to=confirmation_upload_to, storage=OverwriteStorage())  # DEPRICATED!
+        file = models.FileField(storage=OverwriteStorage())  # DEPRICATED!
 
         def get_name(self):
             return u"%s %s" % (self.user_profile.first_name, self.user_profile.last_name)
@@ -2205,6 +2200,7 @@ class TaxConfirmation(models.Model):
             return u"%s %s" % (self.user_profile.zip_code, self.user_profile.city)
 
         sandwich_model = TaxConfirmationPdf
+
         def get_sandwich_type(self):
             return PdfSandwichType.objects.get(name="Tax confirmation")
 

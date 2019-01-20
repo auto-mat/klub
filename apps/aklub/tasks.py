@@ -6,8 +6,8 @@ from django.core.management import call_command
 
 import smmapdfs.actions
 
-from . import models
 from . import darujme
+from . import models
 from .autocom import check
 from .mailing import send_communication_sync
 
@@ -26,6 +26,7 @@ def check_darujme():
 def post_office_send_mail():
     call_command('send_queued_mail', processes=1)
 
+
 @task()
 def generate_tax_confirmations():
     year = datetime.datetime.now().year - 1
@@ -36,6 +37,7 @@ def generate_tax_confirmations():
         confirmation, created = d.make_tax_confirmation(year)
         confirmations.append(confirmation)
     smmapdfs.actions.make_pdfsandwich(None, None, confirmations)
+
 
 @task()
 def send_communication_task(mass_communication_id, communication_type, userincampaign_id, sending_user_id, save):

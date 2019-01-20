@@ -55,15 +55,12 @@ from related_admin import RelatedFieldAdmin
 
 from smmapdfs.admin_abcs import PdfSandwichAdmin, PdfSandwichFieldAdmin
 
-from . import tasks
-
-
-from . import darujme, filters, mailing
+from . import darujme, filters, mailing, tasks
 from .models import (
     AccountStatements, AutomaticCommunication, Campaign,
     Communication, Condition, Expense, MassCommunication,
     NewUser, Payment, Recruiter, Result, Source,
-    TaxConfirmation, TaxConfirmationPdf, TaxConfirmationField,
+    TaxConfirmation, TaxConfirmationField, TaxConfirmationPdf,
     TerminalCondition, UserInCampaign, UserProfile,
     UserYearPayments,
 )
@@ -965,8 +962,10 @@ class TaxConfirmationAdmin(ImportExportMixin, RelatedFieldAdmin):
 class TaxConfirmationPdfAdmin(PdfSandwichAdmin):
     pass
 
+
 class TaxConfirmationFieldAdmin(PdfSandwichFieldAdmin):
     pass
+
 
 admin.site.register(UserInCampaign, UserInCampaignAdmin)
 admin.site.register(UserYearPayments, UserYearPaymentsAdmin)
