@@ -10,6 +10,7 @@ from . import models
 from . import darujme
 from . import confirmation
 from .autocom import check
+from .mailing import send_communication_sync
 
 
 @task()
@@ -36,3 +37,8 @@ def generate_tax_confirmations():
         confirmation, created = d.make_tax_confirmation(year)
         confirmations.append(confirmation)
     smmapdfs.actions.make_pdfsandwich(None, None, confirmations)
+
+@task()
+def send_communication_task(mass_communication_id, communication_type, userincampaign_id, sending_user_id, save):
+    print("sending to %s" % userincampaign_id)
+    send_communication_sync(mass_communication_id, communication_type, userincampaign_id, sending_user_id, save)

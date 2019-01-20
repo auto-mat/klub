@@ -48,6 +48,8 @@ LOGGING['handlers']['logfile']['filename'] = "aklub.log"
 
 CORS_ORIGIN_ALLOW_ALL = True
 
+CELERY_ALWAYS_EAGER = True
+
 CSRF_COOKIE_SECURE = False
 SECURE_BROWSER_XSS_FILTER = False
 SECURE_CONTENT_TYPE_NOSNIFF = False
