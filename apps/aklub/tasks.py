@@ -8,7 +8,6 @@ import smmapdfs.actions
 
 from . import models
 from . import darujme
-from . import confirmation
 from .autocom import check
 from .mailing import send_communication_sync
 

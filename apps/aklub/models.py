@@ -56,7 +56,7 @@ import stdimage
 
 from vokativ import vokativ
 
-from . import autocom, confirmation
+from . import autocom
 
 logger = logging.getLogger(__name__)
 
@@ -2170,6 +2170,7 @@ class TaxConfirmationField(PdfSandwichFieldABC):
          "name": (lambda tc: tc.get_name()),
          "street": (lambda tc: tc.get_street()),
          "addr_city": (lambda tc: tc.get_addr_city()),
+         "date": (lambda tc: atetime.date.today().strftime("%d.%m.%Y")),
         }
 
 
