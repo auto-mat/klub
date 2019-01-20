@@ -2180,6 +2180,10 @@ class TaxConfirmationPdf(PdfSandwichABC):
         )
 
 
+def confirmation_upload_to(instance, filename):
+        return "DEPRICATED"
+
+
 class TaxConfirmation(models.Model):
         user_profile = models.ForeignKey(
             UserProfile,
