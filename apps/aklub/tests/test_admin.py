@@ -122,7 +122,6 @@ class AdminTest(TestCase):
             {'year': 2016, 'user_profile': 2979, 'amount': 130},
         ]
         self.assertListEqual(list(confirmation_values), expected_confirmation_values)
-        self.assertEqual(request._messages._queued_messages[0].message, 'Generated 2 tax confirmations')
 
     def test_useryearpayments(self):
         """

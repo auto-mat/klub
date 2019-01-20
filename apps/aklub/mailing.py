@@ -23,7 +23,7 @@ from django.contrib import messages
 from django.utils.translation import ugettext as _
 
 from . import autocom
-from .models import AutomaticCommunication, Communication, MassCommunication, Payment, TaxConfirmation, UserInCampaign, UserProfile
+from .models import AutomaticCommunication, Communication, MassCommunication, Payment, TaxConfirmationPdf, UserInCampaign, UserProfile
 """Mailing"""
 
 
@@ -80,12 +80,12 @@ def send_communication_sync(communication_id, communication_type, userincampaign
         if hasattr(mass_communication, "attach_tax_confirmation") and not mass_communication.attach_tax_confirmation:
             attachment = copy.copy(mass_communication.attachment)
         else:
-            tax_confirmations = TaxConfirmation.objects.filter(
-                user_profile=userincampaign.userprofile,
-                year=datetime.datetime.now().year - 1,
+            tax_confirmations = TaxConfirmationPdf.objects.filter(
+                obj__user_profile=userincampaign.userprofile,
+                obj__year=datetime.datetime.now().year - 1,
             )
             if len(tax_confirmations) > 0:
-                attachment = copy.copy(tax_confirmations[0].file)
+                attachment = copy.copy(tax_confirmations[0].pdf)
             else:
                 attachment = None
         c = Communication(

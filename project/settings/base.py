@@ -209,6 +209,7 @@ INSTALLED_APPS = (
     'helpdesk',
     'django_celery_beat',
     'djcelery_email',
+    'smmapdfs',
 )
 
 BOWER_INSTALLED_APPS = (
@@ -339,3 +340,4 @@ SESSION_COOKIE_SECURE = True
 X_FRAME_OPTIONS = 'DENY'
 
 BROKER_URL = os.environ.get('REDIS_URL', 'redis://redis')
+SMMAPDFS_CELERY = True

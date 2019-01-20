@@ -53,14 +53,16 @@ import large_initial
 
 from related_admin import RelatedFieldAdmin
 
+from smmapdfs.admin_abcs import PdfSandwichAdmin, PdfSandwichFieldAdmin
 
-from . import darujme, filters, mailing
+from . import darujme, filters, mailing, tasks
 from .models import (
     AccountStatements, AutomaticCommunication, Campaign,
     Communication, Condition, Expense, MassCommunication,
     NewUser, Payment, Recruiter, Result, Source,
-    TaxConfirmation, TerminalCondition, UserInCampaign,
-    UserProfile, UserYearPayments,
+    TaxConfirmation, TaxConfirmationField, TaxConfirmationPdf,
+    TerminalCondition, UserInCampaign, UserProfile,
+    UserYearPayments,
 )
 
 
@@ -941,15 +943,7 @@ class TaxConfirmationAdmin(ImportExportMixin, RelatedFieldAdmin):
     list_max_show_all = 10000
 
     def generate(self, request):
-        year = datetime.datetime.now().year - 1
-        payed = Payment.objects.filter(date__year=year).exclude(type='expected')
-        donors = UserProfile.objects.filter(userincampaign__payment__in=payed).order_by('last_name')
-        count = 0
-        for d in donors:
-            confirmation, created = d.make_tax_confirmation(year)
-            if created:
-                count += 1
-        messages.info(request, 'Generated %d tax confirmations' % count)
+        tasks.generate_tax_confirmations()
         return HttpResponseRedirect(reverse('admin:aklub_taxconfirmation_changelist'))
 
     def get_urls(self):
@@ -963,6 +957,14 @@ class TaxConfirmationAdmin(ImportExportMixin, RelatedFieldAdmin):
             ),
         ]
         return my_urls + urls
+
+
+class TaxConfirmationPdfAdmin(PdfSandwichAdmin):
+    pass
+
+
+class TaxConfirmationFieldAdmin(PdfSandwichFieldAdmin):
+    pass
 
 
 admin.site.register(UserInCampaign, UserInCampaignAdmin)
@@ -979,6 +981,8 @@ admin.site.register(Campaign, CampaignAdmin)
 admin.site.register(Result, ResultAdmin)
 admin.site.register(Recruiter, RecruiterAdmin)
 admin.site.register(TaxConfirmation, TaxConfirmationAdmin)
+admin.site.register(TaxConfirmationPdf, TaxConfirmationPdfAdmin)
+admin.site.register(TaxConfirmationField, TaxConfirmationFieldAdmin)
 admin.site.register(Source, SourceAdmin)
 admin.site.register(UserProfile, UserProfileAdmin)
 
