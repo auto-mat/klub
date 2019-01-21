@@ -19,11 +19,11 @@
 import copy
 import datetime
 
-from aklub import autocom
-from aklub.models import Communication, Payment, TaxConfirmation, UserInCampaign
-
 from django.contrib import messages
 from django.utils.translation import ugettext as _
+
+from . import autocom
+from .models import AutomaticCommunication, Communication, MassCommunication, Payment, TaxConfirmation, UserInCampaign, UserProfile
 """Mailing"""
 
 
@@ -47,48 +47,54 @@ def get_template_subject_for_language(obj, language):
         return obj.template_en, obj.subject_en
 
 
-def report_emails(request, message, communications, level=messages.INFO):
-    messages.add_message(request, level, message % ", ".join(communications))
-
-
-def send_mass_communication(obj, users, sending_user, request, save=True):
-    sent_communications = []
-    unsent_communications = []
+def send_mass_communication(communication, users, sending_user, request, save=True):
+    from .tasks import send_communication_task
     for userincampaign in users:
-        if userincampaign == "fake_user":
-            userincampaign = create_fake_userincampaign(sending_user)
-
-        template, subject = get_template_subject_for_language(obj, userincampaign.userprofile.language)
-        if userincampaign.userprofile.is_active and subject and subject.strip() != '':
-            if not subject or subject.strip() == '' or not template or template.strip('') == '':
-                raise Exception("Message template is empty for one of the language variants.")
-            if hasattr(obj, "attach_tax_confirmation") and not obj.attach_tax_confirmation:
-                attachment = copy.copy(obj.attachment)
-            else:
-                tax_confirmations = TaxConfirmation.objects.filter(
-                    user_profile=userincampaign.userprofile,
-                    year=datetime.datetime.now().year - 1,
-                )
-                if len(tax_confirmations) > 0:
-                    attachment = copy.copy(tax_confirmations[0].file)
-                else:
-                    attachment = None
-            c = Communication(
-                user=userincampaign, method=obj.method, date=datetime.datetime.now(),
-                subject=autocom.process_template(subject, userincampaign),
-                summary=autocom.process_template(template, userincampaign),
-                attachment=attachment,
-                note=_("Prepared by auto*mated mass communications at %s") % datetime.datetime.now(),
-                send=True, created_by=sending_user, handled_by=sending_user,
-                type='mass',
-            )
-            c.dispatch(save=save)
-            if not c.dispatched:
-                unsent_communications.append(userincampaign.userprofile.get_email_str())
-            else:
-                sent_communications.append(userincampaign.userprofile.get_email_str())
+        if userincampaign == 'fake_user':
+            userincampaign_id = 'fake_user'
         else:
-            unsent_communications.append(userincampaign.userprofile.get_email_str())
-    if unsent_communications != []:
-        report_emails(request, _("Following emails had errors: %s"), unsent_communications, level=messages.ERROR)
-    report_emails(request, _("Emails sent to following addreses: %s"), sent_communications)
+            userincampaign_id = userincampaign.id
+        if isinstance(communication, AutomaticCommunication):
+            communication_type = 'automatic'
+        else:
+            communication_type = 'mass'
+        send_communication_task.apply_async(args=(communication.id, communication_type, userincampaign_id, sending_user.id, save))
+    messages.add_message(request, messages.INFO, _("Communication sending was queued for %s users") % len(users))
+
+
+def send_communication_sync(communication_id, communication_type, userincampaign_id, sending_user_id, save=True):
+    sending_user = UserProfile.objects.get(id=sending_user_id)
+    if userincampaign_id == "fake_user":
+        userincampaign = create_fake_userincampaign(sending_user)
+    else:
+        userincampaign = UserInCampaign.objects.get(id=userincampaign_id)
+    if communication_type == 'mass':
+        mass_communication = MassCommunication.objects.get(id=communication_id)
+    else:
+        mass_communication = AutomaticCommunication.objects.get(id=communication_id)
+
+    template, subject = get_template_subject_for_language(mass_communication, userincampaign.userprofile.language)
+    if userincampaign.userprofile.is_active and subject and subject.strip() != '':
+        if not subject or subject.strip() == '' or not template or template.strip('') == '':
+            raise Exception("Message template is empty for one of the language variants.")
+        if hasattr(mass_communication, "attach_tax_confirmation") and not mass_communication.attach_tax_confirmation:
+            attachment = copy.copy(mass_communication.attachment)
+        else:
+            tax_confirmations = TaxConfirmation.objects.filter(
+                user_profile=userincampaign.userprofile,
+                year=datetime.datetime.now().year - 1,
+            )
+            if len(tax_confirmations) > 0:
+                attachment = copy.copy(tax_confirmations[0].file)
+            else:
+                attachment = None
+        c = Communication(
+            user=userincampaign, method=mass_communication.method, date=datetime.datetime.now(),
+            subject=autocom.process_template(subject, userincampaign),
+            summary=autocom.process_template(template, userincampaign),
+            attachment=attachment,
+            note=_("Prepared by auto*mated mass communications at %s") % datetime.datetime.now(),
+            send=True, created_by=sending_user, handled_by=sending_user,
+            type='mass',
+        )
+        c.dispatch(save=save)
