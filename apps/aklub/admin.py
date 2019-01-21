@@ -945,7 +945,7 @@ class TaxConfirmationAdmin(ImportExportMixin, RelatedFieldAdmin):
     list_max_show_all = 10000
 
     def generate(self, request):
-        tasks.generate_tax_confirmations()
+        tasks.generate_tax_confirmations.apply_async()
         return HttpResponseRedirect(reverse('admin:aklub_taxconfirmation_changelist'))
 
     def get_urls(self):
