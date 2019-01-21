@@ -59,11 +59,12 @@ from django_grapesjs.admin import GrapesJsAdminMixin
 
 from . import darujme, filters, mailing
 from .models import (
-    AccountStatements, AutomaticCommunication, Campaign,
-    Communication, Condition, Expense, MassCommunication,
+    AccountStatements, AutomaticCommunication, Event,
+    Interaction, Condition, Expense, MassCommunication,
     NewUser, Payment, Recruiter, Result, Source,
     TaxConfirmation, TerminalCondition, UserInCampaign,
-    UserProfile, UserYearPayments, Telephone
+    UserProfile, UserYearPayments, Telephone, DonorPaymentChannel,
+    BankAccount
 )
 
 
@@ -79,6 +80,26 @@ def admin_links(args_generator):
 class PaymentsInline(admin.TabularInline):
     model = Payment
     extra = 5
+
+class DonorPaymentChannelInline(admin.StackedInline):
+    model = DonorPaymentChannel
+    extra = 1
+
+    fieldsets = (
+        (_('Basic'), {
+            'fields': [
+                ('VS', 'payment', 'regular_frequency', 'regular_amount'),
+                ('expected_date_of_first_payment', 'registered_support'),
+            ],
+        }),
+        (_('Others'), {
+            'fields': [
+                ('exceptional_membership', 'regular_payments'),
+                ('other_support'),
+                ('bank_account')
+            ],
+        }),
+    )
 
 
 class PaymentsInlineNoExtra(PaymentsInline):
@@ -114,7 +135,7 @@ class PaymentsInlineNoExtra(PaymentsInline):
 
 
 class CommunicationInline(admin.TabularInline):
-    model = Communication
+    model = Interaction
     extra = 1
     readonly_fields = ('type', 'created_by', 'handled_by')
 
@@ -204,6 +225,8 @@ class TelephoneInline(admin.StackedInline):
     can_delete = True
     show_change_link = True
 
+class BankAccountAdmin(admin.ModelAdmin):
+    model = BankAccount
 
 class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFiltersMixin, UserAdmin):
     resource_class = UserProfileResource
@@ -342,7 +365,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
 
     readonly_fields = ('userattendance_links', 'date_joined', 'last_login',)
     actions = (send_mass_communication_distinct,)
-    inlines = [TelephoneInline, ]
+    inlines = [TelephoneInline, DonorPaymentChannelInline]
 
 
 class UserInCampaignResource(ModelResource):
@@ -466,7 +489,7 @@ class UserInCampaignAdmin(ImportExportMixin, AdminAdvancedFiltersMixin, RelatedF
     save_as = True
     list_max_show_all = 10000
     list_per_page = 100
-    inlines = [PaymentsInline, CommunicationInline]
+    #inlines = [PaymentsInline, CommunicationInline]
     raw_id_fields = ('userprofile', 'recruiter',)
     readonly_fields = ('verified_by', 'userprofile_telephone_url', 'userprofile_note')
     fieldsets = [
@@ -528,7 +551,7 @@ class UserInCampaignAdmin(ImportExportMixin, AdminAdvancedFiltersMixin, RelatedF
         # the same as we do in CommunicationAdmin.save_model().
         # Unfortunatelly, save_model() doesn't work on CommunicationInline
         # so we need to workaround it using save_formset here.
-        if not issubclass(formset.model, Communication):
+        if not issubclass(formset.model, Interaction):
             return super().save_formset(request, form, formset, change)
         instances = formset.save(commit=False)
         for instance in instances:
@@ -674,8 +697,9 @@ class CommunicationAdmin(RelatedFieldAdmin, admin.ModelAdmin):
         'subject',
         'dispatched',
         'user',
-        'user__campaign',
-        'user__userprofile__telephone_url',
+        'event',
+        #'user__campaign',
+        #'user__userprofile__telephone_url',
         'user__next_communication_date',
         'method',
         'result',
@@ -686,9 +710,10 @@ class CommunicationAdmin(RelatedFieldAdmin, admin.ModelAdmin):
         'user__extra_payments',
         'date', 'type',
     )
-    raw_id_fields = ('user', )
+    #raw_id_fields = ('user', )
     readonly_fields = ('type', 'created_by', 'handled_by', )
-    list_filter = ['dispatched', 'send', 'date', 'method', 'type', 'user__campaign']
+    list_filter = ['dispatched', 'send', 'date', 'method', 'type', #'user__campaign'
+    ]
     search_fields = (
         'subject',
         'user__userprofile__telephone',
@@ -701,7 +726,9 @@ class CommunicationAdmin(RelatedFieldAdmin, admin.ModelAdmin):
 
     fieldsets = [
         (_("Header"), {
-            'fields': [('user', 'method', 'date')],
+            'fields': [('user', 'event', 'method'),
+            ('date')
+            ],
         }),
         (_("Content"), {
             'fields': [
@@ -996,23 +1023,26 @@ class TaxConfirmationAdmin(ImportExportMixin, RelatedFieldAdmin):
         ]
         return my_urls + urls
 
+class DonorPaymentChannelAdmin(admin.ModelAdmin):
+    model = DonorPaymentChannel
 
 admin.site.register(UserInCampaign, UserInCampaignAdmin)
 admin.site.register(UserYearPayments, UserYearPaymentsAdmin)
 admin.site.register(NewUser, NewUserAdmin)
-admin.site.register(Communication, CommunicationAdmin)
+admin.site.register(Interaction, CommunicationAdmin)
 admin.site.register(Payment, PaymentAdmin)
 admin.site.register(AccountStatements, AccountStatementsAdmin)
 admin.site.register(AutomaticCommunication, AutomaticCommunicationAdmin)
 admin.site.register(MassCommunication, MassCommunicationAdmin)
 admin.site.register(Condition, ConditionAdmin)
 admin.site.register(TerminalCondition, TerminalConditionAdmin)
-admin.site.register(Campaign, CampaignAdmin)
+admin.site.register(Event, CampaignAdmin)
 admin.site.register(Result, ResultAdmin)
 admin.site.register(Recruiter, RecruiterAdmin)
 admin.site.register(TaxConfirmation, TaxConfirmationAdmin)
 admin.site.register(Source, SourceAdmin)
 admin.site.register(UserProfile, UserProfileAdmin)
-
+admin.site.register(BankAccount, BankAccountAdmin)
+admin.site.register(DonorPaymentChannel, DonorPaymentChannelAdmin)
 # register all adminactions
 actions.add_to_site(site)

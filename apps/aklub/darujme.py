@@ -7,7 +7,7 @@ import xml
 from collections import OrderedDict
 from xml.dom import minidom
 
-from aklub.models import AccountStatements, Campaign, Payment, UserInCampaign, UserProfile, str_to_datetime, str_to_datetime_xml
+from aklub.models import AccountStatements, Event, Payment, UserInCampaign, UserProfile, str_to_datetime, str_to_datetime_xml
 from aklub.views import generate_variable_symbol, get_unique_username
 
 import xlrd

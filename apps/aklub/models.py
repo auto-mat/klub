@@ -93,14 +93,14 @@ class Result(models.Model):
         return str(self.name)
 
 
-class Campaign(models.Model):
+class Event(models.Model):
     """Campaign -- abstract event with description
 
     These events can be associated to a user."""
 
     class Meta:
-        verbose_name = _("Campaign")
-        verbose_name_plural = _("Campaigns")
+        verbose_name = _("Event")
+        verbose_name_plural = _("Events")
 
     created = models.DateField(
         verbose_name=_("Created"),
@@ -190,6 +190,12 @@ class Campaign(models.Model):
         null=True,
     )
 
+    donor_payment_channel = models.ManyToManyField(
+        'aklub.DonorPaymentChannel',
+        related_name="donorpaymentchannels",
+        blank = True
+    )
+
     def number_of_members(self):
         return self.userincampaign_set.count()
     number_of_members.short_description = _("number of members")
@@ -277,7 +283,7 @@ class Expense(models.Model):
         blank=True,
     )
     campaign = models.ForeignKey(
-        Campaign,
+        Event,
         verbose_name=_("campaign"),
         related_name='expenses',
         on_delete=models.CASCADE,
@@ -344,7 +350,7 @@ class Recruiter(models.Model):
         blank=False,
     )
     campaigns = models.ManyToManyField(
-        Campaign,
+        Event,
         help_text=_("Associated campaigns"),
         blank=True,
         editable=True,
@@ -411,7 +417,7 @@ class UserProfile(AbstractUser):
         null=True,
     )
     campaigns = models.ManyToManyField(
-        Campaign,
+        Event,
         help_text=_("Associated campaigns"),
         blank=True,
         editable=True,
@@ -543,7 +549,6 @@ class UserProfile(AbstractUser):
         blank=True,
         choices=[(i, i) for i in range(datetime.date.today().year, datetime.date.today().year - 100, -1)],
     )
-
 
     def get_last_name_vokativ(self):
         return vokativ(self.last_name.strip(), last_name=True).title()
@@ -702,7 +707,7 @@ class UserInCampaign(models.Model):
         null=False,
     )
     campaign = models.ForeignKey(
-        Campaign,
+        Event,
         help_text=_("Campaign"),
         default=None,
         blank=False,
@@ -1309,6 +1314,128 @@ class AccountStatements(models.Model):
     def __str__(self):
         return "%s (%s)" % (self.pk, self.import_date)
 
+class BankAccount(models.Model):
+    class Meta:
+        verbose_name = _("Bank account")
+        verbose_name_plural = _("Bank accounts")
+
+    bank_account = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+    )
+
+
+class DonorPaymentChannel(models.Model):
+    class Meta:
+        verbose_name = _("Donor payment channel")
+        verbose_name_plural = _("Donor payment channels")
+        unique_together = ('VS', 'bank_account')
+
+    VS = models.CharField(
+        verbose_name=_("VS"),
+        help_text=_("Variable symbol"),
+        max_length=30,
+        blank=True,
+        null=True,
+    )
+
+    payment = models.ForeignKey(
+        'aklub.Payment',
+        on_delete=models.SET_NULL,
+        related_name="payments",
+        null = True,
+        blank = True
+    )
+
+    user = models.ForeignKey(
+        'aklub.UserProfile',
+        on_delete=models.SET_NULL,
+        related_name="userchannels",
+        null = True,
+        blank = True
+    )
+
+    registered_support = models.DateTimeField(
+        verbose_name=_("Registered support"),
+        help_text=_("When did this user register to support us"),
+        default=timezone.now,
+        blank=True,
+    )
+
+    REGULAR_PAYMENT_FREQUENCIES = (
+        ('monthly', _('Monthly')),
+        ('quaterly', _('Quaterly')),
+        ('biannually', _('Bianually')),
+        ('annually', _('Anually')),
+        (None, _('Onetime')),
+    )
+    REGULAR_PAYMENT_FREQUENCIES_MAP = dict(REGULAR_PAYMENT_FREQUENCIES)
+    REGULAR_PAYMENT_CHOICES = (
+        ('regular', _('Regular payments')),
+        ('onetime', _('No regular payments')),
+        ('promise', _('Promise of regular payments')),
+    )
+    REGULAR_PAYMENT_CHOICES_MAP = dict(REGULAR_PAYMENT_CHOICES)
+
+    regular_frequency = models.CharField(
+        verbose_name=_("Frequency of regular payments"),
+        choices=REGULAR_PAYMENT_FREQUENCIES,
+        max_length=20,
+        blank=True,
+        null=True,
+    )
+
+    expected_date_of_first_payment = models.DateField(
+        verbose_name=_("Expected date of first payment"),
+        help_text=("When should the first payment arrive on our account"),
+        blank=True,
+        null=True,
+    )
+
+    regular_amount = models.PositiveIntegerField(
+        verbose_name=_("Regularly (amount)"),
+        help_text=_(u"Minimum yearly payment is 1800 Kč"),
+        blank=True,
+        null=True,
+    )
+
+    exceptional_membership = models.BooleanField(
+        verbose_name=_("Exceptional membership"),
+        help_text=_("In special cases, people can become members of "
+                    "the club even if they do not pay any money. This should "
+                    "be justified in the note."),
+        default=False,
+    )
+
+    regular_payments = models.CharField(
+        verbose_name=_("Regular payments"),
+        help_text=_("Is this user registered for regular payments?"),
+        max_length=20,
+        choices=REGULAR_PAYMENT_CHOICES,
+        default = 'regular'
+    )
+
+    old_account = models.BooleanField(
+        verbose_name=_("Old account"),
+        help_text=_("User has old account"),
+        default=False,
+    )
+
+    other_support = models.TextField(
+        verbose_name=_("Other support"),
+        help_text=_(
+            "If the user supports us in other ways, please specify here."),
+        max_length=500,
+        blank=True,
+    )
+
+    bank_account = models.ForeignKey(
+        BankAccount,
+        related_name = 'bankaccounts',
+        on_delete=models.CASCADE,
+        default = None
+    )
 
 class Payment(models.Model):
     """Payment model and DB table
@@ -1528,8 +1655,8 @@ COMMUNICATION_TYPE = (
 )
 
 
-class Communication(models.Model):
-    """Communication entry and DB Model
+class Interaction(models.Model):
+    """Interaction entry and DB Model
 
     A communication is one action in the dialog between the club
     administration and the user. Communication can have various forms,
@@ -1539,15 +1666,24 @@ class Communication(models.Model):
     """
 
     class Meta:
-        verbose_name = _("Communication")
-        verbose_name_plural = _("Communications")
+        verbose_name = _("Interaction")
+        verbose_name_plural = _("Interactions")
         ordering = ['date']
 
     user = models.ForeignKey(
-        UserInCampaign,
+        UserProfile,
         on_delete=models.CASCADE,
         related_name="communications",
     )
+
+    event = models.ForeignKey(
+        Event,
+        on_delete=models.SET_NULL,
+        related_name = "events",
+        null = True,
+        blank = True
+    )
+
     method = models.CharField(
         verbose_name=_("Method"),
         max_length=30,

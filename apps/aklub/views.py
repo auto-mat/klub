@@ -48,7 +48,7 @@ from extra_views import InlineFormSet, UpdateWithInlinesView
 from sesame.backends import ModelBackend
 
 from . import autocom
-from .models import Campaign, Payment, Source, UserInCampaign, UserProfile
+from .models import Event, Payment, Source, UserInCampaign, UserProfile
 
 
 class RegularUserForm_UserProfile(forms.ModelForm):
@@ -99,7 +99,7 @@ class RegularUserForm_UserProfile(forms.ModelForm):
 
 class CampaignMixin(forms.ModelForm):
     campaign = forms.ModelChoiceField(
-        queryset=Campaign.objects.filter(slug__isnull=False, enable_registration=True).exclude(slug=""),
+        queryset=Event.objects.filter(slug__isnull=False, enable_registration=True).exclude(slug=""),
         to_field_name="slug",
     )
 

@@ -20,7 +20,7 @@ import copy
 import datetime
 
 from aklub import autocom
-from aklub.models import Communication, Payment, TaxConfirmation, UserInCampaign
+from aklub.models import Interaction, Payment, TaxConfirmation, UserInCampaign
 
 from django.contrib import messages
 from django.utils.translation import ugettext as _
