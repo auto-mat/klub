@@ -53,6 +53,7 @@ import large_initial
 
 from related_admin import RelatedFieldAdmin
 
+from smmapdfs.actions import make_pdfsandwich
 from smmapdfs.admin_abcs import PdfSandwichAdmin, PdfSandwichFieldAdmin
 
 from . import darujme, filters, mailing, tasks
@@ -940,6 +941,7 @@ class TaxConfirmationAdmin(ImportExportMixin, RelatedFieldAdmin):
     list_filter = ['year']
     search_fields = ('user_profile__last_name', 'user_profile__first_name', 'user_profile__userincampaign__variable_symbol',)
     raw_id_fields = ('user_profile',)
+    actions = (make_pdfsandwich,)
     list_max_show_all = 10000
 
     def generate(self, request):
