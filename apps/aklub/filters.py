@@ -132,7 +132,6 @@ class RegularPaymentsFilter(SimpleListFilter):
         return queryset
 
 
-
 class TelephoneFilter(SimpleListFilter):
     title = _("Telephone")
     parameter_name = 'telephone'
@@ -146,7 +145,7 @@ class TelephoneFilter(SimpleListFilter):
 
     def queryset(self, request, queryset):
         if self.value() == 'duplicate':
-            duplicates = Telephone.objects.filter(telephone__isnull=False).\
+            duplicates = UserProfile.objects.filter(telephone__isnull=False).\
                 exclude(telephone__exact='').\
                 values('telephone').\
                 annotate(Count('id')).\

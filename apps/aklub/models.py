@@ -434,7 +434,6 @@ class UserProfile(AbstractUser):
         verbose_name=_("Gender"),
         choices=GENDER,
         max_length=50,
-        default='unknown',
     )
     addressment = models.CharField(
         verbose_name=_("Addressment in letter"),
@@ -508,7 +507,6 @@ class UserProfile(AbstractUser):
         blank=True,
         null=True,
     )
-
     # Benefits
     club_card_available = models.BooleanField(
         verbose_name=_("Club card available"),
@@ -670,42 +668,6 @@ class Telephone(models.Model):
         return u"%s" %(self.telephone)
 
 
-class Telephone(models.Model):
-    telephone = models.CharField(
-       max_length=100,
-       blank=True,
-       validators=[
-           RegexValidator(r'^\+?(42(0|1){1})?\s?\d{3}\s?\d{3}\s?\d{3}$',
-                    _("Telephone must consist of numbers, spaces and + sign or maximum number count is higher.")),
-       ],
-    )
-    is_primary = models.BooleanField(
-       verbose_name=_("Primary phone"),
-       blank=True,
-       default=False,
-    )
-    user = models.ForeignKey(
-       UserProfile,
-       blank=True,
-       null=True,
-       on_delete=models.SET_NULL,
-    )
-
-    class Meta:
-        verbose_name = _("Telephone")
-        verbose_name_plural = _("Telephones")
-
-    def __str__(self):
-        return u"%s" % self.telephone
-
-    def create_link(self):
-        if self.is_primary==True:
-            return format_html("<b><a href='sip:{}'>{}</a></b>", self.telephone, self.telephone,)
-        else:
-            return format_html("<a href='sip:{}'>{}</a>", self.telephone, self.telephone,)
-
-
-
 class UserInCampaign(models.Model):
     """
     User instance in a campaign
@@ -729,7 +691,6 @@ class UserInCampaign(models.Model):
         (None, _('Onetime')),
     )
     REGULAR_PAYMENT_FREQUENCIES_MAP = dict(REGULAR_PAYMENT_FREQUENCIES)
-    REGULAR_PAYMENT_FREQUENCIES_MAP[''] = REGULAR_PAYMENT_FREQUENCIES_MAP[None]
     REGULAR_PAYMENT_CHOICES = (
         ('regular', _('Regular payments')),
         ('onetime', _('No regular payments')),
