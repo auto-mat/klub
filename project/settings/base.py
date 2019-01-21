@@ -10,6 +10,7 @@ def normpath(*args):
 
 
 PROJECT_ROOT = normpath(__file__, "..", "..", "..")
+BASE_DIR = PROJECT_ROOT
 
 sys.path.append(normpath(PROJECT_ROOT, "project"))
 sys.path.append(normpath(PROJECT_ROOT, "apps"))
@@ -42,8 +43,10 @@ try:
 except KeyError:
     pass
 
-ADMINS = [[s.strip() for s in admin.split(",")] for admin in os.environ.get('AKLUB_ADMINS', '').strip().split("\n")]
-MANAGERS = ADMINS
+AKLUB_ADMINS = os.environ.get('AKLUB_ADMINS', '')
+if AKLUB_ADMINS:
+    ADMINS = [[s.strip() for s in admin.split(",")] for admin in AKLUB_ADMINS.strip().split("\n")]
+    MANAGERS = ADMINS
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -51,12 +54,11 @@ MANAGERS = ADMINS
 # If running in a Windows environment this must be set to the same as your
 # system time zone.
 TIME_ZONE = 'Europe/Prague'
+USE_TZ = True
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
 LANGUAGE_CODE = 'cs'
-
-SITE_ID = 3
 
 # If you set this to False, Django will make some optimizations so as not
 # to load the internationalization machinery.
@@ -80,6 +82,8 @@ STATIC_ROOT = os.environ.get('AKLUB_STATIC_ROOT', normpath(PROJECT_ROOT, 'static
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
 STATIC_URL = '/media/'
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # List of finder classes that know how to find static files in
 # various locations.
@@ -113,9 +117,14 @@ TEMPLATES = [
     },
 ]
 
+try:
+    RELEASE = raven.fetch_git_sha(PROJECT_ROOT)
+except raven.exceptions.InvalidGitRepository:
+    RELEASE = os.getenv('HEROKU_SLUG_COMMIT')
+
 RAVEN_CONFIG = {
     'dsn': os.environ.get('AKLUB_RAVEN_DNS', ''),
-    'release': raven.fetch_git_sha(PROJECT_ROOT),
+    'release': RELEASE,
 }
 
 MIDDLEWARE = (
@@ -132,6 +141,7 @@ MIDDLEWARE = (
     # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 )
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = None  # To allow more fields in administration
@@ -140,11 +150,14 @@ CORS_ORIGIN_WHITELIST = [
     'vyzva.auto-mat.cz',
 ] + os.environ.get('AKLUB_CORS_ORIGIN_WHITELIST', '').split(',')
 
+REDIS_URL = os.environ.get('REDIS_URL', 'redis://127.0.0.1:6379')
+
 CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-        'LOCATION': ['127.0.0.1:11211'],
-        'KEY_PREFIX': 'aklub',
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": REDIS_URL + "/0",
+        "KEY_PREFIX": 'aklub_default',
+        "TIMEOUT": None,
     },
 }
 
@@ -173,6 +186,7 @@ INSTALLED_APPS = (
     'django.contrib.humanize',
     'stdimage',
     'bootstrapform',
+    'bootstrap4form',
     'django_extensions',
     'django_wysiwyg',
     'tinymce',
@@ -194,13 +208,15 @@ INSTALLED_APPS = (
     'advanced_filters',
     'aklub',
     'helpdesk',
+    'django_celery_beat',
+    'djcelery_email',
 )
 
 BOWER_INSTALLED_APPS = (
-    'jquery#2.2.4',
-    'jquery-ui#~1.10.4',
-    'd3#3.3.13',
-    'nvd3#1.7.1',
+    'jquery#2.0.3',
+    'jquery-ui#~1.10.3',
+    'd3#3.3.6',
+    'nvd3#1.1.12-beta',
 )
 
 EMAIL_BACKEND = 'post_office.EmailBackend'
@@ -322,3 +338,5 @@ SECURE_HSTS_SECONDS = 60
 SECURE_HSTS_PRELOAD = True
 SESSION_COOKIE_SECURE = True
 X_FRAME_OPTIONS = 'DENY'
+
+BROKER_URL = os.environ.get('REDIS_URL', 'redis://redis')

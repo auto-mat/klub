@@ -3,6 +3,8 @@ from django.conf.urls import url
 from django.urls import path
 from django_grapesjs.views import GetTemplate
 
+from . import tasks # noqa
+
 urlpatterns = [
     path('get_template/', GetTemplate.as_view(), name='dgjs_get_template'),
     url(r'^regular/', views.RegularView.as_view(), name="regular"),

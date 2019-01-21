@@ -5,6 +5,7 @@
 *~
 env/
 .env
+pipenv/
 project/settings/local.py
 data/
 trash/
@@ -15,3 +16,6 @@ aklub.log*
 db_backup
 .coverage
 htmlcov/
+venv/
+.idea/
+
