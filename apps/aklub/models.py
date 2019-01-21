@@ -677,7 +677,11 @@ class Telephone(models.Model):
         return u"%s" % self.telephone
 
     def create_link(self):
-        return format_html("<a href='sip:{}'>{}</a>", self.telephone, self.telephone,)
+        if self.is_primary==True:
+            return format_html("<b><a href='sip:{}'>{}</a></b>", self.telephone, self.telephone,)
+        else:
+            return format_html("<a href='sip:{}'>{}</a>", self.telephone, self.telephone,)
+
 
 
 class UserInCampaign(models.Model):
