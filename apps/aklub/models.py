@@ -2161,7 +2161,7 @@ class OverwriteStorage(FileSystemStorage):
 class TaxConfirmationField(PdfSandwichFieldABC):
         fields = {
          "year": (lambda tc: str(tc.year)),
-         "amount": (lambda tc: "%s Kč" % intcomma(int(tc.amount))),
+         "amount": (lambda tc: "%s Kč." % intcomma(int(tc.amount))),
          "name": (lambda tc: tc.get_name()),
          "street": (lambda tc: tc.get_street()),
          "addr_city": (lambda tc: tc.get_addr_city()),
@@ -2195,13 +2195,13 @@ class TaxConfirmation(models.Model):
         file = models.FileField(storage=OverwriteStorage())  # DEPRICATED!
 
         def get_name(self):
-            return u"%s %s" % (self.user_profile.first_name, self.user_profile.last_name)
+            return "%s %s" % (self.user_profile.first_name, self.user_profile.last_name)
 
         def get_street(self):
             return self.user_profile.street
 
         def get_addr_city(self):
-            return u"%s %s" % (self.user_profile.zip_code, self.user_profile.city)
+            return "%s %s" % (self.user_profile.zip_code, self.user_profile.city)
 
         sandwich_model = TaxConfirmationPdf
 
