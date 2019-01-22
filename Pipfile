@@ -67,6 +67,7 @@ django_celery_beat = "*"
 email_reply_parser = "*"
 django-smmapdfs = "*"
 newrelic = "*"
+django_celery_monitor = "*"
 
 [dev-packages]
 coverage = "*"
