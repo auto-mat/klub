@@ -85,21 +85,31 @@ class DonorPaymentChannelInline(admin.StackedInline):
     model = DonorPaymentChannel
     extra = 1
 
+
     fieldsets = (
-        (_('Basic'), {
+        (_('Payment information'), {
             'fields': [
-                ('VS', 'payment', 'regular_frequency', 'regular_amount'),
-                ('expected_date_of_first_payment', 'registered_support'),
+                ('registered_support', 'regular_payments', 'regular_amount', 'regular_frequency'),
+                ('VS', 'bank_account'),
+                ('expected_date_of_first_payment'),
             ],
         }),
-        (_('Others'), {
+        (_('Payment details'), {
             'fields': [
-                ('exceptional_membership', 'regular_payments'),
+                ('exceptional_membership'),
                 ('other_support'),
-                ('bank_account')
+            ],
+        }),
+        (_('Events'), {
+            'fields': [
+                ('event'),
             ],
         }),
     )
+
+    filter_horizontal = ('event', )
+    inlines = [PaymentsInline]
+
 
 
 class PaymentsInlineNoExtra(PaymentsInline):
@@ -134,13 +144,13 @@ class PaymentsInlineNoExtra(PaymentsInline):
             return obj.user.campaign
 
 
-class CommunicationInline(admin.TabularInline):
+class InteractionInline(admin.TabularInline):
     model = Interaction
     extra = 1
     readonly_fields = ('type', 'created_by', 'handled_by')
 
     def get_queryset(self, request):
-        qs = super(CommunicationInline, self).get_queryset(request)
+        qs = super(InteractionInline, self).get_queryset(request)
         qs = qs.filter(type__in=('individual', 'auto')).order_by('-date')
         return qs
 
@@ -246,6 +256,13 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         'title_after',
         'sex',
         'is_staff',
+        'registered_support_date',
+        'event',
+        'variable_symbol',
+        'registered_support_date',
+        'regular_payments_info',
+        'regular_amount',
+        'payment_delay',
         'date_joined',
         'last_login',
     )
@@ -331,6 +348,22 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
     ordering = ('email',)
     filter_horizontal = ('groups', 'user_permissions',)
 
+
+    def registered_support_date(self, obj):
+        return [f["registered_support"] for f in list(obj.userchannels.all().values('registered_support'))]
+
+    def event(self, obj):
+        return [f["event"] for f in list(obj.userchannels.all().values('event'))]
+
+    def variable_symbol(self, obj):
+        return [f["VS"] for f in list(obj.userchannels.all().values('VS'))]
+
+    def regular_payments_info(self, obj):
+        return [f["regular_payments"] for f in list(obj.userchannels.all().values('regular_payments'))]
+
+    def regular_amount(self, obj):
+        return [f["regular_amount"] for f in list(obj.userchannels.all().values('regular_amount'))]
+
     def get_main_telephone(self, obj):
         active_numbers = obj.telephone_set.all()
         numbers = []
@@ -345,7 +378,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
     get_main_telephone.short_description = _("Telephone")
     get_main_telephone.admin_order_field = "telephone"
 
-
+    """
     def save_formset(self, request, form, formset, change):
         instances = formset.save(commit=True)
         for instance in instances:
@@ -354,7 +387,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
             else:
                 instance.telephone = '+420' + instance.telephone[-9:]
         formset.save()
-
+    """
 
     def get_fieldsets(self, request, obj=None):
         original_fields = super().get_fieldsets(request, obj)
@@ -692,7 +725,7 @@ class NewUserAdmin(UserInCampaignAdmin):
                     'recruiter', 'userprofile__is_active')
 
 
-class CommunicationAdmin(RelatedFieldAdmin, admin.ModelAdmin):
+class InteractionAdmin(RelatedFieldAdmin, admin.ModelAdmin):
     list_display = (
         'subject',
         'dispatched',
@@ -700,19 +733,19 @@ class CommunicationAdmin(RelatedFieldAdmin, admin.ModelAdmin):
         'event',
         #'user__campaign',
         #'user__userprofile__telephone_url',
-        'user__next_communication_date',
+        #'user__next_communication_date',
         'method',
         'result',
         'created_by',
         'handled_by',
-        'user__regular_payments_info',
-        'user__payment_delay',
-        'user__extra_payments',
+        #'user__regular_payments_info',
+        #'user__payment_delay',
+        #'user__extra_payments',
         'date', 'type',
     )
-    #raw_id_fields = ('user', )
+    raw_id_fields = ('user', 'event', )
     readonly_fields = ('type', 'created_by', 'handled_by', )
-    list_filter = ['dispatched', 'send', 'date', 'method', 'type', #'user__campaign'
+    list_filter = ['dispatched', 'send', 'date', 'method', 'type', 'user', 'event' #'user__campaign'
     ]
     search_fields = (
         'subject',
@@ -755,7 +788,7 @@ class CommunicationAdmin(RelatedFieldAdmin, admin.ModelAdmin):
         # arrise from mass communications once they are dispatched. If
         # however not dispatched yet, these communications
         # still require admin action and should be visible.
-        qs = super(CommunicationAdmin, self).get_queryset(request)
+        qs = super(InteractionAdmin, self).get_queryset(request)
         return qs.exclude(type='mass', dispatched=True)
 
 
@@ -945,7 +978,7 @@ class ResultAdmin(admin.ModelAdmin):
     save_as = True
 
 
-class CampaignAdmin(admin.ModelAdmin):
+class EventAdmin(admin.ModelAdmin):
     list_display = (
         'name',
         'slug',
@@ -1023,26 +1056,22 @@ class TaxConfirmationAdmin(ImportExportMixin, RelatedFieldAdmin):
         ]
         return my_urls + urls
 
-class DonorPaymentChannelAdmin(admin.ModelAdmin):
-    model = DonorPaymentChannel
-
 admin.site.register(UserInCampaign, UserInCampaignAdmin)
 admin.site.register(UserYearPayments, UserYearPaymentsAdmin)
 admin.site.register(NewUser, NewUserAdmin)
-admin.site.register(Interaction, CommunicationAdmin)
+admin.site.register(Interaction, InteractionAdmin)
 admin.site.register(Payment, PaymentAdmin)
 admin.site.register(AccountStatements, AccountStatementsAdmin)
 admin.site.register(AutomaticCommunication, AutomaticCommunicationAdmin)
 admin.site.register(MassCommunication, MassCommunicationAdmin)
 admin.site.register(Condition, ConditionAdmin)
 admin.site.register(TerminalCondition, TerminalConditionAdmin)
-admin.site.register(Event, CampaignAdmin)
+admin.site.register(Event, EventAdmin)
 admin.site.register(Result, ResultAdmin)
 admin.site.register(Recruiter, RecruiterAdmin)
 admin.site.register(TaxConfirmation, TaxConfirmationAdmin)
 admin.site.register(Source, SourceAdmin)
 admin.site.register(UserProfile, UserProfileAdmin)
 admin.site.register(BankAccount, BankAccountAdmin)
-admin.site.register(DonorPaymentChannel, DonorPaymentChannelAdmin)
 # register all adminactions
 actions.add_to_site(site)

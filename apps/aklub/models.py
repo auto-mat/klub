@@ -190,12 +190,6 @@ class Event(models.Model):
         null=True,
     )
 
-    donor_payment_channel = models.ManyToManyField(
-        'aklub.DonorPaymentChannel',
-        related_name="donorpaymentchannels",
-        blank = True
-    )
-
     def number_of_members(self):
         return self.userincampaign_set.count()
     number_of_members.short_description = _("number of members")
@@ -641,6 +635,15 @@ class UserProfile(AbstractUser):
         if self.email:
             self.email = self.email.lower()
         super().save(*args, **kwargs)
+
+    def payment_delay(self):
+        if self.userchannels.regular_payments_delay():
+            return timesince(self.expected_regular_payment_date)
+        else:
+            return _boolean_icon(False)
+    payment_delay.allow_tags = True
+    payment_delay.short_description = _(u"Payment delay")
+    payment_delay.admin_order_field = 'expected_regular_payment_date'
 
 class Telephone(models.Model):
     telephone = models.CharField(
@@ -1340,14 +1343,6 @@ class DonorPaymentChannel(models.Model):
         null=True,
     )
 
-    payment = models.ForeignKey(
-        'aklub.Payment',
-        on_delete=models.SET_NULL,
-        related_name="payments",
-        null = True,
-        blank = True
-    )
-
     user = models.ForeignKey(
         'aklub.UserProfile',
         on_delete=models.SET_NULL,
@@ -1435,6 +1430,12 @@ class DonorPaymentChannel(models.Model):
         related_name = 'bankaccounts',
         on_delete=models.CASCADE,
         default = None
+    )
+
+    event = models.ManyToManyField(
+        Event,
+        related_name="donorevents",
+        blank = True
     )
 
 class Payment(models.Model):
@@ -1591,6 +1592,15 @@ class Payment(models.Model):
         null=True,
         on_delete=models.CASCADE,
     )
+
+    user_donor_payment_channel = models.ForeignKey(
+        DonorPaymentChannel,
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+        related_name = 'paymentchannels'
+    )
+
     # Origin of payment from bank account statement
     account_statement = models.ForeignKey(
         AccountStatements,
@@ -1763,7 +1773,7 @@ class Interaction(models.Model):
         """
         if self.send:
             self.dispatch(save=False)  # then try to dispatch this email automatically
-        super(Communication, self).save(*args, **kwargs)
+        super(Interaction, self).save(*args, **kwargs)
 
     def dispatch(self, save=True):
         """Dispatch the communication

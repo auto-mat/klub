@@ -73,7 +73,7 @@ def send_mass_communication(obj, users, sending_user, request, save=True):
                     attachment = copy.copy(tax_confirmations[0].file)
                 else:
                     attachment = None
-            c = Communication(
+            c = Interaction(
                 user=userincampaign, method=obj.method, date=datetime.datetime.now(),
                 subject=autocom.process_template(subject, userincampaign),
                 summary=autocom.process_template(template, userincampaign),

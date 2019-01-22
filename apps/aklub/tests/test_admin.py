@@ -34,7 +34,7 @@ from .recipes import userincampaign_recipe
 from .utils import print_response  # noqa
 from .. import admin
 from ..models import (
-    AccountStatements, AutomaticCommunication, Communication, MassCommunication,
+    AccountStatements, AutomaticCommunication, Interaction, MassCommunication,
     TaxConfirmation, UserInCampaign, UserProfile, UserYearPayments,
 )
 
