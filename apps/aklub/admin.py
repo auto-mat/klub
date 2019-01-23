@@ -254,6 +254,14 @@ class TelephoneInline(admin.StackedInline):
 class BankAccountAdmin(admin.ModelAdmin):
     model = BankAccount
 
+    search_fields = (
+        'bank_account',
+    )
+
+    list_filter = (
+        'bank_account',
+    )
+
 
 class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFiltersMixin, UserAdmin):
     resource_class = UserProfileResource
