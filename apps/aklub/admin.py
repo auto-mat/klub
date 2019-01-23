@@ -356,10 +356,6 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
             ],
             'classes': ['collapse'],
         }),
-        (_('Notes'), {
-            'fields': ['campaigns'],
-            'classes': ['collapse'],
-        }),
         (_('Profile'), {
             'fields': ['profile_text', 'profile_picture'],
             'classes': ['collapse'],
@@ -387,7 +383,10 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
     registered_support_date.admin_order_field = 'registered_support'
 
     def event(self, obj):
-        return self.get_details(obj.userchannels.all(), "event")
+        result = UserProfile.objects.get(id = obj.id)
+        donors = result.userchannels.all()
+        events = [e.event.all() for e in donors]
+        return [name for e in events for name in e]
 
     def variable_symbol(self, obj):
         return self.get_details(obj.userchannels.all(), "VS")
@@ -755,8 +754,7 @@ class InteractionAdmin(RelatedFieldAdmin, admin.ModelAdmin):
         'dispatched',
         'user',
         'event',
-        #'user__campaign',
-        #'user__userprofile__telephone_url',
+        #'user__telephone__telephone',
         #'user__next_communication_date',
         'method',
         'result',
@@ -771,15 +769,15 @@ class InteractionAdmin(RelatedFieldAdmin, admin.ModelAdmin):
     raw_id_fields = ('user', 'event', )
 
     readonly_fields = ('type', 'created_by', 'handled_by', )
-    list_filter = ['dispatched', 'send', 'date', 'method', 'type', 'user', 'event' #'user__campaign'
+    list_filter = ['dispatched', 'send', 'date', 'method', 'type', 'user', 'event'
     ]
 
     search_fields = (
         'subject',
-        'user__userprofile__telephone',
-        'user__userprofile__first_name',
-        'user__userprofile__last_name',
-        'user__userprofile__email',
+        #'user__userprofile__telephone',
+        'user__first_name',
+        'user__last_name',
+        'user__email',
     )
     date_hierarchy = 'date'
     ordering = ('-date',)
