@@ -83,7 +83,9 @@ class PaymentsInline(admin.TabularInline):
 
 class DonorPaymentChannelInline(admin.StackedInline):
     model = DonorPaymentChannel
-    extra = 1
+    extra = 0
+    can_delete = True
+    show_change_link = True
 
 
     fieldsets = (
@@ -242,6 +244,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
     resource_class = UserProfileResource
     import_template_name = "admin/import_export/userprofile_import.html"
     merge_form = UserProfileMergeForm
+    empty_value_display = '-empty-'
     list_display = (
         'person_name',
         #'username',
@@ -262,7 +265,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         'registered_support_date',
         'regular_payments_info',
         'regular_amount',
-        'payment_delay',
+        #'payment_delay',
         'date_joined',
         'last_login',
     )
@@ -353,16 +356,16 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         return [f["registered_support"] for f in list(obj.userchannels.all().values('registered_support'))]
 
     def event(self, obj):
-        return [f["event"] for f in list(obj.userchannels.all().values('event'))]
+        return [f["event"] for f in list(obj.userchannels.all().values('event')) if f["event"] is not None]
 
     def variable_symbol(self, obj):
-        return [f["VS"] for f in list(obj.userchannels.all().values('VS'))]
+        return [f["VS"] for f in list(obj.userchannels.all().values('VS')) if f["VS"] is not None]
 
     def regular_payments_info(self, obj):
-        return [f["regular_payments"] for f in list(obj.userchannels.all().values('regular_payments'))]
+        return [f["regular_payments"] for f in list(obj.userchannels.all().values('regular_payments')) if f["regular_payments"] is not None]
 
     def regular_amount(self, obj):
-        return [f["regular_amount"] for f in list(obj.userchannels.all().values('regular_amount'))]
+        return [f["regular_amount"] for f in list(obj.userchannels.all().values('regular_amount')) if f["regular_amount"] is not None]
 
     def get_main_telephone(self, obj):
         active_numbers = obj.telephone_set.all()

@@ -1328,6 +1328,8 @@ class BankAccount(models.Model):
         null=True,
     )
 
+    def __str__(self):
+        return u"%s" %(self.bank_account)
 
 class DonorPaymentChannel(models.Model):
     class Meta:
@@ -1435,8 +1437,12 @@ class DonorPaymentChannel(models.Model):
     event = models.ManyToManyField(
         Event,
         related_name="donorevents",
-        blank = True
+        blank = True,
+        null = True
     )
+
+    def __str__(self):
+        return ("VS - {}".format(self.VS))
 
 class Payment(models.Model):
     """Payment model and DB table
