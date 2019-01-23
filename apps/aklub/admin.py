@@ -383,6 +383,15 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
     def regular_amount(self, obj):
         return self.get_details(obj.userchannels.all(), "regular_amount")
 
+    def get_main_telephone(self, obj):
+        active_numbers = obj.telephone_set.all()
+        numbers = []
+        numbers = map(lambda number: number.create_link(), active_numbers)
+        return mark_safe('\n'.join(numbers))
+
+    get_main_telephone.short_description = _("Telephone")
+    get_main_telephone.admin_order_field = "telephone"
+
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
@@ -390,28 +399,6 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
                        'age_group', 'email', 'password'),
         }),
     )
-
-
-    def get_main_telephone(self, obj):
-        active_numbers = obj.telephone_set.all()
-        numbers = []
-        numbers = map(lambda number: number.create_link(), active_numbers)
-
-        return mark_safe('\n'.join(numbers))
-
-    get_main_telephone.short_description = _("Telephone")
-    get_main_telephone.admin_order_field = "telephone"
-
-    """
-    def save_formset(self, request, form, formset, change):
-        instances = formset.save(commit=True)
-        for instance in instances:
-            if len(instance.telephone) > 9:
-                instance.telephone = '+' + instance.telephone[-12:]
-            else:
-                instance.telephone = '+420' + instance.telephone[-9:]
-        formset.save()
-    """
 
     def get_fieldsets(self, request, obj=None):
         super().get_fieldsets(request, obj)

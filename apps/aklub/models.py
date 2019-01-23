@@ -682,6 +682,15 @@ class Telephone(models.Model):
         else:
             return format_html("<a href='sip:{}'>{}</a>", self.telephone, self.telephone,)
 
+    def save(self, *args, **kwargs):
+        if hasattr(self, "telephone"):
+            if len(self.telephone) > 9:
+                self.telephone = '+' + self.telephone[-12:]
+            else:
+                self.telephone = '+420' + self.telephone[-9:]
+            super().save(*args, **kwargs)
+
+
 
 
 class UserInCampaign(models.Model):
