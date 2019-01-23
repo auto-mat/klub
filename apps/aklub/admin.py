@@ -284,7 +284,6 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         'registered_support_date',
         'event',
         'variable_symbol',
-        'registered_support_date',
         'regular_payments_info',
         'regular_amount',
         #'payment_delay',
@@ -376,8 +375,16 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
     def get_details(self, obj, attr, *args):
         return [f[attr] for f in list(obj.values(attr)) if f[attr] is not None]
 
+    def date_format(self, obj):
+        return list(map(lambda o: o.strftime('%d. %m. %Y'), obj))
+
+
     def registered_support_date(self, obj):
-        return self.get_details(obj.userchannels.all(), "registered_support")
+        result = self.get_details(obj.userchannels.all(), "registered_support")
+        return self.date_format(result)
+
+    registered_support_date.short_description = _("Registration")
+    registered_support_date.admin_order_field = 'registered_support'
 
     def event(self, obj):
         return self.get_details(obj.userchannels.all(), "event")

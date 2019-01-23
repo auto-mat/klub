@@ -676,7 +676,7 @@ class Telephone(models.Model):
     def __str__(self):
         return u"%s" % self.telephone
 
-    
+
     def create_link(self):
         if self.is_primary==True:
             return format_html("<b><a href='sip:{}'>{}</a></b>", self.telephone, self.telephone,)
@@ -1467,6 +1467,7 @@ class DonorPaymentChannel(models.Model):
 
     def __str__(self):
         return ("VS - {}".format(self.VS))
+
 
 class Payment(models.Model):
     """Payment model and DB table
