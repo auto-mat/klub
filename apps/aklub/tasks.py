@@ -4,7 +4,7 @@ from django.core.management import call_command
 
 from . import darujme
 from .autocom import check
-#from .mailing import send_communication_sync
+from .mailing import send_communication_sync
 
 
 @task()

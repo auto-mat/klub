@@ -33,6 +33,7 @@ prev_sys_path = list(sys.path)
 for directory in ALLDIRS:
     site.addsitedir(directory)
 
+
 # Reorder sys.path so new directories at the front.
 new_sys_path = []
 for item in list(sys.path):
