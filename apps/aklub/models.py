@@ -676,6 +676,7 @@ class Telephone(models.Model):
     def __str__(self):
         return u"%s" % self.telephone
 
+    
     def create_link(self):
         if self.is_primary==True:
             return format_html("<b><a href='sip:{}'>{}</a></b>", self.telephone, self.telephone,)
