@@ -259,13 +259,11 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
     resource_class = UserProfileResource
     import_template_name = "admin/import_export/userprofile_import.html"
     merge_form = UserProfileMergeForm
-    empty_value_display = '-empty-'
     add_form = UserCreateForm
     form = UserUpdateForm
 
     list_display = (
         'person_name',
-        #'username',
         'email',
         'addressment',
         'get_addressment',
@@ -286,7 +284,6 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         'last_login',
     )
     advanced_filter_fields = (
-        #'username',
         'email',
         'addressment',
         'telephone__telephone',
@@ -304,7 +301,6 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         'addressment',
     )
     search_fields = (
-        #'username',
         'email',
         'title_before',
         'first_name',
@@ -369,21 +365,23 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
     ordering = ('email',)
     filter_horizontal = ('groups', 'user_permissions',)
 
+    def get_details(self, obj, attr, *args):
+        return [f[attr] for f in list(obj.values(attr)) if f[attr] is not None]
 
     def registered_support_date(self, obj):
-        return [f["registered_support"] for f in list(obj.userchannels.all().values('registered_support'))]
+        return self.get_details(obj.userchannels.all(), "registered_support")
 
     def event(self, obj):
-        return [f["event"] for f in list(obj.userchannels.all().values('event')) if f["event"] is not None]
+        return self.get_details(obj.userchannels.all(), "event")
 
     def variable_symbol(self, obj):
-        return [f["VS"] for f in list(obj.userchannels.all().values('VS')) if f["VS"] is not None]
+        return self.get_details(obj.userchannels.all(), "VS")
 
     def regular_payments_info(self, obj):
-        return [f["regular_payments"] for f in list(obj.userchannels.all().values('regular_payments')) if f["regular_payments"] is not None]
+        return self.get_details(obj.userchannels.all(), "regular_payments")
 
     def regular_amount(self, obj):
-        return [f["regular_amount"] for f in list(obj.userchannels.all().values('regular_amount')) if f["regular_amount"] is not None]
+        return self.get_details(obj.userchannels.all(), "regular_amount")
 
     add_fieldsets = (
         (None, {
@@ -421,7 +419,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
 
 
     readonly_fields = ('userattendance_links', 'date_joined', 'last_login',)
-    actions = (send_mass_communication_distinct,)
+    #actions = (send_mass_communication_distinct,)
     inlines = [TelephoneInline, DonorPaymentChannelInline]
 
 

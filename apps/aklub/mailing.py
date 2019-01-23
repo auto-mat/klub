@@ -24,7 +24,7 @@ from django.contrib import messages
 from django.utils.translation import ugettext as _
 
 from . import autocom
-from .models import AutomaticCommunication, Communication, MassCommunication, Payment, TaxConfirmation, UserInCampaign, UserProfile
+from .models import AutomaticCommunication, Interaction, MassCommunication, Payment, TaxConfirmation, UserInCampaign, UserProfile
 """Mailing"""
 
 
