@@ -88,6 +88,10 @@ class PaymentsInline(nested_admin.NestedTabularInline):
     model = Payment
     extra = 5
 
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        qs = qs.select_related('account_statement')
+        return qs
 
 class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
     model = DonorPaymentChannel
@@ -118,16 +122,8 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
         }),
     )
 
-
     filter_horizontal = ('event', )
     inlines = [PaymentsInline]
-
-    """
-    def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        qs = qs.select_related('account_statement')
-        return qs
-    """
 
 class PaymentsInlineNoExtra(PaymentsInline):
     raw_id_fields = ('user',)
@@ -220,12 +216,13 @@ def send_mass_communication_distinct_action(self, req, queryset, distinct=False)
 
 send_mass_communication_distinct_action.short_description = _("Send mass communication withoud duplicities")
 
+from import_export.widgets import ForeignKeyWidget
 
 class UserProfileResource(ModelResource):
     class Meta:
         model = UserProfile
         exclude = ('id',)
-        import_id_fields = ('email',)
+        import_id_fields = ('email', )
 
     def before_import_row(self, row, **kwargs):
         row['email'] = row['email'].lower()
@@ -367,6 +364,14 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         }),
     )
 
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('username', 'title_before', 'first_name', 'last_name', 'title_after', 'sex',
+            'age_group', 'email', 'password'),
+        }),
+    )
+
     ordering = ('email',)
     filter_horizontal = ('groups', 'user_permissions',)
 
@@ -375,7 +380,6 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
 
     def date_format(self, obj):
         return list(map(lambda o: o.strftime('%d. %m. %Y'), obj))
-
 
     def registered_support_date(self, obj):
         result = self.get_details(obj.userchannels.all(), "registered_support")
@@ -386,35 +390,30 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
 
     def event(self, obj):
         result = UserProfile.objects.get(id = obj.id)
-        donors = result.userchannels.all()
-        events = [e.event.all() for e in donors]
+        donors = result.userchannels.select_related().all()
+        events = [e.event.select_related().all() for e in donors]
         return [name for e in events for name in e]
+
+    event.short_description = _("Event")
+    event.admin_order_field = 'event'
 
     def variable_symbol(self, obj):
         return self.get_details(obj.userchannels.all(), "VS")
 
+    variable_symbol.short_description = _("VS")
+    variable_symbol.admin_order_field = 'variable_symbol'
+
     def regular_payments_info(self, obj):
         return self.get_details(obj.userchannels.all(), "regular_payments")
+
+    regular_payments_info.short_description = _("Regular payment info")
+    regular_payments_info.admin_order_field = 'regular_payments_info'
 
     def regular_amount(self, obj):
         return self.get_details(obj.userchannels.all(), "regular_amount")
 
-    def get_main_telephone(self, obj):
-        active_numbers = obj.telephone_set.all()
-        numbers = []
-        numbers = map(lambda number: number.create_link(), active_numbers)
-        return mark_safe('\n'.join(numbers))
-
-    get_main_telephone.short_description = _("Telephone")
-    get_main_telephone.admin_order_field = "telephone"
-
-    add_fieldsets = (
-        (None, {
-            'classes': ('wide',),
-            'fields': ('username', 'title_before', 'first_name', 'last_name', 'title_after', 'sex',
-                       'age_group', 'email', 'password'),
-        }),
-    )
+    regular_amount.short_description = _("Regular amount")
+    regular_amount.admin_order_field = 'regular_amount'
 
     def get_fieldsets(self, request, obj=None):
         super().get_fieldsets(request, obj)
@@ -422,7 +421,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
 
 
     readonly_fields = ('userattendance_links', 'date_joined', 'last_login',)
-    #actions = (send_mass_communication_distinct,)
+    actions = (send_mass_communication_distinct_action,)
     inlines = [TelephoneInline, DonorPaymentChannelInline]
 
 
@@ -547,7 +546,7 @@ class UserInCampaignAdmin(ImportExportMixin, AdminAdvancedFiltersMixin, RelatedF
     save_as = True
     list_max_show_all = 10000
     list_per_page = 100
-    #inlines = [PaymentsInline, CommunicationInline]
+    #inlines = [PaymentsInline, InteractionInline]
     raw_id_fields = ('userprofile', 'recruiter',)
     readonly_fields = ('verified_by', 'userprofile_telephone_url', 'userprofile_note')
     fieldsets = [

@@ -646,8 +646,17 @@ class UserProfile(AbstractUser):
             self.email = self.email.lower()
         super().save(*args, **kwargs)
 
+    def get_main_telephone(self):
+        active_numbers = self.telephone_set.all()
+        numbers = list(map(lambda number: number.create_link(), active_numbers))
+        return mark_safe('\n'.join(numbers))
+
+    get_main_telephone.short_description = _("Telephone")
+    get_main_telephone.admin_order_field = "telephone"
+
 class Telephone(models.Model):
     telephone = models.CharField(
+       verbose_name=_("Telephone number"),
        max_length=100,
        blank=True,
        validators=[
@@ -1369,6 +1378,7 @@ class DonorPaymentChannel(models.Model):
 
     user = models.ForeignKey(
         'aklub.UserProfile',
+        verbose_name=_("User"),
         on_delete=models.SET_NULL,
         related_name="userchannels",
         null = True,
@@ -1458,6 +1468,7 @@ class DonorPaymentChannel(models.Model):
 
     event = models.ManyToManyField(
         Event,
+        verbose_name=_("Event"),
         related_name="donorevents",
         blank = True,
         null = True
@@ -1711,12 +1722,14 @@ class Interaction(models.Model):
 
     user = models.ForeignKey(
         UserProfile,
+        verbose_name=_("User"),
         on_delete=models.CASCADE,
         related_name="communications",
     )
 
     event = models.ForeignKey(
         Event,
+        verbose_name=_("Event"),
         on_delete=models.SET_NULL,
         related_name = "events",
         null = True,
