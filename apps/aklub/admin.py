@@ -216,7 +216,6 @@ def send_mass_communication_distinct_action(self, req, queryset, distinct=False)
 
 send_mass_communication_distinct_action.short_description = _("Send mass communication withoud duplicities")
 
-from import_export.widgets import ForeignKeyWidget
 
 class UserProfileResource(ModelResource):
     class Meta:
