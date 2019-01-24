@@ -210,6 +210,7 @@ INSTALLED_APPS = (
     'helpdesk',
     'django_celery_beat',
     'djcelery_email',
+    'nested_admin',
 )
 
 BOWER_INSTALLED_APPS = (

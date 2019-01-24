@@ -29,6 +29,7 @@ urlpatterns = [
     url(r'^admin_tools/', include('admin_tools.urls')),
     url(r'^adminactions/', include('adminactions.urls')),
     url(r'^advanced_filters/', include('advanced_filters.urls')),
+    url(r'^nested_admin/', include('nested_admin.urls')),
     url(r'', include("aklub.urls")),
 ]
 

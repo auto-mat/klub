@@ -553,7 +553,7 @@ class UserProfile(AbstractUser):
         null=True,
     )
     """
-    
+
     def get_last_name_vokativ(self):
         return vokativ(self.last_name.strip(), last_name=True).title()
     get_last_name_vokativ.short_description = _("Last name vokativ")
@@ -645,16 +645,6 @@ class UserProfile(AbstractUser):
         if self.email:
             self.email = self.email.lower()
         super().save(*args, **kwargs)
-
-    def payment_delay(self):
-        if self.userchannels.regular_payments_delay():
-            return timesince(self.expected_regular_payment_date)
-        else:
-            return _boolean_icon(False)
-    payment_delay.allow_tags = True
-    payment_delay.short_description = _(u"Payment delay")
-    payment_delay.admin_order_field = 'expected_regular_payment_date'
-
 
 class Telephone(models.Model):
     telephone = models.CharField(

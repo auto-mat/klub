@@ -33,6 +33,7 @@ from daterange_filter.filter import DateRangeFilter
 import django.forms
 from django.contrib import admin, messages
 from django.contrib.admin import site
+import nested_admin
 from django.contrib.auth.admin import UserAdmin
 from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator
@@ -82,17 +83,18 @@ def admin_links(args_generator):
 
 
 # -- INLINE FORMS --
-class PaymentsInline(admin.TabularInline):
+class PaymentsInline(nested_admin.NestedTabularInline):
     readonly_fields = ('account_statement',)
     model = Payment
     extra = 5
 
 
-class DonorPaymentChannelInline(admin.StackedInline):
+class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
     model = DonorPaymentChannel
     extra = 0
     can_delete = True
     show_change_link = True
+    inlines = [PaymentsInline]
 
 
     fieldsets = (
@@ -244,7 +246,7 @@ class UserProfileMergeForm(merge.MergeForm):
         fields = '__all__'
 
 
-class TelephoneInline(admin.StackedInline):
+class TelephoneInline(nested_admin.NestedStackedInline):
     model = Telephone
     extra = 0
     can_delete = True
@@ -263,7 +265,7 @@ class BankAccountAdmin(admin.ModelAdmin):
     )
 
 
-class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFiltersMixin, UserAdmin):
+class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFiltersMixin, UserAdmin, nested_admin.NestedModelAdmin):
     resource_class = UserProfileResource
     import_template_name = "admin/import_export/userprofile_import.html"
     merge_form = UserProfileMergeForm
@@ -286,10 +288,10 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         'variable_symbol',
         'regular_payments_info',
         'regular_amount',
-        #'payment_delay',
         'date_joined',
         'last_login',
     )
+
     advanced_filter_fields = (
         'email',
         'addressment',
