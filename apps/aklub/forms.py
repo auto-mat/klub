@@ -1,11 +1,11 @@
-import uuid
-
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
+
+from .views import get_unique_username
 
 
 def username_validation(user, fields):
     if user.username == '':
-        user.username = uuid.uuid1()
+        user.username = get_unique_username(fields['email'])
     else:
         user.username = fields['username']
 
