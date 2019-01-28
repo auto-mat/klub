@@ -114,7 +114,7 @@ class Event(models.Model):
         verbose_name=_("Name"),
         help_text=_("Choose some unique name for this campaign"),
         max_length=100,
-        blank=True,
+
     )
     darujme_name = models.CharField(
         verbose_name=_("Name in Darujme.cz"),
