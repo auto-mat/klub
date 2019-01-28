@@ -2194,6 +2194,12 @@ class TaxConfirmation(models.Model):
         amount = models.PositiveIntegerField(default=0)
         file = models.FileField(storage=OverwriteStorage())  # DEPRICATED!
 
+        def get_pdf(self):
+            url = self.taxconfirmationpdf_set.get().pdf.url
+            return format_html("<a href='{}'>{}</a>", url, url)
+
+        get_pdf.short_description = _("PDF")
+
         def get_name(self):
             return "%s %s" % (self.user_profile.first_name, self.user_profile.last_name)
 
