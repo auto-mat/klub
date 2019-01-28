@@ -358,9 +358,6 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
             'fields': ['profile_text', 'profile_picture'],
             'classes': ['collapse'],
         }),
-        (_('Links'), {
-            'fields': ['userattendance_links'],
-        }),
     )
 
     add_fieldsets = (
@@ -419,7 +416,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         return self.add_fieldsets + self.profile_fieldsets
 
 
-    readonly_fields = ('userattendance_links', 'date_joined', 'last_login',)
+    readonly_fields = ('date_joined', 'last_login',)
     actions = (send_mass_communication_distinct_action,)
     inlines = [TelephoneInline, DonorPaymentChannelInline]
 
@@ -630,7 +627,7 @@ class UserYearPaymentsAdmin(UserInCampaignAdmin):
                     'userprofile__is_active', 'last_payment_date')
     list_filter = [
         ('payment__date', DateRangeFilter), 'regular_payments', 'userprofile__language', 'userprofile__is_active',
-        'wished_information', 'old_account', 'source', 'userprofile__campaigns',
+        'wished_information', 'old_account', 'source',
         ('registered_support', DateRangeFilter), filters.UserConditionFilter, filters.UserConditionFilter1,
     ]
 

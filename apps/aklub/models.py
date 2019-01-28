@@ -410,12 +410,7 @@ class UserProfile(AbstractUser):
         blank=True,
         null=True,
     )
-    campaigns = models.ManyToManyField(
-        Event,
-        help_text=_("Associated campaigns"),
-        blank=True,
-        editable=True,
-    )
+
     title_after = models.CharField(
         verbose_name=_("Title after name"),
         max_length=15, blank=True,
@@ -599,16 +594,7 @@ class UserProfile(AbstractUser):
     person_name.short_description = _("Full name")
     person_name.admin_order_field = 'last_name'
 
-    def userattendance_links(self):
-        from .admin import admin_links
-        return admin_links(
-            [
-                (
-                    reverse('admin:aklub_userincampaign_change', args=(u.pk,)), str(u.campaign)
-                ) for u in self.userincampaign_set.all()
-            ]
-        )
-    userattendance_links.short_description = _('Users in campaign')
+
 
     def make_tax_confirmation(self, year):
         payment_set = Payment.objects.filter(user__userprofile=self)
