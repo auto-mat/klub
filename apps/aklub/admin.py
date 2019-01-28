@@ -934,15 +934,29 @@ class SourceAdmin(admin.ModelAdmin):
     list_display = ('slug', 'name', 'direct_dialogue')
 
 
-class TaxConfirmationAdmin(ImportExportMixin, RelatedFieldAdmin):
+class TaxConfirmationAdmin(ImportExportMixin, admin.ModelAdmin):
     change_list_template = "admin/aklub/taxconfirmation/change_list.html"
-    list_display = ('user_profile', 'year', 'amount')
+    list_display = ('user_profile', 'year', 'amount', 'get_pdf', )
     ordering = ('user_profile__last_name', 'user_profile__first_name',)
     list_filter = ['year']
     search_fields = ('user_profile__last_name', 'user_profile__first_name', 'user_profile__userincampaign__variable_symbol',)
     raw_id_fields = ('user_profile',)
     actions = (make_pdfsandwich,)
     list_max_show_all = 10000
+
+    readonly_fields = ['get_pdf', ]
+    fields = ['user_profile', 'year', 'amount', 'get_pdf', ]
+
+    """
+    fieldsets = [
+        (_("Current"), {
+            'fields': [('user_profile', 'year', 'amount', 'get_pdf')],
+        }),
+        (_("Old"), {
+            'fields': [('file',)],
+        }),
+    ]
+    """
 
     def generate(self, request):
         tasks.generate_tax_confirmations.apply_async()
