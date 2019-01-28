@@ -47,27 +47,37 @@ def get_template_subject_for_language(obj, language):
         return obj.template_en, obj.subject_en
 
 
-def send_mass_communication(communication, users, sending_user, request, save=True):
+def send_fake_communication(communication, sending_user, request):
     from .tasks import send_communication_task
-    for userincampaign in users:
-        if userincampaign == 'fake_user':
-            userincampaign_id = 'fake_user'
-        else:
-            userincampaign_id = userincampaign.id
-        if isinstance(communication, AutomaticCommunication):
-            communication_type = 'automatic'
-        else:
-            communication_type = 'mass'
-        send_communication_task.apply_async(args=(communication.id, communication_type, userincampaign_id, sending_user.id, save))
-    messages.add_message(request, messages.INFO, _("Communication sending was queued for %s users") % len(users))
+    if isinstance(communication, AutomaticCommunication):
+        communication_type = 'automatic'
+    else:
+        communication_type = 'mass'
+    send_communication_task.apply_async(args=(communication.id, communication_type, "fake_user", sending_user.id))
+    messages.add_message(request, messages.INFO, _("Testing communication sending was queued"))
 
 
-def send_communication_sync(communication_id, communication_type, userincampaign_id, sending_user_id, save=True):
+def send_mass_communication(communication, sending_user, request):
+    from .tasks import create_mass_communication_tasks
+    create_mass_communication_tasks.apply_async(args=(communication.id, sending_user.id))
+    messages.add_message(request, messages.INFO, _("Communication sending was queued for %s users") % communication.send_to_users.count())
+
+
+def create_mass_communication_tasks_sync(communication_id, sending_user_id):
+    from .tasks import send_communication_task
+    communication = MassCommunication.objects.get(id=communication_id)
+    for userincampaign in communication.send_to_users.all():
+        send_communication_task.apply_async(args=(communication.id, 'mass', userincampaign.id, sending_user_id))
+
+
+def send_communication_sync(communication_id, communication_type, userincampaign_id, sending_user_id):
     sending_user = UserProfile.objects.get(id=sending_user_id)
     if userincampaign_id == "fake_user":
         userincampaign = create_fake_userincampaign(sending_user)
+        save = False
     else:
         userincampaign = UserInCampaign.objects.get(id=userincampaign_id)
+        save = True
     if communication_type == 'mass':
         mass_communication = MassCommunication.objects.get(id=communication_id)
     else:

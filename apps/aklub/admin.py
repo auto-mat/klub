@@ -717,7 +717,7 @@ class AutomaticCommunicationAdmin(admin.ModelAdmin):
         super(AutomaticCommunicationAdmin, self).save_form(request, form, change)
         obj = form.save()
         if "_continue" in request.POST and request.POST["_continue"] == "test_mail":
-            mailing.send_mass_communication(obj, ["fake_user"], request.user, request, False)
+            mailing.send_fake_communication(obj, request.user, request)
         return obj
 
 
@@ -782,11 +782,11 @@ class MassCommunicationAdmin(large_initial.LargeInitialMixin, admin.ModelAdmin):
         super(MassCommunicationAdmin, self).save_form(request, form, change)
         obj = form.save()
         if "_continue" in request.POST and request.POST["_continue"] == "test_mail":
-            mailing.send_mass_communication(obj, ["fake_user"], request.user, request, False)
+            mailing.send_fake_communication(obj, request.user, request)
 
         if "_continue" in request.POST and request.POST["_continue"] == "send_mails":
             try:
-                mailing.send_mass_communication(obj, obj.send_to_users.all(), request.user, request)
+                mailing.send_mass_communication(obj, request.user, request)
             except Exception as e:
                 messages.error(request, _('While sending e-mails the problem occurred: %s') % e)
                 raise e

@@ -9,7 +9,7 @@ import smmapdfs.actions
 from . import darujme
 from . import models
 from .autocom import check
-from .mailing import send_communication_sync
+from .mailing import create_mass_communication_tasks_sync, send_communication_sync
 
 
 @task()
@@ -40,6 +40,11 @@ def generate_tax_confirmations():
 
 
 @task()
-def send_communication_task(mass_communication_id, communication_type, userincampaign_id, sending_user_id, save):
+def send_communication_task(mass_communication_id, communication_type, userincampaign_id, sending_user_id):
     print("sending to %s" % userincampaign_id)
-    send_communication_sync(mass_communication_id, communication_type, userincampaign_id, sending_user_id, save)
+    send_communication_sync(mass_communication_id, communication_type, userincampaign_id, sending_user_id)
+
+
+@task()
+def create_mass_communication_tasks(communication_id, sending_user_id):
+    create_mass_communication_tasks_sync(communication_id, sending_user_id)

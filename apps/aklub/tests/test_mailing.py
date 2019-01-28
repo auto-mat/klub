@@ -50,7 +50,7 @@ class MailingTest(TestCase):
             subject="Testing email",
             method="email",
         )
-        mailing.send_communication_sync(c.id, "automatic", "fake_user", sending_user.id, save=False)
+        mailing.send_communication_sync(c.id, "automatic", "fake_user", sending_user.id)
         self.assertEqual(len(mail.outbox), 1)
         msg = mail.outbox[0]
         self.assertEqual(msg.recipients(), ['test@test.com'])
@@ -73,7 +73,7 @@ class MailingTest(TestCase):
         )
         u = models.UserInCampaign.objects.get(userprofile__email='test.user1@email.cz')
         with self.assertRaises(Exception) as ex:
-            mailing.send_communication_sync(c.id, 'automatic', u.id, sending_user.id, save=False)
+            mailing.send_communication_sync(c.id, 'automatic', u.id, sending_user.id)
         self.assertEqual(str(ex.exception), "Message template is empty for one of the language variants.")
 
     @freeze_time("2015-5-1")
@@ -94,7 +94,7 @@ class MailingTest(TestCase):
 
         users = models.UserInCampaign.objects.filter(userprofile__email='without_payments@email.cz')
         for u in users:
-            mailing.send_communication_sync(c.id, 'automatic', u.id, sending_user.id, save=False)
+            mailing.send_communication_sync(c.id, 'automatic', u.id, sending_user.id)
         self.assertEqual(len(mail.outbox), 2)
         msg = mail.outbox[0]
         self.assertEqual(msg.recipients(), ['without_payments@email.cz'])
@@ -104,7 +104,7 @@ class MailingTest(TestCase):
 
         users = models.UserInCampaign.objects.filter(userprofile__email='without_payments@email.cz')
         for u in users:
-            mailing.send_communication_sync(c.id, 'automatic', u.id, sending_user.id, save=False)
+            mailing.send_communication_sync(c.id, 'automatic', u.id, sending_user.id)
         self.assertEqual(len(mail.outbox), 2)
         msg = mail.outbox[0]
         self.assertEqual(msg.recipients(), ['without_payments@email.cz'])
@@ -113,7 +113,7 @@ class MailingTest(TestCase):
         mail.outbox = []
 
         u = models.UserInCampaign.objects.get(userprofile__email='test.user@email.cz')
-        mailing.send_communication_sync(c.id, 'automatic', u.id, sending_user.id, save=False)
+        mailing.send_communication_sync(c.id, 'automatic', u.id, sending_user.id)
         self.assertEqual(len(mail.outbox), 1)
         msg = mail.outbox[0]
         self.assertEqual(msg.recipients(), ['test.user@email.cz'])
@@ -122,7 +122,7 @@ class MailingTest(TestCase):
         mail.outbox = []
 
         u = models.UserInCampaign.objects.get(userprofile__email='test.user1@email.cz')
-        mailing.send_communication_sync(c.id, 'automatic', u.id, sending_user.id, save=False)
+        mailing.send_communication_sync(c.id, 'automatic', u.id, sending_user.id)
         self.assertEqual(len(mail.outbox), 1)
         msg = mail.outbox[0]
         self.assertEqual(msg.recipients(), ['test.user1@email.cz'])
