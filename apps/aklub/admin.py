@@ -253,11 +253,11 @@ class BankAccountAdmin(admin.ModelAdmin):
     model = BankAccount
 
     search_fields = (
-        'bank_account',
+        'bank_account','bank_account_number',
     )
 
     list_filter = (
-        'bank_account',
+        'bank_account', 'bank_account_number',
     )
 
 
