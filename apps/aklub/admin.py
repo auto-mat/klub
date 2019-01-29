@@ -947,17 +947,6 @@ class TaxConfirmationAdmin(ImportExportMixin, admin.ModelAdmin):
     readonly_fields = ['get_pdf', ]
     fields = ['user_profile', 'year', 'amount', 'get_pdf', ]
 
-    """
-    fieldsets = [
-        (_("Current"), {
-            'fields': [('user_profile', 'year', 'amount', 'get_pdf')],
-        }),
-        (_("Old"), {
-            'fields': [('file',)],
-        }),
-    ]
-    """
-
     def generate(self, request):
         tasks.generate_tax_confirmations.apply_async()
         return HttpResponseRedirect(reverse('admin:aklub_taxconfirmation_changelist'))
