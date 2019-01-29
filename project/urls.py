@@ -26,7 +26,7 @@ urlpatterns = [
     url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
     url(r'^jsi18n', JavaScriptCatalog.as_view()),
     url(r'^tinymce/', include('tinymce.urls')),
-    url(r'^admin_tools/', include('admin_tools.urls')),
+    #url(r'^admin_tools/', include('admin_tools.urls')),
     url(r'^adminactions/', include('adminactions.urls')),
     url(r'^advanced_filters/', include('advanced_filters.urls')),
     url(r'^nested_admin/', include('nested_admin.urls')),

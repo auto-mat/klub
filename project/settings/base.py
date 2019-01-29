@@ -108,7 +108,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
             ),
             'loaders': (
-                "admin_tools.template_loaders.Loader",
+                #"admin_tools.template_loaders.Loader",
                 'django.template.loaders.filesystem.Loader',
                 'django.template.loaders.app_directories.Loader',
             ),
@@ -172,10 +172,10 @@ ROOT_URLCONF = 'urls'
 INSTALLED_APPS = (
     'django_grapesjs',
     'django.contrib.admindocs',
-    'admin_tools',
-    'admin_tools.theming',
-    'admin_tools.menu',
-    'admin_tools.dashboard',
+    #'admin_tools',
+    #'admin_tools.theming',
+    #'admin_tools.menu',
+    #'admin_tools.dashboard',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -202,7 +202,7 @@ INSTALLED_APPS = (
     'related_admin',
     'adminactions',
     'djangobower',
-    'admin_tools_stats',
+    #'admin_tools_stats',
     'django_nvd3',
     'adminfilters',
     'advanced_filters',
@@ -222,8 +222,8 @@ BOWER_INSTALLED_APPS = (
 
 EMAIL_BACKEND = 'post_office.EmailBackend'
 
-ADMIN_TOOLS_INDEX_DASHBOARD = 'aklub.dashboard.AklubIndexDashboard'
-ADMIN_TOOLS_APP_INDEX_DASHBOARD = 'aklub.dashboard.AklubAppIndexDashboard'
+#ADMIN_TOOLS_INDEX_DASHBOARD = 'aklub.dashboard.AklubIndexDashboard'
+#ADMIN_TOOLS_APP_INDEX_DASHBOARD = 'aklub.dashboard.AklubAppIndexDashboard'
 
 UPLOAD_PATH = '/upload/'
 

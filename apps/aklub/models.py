@@ -34,6 +34,7 @@ from django.core.files import File
 from django.core.files.storage import FileSystemStorage
 from django.core.files.temp import NamedTemporaryFile
 from django.core.mail import EmailMultiAlternatives
+
 try:
     from django.urls import reverse
 except ImportError:  # Django<2.0
@@ -58,7 +59,6 @@ from . import autocom, confirmation
 from django_grapesjs.models import GrapesJsHtmlField
 
 logger = logging.getLogger(__name__)
-
 
 COMMUNICATION_METHOD = (
     ('email', _("Email")),
@@ -192,13 +192,15 @@ class Event(models.Model):
 
     def number_of_members(self):
         return self.userincampaign_set.count()
+
     number_of_members.short_description = _("number of members")
 
     def number_of_regular_members(self):
         return self.userincampaign_set.filter(regular_payments="regular", payment__amount__gt=0).distinct().count()
 
     def number_of_onetime_members(self):
-        return self.userincampaign_set.exclude(regular_payments="regular").filter(payment__amount__gt=0).distinct().count()
+        return self.userincampaign_set.exclude(regular_payments="regular").filter(
+            payment__amount__gt=0).distinct().count()
 
     def number_of_active_members(self):
         return self.userincampaign_set.filter(payment__amount__gt=0).distinct().count()
@@ -211,17 +213,21 @@ class Event(models.Model):
 
     def recruiters(self):
         return Recruiter.objects.filter(campaigns=self)
+
     recruiters.short_description = _("recruiters")
 
     def number_of_recruiters(self):
         return len(self.recruiters())
+
     number_of_recruiters.short_description = _("number of recruiters")
 
     def yield_total(self):
         if self.acquisition_campaign:
-            return UserInCampaign.objects.filter(campaign=self).aggregate(yield_total=Sum('payment__amount'))['yield_total']
+            return UserInCampaign.objects.filter(campaign=self).aggregate(yield_total=Sum('payment__amount'))[
+                'yield_total']
         else:
             return self.real_yield
+
     yield_total.short_description = _("total yield")
 
     def expected_yearly_income(self):
@@ -230,29 +236,35 @@ class Event(models.Model):
             # TODO: use aggregate to count this
             income += campaign_member.yearly_regular_amount()
         return income
+
     expected_yearly_income.short_description = _("expected yearly income")
 
     def expected_monthly_income(self):
         return float(self.expected_yearly_income()) / 12.0
+
     expected_monthly_income.short_description = _("expected monthly income")
 
     def return_of_investmensts(self):
         if self.total_expenses() and self.expected_monthly_income():
             return self.total_expenses() / self.expected_monthly_income()
+
     return_of_investmensts.short_description = _("return of investmensts")
 
     def total_expenses(self):
         return self.expenses.aggregate(Sum('amount'))['amount__sum']
+
     total_expenses.short_description = _("total expenses")
 
     def average_expense(self):
         if self.total_expenses() and self.number_of_members():
             return self.total_expenses() / self.number_of_members()
+
     average_expense.short_description = _("average expense")
 
     def average_yield(self):
         if self.yield_total() and self.number_of_members():
             return self.yield_total() / self.number_of_members()
+
     average_yield.short_description = _("average yield")
 
     def __str__(self):
@@ -355,6 +367,7 @@ class Recruiter(models.Model):
 
     def person_name(self):
         return "%03d %s %s" % (self.recruiter_id or 0, self.firstname, self.surname)
+
     person_name.short_description = _("Name")
 
 
@@ -384,6 +397,7 @@ class Source(models.Model):
 
     def __str__(self):
         return str(self.name)
+
 
 class UserProfile(AbstractUser):
     class Meta:
@@ -556,6 +570,7 @@ class UserProfile(AbstractUser):
 
     def get_last_name_vokativ(self):
         return vokativ(self.last_name.strip(), last_name=True).title()
+
     get_last_name_vokativ.short_description = _("Last name vokativ")
     get_last_name_vokativ.admin_order_field = 'last_name'
 
@@ -573,6 +588,7 @@ class UserProfile(AbstractUser):
                 return 'příteli/kyně Auto*Matu'
         else:
             return 'Auto*Mat friend'
+
     get_addressment.short_description = _("Addressment")
     get_addressment.admin_order_field = 'addressment'
 
@@ -596,6 +612,7 @@ class UserProfile(AbstractUser):
             ) + (", %s" % self.title_after if self.title_after else "")
         else:
             return self.username
+
     person_name.short_description = _("Full name")
     person_name.admin_order_field = 'last_name'
 
@@ -608,6 +625,7 @@ class UserProfile(AbstractUser):
                 ) for u in self.userincampaign_set.all()
             ]
         )
+
     userattendance_links.short_description = _('Users in campaign')
 
     def make_tax_confirmation(self, year):
@@ -654,26 +672,28 @@ class UserProfile(AbstractUser):
     get_main_telephone.short_description = _("Telephone")
     get_main_telephone.admin_order_field = "telephone"
 
+
 class Telephone(models.Model):
     telephone = models.CharField(
-       verbose_name=_("Telephone number"),
-       max_length=100,
-       blank=True,
-       validators=[
-           RegexValidator(r'^\+?(42(0|1){1})?\s?\d{3}\s?\d{3}\s?\d{3}$',
-                    _("Telephone must consist of numbers, spaces and + sign or maximum number count is higher.")),
-       ],
+        verbose_name=_("Telephone number"),
+        max_length=100,
+        blank=True,
+        validators=[
+            RegexValidator(r'^\+?(42(0|1){1})?\s?\d{3}\s?\d{3}\s?\d{3}$',
+                           _(
+                               "Telephone must consist of numbers, spaces and + sign or maximum number count is higher.")),
+        ],
     )
     is_primary = models.BooleanField(
-       verbose_name=_("Primary phone"),
-       blank=True,
-       default=False,
+        verbose_name=_("Primary phone"),
+        blank=True,
+        default=False,
     )
     user = models.ForeignKey(
-       UserProfile,
-       blank=True,
-       null=True,
-       on_delete=models.SET_NULL,
+        UserProfile,
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
     )
 
     class Meta:
@@ -683,12 +703,11 @@ class Telephone(models.Model):
     def __str__(self):
         return u"%s" % self.telephone
 
-
     def create_link(self):
-        if self.is_primary==True:
-            return format_html("<b><a href='sip:{}'>{}</a></b>", self.telephone, self.telephone,)
+        if self.is_primary == True:
+            return format_html("<b><a href='sip:{}'>{}</a></b>", self.telephone, self.telephone, )
         else:
-            return format_html("<a href='sip:{}'>{}</a>", self.telephone, self.telephone,)
+            return format_html("<a href='sip:{}'>{}</a>", self.telephone, self.telephone, )
 
     def save(self, *args, **kwargs):
         if hasattr(self, "telephone"):
@@ -697,8 +716,6 @@ class Telephone(models.Model):
             else:
                 self.telephone = '+420' + self.telephone[-9:]
             super().save(*args, **kwargs)
-
-
 
 
 class UserInCampaign(models.Model):
@@ -946,6 +963,7 @@ class UserInCampaign(models.Model):
             return self.userprofile.__str__()
         except UserProfile.DoesNotExist:  # This happens, when UserInCampaign is cached, but it is deleted already
             return "No UserProfile"
+
     person_name.short_description = _("Full name")
 
     def requires_action(self):
@@ -968,6 +986,7 @@ class UserInCampaign(models.Model):
         """Return number of payments made by this user
         """
         return self.payment_set.aggregate(count=Count('amount'))['count']
+
     number_of_payments.short_description = _("# payments")
     number_of_payments.admin_order_field = 'payments_number'
 
@@ -975,7 +994,8 @@ class UserInCampaign(models.Model):
         """Return last payment"""
         return self.payment_set.order_by('date').last()
 
-    @denormalized(models.ForeignKey, to='Payment', default=None, null=True, related_name="user_last_payment", on_delete=models.SET_NULL)
+    @denormalized(models.ForeignKey, to='Payment', default=None, null=True, related_name="user_last_payment",
+                  on_delete=models.SET_NULL)
     def last_payment(self):
         """Return last payment"""
         return self.last_payment_function()
@@ -988,6 +1008,7 @@ class UserInCampaign(models.Model):
             return last_payment.date
         else:
             return None
+
     last_payment_date.short_description = _("Last payment")
     last_payment_date.admin_order_field = 'last_payment__date'
 
@@ -999,6 +1020,7 @@ class UserInCampaign(models.Model):
             return last_payment.type
         else:
             return None
+
     last_payment_type.short_description = _("Last payment type")
     last_payment_type.admin_order_field = 'last_payment__type'
 
@@ -1079,6 +1101,7 @@ class UserInCampaign(models.Model):
         if self.regular_payments == "promise":
             return _boolean_icon(None)
         return self.expected_regular_payment_date
+
     regular_payments_info.allow_tags = True
     regular_payments_info.short_description = _(u"Expected payment")
     regular_payments_info.admin_order_field = 'expected_regular_payment_date'
@@ -1088,6 +1111,7 @@ class UserInCampaign(models.Model):
             return timesince(self.expected_regular_payment_date)
         else:
             return _boolean_icon(False)
+
     payment_delay.allow_tags = True
     payment_delay.short_description = _(u"Payment delay")
     payment_delay.admin_order_field = 'expected_regular_payment_date'
@@ -1097,6 +1121,7 @@ class UserInCampaign(models.Model):
             return "%s&nbsp;Kč" % self.extra_money
         else:
             return _boolean_icon(False)
+
     extra_payments.allow_tags = True
     extra_payments.short_description = _(u"Extra money")
     extra_payments.admin_order_field = 'extra_money'
@@ -1113,11 +1138,13 @@ class UserInCampaign(models.Model):
         """Return the sum of all money received from this user
         """
         return mark_safe(u"%s&nbsp;Kč" % intcomma(int(self.payment_total)))
+
     total_contrib_string.short_description = _("Total")
     total_contrib_string.admin_order_field = 'payment_total'
 
     def registered_support_date(self):
         return self.registered_support.strftime('%d. %m. %Y')
+
     registered_support_date.short_description = _("Registration")
     registered_support_date.admin_order_field = 'registered_support'
 
@@ -1348,6 +1375,7 @@ class AccountStatements(models.Model):
     def __str__(self):
         return "%s (%s)" % (self.pk, self.import_date)
 
+
 class BankAccount(models.Model):
     class Meta:
         verbose_name = _("Bank account")
@@ -1360,7 +1388,8 @@ class BankAccount(models.Model):
     )
 
     def __str__(self):
-        return u"%s" %(self.bank_account)
+        return u"%s" % (self.bank_account)
+
 
 class DonorPaymentChannel(models.Model):
     class Meta:
@@ -1381,8 +1410,8 @@ class DonorPaymentChannel(models.Model):
         verbose_name=_("User"),
         on_delete=models.SET_NULL,
         related_name="userchannels",
-        null = True,
-        blank = True
+        null=True,
+        blank=True
     )
 
     registered_support = models.DateTimeField(
@@ -1442,7 +1471,7 @@ class DonorPaymentChannel(models.Model):
         help_text=_("Is this user registered for regular payments?"),
         max_length=20,
         choices=REGULAR_PAYMENT_CHOICES,
-        default = 'regular'
+        default='regular'
     )
 
     old_account = models.BooleanField(
@@ -1461,17 +1490,17 @@ class DonorPaymentChannel(models.Model):
 
     bank_account = models.ForeignKey(
         BankAccount,
-        related_name = 'bankaccounts',
+        related_name='bankaccounts',
         on_delete=models.CASCADE,
-        default = None
+        default=None
     )
 
     event = models.ManyToManyField(
         Event,
         verbose_name=_("Event"),
         related_name="donorevents",
-        blank = True,
-        null = True
+        blank=True,
+        null=True
     )
 
     def __str__(self):
@@ -1638,7 +1667,7 @@ class Payment(models.Model):
         blank=True,
         null=True,
         on_delete=models.CASCADE,
-        related_name = 'paymentchannels'
+        related_name='paymentchannels'
     )
 
     # Origin of payment from bank account statement
@@ -1692,7 +1721,8 @@ class Payment(models.Model):
             # time-consuming (relying on Cron performing it in regular
             # intervals anyway)
             from .autocom import check as autocom_check
-            autocom_check(users=UserInCampaign.objects.filter(pk=self.user.pk), action=(insert and 'new-payment' or None))
+            autocom_check(users=UserInCampaign.objects.filter(pk=self.user.pk),
+                          action=(insert and 'new-payment' or None))
 
     def __str__(self):
         return str(self.amount)
@@ -1731,9 +1761,9 @@ class Interaction(models.Model):
         Event,
         verbose_name=_("Event"),
         on_delete=models.SET_NULL,
-        related_name = "events",
-        null = True,
-        blank = True
+        related_name="events",
+        null=True,
+        blank=True
     )
 
     method = models.CharField(
@@ -2043,14 +2073,14 @@ class TerminalCondition(models.Model):
         verbose_name_plural = _("Terminal conditions")
 
     OPERATORS = (
-                ('=', u'='),
-                ('!=', u'≠'),
-                ('>', '>'),
-                ('<', '<'),
-                ('>=', u'≤'),
-                ('<=', u'≤'),
-                ('containts', _(u'contains')),
-                ('icontaints', _(u'contains (case insensitive)')),
+        ('=', u'='),
+        ('!=', u'≠'),
+        ('>', '>'),
+        ('<', '<'),
+        ('>=', u'≤'),
+        ('<=', u'≤'),
+        ('containts', _(u'contains')),
+        ('icontaints', _(u'contains (case insensitive)')),
     )
 
     variable = models.CharField(
@@ -2325,7 +2355,8 @@ class MassCommunication(models.Model):
         verbose_name=_("send to users"),
         help_text=_(
             "All users who should receive the communication"),
-        limit_choices_to={'userprofile__is_active': 'True', 'wished_information': 'True', 'userprofile__send_mailing_lists': 'True'},
+        limit_choices_to={'userprofile__is_active': 'True', 'wished_information': 'True',
+                          'userprofile__send_mailing_lists': 'True'},
         blank=True,
     )
     note = models.TextField(
@@ -2348,28 +2379,28 @@ class OverwriteStorage(FileSystemStorage):
         """
         # If the filename already exists, remove it as if it was a true file syste
         if self.exists(name):
-                self.delete(name)
+            self.delete(name)
         return name
 
 
 def confirmation_upload_to(instance, filename):
-        return "confirmations/%s_%s.pdf" % (instance.user_profile.id, instance.year)
+    return "confirmations/%s_%s.pdf" % (instance.user_profile.id, instance.year)
 
 
 class TaxConfirmation(models.Model):
-        user_profile = models.ForeignKey(
-            UserProfile,
-            on_delete=models.CASCADE,
-            null=True,
-        )
-        year = models.PositiveIntegerField()
-        amount = models.PositiveIntegerField(default=0)
-        file = models.FileField(upload_to=confirmation_upload_to, storage=OverwriteStorage())
+    user_profile = models.ForeignKey(
+        UserProfile,
+        on_delete=models.CASCADE,
+        null=True,
+    )
+    year = models.PositiveIntegerField()
+    amount = models.PositiveIntegerField(default=0)
+    file = models.FileField(upload_to=confirmation_upload_to, storage=OverwriteStorage())
 
-        class Meta:
-            verbose_name = _("Tax confirmation")
-            verbose_name_plural = _("Tax confirmations")
-            unique_together = ('user_profile', 'year',)
+    class Meta:
+        verbose_name = _("Tax confirmation")
+        verbose_name_plural = _("Tax confirmations")
+        unique_together = ('user_profile', 'year',)
 
 
 User._meta.get_field('email').__dict__['_unique'] = True

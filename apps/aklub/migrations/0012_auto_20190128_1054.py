@@ -78,6 +78,10 @@ class Migration(migrations.Migration):
                 'verbose_name_plural': 'Telephones',
             },
         ),
+        migrations.RenameModel(
+            old_name='Campaign',
+            new_name='Event',
+        ),
         migrations.RemoveField(
             model_name='communication',
             name='created_by',
@@ -126,10 +130,6 @@ class Migration(migrations.Migration):
             model_name='userprofile',
             name='sex',
             field=models.CharField(choices=[('male', 'Male'), ('female', 'Female'), ('unknown', 'Unknown')], default='unknown', max_length=50, verbose_name='Gender'),
-        ),
-        migrations.RenameModel(
-            old_name='Campaign',
-            new_name='Event',
         ),
         migrations.DeleteModel(
             name='Communication',
