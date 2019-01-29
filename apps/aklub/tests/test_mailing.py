@@ -21,12 +21,16 @@
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core import mail
 from django.test import RequestFactory, TestCase
+from django.test.utils import override_settings
 
 from freezegun import freeze_time
 
 from .. import mailing, models
 
 
+@override_settings(
+    CELERY_ALWAYS_EAGER=True,
+)
 class MailingTest(TestCase):
     fixtures = ['conditions', 'users']
 
@@ -50,7 +54,7 @@ class MailingTest(TestCase):
             subject="Testing email",
             method="email",
         )
-        mailing.send_communication_sync(c.id, "automatic", "fake_user", sending_user.id)
+        mailing.send_fake_communication(c, sending_user, self.request)
         self.assertEqual(len(mail.outbox), 1)
         msg = mail.outbox[0]
         self.assertEqual(msg.recipients(), ['test@test.com'])
@@ -83,48 +87,31 @@ class MailingTest(TestCase):
             last_name="UserInCampaign",
             email="test@test.com",
         )
-        c = models.AutomaticCommunication.objects.create(
-            condition=models.Condition.objects.create(),
+        c = models.MassCommunication.objects.create(
             template="Testing template",
             template_en="Testing template en",
             subject="Testing email",
             subject_en="Testing email en",
             method="email",
+            date="2015-5-1",
         )
+        c.send_to_users.set(models.UserInCampaign.objects.all())
 
-        users = models.UserInCampaign.objects.filter(userprofile__email='without_payments@email.cz')
-        for u in users:
-            mailing.send_communication_sync(c.id, 'automatic', u.id, sending_user.id)
-        self.assertEqual(len(mail.outbox), 2)
+        mailing.send_mass_communication(c, sending_user, self.request)
+        self.assertEqual(len(mail.outbox), 4)
         msg = mail.outbox[0]
         self.assertEqual(msg.recipients(), ['without_payments@email.cz'])
         self.assertEqual(msg.subject, 'Testing email')
         self.assertIn("Testing template", msg.body)
-        mail.outbox = []
-
-        users = models.UserInCampaign.objects.filter(userprofile__email='without_payments@email.cz')
-        for u in users:
-            mailing.send_communication_sync(c.id, 'automatic', u.id, sending_user.id)
-        self.assertEqual(len(mail.outbox), 2)
-        msg = mail.outbox[0]
+        msg = mail.outbox[1]
         self.assertEqual(msg.recipients(), ['without_payments@email.cz'])
         self.assertEqual(msg.subject, 'Testing email')
         self.assertIn("Testing template", msg.body)
-        mail.outbox = []
-
-        u = models.UserInCampaign.objects.get(userprofile__email='test.user@email.cz')
-        mailing.send_communication_sync(c.id, 'automatic', u.id, sending_user.id)
-        self.assertEqual(len(mail.outbox), 1)
-        msg = mail.outbox[0]
+        msg = mail.outbox[2]
         self.assertEqual(msg.recipients(), ['test.user@email.cz'])
         self.assertEqual(msg.subject, 'Testing email')
         self.assertIn("Testing template", msg.body)
-        mail.outbox = []
-
-        u = models.UserInCampaign.objects.get(userprofile__email='test.user1@email.cz')
-        mailing.send_communication_sync(c.id, 'automatic', u.id, sending_user.id)
-        self.assertEqual(len(mail.outbox), 1)
-        msg = mail.outbox[0]
-        self.assertEqual(msg.recipients(), ['test.user1@email.cz'])
-        self.assertEqual(msg.subject, 'Testing email en')
-        self.assertIn("Testing template", msg.body)
+        msg1 = mail.outbox[3]
+        self.assertEqual(msg1.recipients(), ['test.user1@email.cz'])
+        self.assertEqual(msg1.subject, 'Testing email en')
+        self.assertIn("Testing template", msg1.body)
