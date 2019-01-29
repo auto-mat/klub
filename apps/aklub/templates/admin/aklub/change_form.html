@@ -15,7 +15,7 @@
             var id = $('input', td).val();
             var url = $(this).attr('href').split('?')[0] + id + '/';
             $('strong', td).wrap('<a href="' + url + '"></a>');
-            $('input', td).hide();
+            $('input', td).show();
         });
     });
 //]]>

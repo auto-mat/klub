@@ -55,8 +55,6 @@ import large_initial
 
 
 from related_admin import RelatedFieldAdmin
-from . import darujme, filters, mailing
-
 from .forms import UserCreateForm, UserUpdateForm
 
 
@@ -766,7 +764,8 @@ class InteractionAdmin(RelatedFieldAdmin, admin.ModelAdmin):
         'date', 'type',
     )
 
-    raw_id_fields = ('user', 'event', )
+    raw_id_fields = ('event', )
+    autocomplete_fields = ('user',)
 
     readonly_fields = ('type', 'created_by', 'handled_by', )
     list_filter = ['dispatched', 'send', 'date', 'method', 'type', 'user', 'event'
@@ -781,6 +780,7 @@ class InteractionAdmin(RelatedFieldAdmin, admin.ModelAdmin):
     )
     date_hierarchy = 'date'
     ordering = ('-date',)
+
 
     fieldsets = [
         (_("Header"), {
