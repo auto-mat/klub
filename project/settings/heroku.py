@@ -9,7 +9,7 @@ ALLOWED_HOSTS = [
     os.environ.get('HEROKU_APP_URL'),
 ]
 
-SITE_ID=1
+SITE_ID = 1
 
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
