@@ -1347,6 +1347,7 @@ class BankAccount(models.Model):
     bank_account_number = models.CharField(
         verbose_name = _("Bank account number"),
         max_length=30,
+        blank=True,
     )
 
     def __str__(self):
