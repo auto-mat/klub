@@ -91,6 +91,7 @@ class PaymentsInline(nested_admin.NestedTabularInline):
         qs = qs.select_related('account_statement')
         return qs
 
+
 class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
     model = DonorPaymentChannel
     extra = 0
@@ -221,12 +222,19 @@ class UserProfileResource(ModelResource):
         exclude = ('id',)
         import_id_fields = ('email', )
 
+    get_main_telephone = fields.Field()
+
+    def dehydrate_get_main_telephone(self, profile):
+        return profile.get_main_telephone()
+
     def before_import_row(self, row, **kwargs):
         row['email'] = row['email'].lower()
+
 
     def import_field(self, field, obj, data, is_m2m=False):
         if field.attribute and field.column_name in data and not getattr(obj, field.column_name):
             field.save(obj, data, is_m2m)
+
 
 
 class UserProfileMergeForm(merge.MergeForm):
