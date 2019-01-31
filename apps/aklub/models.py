@@ -664,6 +664,13 @@ class UserProfile(AbstractUser):
             self.email = self.email.lower()
         super().save(*args, **kwargs)
 
+
+
+    def get_telephone(self):
+        numbers = ','.join(number.telephone for number in self.telephone_set.filter(is_primary=True))
+        return numbers
+
+
     def get_main_telephone(self):
         active_numbers = self.telephone_set.all()
         numbers = list(map(lambda number: number.create_link(), active_numbers))
@@ -703,19 +710,21 @@ class Telephone(models.Model):
     def __str__(self):
         return u"%s" % self.telephone
 
-    def create_link(self):
-        if self.is_primary == True:
-            return format_html("<b><a href='sip:{}'>{}</a></b>", self.telephone, self.telephone, )
-        else:
-            return format_html("<a href='sip:{}'>{}</a>", self.telephone, self.telephone, )
-
-    def save(self, *args, **kwargs):
-        if hasattr(self, "telephone"):
+    def format_number(self):
+        if hasattr(self, "telephone") and self.telephone != "":
             if len(self.telephone) > 9:
-                self.telephone = '+' + self.telephone[-12:]
+                return '+' + self.telephone[-12:]
             else:
-                self.telephone = '+420' + self.telephone[-9:]
-            super().save(*args, **kwargs)
+                return '+420' + self.telephone[-9:]
+
+    def create_link(self):
+        if hasattr(self, "telephone"):
+            formated_telephone = self.format_number()
+            if self.is_primary == True:
+                return format_html("<b><a href='sip:{}'>{}</a></b>", formated_telephone, formated_telephone)
+            else:
+                return format_html("<a href='sip:{}'>{}</a>", formated_telephone, formated_telephone)
+
 
 
 class UserInCampaign(models.Model):

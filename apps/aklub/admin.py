@@ -220,12 +220,23 @@ class UserProfileResource(ModelResource):
     class Meta:
         model = UserProfile
         exclude = ('id',)
-        import_id_fields = ('email', )
+        import_id_fields = ('email',)
 
-    get_main_telephone = fields.Field()
+    telephone = fields.Field()
 
-    def dehydrate_get_main_telephone(self, profile):
-        return profile.get_main_telephone()
+
+    def import_obj(self, obj, data, dry_run):
+        if data['telephone'] != "":
+            if not obj.telephone_set.all():
+                obj.save()
+                telephone = Telephone.objects.create(telephone=data['telephone'], user=obj, is_primary=True)
+                obj.telephone_set.add(telephone, bulk=True)
+            else:
+                Telephone.objects.filter(user=obj.id, is_primary=True).update(telephone=data['telephone'])
+        return super(UserProfileResource, self).import_obj(obj, data, dry_run)
+
+    def dehydrate_telephone(self, profile):
+        return profile.get_telephone()
 
     def before_import_row(self, row, **kwargs):
         row['email'] = row['email'].lower()
@@ -234,7 +245,6 @@ class UserProfileResource(ModelResource):
     def import_field(self, field, obj, data, is_m2m=False):
         if field.attribute and field.column_name in data and not getattr(obj, field.column_name):
             field.save(obj, data, is_m2m)
-
 
 
 class UserProfileMergeForm(merge.MergeForm):
