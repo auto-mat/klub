@@ -691,7 +691,7 @@ class Telephone(models.Model):
                                "Telephone must consist of numbers, spaces and + sign or maximum number count is higher.")),
         ],
     )
-    is_primary = models.BooleanField(
+    is_primary = models.NullBooleanField(
         verbose_name=_("Primary phone"),
         blank=True,
         default=False,
@@ -706,6 +706,7 @@ class Telephone(models.Model):
     class Meta:
         verbose_name = _("Telephone")
         verbose_name_plural = _("Telephones")
+        unique_together = ("telephone", "is_primary")
 
     def __str__(self):
         return u"%s" % self.telephone
@@ -724,8 +725,6 @@ class Telephone(models.Model):
                 return format_html("<b><a href='sip:{}'>{}</a></b>", formated_telephone, formated_telephone)
             else:
                 return format_html("<a href='sip:{}'>{}</a>", formated_telephone, formated_telephone)
-
-
 
 class UserInCampaign(models.Model):
     """
