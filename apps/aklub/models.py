@@ -713,10 +713,11 @@ class Telephone(models.Model):
 
     def format_number(self):
         if hasattr(self, "telephone") and self.telephone != "":
-            if len(self.telephone) > 9:
-                return '+' + self.telephone[-12:]
+            removed_space_tel = self.telephone.replace(" ", "")
+            if len(removed_space_tel) > 9:
+                return '+' + removed_space_tel[-12:]
             else:
-                return '+420' + self.telephone[-9:]
+                return '+420' + removed_space_tel[-9:]
 
     def create_link(self):
         if hasattr(self, "telephone"):

@@ -53,7 +53,6 @@ from import_export.resources import ModelResource
 
 import large_initial
 
-
 from related_admin import RelatedFieldAdmin
 from .forms import UserCreateForm, UserUpdateForm
 
@@ -224,10 +223,9 @@ class UserProfileResource(ModelResource):
 
     telephone = fields.Field()
 
-
     def import_obj(self, obj, data, dry_run):
         if data['telephone'] != "":
-            if not obj.telephone_set.all():
+            if not obj.telephone_set.filter(user=obj.id, is_primary=True):
                 obj.save()
                 telephone = Telephone.objects.create(telephone=data['telephone'], user=obj, is_primary=True)
                 obj.telephone_set.add(telephone, bulk=True)
@@ -238,9 +236,9 @@ class UserProfileResource(ModelResource):
     def dehydrate_telephone(self, profile):
         return profile.get_telephone()
 
+
     def before_import_row(self, row, **kwargs):
         row['email'] = row['email'].lower()
-
 
     def import_field(self, field, obj, data, is_m2m=False):
         if field.attribute and field.column_name in data and not getattr(obj, field.column_name):
