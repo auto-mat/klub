@@ -82,6 +82,10 @@ class Migration(migrations.Migration):
                 'verbose_name_plural': 'Telephones',
             },
         ),
+        migrations.RenameModel(
+            old_name='Campaign',
+            new_name='Event',
+        ),
         migrations.RemoveField(
             model_name='communication',
             name='created_by',

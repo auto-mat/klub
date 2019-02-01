@@ -2,8 +2,17 @@
 {% block content %}
 <div class="form-row">
 <h3>Pole:</h3>
-<h4>password</h4>
-Je potřeba zadávat v hash formátu, hesla v čistém textu nebudou fungovat.
+<ul>
+    <li>
+        <h4>password</h4>
+        <p>Je potřeba zadávat v hash formátu, hesla v čistém textu nebudou fungovat.</p>
+    </li>
+    <li>
+        <h4>telephone</h4>
+        <p>You can upload primary phone contact in format <strong>420/1</strong>, <strong>+420/1</strong> or <strong>without prefix</strong>.
+            Only one number can be uploaded to the one user.</p>
+    </li>
+</ul>
 </div>
 
 {{ block.super }}

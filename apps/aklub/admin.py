@@ -55,8 +55,6 @@ import large_initial
 
 
 from related_admin import RelatedFieldAdmin
-from . import darujme, filters, mailing
-
 from .forms import UserCreateForm, UserUpdateForm
 
 
@@ -92,6 +90,7 @@ class PaymentsInline(nested_admin.NestedTabularInline):
         qs = super().get_queryset(request)
         qs = qs.select_related('account_statement')
         return qs
+
 
 class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
     model = DonorPaymentChannel
@@ -212,10 +211,27 @@ class UserProfileResource(ModelResource):
     class Meta:
         model = UserProfile
         exclude = ('id',)
-        import_id_fields = ('email', )
+        import_id_fields = ('email',)
+
+    telephone = fields.Field()
+
+
+    def import_obj(self, obj, data, dry_run):
+        if data['telephone'] != "":
+            if not obj.telephone_set.all():
+                obj.save()
+                telephone = Telephone.objects.create(telephone=data['telephone'], user=obj, is_primary=True)
+                obj.telephone_set.add(telephone, bulk=True)
+            else:
+                Telephone.objects.filter(user=obj.id, is_primary=True).update(telephone=data['telephone'])
+        return super(UserProfileResource, self).import_obj(obj, data, dry_run)
+
+    def dehydrate_telephone(self, profile):
+        return profile.get_telephone()
 
     def before_import_row(self, row, **kwargs):
         row['email'] = row['email'].lower()
+
 
     def import_field(self, field, obj, data, is_m2m=False):
         if field.attribute and field.column_name in data and not getattr(obj, field.column_name):
@@ -754,7 +770,8 @@ class InteractionAdmin(RelatedFieldAdmin, admin.ModelAdmin):
         'date', 'type',
     )
 
-    raw_id_fields = ('user', 'event', )
+    raw_id_fields = ('event', )
+    autocomplete_fields = ('user',)
 
     readonly_fields = ('type', 'created_by', 'handled_by', )
     list_filter = ['dispatched', 'send', 'date', 'method', 'type', 'user', 'event'
@@ -769,6 +786,7 @@ class InteractionAdmin(RelatedFieldAdmin, admin.ModelAdmin):
     )
     date_hierarchy = 'date'
     ordering = ('-date',)
+
 
     fieldsets = [
         (_("Header"), {
