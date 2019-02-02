@@ -2154,82 +2154,82 @@ class OverwriteStorage(FileSystemStorage):
         """
         # If the filename already exists, remove it as if it was a true file syste
         if self.exists(name):
-                self.delete(name)
+            self.delete(name)
         return name
 
 
 class TaxConfirmationField(PdfSandwichFieldABC):
-        fields = {
-         "year": (lambda tc: str(tc.year)),
-         "amount": (lambda tc: "%s Kč." % intcomma(int(tc.amount))),
-         "name": (lambda tc: tc.get_name()),
-         "street": (lambda tc: tc.get_street()),
-         "addr_city": (lambda tc: tc.get_addr_city()),
-         "date": (lambda tc: datetime.date.today().strftime("%d.%m.%Y")),
-        }
+    fields = {
+     "year": (lambda tc: str(tc.year)),
+     "amount": (lambda tc: "%s Kč." % intcomma(int(tc.amount))),
+     "name": (lambda tc: tc.get_name()),
+     "street": (lambda tc: tc.get_street()),
+     "addr_city": (lambda tc: tc.get_addr_city()),
+     "date": (lambda tc: datetime.date.today().strftime("%d.%m.%Y")),
+    }
 
 
 class TaxConfirmationPdf(PdfSandwichABC):
-        field_model = TaxConfirmationField
-        obj = models.ForeignKey(
-            'TaxConfirmation',
-            null=False,
-            blank=False,
-            default='',
-            on_delete=models.CASCADE,
-        )
+    field_model = TaxConfirmationField
+    obj = models.ForeignKey(
+        'TaxConfirmation',
+        null=False,
+        blank=False,
+        default='',
+        on_delete=models.CASCADE,
+    )
 
 
 def confirmation_upload_to(instance, filename):
-        return "DEPRICATED"
+    return "DEPRICATED"
 
 
 class TaxConfirmation(models.Model):
-        user_profile = models.ForeignKey(
-            UserProfile,
-            on_delete=models.CASCADE,
-            null=True,
-        )
-        year = models.PositiveIntegerField()
-        amount = models.PositiveIntegerField(default=0)
-        file = models.FileField(storage=OverwriteStorage())  # DEPRICATED!
+    user_profile = models.ForeignKey(
+        UserProfile,
+        on_delete=models.CASCADE,
+        null=True,
+    )
+    year = models.PositiveIntegerField()
+    amount = models.PositiveIntegerField(default=0)
+    file = models.FileField(storage=OverwriteStorage())  # DEPRICATED!
 
-        def get_pdf(self):
+    def get_pdf(self):
+        try:
+            url = self.taxconfirmationpdf_set.get().pdf.url
+        except TaxConfirmationPdf.DoesNotExist:
             try:
-                url = self.taxconfirmationpdf_set.get().pdf.url
-            except TaxConfirmationPdf.DoesNotExist:
-                try:
-                    url = self.file.url
-                except ValueError:
-                    url = None
-            if url:
-                return format_html("<a href='{}'>{}</a>", url, _('PDF file'))
-            else:
-                return '-'
+                url = self.file.url
+            except ValueError:
+                url = None
+        if url:
+            return format_html("<a href='{}'>{}</a>", url, _('PDF file'))
+        else:
+            return '-'
 
-        get_pdf.short_description = _("PDF")
+    get_pdf.short_description = _("PDF")
 
-        def get_name(self):
-            return "%s %s" % (self.user_profile.first_name, self.user_profile.last_name)
+    def get_name(self):
+        return "%s %s" % (self.user_profile.first_name, self.user_profile.last_name)
 
-        def get_street(self):
-            return self.user_profile.street
+    def get_street(self):
+        return self.user_profile.street
 
-        def get_addr_city(self):
-            return "%s %s" % (self.user_profile.zip_code, self.user_profile.city)
+    def get_addr_city(self):
+        return "%s %s" % (self.user_profile.zip_code, self.user_profile.city)
 
-        sandwich_model = TaxConfirmationPdf
+    sandwich_model = TaxConfirmationPdf
 
-        def get_sandwich_type(self):
-            return PdfSandwichType.objects.get(name="Tax confirmation")
+    def get_sandwich_type(self):
+        return PdfSandwichType.objects.get(name="Tax confirmation")
 
-        def get_payment_set(self):
-            return Payment.objects.filter(user_profile=self.user_profile).exclude(type='expected').filter(date__year=self.year)
+    def get_payment_set(self):
+        return Payment.objects.filter(user_profile=self.user_profile).exclude(type='expected').filter(date__year=self.year)
 
-        class Meta:
-            verbose_name = _("Tax confirmation")
-            verbose_name_plural = _("Tax confirmations")
-            unique_together = ('user_profile', 'year',)
+    class Meta:
+        verbose_name = _("Tax confirmation")
+        verbose_name_plural = _("Tax confirmations")
+        unique_together = ('user_profile', 'year',)
 
 
 User._meta.get_field('email').__dict__['_unique'] = True

@@ -211,6 +211,7 @@ INSTALLED_APPS = (
     'django_celery_monitor',
     'djcelery_email',
     'smmapdfs',
+    'repolinks',
 )
 
 BOWER_INSTALLED_APPS = (

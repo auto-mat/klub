@@ -1,0 +1,40 @@
+{% extends "helpdesk/base.html" %}{% load i18n %}
+{% block helpdesk_title %}{% trans "Helpdesk Dashboard" %}{% endblock %}
+{% load repolinks %}
+{% block helpdesk_head %}
+<script async defer src="https://buttons.github.io/buttons.js"></script>
+{% endblock %}
+
+{% block helpdesk_body %}
+
+{% trans "Open Tickets assigned to you (you are working on this ticket)" as ticket_list_caption %}
+{% trans "You have no tickets assigned to you." as no_assigned_tickets %}
+{% include 'helpdesk/include/tickets.html' with ticket_list=user_tickets ticket_list_empty_message=no_assigned_tickets %}
+
+{% include 'helpdesk/include/unassigned.html' %}
+
+{% load_repos %}
+{% if repos %}
+<div class="card mb-3">
+<div class="card-header">
+Github Issues:
+</div>
+<table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+{% for repo in repos %}
+<tr> <td> {{repo.name}} </td> <td> <a class="github-button" href="{{repo.url}}/issues" data-size="large" data-show-count="true">{% trans "Tickets" %}</a> </td></tr>
+{% endfor %}
+</table>
+</div>
+{% endif %}
+
+{% if all_tickets_reported_by_current_user %}
+{% trans "All Tickets submitted by you" as ticket_list_caption %}
+{% include 'helpdesk/include/tickets.html' with ticket_list=all_tickets_reported_by_current_user ticket_list_empty_message="" %}
+{% endif %}
+
+{% if user_tickets_closed_resolved %}
+{% trans "Closed & resolved Tickets you used to work on" as ticket_list_caption %}
+{% include 'helpdesk/include/tickets.html' with ticket_list=user_tickets_closed_resolved ticket_list_empty_message="" %}
+{% endif %}
+
+{% endblock %}
