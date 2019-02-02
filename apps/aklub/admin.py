@@ -116,7 +116,7 @@ class PaymentsInlineNoExtra(PaymentsInline):
     extra = 0
 
     def user__campaign(self, obj):
-            return obj.user.campaign
+        return obj.user.campaign
 
 
 class CommunicationInline(admin.TabularInline):
