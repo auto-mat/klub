@@ -2195,8 +2195,17 @@ class TaxConfirmation(models.Model):
     file = models.FileField(storage=OverwriteStorage())  # DEPRICATED!
 
     def get_pdf(self):
-        url = self.taxconfirmationpdf_set.get().pdf.url
-        return format_html("<a href='{}'>{}</a>", url, url)
+        try:
+            url = self.taxconfirmationpdf_set.get().pdf.url
+        except TaxConfirmationPdf.DoesNotExist:
+            try:
+                url = self.file.url
+            except ValueError:
+                url = None
+        if url:
+            return format_html("<a href='{}'>{}</a>", url, _('PDF file'))
+        else:
+            return '-'
 
     get_pdf.short_description = _("PDF")
 
