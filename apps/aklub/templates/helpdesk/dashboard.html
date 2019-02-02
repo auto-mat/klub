@@ -1,5 +1,9 @@
 {% extends "helpdesk/base.html" %}{% load i18n %}
 {% block helpdesk_title %}{% trans "Helpdesk Dashboard" %}{% endblock %}
+{% load repolinks %}
+{% block helpdesk_head %}
+<script async defer src="https://buttons.github.io/buttons.js"></script>
+{% endblock %}
 
 {% block helpdesk_body %}
 
@@ -8,6 +12,20 @@
 {% include 'helpdesk/include/tickets.html' with ticket_list=user_tickets ticket_list_empty_message=no_assigned_tickets %}
 
 {% include 'helpdesk/include/unassigned.html' %}
+
+{% load_repos %}
+{% if repos %}
+<div class="card mb-3">
+<div class="card-header">
+Github Issues:
+</div>
+<table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+{% for repo in repos %}
+<tr> <td> {{repo.name}} </td> <td> <a class="github-button" href="{{repo.url}}/issues" data-size="large" data-show-count="true">{% trans "Tickets" %}</a> </td></tr>
+{% endfor %}
+</table>
+</div>
+{% endif %}
 
 {% if all_tickets_reported_by_current_user %}
 {% trans "All Tickets submitted by you" as ticket_list_caption %}
