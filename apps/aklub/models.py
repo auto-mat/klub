@@ -664,12 +664,9 @@ class UserProfile(AbstractUser):
             self.email = self.email.lower()
         super().save(*args, **kwargs)
 
-
-
     def get_telephone(self):
         numbers = ','.join(number.telephone for number in self.telephone_set.filter(is_primary=True))
         return numbers
-
 
     def get_main_telephone(self):
         active_numbers = self.telephone_set.all()
@@ -722,10 +719,11 @@ class Telephone(models.Model):
     def create_link(self):
         if hasattr(self, "telephone"):
             formated_telephone = self.format_number()
-            if self.is_primary == True:
+            if self.is_primary is True:
                 return format_html("<b><a href='sip:{}'>{}</a></b>", formated_telephone, formated_telephone)
             else:
                 return format_html("<a href='sip:{}'>{}</a>", formated_telephone, formated_telephone)
+
 
 class UserInCampaign(models.Model):
     """
@@ -978,7 +976,7 @@ class UserInCampaign(models.Model):
     def requires_action(self):
         """Return true if the user requires some action from
         the club manager, otherwise return False"""
-        if len(Communication.objects.filter(user=self, dispatched=False)) > 0:
+        if len(Interaction.objects.filter(user=self, dispatched=False)) > 0:
             return True
         else:
             return False
@@ -1194,8 +1192,7 @@ class UserInCampaign(models.Model):
         if self.regular_payments != "regular":
             return False
         payment_now = self.last_payment_function()
-        if ((not payment_now) or
-                (payment_now.date < (datetime.date.today() - datetime.timedelta(days=45)))):
+        if ((not payment_now) or (payment_now.date < (datetime.date.today() - datetime.timedelta(days=45)))):
             return False
         payments_year_before = Payment.objects.filter(
             user=self,

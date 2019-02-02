@@ -98,7 +98,6 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
     show_change_link = True
     inlines = [PaymentsInline]
 
-
     fieldsets = (
         (_('Payment information'), {
             'fields': [
@@ -123,7 +122,9 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
     filter_horizontal = ('event', )
     inlines = [PaymentsInline]
 
+
 class PaymentsInlineNoExtra(PaymentsInline):
+
     raw_id_fields = ('user',)
     readonly_fields = ('user__campaign',)
     fields = (
@@ -235,7 +236,6 @@ class UserProfileResource(ModelResource):
 
     def dehydrate_telephone(self, profile):
         return profile.get_telephone()
-
 
     def before_import_row(self, row, **kwargs):
         row['email'] = row['email'].lower()
@@ -380,9 +380,11 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('username', 'title_before', 'first_name', 'last_name', 'title_after', 'sex',
-            'age_group', 'email', 'password'),
-        }),
+            'fields': (
+                'username', 'title_before', 'first_name', 'last_name', 'title_after', 'sex',
+                'age_group', 'email', 'password',
+            )}
+         ),
     )
 
     ordering = ('email',)
@@ -402,7 +404,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
     registered_support_date.admin_order_field = 'registered_support'
 
     def event(self, obj):
-        result = UserProfile.objects.get(id = obj.id)
+        result = UserProfile.objects.get(id=obj.id)
         donors = result.userchannels.select_related().all()
         events = [e.event.select_related().all() for e in donors]
         return [name for e in events for name in e]
@@ -431,7 +433,6 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
     def get_fieldsets(self, request, obj=None):
         super().get_fieldsets(request, obj)
         return self.add_fieldsets + self.profile_fieldsets
-
 
     readonly_fields = ('userattendance_links', 'date_joined', 'last_login',)
     actions = (send_mass_communication_distinct_action,)
@@ -784,8 +785,7 @@ class InteractionAdmin(RelatedFieldAdmin, admin.ModelAdmin):
     autocomplete_fields = ('user',)
 
     readonly_fields = ('type', 'created_by', 'handled_by', )
-    list_filter = ['dispatched', 'send', 'date', 'method', 'type', 'user', 'event'
-    ]
+    list_filter = ['dispatched', 'send', 'date', 'method', 'type', 'user', 'event']
 
     search_fields = (
         'subject',
@@ -797,24 +797,23 @@ class InteractionAdmin(RelatedFieldAdmin, admin.ModelAdmin):
     date_hierarchy = 'date'
     ordering = ('-date',)
 
-
     fieldsets = [
         (_("Header"), {
             'fields': [('user', 'event', 'method'),
-            ('date')
-            ],
+                       'date'],
         }),
         (_("Content"), {
-            'fields': [
-                'subject',
-                ('summary', 'attachment'),
-                'note',
-                'result',
-            ],
-        }),
+            'fields': ['subject',
+                       ('summary', 'attachment'),
+                       'note',
+                       'result',
+                       ],
+        }
+        ),
         (_("Sending"), {
             'fields': [('created_by', 'handled_by', 'send', 'dispatched')],
-        }),
+        }
+        ),
     ]
 
     def save_model(self, request, obj, form, change):
@@ -1071,8 +1070,7 @@ class TaxConfirmationAdmin(ImportExportMixin, RelatedFieldAdmin):
     list_display = ('user_profile', 'year', 'amount', 'file')
     ordering = ('user_profile__last_name', 'user_profile__first_name',)
     list_filter = ['year']
-    search_fields = (
-    'user_profile__last_name', 'user_profile__first_name', 'user_profile__userincampaign__variable_symbol',)
+    search_fields = ('user_profile__last_name', 'user_profile__first_name', 'user_profile__userincampaign__variable_symbol',)
     raw_id_fields = ('user_profile',)
     list_max_show_all = 10000
 
@@ -1099,6 +1097,7 @@ class TaxConfirmationAdmin(ImportExportMixin, RelatedFieldAdmin):
             ),
         ]
         return my_urls + urls
+
 
 admin.site.register(UserInCampaign, UserInCampaignAdmin)
 admin.site.register(UserYearPayments, UserYearPaymentsAdmin)
