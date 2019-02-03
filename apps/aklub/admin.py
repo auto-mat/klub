@@ -777,8 +777,7 @@ class InteractionAdmin(RelatedFieldAdmin, admin.ModelAdmin):
         'date', 'type',
     )
 
-    raw_id_fields = ('event', )
-    autocomplete_fields = ('user',)
+    autocomplete_fields = ('user', 'event')
 
     readonly_fields = ('type', 'created_by', 'handled_by', )
     list_filter = ['dispatched', 'send', 'date', 'method', 'type', 'user', 'event']
@@ -1046,9 +1045,11 @@ class EventAdmin(admin.ModelAdmin):
         'average_expense',
     )
     list_filter = ('acquisition_campaign', filters.ActiveCampaignFilter)
+    search_fields = ('name', )
     inlines = (ExpenseInline,)
     actions = (download_darujme_statement,)
     save_as = True
+
 
 
 class RecruiterAdmin(ImportExportMixin, admin.ModelAdmin):
