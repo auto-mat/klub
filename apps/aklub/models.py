@@ -1393,8 +1393,14 @@ class BankAccount(models.Model):
         null=True,
     )
 
+    bank_account_number = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+    )
+
     def __str__(self):
-        return u"%s" % (self.bank_account)
+        return u"%s-%s" % (self.bank_account, self.bank_account_number)
 
 
 class DonorPaymentChannel(models.Model):

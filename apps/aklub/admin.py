@@ -99,22 +99,18 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
     inlines = [PaymentsInline]
 
     fieldsets = (
-        (_('Payment information'), {
+        (None, {
             'fields': [
                 ('registered_support', 'regular_payments', 'regular_amount', 'regular_frequency'),
                 ('VS', 'bank_account'),
-                ('expected_date_of_first_payment'),
-            ],
-        }),
-        (_('Payment details'), {
-            'fields': [
-                ('exceptional_membership'),
-                ('other_support'),
+                'expected_date_of_first_payment',
+                'exceptional_membership',
+                'other_support',
             ],
         }),
         (_('Events'), {
             'fields': [
-                ('event'),
+                'event',
             ],
         }),
     )
