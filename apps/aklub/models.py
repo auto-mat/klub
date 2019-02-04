@@ -708,6 +708,7 @@ class Telephone(models.Model):
         return u"%s" % self.telephone
 
     def format_number(self):
+        self.telephone = self.telephone.replace(' ', '')
         if hasattr(self, "telephone") and self.telephone != "":
             if len(self.telephone) > 9:
                 return '+' + self.telephone[-12:]
