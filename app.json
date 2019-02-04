@@ -17,12 +17,9 @@
 		"GUNICORN_WORKERS": {"value": "2"},
 		"AKLUB_ADMINS": {"value": "Fake Admin <fake@example.com>"},
 		"AKLUB_DEFAULT_FROM_EMAIL": {"value": "fake@example.com"},
-		"AKLUB_RAVEN_DNS": {"required": true},
 		"AWS_ACCESS_KEY_ID": {"required": true},
 		"AWS_SECRET_ACCESS_KEY": {"required": true},
-		"AWS_STORAGE_BUCKET_NAME": {"required": true},
-		"NEW_RELIC_APP_NAME": {"value": "Klub Přátel Heroku review app"},
-		"NEW_RELIC_LICENSE_KEY": {"required": true}
+		"AWS_STORAGE_BUCKET_NAME": {"required": true}
     },
     "formation": {
         "beat": {
