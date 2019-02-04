@@ -18,6 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+import django
 from django.contrib import admin as django_admin, auth
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -40,6 +41,7 @@ from ..models import (
 
 class AdminSmokeTest(tests.AdminSiteSmokeTest):
     fixtures = ['conditions', 'users']
+    exclude_apps = ['helpdesk', 'postoffice']
 
     def post_request(self, post_data={}, params=None):
         request = self.factory.post('/', data=post_data)
@@ -81,7 +83,7 @@ class AdminTest(TestCase):
         model_admin = django_admin.site._registry[UserInCampaign]
         request = self.post_request({})
         queryset = UserInCampaign.objects.all()
-        response = admin.send_mass_communication(model_admin, request, queryset)
+        response = admin.send_mass_communication_action(model_admin, request, queryset)
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/aklub/masscommunication/add/?send_to_users=3%2C4%2C2978%2C2979")
 
@@ -98,7 +100,7 @@ class AdminTest(TestCase):
         model_admin = django_admin.site._registry[UserInCampaign]
         request = self.post_request({})
         queryset = UserProfile.objects.all()
-        response = admin.send_mass_communication_distinct(model_admin, request, queryset)
+        response = admin.send_mass_communication_distinct_action(model_admin, request, queryset)
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/aklub/masscommunication/add/?send_to_users=3%2C2978%2C2979")
 
@@ -120,7 +122,6 @@ class AdminTest(TestCase):
             {'year': 2016, 'user_profile': 2979, 'amount': 130},
         ]
         self.assertListEqual(list(confirmation_values), expected_confirmation_values)
-        self.assertEqual(request._messages._queued_messages[0].message, 'Generated 2 tax confirmations')
 
     def test_useryearpayments(self):
         """
@@ -171,7 +172,7 @@ class AdminTest(TestCase):
             self.assertEqual(request._messages._queued_messages[0].message, 'Skipped payments: Testing User 1 (test.user1@email.cz)')
             self.assertEqual(
                 request._messages._queued_messages[1].message,
-                'Položka typu Výpis z účtu "<a href="/aklub/accountstatements/%(id)s/change/">%(id)s (2015-05-01 00:00:00)</a>"'
+                'Položka typu Výpis z účtu "<a href="/aklub/accountstatements/%(id)s/change/">%(id)s (2015-05-01 00:00:00+00:00)</a>"'
                 ' byla úspěšně přidána.' % {'id': obj.id},
             )
 
@@ -206,7 +207,7 @@ class AdminTest(TestCase):
             )
             self.assertEqual(
                 request._messages._queued_messages[1].message,
-                'Položka typu Výpis z účtu "<a href="/aklub/accountstatements/%(id)s/change/">%(id)s (2015-05-01 00:00:00)</a>"'
+                'Položka typu Výpis z účtu "<a href="/aklub/accountstatements/%(id)s/change/">%(id)s (2015-05-01 00:00:00+00:00)</a>"'
                 ' byla úspěšně přidána.' % {'id': obj.id},
             )
 
@@ -234,18 +235,20 @@ class AdminTest(TestCase):
         obj = MassCommunication.objects.get(name="test communication")
         self.assertEqual(obj.subject, "Subject")
         self.assertEqual(response.url, "/aklub/masscommunication/%s/change/" % obj.id)
-        self.assertEqual(
-            request._messages._queued_messages[1].message,
-            'Emaily odeslány na následující adresy: foo@email.com, bar@email.com',
-        )
+        print(request._messages._queued_messages[1].message)
+        print(request._messages._queued_messages[0].message)
         self.assertEqual(
             request._messages._queued_messages[0].message,
-            'Odeslání na následující adresy nebylo možné kvůli problémům: baz@email.com',
+            "Communication sending was queued for 3 users",
         )
+        if django.VERSION < (2, 1):
+            edit_text = 'Níže ji můžete dále upravovat.'
+        else:
+            edit_text = 'Níže můžete údaje znovu upravovat.'
         self.assertEqual(
-            request._messages._queued_messages[2].message,
+            request._messages._queued_messages[1].message,
             'Položka typu Hromadná komunikace "<a href="/aklub/masscommunication/%s/change/">test communication</a>"'
-            ' byla úspěšně přidána. Níže ji můžete dále upravovat.' % obj.id,
+            ' byla úspěšně přidána. %s' % (obj.id, edit_text),
         )
 
     def test_mass_communication_changelist_post(self):
@@ -389,7 +392,7 @@ class AdminImportExportTests(TestCase):
         response = self.client.post(address, post_data)
         self.assertContains(
             response,
-            ',Test,User,,male,,test.user@email.cz,,Praha 4,,120127010,0,1,regular,monthly,2015-12-16 18:22:30,'
+            ',Test,User,,male,,test.user@email.cz,,Praha 4,,120127010,0,1,regular,monthly,2015-12-16 17:22:30,'
             '"Domníváte se, že má město po zprovoznění tunelu Blanka omezit tranzit historickým centrem? '
             'Ano, hned se zprovozněním tunelu",editor,1,cs,,,,0,0.0,100',
         )

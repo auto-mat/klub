@@ -18,8 +18,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from PyPDF2 import PdfFileReader
-
 from django.test import TestCase
 
 from freezegun import freeze_time
@@ -89,7 +87,7 @@ class TestStr(TestCase):
             "aklub.UserProfile",
             sex='female',
         )
-        self.assertEqual(t.get_addressment(), "členko Klubu přátel Auto*Matu")
+        self.assertEqual(t.get_addressment(), "přítelkyně Auto*Matu")
 
     def test_get_addressment_default(self):
         """ Test, that get_addresment function returns default """
@@ -97,7 +95,7 @@ class TestStr(TestCase):
             "aklub.UserProfile",
             sex='unknown',
         )
-        self.assertEqual(t.get_addressment(), "člene/členko Klubu přátel Auto*Matu")
+        self.assertEqual(t.get_addressment(), "příteli/kyně Auto*Matu")
 
     def test_email_lowercase(self):
         """ Test, that email is stored in lowercase """
@@ -147,7 +145,4 @@ class TestStr(TestCase):
         tax_confirmation, created = t.make_tax_confirmation(2016)
         self.assertEqual(t.email, None)
         self.assertEqual(tax_confirmation.year, 2016)
-        pdf = PdfFileReader(tax_confirmation.file)
-        pdf_string = pdf.pages[0].extractText()
-        self.assertTrue("spolku Auto*Mat dar ve vƒ⁄i 350,-" in pdf_string)
         self.assertEqual(tax_confirmation.amount, 350)

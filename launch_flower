@@ -1,0 +1,2 @@
+#!/bin/sh
+celery flower -A project.celery --basic_auth=admin:$FLOWER_PASSWORD

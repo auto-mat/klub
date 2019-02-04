@@ -21,12 +21,16 @@
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core import mail
 from django.test import RequestFactory, TestCase
+from django.test.utils import override_settings
 
 from freezegun import freeze_time
 
 from .. import mailing, models
 
 
+@override_settings(
+    CELERY_ALWAYS_EAGER=True,
+)
 class MailingTest(TestCase):
     fixtures = ['conditions', 'users']
 
@@ -50,7 +54,7 @@ class MailingTest(TestCase):
             subject="Testing email",
             method="email",
         )
-        mailing.send_mass_communication(c, ["fake_user"], sending_user, self.request, save=False)
+        mailing.send_fake_communication(c, sending_user, self.request)
         self.assertEqual(len(mail.outbox), 1)
         msg = mail.outbox[0]
         self.assertEqual(msg.recipients(), ['test@test.com'])
@@ -71,9 +75,9 @@ class MailingTest(TestCase):
             subject_en="Testing email",
             method="email",
         )
-        u = models.UserInCampaign.objects.all()
+        u = models.UserInCampaign.objects.get(userprofile__email='test.user1@email.cz')
         with self.assertRaises(Exception) as ex:
-            mailing.send_mass_communication(c, u, sending_user, self.request, save=False)
+            mailing.send_communication_sync(c.id, 'automatic', u.id, sending_user.id)
         self.assertEqual(str(ex.exception), "Message template is empty for one of the language variants.")
 
     @freeze_time("2015-5-1")
@@ -83,16 +87,17 @@ class MailingTest(TestCase):
             last_name="UserInCampaign",
             email="test@test.com",
         )
-        c = models.AutomaticCommunication.objects.create(
-            condition=models.Condition.objects.create(),
+        c = models.MassCommunication.objects.create(
             template="Testing template",
             template_en="Testing template en",
             subject="Testing email",
             subject_en="Testing email en",
             method="email",
+            date="2015-5-1",
         )
-        u = models.UserInCampaign.objects.all()
-        mailing.send_mass_communication(c, u, sending_user, self.request, save=False)
+        c.send_to_users.set(models.UserInCampaign.objects.all())
+
+        mailing.send_mass_communication(c, sending_user, self.request)
         self.assertEqual(len(mail.outbox), 4)
         msg = mail.outbox[0]
         self.assertEqual(msg.recipients(), ['without_payments@email.cz'])

@@ -20,6 +20,7 @@
 
 import datetime
 
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 
 from .. import autocom
@@ -50,7 +51,7 @@ class AutocomTest(TestCase):
         autocom.check(action="test-autocomm")
         communication = Communication.objects.get(user=self.userincampaign)
         self.assertTrue("testovací šablona" in communication.summary)
-        self.assertTrue("člene Klubu přátel Auto*Matu" in communication.summary)
+        self.assertTrue("příteli Auto*Matu" in communication.summary)
         self.assertTrue("Vazeny pane" in communication.summary)
 
     def test_autocom_female(self):
@@ -59,7 +60,7 @@ class AutocomTest(TestCase):
         autocom.check(action="test-autocomm")
         communication = Communication.objects.get(user=self.userincampaign)
         self.assertIn("testovací šablona", communication.summary)
-        self.assertIn("členko Klubu přátel Auto*Matu", communication.summary)
+        self.assertIn("přítelkyně Auto*Matu", communication.summary)
         self.assertIn("Vazena pani", communication.summary)
 
     def test_autocom_unknown(self):
@@ -68,7 +69,7 @@ class AutocomTest(TestCase):
         autocom.check(action="test-autocomm")
         communication = Communication.objects.get(user=self.userincampaign)
         self.assertIn("testovací šablona", communication.summary)
-        self.assertIn("člene/členko Klubu přátel Auto*Matu", communication.summary)
+        self.assertIn("příteli/kyně Auto*Matu", communication.summary)
         self.assertIn("Vazeny/a pane/pani", communication.summary)
 
     def test_autocom_addressment(self):
@@ -88,5 +89,38 @@ class AutocomTest(TestCase):
         autocom.check(action="test-autocomm")
         communication = Communication.objects.get(user=self.userincampaign)
         self.assertIn("test template", communication.summary)
-        self.assertIn("member of the Auto*Mat friends club", communication.summary)
+        self.assertIn("Auto*Mat friend", communication.summary)
         self.assertIn("Dear sir", communication.summary)
+
+
+class GenderStringsValidatorTest(TestCase):
+    def test_matches(self):
+        self.assertEquals(autocom.gendrify_text('', 'male'), '')
+        self.assertEquals(autocom.gendrify_text('asdfasdf', 'male'), 'asdfasdf')
+        self.assertEquals(autocom.gendrify_text('{ý|á}', 'male'), 'ý')
+        self.assertEquals(autocom.gendrify_text('{ý|á}', 'female'), 'á')
+        self.assertEquals(autocom.gendrify_text('{ý/á}', 'female'), 'á')
+        self.assertEquals(autocom.gendrify_text('{|á}', 'male'), '')
+        self.assertEquals(autocom.gendrify_text('{|á}', 'female'), 'á')
+        self.assertEquals(autocom.gendrify_text('{|á}', ''), '/á')
+        self.assertEquals(autocom.gendrify_text('asdfasdf{ý|á}', 'male'), 'asdfasdfý')
+        self.assertEquals(autocom.gendrify_text('{ý|á}asdfadsfasd', 'male'), 'ýasdfadsfasd')
+        self.assertEquals(autocom.gendrify_text('asdfasdf{ý|á}asdfadsfasd', ''), 'asdfasdfý/áasdfadsfasd')
+        self.assertEquals(autocom.gendrify_text('asdfasdf{ý/á}asdfadsfasd', ''), 'asdfasdfý/áasdfadsfasd')
+        self.assertEquals(autocom.gendrify_text('{ý|á}{ý|á}', 'male'), 'ýý')
+        self.assertEquals(autocom.gendrify_text('{ý|á}asdfasdf{ý|á}', 'male'), 'ýasdfasdfý')
+        self.assertEquals(autocom.gendrify_text('{ý/á}asdfasdf{ý|á}', 'male'), 'ýasdfasdfý')
+
+    def test_mismatches(self):
+        with self.assertRaises(ValidationError):
+            autocom.gendrify_text('{ý.á}', 'male')
+        with self.assertRaises(ValidationError):
+            autocom.gendrify_text('{ý|á}{ý.á}', 'male')
+        with self.assertRaises(ValidationError):
+            autocom.gendrify_text('{ý.á}{ý|á}', 'male')
+        with self.assertRaises(ValidationError):
+            autocom.gendrify_text('{ý.á}asdfasdfasdf', 'male')
+        with self.assertRaises(ValidationError):
+            autocom.gendrify_text('asdfasdfasdf{ý.á}', 'male')
+        with self.assertRaises(ValidationError):
+            autocom.gendrify_text('asdfasfasfaiasdfasfasdfsdfsfasdfasfasfasfasdfasd{ý.á}')

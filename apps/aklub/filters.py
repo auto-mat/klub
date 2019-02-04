@@ -1,7 +1,7 @@
 # custom filters
 
 import operator
-from datetime import date
+from datetime import date, timedelta
 from functools import reduce
 
 from django.contrib.admin import SimpleListFilter
@@ -107,6 +107,28 @@ class EmailFilter(SimpleListFilter):
             return queryset.filter(Q(email__exact='') or Q(email__isnull=True))
         if self.value() == 'email-format':
             return queryset.exclude(email__iregex=r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9.-]+$)")
+        return queryset
+
+
+class RegularPaymentsFilter(SimpleListFilter):
+    title = _("Regular payments (of any user in campaign)")
+    parameter_name = 'regular_payments'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('not-delayed', _('Not dealyed')),
+            ('delayed', _('Delayed or none')),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == 'not-delayed':
+            return UserProfile.objects.filter(
+                userincampaign__expected_regular_payment_date__gt=date.today() - timedelta(days=11),
+            )
+        if self.value() == 'delayed':
+            return UserProfile.objects.exclude(
+                userincampaign__expected_regular_payment_date__gt=date.today() - timedelta(days=11),
+            )
         return queryset
 
 

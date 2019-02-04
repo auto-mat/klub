@@ -30,9 +30,7 @@ from denorm import denormalized, depend_on_related
 from django.contrib.admin.templatetags.admin_list import _boolean_icon
 from django.contrib.auth.models import AbstractUser, User
 from django.contrib.humanize.templatetags.humanize import intcomma
-from django.core.files import File
 from django.core.files.storage import FileSystemStorage
-from django.core.files.temp import NamedTemporaryFile
 from django.core.mail import EmailMultiAlternatives
 try:
     from django.urls import reverse
@@ -41,25 +39,22 @@ except ImportError:  # Django<2.0
 from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import Count, Q, Sum
-from django.forms import ValidationError
 from django.utils import timezone
 from django.utils.html import format_html, mark_safe
+from django.utils.text import format_lazy
 from django.utils.timesince import timesince
-from django.utils.translation import string_concat, ugettext_lazy as _
-try:
-    from django.utils.text import format_lazy
-except ImportError:  # Django<1.11
-    def format_lazy(string, name, verbose_name):
-        return string_concat(name, " ", verbose_name)
+from django.utils.translation import ugettext_lazy as _
 
 import html2text
+
+from smmapdfs.model_abcs import PdfSandwichABC, PdfSandwichFieldABC
+from smmapdfs.models import PdfSandwichType
 
 import stdimage
 
 from vokativ import vokativ
 
-from . import confirmation
-from .autocom import KNOWN_VARIABLES
+from . import autocom
 
 logger = logging.getLogger(__name__)
 
@@ -177,9 +172,21 @@ class Campaign(models.Model):
         blank=True,
         null=True,
     )
+    enable_signing_petitions = models.BooleanField(
+        verbose_name=_("Enable registration through petition/mailing list forms"),
+        default=False,
+    )
+    enable_registration = models.BooleanField(
+        verbose_name=_("Enable registration through donation forms"),
+        default=False,
+    )
     allow_statistics = models.BooleanField(
         verbose_name=_("Allow statistics exports"),
         default=False,
+    )
+    email_confirmation_redirect = models.URLField(
+        blank=True,
+        null=True,
     )
 
     def number_of_members(self):
@@ -194,6 +201,12 @@ class Campaign(models.Model):
 
     def number_of_active_members(self):
         return self.userincampaign_set.filter(payment__amount__gt=0).distinct().count()
+
+    def number_of_all_members(self):
+        return self.userincampaign_set.distinct().count()
+
+    def number_of_confirmed_members(self):
+        return self.userincampaign_set.filter(email_confirmed=True).distinct().count()
 
     def recruiters(self):
         return Recruiter.objects.filter(campaigns=self)
@@ -525,21 +538,36 @@ class UserProfile(AbstractUser):
         auto_now=True,
         null=True,
     )
+    send_mailing_lists = models.BooleanField(
+        verbose_name=_("Sending of mailing lists allowed"),
+        default=True,
+    )
+    age_group = models.PositiveIntegerField(
+        verbose_name=_("Birth year"),
+        null=True,
+        blank=True,
+        choices=[(i, i) for i in range(datetime.date.today().year, datetime.date.today().year - 100, -1)],
+    )
+
+    def get_last_name_vokativ(self):
+        return vokativ(self.last_name.strip(), last_name=True).title()
+    get_last_name_vokativ.short_description = _("Last name vokativ")
+    get_last_name_vokativ.admin_order_field = 'last_name'
 
     def get_addressment(self):
         if self.addressment:
             return self.addressment
         if self.first_name:
-            return vokativ(self.first_name).title()
+            return vokativ(self.first_name.strip()).title()
         if self.language == 'cs':
             if self.sex == 'male':
-                return 'člene Klubu přátel Auto*Matu'
+                return 'příteli Auto*Matu'
             elif self.sex == 'female':
-                return 'členko Klubu přátel Auto*Matu'
+                return 'přítelkyně Auto*Matu'
             else:
-                return 'člene/členko Klubu přátel Auto*Matu'
+                return 'příteli/kyně Auto*Matu'
         else:
-            return 'member of the Auto*Mat friends club'
+            return 'Auto*Mat friend'
     get_addressment.short_description = _("Addressment")
     get_addressment.admin_order_field = 'addressment'
 
@@ -582,15 +610,10 @@ class UserProfile(AbstractUser):
         amount = payment_set.exclude(type='expected').filter(date__year=year).aggregate(Sum('amount'))['amount__sum']
         if not amount:
             return None, False
-        temp = NamedTemporaryFile()
-        name = u"%s %s" % (self.first_name, self.last_name)
-        addr_city = u"%s %s" % (self.zip_code, self.city)
-        confirmation.makepdf(temp, name, self.sex, self.street, addr_city, year, amount)
         confirm, created = TaxConfirmation.objects.update_or_create(
             user_profile=self,
             year=year,
             defaults={
-                'file': File(temp),
                 'amount': amount,
             },
         )
@@ -610,12 +633,8 @@ class UserProfile(AbstractUser):
     telephone_url.admin_order_field = "telephone"
 
     def clean(self):
-        if self.email and UserProfile.objects.filter(email__iexact=self.email).exclude(id=self.pk).exists():
-            raise ValidationError(
-                {
-                    'email': _("This e-mail is already used."),
-                }
-            )
+        if self.email:
+            self.email = self.email.lower()
         if self.email == "":
             self.email = None
 
@@ -651,6 +670,7 @@ class UserInCampaign(models.Model):
         (None, _('Onetime')),
     )
     REGULAR_PAYMENT_FREQUENCIES_MAP = dict(REGULAR_PAYMENT_FREQUENCIES)
+    REGULAR_PAYMENT_FREQUENCIES_MAP[''] = REGULAR_PAYMENT_FREQUENCIES_MAP[None]
     REGULAR_PAYMENT_CHOICES = (
         ('regular', _('Regular payments')),
         ('onetime', _('No regular payments')),
@@ -783,6 +803,10 @@ class UserInCampaign(models.Model):
         help_text=_("Was the the user information verified by a club administrator?"),
         default=False,
     )
+    gdpr_consent = models.BooleanField(
+        _("GDPR consent"),
+        default=False,
+    )
     verified_by = models.ForeignKey(
         UserProfile,
         verbose_name=_("Verified by"),
@@ -836,6 +860,24 @@ class UserInCampaign(models.Model):
         choices=COMMUNICATION_METHOD,
         blank=True,
         null=True,
+    )
+    public = models.BooleanField(
+        verbose_name=_("Publish my name in the list of supporters/petitents of this campaign"),
+        default=False,
+    )
+    created = models.DateTimeField(
+        verbose_name=_("Date of creation"),
+        auto_now_add=True,
+        null=True,
+    )
+    updated = models.DateTimeField(
+        verbose_name=_("Date of last change"),
+        auto_now=True,
+        null=True,
+    )
+    email_confirmed = models.BooleanField(
+        verbose_name=_("Is confirmed via e-mail"),
+        default=False,
     )
 
     def __str__(self):
@@ -957,8 +999,7 @@ class UserInCampaign(models.Model):
             # (Allow 7 days for payment processing)
             if expected_regular_payment_date:
                 expected_with_tolerance = expected_regular_payment_date + datetime.timedelta(days=10)
-                if (expected_with_tolerance <
-                        datetime.date.today()):
+                if (expected_with_tolerance < datetime.date.today()):
                     return datetime.date.today() - expected_with_tolerance
         return False
 
@@ -1959,8 +2000,24 @@ class AutomaticCommunication(models.Model):
     )
     template = models.TextField(
         verbose_name=_("Template"),
-        help_text=_("Template can contain variable substitutions like addressment, name, "
-                    "variable symbol etc."),
+        help_text=_(
+            "Template can contain following variable substitutions: "
+            "$addressment  "
+            "$last_name_vokativ  "
+            "$name  "
+            "$firstname  "
+            "$surname  "
+            "$street  "
+            "$city  "
+            "$zipcode  "
+            "$email  "
+            "$telephone  "
+            "$regular_amount  "
+            "$regular_frequency  "
+            "$var_symbol  "
+            "$last_payment_amount  "
+            "$auth_token  "
+        ),
         max_length=50000,
     )
     template_en = models.TextField(
@@ -1993,8 +2050,8 @@ class AutomaticCommunication(models.Model):
         return str(self.name)
 
 
-gender_strings_validator = RegexValidator(r'^((\{\w*\|\w*\})?[^{}]*)*$', _("Gender strings must look like {male_variant|female_variant}"))
-variable_validator = RegexValidator(r'^([^$]*(\$(%s)\b)?)*$' % '|'.join(KNOWN_VARIABLES), _("Unknown variable"))
+gender_strings_validator = autocom.gendrify_text
+variable_validator = RegexValidator(r'^([^$]*(\$(%s)\b)?)*$' % '|'.join(autocom.KNOWN_VARIABLES), _("Unknown variable"))
 
 
 class MassCommunication(models.Model):
@@ -2029,9 +2086,9 @@ class MassCommunication(models.Model):
     )
     subject_en = models.CharField(
         verbose_name=_("English subject"),
-        help_text=string_concat(
+        help_text=format_lazy(
+            "{}<br/>{}",
             _("English version of the subject. If empty, English speaking users will not receive this communication."),
-            "<br/>",
             _("Same variables as in template can be used"),
         ),
         max_length=130,
@@ -2042,7 +2099,7 @@ class MassCommunication(models.Model):
     template = models.TextField(
         verbose_name=_("Template"),
         help_text=_("Template can contain following variable substitutions: <br/>") + (
-            "{mr|mrs}, $" + ", $".join(KNOWN_VARIABLES)
+            "{mr|mrs} or {mr/mrs}, $" + ", $".join(autocom.KNOWN_VARIABLES)
         ),
         max_length=50000,
         blank=False,
@@ -2074,7 +2131,7 @@ class MassCommunication(models.Model):
         verbose_name=_("send to users"),
         help_text=_(
             "All users who should receive the communication"),
-        limit_choices_to={'userprofile__is_active': 'True', 'wished_information': 'True'},
+        limit_choices_to={'userprofile__is_active': 'True', 'wished_information': 'True', 'userprofile__send_mailing_lists': 'True'},
         blank=True,
     )
     note = models.TextField(
@@ -2097,28 +2154,82 @@ class OverwriteStorage(FileSystemStorage):
         """
         # If the filename already exists, remove it as if it was a true file syste
         if self.exists(name):
-                self.delete(name)
+            self.delete(name)
         return name
 
 
+class TaxConfirmationField(PdfSandwichFieldABC):
+    fields = {
+     "year": (lambda tc: str(tc.year)),
+     "amount": (lambda tc: "%s Kč." % intcomma(int(tc.amount))),
+     "name": (lambda tc: tc.get_name()),
+     "street": (lambda tc: tc.get_street()),
+     "addr_city": (lambda tc: tc.get_addr_city()),
+     "date": (lambda tc: datetime.date.today().strftime("%d.%m.%Y")),
+    }
+
+
+class TaxConfirmationPdf(PdfSandwichABC):
+    field_model = TaxConfirmationField
+    obj = models.ForeignKey(
+        'TaxConfirmation',
+        null=False,
+        blank=False,
+        default='',
+        on_delete=models.CASCADE,
+    )
+
+
 def confirmation_upload_to(instance, filename):
-        return "confirmations/%s_%s.pdf" % (instance.user_profile.id, instance.year)
+    return "DEPRICATED"
 
 
 class TaxConfirmation(models.Model):
-        user_profile = models.ForeignKey(
-            UserProfile,
-            on_delete=models.CASCADE,
-            null=True,
-        )
-        year = models.PositiveIntegerField()
-        amount = models.PositiveIntegerField(default=0)
-        file = models.FileField(upload_to=confirmation_upload_to, storage=OverwriteStorage())
+    user_profile = models.ForeignKey(
+        UserProfile,
+        on_delete=models.CASCADE,
+        null=True,
+    )
+    year = models.PositiveIntegerField()
+    amount = models.PositiveIntegerField(default=0)
+    file = models.FileField(storage=OverwriteStorage())  # DEPRICATED!
 
-        class Meta:
-            verbose_name = _("Tax confirmation")
-            verbose_name_plural = _("Tax confirmations")
-            unique_together = ('user_profile', 'year',)
+    def get_pdf(self):
+        try:
+            url = self.taxconfirmationpdf_set.get().pdf.url
+        except TaxConfirmationPdf.DoesNotExist:
+            try:
+                url = self.file.url
+            except ValueError:
+                url = None
+        if url:
+            return format_html("<a href='{}'>{}</a>", url, _('PDF file'))
+        else:
+            return '-'
+
+    get_pdf.short_description = _("PDF")
+
+    def get_name(self):
+        return "%s %s" % (self.user_profile.first_name, self.user_profile.last_name)
+
+    def get_street(self):
+        return self.user_profile.street
+
+    def get_addr_city(self):
+        return "%s %s" % (self.user_profile.zip_code, self.user_profile.city)
+
+    sandwich_model = TaxConfirmationPdf
+
+    def get_sandwich_type(self):
+        return PdfSandwichType.objects.get(name="Tax confirmation")
+
+    def get_payment_set(self):
+        return Payment.objects.filter(user_profile=self.user_profile).exclude(type='expected').filter(date__year=self.year)
+
+    class Meta:
+        verbose_name = _("Tax confirmation")
+        verbose_name_plural = _("Tax confirmations")
+        unique_together = ('user_profile', 'year',)
 
 
 User._meta.get_field('email').__dict__['_unique'] = True

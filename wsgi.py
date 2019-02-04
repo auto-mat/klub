@@ -17,9 +17,12 @@ import os
 import site
 import sys
 
-from django.core.wsgi import get_wsgi_application
+from dotenv import load_dotenv # noqa
+load_dotenv() # noqa
 
-from project.settings import PROJECT_ROOT
+from django.core.wsgi import get_wsgi_application # noqa
+
+from project.settings import PROJECT_ROOT # noqa
 
 ALLDIRS = [os.path.join(PROJECT_ROOT, 'env/lib/python2.6/site-packages'), ]
 

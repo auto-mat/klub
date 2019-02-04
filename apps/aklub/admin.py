@@ -53,14 +53,17 @@ import large_initial
 
 from related_admin import RelatedFieldAdmin
 
+from smmapdfs.actions import make_pdfsandwich
+from smmapdfs.admin_abcs import PdfSandwichAdmin, PdfSandwichFieldAdmin
 
-from . import darujme, filters, mailing
+from . import darujme, filters, mailing, tasks
 from .models import (
     AccountStatements, AutomaticCommunication, Campaign,
     Communication, Condition, Expense, MassCommunication,
     NewUser, Payment, Recruiter, Result, Source,
-    TaxConfirmation, TerminalCondition, UserInCampaign,
-    UserProfile, UserYearPayments,
+    TaxConfirmation, TaxConfirmationField, TaxConfirmationPdf,
+    TerminalCondition, UserInCampaign, UserProfile,
+    UserYearPayments,
 )
 
 
@@ -74,8 +77,14 @@ def admin_links(args_generator):
 
 # -- INLINE FORMS --
 class PaymentsInline(admin.TabularInline):
+    readonly_fields = ('account_statement',)
     model = Payment
     extra = 5
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        qs = qs.select_related('account_statement')
+        return qs
 
 
 class PaymentsInlineNoExtra(PaymentsInline):
@@ -107,7 +116,7 @@ class PaymentsInlineNoExtra(PaymentsInline):
     extra = 0
 
     def user__campaign(self, obj):
-            return obj.user.campaign
+        return obj.user.campaign
 
 
 class CommunicationInline(admin.TabularInline):
@@ -118,6 +127,7 @@ class CommunicationInline(admin.TabularInline):
     def get_queryset(self, request):
         qs = super(CommunicationInline, self).get_queryset(request)
         qs = qs.filter(type__in=('individual', 'auto')).order_by('-date')
+        qs = qs.select_related('created_by', 'handled_by')
         return qs
 
 
@@ -141,7 +151,7 @@ def show_payments_by_year(self, request, queryset):
 show_payments_by_year.short_description = _("Show payments by year")
 
 
-def send_mass_communication(self, request, queryset, distinct=False):
+def send_mass_communication_action(self, request, queryset, distinct=False):
     """Mass communication action
 
     Determine the list of user ids from the associated
@@ -160,14 +170,14 @@ def send_mass_communication(self, request, queryset, distinct=False):
     return HttpResponseRedirect(redirect_url)
 
 
-send_mass_communication.short_description = _("Send mass communication")
+send_mass_communication_action.short_description = _("Send mass communication")
 
 
-def send_mass_communication_distinct(self, req, queryset, distinct=False):
-    return send_mass_communication(self, req, queryset, True)
+def send_mass_communication_distinct_action(self, req, queryset, distinct=False):
+    return send_mass_communication_action(self, req, queryset, True)
 
 
-send_mass_communication_distinct.short_description = _("Send mass communication withoud duplicities")
+send_mass_communication_distinct_action.short_description = _("Send mass communication withoud duplicities")
 
 
 class UserProfileResource(ModelResource):
@@ -179,9 +189,9 @@ class UserProfileResource(ModelResource):
     def before_import_row(self, row, **kwargs):
         row['email'] = row['email'].lower()
 
-    def import_field(self, field, obj, data):
+    def import_field(self, field, obj, data, is_m2m=False):
         if field.attribute and field.column_name in data and not getattr(obj, field.column_name):
-            field.save(obj, data)
+            field.save(obj, data, is_m2m)
 
 
 class UserProfileMergeForm(merge.MergeForm):
@@ -206,6 +216,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         'email',
         'addressment',
         'get_addressment',
+        'get_last_name_vokativ',
         'telephone_url',
         'title_before',
         'first_name',
@@ -250,6 +261,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         'groups',
         'language',
         'userincampaign__campaign',
+        filters.RegularPaymentsFilter,
         filters.EmailFilter,
         filters.TelephoneFilter,
         filters.NameFilter,
@@ -269,6 +281,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         }),
         (_('Contacts'), {
             'fields': [
+                ('send_mailing_lists'),
                 ('telephone'),
                 ('street', 'city', 'country'),
                 'zip_code', 'different_correspondence_address',
@@ -297,11 +310,11 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
     def get_fieldsets(self, request, obj=None):
         original_fields = super().get_fieldsets(request, obj)
         if obj:
-            original_fields[1][1]['fields'] = ('title_before', 'first_name', 'last_name', 'title_after', 'sex', 'email')
+            original_fields[1][1]['fields'] = ('title_before', 'first_name', 'last_name', 'title_after', 'sex', 'age_group', 'email')
         return original_fields + self.profile_fieldsets
 
     readonly_fields = ('userattendance_links',)
-    actions = (send_mass_communication_distinct,)
+    actions = (send_mass_communication_distinct_action,)
 
 
 class UserInCampaignResource(ModelResource):
@@ -374,6 +387,7 @@ class UserInCampaignAdmin(ImportExportMixin, AdminAdvancedFiltersMixin, RelatedF
         'next_communication_method',
         'userprofile__is_active',
         'last_payment_date',
+        'email_confirmed',
     )
     advanced_filter_fields = (
         'userprofile__first_name',
@@ -381,7 +395,7 @@ class UserInCampaignAdmin(ImportExportMixin, AdminAdvancedFiltersMixin, RelatedF
         'userprofile__email',
         'userprofile__telephone',
         'source',
-        ('campaign__name', _("Jméno kampaně")),
+        ('campaign__name', _("Campaign name")),
         'variable_symbol',
         'registered_support',
         'regular_payments',
@@ -396,7 +410,12 @@ class UserInCampaignAdmin(ImportExportMixin, AdminAdvancedFiltersMixin, RelatedF
     )
     date_hierarchy = 'registered_support'
     list_filter = [
-        'regular_payments', 'userprofile__language', 'userprofile__is_active', 'wished_information', 'old_account',
+        'regular_payments',
+        'userprofile__language',
+        'userprofile__is_active',
+        'wished_information',
+        'old_account',
+        'email_confirmed',
         'source',
         ('campaign', RelatedFieldCheckBoxFilter),
         ('registered_support', DateRangeFilter),
@@ -411,8 +430,8 @@ class UserInCampaignAdmin(ImportExportMixin, AdminAdvancedFiltersMixin, RelatedF
     ]
     ordering = ('userprofile__last_name',)
     actions = (
-        send_mass_communication,
-        send_mass_communication_distinct,
+        send_mass_communication_action,
+        send_mass_communication_distinct_action,
         show_payments_by_year,
     )
     resource_class = UserInCampaignResource
@@ -454,6 +473,9 @@ class UserInCampaignAdmin(ImportExportMixin, AdminAdvancedFiltersMixin, RelatedF
                 'wished_information',
                 'wished_tax_confirmation',
                 'wished_welcome_letter',
+                'email_confirmed',
+                'public',
+                'gdpr_consent',
                 (
                     'next_communication_date',
                     'next_communication_method',
@@ -684,14 +706,18 @@ class CommunicationAdmin(RelatedFieldAdmin, admin.ModelAdmin):
 
 class AutomaticCommunicationAdmin(admin.ModelAdmin):
     list_display = ('name', 'method', 'subject', 'condition', 'only_once', 'dispatch_auto')
-    filter_horizontal = ('sent_to_users',)
     ordering = ('name',)
+    readonly_fields = ('sent_to_users_count',)
+    exclude = ('sent_to_users',)
+
+    def sent_to_users_count(self, obj):
+        return obj.sent_to_users.count()
 
     def save_form(self, request, form, change):
         super(AutomaticCommunicationAdmin, self).save_form(request, form, change)
         obj = form.save()
         if "_continue" in request.POST and request.POST["_continue"] == "test_mail":
-            mailing.send_mass_communication(obj, ["fake_user"], request.user, request, False)
+            mailing.send_fake_communication(obj, request.user, request)
         return obj
 
 
@@ -709,7 +735,11 @@ class MassCommunicationForm(django.forms.ModelForm):
                     v.__call__(email)
                 except ValidationError as e:
                     raise ValidationError(
-                        _("Invalid email '%s' of user %s: %s") % (email, user, e),
+                        _("Invalid email '%(email)s' of user %(user)s: %(exception)s") % {
+                            'email': email,
+                            'user': user,
+                            'exception': e,
+                        },
                     )
         return self.cleaned_data['send_to_users']
 
@@ -752,11 +782,11 @@ class MassCommunicationAdmin(large_initial.LargeInitialMixin, admin.ModelAdmin):
         super(MassCommunicationAdmin, self).save_form(request, form, change)
         obj = form.save()
         if "_continue" in request.POST and request.POST["_continue"] == "test_mail":
-            mailing.send_mass_communication(obj, ["fake_user"], request.user, request, False)
+            mailing.send_fake_communication(obj, request.user, request)
 
         if "_continue" in request.POST and request.POST["_continue"] == "send_mails":
             try:
-                mailing.send_mass_communication(obj, obj.send_to_users.all(), request.user, request)
+                mailing.send_mass_communication(obj, request.user, request)
             except Exception as e:
                 messages.error(request, _('While sending e-mails the problem occurred: %s') % e)
                 raise e
@@ -862,6 +892,7 @@ class ResultAdmin(admin.ModelAdmin):
 class CampaignAdmin(admin.ModelAdmin):
     list_display = (
         'name',
+        'slug',
         'darujme_name',
         'darujme_api_id',
         'darujme_project_id',
@@ -903,25 +934,21 @@ class SourceAdmin(admin.ModelAdmin):
     list_display = ('slug', 'name', 'direct_dialogue')
 
 
-class TaxConfirmationAdmin(ImportExportMixin, RelatedFieldAdmin):
+class TaxConfirmationAdmin(ImportExportMixin, admin.ModelAdmin):
     change_list_template = "admin/aklub/taxconfirmation/change_list.html"
-    list_display = ('user_profile', 'year', 'amount', 'file')
+    list_display = ('user_profile', 'year', 'amount', 'get_pdf', )
     ordering = ('user_profile__last_name', 'user_profile__first_name',)
     list_filter = ['year']
     search_fields = ('user_profile__last_name', 'user_profile__first_name', 'user_profile__userincampaign__variable_symbol',)
     raw_id_fields = ('user_profile',)
+    actions = (make_pdfsandwich,)
     list_max_show_all = 10000
 
+    readonly_fields = ['get_pdf', ]
+    fields = ['user_profile', 'year', 'amount', 'get_pdf', ]
+
     def generate(self, request):
-        year = datetime.datetime.now().year - 1
-        payed = Payment.objects.filter(date__year=year).exclude(type='expected')
-        donors = UserProfile.objects.filter(userincampaign__payment__in=payed).order_by('last_name')
-        count = 0
-        for d in donors:
-            confirmation, created = d.make_tax_confirmation(year)
-            if created:
-                count += 1
-        messages.info(request, 'Generated %d tax confirmations' % count)
+        tasks.generate_tax_confirmations.apply_async()
         return HttpResponseRedirect(reverse('admin:aklub_taxconfirmation_changelist'))
 
     def get_urls(self):
@@ -935,6 +962,14 @@ class TaxConfirmationAdmin(ImportExportMixin, RelatedFieldAdmin):
             ),
         ]
         return my_urls + urls
+
+
+class TaxConfirmationPdfAdmin(PdfSandwichAdmin):
+    pass
+
+
+class TaxConfirmationFieldAdmin(PdfSandwichFieldAdmin):
+    pass
 
 
 admin.site.register(UserInCampaign, UserInCampaignAdmin)
@@ -951,6 +986,8 @@ admin.site.register(Campaign, CampaignAdmin)
 admin.site.register(Result, ResultAdmin)
 admin.site.register(Recruiter, RecruiterAdmin)
 admin.site.register(TaxConfirmation, TaxConfirmationAdmin)
+admin.site.register(TaxConfirmationPdf, TaxConfirmationPdfAdmin)
+admin.site.register(TaxConfirmationField, TaxConfirmationFieldAdmin)
 admin.site.register(Source, SourceAdmin)
 admin.site.register(UserProfile, UserProfileAdmin)
 

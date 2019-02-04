@@ -25,8 +25,8 @@ from django.test.runner import DiscoverRunner
 class AklubTestSuiteRunner(DiscoverRunner):
     class InvalidStringError(str):
         def __mod__(self, other):
-            raise Exception("empty string")  # pragma: no cover
-            return "!!!!!empty string!!!!!"  # pragma: no cover
+            raise Exception("empty string %s" % other)
+            return "!!!!!empty string %s!!!!!" % other
 
     def __init__(self, *args, **kwargs):
         settings.TEMPLATES[0]['OPTIONS']['string_if_invalid'] = self.InvalidStringError("%s")

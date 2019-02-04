@@ -30,7 +30,6 @@ from django.test.utils import override_settings
 
 from model_mommy import mommy
 
-from .recipes import userincampaign_recipe
 from .utils import print_response  # noqa
 from .. import views
 from ..models import UserInCampaign, UserProfile
@@ -63,6 +62,7 @@ class ViewsTests(ClearCacheMixin, TestCase):
         'userprofile-telephone': 111222333,
         'userincampaign-regular_frequency': 'monthly',
         'userincampaign-regular_amount': '321',
+        'userincampaign-campaign': 'klub',
     }
 
     def test_campaign_statistics(self):
@@ -76,7 +76,22 @@ class ViewsTests(ClearCacheMixin, TestCase):
                 "number-of-regular-members": 1,
                 "number-of-onetime-members": 1,
                 "number-of-active-members": 2,
+                "number-of-all-members": 3,
+                'number-of-confirmed-members': 3,
             },
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_petition_signatures(self):
+        address = reverse('petition-signatures', kwargs={'campaign_slug': 'klub'})
+        response = self.client.get(address)
+        self.assertJSONEqual(
+            response.content.decode(),
+            [
+                {"created": "2017-12-16T17:22:30.128Z", "first_name": "------", "last_name": "------"},
+                {"created": "2016-12-16T17:22:30.128Z", "first_name": "Test", "last_name": "User"},
+                {"created": "2015-12-16T17:22:30.128Z", "first_name": "------", "last_name": "------"},
+            ],
         )
         self.assertEqual(response.status_code, 200)
 
@@ -278,6 +293,7 @@ class ViewsTests(ClearCacheMixin, TestCase):
         "payment_data____email": "test@email.cz",
         "payment_data____telefon": "123456789",
         "transaction_type": "2",
+        "userincampaign-campaign": 'klub',
     }
 
     def test_regular_darujme(self):
@@ -307,6 +323,7 @@ class ViewsTests(ClearCacheMixin, TestCase):
                 'frequency': 'monthly',
                 'repeated_registration': False,
                 'valid': True,
+                'addressment': 'Test_Name',
             },
         )
         new_user = UserInCampaign.objects.get(userprofile__email="test@email.cz")
@@ -340,6 +357,7 @@ class ViewsTests(ClearCacheMixin, TestCase):
                 'frequency': None,
                 'repeated_registration': False,
                 'valid': True,
+                'addressment': 'Test_Name',
             },
         )
 
@@ -388,6 +406,7 @@ class ViewsTests(ClearCacheMixin, TestCase):
                 'frequency': 'monthly',
                 'repeated_registration': True,
                 'valid': True,
+                'addressment': 'Zbyněku',
             },
         )
 
@@ -456,82 +475,110 @@ class ViewsTests(ClearCacheMixin, TestCase):
         self.assertEqual(new_user.regular_amount, 321)
         self.assertEqual(new_user.regular_payments, 'regular')
 
-    def test_onetime(self):
-        address = reverse('onetime')
-        response = self.client.get(address)
-        self.assertContains(response, '<input id="id_0-first_name" maxlength="40" name="0-first_name" type="text" required />', html=True)
-
+    def test_sign_petition_no_gdpr_consent(self):
+        address = reverse('petition')
         post_data = {
-            'one_time_payment_wizard-current_step': 0,
-            '0-email': 'test@test.cz',
-            '0-first_name': 'Testing',
-            '0-last_name': 'User',
-            '0-amount': '321',
+            'userprofile-email': 'test@email.cz',
+            "userincampaign-campaign": "klub",
+            "gdpr": False,
         }
-        response = self.client.post(address, post_data, follow=True)
-        self.assertContains(
-            response,
-            '<input id="id_userprofile__1-title_before" maxlength="15" name="userprofile__1-title_before" type="text" />',
-            html=True,
+        response = self.client.post(address, post_data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertJSONEqual(
+            response.content.decode(),
+            {
+                'gdpr': ['Toto pole je třeba vyplnit.'],
+            },
         )
 
+    def test_sign_petition_ajax_only_required(self):
+        address = reverse('petition')
         post_data = {
-            'one_time_payment_wizard-current_step': 1,
-            'userincampaign__1-note': 'Note',
-            'userprofile__1-first_name': 'Testing',
-            'userprofile__1-last_name': 'User',
-            'userprofile__1-email': 'test@test.cz',
-            'userprofile__1-title_before': 'Tit.',
-            'userprofile__1-title_after': '',
-            'userprofile__1-street': 'On Street 1',
-            'userprofile__1-city': 'City',
-            'userprofile__1-country': 'Country',
-            'userprofile__1-zip_code': '100 00',
-            'userprofile__1-language': 'cs',
-            'userprofile__1-telephone': '+420123456789',
-            'userprofile__1-wished_tax_confirmation': 'on',
-            'userprofile__1-wished_information': 'on',
-            'userprofile__1-public': 'on',
-            'userprofile__1-note': 'asdf',
+            'userprofile-email': 'test@email.cz',
+            "userincampaign-campaign": "klub",
+            "gdpr": True,
         }
-        response = self.client.post(address, post_data, follow=True)
-        self.assertContains(response, '<h1>Děkujeme!</h1>', html=True)
+        response = self.client.post(address, post_data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        userincampaign = UserInCampaign.objects.get(userprofile__email="test@email.cz")
+        self.assertJSONEqual(
+            response.content.decode(),
+            {
+                'account_number': '2400063333 / 2010',
+                'variable_symbol': userincampaign.variable_symbol,
+                'amount': None,
+                'email': 'test@email.cz',
+                'frequency': None,
+                'repeated_registration': False,
+                'valid': True,
+                'addressment': 'příteli/kyně Auto*Matu',
+            },
+        )
+        new_user = UserInCampaign.objects.get(userprofile__email="test@email.cz")
+        self.assertEqual(new_user.regular_amount, None)
+        self.assertEqual(new_user.regular_payments, '')
 
-        self.assertEqual(UserProfile.objects.get(email="test@test.cz").get_full_name(), "Testing User")
-        self.assertEqual(UserProfile.objects.get(email="test@test.cz").username, "test4")
-        self.assertEqual(UserProfile.objects.get(email="test@test.cz").telephone, '+420123456789')
-        new_user = UserInCampaign.objects.get(userprofile__email="test@test.cz")
-        self.assertEqual(new_user.note, 'Note')
-        self.assertEqual(new_user.regular_payments, 'onetime')
-
-    def test_onetime_existing_email(self):
-        address = reverse('onetime')
-        response = self.client.get(address)
-        self.assertContains(response, '<input id="id_0-first_name" maxlength="40" name="0-first_name" type="text" required />', html=True)
-
+    def test_sign_petition_ajax_some_fields(self):
+        address = reverse('petition')
         post_data = {
-            'one_time_payment_wizard-current_step': 0,
-            '0-email': 'test.user@email.cz',
-            '0-first_name': 'Testing',
-            '0-last_name': 'User',
-            '0-amount': '321',
+            'userprofile-email': 'test@email.cz',
+            'userprofile-first_name': 'Testing',
+            'userprofile-last_name': 'User',
+            'userprofile-telephone': 111222333,
+            "userincampaign-campaign": "klub",
+            "gdpr": True,
         }
-        response = self.client.post(address, post_data, follow=True)
-        self.assertContains(response, '<option value="2978">Test User &lt;t***r@e***.cz&gt;</option>', html=True)
+        response = self.client.post(address, post_data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        userincampaign = UserInCampaign.objects.get(userprofile__email="test@email.cz")
+        self.assertJSONEqual(
+            response.content.decode(),
+            {
+                'account_number': '2400063333 / 2010',
+                'variable_symbol': userincampaign.variable_symbol,
+                'amount': None,
+                'email': 'test@email.cz',
+                'frequency': None,
+                'repeated_registration': False,
+                'valid': True,
+                'addressment': 'Testingu',
+            },
+        )
+        new_user = UserInCampaign.objects.get(userprofile__email="test@email.cz")
+        self.assertEqual(new_user.regular_amount, None)
+        self.assertEqual(new_user.regular_payments, '')
 
+    def test_sign_petition_ajax_all(self):
+        address = reverse('petition')
         post_data = {
-            'one_time_payment_wizard-current_step': 2,
-            '2-uid': 2978,
+            'userprofile-email': 'test@email.cz',
+            'userprofile-first_name': 'Testing',
+            'userprofile-last_name': 'User',
+            'userprofile-telephone': 111222333,
+            'userprofile-age_group': 1986,
+            'userprofile-sex': 'male',
+            'userprofile-city': 'Some city',
+            'userprofile-street': 'Some street',
+            'userprofile-country': 'Some country',
+            'userprofile-zip_code': 11333,
+            "userincampaign-campaign": "klub",
+            "gdpr": True,
         }
-        response = self.client.post(address, post_data, follow=True)
-        self.assertContains(response, '<input id="id_4-vs_check" maxlength="40" name="4-vs_check" type="text" />', html=True)
-
-        post_data = {
-            'one_time_payment_wizard-current_step': 4,
-            '4-vs_check': 120127010,
-        }
-        response = self.client.post(address, post_data, follow=True)
-        self.assertContains(response, '<h1>Děkujeme!</h1>', html=True)
+        response = self.client.post(address, post_data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        userincampaign = UserInCampaign.objects.get(userprofile__email="test@email.cz")
+        self.assertJSONEqual(
+            response.content.decode(),
+            {
+                'account_number': '2400063333 / 2010',
+                'variable_symbol': userincampaign.variable_symbol,
+                'amount': None,
+                'email': 'test@email.cz',
+                'frequency': None,
+                'repeated_registration': False,
+                'valid': True,
+                'addressment': 'Testingu',
+            },
+        )
+        new_user = UserInCampaign.objects.get(userprofile__email="test@email.cz")
+        self.assertEqual(new_user.regular_amount, None)
+        self.assertEqual(new_user.regular_payments, '')
 
 
 class VariableSymbolTests(TestCase):
@@ -543,22 +590,3 @@ class VariableSymbolTests(TestCase):
                 vs = views.generate_variable_symbol(99)
                 userprofile = UserProfile.objects.create(username=vs, email="test%s@test.cz" % i)
                 UserInCampaign.objects.create(variable_symbol=vs, campaign_id=1, userprofile=userprofile)
-
-
-class TestOneTimePaymentWizard(TestCase):
-    def test_find_matching_users(self):
-        """ Test that OneTimePaymentWizard._find_matching_users() works correctly """
-        userincampaign_recipe.make(
-            userprofile__email="foo@email.com",
-        )
-        userincampaign_recipe.make(
-            userprofile__first_name="Foo",
-            userprofile__last_name="User",
-        )
-
-        users = views.OneTimePaymentWizard._find_matching_users(None, "foo@email.com", "Foo", "User")
-        expected_users = [
-            '<UserInCampaign: username1 - foo@email.com (Foo campaign)>',
-            '<UserInCampaign: User Foo - test@email.cz1 (Foo campaign)>',
-        ]
-        self.assertQuerysetEqual(users, expected_users)
