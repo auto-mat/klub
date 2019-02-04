@@ -1,0 +1,46 @@
+{
+    "name": "Klub přatel",
+    "description": "Databaze dárců",
+    "scripts": {
+        "postdeploy": "./release.sh"
+    },
+	"buildpacks": [
+		{"url": "heroku/nodejs"},
+		{"url": "heroku/python"}
+	],
+    "env": {
+        "SECRET_KEY": {"generator": "secret"},
+		"BUILD_WITH_GEO_LIBRARIES": {"value": "1"},
+		"DISABLE_COLLECTSTATIC": {"value": "1"},
+		"DJANGO_SETTINGS_MODULE": {"value": "project.settings.heroku"},
+		"GUNICORN_TIMEOUT": {"value": "30"},
+		"GUNICORN_WORKERS": {"value": "2"},
+		"AKLUB_ADMINS": {"value": "Fake Admin <fake@example.com>"},
+		"AKLUB_DEFAULT_FROM_EMAIL": {"value": "fake@example.com"},
+		"AKLUB_RAVEN_DNS": {"required": true},
+		"AWS_ACCESS_KEY_ID": {"required": true},
+		"AWS_SECRET_ACCESS_KEY": {"required": true},
+		"AWS_STORAGE_BUCKET_NAME": {"required": true},
+		"NEW_RELIC_APP_NAME": {"value": "Klub Přátel Heroku review app"},
+		"NEW_RELIC_LICENSE_KEY": {"required": true}
+    },
+    "formation": {
+        "beat": {
+            "quantity": 1,
+            "size": "hobby-dev"
+        },
+        "celery": {
+            "quantity": 1,
+            "size": "hobby-dev"
+        },
+        "web": {
+            "quantity": 1,
+            "size": "hobby-dev"
+        }
+    },
+    "addons": [
+        "heroku-redis",
+        "heroku-postgresql"
+    ],
+    "stack": "heroku-18"
+}
