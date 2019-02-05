@@ -319,6 +319,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         'last_name',
         'title_after',
         'telephone__telephone',
+        'variable_symbol',
     )
     list_filter = (
         'is_staff',
@@ -326,6 +327,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         'is_active',
         'groups',
         'language',
+        #'variable_symbol',
         'userincampaign__campaign',
         filters.RegularPaymentsFilter,
         filters.EmailFilter,

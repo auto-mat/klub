@@ -34,6 +34,7 @@ from django.core.files import File
 from django.core.files.storage import FileSystemStorage
 from django.core.files.temp import NamedTemporaryFile
 from django.core.mail import EmailMultiAlternatives
+from django.db.models.signals import post_save
 
 try:
     from django.urls import reverse
@@ -47,6 +48,7 @@ from django.utils.html import format_html, mark_safe
 from django.utils.text import format_lazy
 from django.utils.timesince import timesince
 from django.utils.translation import ugettext_lazy as _
+from django.core.exceptions import ValidationError
 
 import html2text
 
@@ -659,8 +661,8 @@ class UserProfile(AbstractUser):
             self.username = get_unique_username(self.email)
         if self.email:
             self.email = self.email.lower()
-        super().save(*args, **kwargs)
 
+        super().save(*args, **kwargs)
 
 
     def get_telephone(self):
@@ -676,6 +678,14 @@ class UserProfile(AbstractUser):
     get_main_telephone.short_description = _("Telephone")
     get_main_telephone.admin_order_field = "telephone"
 
+def post_save_generate_vs(sender, instance, *args, **kwargs):
+    users_vss = instance.userchannels.all().values('VS', 'id')
+    for vs in users_vss:
+        if not vs['VS']:
+            from .views import generate_variable_symbol
+            DonorPaymentChannel.objects.filter(user = instance, id=vs['id']).update(VS=generate_variable_symbol(user=instance, donor=vs['id']), user=instance)
+
+post_save.connect(post_save_generate_vs, sender = UserProfile)
 
 class Telephone(models.Model):
     telephone = models.CharField(
@@ -1327,10 +1337,10 @@ class AccountStatements(models.Model):
             payment.VS = None
         else:
             try:
-                user_with_vs = UserInCampaign.objects.get(variable_symbol=payment.VS)
-                payment.user = user_with_vs
+                donor_with_vs = DonorPaymentChannel.objects.get(VS=payment.VS)
+                payment.user_donor_payment_channel = donor_with_vs
                 return True
-            except UserInCampaign.DoesNotExist:
+            except DonorPaymentChannel.DoesNotExist:
                 return False
 
     def parse_bank_csv(self):
@@ -1670,13 +1680,13 @@ class Payment(models.Model):
         null=True,
     )
     # Pairing of payments with a specific club system user
+
     user = models.ForeignKey(
         UserInCampaign,
         blank=True,
         null=True,
         on_delete=models.CASCADE,
     )
-
     user_donor_payment_channel = models.ForeignKey(
         DonorPaymentChannel,
         blank=True,
@@ -1705,8 +1715,8 @@ class Payment(models.Model):
 
     def person_name(self):
         """Return name of the payer"""
-        if self.user:
-            return self.user.person_name()
+        if self.user_donor_payment_channel:
+            return self.user_donor_payment_channel.user.person_name()
 
     def paired_with_expected(self):
         """Return if the payment is paired with an expected payment
@@ -1719,7 +1729,7 @@ class Payment(models.Model):
         contributor
         """
         # TODO: Logic to say if this payment was expected and processed correctly
-        if self.user:
+        if self.user_donor_payment_channel:
             return True
         else:
             return False

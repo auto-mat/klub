@@ -48,7 +48,7 @@ from extra_views import InlineFormSet, UpdateWithInlinesView
 from sesame.backends import ModelBackend
 
 from . import autocom
-from .models import Event, Payment, Source, UserInCampaign, UserProfile
+from .models import Event, Payment, Source, UserInCampaign, UserProfile, DonorPaymentChannel
 
 
 class RegularUserForm_UserProfile(forms.ModelForm):
@@ -288,19 +288,20 @@ def get_unique_username(email):
     return username
 
 
-def generate_variable_symbol(max_variable_symbol=9999):
+def generate_variable_symbol(user, donor, max_variable_symbol=9999):
     now = datetime.datetime.now()
     reg_n_today = len(
-        UserInCampaign.objects.filter(
+        DonorPaymentChannel.objects.filter(
             registered_support__gt=(
                 now - datetime.timedelta(days=1)
-            ),
-        ),
+            ), user=user
+        )
     )
+
     for i in range(reg_n_today + 1, max_variable_symbol):
-        variable_symbol = '%s%02d%02d%04d' % (
-            str(now.year)[-2:], now.month, now.day, i)
-        if len(UserInCampaign.objects.filter(variable_symbol=variable_symbol)) == 0:
+        variable_symbol = '%s%02d%02d%04d%s' % (
+            str(now.year)[-2:], now.month, now.day, i, donor)
+        if len(DonorPaymentChannel.objects.filter(VS=variable_symbol, user=user)) == 0:
             break
     else:
         assert 0, "Out of free variable symbols, date %s, reg_n_today=%d" % (now, reg_n_today)
