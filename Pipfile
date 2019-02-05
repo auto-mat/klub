@@ -67,6 +67,7 @@ django_celery_beat = "*"
 email_reply_parser = "*"
 newrelic = "*"
 django-nested-admin = "*"
+django-grapesjs = "*"
 
 [dev-packages]
 coverage = "*"
@@ -83,7 +84,6 @@ pudb = "*"
 coveralls = "*"
 django-admin-smoke-tests = {git = "https://github.com/jnoortheen/django-admin-smoke-tests", editable = true}
 model_mommy = "*"
-django-grapesjs = "*"
 
 [requires]
 python_version = "3.6"
