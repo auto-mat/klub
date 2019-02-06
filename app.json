@@ -2,7 +2,7 @@
     "name": "Klub přatel",
     "description": "Databaze dárců",
     "scripts": {
-        "postdeploy": "./release.sh"
+        "postdeploy": "sh release.sh"
     },
 	"buildpacks": [
 		{"url": "heroku/nodejs"},
@@ -24,15 +24,15 @@
     "formation": {
         "beat": {
             "quantity": 1,
-            "size": "hobby-dev"
+            "size": "hobby"
         },
         "celery": {
             "quantity": 1,
-            "size": "hobby-dev"
+            "size": "hobby"
         },
         "web": {
             "quantity": 1,
-            "size": "hobby-dev"
+            "size": "hobby"
         }
     },
     "addons": [
