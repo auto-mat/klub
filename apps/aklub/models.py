@@ -34,6 +34,7 @@ from django.core.files import File
 from django.core.files.storage import FileSystemStorage
 from django.core.files.temp import NamedTemporaryFile
 from django.core.mail import EmailMultiAlternatives
+from django.db.models.signals import post_save
 
 try:
     from django.urls import reverse
@@ -47,6 +48,7 @@ from django.utils.html import format_html, mark_safe
 from django.utils.text import format_lazy
 from django.utils.timesince import timesince
 from django.utils.translation import ugettext_lazy as _
+from django.core.exceptions import ValidationError
 
 import html2text
 
@@ -114,7 +116,7 @@ class Event(models.Model):
         verbose_name=_("Name"),
         help_text=_("Choose some unique name for this campaign"),
         max_length=100,
-        blank=True,
+
     )
     darujme_name = models.CharField(
         verbose_name=_("Name in Darujme.cz"),
@@ -424,12 +426,7 @@ class UserProfile(AbstractUser):
         blank=True,
         null=True,
     )
-    campaigns = models.ManyToManyField(
-        Event,
-        help_text=_("Associated campaigns"),
-        blank=True,
-        editable=True,
-    )
+
     title_after = models.CharField(
         verbose_name=_("Title after name"),
         max_length=15, blank=True,
@@ -616,6 +613,7 @@ class UserProfile(AbstractUser):
     person_name.short_description = _("Full name")
     person_name.admin_order_field = 'last_name'
 
+
     def userattendance_links(self):
         from .admin import admin_links
         return admin_links(
@@ -627,6 +625,7 @@ class UserProfile(AbstractUser):
         )
 
     userattendance_links.short_description = _('Users in campaign')
+
 
     def make_tax_confirmation(self, year):
         payment_set = Payment.objects.filter(user__userprofile=self)
@@ -676,6 +675,14 @@ class UserProfile(AbstractUser):
     get_main_telephone.short_description = _("Telephone")
     get_main_telephone.admin_order_field = "telephone"
 
+def post_save_generate_vs(sender, instance, *args, **kwargs):
+    users_vss = instance.userchannels.all().values('VS', 'id')
+    for vs in users_vss:
+        if not vs['VS']:
+            from .views import generate_variable_symbol
+            DonorPaymentChannel.objects.filter(user = instance, id=vs['id']).update(VS=generate_variable_symbol(user=instance, donor=vs['id']), user=instance)
+
+post_save.connect(post_save_generate_vs, sender = UserProfile)
 
 class Telephone(models.Model):
     telephone = models.CharField(
@@ -709,6 +716,7 @@ class Telephone(models.Model):
         return u"%s" % self.telephone
 
     def format_number(self):
+        self.telephone = self.telephone.replace(' ', '')
         if hasattr(self, "telephone") and self.telephone != "":
             removed_space_tel = self.telephone.replace(" ", "")
             if len(removed_space_tel) > 9:
@@ -1326,10 +1334,10 @@ class AccountStatements(models.Model):
             payment.VS = None
         else:
             try:
-                user_with_vs = UserInCampaign.objects.get(variable_symbol=payment.VS)
-                payment.user = user_with_vs
+                donor_with_vs = DonorPaymentChannel.objects.get(VS=payment.VS)
+                payment.user_donor_payment_channel = donor_with_vs
                 return True
-            except UserInCampaign.DoesNotExist:
+            except DonorPaymentChannel.DoesNotExist:
                 return False
 
     def parse_bank_csv(self):
@@ -1392,6 +1400,11 @@ class BankAccount(models.Model):
         blank=True,
         null=True,
     )
+    bank_account_number = models.CharField(
+        verbose_name = _("Bank account number"),
+        max_length=30,
+        blank=True,
+    )
 
     bank_account_number = models.CharField(
         max_length=50,
@@ -1402,6 +1415,9 @@ class BankAccount(models.Model):
     def __str__(self):
         return u"%s-%s" % (self.bank_account, self.bank_account_number)
 
+
+    def __str__(self):
+        return u"%s" %(self.bank_account_number)
 
 class DonorPaymentChannel(models.Model):
     class Meta:
@@ -1667,13 +1683,13 @@ class Payment(models.Model):
         null=True,
     )
     # Pairing of payments with a specific club system user
+
     user = models.ForeignKey(
         UserInCampaign,
         blank=True,
         null=True,
         on_delete=models.CASCADE,
     )
-
     user_donor_payment_channel = models.ForeignKey(
         DonorPaymentChannel,
         blank=True,
@@ -1702,8 +1718,8 @@ class Payment(models.Model):
 
     def person_name(self):
         """Return name of the payer"""
-        if self.user:
-            return self.user.person_name()
+        if self.user_donor_payment_channel:
+            return self.user_donor_payment_channel.user.person_name()
 
     def paired_with_expected(self):
         """Return if the payment is paired with an expected payment
@@ -1716,7 +1732,7 @@ class Payment(models.Model):
         contributor
         """
         # TODO: Logic to say if this payment was expected and processed correctly
-        if self.user:
+        if self.user_donor_payment_channel:
             return True
         else:
             return False

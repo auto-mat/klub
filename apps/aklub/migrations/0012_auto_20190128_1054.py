@@ -46,6 +46,10 @@ class Migration(migrations.Migration):
                 'verbose_name_plural': 'Donor payment channels',
             },
         ),
+        migrations.RenameModel(
+            old_name='Campaign',
+            new_name='Event',
+        ),
         migrations.CreateModel(
             name='Interaction',
             fields=[
@@ -131,6 +135,7 @@ class Migration(migrations.Migration):
             name='sex',
             field=models.CharField(choices=[('male', 'Male'), ('female', 'Female'), ('unknown', 'Unknown')], default='unknown', max_length=50, verbose_name='Gender'),
         ),
+
         migrations.DeleteModel(
             name='Communication',
         ),

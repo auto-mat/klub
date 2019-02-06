@@ -99,24 +99,19 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
     inlines = [PaymentsInline]
 
     fieldsets = (
-        (None, {
+        None, {
             'fields': [
                 ('registered_support', 'regular_payments', 'regular_amount', 'regular_frequency'),
                 ('VS', 'bank_account'),
-                'expected_date_of_first_payment',
-                'exceptional_membership',
-                'other_support',
+                ('expected_date_of_first_payment'),
+                ('exceptional_membership'),
+                ('other_support'),
+                ('event'),
             ],
         }),
-        (_('Events'), {
-            'fields': [
-                'event',
-            ],
-        }),
-    )
 
     filter_horizontal = ('event', )
-    inlines = [PaymentsInline]
+
 
 
 class PaymentsInlineNoExtra(PaymentsInline):
@@ -263,11 +258,11 @@ class BankAccountAdmin(admin.ModelAdmin):
     model = BankAccount
 
     search_fields = (
-        'bank_account',
+        'bank_account','bank_account_number',
     )
 
     list_filter = (
-        'bank_account',
+        'bank_account', 'bank_account_number',
     )
 
 
@@ -322,6 +317,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         'last_name',
         'title_after',
         'telephone__telephone',
+        'variable_symbol',
     )
     list_filter = (
         'is_staff',
@@ -329,6 +325,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         'is_active',
         'groups',
         'language',
+        #'variable_symbol',
         'userincampaign__campaign',
         filters.RegularPaymentsFilter,
         filters.EmailFilter,
@@ -367,9 +364,6 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         (_('Profile'), {
             'fields': ['profile_text', 'profile_picture'],
             'classes': ['collapse'],
-        }),
-        (_('Links'), {
-            'fields': ['userattendance_links'],
         }),
     )
 
@@ -429,7 +423,6 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
     def get_fieldsets(self, request, obj=None):
         super().get_fieldsets(request, obj)
         return self.add_fieldsets + self.profile_fieldsets
-
     readonly_fields = ('userattendance_links', 'date_joined', 'last_login',)
     actions = (send_mass_communication_distinct_action,)
     inlines = [TelephoneInline, DonorPaymentChannelInline]
@@ -641,7 +634,7 @@ class UserYearPaymentsAdmin(UserInCampaignAdmin):
                     'userprofile__is_active', 'last_payment_date')
     list_filter = [
         ('payment__date', DateRangeFilter), 'regular_payments', 'userprofile__language', 'userprofile__is_active',
-        'wished_information', 'old_account', 'source', 'userprofile__campaigns',
+        'wished_information', 'old_account', 'source',
         ('registered_support', DateRangeFilter), filters.UserConditionFilter, filters.UserConditionFilter1,
     ]
 
