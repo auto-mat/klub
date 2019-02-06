@@ -427,6 +427,13 @@ class UserProfile(AbstractUser):
         null=True,
     )
 
+    campaigns = models.ManyToManyField(
+        Event,
+        help_text=_("Associated campaigns"),
+        blank=True,
+        editable=True,
+    )
+
     title_after = models.CharField(
         verbose_name=_("Title after name"),
         max_length=15, blank=True,
@@ -716,7 +723,6 @@ class Telephone(models.Model):
         return u"%s" % self.telephone
 
     def format_number(self):
-        self.telephone = self.telephone.replace(' ', '')
         if hasattr(self, "telephone") and self.telephone != "":
             removed_space_tel = self.telephone.replace(" ", "")
             if len(removed_space_tel) > 9:
@@ -1400,13 +1406,9 @@ class BankAccount(models.Model):
         blank=True,
         null=True,
     )
-    bank_account_number = models.CharField(
-        verbose_name = _("Bank account number"),
-        max_length=30,
-        blank=True,
-    )
 
     bank_account_number = models.CharField(
+        verbose_name=_("Bank account number"),
         max_length=50,
         blank=True,
         null=True,
@@ -1415,9 +1417,6 @@ class BankAccount(models.Model):
     def __str__(self):
         return u"%s-%s" % (self.bank_account, self.bank_account_number)
 
-
-    def __str__(self):
-        return u"%s" %(self.bank_account_number)
 
 class DonorPaymentChannel(models.Model):
     class Meta:

@@ -46,10 +46,6 @@ class Migration(migrations.Migration):
                 'verbose_name_plural': 'Donor payment channels',
             },
         ),
-        migrations.RenameModel(
-            old_name='Campaign',
-            new_name='Event',
-        ),
         migrations.CreateModel(
             name='Interaction',
             fields=[
