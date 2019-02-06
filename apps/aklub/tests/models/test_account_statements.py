@@ -24,6 +24,7 @@ from unittest.mock import MagicMock, patch
 
 from django.core.files import File
 from django.test import RequestFactory, TestCase
+from django.test.utils import override_settings
 
 from model_mommy import mommy
 
@@ -32,6 +33,9 @@ from ... import admin, darujme
 from ...models import AccountStatements, Campaign, Payment, UserInCampaign
 
 
+@override_settings(
+    CELERY_ALWAYS_EAGER=True,
+)
 class AccountStatementTests(TestCase):
     fixtures = ['conditions', 'users']
 
@@ -71,17 +75,19 @@ class AccountStatementTests(TestCase):
 
         self.assertEqual(user.payment_set.get(date=datetime.date(2016, 1, 18)), a1.payment_set.get(account=2150508001))
 
+    maxDiff = None
+
     def check_account_statement_data(self):
         a1 = AccountStatements.objects.get(type="darujme")
         self.assertEqual(
-            list(a1.payment_set.values_list("account_name", "date", "SS")),
+            list(a1.payment_set.order_by('SS').values_list("account_name", "date", "SS")),
             [
+                ('User 1, Testing', datetime.date(2016, 1, 19), ''),
+                ('User 1, Testing', datetime.date(2016, 1, 19), '12121'),
                 ('Date, Blank', datetime.date(2016, 8, 9), '12345'),
                 ('User, Testing', datetime.date(2016, 1, 20), '17529'),
-                ('User 1, Testing', datetime.date(2016, 1, 19), '12121'),
-                ('User 1, Testing', datetime.date(2016, 1, 19), ''),
-                ('User 1, Testing', datetime.date(2016, 1, 19), '22257'),
                 ('User 1, Testing', datetime.date(2016, 1, 19), '22256'),
+                ('User 1, Testing', datetime.date(2016, 1, 19), '22257'),
             ],
         )
         user = UserInCampaign.objects.get(pk=2978)
@@ -219,6 +225,9 @@ class AccountStatementTests(TestCase):
         )
 
 
+@override_settings(
+    CELERY_ALWAYS_EAGER=True,
+)
 class TestPairVariableSymbol(TestCase):
     """ Test AccountStatement.pair_variable_symbols() """
 

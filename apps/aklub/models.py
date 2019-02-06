@@ -1216,17 +1216,12 @@ class AccountStatements(models.Model):
         null=True,
     )
 
-    def clean(self, *args, **kwargs):
-        super(AccountStatements, self).clean(*args, **kwargs)
-        if not self.pk and self.csv_file:  # new Account statement
-            if self.type == 'account':
-                self.payments = self.parse_bank_csv()
-            elif self.type == 'darujme':
-                from aklub.darujme import parse_darujme
-                self.payments, self.skipped_payments = parse_darujme(self.csv_file)
-
     def save(self, *args, **kwargs):
+        created = (not self.pk)
         super(AccountStatements, self).save(*args, **kwargs)
+        if created:
+            from .tasks import parse_account_statement
+            parse_account_statement.delay(self.pk)
         if hasattr(self, "payments"):
             for payment in self.payments:
                 if payment:
