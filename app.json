@@ -2,7 +2,7 @@
     "name": "Klub přatel",
     "description": "Databaze dárců",
     "scripts": {
-        "postdeploy": "sh release.sh"
+        "postdeploy": "sh release-review-app.sh"
     },
 	"buildpacks": [
 		{"url": "heroku/nodejs"},
