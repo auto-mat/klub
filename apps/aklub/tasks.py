@@ -9,6 +9,7 @@ import smmapdfs.actions
 from . import darujme
 from . import models
 from .autocom import check
+from .darujme import parse_darujme
 from .mailing import create_mass_communication_tasks_sync, send_communication_sync
 
 
@@ -48,3 +49,14 @@ def send_communication_task(mass_communication_id, communication_type, userincam
 @task()
 def create_mass_communication_tasks(communication_id, sending_user_id):
     create_mass_communication_tasks_sync(communication_id, sending_user_id)
+
+
+@task()
+def parse_account_statement(statement_id):
+    statement = models.AccountStatements.objects.get(id=statement_id)
+    if statement.csv_file:  # new Account statement
+        if statement.type == 'account':
+            statement.payments = statement.parse_bank_csv()
+        elif statement.type == 'darujme':
+            statement.payments, statement.skipped_payments = parse_darujme(statement.csv_file)
+    statement.save()
