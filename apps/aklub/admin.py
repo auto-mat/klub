@@ -851,14 +851,15 @@ class AccountStatementsAdmin(admin.ModelAdmin):
     def payments_count(self, obj):
         return obj.payment_set.count()
 
-    def save_model(self, request, obj, form, change):
-        if getattr(obj, 'skipped_payments', None):
-            skipped_payments_string = ', '.join(["%s %s (%s)" % (p['name'], p['surname'], p['email']) for p in obj.skipped_payments])
-            messages.info(request, 'Skipped payments: %s' % skipped_payments_string)
-        payments_without_user = ', '.join(["%s (%s)" % (p.account_name, p.user_identification) for p in obj.payments if not p.user])
-        if payments_without_user:
-            messages.info(request, 'Payments without user: %s' % payments_without_user)
-        obj.save()
+    # TODO: add reporting of skipped payments to Celery task
+    # def save_model(self, request, obj, form, change):
+    #     if getattr(obj, 'skipped_payments', None):
+    #         skipped_payments_string = ', '.join(["%s %s (%s)" % (p['name'], p['surname'], p['email']) for p in obj.skipped_payments])
+    #         messages.info(request, 'Skipped payments: %s' % skipped_payments_string)
+    #     payments_without_user = ', '.join(["%s (%s)" % (p.account_name, p.user_identification) for p in obj.payments if not p.user])
+    #     if payments_without_user:
+    #         messages.info(request, 'Payments without user: %s' % payments_without_user)
+    #     obj.save()
 
 
 def download_darujme_statement(self, request, queryset):
