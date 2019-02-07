@@ -45,6 +45,10 @@ Pro testovací účely spustíte projekt pomocí následujícího příkazu:
 Heroku
 ======
 
+````
+heroku config:set BUILD_WITH_GEO_LIBRARIES=1
+````
+
 Nejdřív musíš [povolit heroku.yml](https://devcenter.heroku.com/articles/buildpack-builds-heroku-yml)
 
 Pak je důležité, aby buildpacky byli ve správném pořádi. Tj. nodejs, musí mít index=1.

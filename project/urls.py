@@ -1,7 +1,9 @@
 from aklub.views import stat_members, stat_payments
 
+from django.conf import settings
 from django.conf.urls import include, url
 from django.conf.urls.i18n import i18n_patterns
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.views.i18n import JavaScriptCatalog
@@ -31,7 +33,7 @@ urlpatterns = [
     url(r'^advanced_filters/', include('advanced_filters.urls')),
     url(r'^nested_admin/', include('nested_admin.urls')),
     url(r'', include("aklub.urls")),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 urlpatterns += i18n_patterns(
     url(r'', include("aklub.urls")),

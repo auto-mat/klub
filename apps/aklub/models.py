@@ -30,9 +30,7 @@ from denorm import denormalized, depend_on_related
 from django.contrib.admin.templatetags.admin_list import _boolean_icon
 from django.contrib.auth.models import AbstractUser, User
 from django.contrib.humanize.templatetags.humanize import intcomma
-from django.core.files import File
 from django.core.files.storage import FileSystemStorage
-from django.core.files.temp import NamedTemporaryFile
 from django.core.mail import EmailMultiAlternatives
 from django.db.models.signals import post_save
 
@@ -51,11 +49,14 @@ from django.utils.translation import ugettext_lazy as _
 
 import html2text
 
+from smmapdfs.model_abcs import PdfSandwichABC, PdfSandwichFieldABC
+from smmapdfs.models import PdfSandwichType
+
 import stdimage
 
 from vokativ import vokativ
 
-from . import autocom, confirmation
+from . import autocom
 
 logger = logging.getLogger(__name__)
 
@@ -636,15 +637,10 @@ class UserProfile(AbstractUser):
         amount = payment_set.exclude(type='expected').filter(date__year=year).aggregate(Sum('amount'))['amount__sum']
         if not amount:
             return None, False
-        temp = NamedTemporaryFile()
-        name = u"%s %s" % (self.first_name, self.last_name)
-        addr_city = u"%s %s" % (self.zip_code, self.city)
-        confirmation.makepdf(temp, name, self.sex, self.street, addr_city, year, amount)
         confirm, created = TaxConfirmation.objects.update_or_create(
             user_profile=self,
             year=year,
             defaults={
-                'file': File(temp),
                 'amount': amount,
             },
         )
@@ -2416,8 +2412,30 @@ class OverwriteStorage(FileSystemStorage):
         return name
 
 
+class TaxConfirmationField(PdfSandwichFieldABC):
+    fields = {
+     "year": (lambda tc: str(tc.year)),
+     "amount": (lambda tc: "%s Kč." % intcomma(int(tc.amount))),
+     "name": (lambda tc: tc.get_name()),
+     "street": (lambda tc: tc.get_street()),
+     "addr_city": (lambda tc: tc.get_addr_city()),
+     "date": (lambda tc: datetime.date.today().strftime("%d.%m.%Y")),
+    }
+
+
+class TaxConfirmationPdf(PdfSandwichABC):
+    field_model = TaxConfirmationField
+    obj = models.ForeignKey(
+        'TaxConfirmation',
+        null=False,
+        blank=False,
+        default='',
+        on_delete=models.CASCADE,
+    )
+
+
 def confirmation_upload_to(instance, filename):
-    return "confirmations/%s_%s.pdf" % (instance.user_profile.id, instance.year)
+    return "DEPRICATED"
 
 
 class TaxConfirmation(models.Model):
@@ -2428,7 +2446,39 @@ class TaxConfirmation(models.Model):
     )
     year = models.PositiveIntegerField()
     amount = models.PositiveIntegerField(default=0)
-    file = models.FileField(upload_to=confirmation_upload_to, storage=OverwriteStorage())
+    file = models.FileField(storage=OverwriteStorage())  # DEPRICATED!
+
+    def get_pdf(self):
+        try:
+            url = self.taxconfirmationpdf_set.get().pdf.url
+        except TaxConfirmationPdf.DoesNotExist:
+            try:
+                url = self.file.url
+            except ValueError:
+                url = None
+        if url:
+            return format_html("<a href='{}'>{}</a>", url, _('PDF file'))
+        else:
+            return '-'
+
+    get_pdf.short_description = _("PDF")
+
+    def get_name(self):
+        return "%s %s" % (self.user_profile.first_name, self.user_profile.last_name)
+
+    def get_street(self):
+        return self.user_profile.street
+
+    def get_addr_city(self):
+        return "%s %s" % (self.user_profile.zip_code, self.user_profile.city)
+
+    sandwich_model = TaxConfirmationPdf
+
+    def get_sandwich_type(self):
+        return PdfSandwichType.objects.get(name="Tax confirmation")
+
+    def get_payment_set(self):
+        return Payment.objects.filter(user_profile=self.user_profile).exclude(type='expected').filter(date__year=self.year)
 
     class Meta:
         verbose_name = _("Tax confirmation")

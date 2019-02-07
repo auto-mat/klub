@@ -65,8 +65,11 @@ djangorestframework = "*"
 django-model-utils = "*"
 django_celery_beat = "*"
 email_reply_parser = "*"
+django-smmapdfs = "*"
 newrelic = "*"
 django-nested-admin = "*"
+django_celery_monitor = "*"
+
 
 [dev-packages]
 coverage = "*"
@@ -83,8 +86,6 @@ pudb = "*"
 coveralls = "*"
 django-admin-smoke-tests = {git = "https://github.com/jnoortheen/django-admin-smoke-tests", editable = true}
 model_mommy = "*"
-
 [requires]
 python_version = "3.6"
-
 [dev-dependencies]

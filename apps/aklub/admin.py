@@ -58,13 +58,15 @@ from .forms import UserCreateForm, UserUpdateForm
 
 
 from django.contrib import admin
+from smmapdfs.actions import make_pdfsandwich
+from smmapdfs.admin_abcs import PdfSandwichAdmin, PdfSandwichFieldAdmin
 
-from . import darujme, filters, mailing
+from . import darujme, filters, mailing, tasks
 from .models import (
     AccountStatements, AutomaticCommunication, Event,
     Interaction, Condition, Expense, MassCommunication,
     NewUser, Payment, Recruiter, Result, Source,
-    TaxConfirmation, TerminalCondition, UserInCampaign,
+    TaxConfirmation, TaxConfirmationField, TaxConfirmationPdf, TerminalCondition, UserInCampaign,
     UserProfile, UserYearPayments, Telephone, DonorPaymentChannel,
     BankAccount
 )
@@ -840,7 +842,7 @@ class AutomaticCommunicationAdmin(admin.ModelAdmin):
         super(AutomaticCommunicationAdmin, self).save_form(request, form, change)
         obj = form.save()
         if "_continue" in request.POST and request.POST["_continue"] == "test_mail":
-            mailing.send_mass_communication(obj, ["fake_user"], request.user, request, False)
+            mailing.send_fake_communication(obj, request.user, request)
         return obj
 
 
@@ -906,11 +908,11 @@ class MassCommunicationAdmin(large_initial.LargeInitialMixin, admin.ModelAdmin):
         super(MassCommunicationAdmin, self).save_form(request, form, change)
         obj = form.save()
         if "_continue" in request.POST and request.POST["_continue"] == "test_mail":
-            mailing.send_mass_communication(obj, ["fake_user"], request.user, request, False)
+            mailing.send_fake_communication(obj, request.user, request)
 
         if "_continue" in request.POST and request.POST["_continue"] == "send_mails":
             try:
-                mailing.send_mass_communication(obj, obj.send_to_users.all(), request.user, request)
+                mailing.send_mass_communication(obj, request.user, request)
             except Exception as e:
                 messages.error(request, _('While sending e-mails the problem occurred: %s') % e)
                 raise e
@@ -1062,25 +1064,21 @@ class SourceAdmin(admin.ModelAdmin):
     list_display = ('slug', 'name', 'direct_dialogue')
 
 
-class TaxConfirmationAdmin(ImportExportMixin, RelatedFieldAdmin):
+class TaxConfirmationAdmin(ImportExportMixin, admin.ModelAdmin):
     change_list_template = "admin/aklub/taxconfirmation/change_list.html"
-    list_display = ('user_profile', 'year', 'amount', 'file')
+    list_display = ('user_profile', 'year', 'amount', 'get_pdf', )
     ordering = ('user_profile__last_name', 'user_profile__first_name',)
     list_filter = ['year']
     search_fields = ('user_profile__last_name', 'user_profile__first_name', 'user_profile__userincampaign__variable_symbol',)
     raw_id_fields = ('user_profile',)
+    actions = (make_pdfsandwich,)
     list_max_show_all = 10000
 
+    readonly_fields = ['get_pdf', ]
+    fields = ['user_profile', 'year', 'amount', 'get_pdf', ]
+
     def generate(self, request):
-        year = datetime.datetime.now().year - 1
-        payed = Payment.objects.filter(date__year=year).exclude(type='expected')
-        donors = UserProfile.objects.filter(userincampaign__payment__in=payed).order_by('last_name')
-        count = 0
-        for d in donors:
-            confirmation, created = d.make_tax_confirmation(year)
-            if created:
-                count += 1
-        messages.info(request, 'Generated %d tax confirmations' % count)
+        tasks.generate_tax_confirmations.apply_async()
         return HttpResponseRedirect(reverse('admin:aklub_taxconfirmation_changelist'))
 
     def get_urls(self):
@@ -1094,6 +1092,14 @@ class TaxConfirmationAdmin(ImportExportMixin, RelatedFieldAdmin):
             ),
         ]
         return my_urls + urls
+
+
+class TaxConfirmationPdfAdmin(PdfSandwichAdmin):
+    pass
+
+
+class TaxConfirmationFieldAdmin(PdfSandwichFieldAdmin):
+    pass
 
 
 admin.site.register(UserInCampaign, UserInCampaignAdmin)
@@ -1110,6 +1116,8 @@ admin.site.register(Event, EventAdmin)
 admin.site.register(Result, ResultAdmin)
 admin.site.register(Recruiter, RecruiterAdmin)
 admin.site.register(TaxConfirmation, TaxConfirmationAdmin)
+admin.site.register(TaxConfirmationPdf, TaxConfirmationPdfAdmin)
+admin.site.register(TaxConfirmationField, TaxConfirmationFieldAdmin)
 admin.site.register(Source, SourceAdmin)
 admin.site.register(UserProfile, UserProfileAdmin)
 admin.site.register(BankAccount, BankAccountAdmin)

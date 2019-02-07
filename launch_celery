@@ -1,2 +1,2 @@
 #!/bin/sh
-celery worker -A project.celery
+celery worker -A project.celery --concurrency=1 --autoscale=1 -E

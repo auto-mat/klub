@@ -208,8 +208,11 @@ INSTALLED_APPS = (
     'aklub',
     'helpdesk',
     'django_celery_beat',
+    'django_celery_monitor',
     'djcelery_email',
     'nested_admin',
+    'smmapdfs',
+    'repolinks',
 )
 
 BOWER_INSTALLED_APPS = (
@@ -316,6 +319,7 @@ HELPDESK_DEFAULT_SETTINGS = {
 # Should the public web portal be enabled?
 HELPDESK_VIEW_A_TICKET_PUBLIC = False
 HELPDESK_SUBMIT_A_TICKET_PUBLIC = True
+HELPDESK_STAFF_ONLY_TICKET_OWNERS = True
 
 HELPDESK_PUBLIC_TICKET_PRIORITY = 3
 HELPDESK_PUBLIC_TICKET_DUE_DATE = ''
@@ -340,3 +344,4 @@ SESSION_COOKIE_SECURE = True
 X_FRAME_OPTIONS = 'DENY'
 
 BROKER_URL = os.environ.get('REDIS_URL', 'redis://redis')
+SMMAPDFS_CELERY = True
