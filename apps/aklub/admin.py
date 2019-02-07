@@ -57,7 +57,6 @@ from related_admin import RelatedFieldAdmin
 from .forms import UserCreateForm, UserUpdateForm
 
 
-from django.contrib import admin
 from smmapdfs.actions import make_pdfsandwich
 from smmapdfs.admin_abcs import PdfSandwichAdmin, PdfSandwichFieldAdmin
 
@@ -325,7 +324,6 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         'is_active',
         'groups',
         'language',
-        #'variable_symbol',
         'userincampaign__campaign',
         filters.RegularPaymentsFilter,
         filters.EmailFilter,
@@ -452,7 +450,7 @@ class UserInCampaignResource(ModelResource):
             'userprofile__last_name',
             'userprofile__title_after',
             'userprofile__sex',
-            #'userprofile__telephone',
+            # 'userprofile__telephone',
             'userprofile_email',
             'userprofile__street',
             'userprofile__city',
@@ -489,7 +487,7 @@ class UserInCampaignAdmin(ImportExportMixin, AdminAdvancedFiltersMixin, RelatedF
     list_display = (
         'person_name',
         'userprofile__email',
-        #'userprofile__telephone_url',
+        # 'userprofile__telephone_url',
         'source',
         'campaign',
         'variable_symbol',
@@ -510,7 +508,7 @@ class UserInCampaignAdmin(ImportExportMixin, AdminAdvancedFiltersMixin, RelatedF
         'userprofile__first_name',
         'userprofile__last_name',
         'userprofile__email',
-        #'userprofile__telephone',
+        # 'userprofile__telephone',
         'source',
         ('campaign__name', _("Campaign name")),
         'variable_symbol',
@@ -543,7 +541,7 @@ class UserInCampaignAdmin(ImportExportMixin, AdminAdvancedFiltersMixin, RelatedF
         'userprofile__last_name',
         'variable_symbol',
         'userprofile__email',
-        #'userprofile__telephone',
+        # 'userprofile__telephone',
     ]
     ordering = ('userprofile__last_name',)
     actions = (
@@ -555,7 +553,7 @@ class UserInCampaignAdmin(ImportExportMixin, AdminAdvancedFiltersMixin, RelatedF
     save_as = True
     list_max_show_all = 10000
     list_per_page = 100
-    #inlines = [PaymentsInline, InteractionInline]
+    # inlines = [PaymentsInline, InteractionInline]
     raw_id_fields = ('userprofile', 'recruiter',)
     readonly_fields = ('verified_by', 'userprofile_telephone_url', 'userprofile_note')
     fieldsets = [
@@ -764,15 +762,15 @@ class InteractionAdmin(RelatedFieldAdmin, admin.ModelAdmin):
         'dispatched',
         'user',
         'event',
-        #'user__telephone__telephone',
-        #'user__next_communication_date',
+        # 'user__telephone__telephone',
+        # 'user__next_communication_date',
         'method',
         'result',
         'created_by',
         'handled_by',
-        #'user__regular_payments_info',
-        #'user__payment_delay',
-        #'user__extra_payments',
+        # 'user__regular_payments_info',
+        # 'user__payment_delay',
+        # 'user__extra_payments',
         'date', 'type',
     )
 
@@ -783,7 +781,7 @@ class InteractionAdmin(RelatedFieldAdmin, admin.ModelAdmin):
 
     search_fields = (
         'subject',
-        #'user__userprofile__telephone',
+        # 'user__userprofile__telephone',
         'user__first_name',
         'user__last_name',
         'user__email',

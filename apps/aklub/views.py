@@ -243,7 +243,7 @@ class RegularUserForm_UserInCampaignDPNK(RegularUserForm_UserInCampaign):
 class PetitionUserForm_UserInCampaign(FieldNameMappingMixin, CampaignMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['campaign'].queryset = Campaign.objects.filter(slug__isnull=False, enable_signing_petitions=True).exclude(slug="")
+        self.fields['campaign'].queryset = Event.objects.filter(slug__isnull=False, enable_signing_petitions=True).exclude(slug="")
         self.fields['gdpr_consent'].required = True
 
     class Meta:
@@ -558,7 +558,7 @@ class CampaignStatistics(View):
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
-        campaign = get_object_or_404(Campaign, slug=kwargs['campaign_slug'], allow_statistics=True)
+        campaign = get_object_or_404(Event, slug=kwargs['campaign_slug'], allow_statistics=True)
         return http.HttpResponse(
             json.dumps({
                 'expected-yearly-income': campaign.expected_yearly_income(),
@@ -581,7 +581,7 @@ class PetitionSignatures(View):
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
-        campaign = get_object_or_404(Campaign, slug=kwargs['campaign_slug'], allow_statistics=True, enable_signing_petitions=True)
+        campaign = get_object_or_404(Event, slug=kwargs['campaign_slug'], allow_statistics=True, enable_signing_petitions=True)
         signatures = UserInCampaign.objects.filter(campaign=campaign, email_confirmed=True)
         signatures = signatures.order_by('-created')
         signatures = signatures.annotate(

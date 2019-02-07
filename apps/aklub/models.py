@@ -32,15 +32,15 @@ from django.contrib.auth.models import AbstractUser, User
 from django.contrib.humanize.templatetags.humanize import intcomma
 from django.core.files.storage import FileSystemStorage
 from django.core.mail import EmailMultiAlternatives
-from django.db.models.signals import post_save
+from django.core.validators import RegexValidator
 
 try:
     from django.urls import reverse
 except ImportError:  # Django<2.0
     from django.core.urlresolvers import reverse
-from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import Count, Q, Sum
+from django.db.models.signals import post_save
 from django.utils import timezone
 from django.utils.html import format_html, mark_safe
 from django.utils.text import format_lazy
@@ -2354,7 +2354,8 @@ class MassCommunication(models.Model):
     )
     template = models.TextField(
         verbose_name=_("Template"),
-        help_text=_("Template can contain following variable substitutions: <br/>") + ("{mr|mrs} or {mr/mrs}, $" + ", $".join(autocom.KNOWN_VARIABLES)),
+        help_text=_("Template can contain following variable substitutions: <br/>") + ("{mr|mrs} or {mr/mrs}, $" + ", $"
+                                                                                       .join(autocom.KNOWN_VARIABLES)),
         max_length=50000,
         blank=False,
         null=True,

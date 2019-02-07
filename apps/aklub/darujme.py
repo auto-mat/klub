@@ -122,9 +122,9 @@ def create_statement_from_API(campaign):
 
 def get_campaign(data):
     if 'cislo_projektu' in data:
-        return Campaign.objects.get(darujme_project_id=data['cislo_projektu'])
+        return Event.objects.get(darujme_project_id=data['cislo_projektu'])
     else:
-        return Campaign.objects.get(darujme_name=data['projekt'])
+        return Event.objects.get(darujme_name=data['projekt'])
 
 
 def get_cetnost_konec(data):
@@ -305,7 +305,7 @@ def parse_darujme(xlsfile):
 def check_for_new_payments(log_function=None):
     if log_function is None:
         log_function = lambda _: None # noqa
-    for campaign in Campaign.objects.filter(darujme_api_secret__isnull=False).exclude(darujme_api_secret=""):
+    for campaign in Event.objects.filter(darujme_api_secret__isnull=False).exclude(darujme_api_secret=""):
         log_function(campaign)
         payment, skipped = create_statement_from_API(campaign)
         log_function(payment)

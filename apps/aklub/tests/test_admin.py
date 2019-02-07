@@ -299,7 +299,7 @@ class AdminTest(TestCase):
 
     def test_communication_changelist_post(self):
         userincampaign_recipe.make(id=1)
-        model_admin = django_admin.site._registry[Communication]
+        model_admin = django_admin.site._registry[Interaction]
         request = self.get_request()
         response = model_admin.add_view(request)
         self.assertEqual(response.status_code, 200)
@@ -316,7 +316,7 @@ class AdminTest(TestCase):
         request = self.post_request(post_data=post_data)
         response = model_admin.add_view(request)
         self.assertEqual(response.status_code, 302)
-        obj = Communication.objects.get(subject="Subject 123")
+        obj = Interaction.objects.get(subject="Subject 123")
         self.assertEqual(obj.summary, "Test template")
         self.assertEqual(response.url, "/aklub/communication/")
 

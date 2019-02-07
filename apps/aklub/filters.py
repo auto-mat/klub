@@ -10,7 +10,7 @@ from django.db.models.functions import Lower
 from django.utils.translation import ugettext as _
 
 from . import models
-from .models import Condition, UserProfile
+from .models import Condition, UserProfile, Telephone
 
 
 class NullFieldFilter(SimpleListFilter):
@@ -130,7 +130,6 @@ class RegularPaymentsFilter(SimpleListFilter):
                 userincampaign__expected_regular_payment_date__gt=date.today() - timedelta(days=11),
             )
         return queryset
-
 
 
 class TelephoneFilter(SimpleListFilter):
