@@ -337,9 +337,8 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         (_('Basic personal'), {
             'fields': [
                 ('language', 'public',),
-                ('note', 'date_joined'),
+                'note',
             ],
-            'classes': ['collapse'],
         }),
         (_('Addressments'), {
             'fields': [
@@ -372,7 +371,13 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
             'classes': ('wide',),
             'fields': (
                 'username', 'title_before', 'first_name', 'last_name', 'title_after', 'sex',
-                'age_group', 'email', 'password',
+                'age_group', 'email', 'password'
+            )}
+         ),
+        (_('Rights and permissions'), {
+            'classes': ('collapse',),
+            'fields': (
+                'is_staff', 'is_superuser', 'groups'
             )}
          ),
     )
@@ -420,9 +425,12 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
     regular_amount.short_description = _("Regular amount")
     regular_amount.admin_order_field = 'regular_amount'
 
+
     def get_fieldsets(self, request, obj=None):
         super().get_fieldsets(request, obj)
         return self.add_fieldsets + self.profile_fieldsets
+
+
     readonly_fields = ('userattendance_links', 'date_joined', 'last_login',)
     actions = (send_mass_communication_distinct_action,)
     inlines = [TelephoneInline, DonorPaymentChannelInline]

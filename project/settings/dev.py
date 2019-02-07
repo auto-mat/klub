@@ -13,7 +13,6 @@ INTERNAL_IPS = [
     '127.0.0.1',
 ]
 
-SITE_ID = 2
 
 def custom_show_toolbar(request):
     return True
@@ -27,7 +26,6 @@ ALLOWED_HOSTS += [
     '127.0.0.1',
 ]
 
-SITE_ID = 4
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
