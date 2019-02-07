@@ -618,7 +618,6 @@ class UserProfile(AbstractUser):
     person_name.short_description = _("Full name")
     person_name.admin_order_field = 'last_name'
 
-
     def userattendance_links(self):
         from .admin import admin_links
         return admin_links(
@@ -630,7 +629,6 @@ class UserProfile(AbstractUser):
         )
 
     userattendance_links.short_description = _('Users in campaign')
-
 
     def make_tax_confirmation(self, year):
         payment_set = Payment.objects.filter(user__userprofile=self)
@@ -675,14 +673,19 @@ class UserProfile(AbstractUser):
     get_main_telephone.short_description = _("Telephone")
     get_main_telephone.admin_order_field = "telephone"
 
+
 def post_save_generate_vs(sender, instance, *args, **kwargs):
     users_vss = instance.userchannels.all().values('VS', 'id')
+
     for vs in users_vss:
         if not vs['VS']:
             from .views import generate_variable_symbol
-            DonorPaymentChannel.objects.filter(user = instance, id=vs['id']).update(VS=generate_variable_symbol(user=instance, donor=vs['id']), user=instance)
+            DonorPaymentChannel.objects.filter(user=instance, id=vs['id']).update(
+                VS=generate_variable_symbol(user=instance, donor=vs['id']), user=instance)
 
-post_save.connect(post_save_generate_vs, sender = UserProfile)
+
+post_save.connect(post_save_generate_vs, sender=UserProfile)
+
 
 class Telephone(models.Model):
     telephone = models.CharField(
@@ -2351,9 +2354,7 @@ class MassCommunication(models.Model):
     )
     template = models.TextField(
         verbose_name=_("Template"),
-        help_text=_("Template can contain following variable substitutions: <br/>") + (
-            "{mr|mrs} or {mr/mrs}, $" + ", $".join(autocom.KNOWN_VARIABLES)
-        ),
+        help_text=_("Template can contain following variable substitutions: <br/>") + ("{mr|mrs} or {mr/mrs}, $" + ", $".join(autocom.KNOWN_VARIABLES)),
         max_length=50000,
         blank=False,
         null=True,
@@ -2414,12 +2415,12 @@ class OverwriteStorage(FileSystemStorage):
 
 class TaxConfirmationField(PdfSandwichFieldABC):
     fields = {
-     "year": (lambda tc: str(tc.year)),
-     "amount": (lambda tc: "%s Kč." % intcomma(int(tc.amount))),
-     "name": (lambda tc: tc.get_name()),
-     "street": (lambda tc: tc.get_street()),
-     "addr_city": (lambda tc: tc.get_addr_city()),
-     "date": (lambda tc: datetime.date.today().strftime("%d.%m.%Y")),
+        "year": (lambda tc: str(tc.year)),
+        "amount": (lambda tc: "%s Kč." % intcomma(int(tc.amount))),
+        "name": (lambda tc: tc.get_name()),
+        "street": (lambda tc: tc.get_street()),
+        "addr_city": (lambda tc: tc.get_addr_city()),
+        "date": (lambda tc: datetime.date.today().strftime("%d.%m.%Y")),
     }
 
 
@@ -2478,7 +2479,8 @@ class TaxConfirmation(models.Model):
         return PdfSandwichType.objects.get(name="Tax confirmation")
 
     def get_payment_set(self):
-        return Payment.objects.filter(user_profile=self.user_profile).exclude(type='expected').filter(date__year=self.year)
+        return Payment.objects.filter(user_profile=self.user_profile).exclude(type='expected').filter(
+            date__year=self.year)
 
     class Meta:
         verbose_name = _("Tax confirmation")

@@ -109,7 +109,7 @@ def send_communication_sync(communication_id, communication_type, userincampaign
                 else:
                     attachment = None
             c = Interaction(
-                user=userincampaign, method=obj.method, date=datetime.datetime.now(),
+                user=userincampaign, method=mass_communication.method, date=datetime.datetime.now(),
                 subject=autocom.process_template(subject, userincampaign),
                 summary=autocom.process_template(template, userincampaign),
                 attachment=attachment,

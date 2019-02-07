@@ -114,7 +114,6 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
     filter_horizontal = ('event', )
 
 
-
 class PaymentsInlineNoExtra(PaymentsInline):
 
     raw_id_fields = ('user',)
@@ -259,7 +258,7 @@ class BankAccountAdmin(admin.ModelAdmin):
     model = BankAccount
 
     search_fields = (
-        'bank_account','bank_account_number',
+        'bank_account', 'bank_account_number',
     )
 
     list_filter = (
@@ -426,11 +425,9 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
     regular_amount.short_description = _("Regular amount")
     regular_amount.admin_order_field = 'regular_amount'
 
-
     def get_fieldsets(self, request, obj=None):
         super().get_fieldsets(request, obj)
         return self.add_fieldsets + self.profile_fieldsets
-
 
     readonly_fields = ('userattendance_links', 'date_joined', 'last_login',)
     actions = (send_mass_communication_distinct_action,)
@@ -1051,7 +1048,6 @@ class EventAdmin(admin.ModelAdmin):
     inlines = (ExpenseInline,)
     actions = (download_darujme_statement,)
     save_as = True
-
 
 
 class RecruiterAdmin(ImportExportMixin, admin.ModelAdmin):

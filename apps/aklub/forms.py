@@ -14,6 +14,7 @@ def username_validation(user, fields):
 
 class UserCreateForm(UserCreationForm):
     password = ReadOnlyPasswordHashField()
+
     def __init__(self, *args, **kwargs):
         super(UserCreateForm, self).__init__(*args, **kwargs)
         self.fields['password1'].required = False
@@ -33,15 +34,15 @@ class UserCreateForm(UserCreationForm):
 
 class UserUpdateForm(UserChangeForm):
     password = ReadOnlyPasswordHashField()
+
     def __init__(self, *args, **kwargs):
         super(UserChangeForm, self).__init__(*args, **kwargs)
         self.fields['username'].required = False
-        self.fields['password'].help_text = (
-                                                "Raw passwords are not stored, so there is no way to see "
-                                                "this user's password, but you can <a href=\"%s\"> "
-                                                "<strong>Change the Password</strong> using this form</a>."
-                                            ) % reverse_lazy('admin:auth_user_password_change', args=[self.instance.id])
-
+        self.fields['password'].help_text = ("Raw passwords are not stored, so there is no way to see "
+                                             "this user's password, but you can <a href=\"%s\"> "
+                                             "<strong>Change the Password</strong> using this form</a>."
+                                             ) % reverse_lazy('admin:auth_user_password_change',
+                                                              args=[self.instance.id])
 
     def save(self, commit=True):
         user = super(UserChangeForm, self).save(commit=False)
@@ -51,5 +52,3 @@ class UserUpdateForm(UserChangeForm):
         if commit:
             user.save()
         return user
-
-
