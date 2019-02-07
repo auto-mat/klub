@@ -58,7 +58,6 @@ from .forms import UserCreateForm, UserUpdateForm
 
 
 from django.contrib import admin
-from django_grapesjs.admin import GrapesJsAdminMixin
 
 from . import darujme, filters, mailing
 from .models import (
@@ -868,7 +867,7 @@ class MassCommunicationForm(django.forms.ModelForm):
         return self.cleaned_data['send_to_users']
 
 
-class MassCommunicationAdmin(GrapesJsAdminMixin, large_initial.LargeInitialMixin, admin.ModelAdmin):
+class MassCommunicationAdmin(large_initial.LargeInitialMixin, admin.ModelAdmin):
     save_as = True
     list_display = ('name', 'date', 'method', 'subject')
     ordering = ('-date',)

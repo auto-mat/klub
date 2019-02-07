@@ -48,7 +48,6 @@ from django.utils.html import format_html, mark_safe
 from django.utils.text import format_lazy
 from django.utils.timesince import timesince
 from django.utils.translation import ugettext_lazy as _
-from django.core.exceptions import ValidationError
 
 import html2text
 
@@ -57,8 +56,6 @@ import stdimage
 from vokativ import vokativ
 
 from . import autocom, confirmation
-
-from django_grapesjs.models import GrapesJsHtmlField
 
 logger = logging.getLogger(__name__)
 
@@ -2356,7 +2353,16 @@ class MassCommunication(models.Model):
         null=True,
         validators=[gender_strings_validator, variable_validator],
     )
-    template = GrapesJsHtmlField()
+    template = models.TextField(
+        verbose_name=_("Template"),
+        help_text=_("Template can contain following variable substitutions: <br/>") + (
+            "{mr|mrs} or {mr/mrs}, $" + ", $".join(autocom.KNOWN_VARIABLES)
+        ),
+        max_length=50000,
+        blank=False,
+        null=True,
+        validators=[gender_strings_validator, variable_validator],
+    )
     template_en = models.TextField(
         verbose_name=_("English template"),
         max_length=50000,
