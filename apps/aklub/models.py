@@ -33,7 +33,6 @@ from django.contrib.humanize.templatetags.humanize import intcomma
 from django.core.files.storage import FileSystemStorage
 from django.core.mail import EmailMultiAlternatives
 from django.core.validators import RegexValidator
-
 try:
     from django.urls import reverse
 except ImportError:  # Django<2.0
@@ -199,8 +198,8 @@ class Event(models.Model):
         return self.userincampaign_set.filter(regular_payments="regular", payment__amount__gt=0).distinct().count()
 
     def number_of_onetime_members(self):
-        return self.userincampaign_set.exclude(regular_payments="regular").filter(
-            payment__amount__gt=0).distinct().count()
+        return self.userincampaign_set.exclude(regular_payments="regular")\
+            .filter(payment__amount__gt=0).distinct().count()
 
     def number_of_active_members(self):
         return self.userincampaign_set.filter(payment__amount__gt=0).distinct().count()
@@ -680,22 +679,23 @@ def post_save_generate_vs(sender, instance, *args, **kwargs):
     for vs in users_vss:
         if not vs['VS']:
             from .views import generate_variable_symbol
-            DonorPaymentChannel.objects.filter(user=instance, id=vs['id']).update(
-                VS=generate_variable_symbol(user=instance, donor=vs['id']), user=instance)
+            DonorPaymentChannel.objects.filter(user=instance, id=vs['id'])\
+                .update(VS=generate_variable_symbol(user=instance, donor=vs['id']), user=instance)
 
 
 post_save.connect(post_save_generate_vs, sender=UserProfile)
 
 
 class Telephone(models.Model):
+
     telephone = models.CharField(
         verbose_name=_("Telephone number"),
         max_length=100,
         blank=True,
         validators=[
             RegexValidator(r'^\+?(42(0|1){1})?\s?\d{3}\s?\d{3}\s?\d{3}$',
-                           _(
-                               "Telephone must consist of numbers, spaces and + sign or maximum number count is higher.")),
+                           _("Telephone must consist of numbers, spaces and + ,"
+                             "sign or maximum number count is higher.")),
         ],
     )
     is_primary = models.NullBooleanField(
@@ -1011,8 +1011,8 @@ class UserInCampaign(models.Model):
         """Return last payment"""
         return self.payment_set.order_by('date').last()
 
-    @denormalized(models.ForeignKey, to='Payment', default=None, null=True, related_name="user_last_payment",
-                  on_delete=models.SET_NULL)
+    @denormalized(models.ForeignKey,
+                  to='Payment', default=None, null=True, related_name="user_last_payment", on_delete=models.SET_NULL)
     def last_payment(self):
         """Return last payment"""
         return self.last_payment_function()
@@ -1427,23 +1427,20 @@ class DonorPaymentChannel(models.Model):
         blank=True,
         null=True,
     )
-
     user = models.ForeignKey(
         'aklub.UserProfile',
         verbose_name=_("User"),
         on_delete=models.SET_NULL,
         related_name="userchannels",
         null=True,
-        blank=True
+        blank=True,
     )
-
     registered_support = models.DateTimeField(
         verbose_name=_("Registered support"),
         help_text=_("When did this user register to support us"),
         default=timezone.now,
         blank=True,
     )
-
     REGULAR_PAYMENT_FREQUENCIES = (
         ('monthly', _('Monthly')),
         ('quaterly', _('Quaterly')),
@@ -1466,21 +1463,18 @@ class DonorPaymentChannel(models.Model):
         blank=True,
         null=True,
     )
-
     expected_date_of_first_payment = models.DateField(
         verbose_name=_("Expected date of first payment"),
         help_text=("When should the first payment arrive on our account"),
         blank=True,
         null=True,
     )
-
     regular_amount = models.PositiveIntegerField(
         verbose_name=_("Regularly (amount)"),
         help_text=_(u"Minimum yearly payment is 1800 Kč"),
         blank=True,
         null=True,
     )
-
     exceptional_membership = models.BooleanField(
         verbose_name=_("Exceptional membership"),
         help_text=_("In special cases, people can become members of "
@@ -1488,46 +1482,40 @@ class DonorPaymentChannel(models.Model):
                     "be justified in the note."),
         default=False,
     )
-
     regular_payments = models.CharField(
         verbose_name=_("Regular payments"),
         help_text=_("Is this user registered for regular payments?"),
         max_length=20,
         choices=REGULAR_PAYMENT_CHOICES,
-        default='regular'
+        default='regular',
     )
-
     old_account = models.BooleanField(
         verbose_name=_("Old account"),
         help_text=_("User has old account"),
         default=False,
     )
-
     other_support = models.TextField(
         verbose_name=_("Other support"),
-        help_text=_(
-            "If the user supports us in other ways, please specify here."),
+        help_text=_("If the user supports us in other ways, please specify here."),
         max_length=500,
         blank=True,
     )
-
     bank_account = models.ForeignKey(
         BankAccount,
         related_name='bankaccounts',
         on_delete=models.CASCADE,
-        default=None
+        default=None,
     )
-
     event = models.ManyToManyField(
         Event,
         verbose_name=_("Event"),
         related_name="donorevents",
         blank=True,
-        null=True
+        null=True,
     )
 
     def __str__(self):
-        return ("VS - {}".format(self.VS))
+        return "VS - {}".format(self.VS)
 
 
 class Payment(models.Model):
@@ -1678,7 +1666,6 @@ class Payment(models.Model):
         null=True,
     )
     # Pairing of payments with a specific club system user
-
     user = models.ForeignKey(
         UserInCampaign,
         blank=True,
@@ -1690,9 +1677,8 @@ class Payment(models.Model):
         blank=True,
         null=True,
         on_delete=models.CASCADE,
-        related_name='paymentchannels'
+        related_name='paymentchannels',
     )
-
     # Origin of payment from bank account statement
     account_statement = models.ForeignKey(
         AccountStatements,
@@ -1779,16 +1765,14 @@ class Interaction(models.Model):
         on_delete=models.CASCADE,
         related_name="communications",
     )
-
     event = models.ForeignKey(
         Event,
         verbose_name=_("Event"),
         on_delete=models.SET_NULL,
         related_name="events",
         null=True,
-        blank=True
+        blank=True,
     )
-
     method = models.CharField(
         verbose_name=_("Method"),
         max_length=30,
@@ -2403,6 +2387,7 @@ class MassCommunication(models.Model):
 
 
 class OverwriteStorage(FileSystemStorage):
+
     def get_available_name(self, name, max_length):
         """
         Returns a filename that's free on the target storage system, and

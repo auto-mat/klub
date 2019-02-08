@@ -10,7 +10,7 @@ from django.db.models.functions import Lower
 from django.utils.translation import ugettext as _
 
 from . import models
-from .models import Condition, UserProfile, Telephone
+from .models import Condition, Telephone, UserProfile
 
 
 class NullFieldFilter(SimpleListFilter):

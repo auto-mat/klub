@@ -25,8 +25,8 @@ from django.utils.translation import ugettext as _
 
 from . import autocom
 
-from .models import AutomaticCommunication, Interaction, MassCommunication, Payment, TaxConfirmation, UserInCampaign, \
-    UserProfile, TaxConfirmationPdf
+from .models import AutomaticCommunication, Interaction, MassCommunication, Payment, TaxConfirmation, \
+    TaxConfirmationPdf, UserInCampaign, UserProfile
 
 """Mailing"""
 

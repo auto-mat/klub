@@ -48,7 +48,7 @@ from extra_views import InlineFormSet, UpdateWithInlinesView
 from sesame.backends import ModelBackend
 
 from . import autocom
-from .models import Event, Payment, Source, UserInCampaign, UserProfile, DonorPaymentChannel
+from .models import DonorPaymentChannel, Event, Payment, Source, UserInCampaign, UserProfile
 
 
 class RegularUserForm_UserProfile(forms.ModelForm):
@@ -292,9 +292,8 @@ def generate_variable_symbol(user, donor, max_variable_symbol=9999):
     now = datetime.datetime.now()
     reg_n_today = len(
         DonorPaymentChannel.objects.filter(
-            registered_support__gt=(
-                now - datetime.timedelta(days=1)
-            ), user=user
+            registered_support__gt=(now - datetime.timedelta(days=1)),
+            user=user,
         )
     )
 

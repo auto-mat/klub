@@ -1,6 +1,5 @@
+from django.contrib.auth.forms import ReadOnlyPasswordHashField, UserChangeForm, UserCreationForm
 from django.urls import reverse_lazy
-from django.contrib.auth.forms import UserChangeForm, UserCreationForm, \
-    ReadOnlyPasswordHashField
 
 from .views import get_unique_username
 

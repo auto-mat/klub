@@ -33,7 +33,6 @@ from daterange_filter.filter import DateRangeFilter
 import django.forms
 from django.contrib import admin, messages
 from django.contrib.admin import site
-import nested_admin
 from django.contrib.auth.admin import UserAdmin
 from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator
@@ -52,23 +51,22 @@ from import_export.admin import ImportExportMixin
 from import_export.resources import ModelResource
 
 import large_initial
+import nested_admin
 
 from related_admin import RelatedFieldAdmin
-from .forms import UserCreateForm, UserUpdateForm
-
 
 from smmapdfs.actions import make_pdfsandwich
 from smmapdfs.admin_abcs import PdfSandwichAdmin, PdfSandwichFieldAdmin
 
 from . import darujme, filters, mailing, tasks
 from .models import (
-    AccountStatements, AutomaticCommunication, Event,
-    Interaction, Condition, Expense, MassCommunication,
-    NewUser, Payment, Recruiter, Result, Source,
-    TaxConfirmation, TaxConfirmationField, TaxConfirmationPdf, TerminalCondition, UserInCampaign,
-    UserProfile, UserYearPayments, Telephone, DonorPaymentChannel,
-    BankAccount
+    AccountStatements, AutomaticCommunication, BankAccount, Condition, DonorPaymentChannel,
+    Event, Expense, Interaction, MassCommunication, NewUser, Payment, Recruiter,
+    Result, Source, TaxConfirmation, TaxConfirmationField,
+    TaxConfirmationPdf, Telephone, TerminalCondition,
+    UserInCampaign, UserProfile, UserYearPayments,
 )
+from .forms import UserCreateForm, UserUpdateForm
 
 
 def admin_links(args_generator):
@@ -369,13 +367,13 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
             'classes': ('wide',),
             'fields': (
                 'username', 'title_before', 'first_name', 'last_name', 'title_after', 'sex',
-                'age_group', 'email', 'password'
+                'age_group', 'email', 'password',
             )}
          ),
         (_('Rights and permissions'), {
             'classes': ('collapse',),
             'fields': (
-                'is_staff', 'is_superuser', 'groups'
+                'is_staff', 'is_superuser', 'groups',
             )}
          ),
     )
@@ -773,12 +771,9 @@ class InteractionAdmin(RelatedFieldAdmin, admin.ModelAdmin):
         # 'user__extra_payments',
         'date', 'type',
     )
-
     autocomplete_fields = ('user', 'event')
-
     readonly_fields = ('type', 'created_by', 'handled_by', )
     list_filter = ['dispatched', 'send', 'date', 'method', 'type', 'user', 'event']
-
     search_fields = (
         'subject',
         # 'user__userprofile__telephone',
@@ -788,7 +783,6 @@ class InteractionAdmin(RelatedFieldAdmin, admin.ModelAdmin):
     )
     date_hierarchy = 'date'
     ordering = ('-date',)
-
     fieldsets = [
         (_("Header"), {
             'fields': [('user', 'event', 'method'),
