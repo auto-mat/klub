@@ -144,10 +144,13 @@ class PaymentsInlineNoExtra(PaymentsInline):
         return obj.user.campaign
 
 
-class InteractionInline(admin.TabularInline):
+class InteractionInline(nested_admin.NestedTabularInline):
     model = Interaction
     extra = 1
+    can_delete = True
+    show_change_link = True
     readonly_fields = ('type', 'created_by', 'handled_by')
+    fk_name = 'user'
 
     def get_queryset(self, request):
         qs = super(InteractionInline, self).get_queryset(request)
@@ -427,7 +430,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
 
     readonly_fields = ('userattendance_links', 'date_joined', 'last_login',)
     actions = (send_mass_communication_distinct_action,)
-    inlines = [TelephoneInline, DonorPaymentChannelInline]
+    inlines = [TelephoneInline, DonorPaymentChannelInline, InteractionInline]
 
 
 class UserInCampaignResource(ModelResource):
