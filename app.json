@@ -19,7 +19,8 @@
 		"AKLUB_DEFAULT_FROM_EMAIL": {"value": "fake@example.com"},
 		"AWS_ACCESS_KEY_ID": {"required": true},
 		"AWS_SECRET_ACCESS_KEY": {"required": true},
-		"AWS_STORAGE_BUCKET_NAME": {"required": true}
+		"AWS_STORAGE_BUCKET_NAME": {"required": true},
+        "REVIEW_APP_PASSWORD": {"generator": "secret"}
     },
     "formation": {
         "beat": {
