@@ -51,6 +51,7 @@ from import_export.admin import ImportExportMixin
 from import_export.resources import ModelResource
 
 import large_initial
+
 import nested_admin
 
 from related_admin import RelatedFieldAdmin
@@ -59,6 +60,7 @@ from smmapdfs.actions import make_pdfsandwich
 from smmapdfs.admin_abcs import PdfSandwichAdmin, PdfSandwichFieldAdmin
 
 from . import darujme, filters, mailing, tasks
+from .forms import UserCreateForm, UserUpdateForm
 from .models import (
     AccountStatements, AutomaticCommunication, BankAccount, Condition, DonorPaymentChannel,
     Event, Expense, Interaction, MassCommunication, NewUser, Payment, Recruiter,
@@ -66,7 +68,6 @@ from .models import (
     TaxConfirmationPdf, Telephone, TerminalCondition,
     UserInCampaign, UserProfile, UserYearPayments,
 )
-from .forms import UserCreateForm, UserUpdateForm
 
 
 def admin_links(args_generator):
