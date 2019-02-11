@@ -371,14 +371,14 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
             'fields': (
                 'username', 'title_before', 'first_name', 'last_name', 'title_after', 'sex',
                 'age_group', 'email', 'password',
-            )}
-         ),
+            ),
+        }),
         (_('Rights and permissions'), {
             'classes': ('collapse',),
             'fields': (
                 'is_staff', 'is_superuser', 'groups',
-            )}
-         ),
+            ),
+        })
     )
 
     ordering = ('email',)
@@ -788,15 +788,18 @@ class InteractionAdmin(RelatedFieldAdmin, admin.ModelAdmin):
     ordering = ('-date',)
     fieldsets = [
         (_("Header"), {
-            'fields': [('user', 'event', 'method'),
-                       'date'],
+            'fields': [
+                ('user', 'event', 'method'),
+                'date',
+            ],
         }),
         (_("Content"), {
-            'fields': ['subject',
-                       ('summary', 'attachment'),
-                       'note',
-                       'result',
-                       ],
+            'fields': [
+                'subject',
+                ('summary', 'attachment'),
+                'note',
+                'result',
+            ],
         }
         ),
         (_("Sending"), {

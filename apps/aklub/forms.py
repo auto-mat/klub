@@ -37,11 +37,14 @@ class UserUpdateForm(UserChangeForm):
     def __init__(self, *args, **kwargs):
         super(UserChangeForm, self).__init__(*args, **kwargs)
         self.fields['username'].required = False
-        self.fields['password'].help_text = ("Raw passwords are not stored, so there is no way to see "
-                                             "this user's password, but you can <a href=\"%s\"> "
-                                             "<strong>Change the Password</strong> using this form</a>."
-                                             ) % reverse_lazy('admin:auth_user_password_change',
-                                                              args=[self.instance.id])
+        self.fields['password'].help_text = (
+            "Raw passwords are not stored, so there is no way to see "
+            "this user's password, but you can <a href=\"%s\"> "
+            "<strong>Change the Password</strong> using this form</a>."
+                                            ) % reverse_lazy(
+            'admin:auth_user_password_change',
+            args=[self.instance.id],
+        )
 
     def save(self, commit=True):
         user = super(UserChangeForm, self).save(commit=False)

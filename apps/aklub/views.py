@@ -290,12 +290,7 @@ def get_unique_username(email):
 
 def generate_variable_symbol(user, donor, max_variable_symbol=9999):
     now = datetime.datetime.now()
-    reg_n_today = len(
-        DonorPaymentChannel.objects.filter(
-            registered_support__gt=(now - datetime.timedelta(days=1)),
-            user=user,
-        )
-    )
+    reg_n_today = len(DonorPaymentChannel.objects.filter(registered_support__gt=(now - datetime.timedelta(days=1)), user=user))
 
     for i in range(reg_n_today + 1, max_variable_symbol):
         variable_symbol = '%s%02d%02d%04d%s' % (

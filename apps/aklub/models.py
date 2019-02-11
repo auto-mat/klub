@@ -693,9 +693,10 @@ class Telephone(models.Model):
         max_length=100,
         blank=True,
         validators=[
-            RegexValidator(r'^\+?(42(0|1){1})?\s?\d{3}\s?\d{3}\s?\d{3}$',
-                           _("Telephone must consist of numbers, spaces and + ,"
-                             "sign or maximum number count is higher.")),
+            RegexValidator(
+                r'^\+?(42(0|1){1})?\s?\d{3}\s?\d{3}\s?\d{3}$',
+                _("Telephone must consist of numbers, spaces and + sign or maximum number count is higher."),
+            ),
         ],
     )
     is_primary = models.NullBooleanField(
@@ -1011,8 +1012,14 @@ class UserInCampaign(models.Model):
         """Return last payment"""
         return self.payment_set.order_by('date').last()
 
-    @denormalized(models.ForeignKey,
-                  to='Payment', default=None, null=True, related_name="user_last_payment", on_delete=models.SET_NULL)
+    @denormalized(
+        models.ForeignKey,
+        to='Payment',
+        default=None,
+        null=True,
+        related_name="user_last_payment",
+        on_delete=models.SET_NULL,
+    )
     def last_payment(self):
         """Return last payment"""
         return self.last_payment_function()
@@ -1730,8 +1737,10 @@ class Payment(models.Model):
             # time-consuming (relying on Cron performing it in regular
             # intervals anyway)
             from .autocom import check as autocom_check
-            autocom_check(users=UserInCampaign.objects.filter(pk=self.user.pk),
-                          action=(insert and 'new-payment' or None))
+            autocom_check(
+                users=UserInCampaign.objects.filter(pk=self.user.pk),
+                action=(insert and 'new-payment' or None),
+                )
 
     def __str__(self):
         return str(self.amount)
@@ -2370,8 +2379,10 @@ class MassCommunication(models.Model):
         verbose_name=_("send to users"),
         help_text=_(
             "All users who should receive the communication"),
-        limit_choices_to={'userprofile__is_active': 'True', 'wished_information': 'True',
-                          'userprofile__send_mailing_lists': 'True'},
+        limit_choices_to={
+            'userprofile__is_active': 'True', 'wished_information': 'True',
+            'userprofile__send_mailing_lists': 'True',
+        },
         blank=True,
     )
     note = models.TextField(
@@ -2465,8 +2476,7 @@ class TaxConfirmation(models.Model):
         return PdfSandwichType.objects.get(name="Tax confirmation")
 
     def get_payment_set(self):
-        return Payment.objects.filter(user_profile=self.user_profile).exclude(type='expected').filter(
-            date__year=self.year)
+        return Payment.objects.filter(user_profile=self.user_profile).exclude(type='expected').filter(date__year=self.year)
 
     class Meta:
         verbose_name = _("Tax confirmation")
