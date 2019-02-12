@@ -69,6 +69,7 @@ django-smmapdfs = "*"
 newrelic = "*"
 django-nested-admin = "*"
 django_celery_monitor = "*"
+django_grapesjs = "*"
 
 
 [dev-packages]
