@@ -37,7 +37,7 @@ try:
 except ImportError:  # Django<2.0
     from django.core.urlresolvers import reverse
 from django.core.validators import RegexValidator
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Count, Q, Sum
 from django.utils import timezone
 from django.utils.html import format_html, mark_safe
@@ -1217,16 +1217,15 @@ class AccountStatements(models.Model):
     )
 
     def save(self, *args, **kwargs):
-        created = (not self.pk)
         super(AccountStatements, self).save(*args, **kwargs)
-        if created:
-            from .tasks import parse_account_statement
-            parse_account_statement.delay(self.pk)
         if hasattr(self, "payments"):
             for payment in self.payments:
                 if payment:
                     payment.account_statement = self
                     payment.save()
+        if self.payment_set.count() == 0:
+            from .tasks import parse_account_statement
+            transaction.on_commit(lambda: parse_account_statement.delay(self.pk))
 
     def pair_vs(self, payment):
         # Payments pairing'
