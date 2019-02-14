@@ -84,6 +84,7 @@ pudb = "*"
 coveralls = "*"
 django-admin-smoke-tests = {git = "https://github.com/jnoortheen/django-admin-smoke-tests", editable = true}
 model_mommy = "*"
+mock = "*"
 
 [requires]
 python_version = "3.6"

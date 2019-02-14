@@ -18,6 +18,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 from django.contrib.admin.templatetags.admin_list import _boolean_icon
+from django.db import transaction
+
+import mock
 
 
 def print_response(response):
@@ -27,3 +30,14 @@ def print_response(response):
 
 ICON_FALSE = _boolean_icon(False)
 ICON_UNKNOWN = _boolean_icon(None)
+
+
+class RunCommitHooksMixin(object):
+    def run_commit_hooks(self):
+        """
+        Fake transaction commit to run delayed on_commit functions
+        :return:
+        """
+        for db_name in reversed(self._databases_names()):
+            with mock.patch('django.db.backends.base.base.BaseDatabaseWrapper.validate_no_atomic_block', lambda a: False):
+                transaction.get_connection(using=db_name).run_and_clear_commit_hooks()

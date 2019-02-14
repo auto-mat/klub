@@ -32,6 +32,7 @@ from freezegun import freeze_time
 from model_mommy import mommy
 
 from .recipes import userincampaign_recipe
+from .utils import RunCommitHooksMixin
 from .utils import print_response  # noqa
 from .. import admin
 from ..models import (
@@ -56,7 +57,7 @@ class AdminSmokeTest(tests.AdminSiteSmokeTest):
 @override_settings(
     CELERY_ALWAYS_EAGER=True,
 )
-class AdminTest(TestCase):
+class AdminTest(RunCommitHooksMixin, TestCase):
     def setUp(self):
         self.factory = RequestFactory()
         self.superuser = auth.get_user_model().objects.create_superuser(
@@ -168,6 +169,7 @@ class AdminTest(TestCase):
             }
             request = self.post_request(post_data=post_data)
             response = model_admin.add_view(request)
+            self.run_commit_hooks()
             self.assertEqual(response.status_code, 302)
             obj = AccountStatements.objects.get(date_from="2010-10-01")
             self.assertEqual(response.url, "/aklub/accountstatements/")
@@ -198,6 +200,7 @@ class AdminTest(TestCase):
             }
             request = self.post_request(post_data=post_data)
             response = model_admin.add_view(request)
+            self.run_commit_hooks()
             self.assertEqual(response.status_code, 302)
             obj = AccountStatements.objects.get(date_from="2016-01-25")
             self.assertEqual(response.url, "/aklub/accountstatements/")

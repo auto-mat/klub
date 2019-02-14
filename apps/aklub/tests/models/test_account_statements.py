@@ -29,6 +29,7 @@ from django.test.utils import override_settings
 from model_mommy import mommy
 
 from ..recipes import userincampaign_recipe
+from ..utils import RunCommitHooksMixin
 from ... import admin, darujme
 from ...models import AccountStatements, Campaign, Payment, UserInCampaign
 
@@ -36,7 +37,7 @@ from ...models import AccountStatements, Campaign, Payment, UserInCampaign
 @override_settings(
     CELERY_ALWAYS_EAGER=True,
 )
-class AccountStatementTests(TestCase):
+class AccountStatementTests(RunCommitHooksMixin, TestCase):
     fixtures = ['conditions', 'users']
 
     def test_bank_new_statement(self):
@@ -45,6 +46,7 @@ class AccountStatementTests(TestCase):
             a.clean()
             a.save()
 
+        self.run_commit_hooks()
         a1 = AccountStatements.objects.get(pk=a.pk)
         self.assertEqual(len(a1.payment_set.all()), 4)
         self.assertEqual(a1.date_from, datetime.date(day=25, month=1, year=2016))
@@ -78,6 +80,7 @@ class AccountStatementTests(TestCase):
     maxDiff = None
 
     def check_account_statement_data(self):
+        self.run_commit_hooks()
         a1 = AccountStatements.objects.get(type="darujme")
         self.assertEqual(
             list(a1.payment_set.order_by('SS').values_list("account_name", "date", "SS")),
