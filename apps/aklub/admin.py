@@ -985,7 +985,6 @@ class AccountStatementsAdmin(admin.ModelAdmin):
     def payments_count(self, obj):
         return obj.payment_set.count()
 
-
     def save_model(self, request, obj, form, change):
         if getattr(obj, 'skipped_payments', None):
             skipped_payments_string = ', '.join(

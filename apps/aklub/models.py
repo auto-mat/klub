@@ -32,17 +32,12 @@ from django.contrib.auth.models import AbstractUser, User
 from django.contrib.humanize.templatetags.humanize import intcomma
 from django.core.files.storage import FileSystemStorage
 from django.core.mail import EmailMultiAlternatives
-from django.core.validators import RegexValidator
 try:
     from django.urls import reverse
 except ImportError:  # Django<2.0
     from django.core.urlresolvers import reverse
-
-from django.db import models
-
 from django.core.validators import RegexValidator
 from django.db import models, transaction
-
 from django.db.models import Count, Q, Sum
 from django.db.models.signals import post_save
 from django.utils import timezone
