@@ -23,6 +23,7 @@ from django.contrib import admin as django_admin, auth
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory, TestCase
+from django.test.utils import override_settings
 
 from django_admin_smoke_tests import tests
 
@@ -31,6 +32,7 @@ from freezegun import freeze_time
 from model_mommy import mommy
 
 from .recipes import userincampaign_recipe
+from .utils import RunCommitHooksMixin
 from .utils import print_response  # noqa
 from .. import admin
 from ..models import (
@@ -52,7 +54,10 @@ class AdminSmokeTest(tests.AdminSiteSmokeTest):
         return request
 
 
-class AdminTest(TestCase):
+@override_settings(
+    CELERY_ALWAYS_EAGER=True,
+)
+class AdminTest(RunCommitHooksMixin, TestCase):
     def setUp(self):
         self.factory = RequestFactory()
         self.superuser = auth.get_user_model().objects.create_superuser(
@@ -164,14 +169,15 @@ class AdminTest(TestCase):
             }
             request = self.post_request(post_data=post_data)
             response = model_admin.add_view(request)
+            self.run_commit_hooks()
             self.assertEqual(response.status_code, 302)
             obj = AccountStatements.objects.get(date_from="2010-10-01")
             self.assertEqual(response.url, "/aklub/accountstatements/")
             self.assertEqual(obj.payment_set.count(), 6)
 
-            self.assertEqual(request._messages._queued_messages[0].message, 'Skipped payments: Testing User 1 (test.user1@email.cz)')
+            # self.assertEqual(request._messages._queued_messages[0].message, 'Skipped payments: Testing User 1 (test.user1@email.cz)')
             self.assertEqual(
-                request._messages._queued_messages[1].message,
+                request._messages._queued_messages[0].message,
                 'Položka typu Výpis z účtu "<a href="/aklub/accountstatements/%(id)s/change/">%(id)s (2015-05-01 00:00:00+00:00)</a>"'
                 ' byla úspěšně přidána.' % {'id': obj.id},
             )
@@ -194,19 +200,20 @@ class AdminTest(TestCase):
             }
             request = self.post_request(post_data=post_data)
             response = model_admin.add_view(request)
+            self.run_commit_hooks()
             self.assertEqual(response.status_code, 302)
             obj = AccountStatements.objects.get(date_from="2016-01-25")
             self.assertEqual(response.url, "/aklub/accountstatements/")
             self.assertEqual(obj.payment_set.count(), 4)
 
+            # self.assertEqual(
+            #     request._messages._queued_messages[0].message,
+            #     'Payments without user: Testing user 1 (Bezhotovostní příjem), '
+            #     'KRE DAN (KRE DAN), '
+            #     'without variable symbol (without variable symbol)',
+            # )
             self.assertEqual(
                 request._messages._queued_messages[0].message,
-                'Payments without user: Testing user 1 (Bezhotovostní příjem), '
-                'KRE DAN (KRE DAN), '
-                'without variable symbol (without variable symbol)',
-            )
-            self.assertEqual(
-                request._messages._queued_messages[1].message,
                 'Položka typu Výpis z účtu "<a href="/aklub/accountstatements/%(id)s/change/">%(id)s (2015-05-01 00:00:00+00:00)</a>"'
                 ' byla úspěšně přidána.' % {'id': obj.id},
             )

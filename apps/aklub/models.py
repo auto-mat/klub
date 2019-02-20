@@ -37,7 +37,12 @@ try:
     from django.urls import reverse
 except ImportError:  # Django<2.0
     from django.core.urlresolvers import reverse
+
 from django.db import models
+
+from django.core.validators import RegexValidator
+from django.db import models, transaction
+
 from django.db.models import Count, Q, Sum
 from django.db.models.signals import post_save
 from django.utils import timezone
@@ -1320,15 +1325,6 @@ class AccountStatements(models.Model):
         null=True,
     )
 
-    def clean(self, *args, **kwargs):
-        super(AccountStatements, self).clean(*args, **kwargs)
-        if not self.pk and self.csv_file:  # new Account statement
-            if self.type == 'account':
-                self.payments = self.parse_bank_csv()
-            elif self.type == 'darujme':
-                from aklub.darujme import parse_darujme
-                self.payments, self.skipped_payments = parse_darujme(self.csv_file)
-
     def save(self, *args, **kwargs):
         super(AccountStatements, self).save(*args, **kwargs)
         if hasattr(self, "payments"):
@@ -1336,6 +1332,9 @@ class AccountStatements(models.Model):
                 if payment:
                     payment.account_statement = self
                     payment.save()
+        if self.payment_set.count() == 0:
+            from .tasks import parse_account_statement
+            transaction.on_commit(lambda: parse_account_statement.delay(self.pk))
 
     def pair_vs(self, payment):
         # Payments pairing'
