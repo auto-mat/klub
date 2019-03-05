@@ -30,6 +30,7 @@ from denorm import denormalized, depend_on_related
 from django.contrib.admin.templatetags.admin_list import _boolean_icon
 from django.contrib.auth.models import AbstractUser, User
 from django.contrib.humanize.templatetags.humanize import intcomma
+from django.core.exceptions import ValidationError
 from django.core.files.storage import FileSystemStorage
 from django.core.mail import EmailMultiAlternatives
 try:
@@ -56,8 +57,6 @@ import stdimage
 from vokativ import vokativ
 
 from . import autocom
-
-from django.core.exceptions import ValidationError
 
 logger = logging.getLogger(__name__)
 
@@ -739,7 +738,6 @@ class Telephone(models.Model):
         primary.user = self.user
         self.validate_unique()
         super(Telephone, self).save(*args, **kwargs)
-
 
     def save(self, *args, **kwargs):
         self.clean()
