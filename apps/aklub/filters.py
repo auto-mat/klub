@@ -155,7 +155,7 @@ class TelephoneFilter(SimpleListFilter):
                 values_list('telephone', flat=True)
             return queryset.filter(telephone__in=duplicates)
         if self.value() == 'blank':
-            return queryset.filter(Q(telephone__exact='') or Q(telephone__isnull=True))
+            return queryset.filter(Q(telephone__isnull=True))
         if self.value() == 'bad-format':
             return queryset.exclude(telephone__iregex=r'^\+?([0-9] *){9,}$').exclude(telephone__exact='').exclude(telephone__isnull=True)
         return queryset

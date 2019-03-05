@@ -57,6 +57,8 @@ from vokativ import vokativ
 
 from . import autocom
 
+from django.core.exceptions import ValidationError
+
 logger = logging.getLogger(__name__)
 
 COMMUNICATION_METHOD = (
@@ -687,6 +689,10 @@ post_save.connect(post_save_generate_vs, sender=UserProfile)
 
 
 class Telephone(models.Model):
+    bool_choices = (
+        (None, "No"),
+        (True, "Yes")
+    )
 
     telephone = models.CharField(
         verbose_name=_("Telephone number"),
@@ -702,7 +708,8 @@ class Telephone(models.Model):
     is_primary = models.NullBooleanField(
         verbose_name=_("Primary phone"),
         blank=True,
-        default=False,
+        default=None,
+        choices=bool_choices,
     )
     user = models.ForeignKey(
         UserProfile,
@@ -714,7 +721,29 @@ class Telephone(models.Model):
     class Meta:
         verbose_name = _("Telephone")
         verbose_name_plural = _("Telephones")
-        unique_together = ("telephone", "is_primary")
+        unique_together = ("user", "is_primary")
+
+    def validate_unique(self, exclude=None):
+        super(Telephone, self).validate_unique(exclude=exclude)
+
+    def check_duplicate(self, *args, **kwargs):
+        qs = Telephone.objects.filter(telephone=self.telephone, user=self.user)
+        if self.pk is None:
+            if qs.filter(telephone=self.telephone, user=self.user).exists():
+                raise ValidationError("Duplicate phone number for this user")
+
+    def clean(self, *args, **kwargs):
+        self.check_duplicate()
+        primary = Telephone.objects.filter(is_primary=True, user=self.user)
+        primary.is_primary = None
+        primary.user = self.user
+        self.validate_unique()
+        super(Telephone, self).save(*args, **kwargs)
+
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super(Telephone, self).save(*args, **kwargs)
 
     def __str__(self):
         return u"%s" % self.telephone
@@ -1186,11 +1215,11 @@ class UserInCampaign(models.Model):
             insert = True
         else:
             insert = False
-
+        """
         if not self.variable_symbol:  # and not self.id:
             from .views import generate_variable_symbol
             self.variable_symbol = generate_variable_symbol()
-
+        """
         super().save(*args, **kwargs)
         from .autocom import check as autocom_check
         autocom_check(users=UserInCampaign.objects.filter(pk=self.pk), action=(insert and 'new-user' or None))

@@ -17,6 +17,6 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterUniqueTogether(
             name='telephone',
-            unique_together={('telephone', 'is_primary')},
+            unique_together={('user', 'is_primary')},
         ),
     ]

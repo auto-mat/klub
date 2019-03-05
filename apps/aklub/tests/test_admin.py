@@ -150,7 +150,7 @@ class AdminTest(RunCommitHooksMixin, TestCase):
 
     @freeze_time("2015-5-1")
     def test_account_statement_changelist_post(self):
-        mommy.make("aklub.Campaign", darujme_name="Klub přátel Auto*Matu")
+        mommy.make("aklub.Event", darujme_name="Klub přátel Auto*Matu")
         mommy.make("aklub.Payment", SS=22258, type="darujme", operation_id="13954", date="2016-02-09")
         userincampaign_recipe.make(id=2979, userprofile__email="bar@email.com", userprofile__language="cs")
         model_admin = django_admin.site._registry[AccountStatements]
@@ -328,7 +328,7 @@ class AdminTest(RunCommitHooksMixin, TestCase):
         self.assertEqual(response.url, "/aklub/communication/")
 
     def test_user_in_campaign_changelist_post(self):
-        mommy.make("aklub.Campaign", id=1)
+        mommy.make("aklub.Event", id=1)
         mommy.make("aklub.Userprofile", id=2978)
         model_admin = django_admin.site._registry[UserInCampaign]
         request = self.get_request()

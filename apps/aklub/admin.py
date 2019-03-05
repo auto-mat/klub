@@ -377,7 +377,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         (_('Rights and permissions'), {
             'classes': ('collapse',),
             'fields': (
-                'is_staff', 'is_superuser', 'groups', 'user_permissions',
+                'is_staff', 'is_superuser', 'groups', #'user_permissions',
             ),
         })
     )
