@@ -140,7 +140,7 @@ class TestStr(TestCase):
     def test_make_tax_confirmation(self):
         """ Test, that make_tax_confirmation function """
         t = mommy.make("aklub.UserProfile", sex='male')
-        uc = mommy.make("aklub.UserInCampaign", userprofile=t, campaign=mommy.make("Event"))
+        uc = mommy.make("aklub.UserInCampaign", userprofile=t, campaign=mommy.make("Campaign"))
         mommy.make("aklub.Payment", amount=350, date="2016-01-01", type='regular', user=uc)
         tax_confirmation, created = t.make_tax_confirmation(2016)
         self.assertEqual(t.email, None)

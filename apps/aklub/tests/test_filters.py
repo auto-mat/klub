@@ -25,7 +25,7 @@ from django.test import RequestFactory, TestCase
 from model_mommy import mommy
 
 from .. import admin, filters
-from ..models import Event, Payment, Telephone, UserInCampaign, UserProfile
+from ..models import Campaign, Payment, UserInCampaign, UserProfile
 
 
 class FilterTestCase(TestCase):
@@ -48,31 +48,29 @@ class FilterTests(FilterTestCase):
         self.assertQuerysetEqual(q, ["<UserProfile: Foo>"])
 
     def test_telephone_filter_duplicate(self):
-        mommy.make('Telephone', telephone='123456', is_primary = True, user_id=3)
-        mommy.make('Telephone', telephone='123456', is_primary = True, user_id=3)
-        f = filters.TelephoneFilter(self.request, {"telephone": "duplicate"}, Telephone, None)
-        q = f.queryset(self.request, Telephone.objects.all())
-        self.assertQuerysetEqual(q, ["<Telephone: Foo>", "<Telephone: Bar>"], ordered=False)
+        mommy.make('UserProfile', telephone='123456', first_name="Foo", last_name="")
+        mommy.make('UserProfile', telephone='123456', first_name="Bar", last_name="")
+        f = filters.TelephoneFilter(self.request, {"telephone": "duplicate"}, UserProfile, None)
+        q = f.queryset(self.request, UserProfile.objects.all())
+        self.assertQuerysetEqual(q, ["<UserProfile: Foo>", "<UserProfile: Bar>"], ordered=False)
 
     def test_telephone_filter_blank(self):
-        mommy.make('Telephone', telephone='123456', is_primary=True, user_id=3)
+        mommy.make('UserProfile', telephone="", first_name="Foo", last_name="")
         f = filters.TelephoneFilter(self.request, {"telephone": "blank"}, UserProfile, None)
-        q = f.queryset(self.request, Telephone.objects.all())
-        self.assertQuerysetEqual(q, ["<Telephone: Foo>"])
+        q = f.queryset(self.request, UserProfile.objects.all())
+        self.assertQuerysetEqual(q, ["<UserProfile: Foo>"])
 
     def test_telephone_filter_format(self):
-        mommy.make('Telephone', telephone='123456', is_primary=True, user_id=3)
-        f = filters.TelephoneFilter(self.request, {"telephone": "bad-format"}, Telephone, None)
-        q = f.queryset(self.request, Telephone.objects.all())
-        self.assertQuerysetEqual(q, ["<Telephone: Foo>"])
+        mommy.make('UserProfile', telephone='1111', first_name="Foo", last_name="")
+        f = filters.TelephoneFilter(self.request, {"telephone": "bad-format"}, UserProfile, None)
+        q = f.queryset(self.request, UserProfile.objects.all())
+        self.assertQuerysetEqual(q, ["<UserProfile: Foo>"])
 
-    """
     def test_telephone_filter_without_query(self):
         mommy.make('UserProfile', telephone='1111', first_name="Foo", last_name="")
         f = filters.TelephoneFilter(self.request, {}, UserProfile, None)
         q = f.queryset(self.request, UserProfile.objects.all())
         self.assertQuerysetEqual(q, ["<UserProfile: Foo>"])
-    """
 
     def test_name_filter_duplicate(self):
         mommy.make('UserProfile', first_name="Foo", last_name="")
@@ -119,17 +117,17 @@ class FixtureFilterTests(FilterTestCase):
 
     def test_active_camaign_filter_no(self):
         f = filters.ActiveCampaignFilter(self.request, {"active": "no"}, UserProfile, None)
-        q = f.queryset(self.request, Event.objects.all())
+        q = f.queryset(self.request, Campaign.objects.all())
         self.assertEqual(q.count(), 0)
 
     def test_active_camaign_filter_yes(self):
         f = filters.ActiveCampaignFilter(self.request, {"active": "yes"}, UserProfile, None)
-        q = f.queryset(self.request, Event.objects.all())
+        q = f.queryset(self.request, Campaign.objects.all())
         self.assertEqual(q.count(), 3)
 
     def test_active_camaign_filter_yes_without_query(self):
         f = filters.ActiveCampaignFilter(self.request, {}, UserProfile, None)
-        q = f.queryset(self.request, Event.objects.all())
+        q = f.queryset(self.request, Campaign.objects.all())
         self.assertEqual(q.count(), 3)
 
     def test_show_payments_by_year_blank(self):

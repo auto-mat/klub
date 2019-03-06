@@ -31,7 +31,7 @@ from model_mommy import mommy
 from ..recipes import userincampaign_recipe
 from ..utils import RunCommitHooksMixin
 from ... import admin, darujme
-from ...models import AccountStatements, Event, Payment, UserInCampaign
+from ...models import AccountStatements, Campaign, Payment, UserInCampaign
 
 
 @override_settings(
@@ -217,7 +217,7 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
         with open("apps/aklub/test_data/darujme.xml", "r") as f:
             m = MagicMock()
             urllib_request.urlopen = MagicMock(return_value=f)
-            admin.download_darujme_statement(m, request, Event.objects.filter(slug="klub"))
+            admin.download_darujme_statement(m, request, Campaign.objects.filter(slug="klub"))
 
         a1 = self.check_account_statement_data()
         m.message_user.assert_called_once_with(
