@@ -369,10 +369,10 @@
         },
         "django-smmapdfs": {
             "hashes": [
-                "sha256:456b5c7592f72c21ccd081633f36230da9ab87f91a0228586fea17fcf346a1fa"
+                "sha256:701fcd72637d82fd42c3a75fdf101a790a48367e882b6955f76e8d35fee57c91"
             ],
             "index": "pypi",
-            "version": "==1.0.1"
+            "version": "==1.0.2"
         },
         "django-stdimage": {
             "hashes": [
