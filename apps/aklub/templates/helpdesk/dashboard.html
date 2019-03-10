@@ -7,11 +7,12 @@
 
 {% block helpdesk_body %}
 
+{% include 'helpdesk/include/unassigned.html' %}
+
 {% trans "Open Tickets assigned to you (you are working on this ticket)" as ticket_list_caption %}
 {% trans "You have no tickets assigned to you." as no_assigned_tickets %}
 {% include 'helpdesk/include/tickets.html' with ticket_list=user_tickets ticket_list_empty_message=no_assigned_tickets %}
 
-{% include 'helpdesk/include/unassigned.html' %}
 
 {% load_repos %}
 {% if repos %}
