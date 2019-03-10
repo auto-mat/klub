@@ -235,6 +235,10 @@ class RegularUserForm_UserInCampaignDPNK(RegularUserForm_UserInCampaign):
         help_text=_("We are happy for any donation. However, full membership with advantages, starts from CZK 150 per month."),
         min_value=1,
     )
+    campaign = forms.CharField(widget=forms.HiddenInput, required=False)
+
+    def clean_campaign(self):
+        return Campaign.objects.get(slug="dpnk")
 
     def clean_regular_frequency(self):
         return 'monthly'
@@ -443,6 +447,11 @@ class RegularDPNKView(RegularView):
     form_class = RegularUserFormDPNK
     success_template = 'thanks-dpnk.html'
     source_slug = 'dpnk'
+
+    def get_initial(self):
+        initial = super().get_initial()
+        initial['campaign'] = 'dpnk'
+        return initial
 
 
 class RegularWPView(RegularView):
