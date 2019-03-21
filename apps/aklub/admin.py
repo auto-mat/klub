@@ -348,7 +348,6 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         }),
         (_('Contacts'), {
             'fields': [
-                ('send_mailing_lists'),
                 ('street', 'city', 'country'),
                 'zip_code', 'different_correspondence_address',
             ],
@@ -367,17 +366,21 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
     )
 
     add_fieldsets = (
-        (None, {
+        ('Personal data', {
             'classes': ('wide',),
             'fields': (
-                'username', 'title_before', 'first_name', 'last_name', 'title_after', 'sex',
-                'age_group', 'email', 'password',
+                'username', 'first_name', 'last_name', 'title_before', 'title_after', 'email', 'sex', 'age_group',
             ),
+        }),
+        ('Preferences', {
+            'fields': (
+                'public', 'send_mailing_lists',
+            )
         }),
         (_('Rights and permissions'), {
             'classes': ('collapse',),
             'fields': (
-                'is_staff', 'is_superuser', 'groups', 'user_permissions',
+                'password', 'is_staff', 'is_superuser', 'groups', 'user_permissions',
             ),
         })
     )
