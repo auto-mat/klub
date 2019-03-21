@@ -237,11 +237,17 @@ class UserProfileResource(ModelResource):
             from .views import generate_variable_symbol
             donor_id = DonorPaymentChannel.objects.latest('id').id
             users_vss = obj.userchannels.all().values('VS', 'id')
-            for vs in users_vss:
-                if not vs['VS']:
-                    VS = generate_variable_symbol(user=obj, donor=vs['id'])
-                    donors = DonorPaymentChannel.objects.create(VS=VS, user=obj, bank_account=bank_account)
-                    obj.userchannels.add(donors, bulk=True)
+
+            if len(users_vss) != 0:
+                for vs in users_vss:
+                    if not vs['VS']:
+                        VS = generate_variable_symbol(user=obj, donor=vs['id'])
+                        donors = DonorPaymentChannel.objects.create(VS=VS, user=obj, bank_account=bank_account)
+                        obj.userchannels.add(donors, bulk=True)
+            else:
+                VS = generate_variable_symbol(user=obj, donor=donor_id)
+                donors = DonorPaymentChannel.objects.create(VS=VS, user=obj, bank_account=bank_account)
+                obj.userchannels.add(donors, bulk=True)
         return super(UserProfileResource, self).import_obj(obj, data, dry_run)
 
     def dehydrate_telephone(self, profile):
