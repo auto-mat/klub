@@ -101,7 +101,7 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
         None, {
             'fields': [
                 ('registered_support', 'regular_payments', 'regular_amount', 'regular_frequency'),
-                ('VS', 'bank_account'),
+                ('VS', 'bank_account', 'user_bank_account'),
                 ('expected_date_of_first_payment'),
                 ('exceptional_membership'),
                 ('other_support'),
@@ -215,6 +215,7 @@ class UserProfileResource(ModelResource):
         import_id_fields = ('email',)
 
     telephone = fields.Field()
+    VS = fields.Field()
 
     def import_obj(self, obj, data, dry_run):
         if data['telephone'] != "":
@@ -224,10 +225,30 @@ class UserProfileResource(ModelResource):
                 obj.telephone_set.add(telephone, bulk=True)
             else:
                 Telephone.objects.filter(user=obj.id, is_primary=True).update(telephone=data['telephone'])
+        bank_account = BankAccount.objects.all().first()
+        if data['VS'] != "":
+            if not obj.userchannels.filter(user=obj.id):
+                obj.save()
+                donors = DonorPaymentChannel.objects.create(VS=data['VS'], user=obj, bank_account = bank_account)
+                obj.userchannels.add(donors, bulk=True)
+            else:
+                DonorPaymentChannel.objects.filter(user=obj.id).update(VS=data['VS'])
+        else:
+            from .views import generate_variable_symbol
+            donor_id = DonorPaymentChannel.objects.latest('id').id
+            users_vss = obj.userchannels.all().values('VS', 'id')
+            for vs in users_vss:
+                if not vs['VS']:
+                    VS = generate_variable_symbol(user=obj, donor=vs['id'])
+                    donors = DonorPaymentChannel.objects.create(VS=VS, user=obj, bank_account=bank_account)
+                    obj.userchannels.add(donors, bulk=True)
         return super(UserProfileResource, self).import_obj(obj, data, dry_run)
 
     def dehydrate_telephone(self, profile):
         return profile.get_telephone()
+
+    def dehydrate_VS(self, profile):
+        return profile.get_donor()
 
     def before_import_row(self, row, **kwargs):
         row['email'] = row['email'].lower()

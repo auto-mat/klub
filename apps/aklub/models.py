@@ -40,7 +40,7 @@ except ImportError:  # Django<2.0
 from django.core.validators import RegexValidator
 from django.db import models, transaction
 from django.db.models import Count, Q, Sum
-from django.db.models.signals import post_save
+from django.db.models.signals import pre_save, post_save
 from django.utils import timezone
 from django.utils.html import format_html, mark_safe
 from django.utils.text import format_lazy
@@ -659,11 +659,17 @@ class UserProfile(AbstractUser):
             self.username = get_unique_username(self.email)
         if self.email:
             self.email = self.email.lower()
+
+
         super().save(*args, **kwargs)
 
     def get_telephone(self):
         numbers = ','.join(number.telephone for number in self.telephone_set.filter(is_primary=True))
         return numbers
+
+    def get_donor(self):
+        donors = ','.join(donor.VS for donor in self.userchannels.all())
+        return donors
 
     def get_main_telephone(self):
         active_numbers = self.telephone_set.all()
@@ -674,17 +680,19 @@ class UserProfile(AbstractUser):
     get_main_telephone.admin_order_field = "telephone"
 
 
-def post_save_generate_vs(sender, instance, *args, **kwargs):
+def pre_save_generate_vs(sender, instance, *args, **kwargs):
     users_vss = instance.userchannels.all().values('VS', 'id')
 
     for vs in users_vss:
         if not vs['VS']:
             from .views import generate_variable_symbol
-            DonorPaymentChannel.objects.filter(user=instance, id=vs['id'])\
-                .update(VS=generate_variable_symbol(user=instance, donor=vs['id']), user=instance)
+            donor_id = DonorPaymentChannel.objects.latest('id').id
+            DonorPaymentChannel.objects.filter(user=instance)\
+                .update(VS=generate_variable_symbol(user=instance, donor=donor_id), user=instance)
 
 
-post_save.connect(post_save_generate_vs, sender=UserProfile)
+pre_save.connect(pre_save_generate_vs, sender=UserProfile)
+
 
 
 class Telephone(models.Model):
@@ -1430,10 +1438,14 @@ class BankAccount(models.Model):
         blank=True,
         null=True,
     )
-
     bank_account_number = models.CharField(
         verbose_name=_("Bank account number"),
         max_length=50,
+        blank=True,
+        null=True,
+    )
+    note = models.TextField(
+        verbose_name=_("Bank account note"),
         blank=True,
         null=True,
     )
@@ -1533,6 +1545,14 @@ class DonorPaymentChannel(models.Model):
         related_name='bankaccounts',
         on_delete=models.CASCADE,
         default=None,
+    )
+    user_bank_account = models.ForeignKey(
+        BankAccount,
+        related_name='userbankaccounts',
+        on_delete=models.CASCADE,
+        default=None,
+        null=True,
+        blank=True
     )
     event = models.ManyToManyField(
         Event,
