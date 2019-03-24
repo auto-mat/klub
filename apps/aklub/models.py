@@ -665,11 +665,11 @@ class UserProfile(AbstractUser):
         super().save(*args, **kwargs)
 
     def get_telephone(self):
-        numbers = ','.join(number.telephone for number in self.telephone_set.filter(is_primary=True))
+        numbers = ','.join(number.telephone for number in self.telephone_set.all())
         return numbers
 
     def get_donor(self):
-        donors = ','.join(donor.VS for donor in self.userchannels.all())
+        donors = ','.join(donor.VS for donor in self.userchannels.all() if donor.VS != None)
         return donors
 
     def get_main_telephone(self):
@@ -679,21 +679,6 @@ class UserProfile(AbstractUser):
 
     get_main_telephone.short_description = _("Telephone")
     get_main_telephone.admin_order_field = "telephone"
-
-
-def pre_save_generate_vs(sender, instance, *args, **kwargs):
-    users_vss = instance.userchannels.all().values('VS', 'id')
-
-    for vs in users_vss:
-        if not vs['VS']:
-            from .views import generate_variable_symbol
-            donor_id = DonorPaymentChannel.objects.latest('id').id
-            DonorPaymentChannel.objects.filter(user=instance)\
-                .update(VS=generate_variable_symbol(user=instance, donor=donor_id), user=instance)
-
-
-pre_save.connect(pre_save_generate_vs, sender=UserProfile)
-
 
 
 class Telephone(models.Model):
@@ -746,7 +731,7 @@ class Telephone(models.Model):
         primary.is_primary = None
         primary.user = self.user
         self.validate_unique()
-        super(Telephone, self).save(*args, **kwargs)
+        super(Telephone, self).clean(*args, **kwargs)
 
     def save(self, *args, **kwargs):
         self.clean()
@@ -1566,6 +1551,15 @@ class DonorPaymentChannel(models.Model):
     def __str__(self):
         return "VS - {}".format(self.VS)
 
+    def generate_VS(self):
+        if self.VS == "" or self.VS is None:
+            from .views import generate_variable_symbol
+            VS = generate_variable_symbol(user=self.user, donor=self.pk)
+            self.VS = VS
+            self.save()
+        else:
+            self.VS = self.VS
+            self.save()
 
 class Payment(models.Model):
     """Payment model and DB table

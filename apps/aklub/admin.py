@@ -36,6 +36,7 @@ from django.contrib.admin import site
 from django.contrib.auth.admin import UserAdmin
 from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator
+from django.db import IntegrityError
 from django.db.models import Sum
 from django.http import HttpResponseRedirect
 from django.utils.html import format_html, format_html_join, mark_safe
@@ -110,7 +111,6 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
         }),
 
     filter_horizontal = ('event', )
-
 
 class PaymentsInlineNoExtra(PaymentsInline):
 
@@ -216,35 +216,26 @@ class UserProfileResource(ModelResource):
 
     telephone = fields.Field()
     VS = fields.Field()
+    donor = fields.Field(attribute=None, column_name=None)
 
     def import_obj(self, obj, data, dry_run):
-        if data['telephone'] != "":
-            if not obj.telephone_set.filter(user=obj.id, is_primary=True):
-                obj.save()
-                telephone = Telephone.objects.create(telephone=data['telephone'], user=obj, is_primary=True)
-                obj.telephone_set.add(telephone, bulk=True)
-            else:
-                Telephone.objects.filter(user=obj.id, is_primary=True).update(telephone=data['telephone'])
         bank_account = BankAccount.objects.all().first()
-        if data['VS'] != "":
-            if not obj.userchannels.filter(user=obj.id):
+        if data['telephone'] != "":
+            if not obj.telephone_set.filter(user=obj.id, telephone=data['telephone'], is_primary=None):
                 obj.save()
-                donors = DonorPaymentChannel.objects.create(VS=data['VS'], user=obj, bank_account = bank_account)
-                obj.userchannels.add(donors, bulk=True)
-            else:
-                DonorPaymentChannel.objects.filter(user=obj.id).update(VS=data['VS'])
-        else:
-            from .views import generate_variable_symbol
-            donor_id = DonorPaymentChannel.objects.latest('id').id
-            users_vss = obj.userchannels.all().values('VS', 'id')
-
-            if len(users_vss) != 0:
-                for vs in users_vss:
-                    if not vs['VS']:
-                        VS = generate_variable_symbol(user=obj, donor=vs['id'])
-                        donors = DonorPaymentChannel.objects.create(VS=VS, user=obj, bank_account=bank_account)
+                telephone = Telephone.objects.create(telephone=data['telephone'], user=obj, is_primary=None)
+                obj.telephone_set.add(telephone, bulk=True)
+        if data['donor'] != "":
+            if data['VS'] != "":
+                exists = DonorPaymentChannel.objects.filter(VS=data["VS"]).exists()
+                if not exists:
+                    if not obj.userchannels.filter(user=obj.id, VS=data['VS']):
+                        obj.save()
+                        donors = DonorPaymentChannel.objects.create(VS=data['VS'], user=obj, bank_account=bank_account)
                         obj.userchannels.add(donors, bulk=True)
             else:
+                from .views import generate_variable_symbol
+                donor_id = DonorPaymentChannel.objects.latest('id').id
                 VS = generate_variable_symbol(user=obj, donor=donor_id)
                 donors = DonorPaymentChannel.objects.create(VS=VS, user=obj, bank_account=bank_account)
                 obj.userchannels.add(donors, bulk=True)
@@ -262,7 +253,6 @@ class UserProfileResource(ModelResource):
     def import_field(self, field, obj, data, is_m2m=False):
         if field.attribute and field.column_name in data and not getattr(obj, field.column_name):
             field.save(obj, data, is_m2m)
-
 
 class UserProfileMergeForm(merge.MergeForm):
     def __init__(self, *args, **kwargs):
@@ -407,7 +397,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         (_('Rights and permissions'), {
             'classes': ('collapse',),
             'fields': (
-                'password', 'is_staff', 'is_superuser', 'groups', 'user_permissions',
+                'password', 'is_staff', 'is_superuser', 'groups', # 'user_permissions',
             ),
         })
     )
@@ -462,6 +452,15 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
     readonly_fields = ('userattendance_links', 'date_joined', 'last_login',)
     actions = (send_mass_communication_distinct_action,)
     inlines = [TelephoneInline, DonorPaymentChannelInline, InteractionInline]
+
+    def save_formset(self, request, form, formset, change):
+        if not issubclass(formset.model, DonorPaymentChannel):
+            return super().save_formset(request, form, formset, change)
+        formset.save()
+        for f in formset.forms:
+            obj = f.instance
+            obj.generate_VS()
+
 
 
 class UserInCampaignResource(ModelResource):
