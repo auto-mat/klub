@@ -562,6 +562,18 @@ class UserProfile(AbstractUser):
         blank=True,
         choices=[(i, i) for i in range(datetime.date.today().year, datetime.date.today().year - 100, -1)],
     )
+    birth_month = models.PositiveIntegerField(
+        verbose_name=_("Month of birth"),
+        null=True,
+        blank=True,
+        choices=[(i, i) for i in range(1, 13)],
+    )
+    birth_day = models.PositiveIntegerField(
+        verbose_name=_("Day of birth"),
+        null=True,
+        blank=True,
+        choices=[(i, i) for i in range(1, 32)],
+    )
 
     """
     next_communication_date = models.DateField(

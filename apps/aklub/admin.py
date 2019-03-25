@@ -358,7 +358,8 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         ('Personal data', {
             'classes': ('wide',),
             'fields': (
-                'username', ('first_name', 'last_name'), ('title_before', 'title_after'), 'email', 'sex', 'age_group',
+                'username', ('first_name', 'last_name'), ('title_before', 'title_after'), 'email', 'sex',
+                ('birth_day', 'birth_month', 'age_group'),
             ),
         }),
         (None, {
