@@ -339,18 +339,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
                 ('language', 'public',),
                 'note',
             ],
-        }),
-        (_('Addressments'), {
-            'fields': [
-                ('addressment', 'addressment_on_envelope'),
-            ],
             'classes': ['collapse'],
-        }),
-        (_('Contacts'), {
-            'fields': [
-                ('street', 'city', 'country'),
-                'zip_code', 'different_correspondence_address',
-            ],
         }),
         (_('Benefits'), {
             'fields': [
@@ -369,8 +358,21 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         ('Personal data', {
             'classes': ('wide',),
             'fields': (
-                'username', 'first_name', 'last_name', 'title_before', 'title_after', 'email', 'sex', 'age_group',
+                'username', ('first_name', 'last_name'), ('title_before', 'title_after'), 'email', 'sex', 'age_group',
             ),
+        }),
+        (None, {
+            'fields': [
+                ('street', 'city', 'country', 'zip_code'),
+                'different_correspondence_address',
+            ]
+        }
+         ),
+        (_('Addressments'), {
+            'fields': [
+                ('addressment', 'addressment_on_envelope'),
+            ],
+            'classes': ['collapse'],
         }),
         ('Preferences', {
             'fields': (
