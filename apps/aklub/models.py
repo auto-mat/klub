@@ -1439,6 +1439,31 @@ class BankAccount(models.Model):
     def __str__(self):
         return u"%s-%s" % (self.bank_account, self.bank_account_number)
 
+class UserBankAccount(models.Model):
+    class Meta:
+        verbose_name = _("User bank account")
+        verbose_name_plural = _("User bank accounts")
+
+    bank_account = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+    )
+    bank_account_number = models.CharField(
+        verbose_name=_("Bank account number"),
+        max_length=50,
+        blank=True,
+        null=True,
+    )
+    note = models.TextField(
+        verbose_name=_("Bank account note"),
+        blank=True,
+        null=True,
+    )
+
+    def __str__(self):
+        return u"%s-%s" % (self.bank_account, self.bank_account_number)
+
 
 class DonorPaymentChannel(models.Model):
     class Meta:
@@ -1533,7 +1558,7 @@ class DonorPaymentChannel(models.Model):
         default=None,
     )
     user_bank_account = models.ForeignKey(
-        BankAccount,
+        UserBankAccount,
         related_name='userbankaccounts',
         on_delete=models.CASCADE,
         default=None,

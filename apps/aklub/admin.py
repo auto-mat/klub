@@ -66,7 +66,7 @@ from .models import (
     AccountStatements, AutomaticCommunication, BankAccount, Condition, DonorPaymentChannel,
     Event, Expense, Interaction, MassCommunication, NewUser, Payment, Recruiter,
     Result, Source, TaxConfirmation, TaxConfirmationField,
-    TaxConfirmationPdf, Telephone, TerminalCondition,
+    TaxConfirmationPdf, Telephone, TerminalCondition, UserBankAccount,
     UserInCampaign, UserProfile, UserYearPayments,
 )
 
@@ -274,6 +274,18 @@ class TelephoneInline(nested_admin.NestedStackedInline):
 
 class BankAccountAdmin(admin.ModelAdmin):
     model = BankAccount
+
+    search_fields = (
+        'bank_account', 'bank_account_number',
+    )
+
+    list_filter = (
+        'bank_account', 'bank_account_number',
+    )
+
+
+class UserBankAccountAdmin(admin.ModelAdmin):
+    model = UserBankAccount
 
     search_fields = (
         'bank_account', 'bank_account_number',
@@ -1167,5 +1179,6 @@ admin.site.register(TaxConfirmationField, TaxConfirmationFieldAdmin)
 admin.site.register(Source, SourceAdmin)
 admin.site.register(UserProfile, UserProfileAdmin)
 admin.site.register(BankAccount, BankAccountAdmin)
+admin.site.register(UserBankAccount, UserBankAccountAdmin)
 # register all adminactions
 actions.add_to_site(site)
