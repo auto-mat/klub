@@ -29,7 +29,7 @@ django-denorm = "*"
 gunicorn = "*"
 django-betterforms = "*"
 django-adminactions = {editable = true, ref = "develop", git = "https://github.com/saxix/django-adminactions.git"}
-django-helpdesk = {editable = true, ref = "develop", git = "https://github.com/django-helpdesk/django-helpdesk.git"}
+django-helpdesk = {editable = true, ref = "abs-paths", git = "https://github.com/auto-mat/django-helpdesk.git"}
 django-admin-large-initial-data = "*"
 django-admin-tools-stats = "*"
 django-bower = "*"
