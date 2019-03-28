@@ -253,6 +253,7 @@ class TelephoneInline(nested_admin.NestedStackedInline):
     extra = 0
     can_delete = True
     show_change_link = True
+    insert_after = 'different_correspondence_address'
 
 
 class BankAccountAdmin(admin.ModelAdmin):
@@ -355,7 +356,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
     )
 
     add_fieldsets = (
-        ('Personal data', {
+        (_('Personal data'), {
             'classes': ('wide',),
             'fields': (
                 'username', ('first_name', 'last_name'), ('title_before', 'title_after'), 'email', 'sex',
@@ -438,7 +439,15 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
     readonly_fields = ('userattendance_links', 'date_joined', 'last_login',)
     actions = (send_mass_communication_distinct_action,)
     inlines = [TelephoneInline, DonorPaymentChannelInline, InteractionInline]
+    change_form_template = 'admin/aklub/userprofile_changeform.html'
+    add_form_template = 'admin/aklub/userprofile_changeform.html'
 
+    class Media:
+        css = {
+            'all': (
+                'css/admin.css',
+            )
+        }
 
 class UserInCampaignResource(ModelResource):
     userprofile_email = fields.Field(
