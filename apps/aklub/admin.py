@@ -210,7 +210,6 @@ send_mass_communication_distinct_action.short_description = _("Send mass communi
 
 
 class UserProfileResource(ModelResource):
-    import datetime
     class Meta:
         model = UserProfile
         exclude = ('id',)
@@ -330,6 +329,7 @@ class TelephoneInline(nested_admin.NestedStackedInline):
     extra = 0
     can_delete = True
     show_change_link = True
+    insert_after = 'different_correspondence_address'
 
 
 class BankAccountAdmin(admin.ModelAdmin):
@@ -428,18 +428,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
                 ('language', 'public',),
                 'note',
             ],
-        }),
-        (_('Addressments'), {
-            'fields': [
-                ('addressment', 'addressment_on_envelope'),
-            ],
             'classes': ['collapse'],
-        }),
-        (_('Contacts'), {
-            'fields': [
-                ('street', 'city', 'country'),
-                'zip_code', 'different_correspondence_address',
-            ],
         }),
         (_('Benefits'), {
             'fields': [
@@ -455,11 +444,25 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
     )
 
     add_fieldsets = (
-        ('Personal data', {
+        (_('Personal data'), {
             'classes': ('wide',),
             'fields': (
-                'username', 'first_name', 'last_name', 'title_before', 'title_after', 'email', 'sex', 'age_group',
+                'username', ('first_name', 'last_name'), ('title_before', 'title_after'), 'email', 'sex',
+                ('birth_day', 'birth_month', 'age_group'),
             ),
+        }),
+        (None, {
+            'fields': [
+                ('street', 'city', 'country', 'zip_code'),
+                'different_correspondence_address',
+            ]
+        }
+         ),
+        (_('Addressments'), {
+            'fields': [
+                ('addressment', 'addressment_on_envelope'),
+            ],
+            'classes': ['collapse'],
         }),
         ('Preferences', {
             'fields': (
@@ -524,6 +527,9 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
     readonly_fields = ('userattendance_links', 'date_joined', 'last_login',)
     actions = (send_mass_communication_distinct_action,)
     inlines = [TelephoneInline, DonorPaymentChannelInline, InteractionInline]
+    change_form_template = 'admin/aklub/userprofile_changeform.html'
+    add_form_template = 'admin/aklub/userprofile_changeform.html'
+
 
     def save_formset(self, request, form, formset, change):
         if not issubclass(formset.model, DonorPaymentChannel):
@@ -533,6 +539,14 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
             obj = f.instance
             obj.generate_VS()
 
+
+
+    class Media:
+        css = {
+            'all': (
+                'css/admin.css',
+            )
+        }
 
 
 class UserInCampaignResource(ModelResource):
