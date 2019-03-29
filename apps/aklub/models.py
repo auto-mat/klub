@@ -104,6 +104,8 @@ class Event(models.Model):
 
     created = models.DateField(
         verbose_name=_("Created"),
+        blank = True,
+        null = True
     )
     terminated = models.DateField(
         verbose_name=_("Terminated"),
@@ -1437,7 +1439,8 @@ class BankAccount(models.Model):
     )
 
     def __str__(self):
-        return u"%s-%s" % (self.bank_account, self.bank_account_number)
+        return u"%s" % (self.bank_account_number)
+
 
 class UserBankAccount(models.Model):
     class Meta:
@@ -1462,7 +1465,7 @@ class UserBankAccount(models.Model):
     )
 
     def __str__(self):
-        return u"%s-%s" % (self.bank_account, self.bank_account_number)
+        return u"%s" % (self.bank_account_number)
 
 
 class DonorPaymentChannel(models.Model):
@@ -1481,7 +1484,7 @@ class DonorPaymentChannel(models.Model):
     user = models.ForeignKey(
         'aklub.UserProfile',
         verbose_name=_("User"),
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         related_name="userchannels",
         null=True,
         blank=True,
