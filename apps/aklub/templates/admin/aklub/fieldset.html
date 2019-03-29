@@ -5,6 +5,12 @@
     {% endif %}
     {% for line in fieldset %}
         <div class="form-row{% if line.fields|length_is:'1' and line.errors %} errors{% endif %}{% if not line.has_visible_field %} hidden{% endif %}{% for field in line %}{% if field.field.name %} field-{{ field.field.name }}{% endif %}{% endfor %}">
+            <style>
+                .aligned .form-row input {
+                    margin-bottom: 10px !important;
+                    margin-top: 2px !important;
+                    }
+            </style>
             {% if line.fields|length_is:'1' %}{{ line.errors }}{% endif %}
             {% for field in line %}
                 <div{% if not line.fields|length_is:'1' %}

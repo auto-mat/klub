@@ -329,7 +329,7 @@ class TelephoneInline(nested_admin.NestedStackedInline):
     extra = 0
     can_delete = True
     show_change_link = True
-    insert_after = 'different_correspondence_address'
+    insert_after = 'email'
 
 
 class BankAccountAdmin(admin.ModelAdmin):
@@ -422,27 +422,6 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         filters.NameFilter,
     )
 
-    profile_fieldsets = (
-        (_('Basic personal'), {
-            'fields': [
-                ('language', 'public',),
-                'note',
-            ],
-            'classes': ['collapse'],
-        }),
-        (_('Benefits'), {
-            'fields': [
-                ('club_card_available', 'club_card_dispatched'),
-                'other_benefits',
-            ],
-            'classes': ['collapse'],
-        }),
-        (_('Profile'), {
-            'fields': ['profile_text', 'profile_picture'],
-            'classes': ['collapse'],
-        }),
-    )
-
     add_fieldsets = (
         (_('Personal data'), {
             'classes': ('wide',),
@@ -455,24 +434,23 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
             'fields': [
                 ('street', 'city', 'country', 'zip_code'),
                 'different_correspondence_address',
+                ('addressment', 'addressment_on_envelope'),
             ]
         }
          ),
-        (_('Addressments'), {
-            'fields': [
-                ('addressment', 'addressment_on_envelope'),
-            ],
-            'classes': ['collapse'],
-        }),
         ('Preferences', {
             'fields': (
                 'public', 'send_mailing_lists',
+                'newsletter_on',
+                'call_on',
+                'challenge_on',
+                'letter_on'
             )
         }),
         (_('Rights and permissions'), {
             'classes': ('collapse',),
             'fields': (
-                'password', 'is_staff', 'is_superuser', 'groups', # 'user_permissions',
+                'password', 'is_staff', 'is_superuser', 'groups', 'user_permissions',
             ),
         })
     )
@@ -522,7 +500,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
 
     def get_fieldsets(self, request, obj=None):
         super().get_fieldsets(request, obj)
-        return self.add_fieldsets + self.profile_fieldsets
+        return self.add_fieldsets
 
     readonly_fields = ('userattendance_links', 'date_joined', 'last_login',)
     actions = (send_mass_communication_distinct_action,)
@@ -538,16 +516,6 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         for f in formset.forms:
             obj = f.instance
             obj.generate_VS()
-
-
-
-    class Media:
-        css = {
-            'all': (
-                'css/admin.css',
-            )
-        }
-
 
 class UserInCampaignResource(ModelResource):
     userprofile_email = fields.Field(

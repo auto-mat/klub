@@ -576,6 +576,30 @@ class UserProfile(AbstractUser):
         blank=True,
         choices=[(i, i) for i in range(1, 32)],
     )
+    newsletter_on = models.BooleanField(
+        verbose_name=_("newsletter_on"),
+        null=True,
+        blank=True,
+        default = False,
+    )
+    call_on = models.BooleanField(
+        verbose_name=_("call_on"),
+        null=True,
+        blank=True,
+        default=False,
+    )
+    challenge_on = models.BooleanField(
+        verbose_name=_("challenge_on"),
+        null=True,
+        blank=True,
+        default=False,
+    )
+    letter_on = models.BooleanField(
+        verbose_name=_("letter_on"),
+        null=True,
+        blank=True,
+        default=False,
+    )
 
     """
     next_communication_date = models.DateField(
