@@ -692,6 +692,7 @@ class UserProfile(AbstractUser):
         if self.email == "":
             self.email = None
 
+
     def save(self, *args, **kwargs):
         if not self.username and not self.id:
             from .views import get_unique_username

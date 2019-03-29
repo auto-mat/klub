@@ -14,6 +14,7 @@ def username_validation(user, fields):
 class UserCreateForm(UserCreationForm):
     password = ReadOnlyPasswordHashField()
 
+
     def __init__(self, *args, **kwargs):
         super(UserCreateForm, self).__init__(*args, **kwargs)
         self.fields['password1'].required = False

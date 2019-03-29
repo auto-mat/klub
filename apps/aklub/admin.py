@@ -220,6 +220,12 @@ class UserProfileResource(ModelResource):
 
     def import_obj(self, obj, data, dry_run):
         bank_account = BankAccount.objects.all().first()
+        if data["username"] != "":
+            obj.username = data["username"]
+            obj.save()
+        else:
+            from .views import get_unique_username
+            obj.username = get_unique_username(data["email"])
         if data['telephone'] != "":
             if not obj.telephone_set.filter(user=obj.id, telephone=data['telephone'], is_primary=None):
                 obj.save()
