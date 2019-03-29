@@ -217,10 +217,6 @@ class UserProfileResource(ModelResource):
 
     telephone = fields.Field()
     VS = fields.Field()
-    donor = fields.Field(attribute=None, column_name=None)
-    bank_account = fields.Field(attribute=None, column_name=None)
-    user_bank_account = fields.Field(attribute=None, column_name=None)
-    event = fields.Field(widget=ManyToManyWidget(Event))
 
     def import_obj(self, obj, data, dry_run):
         bank_account = BankAccount.objects.all().first()
@@ -237,32 +233,6 @@ class UserProfileResource(ModelResource):
                     obj.userchannels.add(donors, bulk=True)
                 else:
                     donors = DonorPaymentChannel.objects.get(VS=data['VS'], user=obj)
-                if data['bank_account'] != "":
-                    bank_account, created = BankAccount.objects.get_or_create(bank_account_number=data['bank_account'])
-                    if created:
-                        donors.bank_account = bank_account
-                        donors.save()
-                    else:
-                        donors.bank_account = bank_account
-                        donors.save()
-                if data['user_bank_account'] != "":
-                    user_bank_account, created = UserBankAccount.objects.get_or_create(bank_account_number=data['user_bank_account'])
-                    if created:
-                        donors.user_bank_account = user_bank_account
-                        donors.save()
-                    else:
-                        donors.user_bank_account = user_bank_account
-                        donors.save()
-                if data['event'] != "":
-                    event, created = Event.objects.get_or_create(name=data['event'])
-                    if created:
-                        donors.event.add(event)
-                        donors.user = obj
-                        donors.save()
-                    else:
-                        donors.event.add(event)
-                        donors.user = obj
-                        donors.save()
             else:
                 from .views import generate_variable_symbol
                 donor_id = DonorPaymentChannel.objects.latest('id').id
@@ -270,33 +240,19 @@ class UserProfileResource(ModelResource):
                 donors = DonorPaymentChannel.objects.create(VS=VS, user=obj, bank_account=bank_account)
                 obj.userchannels.add(donors, bulk=True)
                 obj.save()
-                if data['bank_account'] != "":
-                    bank_account, created = BankAccount.objects.get_or_create(bank_account_number=data['bank_account'])
-                    if created:
-                        donors.bank_account = bank_account
-                        donors.save()
-                    else:
-                        donors.bank_account = bank_account
-                        donors.save()
-                if data['user_bank_account'] != "":
-                    user_bank_account, created = UserBankAccount.objects.get_or_create(
-                        bank_account_number=data['user_bank_account'])
-                    if created:
-                        donors.user_bank_account = user_bank_account
-                        donors.save()
-                    else:
-                        donors.user_bank_account = user_bank_account
-                        donors.save()
-                if data['event'] != "":
-                    event, created = Event.objects.get_or_create(name=data['event'])
-                    if created:
-                        donors.event.add(event)
-                        donors.user = obj
-                        donors.save()
-                    else:
-                        donors.event.add(event)
-                        donors.user = obj
-                        donors.save()
+            if data['bank_account'] != "":
+                bank_account, created = BankAccount.objects.get_or_create(bank_account_number=data['bank_account'])
+                donors.bank_account = bank_account
+                donors.save()
+            if data['user_bank_account'] != "":
+                user_bank_account, created = UserBankAccount.objects.get_or_create(bank_account_number=data['user_bank_account'])
+                donors.user_bank_account = user_bank_account
+                donors.save()
+            if data['event'] != "":
+                event, created = Event.objects.get_or_create(name=data['event'])
+                donors.event.add(event)
+                donors.user = obj
+                donors.save()
         return super(UserProfileResource, self).import_obj(obj, data, dry_run)
 
     def dehydrate_telephone(self, profile):
@@ -427,7 +383,9 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
             'classes': ('wide',),
             'fields': (
                 'username', ('first_name', 'last_name'), ('title_before', 'title_after'), 'email', 'sex',
-                ('birth_day', 'birth_month', 'age_group'),
+                'birth_day',
+                'birth_month',
+                'age_group'
             ),
         }),
         (None, {

@@ -1631,6 +1631,20 @@ class DonorPaymentChannel(models.Model):
             self.VS = self.VS
             self.save()
 
+    def check_duplicate(self, *args, **kwargs):
+        qs = DonorPaymentChannel.objects.filter(VS=self.VS)
+        if self.pk is None:
+            if qs.filter(VS=self.VS).exists():
+                raise ValidationError("Duplicate VS")
+
+    def clean(self, *args, **kwargs):
+        self.check_duplicate()
+        super().clean(*args, **kwargs)
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
+
 class Payment(models.Model):
     """Payment model and DB table
 
