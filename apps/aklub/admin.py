@@ -84,15 +84,14 @@ def admin_links(args_generator):
 class PaymentsInline(nested_admin.NestedTabularInline):
     readonly_fields = ('account_statement',)
     model = Payment
-    extra = 5
+    extra = 1
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         qs = qs.select_related('account_statement')
         return qs
 
-
-class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
+class DonorPaymentChannelInline(nested_admin.NestedTabularInline):
     model = DonorPaymentChannel
     extra = 0
     can_delete = True
@@ -291,8 +290,6 @@ class TelephoneInline(nested_admin.NestedStackedInline):
     extra = 0
     can_delete = True
     show_change_link = True
-    insert_after = 'email'
-
 
 class BankAccountAdmin(admin.ModelAdmin):
     model = BankAccount
@@ -389,14 +386,15 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
             'classes': ('wide',),
             'fields': (
                 'username', ('first_name', 'last_name'), ('title_before', 'title_after'), 'email', 'sex',
-                'birth_day',
-                'birth_month',
-                'age_group'
+                ('birth_day', 'birth_month', 'age_group'),
+                'get_main_telephone',
             ),
         }),
-        (None, {
+        (_('Contact data'), {
+            'classes' : ('wide', ),
             'fields': [
-                ('street', 'city', 'country', 'zip_code'),
+                ('street', 'city',),
+                ('country', 'zip_code'),
                 'different_correspondence_address',
                 ('addressment', 'addressment_on_envelope'),
             ]
@@ -404,19 +402,23 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
          ),
         ('Preferences', {
             'fields': (
-                'public', 'send_mailing_lists',
-                'newsletter_on',
-                'call_on',
-                'challenge_on',
-                'letter_on'
+                ('public', 'send_mailing_lists', ),
+                ('newsletter_on', 'call_on', ),
+                ('challenge_on', 'letter_on', ),
             )
-        }),
+        })
+    )
+
+    superuser_fieldsets = (
         (_('Rights and permissions'), {
             'classes': ('collapse',),
-            'fields': (
-                'password', 'is_staff', 'is_superuser', 'groups', 'user_permissions',
-            ),
-        })
+            'fields': [
+                ('password',),
+                ('is_staff', 'is_superuser'),
+                'groups',
+            ]
+        }
+         ),
     )
 
     ordering = ('email',)
@@ -462,15 +464,16 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
     regular_amount.short_description = _("Regular amount")
     regular_amount.admin_order_field = 'regular_amount'
 
-    def get_fieldsets(self, request, obj=None):
-        super().get_fieldsets(request, obj)
-        return self.add_fieldsets
-
-    readonly_fields = ('userattendance_links', 'date_joined', 'last_login',)
+    readonly_fields = ('userattendance_links', 'date_joined', 'last_login', 'get_main_telephone')
     actions = (send_mass_communication_distinct_action,)
     inlines = [TelephoneInline, DonorPaymentChannelInline, InteractionInline]
-    change_form_template = 'admin/aklub/userprofile_changeform.html'
-    add_form_template = 'admin/aklub/userprofile_changeform.html'
+
+    def get_fieldsets(self, request, obj=None):
+        if request.user.is_superuser and self.superuser_fieldsets:
+            return (self.add_fieldsets or tuple()) + self.superuser_fieldsets
+        else:
+            return self.add_fieldsets
+        super().get_fieldsets(request, obj)
 
 
     def save_formset(self, request, form, formset, change):
