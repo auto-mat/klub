@@ -41,7 +41,6 @@ from django.db.models import Sum
 from django.http import HttpResponseRedirect
 from django.utils.html import format_html, format_html_join, mark_safe
 from django.utils.translation import ugettext as _
-from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
 
 try:
     from django.urls import reverse
@@ -1021,7 +1020,7 @@ def parse_statement(self, request, queryset):
 parse_statement.short_description = _("Reparse account statement")
 
 
-class AccountStatementsAdmin(admin.ModelAdmin):
+class AccountStatementsAdmin(nested_admin.NestedModelAdmin):
     list_display = ('type', 'import_date', 'payments_count', 'csv_file', 'date_from', 'date_to')
     list_filter = ('type',)
     inlines = [PaymentsInlineNoExtra]
