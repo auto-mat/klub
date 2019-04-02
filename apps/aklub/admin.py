@@ -85,12 +85,13 @@ class PaymentsInline(nested_admin.NestedTabularInline):
     model = Payment
     extra = 1
 
+
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         qs = qs.select_related('account_statement')
         return qs
 
-class DonorPaymentChannelInline(nested_admin.NestedTabularInline):
+class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
     model = DonorPaymentChannel
     extra = 0
     can_delete = True
@@ -98,16 +99,24 @@ class DonorPaymentChannelInline(nested_admin.NestedTabularInline):
     inlines = [PaymentsInline]
 
     fieldsets = (
-        None, {
+        (None, {
+            'classes': ('wide',),
+            'fields': (
+                ('bank_account', 'user_bank_account', 'regular_payments',),
+            ),
+        }),
+        (_('Details'), {
+            'classes': ('collapse',),
             'fields': [
-                ('registered_support', 'regular_payments', 'regular_amount', 'regular_frequency'),
-                ('VS', 'bank_account', 'user_bank_account'),
-                ('expected_date_of_first_payment'),
-                ('exceptional_membership'),
+                ('VS'),
+                ('registered_support', 'regular_amount', 'regular_frequency'),
+                ('expected_date_of_first_payment', 'exceptional_membership'),
                 ('other_support'),
                 ('event'),
-            ],
-        }),
+            ]
+        }
+         )
+    )
 
     filter_horizontal = ('event', )
 
@@ -284,7 +293,7 @@ class UserProfileMergeForm(merge.MergeForm):
         fields = '__all__'
 
 
-class TelephoneInline(nested_admin.NestedStackedInline):
+class TelephoneInline(nested_admin.NestedTabularInline):
     model = Telephone
     extra = 0
     can_delete = True
