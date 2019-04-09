@@ -220,6 +220,7 @@ class UserProfileResource(ModelResource):
     class Meta:
         model = UserProfile
         exclude = ('id',)
+        import_id_fields = ('email',)
         import_id_field = 'email'
 
     telephone = fields.Field()
