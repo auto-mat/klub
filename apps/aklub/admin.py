@@ -220,7 +220,7 @@ class UserProfileResource(ModelResource):
     class Meta:
         model = UserProfile
         exclude = ('id',)
-        import_id_fields = ('email',)
+        import_id_field = 'email'
 
     telephone = fields.Field()
     VS = fields.Field()
@@ -248,7 +248,10 @@ class UserProfileResource(ModelResource):
                     donors = DonorPaymentChannel.objects.get(VS=data['VS'], user=obj)
             else:
                 from .views import generate_variable_symbol
-                donor_id = DonorPaymentChannel.objects.latest('id').id
+                try:
+                    donor_id = DonorPaymentChannel.objects.latest('id').id
+                except:
+                    donor_id = 1
                 VS = generate_variable_symbol(user=obj, donor=donor_id)
                 donors = DonorPaymentChannel.objects.create(VS=VS, user=obj, bank_account=bank_account)
                 obj.userchannels.add(donors, bulk=True)
@@ -274,9 +277,24 @@ class UserProfileResource(ModelResource):
     def dehydrate_VS(self, profile):
         return profile.get_donor()
 
-
     def before_import_row(self, row, **kwargs):
         row['email'] = row['email'].lower()
+
+    def before_save_instance(self, instance, using_transactions, dry_run):
+        if instance.email != "":
+            return True
+        else:
+            return False
+
+    def skip_row(self, instance, original):
+        original_id_value = getattr(original, self._meta.import_id_field)
+        instance_id_value = getattr(instance, self._meta.import_id_field)
+        if instance_id_value == "" or instance_id_value is None:
+            return True
+        if instance_id_value != original_id_value:
+            return False
+        if not self._meta.skip_unchanged:
+            return False
 
     def import_field(self, field, obj, data, is_m2m=False):
         if field.attribute and field.column_name in data and not getattr(obj, field.column_name):
