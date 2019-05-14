@@ -840,13 +840,25 @@ def pair_variable_symbols(self, request, queryset):
 pair_variable_symbols.short_description = _("Pair payments with users based on variable symboles")
 
 
+def parse_statement(self, request, queryset):
+    for statement in queryset:
+        from .tasks import parse_account_statement
+        parse_account_statement.delay(statement.pk)
+
+
+parse_statement.short_description = _("Reparse account statement")
+
+
 class AccountStatementsAdmin(admin.ModelAdmin):
     list_display = ('type', 'import_date', 'payments_count', 'csv_file', 'date_from', 'date_to')
     list_filter = ('type',)
     inlines = [PaymentsInlineNoExtra]
     readonly_fields = ('import_date', 'payments_count')
     fields = copy.copy(list_display)
-    actions = (pair_variable_symbols,)
+    actions = (
+        pair_variable_symbols,
+        parse_statement,
+    )
 
     def payments_count(self, obj):
         return obj.payment_set.count()

@@ -1,5 +1,5 @@
 from settings import *  # noqa
-from settings import ALLOWED_HOSTS, INSTALLED_APPS, LOGGING, MIDDLEWARE
+from settings import ALLOWED_HOSTS, INSTALLED_APPS, LOGGING, MIDDLEWARE, TEMPLATES
 
 INSTALLED_APPS += (
     'debug_toolbar',
@@ -37,3 +37,14 @@ SECURE_HSTS_SECONDS = 60
 SECURE_HSTS_PRELOAD = False
 SESSION_COOKIE_SECURE = False
 X_FRAME_OPTIONS = 'ALLOW'
+
+CORS_ORIGIN_ALLOW_ALL = True
+
+
+class InvalidStringError(str):
+    def __mod__(self, other):
+        raise Exception("empty string %s" % other)
+        return "!!!!!empty string %s!!!!!" % other
+
+
+TEMPLATES[0]['OPTIONS']['string_if_invalid'] = InvalidStringError("%s")

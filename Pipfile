@@ -29,7 +29,7 @@ django-denorm = "*"
 gunicorn = "*"
 django-betterforms = "*"
 django-adminactions = {editable = true, ref = "develop", git = "https://github.com/saxix/django-adminactions.git"}
-django-helpdesk = {editable = true, ref = "develop", git = "https://github.com/django-helpdesk/django-helpdesk.git"}
+django-helpdesk = {editable = true, ref = "94eab853afe3dbbcb631273f5525601e6dc1aacd", git = "https://github.com/django-helpdesk/django-helpdesk.git"}
 django-admin-large-initial-data = "*"
 django-admin-tools-stats = "*"
 django-bower = "*"
@@ -50,7 +50,7 @@ django-heroku = "*"
 whitenoise = "*"
 django-redis = "*"
 single-beat = "==0.2.1"
-redis = "==2.10.6"
+redis = "*"
 django-storages = "*"
 boto = "*"
 "django-bootstrap4-form" = "*"
@@ -84,6 +84,7 @@ pudb = "*"
 coveralls = "*"
 django-admin-smoke-tests = {git = "https://github.com/jnoortheen/django-admin-smoke-tests", editable = true}
 model_mommy = "*"
+mock = "*"
 
 [requires]
 python_version = "3.6"
