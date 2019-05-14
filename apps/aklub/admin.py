@@ -254,8 +254,9 @@ class UserProfileResource(ModelResource):
                 except:
                     donor_id = 1
                 VS = generate_variable_symbol(user=obj, donor=donor_id)
+                obj.save()
                 donors = DonorPaymentChannel.objects.create(VS=VS, user=obj, bank_account=bank_account)
-                obj.userchannels.add(donors, bulk=True)
+                obj.userchannels.add(donors, bulk=True)  # Tohle možná není potřeba znovu volat, ale nechám to tu pro jistotu.
                 obj.save()
             if data['bank_account'] != "":
                 bank_account, created = BankAccount.objects.get_or_create(bank_account_number=data['bank_account'])
