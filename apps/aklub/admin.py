@@ -228,6 +228,9 @@ class UserProfileResource(ModelResource):
 
     def import_obj(self, obj, data, dry_run):
         bank_account = BankAccount.objects.all().first()
+        if data["email"] == "":
+            import uuid
+            data["email"] = str(uuid.uuid4()) + "@automat.com"
         if data["username"] != "":
             obj.username = data["username"]
             obj.save()
@@ -282,20 +285,9 @@ class UserProfileResource(ModelResource):
         row['email'] = row['email'].lower()
 
     def before_save_instance(self, instance, using_transactions, dry_run):
-        if instance.email != "":
-            return True
-        else:
-            return False
+        if "@email.com" in instance.email:
+            instance.email = ""
 
-    def skip_row(self, instance, original):
-        original_id_value = getattr(original, self._meta.import_id_field)
-        instance_id_value = getattr(instance, self._meta.import_id_field)
-        if instance_id_value == "" or instance_id_value is None:
-            return True
-        if instance_id_value != original_id_value:
-            return False
-        if not self._meta.skip_unchanged:
-            return False
 
     def import_field(self, field, obj, data, is_m2m=False):
         if field.attribute and field.column_name in data and not getattr(obj, field.column_name):
