@@ -1349,6 +1349,41 @@ def str_to_datetime_xml(date):
     )
 
 
+def date_format(date):
+    if not date:
+        return None
+    else:
+        date = date.split('/')
+        return date[0] + '-' + date[1] + '-' + date[2]
+
+
+def amount_to_int(amount):
+    return int(round(float(amount.replace(',', '.').replace(' ', ''))))
+
+
+def check_incomming(amount):
+    return amount < 0
+
+
+def register_payment(p_sort, self):
+    p = Payment(**p_sort)
+    AccountStatements.pair_vs(self, p)
+    p.type = 'bank-transfer'
+    p.account_statement = self
+    return p
+
+
+def header_parse(payments_reader, date_from_name, date_to_name):
+    for payment in payments_reader:
+        if payment[payments_reader.fieldnames[0]] == date_from_name:
+            date_from = payment[payments_reader.fieldnames[1]]
+
+        if payment[payments_reader.fieldnames[0]] == date_to_name:
+            date_to = payment[payments_reader.fieldnames[1]]
+            break
+    return date_from, date_to
+
+
 class AccountStatements(models.Model):
     """AccountStatemt entry and DB model
 
@@ -1362,7 +1397,8 @@ class AccountStatements(models.Model):
         ordering = ['-import_date']
 
     TYPE_OF_STATEMENT = (
-        ('account', _('Account statement')),
+        ('account', 'Account statement - Fio Banka'),
+        ('account_cs', 'Account statement - Česká spořitelna'),
         ('darujme', 'Darujme.cz'),
     )
 
@@ -1405,7 +1441,7 @@ class AccountStatements(models.Model):
             except DonorPaymentChannel.DoesNotExist:
                 return False
 
-    def parse_bank_csv(self):
+    def parse_bank_csv_fio(self):
         # Read and parse the account statement
         # TODO: This should be separated into a dedicated module
         payments_reader = csv.DictReader(
@@ -1418,37 +1454,74 @@ class AccountStatements(models.Model):
                 'specification', 'transfer_note', 'BIC', 'order_id',
             ],
         )
+
+        date_from, date_to = header_parse(payments_reader, "dateStart", "dateEnd")
+        self.date_from = str_to_datetime(date_from)
+        self.date_to = str_to_datetime(date_to)
+        csv_head = True
         payments = []
-        in_header = True
-
         for payment in payments_reader:
-            if in_header:
-                header_line = payment["operation_id"]
-                logger.debug(header_line)
-                if header_line == "dateStart":
-                    self.date_from = str_to_datetime(payment["date"])
-                if header_line == "dateEnd":
-                    self.date_to = str_to_datetime(payment["date"])
-
-                if header_line == "ID operace":
-                    in_header = False
-                    continue
+            if csv_head:
+                if payment[payments_reader.fieldnames[0]] == "ID operace":
+                    csv_head = False
             else:
-                logger.debug(payment)
-                logging.debug("PAYMENT %s" % payment)
-                logging.debug(payment['date'])
-                d, m, y = payment['date'].split('.')
-                payment['date'] = "%04d-%02d-%02d" % (int(y), int(m), int(d))
-                payment['amount'] = int(round(float(payment['amount'].replace(',', '.').replace(' ', ''))))
-                if payment['amount'] < 0:
-                    # Skip transfers from the club account,
-                    # only process contributions
+
+                payment['date'] = str_to_datetime(payment['date'])
+                payment['amount'] = amount_to_int(payment['amount'])
+
+                if check_incomming(payment['amount']):
                     continue
-                p = Payment(**payment)
-                self.pair_vs(p)
-                p.type = 'bank-transfer'
-                p.account_statement = self
-                payments.append(p)
+                payments.append(register_payment(payment, self))
+        return payments
+
+    def parse_bank_csv_cs(self):
+        # Read and parse the account statement
+        # TODO: This should be separated into a dedicated module
+
+        payments_reader = csv.DictReader(
+            codecs.iterdecode(self.csv_file, 'cp1250'),
+            delimiter=';',
+            fieldnames=[
+                'predcisli_uctu', 'cislo_uctu', 'kod_banky', 'castka', 'prichozi/odchozi', 'ucetni/neucetni',
+                'KS', 'SS', 'popis_transakce', 'nazev_protiucet',
+                'bank_reference', 'zprava_prijemce', 'zprava_platce', 'datum_valuta', 'datum_zpracovani',
+                'VS1', 'VS2', 'reference_platby', 'duvod_neprovedeni',
+            ],
+
+        )
+
+        date_from, date_to = header_parse(payments_reader, 'Počáteční datum období', 'Konečné datum období')
+        self.date_from = date_format(date_from)
+        self.date_to = date_format(date_to)
+
+        csv_head = True
+        payments = []
+        for payment in payments_reader:
+            if csv_head:
+                if payment[payments_reader.fieldnames[0]] == 'Předčíslí účtu plátce/příjemce':
+                    csv_head = False
+            else:
+
+                p_sort = {
+                             'account': payment['predcisli_uctu'] + ' ' + payment['cislo_uctu'],
+                             'bank_code': payment['kod_banky'],
+                             'KS': payment['KS'],
+                             'SS': payment['SS'],
+                             'amount': payment['castka'],
+                             'account_name': payment['nazev_protiucet'],
+                             'recipient_message': payment['zprava_prijemce'],
+                             'transfer_note': payment['zprava_platce'],
+                             'date': payment['datum_valuta'],
+                             'VS': payment['VS1'],
+                             'VS2': payment['VS2'],
+                             }
+                p_sort['date'] = date_format(p_sort['date'])
+                p_sort['amount'] = amount_to_int(p_sort['amount'])
+
+                if check_incomming(p_sort['amount']):
+                    continue
+                payments.append(register_payment(p_sort, self))
+
         return payments
 
     def __str__(self):
@@ -1692,12 +1765,19 @@ class Payment(models.Model):
         blank=True,
     )
     VS = models.CharField(
-        verbose_name=_("VS"),
-        help_text=_("Variable symbol"),
+        verbose_name=_("VS 1"),
+        help_text=_("Variable symbol 1"),
         max_length=30,
         blank=True,
         null=True,
     )
+    VS2 = models.CharField(
+        verbose_name=_("VS 2"),
+        help_text=_("Variable symbol 2"),
+        max_length=30,
+        blank=True,
+        null=True,
+        )
     SS = models.CharField(
         _("SS"),
         help_text=_("Specific symbol"),
