@@ -220,7 +220,7 @@ class UserProfileResource(ModelResource):
     class Meta:
         model = UserProfile
         exclude = ('id',)
-        import_id_fields = ('email',)
+        import_id_fields = ('email', )
         import_id_field = 'email'
 
     telephone = fields.Field()
@@ -229,14 +229,9 @@ class UserProfileResource(ModelResource):
     def import_obj(self, obj, data, dry_run):
         bank_account = BankAccount.objects.all().first()
         if data["email"] == "":
-            import uuid
-            data["email"] = str(uuid.uuid4()) + "@automat.com"
-        if data["username"] != "":
-            obj.username = data["username"]
-            obj.save()
-        else:
-            from .views import get_unique_username
-            obj.username = get_unique_username(data["email"])
+            data["email"] = None
+        if data["username"] == "":
+            data["username"] = None
         if data['telephone'] != "":
             if not obj.telephone_set.filter(user=obj.id, telephone=data['telephone'], is_primary=None):
                 obj.save()
@@ -244,12 +239,11 @@ class UserProfileResource(ModelResource):
                 obj.telephone_set.add(telephone, bulk=True)
         if data['donor'] != "":
             if data['VS'] != "":
-                if not obj.userchannels.filter(user=obj.id, VS=data['VS']):
+                if obj.userchannels.filter(VS=data['VS']):
+                    donors = DonorPaymentChannel.objects.get(VS=data['VS'], user=obj)
+                else:
                     obj.save()
                     donors = DonorPaymentChannel.objects.create(VS=data['VS'], user=obj, bank_account=bank_account)
-                    obj.userchannels.add(donors, bulk=True)
-                else:
-                    donors = DonorPaymentChannel.objects.get(VS=data['VS'], user=obj)
             else:
                 from .views import generate_variable_symbol
                 try:
@@ -257,8 +251,8 @@ class UserProfileResource(ModelResource):
                 except:
                     donor_id = 1
                 VS = generate_variable_symbol(user=obj, donor=donor_id)
+                obj.save()
                 donors = DonorPaymentChannel.objects.create(VS=VS, user=obj, bank_account=bank_account)
-                obj.userchannels.add(donors, bulk=True)
                 obj.save()
             if data['bank_account'] != "":
                 bank_account, created = BankAccount.objects.get_or_create(bank_account_number=data['bank_account'])
@@ -283,11 +277,6 @@ class UserProfileResource(ModelResource):
 
     def before_import_row(self, row, **kwargs):
         row['email'] = row['email'].lower()
-
-    def before_save_instance(self, instance, using_transactions, dry_run):
-        if "@email.com" in instance.email:
-            instance.email = ""
-
 
     def import_field(self, field, obj, data, is_m2m=False):
         if field.attribute and field.column_name in data and not getattr(obj, field.column_name):
