@@ -40,7 +40,7 @@ from ...models import AccountStatements, Event, Payment, UserInCampaign
 class AccountStatementTests(RunCommitHooksMixin, TestCase):
     fixtures = ['conditions', 'users']
 
-    def test_bank_new_statement(self):
+    def test_bank_new_statement_fio(self):
         with open("apps/aklub/test_data/Pohyby_5_2016.csv", "rb") as f:
             a = AccountStatements(csv_file=File(f), type="account")
             a.clean()
@@ -59,6 +59,7 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
         self.assertEqual(p1.account, '2150508001')
         self.assertEqual(p1.bank_code, '5500')
         self.assertEqual(p1.VS, '120127010')
+        self.assertEqual(p1.VS2, None)
         self.assertEqual(p1.SS, "12321")
         self.assertEqual(p1.KS, '0101')
         self.assertEqual(p1.user_identification, 'Account note')
@@ -78,6 +79,44 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
         self.assertEqual(user.payment_set.get(date=datetime.date(2016, 1, 18)), a1.payment_set.get(account=2150508001))
 
     maxDiff = None
+
+    def test_bank_new_statement_cs(self):
+        with open("apps/aklub/test_data/Pohyby_cs.csv", "rb") as f:
+            a = AccountStatements(csv_file=File(f), type="account_cs")
+            a.clean()
+            a.save()
+
+        self.run_commit_hooks()
+        a1 = AccountStatements.objects.get(pk=a.pk)
+        self.assertEqual(len(a1.payment_set.all()), 3)
+        self.assertEqual(a1.date_from, datetime.date(day=10, month=2, year=2019))
+        self.assertEqual(a1.date_to, datetime.date(day=11, month=3, year=2019))
+        user = UserInCampaign.objects.get(pk=2978)
+
+        p1 = Payment.objects.get(account='20000 92392323')
+        self.assertEqual(p1.date, datetime.date(day=11, month=3, year=2019))
+        self.assertEqual(p1.amount, 1000)
+        self.assertEqual(p1.account, '20000 92392323')
+        self.assertEqual(p1.bank_code, '800')
+        self.assertEqual(p1.VS, '120127010')
+        self.assertEqual(p1.VS2, '120127010')
+        self.assertEqual(p1.SS, "5")
+        self.assertEqual(p1.KS, '0')
+        self.assertEqual(p1.user_identification, '')
+        self.assertEqual(p1.type, 'bank-transfer')
+        self.assertEqual(p1.done_by, "")
+        self.assertEqual(p1.account_name, "Test Name")
+        self.assertEqual(p1.bank_name, "")
+        self.assertEqual(p1.transfer_note, "Message for sender 1")
+        self.assertEqual(p1.currency, None)
+        self.assertEqual(p1.recipient_message, "Message for recepien 1")
+        self.assertEqual(p1.operation_id, None)
+        self.assertEqual(p1.transfer_type, None)
+        self.assertEqual(p1.specification, None)
+        self.assertEqual(p1.order_id, None)
+        self.assertEqual(p1.user, user)
+
+        self.assertEqual(user.payment_set.get(date=datetime.date(2019, 3, 11)), a1.payment_set.get(account='20000 92392323'))
 
     def check_account_statement_data(self):
         self.run_commit_hooks()
