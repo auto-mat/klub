@@ -238,7 +238,7 @@ class RegularUserForm_UserInCampaignDPNK(RegularUserForm_UserInCampaign):
     campaign = forms.CharField(widget=forms.HiddenInput, required=False)
 
     def clean_campaign(self):
-        return Campaign.objects.get(slug="dpnk")
+        return Event.objects.get(slug="dpnk")
 
     def clean_regular_frequency(self):
         return 'monthly'
