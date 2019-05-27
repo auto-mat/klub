@@ -253,7 +253,6 @@ class UserProfileResource(ModelResource):
                 VS = generate_variable_symbol(user=obj, donor=donor_id)
                 obj.save()
                 donors = DonorPaymentChannel.objects.create(VS=VS, user=obj, bank_account=bank_account)
-                obj.save()
             if data['bank_account'] != "":
                 bank_account, created = BankAccount.objects.get_or_create(bank_account_number=data['bank_account'])
                 donors.bank_account = bank_account

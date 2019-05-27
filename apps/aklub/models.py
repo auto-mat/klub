@@ -1635,7 +1635,6 @@ class DonorPaymentChannel(models.Model):
     def check_duplicate(self, *args, **kwargs):
         qs = DonorPaymentChannel.objects.filter(VS=self.VS)
         if self.pk is None:
-            print (qs)
             if qs.filter(VS=self.VS).exists():
                 raise ValidationError("Duplicate VS")
 
