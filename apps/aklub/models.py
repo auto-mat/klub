@@ -1998,12 +1998,12 @@ class Interaction(models.Model):
         if self.method == 'email':
             bcc = [] if self.type == 'mass' else ['kp@auto-mat.cz']
 
-            if self.user.userprofile.get_email_str() != "":
+            if self.user.get_email_str() != "":
                 email = EmailMultiAlternatives(
                     subject=self.subject,
                     body=self.summary_txt(),
                     from_email='Klub pratel Auto*Matu <kp@auto-mat.cz>',
-                    to=[self.user.userprofile.get_email_str()],
+                    to=[self.user.get_email_str()],
                     bcc=bcc,
                 )
                 if self.type != 'individual':

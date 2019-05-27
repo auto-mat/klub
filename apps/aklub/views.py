@@ -104,7 +104,7 @@ class CampaignMixin(forms.ModelForm):
     )
 
 
-class RegularUserForm_UserInCampaign(CampaignMixin, forms.ModelForm):
+class RegularUserForm_DonorPaymentChannel(CampaignMixin, forms.ModelForm):
     required_css_class = 'required'
 
     regular_payments = forms.CharField(
@@ -128,7 +128,7 @@ class RegularUserForm_UserInCampaign(CampaignMixin, forms.ModelForm):
         return 'regular'
 
     class Meta:
-        model = UserInCampaign
+        model = DonorPaymentChannel
         fields = ('regular_frequency', 'regular_amount', 'regular_payments', 'campaign')
 
 
@@ -137,7 +137,7 @@ class RegularUserForm(MultiModelForm):
     base_fields = {}
     form_classes = OrderedDict([
         ('userprofile', RegularUserForm_UserProfile),
-        ('userincampaign', RegularUserForm_UserInCampaign),
+        ('userincampaign', RegularUserForm_DonorPaymentChannel),
     ])
 
 
@@ -186,7 +186,7 @@ REGULAR_FREQUENCY_MAP = {
 }
 
 
-class RegularDarujmeUserForm_UserInCampaign(FieldNameMappingMixin, RegularUserForm_UserInCampaign):
+class RegularDarujmeUserForm_DonorPaymentChannel(FieldNameMappingMixin, RegularUserForm_DonorPaymentChannel):
     REGULAR_PAYMENT_CHOICES = (
         ('28', _('Monthly')),
         ('365', _('Anually')),
@@ -222,7 +222,7 @@ class RegularDarujmeUserForm_UserInCampaign(FieldNameMappingMixin, RegularUserFo
         fields = ('regular_frequency', 'regular_payments', 'regular_amount', 'campaign')
 
 
-class RegularUserForm_UserInCampaignDPNK(RegularUserForm_UserInCampaign):
+class RegularUserForm_DonorPaymentChannelDPNK(RegularUserForm_DonorPaymentChannel):
 
     regular_frequency = forms.CharField(
         label=_("Regular frequency"),
@@ -244,14 +244,14 @@ class RegularUserForm_UserInCampaignDPNK(RegularUserForm_UserInCampaign):
         return 'monthly'
 
 
-class PetitionUserForm_UserInCampaign(FieldNameMappingMixin, CampaignMixin, forms.ModelForm):
+class PetitionUserForm_DonorPaymentChannel(FieldNameMappingMixin, CampaignMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['campaign'].queryset = Event.objects.filter(slug__isnull=False, enable_signing_petitions=True).exclude(slug="")
         self.fields['gdpr_consent'].required = True
 
     class Meta:
-        model = UserInCampaign
+        model = DonorPaymentChannel
         fields = ('campaign', 'public', 'gdpr_consent')
 
     FIELD_NAME_MAPPING = {
@@ -262,21 +262,21 @@ class PetitionUserForm_UserInCampaign(FieldNameMappingMixin, CampaignMixin, form
 class RegularUserFormDPNK(RegularUserFormWithProfile):
     form_classes = OrderedDict([
         ('userprofile', RegularUserForm_UserProfile),
-        ('userincampaign', RegularUserForm_UserInCampaignDPNK),
+        ('userincampaign', RegularUserForm_DonorPaymentChannelDPNK),
     ])
 
 
 class RegularDarujmeUserForm(RegularUserForm):
     form_classes = OrderedDict([
         ('userprofile', RegularDarujmeUserForm_UserProfile),
-        ('userincampaign', RegularDarujmeUserForm_UserInCampaign),
+        ('userincampaign', RegularDarujmeUserForm_DonorPaymentChannel),
     ])
 
 
 class PetitionUserForm(RegularUserForm):
     form_classes = OrderedDict([
         ('userprofile', PetitionUserForm_UserProfile),
-        ('userincampaign', PetitionUserForm_UserInCampaign),
+        ('userincampaign', PetitionUserForm_DonorPaymentChannel),
     ])
 
 
@@ -314,22 +314,24 @@ def new_user(form, regular, source_slug='web'):
     # Create new user instance and fill in additional data
     new_user_objects = form.save(commit=False)
     new_user_profile = new_user_objects['userprofile']
-    new_user_in_campaign = new_user_objects['userincampaign']
+    payment_channel = new_user_objects['userincampaign']
+    assert isinstance(payment_channel, DonorPaymentChannel), \
+        "payment_channel shoud be DonnorPaymentChannel, but is %s" % type(payment_channel)
     if regular:
-        new_user_in_campaign.regular_payments = regular
-    new_user_in_campaign.variable_symbol = variable_symbol
-    new_user_in_campaign.source = Source.objects.get(slug=source_slug)
+        payment_channel.regular_payments = regular
+    payment_channel.variable_symbol = variable_symbol
+    payment_channel.source = Source.objects.get(slug=source_slug)
     # Save new user instance
     if hasattr(form.forms['userprofile'], 'email_used') and form.forms['userprofile'].email_used:
         new_user_profile = UserProfile.objects.get(email=form.forms['userprofile'].email_used)
     else:
         new_user_profile.save()
-    new_user_in_campaign.userprofile = new_user_profile
-    new_user_in_campaign.save()
+    payment_channel.userprofile = new_user_profile
+    payment_channel.save()
     # TODO: Unlock DB access here
 
     cache.clear()
-    return new_user_in_campaign.id
+    return payment_channel.id
 
 
 class RegularView(FormView):
@@ -376,11 +378,10 @@ class RegularView(FormView):
 
     def post(self, request, *args, **kwargs):
         email = self.get_post_param(request, 'userprofile-email', 'payment_data____email')
-        campaign = self.get_post_param(request, 'userincampaign-campaign', 'campaign')
         if email:
-            if UserInCampaign.objects.filter(userprofile__email=email, campaign__slug=campaign).exists():
-                userincampaign = UserInCampaign.objects.get(userprofile__email=email, campaign__slug=campaign)
-                autocom.check(users=UserInCampaign.objects.filter(pk=userincampaign.pk), action='resend-data')
+            user_profiles = UserProfile.objects.filter(email=email)
+            if user_profiles.exists():
+                autocom.check(users=user_profiles, action='resend-data')
                 user_data = {}
                 if 'recurringfrequency' in request.POST:
                     user_data['frequency'] = REGULAR_FREQUENCY_MAP[request.POST.get('recurringfrequency')]
@@ -401,7 +402,7 @@ class RegularView(FormView):
                     "amount: %(amount)s" % user_data,
                 )
                 return self.success_page(
-                    userincampaign,
+                    user_profiles.get(),
                     user_data['amount'],
                     user_data['frequency'],
                     True,
@@ -425,8 +426,8 @@ class RegularView(FormView):
 
     def form_valid(self, form):
         user_id = new_user(form, regular=None, source_slug=self.source_slug)
-        userincampaign = UserInCampaign.objects.get(id=user_id)
-        return self.success_page(userincampaign)
+        payment_channel = DonorPaymentChannel.objects.get(id=user_id)
+        return self.success_page(payment_channel)
 
     def form_invalid(self, form):
         response = super().form_invalid(form)
