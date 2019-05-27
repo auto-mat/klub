@@ -246,11 +246,7 @@ class UserProfileResource(ModelResource):
                     donors = DonorPaymentChannel.objects.create(VS=data['VS'], user=obj, bank_account=bank_account)
             else:
                 from .views import generate_variable_symbol
-                try:
-                    donor_id = DonorPaymentChannel.objects.latest('id').id
-                except:
-                    donor_id = 1
-                VS = generate_variable_symbol(user=obj, donor=donor_id)
+                VS = generate_variable_symbol()
                 obj.save()
                 donors = DonorPaymentChannel.objects.create(VS=VS, user=obj, bank_account=bank_account)
                 obj.save()

@@ -1625,7 +1625,7 @@ class DonorPaymentChannel(models.Model):
     def generate_VS(self):
         if self.VS == "" or self.VS is None:
             from .views import generate_variable_symbol
-            VS = generate_variable_symbol(user=self.user, donor=self.pk)
+            VS = generate_variable_symbol()
             self.VS = VS
             self.save()
         else:

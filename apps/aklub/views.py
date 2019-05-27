@@ -292,14 +292,14 @@ def get_unique_username(email):
     return username
 
 
-def generate_variable_symbol(user, donor, max_variable_symbol=9999):
+def generate_variable_symbol(max_variable_symbol=9999):
     now = datetime.datetime.now()
-    reg_n_today = len(DonorPaymentChannel.objects.filter(registered_support__gt=(now - datetime.timedelta(days=1)), user=user))
+    reg_n_today = len(DonorPaymentChannel.objects.filter(registered_support__gt=(now - datetime.timedelta(days=1))))
 
     for i in range(reg_n_today + 1, max_variable_symbol):
-        variable_symbol = '%s%02d%02d%04d%s' % (
-            str(now.year)[-2:], now.month, now.day, i, donor)
-        if len(DonorPaymentChannel.objects.filter(VS=variable_symbol, user=user)) == 0:
+        variable_symbol = '%s%02d%02d%04d' % (
+            str(now.year)[-2:], now.month, now.day, i)
+        if len(DonorPaymentChannel.objects.filter(VS=variable_symbol)) == 0:
             break
     else:
         assert 0, "Out of free variable symbols, date %s, reg_n_today=%d" % (now, reg_n_today)
