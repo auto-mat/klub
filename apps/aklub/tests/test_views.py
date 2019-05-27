@@ -219,7 +219,7 @@ class ViewsTests(ClearCacheMixin, TestCase):
         self.assertEqual(user_in_campaign.userprofile.userincampaign_set.count(), 2)
 
     def test_regular_dpnk(self):
-        mommy.make("Campaign", slug="dpnk")
+        mommy.make("Event", slug="dpnk")
         address = "%s?firstname=Uest&surname=Tser&email=uest.tser@email.cz&telephone=1211221" % reverse('regular-dpnk')
         response = self.client.get(address)
         self.assertContains(

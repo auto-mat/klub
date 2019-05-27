@@ -425,8 +425,8 @@ class RegularView(FormView):
 
     def form_valid(self, form):
         user_id = new_user(form, regular=None, source_slug=self.source_slug)
-        userincampaign = UserInCampaign.objects.get(id=user_id)
-        return self.success_page(userincampaign)
+        payment_channel = DonorPaymentChannel.objects.get(id=user_id)
+        return self.success_page(payment_channel)
 
     def form_invalid(self, form):
         response = super().form_invalid(form)
