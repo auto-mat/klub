@@ -374,7 +374,6 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         'last_name',
         'title_after',
         'telephone__telephone',
-        'variable_symbol',
     )
     list_filter = (
         'is_staff',
