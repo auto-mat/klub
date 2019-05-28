@@ -14,7 +14,7 @@
             "date": "2016-2-9",
             "user": "2978"
         },
-        "model": "aklub.communication",
+        "model": "aklub.interaction",
         "pk": 1 
     },
     {
@@ -43,7 +43,7 @@
             "date": "2016-9-23",
             "type": "darujme",
             "SS": "22259",
-            "user": "2979"
+            "user_donor_payment_channel": "2979"
         },
         "model": "aklub.payment",
         "pk": 6
@@ -66,10 +66,24 @@
             "date": "2016-1-9",
             "type": "darujme",
             "SS": "22259",
-            "user": "2979"
+            "user_donor_payment_channel": "2979"
         },
         "model": "aklub.payment",
         "pk": 4
+    },
+    {
+        "fields": {
+            "bank_account": 1,
+            "user": "2979"
+        },
+        "model": "aklub.donorpaymentchannel",
+        "pk": 2979
+    },
+    {
+        "fields": {
+        },
+        "model": "aklub.bankaccount",
+        "pk": 1
     },
     {
         "fields": {
@@ -124,15 +138,8 @@
             "city": "Praha 4",
             "different_correspondence_address": false,
             "language": "en",
-            "campaigns": [],
-            "club_card_available": false,
-            "country": "\u010cesk\u00e1 republika",
-            "public": true,
-            "title_after": "",
-            "title_before": "",
-            "street": "",
+            "campaigns": [1],
             "club_card_dispatched": false,
-            "telephone": "",
             "zip_code": "",
             "profile_text": null
         },
@@ -192,7 +199,6 @@
             "city": "Praha 4",
             "different_correspondence_address": false,
             "language": "cs",
-            "telephone": "",
             "club_card_available": false,
             "country": "\u010cesk\u00e1 republika",
             "other_benefits": "",
@@ -231,7 +237,7 @@
             "slug": "pnk",
             "darujme_name": "Prahounakole.cz"
         },
-        "model": "aklub.campaign",
+        "model": "aklub.event",
         "pk": 1
     },
     {
@@ -247,7 +253,7 @@
             "enable_registration": true,
             "darujme_name": "Klub přátel Auto*Matu"
         },
-        "model": "aklub.campaign",
+        "model": "aklub.event",
         "pk": 2
     },
     {
@@ -261,7 +267,7 @@
             "acquisition_campaign": true,
             "darujme_name": "Zažít město jinak"
         },
-        "model": "aklub.campaign",
+        "model": "aklub.event",
         "pk": 3
     },
     {
@@ -327,7 +333,6 @@
             "city": "Praha 4",
             "different_correspondence_address": false,
             "language": "cs",
-            "telephone": "",
             "club_card_available": false,
             "country": "\u010cesk\u00e1 republika",
             "other_benefits": "",

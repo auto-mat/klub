@@ -103,7 +103,7 @@ def process_template(template_string, user):
         city=user.userprofile.city,
         zipcode=user.userprofile.zip_code,
         email=user.userprofile.email,
-        telephone=user.userprofile.telephone,
+        telephone=user.userprofile.get_telephone(),
         regular_amount=user.regular_amount,
         regular_frequency=_localize_enum(UserInCampaign.REGULAR_PAYMENT_FREQUENCIES, user.regular_frequency, user.userprofile.language),
         var_symbol=user.variable_symbol,
