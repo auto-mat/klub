@@ -247,9 +247,10 @@ class RegularUserForm_DonorPaymentChannelDPNK(RegularUserForm_DonorPaymentChanne
 class PetitionUserForm_DonorPaymentChannel(FieldNameMappingMixin, CampaignMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['campaign'].queryset = Event.objects.filter(slug__isnull=False, enable_signing_petitions=True).exclude(slug="")
-        self.fields['gdpr_consent'].required = True
+        # self.fields['campaign'].queryset = Event.objects.filter(slug__isnull=False, enable_signing_petitions=True).exclude(slug="")
+        # self.fields['gdpr_consent'].required = True
 
+    """
     class Meta:
         model = DonorPaymentChannel
         fields = ('campaign', 'public', 'gdpr_consent')
@@ -257,6 +258,7 @@ class PetitionUserForm_DonorPaymentChannel(FieldNameMappingMixin, CampaignMixin,
     FIELD_NAME_MAPPING = {
         'gdpr_consent': 'gdpr',
     }
+    """
 
 
 class RegularUserFormDPNK(RegularUserFormWithProfile):

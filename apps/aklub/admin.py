@@ -36,7 +36,6 @@ from django.contrib.admin import site
 from django.contrib.auth.admin import UserAdmin
 from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator
-from django.db import IntegrityError
 from django.db.models import Sum
 from django.http import HttpResponseRedirect
 from django.utils.html import format_html, format_html_join, mark_safe
@@ -85,11 +84,11 @@ class PaymentsInline(nested_admin.NestedTabularInline):
     model = Payment
     extra = 1
 
-
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         qs = qs.select_related('account_statement')
         return qs
+
 
 class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
     model = DonorPaymentChannel
@@ -113,12 +112,13 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
                 ('expected_date_of_first_payment', 'exceptional_membership'),
                 ('other_support'),
                 ('event'),
-            ]
+            ],
         }
          )
     )
 
     filter_horizontal = ('event', )
+
 
 class PaymentsInlineNoExtra(PaymentsInline):
 
@@ -277,6 +277,7 @@ class UserProfileResource(ModelResource):
         if field.attribute and field.column_name in data and not getattr(obj, field.column_name):
             field.save(obj, data, is_m2m)
 
+
 class UserProfileMergeForm(merge.MergeForm):
     def __init__(self, *args, **kwargs):
         ret_val = super().__init__(*args, **kwargs)
@@ -293,6 +294,7 @@ class TelephoneInline(nested_admin.NestedTabularInline):
     extra = 0
     can_delete = True
     show_change_link = True
+
 
 class BankAccountAdmin(admin.ModelAdmin):
     model = BankAccount
@@ -393,13 +395,13 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
             ),
         }),
         (_('Contact data'), {
-            'classes' : ('wide', ),
+            'classes': ('wide', ),
             'fields': [
                 ('street', 'city',),
                 ('country', 'zip_code'),
                 'different_correspondence_address',
                 ('addressment', 'addressment_on_envelope'),
-            ]
+            ],
         }
          ),
         ('Preferences', {
@@ -407,7 +409,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
                 ('public', 'send_mailing_lists', ),
                 ('newsletter_on', 'call_on', ),
                 ('challenge_on', 'letter_on', ),
-            )
+            ),
         })
     )
 
@@ -418,9 +420,9 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
                 ('password',),
                 ('is_staff', 'is_superuser'),
                 'groups',
-            ]
+            ],
         }
-         ),
+        ),
     )
 
     ordering = ('email',)
@@ -472,11 +474,10 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
 
     def get_fieldsets(self, request, obj=None):
         if request.user.is_superuser and self.superuser_fieldsets:
-            return (self.add_fieldsets or tuple()) + self.superuser_fieldsets
+            return self.add_fieldsets + self.superuser_fieldsets
         else:
             return self.add_fieldsets
         super().get_fieldsets(request, obj)
-
 
     def save_formset(self, request, form, formset, change):
         if not issubclass(formset.model, DonorPaymentChannel):
@@ -485,6 +486,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         for f in formset.forms:
             obj = f.instance
             obj.generate_VS()
+
 
 class UserInCampaignResource(ModelResource):
     userprofile_email = fields.Field(

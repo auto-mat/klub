@@ -32,6 +32,7 @@ class TestPersonName(TestCase):
             campaign__name="Foo campaign",
             user_donor_payment_channel__user__first_name="Foo",
             user_donor_payment_channel__user__last_name="Name",
+            user_donor_payment_channel__bank_account__id=1,
         )
         self.assertEqual(result.person_name(), 'Name Foo')
 

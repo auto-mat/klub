@@ -40,7 +40,6 @@ except ImportError:  # Django<2.0
 from django.core.validators import RegexValidator
 from django.db import models, transaction
 from django.db.models import Count, Q, Sum
-from django.db.models.signals import pre_save, post_save
 from django.utils import timezone
 from django.utils.html import format_html, mark_safe
 from django.utils.text import format_lazy
@@ -104,8 +103,8 @@ class Event(models.Model):
 
     created = models.DateField(
         verbose_name=_("Created"),
-        blank = True,
-        null = True
+        blank=True,
+        null=True,
     )
     terminated = models.DateField(
         verbose_name=_("Terminated"),
@@ -580,7 +579,7 @@ class UserProfile(AbstractUser):
         verbose_name=_("newsletter_on"),
         null=True,
         blank=True,
-        default = False,
+        default=False,
     )
     call_on = models.BooleanField(
         verbose_name=_("call_on"),
@@ -692,15 +691,12 @@ class UserProfile(AbstractUser):
         if self.email == "":
             self.email = None
 
-
     def save(self, *args, **kwargs):
         if not self.username and not self.id:
             from .views import get_unique_username
             self.username = get_unique_username(self.email)
         if self.email:
             self.email = self.email.lower()
-
-
         super().save(*args, **kwargs)
 
     def get_telephone(self):
@@ -708,7 +704,7 @@ class UserProfile(AbstractUser):
         return numbers
 
     def get_donor(self):
-        donors = ','.join(donor.VS for donor in self.userchannels.all() if donor.VS != None)
+        donors = ','.join(donor.VS for donor in self.userchannels.all() if donor.VS is not None)
         return donors
 
     def get_main_telephone(self):
@@ -1609,7 +1605,7 @@ class DonorPaymentChannel(models.Model):
         on_delete=models.CASCADE,
         default=None,
         null=True,
-        blank=True
+        blank=True,
     )
     event = models.ManyToManyField(
         Event,
@@ -1634,7 +1630,7 @@ class DonorPaymentChannel(models.Model):
 
     def check_duplicate(self, *args, **kwargs):
         qs = DonorPaymentChannel.objects.filter(VS=self.VS)
-        if self.pk is None:
+        if self.pk is None and self.VS is not None:
             if qs.filter(VS=self.VS).exists():
                 raise ValidationError("Duplicate VS")
 
@@ -1645,6 +1641,7 @@ class DonorPaymentChannel(models.Model):
     def save(self, *args, **kwargs):
         self.clean()
         super().save(*args, **kwargs)
+
 
 class Payment(models.Model):
     """Payment model and DB table
