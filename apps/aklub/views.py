@@ -218,7 +218,7 @@ class RegularDarujmeUserForm_DonorPaymentChannel(FieldNameMappingMixin, RegularU
         return REGULAR_PAYMENTS_MAP[self.cleaned_data['regular_payments']]
 
     class Meta:
-        model = UserInCampaign
+        model = DonorPaymentChannel
         fields = ('regular_frequency', 'regular_payments', 'regular_amount', 'campaign')
 
 
