@@ -233,32 +233,30 @@ class UserProfileResource(ModelResource):
         if data["username"] == "":
             data["username"] = None
         if data['telephone'] != "":
-            if not obj.telephone_set.filter(user=obj.id, telephone=data['telephone'], is_primary=None):
-                obj.save()
-                telephone = Telephone.objects.create(telephone=data['telephone'], user=obj, is_primary=None)
-                obj.telephone_set.add(telephone, bulk=True)
+            obj.save()
+            telephone, _ = Telephone.objects.get_or_create(telephone=data['telephone'], user=obj, defaults={'is_primary': None})
         if data['donor'] != "":
-            if data['VS'] != "":
-                if obj.userchannels.filter(VS=data['VS']):
-                    donors = DonorPaymentChannel.objects.get(VS=data['VS'], user=obj)
-                else:
-                    obj.save()
-                    donors = DonorPaymentChannel.objects.create(VS=data['VS'], user=obj, bank_account=bank_account)
+            if data['VS']:
+                VS = data['VS']
             else:
                 from .views import generate_variable_symbol
                 VS = generate_variable_symbol()
-                obj.save()
-                donors = DonorPaymentChannel.objects.create(VS=VS, user=obj, bank_account=bank_account)
+            obj.save()
+            donors, _ = DonorPaymentChannel.objects.get_or_create(
+                VS=VS,
+                user=obj,
+                defaults={'bank_account': bank_account},
+            )
             if data['bank_account'] != "":
-                bank_account, created = BankAccount.objects.get_or_create(bank_account_number=data['bank_account'])
+                bank_account, _ = BankAccount.objects.get_or_create(bank_account_number=data['bank_account'])
                 donors.bank_account = bank_account
                 donors.save()
             if data['user_bank_account'] != "":
-                user_bank_account, created = UserBankAccount.objects.get_or_create(bank_account_number=data['user_bank_account'])
+                user_bank_account, _ = UserBankAccount.objects.get_or_create(bank_account_number=data['user_bank_account'])
                 donors.user_bank_account = user_bank_account
                 donors.save()
             if data['event'] != "":
-                event, created = Event.objects.get_or_create(name=data['event'])
+                event, _ = Event.objects.get_or_create(name=data['event'])
                 donors.event.add(event)
                 donors.user = obj
                 donors.save()
