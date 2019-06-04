@@ -25,9 +25,7 @@ before_script:
   - npm install -g bower
   - pipenv run flake8
   - pipenv run python manage.py bower install
-  - echo -e "travis_fold:start:collectstatic\033[33;1mcollectstatic\033[0m"
-  - pipenv run python manage.py collectstatic --noinput
-  - echo -e "\ntravis_fold:end:collectstatic\r"
+  - pipenv run python manage.py collectstatic -v0 --noinput
   - cd apps/aklub/
   - DJANGO_SETTINGS_MODULE="" pipenv run django-admin compilemessages
   - cd ../..
