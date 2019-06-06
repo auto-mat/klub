@@ -1598,8 +1598,8 @@ class DonorPaymentChannel(models.Model):
         related_name='bankaccounts',
         on_delete=models.CASCADE,
         default=None,
-        null=False,
-        blank=False,
+        null=True,
+        blank=True,
     )
     user_bank_account = models.ForeignKey(
         UserBankAccount,
