@@ -575,25 +575,25 @@ class UserProfile(AbstractUser):
         blank=True,
         choices=[(i, i) for i in range(1, 32)],
     )
-    newsletter_on = models.BooleanField(
+    newsletter_on = models.NullBooleanField(
         verbose_name=_("newsletter_on"),
         null=True,
         blank=True,
         default=False,
     )
-    call_on = models.BooleanField(
+    call_on = models.NullBooleanField(
         verbose_name=_("call_on"),
         null=True,
         blank=True,
         default=False,
     )
-    challenge_on = models.BooleanField(
+    challenge_on = models.NullBooleanField(
         verbose_name=_("challenge_on"),
         null=True,
         blank=True,
         default=False,
     )
-    letter_on = models.BooleanField(
+    letter_on = models.NullBooleanField(
         verbose_name=_("letter_on"),
         null=True,
         blank=True,

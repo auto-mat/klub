@@ -147,8 +147,11 @@ MIDDLEWARE = (
 DATA_UPLOAD_MAX_NUMBER_FIELDS = None  # To allow more fields in administration
 
 CORS_ORIGIN_WHITELIST = [
-    'vyzva.auto-mat.cz',
-] + os.environ.get('AKLUB_CORS_ORIGIN_WHITELIST', '').split(',')
+    'https://vyzva.auto-mat.cz',
+]
+
+if 'AKLUB_CORS_ORIGIN_WHITELIST' in os.environ:
+    CORS_ORIGIN_WHITELIST += os.environ.get('AKLUB_CORS_ORIGIN_WHITELIST').split(',')
 
 REDIS_URL = os.environ.get('REDIS_URL', 'redis://127.0.0.1:6379')
 
