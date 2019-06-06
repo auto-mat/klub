@@ -38,7 +38,7 @@ django-adminfilters = "<1.1"
 django-advanced-filters = "*"
 django-bulk-update = "*"
 django-extra-views = "*"
-django-sesame = "<1.6" # File "/home/travis/build/auto-mat/klub/.venv/lib/python3.6/site-packages/sesame/backends.py", line 96, in get_revocation_key | value += user.password | TypeError: must be str, not NoneType
+django-sesame = "==1.4" # File "/home/travis/build/auto-mat/klub/.venv/lib/python3.6/site-packages/sesame/backends.py", line 96, in get_revocation_key | value += user.password | TypeError: must be str, not NoneType
 django-ses = "*"
 vokativ = "*"
 Django = ">=2,<3"
