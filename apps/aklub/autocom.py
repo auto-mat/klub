@@ -87,31 +87,31 @@ def gendrify_text(text, sex=''):
 
 
 def process_template(template_string, user):
-    from .models import UserInCampaign
+    # from .models import UserInCampaign
     from sesame import utils as sesame_utils
 
     template = string.Template(template_string)
 
     # Make variable substitutions
     text = template.substitute(
-        addressment=user.userprofile.get_addressment(),
-        last_name_vokativ=user.userprofile.get_last_name_vokativ(),
-        name=user.userprofile.first_name,
-        firstname=user.userprofile.first_name,
-        surname=user.userprofile.last_name,
-        street=user.userprofile.street,
-        city=user.userprofile.city,
-        zipcode=user.userprofile.zip_code,
-        email=user.userprofile.email,
-        telephone=user.userprofile.get_telephone(),
-        regular_amount=user.regular_amount,
-        regular_frequency=_localize_enum(UserInCampaign.REGULAR_PAYMENT_FREQUENCIES, user.regular_frequency, user.userprofile.language),
-        var_symbol=user.variable_symbol,
-        last_payment_amount=user.last_payment and user.last_payment.amount or None,
-        auth_token=sesame_utils.get_query_string(user.userprofile),
+        addressment=user.get_addressment(),
+        last_name_vokativ=user.get_last_name_vokativ(),
+        name=user.first_name,
+        firstname=user.first_name,
+        surname=user.last_name,
+        street=user.street,
+        city=user.city,
+        zipcode=user.zip_code,
+        email=user.email,
+        telephone=user.get_telephone(),
+        # regular_amount=user.regular_amount,
+        # regular_frequency=_localize_enum(UserInCampaign.REGULAR_PAYMENT_FREQUENCIES, user.regular_frequency, user.language),
+        # var_symbol=user.variable_symbol,
+        # last_payment_amount=user.last_payment and user.last_payment.amount or None,
+        auth_token=sesame_utils.get_query_string(user),
     )
 
-    return gendrify_text(text, user.userprofile.sex)
+    return gendrify_text(text, user.sex)
 
 
 def check(users=None, action=None):
@@ -132,7 +132,7 @@ def check(users=None, action=None):
         for user in filtered_users:
             if auto_comm.only_once and auto_comm.sent_to_users.filter(pk=user.pk).exists():
                 continue
-            if user.userprofile.language == 'cs':
+            if user.language == 'cs':
                 template = auto_comm.template
                 subject = auto_comm.subject
             else:

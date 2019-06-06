@@ -194,11 +194,12 @@ class ViewsTests(ClearCacheMixin, TestCase):
     def test_darujme_existing_email_different_campaign(self):
         """ Test, that if the user exists in different campaign, he is able to register """
         address = reverse('regular-darujme')
-        user_in_campaign = mommy.make(
-            "aklub.UserInCampaign",
+        donor_payment_channel = mommy.make(
+            "aklub.DonorPaymentChannel",
             userprofile__email='test@email.cz',
             userprofile__first_name='Foo',
             userprofile__last_name='Duplabar',
+            bank_account__bank_account="0000",
             campaign__id=1,
         )
         response = self.client.post(address, self.post_data_darujme, follow=False)
@@ -215,8 +216,8 @@ class ViewsTests(ClearCacheMixin, TestCase):
             msg.body,
             'New user has been created Jméno: Foo Příjmení: Duplabar Ulice: Město: PSC:\nE-mail: test@email.cz Telefon:\n\n',
         )
-        self.assertEqual(user_in_campaign.userprofile.last_name, 'Duplabar')
-        self.assertEqual(user_in_campaign.userprofile.userincampaign_set.count(), 2)
+        self.assertEqual(donor_payment_channel.userprofile.last_name, 'Duplabar')
+        self.assertEqual(donor_payment_channel.userprofile.donorpaymentchannel_set.count(), 2)
 
     def test_regular_dpnk(self):
         mommy.make("Event", slug="dpnk")
