@@ -328,7 +328,7 @@ def new_user(form, regular, source_slug='web'):
         new_user_profile = UserProfile.objects.get(email=form.forms['userprofile'].email_used)
     else:
         new_user_profile.save()
-    payment_channel.userprofile = new_user_profile
+    payment_channel.user = new_user_profile
     payment_channel.save()
     # TODO: Unlock DB access here
 
@@ -355,7 +355,7 @@ class RegularView(FormView):
                 'user_id': userincampaign.id,
                 'userincampaign': userincampaign,
                 'repeated_registration': repeated_registration,
-                'addressment': userincampaign.userprofile.get_addressment(),
+                'addressment': userincampaign.user.get_addressment(),
             },
         )
         if self.request.is_ajax():
@@ -363,11 +363,11 @@ class RegularView(FormView):
                 'valid': True,
                 'account_number': "2400063333 / 2010",
                 'variable_symbol': userincampaign.variable_symbol,
-                'email': userincampaign.userprofile.email,
+                'email': userincampaign.user.email,
                 'amount': amount,
                 'frequency': frequency,
                 'repeated_registration': repeated_registration,
-                'addressment': userincampaign.userprofile.get_addressment(),
+                'addressment': userincampaign.user.get_addressment(),
             }
             return JsonResponse(data)
         return response
