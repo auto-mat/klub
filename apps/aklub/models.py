@@ -2409,7 +2409,7 @@ class AutomaticCommunication(models.Model):
         default=False,
     )
     sent_to_users = models.ManyToManyField(
-        UserInCampaign,
+        DonorPaymentChannel,
         help_text=_(
             "List of users to whom this communication was already sent"),
         blank=True,

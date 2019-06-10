@@ -114,10 +114,10 @@ def process_template(template_string, user):
     return gendrify_text(text, user.sex)
 
 
-def check(users=None, action=None):
-    from .models import AutomaticCommunication, Interaction, UserInCampaign
-    if not users:
-        users = UserInCampaign.objects.all()
+def check(payment_channels=None, action=None):
+    from .models import AutomaticCommunication, DonorPaymentChannel, Interaction
+    if not payment_channels:
+        payment_channels = DonorPaymentChannel.objects.all()
     for auto_comm in AutomaticCommunication.objects.all():
         logger.info(
             u"Processin condition \"%s\" for autocom \"%s\", method: \"%s\", action: \"%s\"" % (
@@ -128,8 +128,9 @@ def check(users=None, action=None):
             ),
         )
 
-        filtered_users = users.filter(auto_comm.condition.get_query(action))
-        for user in filtered_users:
+        filtered_payment_channels = payment_channels.filter(auto_comm.condition.get_query(action))
+        for payment_channel in filtered_payment_channels:
+            user = payment_channel.user
             if auto_comm.only_once and auto_comm.sent_to_users.filter(pk=user.pk).exists():
                 continue
             if user.language == 'cs':
@@ -146,5 +147,5 @@ def check(users=None, action=None):
                     note="Prepared by auto*mated mailer at %s" % datetime.datetime.now(),
                     send=auto_comm.dispatch_auto, type='auto',
                 )
-                auto_comm.sent_to_users.add(user)
+                auto_comm.sent_to_users.add(payment_channel)
                 c.save()

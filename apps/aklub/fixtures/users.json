@@ -320,6 +320,18 @@
     },
     {
         "fields": {
+            "user": 2978,
+            "regular_amount": 100,
+            "regular_frequency": "monthly",
+            "regular_payments": "regular",
+            "event": [2],
+            "VS": "120127010"
+        },
+        "model": "aklub.donorpaymentchannel",
+        "pk": 2978
+    },
+    {
+        "fields": {
             "username": "without_payments",
             "first_name": "Without",
             "last_name": "Payments",

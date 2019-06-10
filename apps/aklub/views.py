@@ -388,10 +388,11 @@ class RegularView(FormView):
 
     def post(self, request, *args, **kwargs):
         email = self.get_post_param(request, 'userprofile-email', 'payment_data____email')
+        event = self.get_post_param(request, 'userincampaign-campaign', 'campaign')
         if email:
-            user_profiles = UserProfile.objects.filter(email=email)
-            if user_profiles.exists():
-                autocom.check(users=user_profiles, action='resend-data')
+            payment_channels = DonorPaymentChannel.objects.filter(user__email=email, event__slug=event)
+            if payment_channels.exists():
+                autocom.check(payment_channels=payment_channels, action='resend-data')
                 user_data = {}
                 if 'recurringfrequency' in request.POST:
                     user_data['frequency'] = REGULAR_FREQUENCY_MAP[request.POST.get('recurringfrequency')]
@@ -412,7 +413,7 @@ class RegularView(FormView):
                     "amount: %(amount)s" % user_data,
                 )
                 return self.success_page(
-                    user_profiles.get(),
+                    payment_channels.get(),
                     user_data['amount'],
                     user_data['frequency'],
                     True,
