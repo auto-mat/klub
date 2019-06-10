@@ -32,7 +32,7 @@ from model_mommy import mommy
 
 from .utils import print_response  # noqa
 from .. import views
-from ..models import UserInCampaign, UserProfile
+from ..models import DonorPaymentChannel, UserInCampaign, UserProfile
 
 
 class ClearCacheMixin(object):
@@ -263,10 +263,10 @@ class ViewsTests(ClearCacheMixin, TestCase):
         self.assertEqual(UserProfile.objects.get(email="test@test.cz").get_full_name(), "Testing User")
         self.assertEqual(UserProfile.objects.get(email="test@test.cz").username, "test4")
         self.assertEqual(UserProfile.objects.get(email="test@test.cz").telephone, '111222333')
-        new_user = UserInCampaign.objects.get(userprofile__email="test@test.cz")
-        self.assertEqual(new_user.regular_amount, 321)
-        self.assertEqual(new_user.regular_payments, 'regular')
-        self.assertEqual(new_user.regular_frequency, 'monthly')
+        new_channel = DonorPaymentChannel.objects.get(user__email="test@test.cz")
+        self.assertEqual(new_channel.regular_amount, 321)
+        self.assertEqual(new_channel.regular_payments, 'regular')
+        self.assertEqual(new_channel.regular_frequency, 'monthly')
 
     def test_regular(self):
         address = reverse('regular')
@@ -282,10 +282,10 @@ class ViewsTests(ClearCacheMixin, TestCase):
 
         self.assertEqual(UserProfile.objects.get(email="test@test.cz").get_full_name(), "Testing User")
         self.assertEqual(UserProfile.objects.get(email="test@test.cz").username, "test4")
-        self.assertEqual(UserProfile.objects.get(email="test@test.cz").telephone, '111222333')
-        new_user = UserInCampaign.objects.get(userprofile__email="test@test.cz")
-        self.assertEqual(new_user.regular_amount, 321)
-        self.assertEqual(new_user.regular_payments, 'regular')
+        self.assertEqual(UserProfile.objects.get(email="test@test.cz").telephone_set.get().telephone, '111222333')
+        new_channel = DonorPaymentChannel.objects.get(user__email="test@test.cz")
+        self.assertEqual(new_channel.regular_amount, 321)
+        self.assertEqual(new_channel.regular_payments, 'regular')
 
     post_data_darujme = {
         "recurringfrequency": "28",
@@ -307,14 +307,14 @@ class ViewsTests(ClearCacheMixin, TestCase):
         self.assertContains(response, '<tr><th>Částka: </th><td>200 Kč</td></tr>', html=True)
         self.assertContains(response, '<tr><th>Frekvence: </th><td>Měsíčně</td></tr>', html=True)
         self.assertContains(response, '<tr><th>Pravidelné platby: </th><td>Pravidelné platby</td></tr>', html=True)
-        new_user = UserInCampaign.objects.get(userprofile__email="test@email.cz")
-        self.assertEqual(new_user.regular_amount, 200)
-        self.assertEqual(new_user.regular_payments, 'regular')
+        new_channel = DonorPaymentChannel.objects.get(user__email="test@email.cz")
+        self.assertEqual(new_channel.regular_amount, 200)
+        self.assertEqual(new_channel.regular_payments, 'regular')
 
     def test_regular_darujme_ajax(self):
         address = reverse('regular-darujme')
         response = self.client.post(address, self.post_data_darujme, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-        userincampaign = UserInCampaign.objects.get(userprofile__email="test@email.cz")
+        userincampaign = DonorPaymentChannel.objects.get(user__email="test@email.cz")
         self.assertJSONEqual(
             response.content.decode(),
             {
@@ -328,9 +328,9 @@ class ViewsTests(ClearCacheMixin, TestCase):
                 'addressment': 'Test_Name',
             },
         )
-        new_user = UserInCampaign.objects.get(userprofile__email="test@email.cz")
-        self.assertEqual(new_user.regular_amount, 200)
-        self.assertEqual(new_user.regular_payments, 'regular')
+        new_channel = DonorPaymentChannel.objects.get(user__email="test@email.cz")
+        self.assertEqual(new_channel.regular_amount, 200)
+        self.assertEqual(new_channel.regular_payments, 'regular')
 
     post_data_darujme_onetime = post_data_darujme.copy()
     post_data_darujme_onetime["recurringfrequency"] = ""
@@ -472,10 +472,10 @@ class ViewsTests(ClearCacheMixin, TestCase):
 
         self.assertEqual(UserProfile.objects.get(email="test@test.cz").get_full_name(), "Testing User")
         self.assertEqual(UserProfile.objects.get(email="test@test.cz").username, "test4")
-        self.assertEqual(UserProfile.objects.get(email="test@test.cz").telephone, '111222333')
-        new_user = UserInCampaign.objects.get(userprofile__email="test@test.cz")
-        self.assertEqual(new_user.regular_amount, 321)
-        self.assertEqual(new_user.regular_payments, 'regular')
+        self.assertEqual(UserProfile.objects.get(email="test@test.cz").telephone_set.get().telephone, '111222333')
+        new_channel = DonorPaymentChannel.objects.get(user__email="test@test.cz")
+        self.assertEqual(new_channel.regular_amount, 321)
+        self.assertEqual(new_channel.regular_payments, 'regular')
 
     def test_sign_petition_no_gdpr_consent(self):
         address = reverse('petition')

@@ -48,7 +48,7 @@ from extra_views import InlineFormSet, UpdateWithInlinesView
 from sesame.backends import ModelBackend
 
 from . import autocom
-from .models import DonorPaymentChannel, Event, Payment, Source, UserInCampaign, UserProfile
+from .models import DonorPaymentChannel, Event, Payment, Source, Telephone, UserInCampaign, UserProfile
 
 
 class RegularUserForm_UserProfile(forms.ModelForm):
@@ -69,6 +69,12 @@ class RegularUserForm_UserProfile(forms.ModelForm):
             self.cleaned_data['username'] = get_unique_username(self.cleaned_data['email'])
         super().clean()
         return self.cleaned_data
+
+    def save(self, commit, *args, **kwargs):
+        ret_val = super().save(commit, *args, **kwargs)
+        if commit:
+            Telephone.objects.create(telephone=self.cleaned_data['telephone'], user=self.instance)
+        return ret_val
 
     def _post_clean(self):
         email = self.cleaned_data['email']
@@ -328,6 +334,7 @@ def new_user(form, regular, source_slug='web'):
         new_user_profile = UserProfile.objects.get(email=form.forms['userprofile'].email_used)
     else:
         new_user_profile.save()
+    Telephone.objects.create(telephone=form.forms['userprofile'].cleaned_data['telephone'], user=new_user_profile)
     payment_channel.user = new_user_profile
     payment_channel.save()
     # TODO: Unlock DB access here
