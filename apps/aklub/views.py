@@ -349,32 +349,33 @@ class RegularView(FormView):
     success_template = 'thanks.html'
     source_slug = 'web'
 
-    def success_page(self, userincampaign, amount=None, frequency=None, repeated_registration=False):
+    def success_page(self, payment_channel, amount=None, frequency=None, repeated_registration=False):
         if not amount:
-            amount = userincampaign.regular_amount
+            amount = payment_channel.regular_amount
         if not frequency:
-            frequency = userincampaign.regular_frequency
+            frequency = payment_channel.regular_frequency
         response = render_to_response(
             self.success_template,
             {
                 'amount': amount,
                 'frequency': UserInCampaign.REGULAR_PAYMENT_FREQUENCIES_MAP[frequency],
-                'user_id': userincampaign.id,
-                'userincampaign': userincampaign,
+                'user_id': payment_channel.id,
+                'payment_channel': payment_channel,
+                'user_profile': payment_channel.user,
                 'repeated_registration': repeated_registration,
-                'addressment': userincampaign.user.get_addressment(),
+                'addressment': payment_channel.user.get_addressment(),
             },
         )
         if self.request.is_ajax():
             data = {
                 'valid': True,
                 'account_number': "2400063333 / 2010",
-                'variable_symbol': userincampaign.variable_symbol,
-                'email': userincampaign.user.email,
+                'variable_symbol': payment_channel.VS,
+                'email': payment_channel.user.email,
                 'amount': amount,
                 'frequency': frequency,
                 'repeated_registration': repeated_registration,
-                'addressment': userincampaign.user.get_addressment(),
+                'addressment': payment_channel.user.get_addressment(),
             }
             return JsonResponse(data)
         return response

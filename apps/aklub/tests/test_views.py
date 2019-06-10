@@ -314,12 +314,12 @@ class ViewsTests(ClearCacheMixin, TestCase):
     def test_regular_darujme_ajax(self):
         address = reverse('regular-darujme')
         response = self.client.post(address, self.post_data_darujme, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-        userincampaign = DonorPaymentChannel.objects.get(user__email="test@email.cz")
+        payment_channel = DonorPaymentChannel.objects.get(user__email="test@email.cz")
         self.assertJSONEqual(
             response.content.decode(),
             {
                 'account_number': '2400063333 / 2010',
-                'variable_symbol': userincampaign.variable_symbol,
+                'variable_symbol': payment_channel.VS,
                 'amount': 200,
                 'email': 'test@email.cz',
                 'frequency': 'monthly',
@@ -348,12 +348,12 @@ class ViewsTests(ClearCacheMixin, TestCase):
     def test_regular_darujme_ajax_onetime(self):
         address = reverse('regular-darujme')
         response = self.client.post(address, self.post_data_darujme_onetime, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-        userincampaign = UserInCampaign.objects.get(userprofile__email="test@email.cz")
+        payment_channel = DonorPaymentChannel.objects.get(user__email="test@email.cz")
         self.assertJSONEqual(
             response.content.decode(),
             {
                 'account_number': '2400063333 / 2010',
-                'variable_symbol': userincampaign.variable_symbol,
+                'variable_symbol': payment_channel.VS,
                 'amount': 200,
                 'email': 'test@email.cz',
                 'frequency': None,

@@ -22,13 +22,13 @@ zadání platebního příkazu (číslo účtu, váš variabilní symbol) a s
 rekapitulací vámi zapsaných údajů.</p>
 
 <table>
-   <tr><th>Jméno: </th><td>{{ userincampaign.person_name }}</td></tr>
-   <tr><th>Email: </th><td>{{ userincampaign.userprofile.email }}</td></tr>
-   <tr><th>Variabilní symbol: </th><td>{{ userincampaign.variable_symbol }}</td></tr>
+   <tr><th>Jméno: </th><td>{{ user_profile.person_name }}</td></tr>
+   <tr><th>Email: </th><td>{{ user_profile.email }}</td></tr>
+   <tr><th>Variabilní symbol: </th><td>{{ payment_channel.VS }}</td></tr>
    <tr><th>Číslo účtu: </th><td>2400063333 / 2010</td></tr>
-   <tr><th>Částka: </th><td>{{ userincampaign.regular_amount }} Kč</td></tr>
+   <tr><th>Částka: </th><td>{{ payment_channel.regular_amount }} Kč</td></tr>
    <tr><th>Frekvence: </th><td>{{ frequency }}</td></tr>
-   <tr><th>Pravidelné platby: </th><td>{{ userincampaign.get_regular_payments_display }}</td></tr>
+   <tr><th>Pravidelné platby: </th><td>{{ payment_channel.get_regular_payments_display }}</td></tr>
 </table>
 
 <p>Znovu děkujeme za vaši pomoc a důvěru!</p>
