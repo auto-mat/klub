@@ -117,7 +117,7 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
          )
     )
 
-    filter_horizontal = ('event', )
+    # filter_horizontal = ('event', )
 
 
 class PaymentsInlineNoExtra(PaymentsInline):
@@ -443,8 +443,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
     def event(self, obj):
         result = UserProfile.objects.get(id=obj.id)
         donors = result.userchannels.select_related().all()
-        events = [e.event.select_related().all() for e in donors]
-        return [name for e in events for name in e]
+        return [e.event for e in donors]
 
     event.short_description = _("Event")
     event.admin_order_field = 'event'
@@ -1047,17 +1046,6 @@ class AccountStatementsAdmin(nested_admin.NestedModelAdmin):
     def payments_count(self, obj):
         return obj.payment_set.count()
 
-    def save_model(self, request, obj, form, change):
-        if getattr(obj, 'skipped_payments', None):
-            skipped_payments_string = ', '.join(
-                ["%s %s (%s)" % (p['name'], p['surname'], p['email']) for p in obj.skipped_payments])
-            messages.info(request, 'Skipped payments: %s' % skipped_payments_string)
-        payments_without_user = ', '.join(
-            ["%s (%s)" % (p.account_name, p.user_identification) for p in obj.payments if not p.user])
-        if payments_without_user:
-            messages.info(request, 'Payments without user: %s' % payments_without_user)
-        obj.save()
-
     # TODO: add reporting of skipped payments to Celery task
     # def save_model(self, request, obj, form, change):
     #     if getattr(obj, 'skipped_payments', None):
@@ -1076,6 +1064,7 @@ def download_darujme_statement(self, request, queryset):
         payment, skipped = darujme.create_statement_from_API(campaign)
         payments.append(payment)
         skipped_payments += skipped
+
     self.message_user(
         request,
         format_html(

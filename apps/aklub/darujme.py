@@ -7,7 +7,8 @@ import xml
 from collections import OrderedDict
 from xml.dom import minidom
 
-from aklub.models import AccountStatements, Event, Payment, UserInCampaign, UserProfile, str_to_datetime, str_to_datetime_xml
+from aklub.models import (AccountStatements, DonorPaymentChannel, Event, Payment, Telephone, UserProfile, str_to_datetime,
+                          str_to_datetime_xml)
 from aklub.views import generate_variable_symbol, get_unique_username
 
 import xlrd
@@ -186,8 +187,6 @@ def create_payment(data, payments, skipped_payments):  # noqa
         log.info('Payment with type Darujme.cz and SS=%s already exists, skipping' % str(data['id']))
         return None
 
-    cetnost_konec = get_cetnost_konec(data)
-
     cetnost, regular_payments = get_cetnost_regular_payments(data)
 
     amount = max(data['obdrzena_castka'] or data['uvedena_castka'], 0)
@@ -204,7 +203,6 @@ def create_payment(data, payments, skipped_payments):  # noqa
 
     campaign = get_campaign(data)
     username = get_unique_username(data['email'])
-
     try:
         userprofile, userprofile_created = UserProfile.objects.get_or_create(
             email__iexact=data['email'],
@@ -221,30 +219,37 @@ def create_payment(data, payments, skipped_payments):  # noqa
         )
     except UserProfile.MultipleObjectsReturned:
         raise Exception("Duplicate email %s" % data['email'])
-    userincampaign, userincampaign_created = UserInCampaign.objects.get_or_create(
-        userprofile=userprofile,
-        campaign=campaign,
+
+    try:
+        data['telefon'] = int(str(data['telefon']).replace(" ", ""))
+        if 100000000 <= data['telefon'] <= 999999999:
+            telephone, telephone_created = Telephone.objects.get_or_create(
+                telephone=data['telefon'],
+                user=userprofile
+                )
+    except ValueError:
+        log.info('%s is not valid phone number ' % data['telefon'])
+
+    donorpaymentchannel, donorpaymentchannel_created = DonorPaymentChannel.objects.get_or_create(
+        user=userprofile,
+        event=campaign,
         defaults={
-            'variable_symbol': generate_variable_symbol(),
-            'wished_tax_confirmation': data.get('potvrzeni_daru', True),
+            'VS': generate_variable_symbol(),
             'regular_frequency': cetnost,
             'regular_payments': regular_payments,
             'regular_amount': amount if cetnost else None,
-            'end_of_regular_payments': cetnost_konec,
         },
     )
-
-    if userincampaign_created:
-        log.info('UserInCampaign with email %s created' % data['email'])
+    if donorpaymentchannel_created:
+        log.info('DonorPaymentChannel with email %s created' % data['email'])
     else:
-        if cetnost and userincampaign.regular_payments != "regular":
-            userincampaign.regular_frequency = cetnost
-            userincampaign.regular_payments = regular_payments
-            userincampaign.regular_amount = amount if cetnost else None
-            userincampaign.save()
-
+        if cetnost and donorpaymentchannel.regular_payments != "regular":
+            donorpaymentchannel.regular_frequency = cetnost
+            donorpaymentchannel.regular_payments = regular_payments
+            donorpaymentchannel.regular_amount = amount if cetnost else None
+            donorpaymentchannel.save()
     if p:
-        p.user = userincampaign
+        p.user_donor_payment_channel = donorpaymentchannel
         p.save()
         payments.append(p)
 
@@ -297,7 +302,6 @@ def parse_darujme(xlsfile):
             data['cetnost_konec'] = str_to_datetime(cetnost_konec)
         else:
             data['cetnost_konec'] = cetnost_konec
-
         create_payment(data, payments, skipped_payments)
     return payments, skipped_payments
 

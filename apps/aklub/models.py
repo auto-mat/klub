@@ -1470,11 +1470,12 @@ class DonorPaymentChannel(models.Model):
         null=True,
         blank=True,
     )
-    event = models.ManyToManyField(
+    event = models.ForeignKey(
         Event,
-        verbose_name=_("Event"),
-        related_name="donorevents",
+        help_text=("Event"),
+        verbose_name=("Event"),
         blank=True,
+        on_delete=models.CASCADE,
         null=True,
     )
 
