@@ -6,7 +6,7 @@
             "slug": "darujme"
         },
         "model": "aklub.source",
-        "pk": 10 
+        "pk": 10
     },
     {
         "fields": {
@@ -15,7 +15,7 @@
             "user": "2978"
         },
         "model": "aklub.interaction",
-        "pk": 1 
+        "pk": 1
     },
     {
         "fields": {
@@ -25,7 +25,7 @@
             "user": "2978"
         },
         "model": "aklub.payment",
-        "pk": 1 
+        "pk": 1
     },
     {
         "fields": {
@@ -35,7 +35,7 @@
             "user": "2978"
         },
         "model": "aklub.payment",
-        "pk": 2 
+        "pk": 2
     },
     {
         "fields": {
@@ -74,7 +74,8 @@
     {
         "fields": {
             "bank_account": 1,
-            "user": "2979"
+            "user": "2979",
+            "event": 2
         },
         "model": "aklub.donorpaymentchannel",
         "pk": 2979
@@ -422,4 +423,3 @@
         "pk": 4
     }
 ]
-

@@ -1671,6 +1671,8 @@ class DonorPaymentChannel(models.Model):
         related_name='bankaccounts',
         on_delete=models.CASCADE,
         default=None,
+        null=True,
+        blank=True,
     )
     user_bank_account = models.ForeignKey(
         UserBankAccount,
@@ -1680,11 +1682,12 @@ class DonorPaymentChannel(models.Model):
         null=True,
         blank=True,
     )
-    event = models.ManyToManyField(
+    event = models.ForeignKey(
         Event,
-        verbose_name=_("Event"),
-        related_name="donorevents",
+        help_text=("Event"),
+        verbose_name=("Event"),
         blank=True,
+        on_delete=models.CASCADE,
         null=True,
     )
 

@@ -28,10 +28,9 @@ from django.test.utils import override_settings
 
 from model_mommy import mommy
 
-from ..recipes import userincampaign_recipe
 from ..utils import RunCommitHooksMixin
 from ... import admin, darujme
-from ...models import AccountStatements, Event, Payment, UserInCampaign
+from ...models import AccountStatements, DonorPaymentChannel, Event, Payment, Telephone
 
 
 @override_settings(
@@ -46,12 +45,13 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
             a.clean()
             a.save()
 
+        donor_channel = mommy.make('aklub.DonorPaymentChannel', VS=120127010, _fill_optional=True)
+
         self.run_commit_hooks()
         a1 = AccountStatements.objects.get(pk=a.pk)
         self.assertEqual(len(a1.payment_set.all()), 4)
         self.assertEqual(a1.date_from, datetime.date(day=25, month=1, year=2016))
         self.assertEqual(a1.date_to, datetime.date(day=31, month=1, year=2016))
-        user = UserInCampaign.objects.get(pk=2978)
 
         p1 = Payment.objects.get(account=2150508001)
         self.assertEqual(p1.date, datetime.date(day=18, month=1, year=2016))
@@ -74,11 +74,9 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
         self.assertEqual(p1.transfer_type, "Bezhotovostní příjem")
         self.assertEqual(p1.specification, "Account specification")
         self.assertEqual(p1.order_id, "1232")
-        self.assertEqual(p1.user, user)
+        self.assertEqual(p1.user_donor_payment_channel, donor_channel)
 
-        self.assertEqual(user.payment_set.get(date=datetime.date(2016, 1, 18)), a1.payment_set.get(account=2150508001))
-
-    maxDiff = None
+        self.assertEqual(donor_channel.paymentchannels.get(date=datetime.date(2016, 1, 18)), a1.payment_set.get(account=2150508001))
 
     def test_bank_new_statement_cs(self):
         with open("apps/aklub/test_data/Pohyby_cs.csv", "rb") as f:
@@ -86,12 +84,13 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
             a.clean()
             a.save()
 
+        donor_channel = mommy.make('aklub.DonorPaymentChannel', VS=120127010, _fill_optional=True)
+
         self.run_commit_hooks()
         a1 = AccountStatements.objects.get(pk=a.pk)
         self.assertEqual(len(a1.payment_set.all()), 3)
         self.assertEqual(a1.date_from, datetime.date(day=10, month=2, year=2019))
         self.assertEqual(a1.date_to, datetime.date(day=11, month=3, year=2019))
-        user = UserInCampaign.objects.get(pk=2978)
 
         p1 = Payment.objects.get(account='20000 92392323')
         self.assertEqual(p1.date, datetime.date(day=11, month=3, year=2019))
@@ -114,13 +113,15 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
         self.assertEqual(p1.transfer_type, None)
         self.assertEqual(p1.specification, None)
         self.assertEqual(p1.order_id, None)
-        self.assertEqual(p1.user, user)
+        self.assertEqual(p1.user_donor_payment_channel, donor_channel)
 
-        self.assertEqual(user.payment_set.get(date=datetime.date(2019, 3, 11)), a1.payment_set.get(account='20000 92392323'))
+        self.assertEqual(donor_channel.paymentchannels.get(date=datetime.date(2019, 3, 11)), a1.payment_set.get(account='20000 92392323'))
 
     def check_account_statement_data(self):
         self.run_commit_hooks()
+
         a1 = AccountStatements.objects.get(type="darujme")
+
         self.assertEqual(
             list(a1.payment_set.order_by('SS').values_list("account_name", "date", "SS")),
             [
@@ -132,58 +133,61 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
                 ('User 1, Testing', datetime.date(2016, 1, 19), '22257'),
             ],
         )
-        user = UserInCampaign.objects.get(pk=2978)
-        self.assertEqual(user.payment_set.get(SS=17529), a1.payment_set.get(amount=200))
-        unknown_user = UserInCampaign.objects.get(userprofile__email="unknown@email.cz")
-        payment = unknown_user.payment_set.get(SS=22257)
+        user = DonorPaymentChannel.objects.get(id=2979)
+
+        self.assertEqual(user.paymentchannels.get(amount=150), a1.payment_set.get(SS=22256))
+
+        unknown_user = DonorPaymentChannel.objects.get(user__email="unknown@email.cz")
+        payment = unknown_user.paymentchannels.get(SS=22257)
+        tel_unknown_user = Telephone.objects.filter(user__email="unknown@email.cz").first()
         self.assertEqual(payment.amount, 150)
         self.assertEqual(payment.date, datetime.date(2016, 1, 19))
-        self.assertEqual(unknown_user.__str__(), "User 1 Testing - unknown@email.cz (Klub přátel Auto*Matu)")
-        self.assertEqual(unknown_user.userprofile.telephone, "656 464 222")
-        self.assertEqual(unknown_user.userprofile.street, "Ulice 321")
-        self.assertEqual(unknown_user.userprofile.city, "Nová obec")
-        self.assertEqual(unknown_user.userprofile.zip_code, "12321")
-        self.assertEqual(unknown_user.userprofile.username, "unknown3")
-        self.assertEqual(unknown_user.wished_information, True)
+        self.assertEqual(tel_unknown_user.telephone, "656464222")
+        self.assertEqual(unknown_user.user.street, "Ulice 321")
+        self.assertEqual(unknown_user.user.city, "Nová obec")
+        self.assertEqual(unknown_user.user.zip_code, "12321")
+        self.assertEqual(unknown_user.user.username, "unknown3")
         self.assertEqual(unknown_user.regular_payments, "regular")
         self.assertEqual(unknown_user.regular_amount, 150)
         self.assertEqual(unknown_user.regular_frequency, "annually")
 
-        unknown_user1 = UserInCampaign.objects.get(userprofile__email="unknown1@email.cz")
-        self.assertEqual(unknown_user1.userprofile.telephone, "2158")
-        self.assertEqual(unknown_user1.userprofile.zip_code, "123 21")
+        unknown_user1 = DonorPaymentChannel.objects.get(user__email="unknown1@email.cz")
+        tel_unknown_user1 = Telephone.objects.filter(user__email="unknown1@email.cz").first()
+        self.assertEqual(tel_unknown_user1, None)
+        self.assertEqual(unknown_user1.user.zip_code, "123 21")
         self.assertEqual(unknown_user1.regular_amount, 150)
-        self.assertEqual(unknown_user1.end_of_regular_payments, datetime.date(2014, 12, 31))
         self.assertEqual(unknown_user1.regular_frequency, 'monthly')
         self.assertEqual(unknown_user1.regular_payments, "regular")
 
         self.assertEqual(Payment.objects.filter(SS=22359).exists(), False)
-        unknown_user3 = UserInCampaign.objects.get(userprofile__email="unknown3@email.cz")
-        self.assertEqual(unknown_user3.userprofile.zip_code, "")
-        self.assertEqual(unknown_user3.userprofile.telephone, "")
+
+        unknown_user3 = DonorPaymentChannel.objects.get(user__email="unknown3@email.cz")
+        tel_unknown_user3 = Telephone.objects.filter(user__email="unknown3@email.cz").first()
+        self.assertEqual(tel_unknown_user3, None)
+        self.assertEqual(unknown_user3.user.zip_code, "")
         self.assertEqual(unknown_user3.regular_amount, 0)
-        self.assertEqual(unknown_user3.end_of_regular_payments, None)
         self.assertEqual(unknown_user3.regular_frequency, 'monthly')
         self.assertEqual(unknown_user3.regular_payments, "promise")
 
-        test_user1 = UserInCampaign.objects.get(userprofile__email="test.user1@email.cz")
-        self.assertEqual(test_user1.userprofile.zip_code, "")
-        self.assertEqual(test_user1.userprofile.telephone, "")
-        self.assertEqual(test_user1.regular_amount, 150)
-        self.assertEqual(test_user1.end_of_regular_payments, None)
-        self.assertEqual(test_user1.regular_frequency, "annually")
+        test_user1 = DonorPaymentChannel.objects.get(event__darujme_name='Klub přátel Auto*Matu', user__email="test.user1@email.cz")
+        tel_user1 = Telephone.objects.filter(user__email="test.user1@email.cz").first()
+        self.assertEqual(test_user1.user.zip_code, "")
+        self.assertEqual(tel_user1, None)
+        self.assertEqual(test_user1.regular_amount, None)
+        self.assertEqual(test_user1.regular_frequency, None)
         self.assertEqual(test_user1.regular_payments, "regular")
 
-        blank_date_user = UserInCampaign.objects.get(userprofile__email="blank.date@seznam.cz")
-        payment_blank = blank_date_user.payment_set.get(SS=12345)
+        blank_date_user = DonorPaymentChannel.objects.get(user__email="blank.date@seznam.cz")
+        payment_blank = blank_date_user.paymentchannels.get(SS=12345)
+        tel_blank_date_user = Telephone.objects.filter(user__email="blank.date@email.cz").first()
+        self.assertEqual(tel_blank_date_user, None)
         self.assertEqual(payment_blank.amount, 500)
         self.assertEqual(payment_blank.date, datetime.date(2016, 8, 9))
-        self.assertEqual(blank_date_user.userprofile.zip_code, "")
-        self.assertEqual(blank_date_user.userprofile.telephone, "")
+        self.assertEqual(blank_date_user.user.zip_code, "")
         self.assertEqual(blank_date_user.regular_amount, None)
-        self.assertEqual(blank_date_user.end_of_regular_payments, None)
         self.assertEqual(blank_date_user.regular_frequency, None)
         self.assertEqual(blank_date_user.regular_payments, "onetime")
+
         return a1
 
     def test_darujme_statement(self):
@@ -196,6 +200,7 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
     def test_darujme_xml_statement(self):
         a, skipped = darujme.create_statement_from_file("apps/aklub/test_data/darujme.xml")
         a1 = self.check_account_statement_data()
+
         self.assertEqual(a, a1)
         self.assertListEqual(
             skipped,
@@ -253,11 +258,10 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
     @patch("urllib.request")
     def test_darujme_action(self, urllib_request):
         request = RequestFactory().get("")
-        with open("apps/aklub/test_data/darujme.xml", "r") as f:
+        with open("apps/aklub/test_data/darujme.xml", "r", encoding="utf-8") as f:
             m = MagicMock()
             urllib_request.urlopen = MagicMock(return_value=f)
             admin.download_darujme_statement(m, request, Event.objects.filter(slug="klub"))
-
         a1 = self.check_account_statement_data()
         m.message_user.assert_called_once_with(
             request,
@@ -274,14 +278,16 @@ class TestPairVariableSymbol(TestCase):
     """ Test AccountStatement.pair_variable_symbols() """
 
     def test_pairing(self):
-        user_in_campaign = userincampaign_recipe.make(variable_symbol=123)
+
         payment = mommy.make("aklub.Payment", VS=123)
         account_statement = mommy.make(
             "aklub.AccountStatements",
             payment_set=[payment],
         )
+        donor_payment_channel = mommy.make('aklub.DonorPaymentChannel', VS=123, _fill_optional=True)
         return_value = account_statement.pair_vs(payment)
-        self.assertEqual(payment.user, user_in_campaign)
+
+        self.assertEqual(payment.user_donor_payment_channel, donor_payment_channel)
         self.assertEqual(return_value, True)
 
     def test_pairing_false(self):
@@ -291,6 +297,7 @@ class TestPairVariableSymbol(TestCase):
             "aklub.AccountStatements",
             payment_set=[payment],
         )
+
         return_value = account_statement.pair_vs(payment)
         self.assertEqual(payment.user, None)
         self.assertEqual(return_value, False)
