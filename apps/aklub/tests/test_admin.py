@@ -31,13 +31,13 @@ from freezegun import freeze_time
 
 from model_mommy import mommy
 
-from .recipes import userincampaign_recipe
+from .recipes import donor_payment_channel_recipe
 from .utils import RunCommitHooksMixin
 from .utils import print_response  # noqa
 from .. import admin
 from ..models import (
-    AccountStatements, AutomaticCommunication, Interaction, MassCommunication,
-    TaxConfirmation, UserInCampaign, UserProfile, UserYearPayments,
+    AccountStatements, AutomaticCommunication, DonorPaymentChannel, Interaction, MassCommunication,
+    TaxConfirmation, UserProfile, UserYearPayments,
 )
 
 
@@ -81,13 +81,13 @@ class AdminTest(RunCommitHooksMixin, TestCase):
         return request
 
     def test_send_mass_communication(self):
-        userincampaign_recipe.make(id=3)
-        userincampaign_recipe.make(id=4)
-        userincampaign_recipe.make(id=2978)
-        userincampaign_recipe.make(id=2979)
-        model_admin = django_admin.site._registry[UserInCampaign]
+        donor_payment_channel_recipe.make(id=3)
+        donor_payment_channel_recipe.make(id=4)
+        donor_payment_channel_recipe.make(id=2978)
+        donor_payment_channel_recipe.make(id=2979)
+        model_admin = django_admin.site._registry[DonorPaymentChannel]
         request = self.post_request({})
-        queryset = UserInCampaign.objects.all()
+        queryset = DonorPaymentChannel.objects.all()
         response = admin.send_mass_communication_action(model_admin, request, queryset)
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/aklub/masscommunication/add/?send_to_users=3%2C4%2C2978%2C2979")
@@ -98,11 +98,11 @@ class AdminTest(RunCommitHooksMixin, TestCase):
         Communication shoul be send only once for every userprofile.
         """
         mutual_userprofile = mommy.make("aklub.Userprofile")
-        userincampaign_recipe.make(id=3, userprofile=mutual_userprofile)
-        userincampaign_recipe.make(id=4, userprofile=mutual_userprofile)
-        userincampaign_recipe.make(id=2978)
-        userincampaign_recipe.make(id=2979)
-        model_admin = django_admin.site._registry[UserInCampaign]
+        donor_payment_channel_recipe.make(id=3, user=mutual_userprofile)
+        donor_payment_channel_recipe.make(id=4, user=mutual_userprofile)
+        donor_payment_channel_recipe.make(id=2978)
+        donor_payment_channel_recipe.make(id=2979)
+        model_admin = django_admin.site._registry[DonorPaymentChannel]
         request = self.post_request({})
         queryset = UserProfile.objects.all()
         response = admin.send_mass_communication_distinct_action(model_admin, request, queryset)
@@ -111,10 +111,10 @@ class AdminTest(RunCommitHooksMixin, TestCase):
 
     @freeze_time("2017-5-1")
     def test_tax_confirmation_generate(self):
-        foo_user = userincampaign_recipe.make(userprofile__first_name="Foo", userprofile__id=2978)
-        bar_user = userincampaign_recipe.make(userprofile__first_name="Bar", userprofile__id=2979)
-        mommy.make("aklub.Payment", amount=350, date="2016-01-02", user=foo_user, type="cash")
-        mommy.make("aklub.Payment", amount=130, date="2016-01-02", user=bar_user, type="cash")
+        foo_user = donor_payment_channel_recipe.make(userprofile__first_name="Foo", userprofile__id=2978)
+        bar_user = donor_payment_channel_recipe.make(userprofile__first_name="Bar", userprofile__id=2979)
+        mommy.make("aklub.Payment", amount=350, date="2016-01-02", user_donor_payment_channel=foo_user, type="cash")
+        mommy.make("aklub.Payment", amount=130, date="2016-01-02", user_donor_payment_channel=bar_user, type="cash")
         model_admin = django_admin.site._registry[TaxConfirmation]
         request = self.post_request({})
         response = model_admin.generate(request)
@@ -132,7 +132,7 @@ class AdminTest(RunCommitHooksMixin, TestCase):
         """
         Test, that the resulting amount in selected period matches
         """
-        userincampaign_recipe.make(
+        donor_payment_channel_recipe.make(
             payment_set=[
                 mommy.make("aklub.Payment", date="2016-2-9", amount=150),
                 mommy.make("aklub.Payment", date="2016-1-9", amount=100),
@@ -152,7 +152,7 @@ class AdminTest(RunCommitHooksMixin, TestCase):
     def test_account_statement_changelist_post(self):
         mommy.make("aklub.Event", darujme_name="Klub přátel Auto*Matu")
         mommy.make("aklub.Payment", SS=22258, type="darujme", operation_id="13954", date="2016-02-09")
-        userincampaign_recipe.make(id=2979, userprofile__email="bar@email.com", userprofile__language="cs")
+        donor_payment_channel_recipe.make(id=2979, userprofile__email="bar@email.com", userprofile__language="cs")
         model_admin = django_admin.site._registry[AccountStatements]
         request = self.get_request()
         response = model_admin.add_view(request)
@@ -184,7 +184,7 @@ class AdminTest(RunCommitHooksMixin, TestCase):
 
     @freeze_time("2015-5-1")
     def test_account_statement_changelist_post_bank_statement(self):
-        userincampaign_recipe.make(variable_symbol=120127010)
+        donor_payment_channel_recipe.make(VS=120127010)
         model_admin = django_admin.site._registry[AccountStatements]
         request = self.get_request()
         response = model_admin.add_view(request)
@@ -219,9 +219,9 @@ class AdminTest(RunCommitHooksMixin, TestCase):
             )
 
     def test_mass_communication_changelist_post_send_mails(self):
-        userincampaign_recipe.make(id=2978, userprofile__email="foo@email.com", userprofile__language="cs")
-        userincampaign_recipe.make(id=2979, userprofile__email="bar@email.com", userprofile__language="cs")
-        userincampaign_recipe.make(id=3, userprofile__email="baz@email.com", userprofile__language="en")
+        donor_payment_channel_recipe.make(id=2978, userprofile__email="foo@email.com", userprofile__language="cs")
+        donor_payment_channel_recipe.make(id=2979, userprofile__email="bar@email.com", userprofile__language="cs")
+        donor_payment_channel_recipe.make(id=3, userprofile__email="baz@email.com", userprofile__language="en")
         model_admin = django_admin.site._registry[MassCommunication]
         request = self.get_request()
         response = model_admin.add_view(request)
@@ -305,7 +305,7 @@ class AdminTest(RunCommitHooksMixin, TestCase):
         self.assertEqual(response.url, "/aklub/automaticcommunication/%s/change/" % obj.id)
 
     def test_communication_changelist_post(self):
-        userincampaign_recipe.make(id=1)
+        donor_payment_channel_recipe.make(id=1)
         model_admin = django_admin.site._registry[Interaction]
         request = self.get_request()
         response = model_admin.add_view(request)
@@ -330,7 +330,7 @@ class AdminTest(RunCommitHooksMixin, TestCase):
     def test_user_in_campaign_changelist_post(self):
         mommy.make("aklub.Event", id=1)
         mommy.make("aklub.Userprofile", id=2978)
-        model_admin = django_admin.site._registry[UserInCampaign]
+        model_admin = django_admin.site._registry[DonorPaymentChannel]
         request = self.get_request()
         response = model_admin.add_view(request)
         self.assertEqual(response.status_code, 200)
@@ -358,15 +358,15 @@ class AdminTest(RunCommitHooksMixin, TestCase):
         request = self.post_request(post_data=post_data)
         response = model_admin.add_view(request)
         self.assertEqual(response.status_code, 302)
-        userincampaign = UserInCampaign.objects.get(variable_symbol=1234)
-        self.assertEqual(response.url, "/aklub/userincampaign/%s/change/" % userincampaign.id)
+        donorpaymentchannel = DonorPaymentChannel.objects.get(VS=1234)
+        self.assertEqual(response.url, "/aklub/donorpaymentchannel/%s/change/" % donorpaymentchannel.id)
 
-        self.assertEqual(userincampaign.activity_points, 13)
-        self.assertEqual(userincampaign.verified_by.username, 'testuser')
+        self.assertEqual(donorpaymentchannel.activity_points, 13)
+        self.assertEqual(donorpaymentchannel.verified_by.username, 'testuser')
 
     def test_pair_variable_symbols(self):
         """ Test pair_variable_symbols action """
-        user_in_campaign = userincampaign_recipe.make(variable_symbol=123)
+        user_in_campaign = donor_payment_channel_recipe.make(VS=123)
         payment = mommy.make("aklub.Payment", VS=123)
         account_statement = mommy.make(
             "aklub.AccountStatements",
@@ -392,7 +392,7 @@ class AdminImportExportTests(TestCase):
         self.client.force_login(self.user)
 
     def test_userattendance_export(self):
-        address = "/aklub/userincampaign/export/"
+        address = "/aklub/donorpaymentchannel/export/"
         post_data = {
             'file_format': 0,
         }

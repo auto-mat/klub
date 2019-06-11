@@ -21,11 +21,11 @@
 from model_mommy.recipe import Recipe, seq
 
 
-userincampaign_recipe = Recipe(
-    "aklub.UserInCampaign",
-    campaign__name="Foo campaign",
+donor_payment_channel_recipe = Recipe(
+    "aklub.DonorPaymentChannel",
+    event__name="Foo campaign",
     userprofile__is_active=True,
     userprofile__username=seq("username"),
     userprofile__email=seq("test@email.cz"),
-    variable_symbol=seq(1),
+    VS=seq(1),
 )
