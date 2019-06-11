@@ -254,7 +254,7 @@
             "regular_amount": 100,
             "regular_frequency": "monthly",
             "regular_payments": "regular",
-            "event": [2],
+            "event": 2,
             "VS": "120127010"
         },
         "model": "aklub.donorpaymentchannel",
@@ -296,7 +296,7 @@
             "regular_amount": 100,
             "regular_frequency": null,
             "regular_payments": "regular",
-            "event": [2],
+            "event": 2,
             "VS": ""
         },
         "model": "aklub.donorpaymentchannel",
@@ -309,7 +309,7 @@
             "regular_amount": 100,
             "regular_frequency": null,
             "regular_payments": "promise",
-            "event": [2],
+            "event": 2,
             "VS": "121212"
         },
         "model": "aklub.donorpaymentchannel",

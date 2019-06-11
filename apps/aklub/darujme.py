@@ -7,8 +7,10 @@ import xml
 from collections import OrderedDict
 from xml.dom import minidom
 
-from aklub.models import (AccountStatements, DonorPaymentChannel, Event, Payment, Telephone, UserProfile, str_to_datetime,
-                          str_to_datetime_xml)
+from aklub.models import (
+    AccountStatements, DonorPaymentChannel, Event, Payment, Telephone, UserProfile, str_to_datetime,
+    str_to_datetime_xml,
+)
 from aklub.views import generate_variable_symbol, get_unique_username
 
 import xlrd
@@ -225,8 +227,8 @@ def create_payment(data, payments, skipped_payments):  # noqa
         if 100000000 <= data['telefon'] <= 999999999:
             telephone, telephone_created = Telephone.objects.get_or_create(
                 telephone=data['telefon'],
-                user=userprofile
-                )
+                user=userprofile,
+            )
     except ValueError:
         log.info('%s is not valid phone number ' % data['telefon'])
 
