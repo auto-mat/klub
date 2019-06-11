@@ -2587,13 +2587,13 @@ class MassCommunication(models.Model):
         default=False,
     )
     send_to_users = models.ManyToManyField(
-        UserInCampaign,
+        UserProfile,
         verbose_name=_("send to users"),
         help_text=_(
             "All users who should receive the communication"),
         limit_choices_to={
-            'userprofile__is_active': 'True', 'wished_information': 'True',
-            'userprofile__send_mailing_lists': 'True',
+            'is_active': 'True', 'wished_information': 'True',
+            'send_mailing_lists': 'True',
         },
         blank=True,
     )
