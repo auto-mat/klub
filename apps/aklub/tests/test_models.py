@@ -27,7 +27,7 @@ from django.test import TestCase
 from freezegun import freeze_time
 
 from .utils import ICON_FALSE, ICON_UNKNOWN
-from ..models import Event, Interaction, Payment, UserInCampaign, UserProfile
+from ..models import DonorPaymentChannel, Event, Interaction, Payment, UserProfile
 
 
 @freeze_time("2016-5-1")
@@ -36,18 +36,18 @@ class ModelTests(TestCase):
 
     def setUp(self):
         call_command('denorm_init')
-        self.u = UserInCampaign.objects.get(pk=2979)
-        self.u1 = UserInCampaign.objects.get(pk=2978)
-        self.u2 = UserInCampaign.objects.get(pk=3)
+        self.u = DonorPaymentChannel.objects.get(pk=2979)
+        self.u1 = DonorPaymentChannel.objects.get(pk=2978)
+        self.u2 = DonorPaymentChannel.objects.get(pk=3)
         self.u2.save()
-        self.u4 = UserInCampaign.objects.get(pk=4)
+        self.u4 = DonorPaymentChannel.objects.get(pk=4)
         self.p = Payment.objects.get(pk=1)
         self.p1 = Payment.objects.get(pk=2)
         self.p2 = Payment.objects.get(pk=3)
         self.p1.BIC = 101
         self.p1.save()
         call_command('denorm_flush')
-        self.u1 = UserInCampaign.objects.get(pk=2978)
+        self.u1 = DonorPaymentChannel.objects.get(pk=2978)
 
     def test_user_model(self):
         self.assertEqual(self.u.is_direct_dialogue(), False)

@@ -638,6 +638,9 @@ class UserProfile(AbstractUser):
         else:
             return ""
 
+    def mail_communications_count(self):
+        return self.communications.filter(method="mail").count()
+
     def person_name(self):
         if self.first_name or self.last_name:
             return " ".join(
@@ -1060,182 +1063,8 @@ class UserInCampaign(models.Model):
         else:
             return False
 
-    @denormalized(models.IntegerField, null=True)
-    @depend_on_related('Payment', foreign_key="user")
-    def number_of_payments(self):
-        """Return number of payments made by this user
-        """
-        return self.payment_set.aggregate(count=Count('amount'))['count']
-
-    number_of_payments.short_description = _("# payments")
-    number_of_payments.admin_order_field = 'payments_number'
-
-    def last_payment_function(self):
-        """Return last payment"""
-        return self.payment_set.order_by('date').last()
-
-    @denormalized(
-        models.ForeignKey,
-        to='Payment',
-        default=None,
-        null=True,
-        related_name="user_last_payment",
-        on_delete=models.SET_NULL,
-    )
-    def last_payment(self):
-        """Return last payment"""
-        return self.last_payment_function()
-
-    def last_payment_date(self):
-        """Return date of last payment or None
-        """
-        last_payment = self.last_payment
-        if last_payment:
-            return last_payment.date
-        else:
-            return None
-
-    last_payment_date.short_description = _("Last payment")
-    last_payment_date.admin_order_field = 'last_payment__date'
-
-    def last_payment_type(self):
-        """Return date of last payment or None
-        """
-        last_payment = self.last_payment
-        if last_payment:
-            return last_payment.type
-        else:
-            return None
-
-    last_payment_type.short_description = _("Last payment type")
-    last_payment_type.admin_order_field = 'last_payment__type'
-
-    def regular_frequency_td(self):
-        """Return regular frequency as timedelta"""
-        interval_in_days = {
-            'monthly': 31,
-            'quaterly': 92,
-            'biannually': 183,
-            'annually': 366,
-        }
-        try:
-            return datetime.timedelta(days=interval_in_days[self.regular_frequency])
-        except KeyError:
-            return None
-
-    @denormalized(models.DateField, null=True)
-    @depend_on_related('Payment', foreign_key="user")
-    def expected_regular_payment_date(self):
-        last_payment = self.last_payment_function()
-        if last_payment:
-            last_payment_date = last_payment.date
-        else:
-            last_payment_date = None
-        if self.regular_payments != "regular":
-            return None
-        if last_payment_date:
-            # Exactly a month after last payment or whatever
-            # expectation record for the given user is set to
-            freq = self.regular_frequency_td()
-            if not freq:
-                return None
-            expected = last_payment_date + freq
-            if self.expected_date_of_first_payment:
-                expected = max(expected, self.expected_date_of_first_payment)
-        elif self.expected_date_of_first_payment:
-            # Expected date + 3 days tolerance on user side
-            expected = self.expected_date_of_first_payment + datetime.timedelta(days=3)
-        else:
-            # Registration + month (always, even for quaterly and annual payments)
-            expected = self.registered_support.date() + datetime.timedelta(days=31)
-        return expected
-
-    def regular_payments_delay(self):
-        """Check if his payments are OK
-
-        Return True if so, otherwise return the delay in payment as dattime.timedelta
-        """
-        expected_regular_payment_date = self.expected_regular_payment_date
-        if self.regular_payments == "regular" and expected_regular_payment_date:
-            # Check for regular payments
-            # (Allow 7 days for payment processing)
-            if expected_regular_payment_date:
-                expected_with_tolerance = expected_regular_payment_date + datetime.timedelta(days=10)
-                if (expected_with_tolerance < datetime.date.today()):
-                    return datetime.date.today() - expected_with_tolerance
-        return False
-
-    @denormalized(models.IntegerField, null=True)
-    @depend_on_related('Payment', foreign_key="user")
-    def extra_money(self):
-        """Check if we didn't receive more money than expected in the last payment period"""
-        if self.regular_payments == "regular":
-            freq = self.regular_frequency_td()
-            if not freq:
-                return None
-            payments = self.payment_set.filter(
-                date__gt=datetime.date.today() - freq + datetime.timedelta(days=3),
-            )
-            total = payments.aggregate(total=Sum('amount'))['total'] or 0
-            if self.regular_amount and total > self.regular_amount:
-                return total - self.regular_amount
-        return None
-
-    def regular_payments_info(self):
-        if self.regular_payments == "onetime":
-            return _boolean_icon(False)
-        if self.regular_payments == "promise":
-            return _boolean_icon(None)
-        return self.expected_regular_payment_date
-
-    regular_payments_info.allow_tags = True
-    regular_payments_info.short_description = _(u"Expected payment")
-    regular_payments_info.admin_order_field = 'expected_regular_payment_date'
-
-    def payment_delay(self):
-        if self.regular_payments_delay():
-            return timesince(self.expected_regular_payment_date)
-        else:
-            return _boolean_icon(False)
-
-    payment_delay.allow_tags = True
-    payment_delay.short_description = _(u"Payment delay")
-    payment_delay.admin_order_field = 'expected_regular_payment_date'
-
-    def extra_payments(self):
-        if self.extra_money:
-            return "%s&nbsp;Kč" % self.extra_money
-        else:
-            return _boolean_icon(False)
-
-    extra_payments.allow_tags = True
-    extra_payments.short_description = _(u"Extra money")
-    extra_payments.admin_order_field = 'extra_money'
-
     def mail_communications_count(self):
         return self.communications.filter(method="mail").count()
-
-    @denormalized(models.FloatField, null=True)
-    @depend_on_related('Payment', foreign_key="user")
-    def payment_total(self):
-        return self.payment_set.aggregate(sum=Sum('amount'))['sum'] or 0
-
-    def total_contrib_string(self):
-        """Return the sum of all money received from this user
-        """
-        return mark_safe(u"%s&nbsp;Kč" % intcomma(int(self.payment_total)))
-
-    total_contrib_string.short_description = _("Total")
-    total_contrib_string.admin_order_field = 'payment_total'
-
-    def registered_support_date(self):
-        return self.registered_support.strftime('%d. %m. %Y')
-
-    registered_support_date.short_description = _("Registration")
-    registered_support_date.admin_order_field = 'registered_support'
-
-    def payment_total_range(self, from_date, to_date):
-        return self.payment_set.filter(date__gte=from_date, date__lte=to_date).aggregate(sum=Sum('amount'))['sum'] or 0
 
     def save(self, *args, **kwargs):
         """Record save hook
@@ -1244,6 +1073,7 @@ class UserInCampaign(models.Model):
         user was changed, a new communication might arrise from this
         situation. See module 'autocom'.
         """
+        raise NotImplementedError("UserInCampaign was deprecated")
         if self.pk is None:
             insert = True
         else:
@@ -1256,48 +1086,6 @@ class UserInCampaign(models.Model):
         super().save(*args, **kwargs)
         from .autocom import check as autocom_check
         autocom_check(users=UserInCampaign.objects.filter(pk=self.pk), action=(insert and 'new-user' or None))
-
-    @denormalized(models.NullBooleanField, null=True)
-    @depend_on_related('Payment', foreign_key="user")
-    def no_upgrade(self):
-        """Check for users without upgrade to payments
-
-        Returns true if:
-        1. user is regular at least for the last year
-        2. user didn't increase the amount of his payments during last year
-
-        This really only makes sense for monthly payments.
-        """
-        if self.regular_payments != "regular":
-            return False
-        payment_now = self.last_payment_function()
-        if ((not payment_now) or (payment_now.date < (datetime.date.today() - datetime.timedelta(days=45)))):
-            return False
-        payments_year_before = Payment.objects.filter(
-            user=self,
-            date__lt=datetime.datetime.now() - datetime.timedelta(days=365),
-        ).order_by('-date')
-        if (len(payments_year_before) == 0):
-            return False
-        if (payment_now.amount == payments_year_before[0].amount):
-            return True
-        else:
-            return False
-
-    def yearly_regular_amount(self):
-        times = {
-            'monthly': 12,
-            'quaterly': 4,
-            'biannually': 2,
-            'annually': 1,
-        }
-        if self.regular_frequency and self.regular_amount:
-            return self.regular_amount * times[self.regular_frequency]
-        else:
-            return 0
-
-    def monthly_regular_amount(self):
-        return float(self.yearly_regular_amount()) / 12.0
 
 
 def filter_by_condition(queryset, cond):
@@ -1636,6 +1424,227 @@ class DonorPaymentChannel(models.Model):
             if qs.filter(VS=self.VS).exists():
                 raise ValidationError("Duplicate VS")
 
+    @denormalized(models.IntegerField, null=True)
+    @depend_on_related('Payment', foreign_key="user_donor_payment_channel")
+    def number_of_payments(self):
+        """Return number of payments made by this user
+        """
+        return self.payment_set.aggregate(count=Count('amount'))['count']
+
+    number_of_payments.short_description = _("# payments")
+    number_of_payments.admin_order_field = 'payments_number'
+
+    def last_payment_function(self):
+        """Return last payment"""
+        return self.payment_set.order_by('date').last()
+
+    @denormalized(
+        models.ForeignKey,
+        to='Payment',
+        default=None,
+        null=True,
+        related_name="user_last_payment",
+        on_delete=models.SET_NULL,
+    )
+    def last_payment(self):
+        """Return last payment"""
+        return self.last_payment_function()
+
+    def last_payment_date(self):
+        """Return date of last payment or None
+        """
+        last_payment = self.last_payment
+        if last_payment:
+            return last_payment.date
+        else:
+            return None
+
+    last_payment_date.short_description = _("Last payment")
+    last_payment_date.admin_order_field = 'last_payment__date'
+
+    def registered_support_date(self):
+        return self.registered_support.strftime('%d. %m. %Y')
+
+    registered_support_date.short_description = _("Registration")
+    registered_support_date.admin_order_field = 'registered_support'
+
+    def payment_total_range(self, from_date, to_date):
+        return self.payment_set.filter(date__gte=from_date, date__lte=to_date).aggregate(sum=Sum('amount'))['sum'] or 0
+
+    def last_payment_type(self):
+        """Return date of last payment or None
+        """
+        last_payment = self.last_payment
+        if last_payment:
+            return last_payment.type
+        else:
+            return None
+
+    last_payment_type.short_description = _("Last payment type")
+    last_payment_type.admin_order_field = 'last_payment__type'
+
+    def regular_frequency_td(self):
+        """Return regular frequency as timedelta"""
+        interval_in_days = {
+            'monthly': 31,
+            'quaterly': 92,
+            'biannually': 183,
+            'annually': 366,
+        }
+        try:
+            return datetime.timedelta(days=interval_in_days[self.regular_frequency])
+        except KeyError:
+            return None
+
+    @denormalized(models.DateField, null=True)
+    @depend_on_related('Payment', foreign_key="user_donor_payment_channel")
+    def expected_regular_payment_date(self):
+        last_payment = self.last_payment_function()
+        last_payment_date = last_payment.date if last_payment else None
+        if self.regular_payments != "regular":
+            return None
+        if last_payment_date:
+            # Exactly a month after last payment or whatever
+            # expectation record for the given user is set to
+            freq = self.regular_frequency_td()
+            if not freq:
+                return None
+            expected = last_payment_date + freq
+            if self.expected_date_of_first_payment:
+                expected = max(expected, self.expected_date_of_first_payment)
+        elif self.expected_date_of_first_payment:
+            # Expected date + 3 days tolerance on user side
+            expected = self.expected_date_of_first_payment + datetime.timedelta(days=3)
+        else:
+            # Registration + month (always, even for quaterly and annual payments)
+            expected = self.registered_support.date() + datetime.timedelta(days=31)
+        return expected
+
+    @denormalized(models.FloatField, null=True)
+    @depend_on_related('Payment', foreign_key="user_donor_payment_channel")
+    def payment_total(self):
+        return self.payment_set.aggregate(sum=Sum('amount'))['sum'] or 0
+
+    def total_contrib_string(self):
+        """Return the sum of all money received from this user
+        """
+        return mark_safe(u"%s&nbsp;Kč" % intcomma(int(self.payment_total)))
+
+    total_contrib_string.short_description = _("Total")
+    total_contrib_string.admin_order_field = 'payment_total'
+
+    def regular_payments_delay(self):
+        """Check if his payments are OK
+
+        Return True if so, otherwise return the delay in payment as dattime.timedelta
+        """
+        expected_regular_payment_date = self.expected_regular_payment_date
+        if self.regular_payments == "regular" and expected_regular_payment_date:
+            # Check for regular payments
+            # (Allow 7 days for payment processing)
+            if expected_regular_payment_date:
+                expected_with_tolerance = expected_regular_payment_date + datetime.timedelta(days=10)
+                if (expected_with_tolerance < datetime.date.today()):
+                    return datetime.date.today() - expected_with_tolerance
+        return False
+
+    @denormalized(models.IntegerField, null=True)
+    @depend_on_related('Payment', foreign_key="user_donor_payment_channel")
+    def extra_money(self):
+        """Check if we didn't receive more money than expected in the last payment period"""
+        if self.regular_payments == "regular":
+            freq = self.regular_frequency_td()
+            if not freq:
+                return None
+            payments = self.payment_set.filter(
+                date__gt=datetime.date.today() - freq + datetime.timedelta(days=3),
+            )
+            total = payments.aggregate(total=Sum('amount'))['total'] or 0
+            if self.regular_amount and total > self.regular_amount:
+                return total - self.regular_amount
+        return None
+
+    def regular_payments_info(self):
+        if self.regular_payments == "onetime":
+            return _boolean_icon(False)
+        if self.regular_payments == "promise":
+            return _boolean_icon(None)
+        return self.expected_regular_payment_date
+
+    regular_payments_info.allow_tags = True
+    regular_payments_info.short_description = _(u"Expected payment")
+    regular_payments_info.admin_order_field = 'expected_regular_payment_date'
+
+    def payment_delay(self):
+        if self.regular_payments_delay():
+            return timesince(self.expected_regular_payment_date)
+        else:
+            return _boolean_icon(False)
+
+    payment_delay.allow_tags = True
+    payment_delay.short_description = _(u"Payment delay")
+    payment_delay.admin_order_field = 'expected_regular_payment_date'
+
+    def extra_payments(self):
+        if self.extra_money:
+            return "%s&nbsp;Kč" % self.extra_money
+        else:
+            return _boolean_icon(False)
+
+    extra_payments.allow_tags = True
+    extra_payments.short_description = _(u"Extra money")
+    extra_payments.admin_order_field = 'extra_money'
+
+    @denormalized(models.NullBooleanField, null=True)
+    @depend_on_related('Payment', foreign_key="user_donor_payment_channel")
+    def no_upgrade(self):
+        """Check for users without upgrade to payments
+
+        Returns true if:
+        1. user is regular at least for the last year
+        2. user didn't increase the amount of his payments during last year
+
+        This really only makes sense for monthly payments.
+        """
+        if self.regular_payments != "regular":
+            return False
+        payment_now = self.last_payment_function()
+        if ((not payment_now) or (payment_now.date < (datetime.date.today() - datetime.timedelta(days=45)))):
+            return False
+        payments_year_before = Payment.objects.filter(
+            user=self,
+            date__lt=datetime.datetime.now() - datetime.timedelta(days=365),
+        ).order_by('-date')
+        if (len(payments_year_before) == 0):
+            return False
+        if (payment_now.amount == payments_year_before[0].amount):
+            return True
+        else:
+            return False
+
+    def yearly_regular_amount(self):
+        times = {
+            'monthly': 12,
+            'quaterly': 4,
+            'biannually': 2,
+            'annually': 1,
+        }
+        if self.regular_frequency and self.regular_amount:
+            return self.regular_amount * times[self.regular_frequency]
+        else:
+            return 0
+
+    def person_name(self):
+        try:
+            return self.user.__str__()
+        except UserProfile.DoesNotExist:  # This happens, when UserInCampaign is cached, but it is deleted already
+            return "No UserProfile"
+
+    person_name.short_description = _("Full name")
+
+    def monthly_regular_amount(self):
+        return float(self.yearly_regular_amount()) / 12.0
+
     def clean(self, *args, **kwargs):
         self.check_duplicate()
         super().clean(*args, **kwargs)
@@ -1804,7 +1813,6 @@ class Payment(models.Model):
         blank=True,
         null=True,
         on_delete=models.CASCADE,
-        related_name='paymentchannels',
     )
     # Origin of payment from bank account statement
     account_statement = models.ForeignKey(
@@ -1858,7 +1866,7 @@ class Payment(models.Model):
             # intervals anyway)
             from .autocom import check as autocom_check
             autocom_check(
-                users=UserInCampaign.objects.filter(pk=self.user.pk),
+                payment_channels=DonorPaymentChannel.objects.filter(pk=self.user.pk),
                 action=(insert and 'new-payment' or None),
                 )
 

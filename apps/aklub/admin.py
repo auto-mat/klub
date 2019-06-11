@@ -545,17 +545,17 @@ class UserInCampaignAdmin(ImportExportMixin, AdminAdvancedFiltersMixin, RelatedF
         'source',
         'campaign',
         'variable_symbol',
-        'registered_support_date',
-        'regular_payments_info',
-        'payment_delay',
-        'extra_payments',
-        'number_of_payments',
-        'total_contrib_string',
+        # 'registered_support_date',
+        # 'regular_payments_info',
+        # 'payment_delay',
+        # 'extra_payments',
+        # 'number_of_payments',
+        # 'total_contrib_string',
         'regular_amount',
         'next_communication_date',
         'next_communication_method',
         'userprofile__is_active',
-        'last_payment_date',
+        # 'last_payment_date',
         'email_confirmed',
     )
     advanced_filter_fields = (
@@ -686,10 +686,16 @@ class UserInCampaignAdmin(ImportExportMixin, AdminAdvancedFiltersMixin, RelatedF
 
 
 class UserYearPaymentsAdmin(UserInCampaignAdmin):
-    list_display = ('person_name', 'userprofile__email', 'source',
-                    'variable_symbol', 'registered_support_date',
-                    'payment_total_by_year',
-                    'userprofile__is_active', 'last_payment_date')
+    list_display = (
+        'person_name',
+        'userprofile__email',
+        'source',
+        'variable_symbol',
+        # 'registered_support_date',
+        'payment_total_by_year',
+        'userprofile__is_active',
+        # 'last_payment_date',
+    )
     list_filter = [
         ('payment__date', DateRangeFilter), 'regular_payments', 'userprofile__language', 'userprofile__is_active',
         'wished_information', 'old_account', 'source',
