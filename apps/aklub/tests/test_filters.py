@@ -25,7 +25,7 @@ from django.test import RequestFactory, TestCase
 from model_mommy import mommy
 
 from .. import admin, filters
-from ..models import Event, Payment, UserInCampaign, UserProfile
+from ..models import DonorPaymentChannel, Event, Payment, UserProfile
 
 
 class FilterTestCase(TestCase):
@@ -107,12 +107,12 @@ class FixtureFilterTests(FilterTestCase):
 
     def test_user_condition_filter(self):
         f = filters.UserConditionFilter(self.request, {"user_condition": 2}, UserProfile, None)
-        q = f.queryset(self.request, UserInCampaign.objects.all())
+        q = f.queryset(self.request, DonorPaymentChannel.objects.all())
         self.assertEqual(q.count(), 4)
 
     def test_user_condition_filter_without_query(self):
         f = filters.UserConditionFilter(self.request, {}, UserProfile, None)
-        q = f.queryset(self.request, UserInCampaign.objects.all())
+        q = f.queryset(self.request, DonorPaymentChannel.objects.all())
         self.assertEqual(q.count(), 4)
 
     def test_active_camaign_filter_no(self):
@@ -132,7 +132,7 @@ class FixtureFilterTests(FilterTestCase):
 
     def test_show_payments_by_year_blank(self):
         m = MagicMock()
-        admin.show_payments_by_year(m, self.request, UserInCampaign.objects.all())
+        admin.show_payments_by_year(m, self.request, DonorPaymentChannel.objects.all())
         m.message_user.assert_called_once_with(self.request, '2016: 480<br/>TOT.: 480')
 
     def test_email_filter(self):

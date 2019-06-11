@@ -174,7 +174,7 @@ class ExpenseInline(admin.TabularInline):
 
 
 def show_payments_by_year(self, request, queryset):
-    payments = Payment.objects.filter(user__in=queryset)
+    payments = Payment.objects.filter(user_donor_payment_channel__in=queryset)
     payment_dates = payments.dates('date', 'year')
     amount_string = [
         "%s: %s" % (
