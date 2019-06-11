@@ -591,4 +591,4 @@ class VariableSymbolTests(TestCase):
             for i in range(1, 400):
                 vs = views.generate_variable_symbol(99)
                 userprofile = UserProfile.objects.create(username=vs, email="test%s@test.cz" % i)
-                UserInCampaign.objects.create(variable_symbol=vs, campaign_id=1, userprofile=userprofile)
+                DonorPaymentChannel.objects.create(VS=vs, event_id=1, user=userprofile)
