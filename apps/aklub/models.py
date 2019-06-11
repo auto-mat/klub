@@ -672,7 +672,7 @@ class UserProfile(AbstractUser):
     userattendance_links.short_description = _('Users in campaign')
 
     def make_tax_confirmation(self, year):
-        payment_set = Payment.objects.filter(user__userprofile=self)
+        payment_set = Payment.objects.filter(user_donor_payment_channel__user=self)
         amount = payment_set.exclude(type='expected').filter(date__year=year).aggregate(Sum('amount'))['amount__sum']
         if not amount:
             return None, False

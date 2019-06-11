@@ -76,7 +76,7 @@ class ModelTests(TestCase):
         self.assertEqual(self.u1.extra_money, None)
         self.assertEqual(self.u1.regular_payments_info(), datetime.date(2016, 4, 9))
         self.assertEqual(self.u1.extra_payments(), ICON_FALSE)
-        self.assertEqual(self.u1.mail_communications_count(), False)
+        self.assertEqual(self.u1.user.mail_communications_count(), False)
         self.assertEqual(self.u1.payment_delay(), '3\xa0týdny, 1\xa0den')
         self.assertEqual(self.u1.payment_total, 350.0)
         self.assertEqual(self.u1.total_contrib_string(), "350&nbsp;Kč")
