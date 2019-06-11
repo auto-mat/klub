@@ -34,73 +34,73 @@ class TestNoUpgrade(TestCase):
     """ Test TerminalCondition.no_upgrade() """
 
     def setUp(self):
-        self.userincampaign = Recipe(
-            "aklub.UserInCampaign",
+        self.donor_payment_channel = Recipe(
+            "aklub.DonorPaymentChannel",
             campaign__name="Foo campaign",
-            userprofile__first_name="Foo userprofile",
+            user__first_name="Foo user",
         )
 
     def test_not_regular(self):
-        """ Test UserInCampaign with regular_payments=False returns False """
-        user_in_campaign = self.userincampaign.make(
+        """ Test DonorPaymentChannel with regular_payments=False returns False """
+        donor_payment_channel = self.donor_payment_channel.make(
             regular_payments="onetime",
         )
         self.assertEqual(
-            user_in_campaign.no_upgrade,
+            donor_payment_channel.no_upgrade,
             False,
         )
 
     def test_not_regular_for_one_year(self):
-        """ Test UserInCampaign that is not regular for at leas one year """
-        user_in_campaign = self.userincampaign.make(
+        """ Test DonorPaymentChannel that is not regular for at leas one year """
+        donor_payment_channel = self.donor_payment_channel.make(
             regular_payments="regular",
         )
         self.assertEqual(
-            user_in_campaign.no_upgrade,
+            donor_payment_channel.no_upgrade,
             False,
         )
 
     def test_no_last_year_payments(self):
-        """ Test UserInCampaign that has zero payments from last year """
-        user_in_campaign = self.userincampaign.make(
+        """ Test DonorPaymentChannel that has zero payments from last year """
+        donor_payment_channel = self.donor_payment_channel.make(
             regular_payments="regular",
             payment_set=[
                 mommy.make("Payment", date=datetime.date(year=2010, month=4, day=1)),
             ],
         )
-        user_in_campaign.save()
+        donor_payment_channel.save()
         self.assertEqual(
-            user_in_campaign.no_upgrade,
+            donor_payment_channel.no_upgrade,
             False,
         )
 
     def test_missing_payments(self):
-        """ Test UserInCampaign that has different amount on payments before one year """
-        user_in_campaign = self.userincampaign.make(
+        """ Test DonorPaymentChannel that has different amount on payments before one year """
+        donor_payment_channel = self.donor_payment_channel.make(
             regular_payments="regular",
             payment_set=[
                 mommy.make("Payment", date=datetime.date(year=2010, month=4, day=1), amount=100),
                 mommy.make("Payment", date=datetime.date(year=2009, month=3, day=1), amount=200),
             ],
         )
-        user_in_campaign.save()
+        donor_payment_channel.save()
         self.assertEqual(
-            user_in_campaign.no_upgrade,
+            donor_payment_channel.no_upgrade,
             False,
         )
 
     def test_regular(self):
-        """ Test UserInCampaign that has regular payments """
-        user_in_campaign = self.userincampaign.make(
+        """ Test DonorPaymentChannel that has regular payments """
+        donor_payment_channel = self.donor_payment_channel.make(
             regular_payments="regular",
             payment_set=[
                 mommy.make("Payment", date=datetime.date(year=2010, month=4, day=1), amount=100),
                 mommy.make("Payment", date=datetime.date(year=2009, month=3, day=1), amount=100),
             ],
         )
-        user_in_campaign.save()
+        donor_payment_channel.save()
         self.assertEqual(
-            user_in_campaign.no_upgrade,
+            donor_payment_channel.no_upgrade,
             True,
         )
 
@@ -110,15 +110,15 @@ class TestExtraMoney(TestCase):
     """ Test TerminalCondition.extra_money() """
 
     def setUp(self):
-        self.userincampaign = Recipe(
-            "aklub.UserInCampaign",
+        self.donor_payment_channel = Recipe(
+            "aklub.DonorPaymentChannel",
             campaign__name="Foo campaign",
-            userprofile__first_name="Foo userprofile",
+            user__first_name="Foo user",
         )
 
     def test_extra_payment(self):
-        """ Test UserInCampaign with extra payment """
-        user_in_campaign = self.userincampaign.make(
+        """ Test DonorPaymentChannel with extra payment """
+        donor_payment_channel = self.donor_payment_channel.make(
             regular_amount=100,
             regular_payments="regular",
             regular_frequency="monthly",
@@ -126,13 +126,13 @@ class TestExtraMoney(TestCase):
                 mommy.make("Payment", date=datetime.date(year=2016, month=5, day=5), amount=250),
             ],
         )
-        user_in_campaign.save()
-        self.assertEqual(user_in_campaign.extra_money, 150)
-        self.assertEqual(user_in_campaign.extra_payments(), "150&nbsp;Kč")
+        donor_payment_channel.save()
+        self.assertEqual(donor_payment_channel.extra_money, 150)
+        self.assertEqual(donor_payment_channel.extra_payments(), "150&nbsp;Kč")
 
     def test_payment_too_old(self):
         """ Test that if the payment is older than 27 days, it is not counted in  """
-        user_in_campaign = self.userincampaign.make(
+        donor_payment_channel = self.donor_payment_channel.make(
             regular_amount=100,
             regular_payments="regular",
             regular_frequency="monthly",
@@ -140,55 +140,56 @@ class TestExtraMoney(TestCase):
                 mommy.make("Payment", date=datetime.date(year=2016, month=5, day=4), amount=250),
             ],
         )
-        user_in_campaign.save()
-        self.assertEqual(user_in_campaign.extra_money, None)
-        self.assertEqual(user_in_campaign.extra_payments(), ICON_FALSE)
+        donor_payment_channel.save()
+        self.assertEqual(donor_payment_channel.extra_money, None)
+        self.assertEqual(donor_payment_channel.extra_payments(), ICON_FALSE)
 
     def test_no_extra_payment(self):
-        """ Test UserInCampaign with extra payment """
-        user_in_campaign = self.userincampaign.make(
+        """ Test DonorPaymentChannel with extra payment """
+        donor_payment_channel = self.donor_payment_channel.make(
             regular_amount=100,
             regular_payments="regular",
             regular_frequency="monthly",
         )
-        user_in_campaign.save()
-        self.assertEqual(user_in_campaign.extra_money, None)
-        self.assertEqual(user_in_campaign.extra_payments(), ICON_FALSE)
+        donor_payment_channel.save()
+        self.assertEqual(donor_payment_channel.extra_money, None)
+        self.assertEqual(donor_payment_channel.extra_payments(), ICON_FALSE)
 
     def test_no_frequency(self):
-        """ Test UserInCampaign with no regular frequency """
-        user_in_campaign = self.userincampaign.make(
+        """ Test DonorPaymentChannel with no regular frequency """
+        donor_payment_channel = self.donor_payment_channel.make(
             regular_amount=100,
             regular_payments="regular",
             regular_frequency=None,
         )
-        user_in_campaign.save()
-        self.assertEqual(user_in_campaign.extra_money, None)
-        self.assertEqual(user_in_campaign.extra_payments(), ICON_FALSE)
+        donor_payment_channel.save()
+        self.assertEqual(donor_payment_channel.extra_money, None)
+        self.assertEqual(donor_payment_channel.extra_payments(), ICON_FALSE)
 
     def test_not_regular(self):
-        """ Test when UserInCampaign is not regular """
-        user_in_campaign = self.userincampaign.make(
+        """ Test when DonorPaymentChannel is not regular """
+        donor_payment_channel = self.donor_payment_channel.make(
             regular_payments="onetime",
         )
-        self.assertEqual(user_in_campaign.extra_money, None)
-        self.assertEqual(user_in_campaign.extra_payments(), ICON_FALSE)
+        self.assertEqual(donor_payment_channel.extra_money, None)
+        self.assertEqual(donor_payment_channel.extra_payments(), ICON_FALSE)
 
 
 class TestNameFunctions(TestCase):
-    """ Test UserInCampaign.person_name(), UserInCampaign.__str__() """
+    """ Test DonorPaymentChannel.person_name(), DonorPaymentChannel.__str__() """
 
     def setUp(self):
-        self.user_in_campaign = mommy.make(
-            "aklub.UserInCampaign",
-            campaign__name="Foo campaign",
-            userprofile__last_name="User 1",
-            userprofile__first_name="Test",
-            userprofile__email="test@test.com",
+        self.donor_payment_channel = mommy.make(
+            "aklub.DonorPaymentChannel",
+            event__name="Foo campaign",
+            user__last_name="User 1",
+            user__first_name="Test",
+            user__email="test@test.com",
+            VS=1234,
         )
 
     def test_user_person_name(self):
-        self.assertEqual(self.user_in_campaign.person_name(), 'User 1 Test')
+        self.assertEqual(self.donor_payment_channel.person_name(), 'User 1 Test')
 
     def test_str(self):
-        self.assertEqual(self.user_in_campaign.__str__(), 'User 1 Test - test@test.com (Foo campaign)')
+        self.assertEqual(self.donor_payment_channel.__str__(), 'Payment channel: test@test.com - 1234')

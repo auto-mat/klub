@@ -1480,7 +1480,10 @@ class DonorPaymentChannel(models.Model):
     )
 
     def __str__(self):
-        return "VS - {}".format(self.VS)
+        return "Payment channel: {} - {}".format(
+            self.user.email,
+            self.VS,
+        )
 
     def generate_VS(self):
         if self.VS == "" or self.VS is None:
@@ -1686,7 +1689,7 @@ class DonorPaymentChannel(models.Model):
         if ((not payment_now) or (payment_now.date < (datetime.date.today() - datetime.timedelta(days=45)))):
             return False
         payments_year_before = Payment.objects.filter(
-            user=self,
+            user_donor_payment_channel=self,
             date__lt=datetime.datetime.now() - datetime.timedelta(days=365),
         ).order_by('-date')
         if (len(payments_year_before) == 0):
