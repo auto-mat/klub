@@ -86,8 +86,8 @@ def gendrify_text(text, sex=''):
     return gender_text
 
 
-def process_template(template_string, user):
-    # from .models import UserInCampaign
+def process_template(template_string, user, payment_channel):
+    from .models import UserInCampaign
     from sesame import utils as sesame_utils
 
     template = string.Template(template_string)
@@ -104,10 +104,10 @@ def process_template(template_string, user):
         zipcode=user.zip_code,
         email=user.email,
         telephone=user.get_telephone(),
-        # regular_amount=user.regular_amount,
-        # regular_frequency=_localize_enum(UserInCampaign.REGULAR_PAYMENT_FREQUENCIES, user.regular_frequency, user.language),
-        # var_symbol=user.variable_symbol,
-        # last_payment_amount=user.last_payment and user.last_payment.amount or None,
+        regular_amount=payment_channel.regular_amount,
+        regular_frequency=_localize_enum(UserInCampaign.REGULAR_PAYMENT_FREQUENCIES, payment_channel.regular_frequency, user.language),
+        var_symbol=payment_channel.VS,
+        last_payment_amount=payment_channel.last_payment and payment_channel.last_payment.amount or None,
         auth_token=sesame_utils.get_query_string(user),
     )
 
@@ -143,7 +143,7 @@ def check(payment_channels=None, action=None):
                 logger.info(u"Added new automatic communication \"%s\" for user \"%s\", action \"%s\"" % (auto_comm, user, action))
                 c = Interaction(
                     user=user, method=auto_comm.method, date=datetime.datetime.now(),
-                    subject=subject, summary=process_template(template, user),
+                    subject=subject, summary=process_template(template, user, payment_channel),
                     note="Prepared by auto*mated mailer at %s" % datetime.datetime.now(),
                     send=auto_comm.dispatch_auto, type='auto',
                 )

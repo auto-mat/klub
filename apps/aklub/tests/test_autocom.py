@@ -24,14 +24,14 @@ from django.core.exceptions import ValidationError
 from django.test import TestCase
 
 from .. import autocom
-from ..models import AutomaticCommunication, Condition, Event, Interaction, TerminalCondition, UserInCampaign, UserProfile
+from ..models import AutomaticCommunication, Condition, DonorPaymentChannel, Event, Interaction, TerminalCondition, UserProfile
 
 
 class AutocomTest(TestCase):
     def setUp(self):
         self.userprofile = UserProfile.objects.create(sex='male')
-        self.campaign = Event.objects.create(created=datetime.date(2010, 10, 10))
-        self.userincampaign = UserInCampaign.objects.create(userprofile=self.userprofile, campaign=self.campaign)
+        self.event = Event.objects.create(created=datetime.date(2010, 10, 10))
+        self.payment_channel = DonorPaymentChannel.objects.create(user=self.userprofile, event=self.event)
         c = Condition.objects.create(operation="nor")
         TerminalCondition.objects.create(
             variable="action",
@@ -49,7 +49,7 @@ class AutocomTest(TestCase):
 
     def test_autocom(self):
         autocom.check(action="test-autocomm")
-        interaction = Interaction.objects.get(user=self.userincampaign)
+        interaction = Interaction.objects.get(user=self.userprofile)
         self.assertTrue("testovací šablona" in interaction.summary)
         self.assertTrue("příteli Auto*Matu" in interaction.summary)
         self.assertTrue("Vazeny pane" in interaction.summary)
@@ -58,7 +58,7 @@ class AutocomTest(TestCase):
         self.userprofile.sex = 'female'
         self.userprofile.save()
         autocom.check(action="test-autocomm")
-        interaction = Interaction.objects.get(user=self.userincampaign)
+        interaction = Interaction.objects.get(user=self.userprofile)
         self.assertIn("testovací šablona", interaction.summary)
         self.assertIn("přítelkyně Auto*Matu", interaction.summary)
         self.assertIn("Vazena pani", interaction.summary)
@@ -67,7 +67,7 @@ class AutocomTest(TestCase):
         self.userprofile.sex = 'unknown'
         self.userprofile.save()
         autocom.check(action="test-autocomm")
-        interaction = Interaction.objects.get(user=self.userincampaign)
+        interaction = Interaction.objects.get(user=self.userprofile)
         self.assertIn("testovací šablona", interaction.summary)
         self.assertIn("příteli/kyně Auto*Matu", interaction.summary)
         self.assertIn("Vazeny/a pane/pani", interaction.summary)
@@ -77,7 +77,7 @@ class AutocomTest(TestCase):
         self.userprofile.addressment = 'own addressment'
         self.userprofile.save()
         autocom.check(action="test-autocomm")
-        interaction = Interaction.objects.get(user=self.userincampaign)
+        interaction = Interaction.objects.get(user=self.userprofile)
         self.assertIn("testovací šablona", interaction.summary)
         self.assertIn("own addressment", interaction.summary)
         self.assertIn("Vazeny pane", interaction.summary)
@@ -87,7 +87,7 @@ class AutocomTest(TestCase):
         self.userprofile.language = 'en'
         self.userprofile.save()
         autocom.check(action="test-autocomm")
-        interaction = Interaction.objects.get(user=self.userincampaign)
+        interaction = Interaction.objects.get(user=self.userprofile)
         self.assertIn("test template", interaction.summary)
         self.assertIn("Auto*Mat friend", interaction.summary)
         self.assertIn("Dear sir", interaction.summary)
