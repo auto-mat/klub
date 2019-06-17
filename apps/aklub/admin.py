@@ -486,41 +486,41 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
             obj.generate_VS()
 
 
-class UserInCampaignResource(ModelResource):
-    userprofile_email = fields.Field(
-        column_name='userprofile_email',
-        attribute='userprofile',
+class DonorPaymentChannelResource(ModelResource):
+    user_email = fields.Field(
+        column_name='user_email',
+        attribute='user',
         widget=widgets.ForeignKeyWidget(UserProfile, 'email'),
     )
 
     class Meta:
-        model = UserInCampaign
+        model = DonorPaymentChannel
         fields = (
             'id',
             'campaign',
-            'userprofile',
-            'userprofile__title_before',
-            'userprofile__first_name',
-            'userprofile__last_name',
-            'userprofile__title_after',
-            'userprofile__sex',
+            'user',
+            'user__title_before',
+            'user__first_name',
+            'user__last_name',
+            'user__title_after',
+            'user__sex',
             # 'userprofile__telephone',
-            'userprofile_email',
-            'userprofile__street',
-            'userprofile__city',
-            'userprofile__zip_code',
+            'user_email',
+            'user__street',
+            'user__city',
+            'user__zip_code',
             'variable_symbol',
-            'userprofile__club_card_available',
+            'user__club_card_available',
             'wished_information',
             'regular_payments',
             'regular_frequency',
             'registered_support',
             'note',
             'additional_information',
-            'userprofile__is_active',
-            'userprofile__language',
-            'expected_regular_payment_date',
-            'expected_regular_payment_date',
+            'user__is_active',
+            'user__language',
+            # 'expected_regular_payment_date',
+            # 'expected_regular_payment_date',
             'extra_money',
             'number_of_payments',
             'payment_total',
@@ -528,7 +528,7 @@ class UserInCampaignResource(ModelResource):
             'last_payment_date',
         )
         export_order = fields
-        import_id_fields = ('userprofile_email', 'campaign')
+        import_id_fields = ('user_email', 'campaign')
 
     last_payment_date = fields.Field()
 
@@ -603,7 +603,7 @@ class DonorPaymethChannelAdmin(ImportExportMixin, AdminAdvancedFiltersMixin, Rel
         send_mass_communication_distinct_action,
         show_payments_by_year,
     )
-    resource_class = UserInCampaignResource
+    resource_class = DonorPaymentChannelResource
     save_as = True
     list_max_show_all = 10000
     list_per_page = 100
@@ -627,8 +627,10 @@ class DonorPaymethChannelAdmin(ImportExportMixin, AdminAdvancedFiltersMixin, Rel
         }),
         (_('Additional'), {
             'fields': [
-                'knows_us_from', 'why_supports',
-                'field_of_work', 'additional_information',
+                # 'knows_us_from',
+                # 'why_supports',
+                # 'field_of_work',
+                # 'additional_information',
             ],
             'classes': ['collapse'],
         }),
@@ -647,11 +649,11 @@ class DonorPaymethChannelAdmin(ImportExportMixin, AdminAdvancedFiltersMixin, Rel
         (_('Communications'), {
             'fields': [
                 # 'wished_information',
-                'wished_tax_confirmation',
-                'wished_welcome_letter',
+                # 'wished_tax_confirmation',
+                # 'wished_welcome_letter',
                 # 'email_confirmed',
-                'public',
-                'gdpr_consent',
+                # 'public',
+                # 'gdpr_consent',
                 (
                     # 'next_communication_date',
                     # 'next_communication_method',
@@ -661,11 +663,11 @@ class DonorPaymethChannelAdmin(ImportExportMixin, AdminAdvancedFiltersMixin, Rel
         }),
         (_('Notes'), {
             'fields': [
-                'note',
+                # 'note',
                 # 'source',
-                'verified',
-                'verified_by',
-                'activity_points',
+                # 'verified',
+                # 'verified_by',
+                # 'activity_points',
                 # 'recruiter',
             ],
             'classes': ['collapse'],
@@ -693,10 +695,10 @@ class DonorPaymethChannelAdmin(ImportExportMixin, AdminAdvancedFiltersMixin, Rel
             instance.save()
         formset.save_m2m()
 
-    def save_model(self, request, obj, form, change):
-        if obj.verified and not obj.verified_by:
-            obj.verified_by = request.user
-        obj.save()
+    # def save_model(self, request, obj, form, change):
+    #     if obj.verified and not obj.verified_by:
+    #         obj.verified_by = request.user
+    #     obj.save()
 
 
 class UserYearPaymentsAdmin(DonorPaymethChannelAdmin):

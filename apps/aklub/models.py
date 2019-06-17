@@ -2592,7 +2592,8 @@ class MassCommunication(models.Model):
         help_text=_(
             "All users who should receive the communication"),
         limit_choices_to={
-            'is_active': 'True', 'wished_information': 'True',
+            'is_active': 'True',
+            # 'wished_information': 'True',
             'send_mailing_lists': 'True',
         },
         blank=True,
