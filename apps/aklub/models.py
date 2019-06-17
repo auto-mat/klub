@@ -1719,7 +1719,7 @@ class UserYearPayments(DonorPaymentChannel):
 
 class NewUserManager(models.Manager):
     def get_queryset(self):
-        return super(NewUserManager, self).get_queryset().filter(verified=False)
+        return super(NewUserManager, self).get_queryset().filter()
 
 
 class NewUser(DonorPaymentChannel):

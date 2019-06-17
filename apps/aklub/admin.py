@@ -839,7 +839,7 @@ class NewUserAdmin(DonorPaymethChannelAdmin):
         'regular_payments',
         'registered_support',
         # 'recruiter',
-        'userprofile__is_active',
+        'user__is_active',
     )
 
 
