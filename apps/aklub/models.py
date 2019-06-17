@@ -1092,27 +1092,6 @@ def filter_by_condition(queryset, cond):
     return queryset.filter(cond.get_query())
 
 
-class NewUserManager(models.Manager):
-    def get_queryset(self):
-        return super(NewUserManager, self).get_queryset().filter(verified=False)
-
-
-class NewUser(UserInCampaign):
-    objects = NewUserManager()
-
-    class Meta:
-        proxy = True
-        verbose_name = _("new user")
-        verbose_name_plural = _("new users")
-
-
-class UserYearPayments(UserInCampaign):
-    class Meta:
-        proxy = True
-        verbose_name = _("Payment for users in time period")
-        verbose_name_plural = _("Payments for users in time periods")
-
-
 def str_to_datetime(date):
     if not date:
         return None
@@ -1729,6 +1708,27 @@ class DonorPaymentChannel(models.Model):
     def save(self, *args, **kwargs):
         self.clean()
         super().save(*args, **kwargs)
+
+
+class UserYearPayments(DonorPaymentChannel):
+    class Meta:
+        proxy = True
+        verbose_name = _("Payment for users in time period")
+        verbose_name_plural = _("Payments for users in time periods")
+
+
+class NewUserManager(models.Manager):
+    def get_queryset(self):
+        return super(NewUserManager, self).get_queryset().filter(verified=False)
+
+
+class NewUser(DonorPaymentChannel):
+    objects = NewUserManager()
+
+    class Meta:
+        proxy = True
+        verbose_name = _("new user")
+        verbose_name_plural = _("new users")
 
 
 class Payment(models.Model):
