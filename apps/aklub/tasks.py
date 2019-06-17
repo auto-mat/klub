@@ -32,7 +32,7 @@ def post_office_send_mail():
 def generate_tax_confirmations():
     year = datetime.datetime.now().year - 1
     payed = models.Payment.objects.filter(date__year=year).exclude(type='expected')
-    donors = models.UserProfile.objects.filter(userincampaign__payment__in=payed).order_by('last_name')
+    donors = models.UserProfile.objects.filter(userchannels__payment__in=payed).order_by('last_name')
     confirmations = []
     for d in donors:
         confirmation, created = d.make_tax_confirmation(year)

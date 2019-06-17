@@ -111,8 +111,8 @@ class AdminTest(RunCommitHooksMixin, TestCase):
 
     @freeze_time("2017-5-1")
     def test_tax_confirmation_generate(self):
-        foo_user = donor_payment_channel_recipe.make(userprofile__first_name="Foo", userprofile__id=2978)
-        bar_user = donor_payment_channel_recipe.make(userprofile__first_name="Bar", userprofile__id=2979)
+        foo_user = donor_payment_channel_recipe.make(user__first_name="Foo", user__id=2978)
+        bar_user = donor_payment_channel_recipe.make(user__first_name="Bar", user__id=2979)
         mommy.make("aklub.Payment", amount=350, date="2016-01-02", user_donor_payment_channel=foo_user, type="cash")
         mommy.make("aklub.Payment", amount=130, date="2016-01-02", user_donor_payment_channel=bar_user, type="cash")
         model_admin = django_admin.site._registry[TaxConfirmation]
