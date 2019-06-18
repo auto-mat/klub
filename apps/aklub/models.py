@@ -998,11 +998,6 @@ class UserInCampaign(models.Model):
         verbose_name=_("Send regular news via email"),
         default=True,
     )
-    end_of_regular_payments = models.DateField(
-        verbose_name=_("End of regular payments (for payments by card)"),
-        blank=True,
-        null=True,
-    )
     next_communication_date = models.DateField(
         verbose_name=_("Date of next communication"),
         blank=True,
@@ -1455,6 +1450,11 @@ class DonorPaymentChannel(models.Model):
         verbose_name=("Event"),
         blank=True,
         on_delete=models.CASCADE,
+        null=True,
+    )
+    end_of_regular_payments = models.DateField(
+        verbose_name=_("End of regular payments (for payments by card)"),
+        blank=True,
         null=True,
     )
 

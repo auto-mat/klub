@@ -189,6 +189,8 @@ def create_payment(data, payments, skipped_payments):  # noqa
         log.info('Payment with type Darujme.cz and SS=%s already exists, skipping' % str(data['id']))
         return None
 
+    cetnost_konec = get_cetnost_konec(data)
+
     cetnost, regular_payments = get_cetnost_regular_payments(data)
 
     amount = max(data['obdrzena_castka'] or data['uvedena_castka'], 0)
@@ -240,6 +242,7 @@ def create_payment(data, payments, skipped_payments):  # noqa
             'regular_frequency': cetnost,
             'regular_payments': regular_payments,
             'regular_amount': amount if cetnost else None,
+            'end_of_regular_payments': cetnost_konec,
         },
     )
     if donorpaymentchannel_created:
