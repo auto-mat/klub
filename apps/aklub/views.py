@@ -549,18 +549,18 @@ def profiles(request):
     paying = request.GET.get('paying')
 
     users = (
-        UserInCampaign.objects.filter(registered_support__gte=from_date).order_by('-registered_support') |
-        UserInCampaign.objects.filter(id__in=(493, 89, 98, 921, 33, 886, 1181, 842, 954, 25))).\
-        exclude(userprofile__public=False, userprofile__profile_picture__isnull=False).\
-        order_by("-userprofile__last_name", "userprofile__first_name")
+        DonorPaymentChannel.objects.filter(registered_support__gte=from_date).order_by('-registered_support') |
+        DonorPaymentChannel.objects.filter(id__in=(493, 89, 98, 921, 33, 886, 1181, 842, 954, 25))).\
+        exclude(user__public=False, user__profile_picture__isnull=False).\
+        order_by("-user__last_name", "user__first_name")
 
     result = [
         {
-            'firstname': u.userprofile.public and u.userprofile.first_name or '',
-            'surname': u.userprofile.public and u.userprofile.last_name or '',
-            'text': u.userprofile.profile_text or '',
-            'picture': u.userprofile.profile_picture and u.userprofile.profile_picture.url or '',
-            'picture_thumbnail': u.userprofile.profile_picture and u.userprofile.profile_picture.thumbnail.url or '',
+            'firstname': u.user.public and u.user.first_name or '',
+            'surname': u.user.public and u.user.last_name or '',
+            'text': u.user.profile_text or '',
+            'picture': u.user.profile_picture and u.user.profile_picture.url or '',
+            'picture_thumbnail': u.user.profile_picture and u.user.profile_picture.thumbnail.url or '',
         } for u in users if ((not paying) or (u.payment_total > 0))
     ]
     return http.HttpResponse(json.dumps(result), content_type='application/json')
