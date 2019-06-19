@@ -102,8 +102,8 @@ class ViewsTests(ClearCacheMixin, TestCase):
         self.assertContains(
             response,
             '<div class="dashboard-module-content"> <p>Celkový počet položek: 2</p><ul class="stacked">'
-            '<li class="odd"><a href="/aklub/userincampaign/3/change/">Payments Without</a></li>'
-            '<li class="even"><a href="/aklub/userincampaign/2978/change/">User Test</a></li>'
+            '<li class="odd"><a href="/aklub/donorpaymentchannel/2978/change/">User Test</a></li>'
+            '<li class="even"><a href="/aklub/donorpaymentchannel/3/change/">Payments Without</a></li>'
             '</ul> </div>',
             html=True,
         )

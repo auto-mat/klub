@@ -45,7 +45,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from . import models
 from .dashboard_charts import YearDashboardCharts
-from .models import AccountStatements, Condition, MassCommunication, UserInCampaign
+from .models import AccountStatements, Condition, DonorPaymentChannel, MassCommunication
 
 cache = caches['default']
 
@@ -53,7 +53,7 @@ cache = caches['default']
 def get_users_by_condition_cached(cond):
     items = cache.get('condition_filter_%i' % cond.pk, None)
     if not items:
-        items = models.filter_by_condition(UserInCampaign.objects, cond)
+        items = models.filter_by_condition(DonorPaymentChannel.objects, cond)
         now = timezone.now()
         td = now.replace(hour=23, minute=59, second=59, microsecond=999) - now
         seconds_till_midnight = td.seconds + (td.days * 24 * 3600)
@@ -171,7 +171,7 @@ class AklubIndexDashboard(Dashboard):
                 children.append(
                     {
                         'title': member.person_name(),
-                        'url': reverse('admin:aklub_userincampaign_change', args=[member.id]),
+                        'url': reverse('admin:aklub_donorpaymentchannel_change', args=[member.id]),
                         'external': False,
                     }
                 )
