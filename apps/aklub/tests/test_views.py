@@ -262,7 +262,7 @@ class ViewsTests(ClearCacheMixin, TestCase):
 
         self.assertEqual(UserProfile.objects.get(email="test@test.cz").get_full_name(), "Testing User")
         self.assertEqual(UserProfile.objects.get(email="test@test.cz").username, "test4")
-        self.assertEqual(UserProfile.objects.get(email="test@test.cz").telephone, '111222333')
+        self.assertEqual(UserProfile.objects.get(email="test@test.cz").telephone_set.get().telephone, '111222333')
         new_channel = DonorPaymentChannel.objects.get(user__email="test@test.cz")
         self.assertEqual(new_channel.regular_amount, 321)
         self.assertEqual(new_channel.regular_payments, 'regular')

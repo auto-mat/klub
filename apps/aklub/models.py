@@ -1707,7 +1707,19 @@ class DonorPaymentChannel(models.Model):
 
     def save(self, *args, **kwargs):
         self.clean()
+
+        if self.pk is None:
+            insert = True
+        else:
+            insert = False
         super().save(*args, **kwargs)
+        if self.user:
+            # Evaluate autocom immediatelly only when the affected
+            # user is known, otherwise the bellow check would be too
+            # time-consuming (relying on Cron performing it in regular
+            # intervals anyway)
+            from .autocom import check as autocom_check
+            autocom_check(payment_channels=DonorPaymentChannel.objects.filter(pk=self.pk), action=(insert and 'new-user' or None))
 
 
 class UserYearPayments(DonorPaymentChannel):
