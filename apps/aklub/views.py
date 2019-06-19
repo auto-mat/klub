@@ -497,9 +497,9 @@ def donators(request):
 
 
 def stat_members(request):
-    members_by_months = UserInCampaign.objects\
-        .filter(userprofile__is_active=True)\
-        .annotate(month=TruncMonth('userprofile__date_joined'))\
+    members_by_months = DonorPaymentChannel.objects\
+        .filter(user__is_active=True)\
+        .annotate(month=TruncMonth('user__date_joined'))\
         .values('month')\
         .annotate(
             total=Count('id'),
@@ -516,7 +516,7 @@ def stat_members(request):
         'stat-members.html',
         {
             'members_by_months': members_by_months,
-            'total_members': UserInCampaign.objects.all().filter(userprofile__is_active=True).aggregate(Count('id'))['id__count'],
+            'total_members': DonorPaymentChannel.objects.all().filter(user__is_active=True).aggregate(Count('id'))['id__count'],
             'site_header': _("Member statistics"),
         },
     )
@@ -527,7 +527,7 @@ def stat_payments(request):
         .filter(~Q(type='expected'))\
         .annotate(month=TruncMonth('date'))\
         .values('month')\
-        .annotate(total=Sum('amount'), donors=Count('user'))\
+        .annotate(total=Sum('amount'), donors=Count('user_donor_payment_channel'))\
         .order_by('month')\
         .all()
     run_total = 0

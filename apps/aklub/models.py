@@ -192,22 +192,22 @@ class Event(models.Model):
     )
 
     def number_of_members(self):
-        return self.userincampaign_set.count()
+        return self.donorpaymentchannel_set.count()
 
     number_of_members.short_description = _("number of members")
 
     def number_of_regular_members(self):
-        return self.userincampaign_set.filter(regular_payments="regular", payment__amount__gt=0).distinct().count()
+        return self.donorpaymentchannel_set.filter(regular_payments="regular", payment__amount__gt=0).distinct().count()
 
     def number_of_onetime_members(self):
-        return self.userincampaign_set.exclude(regular_payments="regular")\
+        return self.donorpaymentchannel_set.exclude(regular_payments="regular")\
             .filter(payment__amount__gt=0).distinct().count()
 
     def number_of_active_members(self):
-        return self.userincampaign_set.filter(payment__amount__gt=0).distinct().count()
+        return self.donorpaymentchannel_set.filter(payment__amount__gt=0).distinct().count()
 
     def number_of_all_members(self):
-        return self.userincampaign_set.distinct().count()
+        return self.donorpaymentchannel_set.distinct().count()
 
     def number_of_confirmed_members(self):
         return self.userincampaign_set.filter(email_confirmed=True).distinct().count()
@@ -224,7 +224,7 @@ class Event(models.Model):
 
     def yield_total(self):
         if self.acquisition_campaign:
-            return UserInCampaign.objects.filter(campaign=self).aggregate(yield_total=Sum('payment__amount'))[
+            return DonorPaymentChannel.objects.filter(event=self).aggregate(yield_total=Sum('payment__amount'))[
                 'yield_total']
         else:
             return self.real_yield
@@ -233,7 +233,7 @@ class Event(models.Model):
 
     def expected_yearly_income(self):
         income = 0
-        for campaign_member in UserInCampaign.objects.filter(campaign=self, payment__amount__gt=0).distinct():
+        for campaign_member in DonorPaymentChannel.objects.filter(event=self, payment__amount__gt=0).distinct():
             # TODO: use aggregate to count this
             income += campaign_member.yearly_regular_amount()
         return income
