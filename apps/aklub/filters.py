@@ -35,7 +35,7 @@ class NullFieldFilter(SimpleListFilter):
 
 
 class PaymentsAssignmentsFilter(NullFieldFilter):
-    field = 'user'
+    field = 'user_donor_payment_channel'
     title = _("User assignment")
     parameter_name = 'user_assignment'
 
@@ -153,9 +153,9 @@ class TelephoneFilter(SimpleListFilter):
                 order_by().\
                 filter(id__count__gt=1).\
                 values_list('telephone', flat=True)
-            return queryset.filter(telephone__in=duplicates)
+            return queryset.filter(telephone__telephone__in=duplicates)
         if self.value() == 'blank':
-            return queryset.filter(Q(telephone__telephone__exact='') or Q(telephone__telephone__isnull=True))
+            return queryset.filter(Q(telephone__telephone__exact='') | Q(telephone__telephone__isnull=True) | Q(telephone__isnull=True))
         if self.value() == 'bad-format':
             return queryset.exclude(
                 telephone__telephone__iregex=r'^\+?([0-9] *){9,}$',

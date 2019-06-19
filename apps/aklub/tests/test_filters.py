@@ -47,15 +47,29 @@ class FilterTests(FilterTestCase):
         q = f.queryset(self.request, UserProfile.objects.all())
         self.assertQuerysetEqual(q, ["<UserProfile: Foo>"])
 
+    def test_telephone_filter_duplicate_blank(self):
+        f = filters.TelephoneFilter(self.request, {"telephone": "duplicate"}, UserProfile, None)
+        q = f.queryset(self.request, UserProfile.objects.all())
+        self.assertQuerysetEqual(q, [], ordered=False)
+
     def test_telephone_filter_duplicate(self):
-        mommy.make('UserProfile', telephone='123456', first_name="Foo", last_name="")
-        mommy.make('UserProfile', telephone='123456', first_name="Bar", last_name="")
+        user_profile1 = mommy.make('UserProfile', telephone='123456', first_name="Foo", last_name="")
+        mommy.make('Telephone', telephone='123456', user=user_profile1)
+        user_profile2 = mommy.make('UserProfile', telephone='123456', first_name="Bar", last_name="")
+        mommy.make('Telephone', telephone='123456', user=user_profile2)
         f = filters.TelephoneFilter(self.request, {"telephone": "duplicate"}, UserProfile, None)
         q = f.queryset(self.request, UserProfile.objects.all())
         self.assertQuerysetEqual(q, ["<UserProfile: Foo>", "<UserProfile: Bar>"], ordered=False)
 
     def test_telephone_filter_blank(self):
-        mommy.make('UserProfile', telephone="", first_name="Foo", last_name="")
+        mommy.make('UserProfile', telephone=None, first_name="Foo", last_name="")
+        f = filters.TelephoneFilter(self.request, {"telephone": "blank"}, UserProfile, None)
+        q = f.queryset(self.request, UserProfile.objects.all())
+        self.assertQuerysetEqual(q, ["<UserProfile: Foo>"])
+
+    def test_telephone_filter_blank_foreign(self):
+        user_profile = mommy.make('UserProfile', first_name="Foo", last_name="")
+        mommy.make('Telephone', user=user_profile, telephone='')
         f = filters.TelephoneFilter(self.request, {"telephone": "blank"}, UserProfile, None)
         q = f.queryset(self.request, UserProfile.objects.all())
         self.assertQuerysetEqual(q, ["<UserProfile: Foo>"])
