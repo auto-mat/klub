@@ -98,7 +98,7 @@ def process_template(template_string, user, payment_channel):
             'regular_frequency': _localize_enum(
                 UserInCampaign.REGULAR_PAYMENT_FREQUENCIES,
                 payment_channel.regular_frequency,
-                user.language
+                user.language,
             ),
             'var_symbol': payment_channel.VS,
             'last_payment_amount': payment_channel.last_payment and payment_channel.last_payment.amount or None,

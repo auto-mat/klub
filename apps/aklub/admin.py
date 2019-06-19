@@ -980,10 +980,6 @@ class MassCommunicationAdmin(large_initial.LargeInitialMixin, admin.ModelAdmin):
         }),
     ]
     """
-    def get_field_queryset(self, db, db_field, request):
-        if db_field.name == 'send_to_users':  # optimize queryset
-            return super().get_field_queryset(db, db_field, request).select_related('event', 'userprofile')
-        return super().get_field_queryset(db, db_field, request)
 
     def save_form(self, request, form, change):
         super(MassCommunicationAdmin, self).save_form(request, form, change)
