@@ -37,7 +37,7 @@ class TestVariableDescription(TestCase):
         """ Test if description of function is returned """
         t = mommy.make(
             "aklub.TerminalCondition",
-            variable="UserInCampaign.regular_payments",
+            variable="DonorPaymentChannel.regular_payments",
         )
         self.assertEqual(
             t.variable_description(),
@@ -81,35 +81,35 @@ class TestGetQuerystring(TestCase):
 
     def test_equals(self):
         """ Test if '=' as @operation works """
-        self.assertEqual(self.t.get_querystring("UserInCampaign.foo.bar", "="), "foo__bar")
+        self.assertEqual(self.t.get_querystring("DonorPaymentChannel.foo.bar", "="), "foo__bar")
 
     def test_notequals(self):
         """ Test if '!=' as @operation works """
-        self.assertEqual(self.t.get_querystring("UserInCampaign.foo.bar", "!="), "foo__bar")
+        self.assertEqual(self.t.get_querystring("DonorPaymentChannel.foo.bar", "!="), "foo__bar")
 
     def test_lt(self):
         """ Test if '<' as @operation works """
-        self.assertEqual(self.t.get_querystring("UserInCampaign.foo.bar", "<"), "foo__bar__lt")
+        self.assertEqual(self.t.get_querystring("DonorPaymentChannel.foo.bar", "<"), "foo__bar__lt")
 
     def test_gt(self):
         """ Test if '>' as @operation works """
-        self.assertEqual(self.t.get_querystring("UserInCampaign.foo.bar", ">"), "foo__bar__gt")
+        self.assertEqual(self.t.get_querystring("DonorPaymentChannel.foo.bar", ">"), "foo__bar__gt")
 
     def test_lte(self):
         """ Test if '<=' as @operation works """
-        self.assertEqual(self.t.get_querystring("UserInCampaign.foo.bar", "<="), "foo__bar__lte")
+        self.assertEqual(self.t.get_querystring("DonorPaymentChannel.foo.bar", "<="), "foo__bar__lte")
 
     def test_gte(self):
         """ Test if '>=' as @operation works """
-        self.assertEqual(self.t.get_querystring("UserInCampaign.foo.bar", ">="), "foo__bar__gte")
+        self.assertEqual(self.t.get_querystring("DonorPaymentChannel.foo.bar", ">="), "foo__bar__gte")
 
     def test_contains(self):
         """ Test if 'contains' as @operation works """
-        self.assertEqual(self.t.get_querystring("UserInCampaign.foo.bar", "contains"), "foo__bar__contains")
+        self.assertEqual(self.t.get_querystring("DonorPaymentChannel.foo.bar", "contains"), "foo__bar__contains")
 
     def test_icontains(self):
         """ Test if 'icontains' as @operation works """
-        self.assertEqual(self.t.get_querystring("UserInCampaign.foo.bar", "icontains"), "foo__bar__icontains")
+        self.assertEqual(self.t.get_querystring("DonorPaymentChannel.foo.bar", "icontains"), "foo__bar__icontains")
 
 
 class BaseTestCase(TestCase):
@@ -136,57 +136,57 @@ class ConditionsTests(BaseTestCase):
     def test_date_condition(self):
         c = Condition.objects.create(operation="and")
         TerminalCondition.objects.create(
-            variable="UserInCampaign.date_condition",
+            variable="DonorPaymentChannel.date_condition",
             value="datetime.2010-09-24 00:00",
             operation=">",
             condition=c,
         )
         self.assertQueryEquals(c.get_query(), Q(date_condition__gt=datetime.datetime(2010, 9, 24, 0, 0)))
-        self.assertQueryEquals(c.condition_string(), "None(UserInCampaign.date_condition > datetime.2010-09-24 00:00)")
+        self.assertQueryEquals(c.condition_string(), "None(DonorPaymentChannel.date_condition > datetime.2010-09-24 00:00)")
 
     def test_boolean_condition(self):
         c = Condition.objects.create(operation="or")
         TerminalCondition.objects.create(
-            variable="UserInCampaign.boolean_condition",
+            variable="DonorPaymentChannel.boolean_condition",
             value="true",
             operation="=",
             condition=c,
         )
         self.assertQueryEquals(c.get_query(), Q(boolean_condition=True))
-        self.assertQueryEquals(c.condition_string(), "None(UserInCampaign.boolean_condition = true)")
+        self.assertQueryEquals(c.condition_string(), "None(DonorPaymentChannel.boolean_condition = true)")
 
     def test_time_condition(self):
         c = Condition.objects.create(operation="or")
         TerminalCondition.objects.create(
-            variable="UserInCampaign.time_condition",
+            variable="DonorPaymentChannel.time_condition",
             value="month_ago",
             operation="<",
             condition=c,
         )
         self.assertQueryEquals(c.get_query(), Q(time_condition__lt=datetime.datetime(2009, 12, 2, 0, 0)))
-        self.assertQueryEquals(c.condition_string(), "None(UserInCampaign.time_condition < month_ago)")
+        self.assertQueryEquals(c.condition_string(), "None(DonorPaymentChannel.time_condition < month_ago)")
 
     def test_text_condition(self):
         c = Condition.objects.create(operation="or")
         TerminalCondition.objects.create(
-            variable="UserInCampaign.text_condition",
+            variable="DonorPaymentChannel.text_condition",
             value="asdf",
             operation="contains",
             condition=c,
         )
         self.assertQueryEquals(c.get_query(), Q(text_condition__contains="asdf"))
-        self.assertQueryEquals(c.condition_string(), "None(UserInCampaign.text_condition contains asdf)")
+        self.assertQueryEquals(c.condition_string(), "None(DonorPaymentChannel.text_condition contains asdf)")
 
     def test_text_icontains_condition(self):
         c = Condition.objects.create(operation="or")
         TerminalCondition.objects.create(
-            variable="UserInCampaign.text_condition",
+            variable="DonorPaymentChannel.text_condition",
             value="asdf",
             operation="icontains",
             condition=c,
         )
         self.assertQueryEquals(c.get_query(), Q(text_condition__icontains="asdf"))
-        self.assertQueryEquals(c.condition_string(), "None(UserInCampaign.text_condition icontains asdf)")
+        self.assertQueryEquals(c.condition_string(), "None(DonorPaymentChannel.text_condition icontains asdf)")
 
     def test_action_condition_equals(self):
         c = Condition.objects.create(operation="or")
@@ -212,24 +212,24 @@ class ConditionsTests(BaseTestCase):
     def test_blank_condition(self):
         c = Condition.objects.create(operation="and")
         TerminalCondition.objects.create(
-            variable="UserInCampaign.regular_payments",
+            variable="DonorPaymentChannel.regular_payments",
             value="regular",
             operation="=",
             condition=c,
         )
         self.assertQueryEquals(c.get_query(), Q(regular_payments="regular"))
-        self.assertQueryEquals(c.condition_string(), "None(UserInCampaign.regular_payments = regular)")
+        self.assertQueryEquals(c.condition_string(), "None(DonorPaymentChannel.regular_payments = regular)")
 
     def test_combined_condition(self):
         c = Condition.objects.create(operation="and")
         TerminalCondition.objects.create(
-            variable="UserInCampaign.time_condition",
+            variable="DonorPaymentChannel.time_condition",
             value="timedelta.5",
             operation=">=",
             condition=c,
         )
         TerminalCondition.objects.create(
-            variable="UserInCampaign.days_ago_condition",
+            variable="DonorPaymentChannel.days_ago_condition",
             value="days_ago.6",
             operation="!=",
             condition=c,
@@ -240,7 +240,7 @@ class ConditionsTests(BaseTestCase):
         )
         self.assertQueryEquals(
             c.condition_string(),
-            "None(UserInCampaign.days_ago_condition != days_ago.6 and UserInCampaign.time_condition >= timedelta.5)",
+            "None(DonorPaymentChannel.days_ago_condition != days_ago.6 and DonorPaymentChannel.time_condition >= timedelta.5)",
         )
 
     def test_multiple_combined_conditions(self):
@@ -248,25 +248,25 @@ class ConditionsTests(BaseTestCase):
         c2 = Condition.objects.create(operation="nor")
         c2.conds.add(c1)
         TerminalCondition.objects.create(
-            variable="UserInCampaign.time_condition",
+            variable="DonorPaymentChannel.time_condition",
             value="timedelta.5",
             operation=">=",
             condition=c1,
         )
         TerminalCondition.objects.create(
-            variable="UserInCampaign.days_ago_condition",
+            variable="DonorPaymentChannel.days_ago_condition",
             value="days_ago.6",
             operation="!=",
             condition=c1,
         )
         TerminalCondition.objects.create(
-            variable="UserInCampaign.int_condition",
+            variable="DonorPaymentChannel.int_condition",
             value="5",
             operation="<=",
             condition=c2,
         )
         TerminalCondition.objects.create(
-            variable="UserInCampaign.int_condition",
+            variable="DonorPaymentChannel.int_condition",
             value="4",
             operation="=",
             condition=c2,
@@ -278,6 +278,6 @@ class ConditionsTests(BaseTestCase):
         self.assertQueryEquals(c2.get_query(), test_query)
         self.assertQueryEquals(
             c2.condition_string(),
-            "not(None(None(UserInCampaign.days_ago_condition != days_ago.6 and UserInCampaign.time_condition >= timedelta.5) "
-            "or UserInCampaign.int_condition = 4 or UserInCampaign.int_condition <= 5))",
+            "not(None(None(DonorPaymentChannel.days_ago_condition != days_ago.6 and DonorPaymentChannel.time_condition >= timedelta.5) "
+            "or DonorPaymentChannel.int_condition = 4 or DonorPaymentChannel.int_condition <= 5))",
         )
