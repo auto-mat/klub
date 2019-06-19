@@ -482,10 +482,10 @@ class PetitionView(RegularView):
 
 
 def donators(request):
-    payed = Payment.objects.exclude(type='expected').values_list('user_id', flat=True)
-    donators = UserInCampaign.objects.filter(userprofile__public=True, id__in=payed).order_by('userprofile__last_name')
+    payed = Payment.objects.exclude(type='expected')
+    donators = DonorPaymentChannel.objects.filter(user__public=True, payment__in=payed).distinct().order_by('user__last_name')
     n_donators = len(donators)
-    n_regular = len(donators.filter(userprofile__is_active=True, regular_payments="regular"))
+    n_regular = len(donators.filter(user__is_active=True, regular_payments="regular"))
     return render_to_response(
         'donators.html',
         {
