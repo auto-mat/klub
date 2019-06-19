@@ -75,9 +75,9 @@ def create_mass_communication_tasks_sync(communication_id, sending_user_id):
 
 def send_communication_sync(communication_id, communication_type, userincampaign_id, sending_user_id):
     sending_user = UserProfile.objects.get(id=sending_user_id)
+    payment_channel = None
     if userincampaign_id == "fake_user":
-        # TODO: make it possible to send communication with payment details
-        # payment_channel = create_fake_payment_channel(sending_user)
+        payment_channel = create_fake_payment_channel(sending_user)
         userprofile = sending_user
         save = False
     else:
@@ -111,8 +111,8 @@ def send_communication_sync(communication_id, communication_type, userincampaign
                     attachment = None
         c = Interaction(
             user=userprofile, method=mass_communication.method, date=datetime.datetime.now(),
-            subject=autocom.process_template(subject, userprofile),
-            summary=autocom.process_template(template, userprofile),
+            subject=autocom.process_template(subject, userprofile, payment_channel),
+            summary=autocom.process_template(template, userprofile, payment_channel),
             attachment=attachment,
             note=_("Prepared by auto*mated mass communications at %s") % datetime.datetime.now(),
             send=True, created_by=sending_user, handled_by=sending_user,

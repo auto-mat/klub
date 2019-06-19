@@ -92,6 +92,20 @@ def process_template(template_string, user, payment_channel):
 
     template = string.Template(template_string)
 
+    if payment_channel:
+        payment_substitutes = {
+            'regular_amount': payment_channel.regular_amount,
+            'regular_frequency': _localize_enum(
+                UserInCampaign.REGULAR_PAYMENT_FREQUENCIES,
+                payment_channel.regular_frequency,
+                user.language
+            ),
+            'var_symbol': payment_channel.VS,
+            'last_payment_amount': payment_channel.last_payment and payment_channel.last_payment.amount or None,
+        }
+    else:
+        payment_substitutes = {}
+
     # Make variable substitutions
     text = template.substitute(
         addressment=user.get_addressment(),
@@ -104,11 +118,8 @@ def process_template(template_string, user, payment_channel):
         zipcode=user.zip_code,
         email=user.email,
         telephone=user.get_telephone(),
-        regular_amount=payment_channel.regular_amount,
-        regular_frequency=_localize_enum(UserInCampaign.REGULAR_PAYMENT_FREQUENCIES, payment_channel.regular_frequency, user.language),
-        var_symbol=payment_channel.VS,
-        last_payment_amount=payment_channel.last_payment and payment_channel.last_payment.amount or None,
         auth_token=sesame_utils.get_query_string(user),
+        **payment_substitutes,
     )
 
     return gendrify_text(text, user.sex)
