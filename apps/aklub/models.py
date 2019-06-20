@@ -1970,6 +1970,30 @@ class Payment(models.Model):
         return str(self.amount)
 
 
+class BaseInteraction(models.Model):
+    user = models.ForeignKey(
+        UserProfile,
+        verbose_name=_("User"),
+        on_delete=models.CASCADE,
+        # related_name="communications",
+    )
+    event = models.ForeignKey(
+        Event,
+        verbose_name=_("Event"),
+        on_delete=models.SET_NULL,
+        # related_name="events",
+        null=True,
+        blank=True,
+    )
+    date = models.DateTimeField(
+        verbose_name=_("Date"),
+        default=datetime.datetime.now(),
+    )
+
+    class Meta:
+        abstract = True
+
+
 COMMUNICATION_TYPE = (
     ('mass', _("Mass")),
     ('auto', _("Automatic")),
@@ -1977,7 +2001,7 @@ COMMUNICATION_TYPE = (
 )
 
 
-class Interaction(models.Model):
+class Interaction(BaseInteraction):
     """Interaction entry and DB Model
 
     A communication is one action in the dialog between the club
@@ -1992,20 +2016,6 @@ class Interaction(models.Model):
         verbose_name_plural = _("Interactions")
         ordering = ['date']
 
-    user = models.ForeignKey(
-        UserProfile,
-        verbose_name=_("User"),
-        on_delete=models.CASCADE,
-        related_name="communications",
-    )
-    event = models.ForeignKey(
-        Event,
-        verbose_name=_("Event"),
-        on_delete=models.SET_NULL,
-        related_name="events",
-        null=True,
-        blank=True,
-    )
     method = models.CharField(
         verbose_name=_("Method"),
         max_length=30,
@@ -2015,9 +2025,6 @@ class Interaction(models.Model):
         verbose_name=_("Type of communication"),
         max_length=30, choices=COMMUNICATION_TYPE,
         default='individual',
-    )
-    date = models.DateTimeField(
-        verbose_name=_("Date"),
     )
     subject = models.CharField(
         verbose_name=_("Subject"),
@@ -2129,6 +2136,21 @@ class Interaction(models.Model):
             return self.summary
         else:
             return html2text.html2text(self.summary)
+
+
+class PetitionSignature(BaseInteraction):
+    email_confirmed = models.BooleanField(
+        verbose_name=_("Is confirmed via e-mail"),
+        default=False,
+    )
+    gdpr_consent = models.BooleanField(
+        _("GDPR consent"),
+        default=False,
+    )
+    public = models.BooleanField(
+        verbose_name=_("Publish my name in the list of supporters/petitents of this campaign"),
+        default=False,
+    )
 
 
 class ConditionValues(object):

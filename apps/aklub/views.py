@@ -31,7 +31,7 @@ from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.core.mail import mail_managers
 from django.core.validators import MinLengthValidator, RegexValidator
-from django.db.models import Case, CharField, Count, IntegerField, Q, Sum, Value, When
+from django.db.models import Case, CharField, Count, F, IntegerField, Q, Sum, Value, When
 from django.db.models.functions import TruncMonth
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render_to_response
@@ -48,7 +48,7 @@ from extra_views import InlineFormSet, UpdateWithInlinesView
 from sesame.backends import ModelBackend
 
 from . import autocom
-from .models import DonorPaymentChannel, Event, Payment, Source, Telephone, UserInCampaign, UserProfile
+from .models import DonorPaymentChannel, Event, Payment, PetitionSignature, Source, Telephone, UserInCampaign, UserProfile
 
 
 class RegularUserForm_UserProfile(forms.ModelForm):
@@ -250,21 +250,29 @@ class RegularUserForm_DonorPaymentChannelDPNK(RegularUserForm_DonorPaymentChanne
         return 'monthly'
 
 
-class PetitionUserForm_DonorPaymentChannel(FieldNameMappingMixin, CampaignMixin, forms.ModelForm):
+class PetitionUserForm_PetitionSignature(FieldNameMappingMixin, CampaignMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # self.fields['campaign'].queryset = Event.objects.filter(slug__isnull=False, enable_signing_petitions=True).exclude(slug="")
-        # self.fields['gdpr_consent'].required = True
+        self.fields['event'].queryset = Event.objects.filter(slug__isnull=False, enable_signing_petitions=True).exclude(slug="")
+        self.fields['gdpr_consent'].required = True
 
-    """
     class Meta:
-        model = DonorPaymentChannel
-        fields = ('campaign', 'public', 'gdpr_consent')
+        model = PetitionSignature
+        fields = ('event', 'public', 'gdpr_consent')
 
     FIELD_NAME_MAPPING = {
         'gdpr_consent': 'gdpr',
     }
-    """
+
+
+class PetitionUserForm_DonorPaymentChannel(CampaignMixin, forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['event'].queryset = Event.objects.filter(slug__isnull=False, enable_signing_petitions=True).exclude(slug="")
+
+    class Meta:
+        model = DonorPaymentChannel
+        fields = ('event',)
 
 
 class RegularUserFormDPNK(RegularUserFormWithProfile):
@@ -284,7 +292,7 @@ class RegularDarujmeUserForm(RegularUserForm):
 class PetitionUserForm(RegularUserForm):
     form_classes = OrderedDict([
         ('userprofile', PetitionUserForm_UserProfile),
-        ('userincampaign', PetitionUserForm_DonorPaymentChannel),
+        ('userincampaign', PetitionUserForm_PetitionSignature),
     ])
 
 
@@ -314,33 +322,50 @@ def generate_variable_symbol(max_variable_symbol=9999):
     return variable_symbol
 
 
-def new_user(form, regular, source_slug='web'):
-    # Check number of registrations so far today
-    # TODO: Lock DB access here (to ensure uniqueness of VS)
-    variable_symbol = generate_variable_symbol()
-    # variable_symbol is now unique in database
-    # Create new user instance and fill in additional data
+def create_new_user_profile(form, regular):
     new_user_objects = form.save(commit=False)
     new_user_profile = new_user_objects['userprofile']
-    payment_channel = new_user_objects['userincampaign']
-    assert isinstance(payment_channel, DonorPaymentChannel), \
-        "payment_channel shoud be DonnorPaymentChannel, but is %s" % type(payment_channel)
-    if regular:
-        payment_channel.regular_payments = regular
-    payment_channel.variable_symbol = variable_symbol
-    payment_channel.source = Source.objects.get(slug=source_slug)
     # Save new user instance
     if hasattr(form.forms['userprofile'], 'email_used') and form.forms['userprofile'].email_used:
         new_user_profile = UserProfile.objects.get(email=form.forms['userprofile'].email_used)
     else:
         new_user_profile.save()
     Telephone.objects.create(telephone=form.forms['userprofile'].cleaned_data['telephone'], user=new_user_profile)
-    payment_channel.user = new_user_profile
-    payment_channel.save()
-    # TODO: Unlock DB access here
 
     cache.clear()
-    return payment_channel.id
+    return new_user_profile
+
+
+def create_new_payment_channel(form, new_user_profile, regular, source_slug='web'):
+    variable_symbol = generate_variable_symbol()
+    if form:
+        new_user_objects = form.save(commit=False)
+        payment_channel = new_user_objects['userincampaign']
+    else:
+        payment_channel, _ = DonorPaymentChannel.objects.get_or_create(user=new_user_profile, VS=variable_symbol, regular_payments='')
+    assert isinstance(payment_channel, DonorPaymentChannel), \
+        "payment_channel shoud be DonnorPaymentChannel, but is %s" % type(payment_channel)
+    if regular:
+        payment_channel.regular_payments = regular
+    payment_channel.variable_symbol = variable_symbol
+    payment_channel.source = Source.objects.get(slug=source_slug)
+    payment_channel.user = new_user_profile
+    payment_channel.save()
+
+    cache.clear()
+    return payment_channel
+
+
+def create_new_petition_signature(form, new_user_profile, regular):
+    new_user_objects = form.save(commit=False)
+    petition_signature = new_user_objects['userincampaign']
+    assert isinstance(petition_signature, PetitionSignature), \
+        "petition_signature shoud be PetitionSignature, but is %s" % type(petition_signature)
+    petition_signature.user = new_user_profile
+    petition_signature.save()
+
+    cache.clear()
+    return petition_signature
 
 
 class RegularView(FormView):
@@ -436,8 +461,8 @@ class RegularView(FormView):
         return initial
 
     def form_valid(self, form):
-        user_id = new_user(form, regular=None, source_slug=self.source_slug)
-        payment_channel = DonorPaymentChannel.objects.get(id=user_id)
+        new_user_profile = create_new_user_profile(form, regular=None)
+        payment_channel = create_new_payment_channel(form, new_user_profile, regular=None, source_slug=self.source_slug)
         return self.success_page(payment_channel)
 
     def form_invalid(self, form):
@@ -479,6 +504,13 @@ class PetitionView(RegularView):
     template_name = 'regular.html'
     form_class = PetitionUserForm
     success_template = 'thanks-darujme.html'
+    success_url = 'petition-signatures'
+
+    def form_valid(self, form):
+        new_user_profile = create_new_user_profile(form, regular=None)
+        create_new_petition_signature(form, new_user_profile, regular=None)
+        payment_channel = create_new_payment_channel(None, new_user_profile, regular=None, source_slug=self.source_slug)
+        return self.success_page(payment_channel)
 
 
 def donators(request):
@@ -596,17 +628,18 @@ class PetitionSignatures(View):
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
-        campaign = get_object_or_404(Event, slug=kwargs['campaign_slug'], allow_statistics=True, enable_signing_petitions=True)
-        signatures = UserInCampaign.objects.filter(campaign=campaign, email_confirmed=True)
-        signatures = signatures.order_by('-created')
+        event = get_object_or_404(Event, slug=kwargs['campaign_slug'], allow_statistics=True, enable_signing_petitions=True)
+        signatures = PetitionSignature.objects.filter(event=event, email_confirmed=True)
+        signatures = signatures.order_by('-date')
         signatures = signatures.annotate(
+            created=F('date'),
             first_name=Case(
-                When(public=True, then='userprofile__first_name'),
+                When(public=True, then='user__first_name'),
                 default=Value('------'),
                 output_field=CharField(),
             ),
             last_name=Case(
-                When(public=True, then='userprofile__last_name'),
+                When(public=True, then='user__last_name'),
                 default=Value('------'),
                 output_field=CharField(),
             ),

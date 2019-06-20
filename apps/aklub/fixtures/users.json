@@ -262,6 +262,37 @@
     },
     {
         "fields": {
+            "user": 2978,
+            "event": 2,
+            "public": true,
+            "email_confirmed": true,
+            "date": "2016-12-16T18:22:30.128"
+        },
+        "model": "aklub.petitionsignature",
+        "pk": 2978
+    },
+    {
+        "fields": {
+            "user": 2978,
+            "event": 2,
+            "email_confirmed": true,
+            "date": "2015-12-16T18:22:30.128"
+        },
+        "model": "aklub.petitionsignature",
+        "pk": 2979
+    },
+    {
+        "fields": {
+            "user": 2978,
+            "event": 2,
+            "email_confirmed": true,
+            "date": "2017-12-16T18:22:30.128"
+        },
+        "model": "aklub.petitionsignature",
+        "pk": 3
+    },
+    {
+        "fields": {
             "username": "without_payments",
             "first_name": "Without",
             "last_name": "Payments",
