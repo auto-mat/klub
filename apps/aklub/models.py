@@ -1460,7 +1460,7 @@ class DonorPaymentChannel(models.Model):
 
     def __str__(self):
         return "Payment channel: {} - {}".format(
-            self.user.email,
+            self.user.email if self.user else '',
             self.VS,
         )
 

@@ -392,7 +392,7 @@ class AdminImportExportTests(TestCase):
         )
         self.client.force_login(self.user)
 
-    def test_userattendance_export(self):
+    def test_paymetnchannel_export(self):
         address = "/aklub/donorpaymentchannel/export/"
         post_data = {
             'file_format': 0,
@@ -400,7 +400,9 @@ class AdminImportExportTests(TestCase):
         response = self.client.post(address, post_data)
         self.assertContains(
             response,
-            ',Test,User,,male,,test.user@email.cz,,Praha 4,,120127010,0,1,regular,monthly,2015-12-16 17:22:30,'
-            '"Domníváte se, že má město po zprovoznění tunelu Blanka omezit tranzit historickým centrem? '
-            'Ano, hned se zprovozněním tunelu",editor,1,cs,,,,0,0.0,100',
+            '2978,2,2978,,Test,User,,male,test.user@email.cz,,Praha 4,,120127010,0,regular,monthly,2015-12-16 17:22:30,1,cs,,,,100,'
+            # TODO: check transforming following data into another models
+            # ',Test,User,,male,,test.user@email.cz,,Praha 4,,120127010,0,1,regular,monthly,2015-12-16 17:22:30,'
+            # '"Domníváte se, že má město po zprovoznění tunelu Blanka omezit tranzit historickým centrem? '
+            # 'Ano, hned se zprovozněním tunelu",editor,1,cs,,,,0,0.0,100',
         )
