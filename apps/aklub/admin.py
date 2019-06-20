@@ -935,7 +935,7 @@ class MassCommunicationForm(django.forms.ModelForm):
     def clean_send_to_users(self):
         v = EmailValidator()
         for user in self.cleaned_data['send_to_users']:
-            email = user.userprofile.email
+            email = user.email
             if email:
                 try:
                     v.__call__(email)

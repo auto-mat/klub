@@ -219,9 +219,9 @@ class AdminTest(RunCommitHooksMixin, TestCase):
             )
 
     def test_mass_communication_changelist_post_send_mails(self):
-        donor_payment_channel_recipe.make(id=2978, userprofile__email="foo@email.com", userprofile__language="cs")
-        donor_payment_channel_recipe.make(id=2979, userprofile__email="bar@email.com", userprofile__language="cs")
-        donor_payment_channel_recipe.make(id=3, userprofile__email="baz@email.com", userprofile__language="en")
+        mommy.make("UserProfile", id=2978, email="foo@email.com", language="cs")
+        mommy.make("UserProfile", id=2979, email="bar@email.com", language="cs")
+        mommy.make("UserProfile", id=3, email="baz@email.com", language="en")
         model_admin = django_admin.site._registry[MassCommunication]
         request = self.get_request()
         response = model_admin.add_view(request)
