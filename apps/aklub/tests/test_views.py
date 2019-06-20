@@ -196,9 +196,9 @@ class ViewsTests(ClearCacheMixin, TestCase):
         address = reverse('regular-darujme')
         donor_payment_channel = mommy.make(
             "aklub.DonorPaymentChannel",
-            userprofile__email='test@email.cz',
-            userprofile__first_name='Foo',
-            userprofile__last_name='Duplabar',
+            user__email='test@email.cz',
+            user__first_name='Foo',
+            user__last_name='Duplabar',
             bank_account__bank_account="0000",
             campaign__id=1,
         )
@@ -216,8 +216,8 @@ class ViewsTests(ClearCacheMixin, TestCase):
             msg.body,
             'New user has been created Jméno: Foo Příjmení: Duplabar Ulice: Město: PSC:\nE-mail: test@email.cz Telefon:\n\n',
         )
-        self.assertEqual(donor_payment_channel.userprofile.last_name, 'Duplabar')
-        self.assertEqual(donor_payment_channel.userprofile.donorpaymentchannel_set.count(), 2)
+        self.assertEqual(donor_payment_channel.user.last_name, 'Duplabar')
+        self.assertEqual(donor_payment_channel.user.userchannels.count(), 2)
 
     def test_regular_dpnk(self):
         mommy.make("Event", slug="dpnk")
