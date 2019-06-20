@@ -242,8 +242,6 @@ class AdminTest(RunCommitHooksMixin, TestCase):
         obj = MassCommunication.objects.get(name="test communication")
         self.assertEqual(obj.subject, "Subject")
         self.assertEqual(response.url, "/aklub/masscommunication/%s/change/" % obj.id)
-        print(request._messages._queued_messages[1].message)
-        print(request._messages._queued_messages[0].message)
         self.assertEqual(
             request._messages._queued_messages[0].message,
             "Communication sending was queued for 3 users",
