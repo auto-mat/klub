@@ -19,7 +19,7 @@
 import os
 
 from .base import *  # noqa
-from .base import INSTALLED_APPS, LOGGING, MIDDLEWARE
+from .base import INSTALLED_APPS, LOGGING, MIDDLEWARE, TEMPLATES
 
 DEBUG = True
 
@@ -56,3 +56,12 @@ SECURE_CONTENT_TYPE_NOSNIFF = False
 SECURE_SSL_REDIRECT = False
 SECURE_HSTS_PRELOAD = False
 SESSION_COOKIE_SECURE = False
+
+
+class InvalidStringError(str):
+    def __mod__(self, other):
+        raise Exception("empty string %s" % other)
+        return "!!!!!empty string %s!!!!!" % other
+
+
+TEMPLATES[0]['OPTIONS']['string_if_invalid'] = InvalidStringError("%s")
