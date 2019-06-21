@@ -761,7 +761,7 @@ class Telephone(models.Model):
         unique_together = ("user", "is_primary")
 
     def validate_unique(self, exclude=None):
-        super(Telephone, self).validate_unique(exclude=exclude)
+        super().validate_unique(exclude=exclude)
 
     def check_duplicate(self, *args, **kwargs):
         qs = Telephone.objects.filter(telephone=self.telephone, user=self.user)
@@ -775,11 +775,11 @@ class Telephone(models.Model):
         primary.is_primary = None
         primary.user = self.user
         self.validate_unique()
-        super(Telephone, self).clean(*args, **kwargs)
+        super().clean(*args, **kwargs)
 
     def save(self, *args, **kwargs):
         self.clean()
-        super(Telephone, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return u"%s" % self.telephone
@@ -1181,7 +1181,7 @@ class AccountStatements(models.Model):
     )
 
     def save(self, *args, **kwargs):
-        super(AccountStatements, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
         if hasattr(self, "payments"):
             for payment in self.payments:
                 if payment:
@@ -2107,7 +2107,7 @@ class Interaction(BaseInteraction):
         """
         if self.send:
             self.dispatch(save=False)  # then try to dispatch this email automatically
-        super(Interaction, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     def dispatch(self, save=True):
         """Dispatch the communication
