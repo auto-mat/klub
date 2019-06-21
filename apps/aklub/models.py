@@ -1303,8 +1303,8 @@ class BankAccount(models.Model):
     bank_account_number = models.CharField(
         verbose_name=_("Bank account number"),
         max_length=50,
-        blank=True,
-        null=True,
+        blank=False,
+        null=False,
     )
     note = models.TextField(
         verbose_name=_("Bank account note"),
@@ -1329,8 +1329,8 @@ class UserBankAccount(models.Model):
     bank_account_number = models.CharField(
         verbose_name=_("Bank account number"),
         max_length=50,
-        blank=True,
-        null=True,
+        blank=False,
+        null=False,
     )
     note = models.TextField(
         verbose_name=_("Bank account note"),
