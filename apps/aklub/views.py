@@ -31,7 +31,7 @@ from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.core.mail import mail_managers
 from django.core.validators import MinLengthValidator, RegexValidator
-from django.db.models import Case, CharField, Count, F, IntegerField, Q, Sum, Value, When
+from django.db.models import Case, CharField, Count, IntegerField, Q, Sum, Value, When
 from django.db.models.functions import TruncMonth
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render_to_response
@@ -632,7 +632,6 @@ class PetitionSignatures(View):
         signatures = PetitionSignature.objects.filter(event=event, email_confirmed=True)
         signatures = signatures.order_by('-date')
         signatures = signatures.annotate(
-            created=F('date'),
             first_name=Case(
                 When(public=True, then='user__first_name'),
                 default=Value('------'),
@@ -647,9 +646,11 @@ class PetitionSignatures(View):
         signatures = signatures.values(
             'first_name',
             'last_name',
-            'created',
+            'date',
         )
         signatures = signatures[:100]
+        for signature in signatures:
+            signature['created'] = signature.pop('date')
         return JsonResponse(list(signatures), safe=False)
 
 
