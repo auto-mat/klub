@@ -340,7 +340,7 @@
             "regular_amount": 100,
             "regular_frequency": null,
             "regular_payments": "promise",
-            "event": 2,
+            "event": 1,
             "VS": "121212"
         },
         "model": "aklub.donorpaymentchannel",

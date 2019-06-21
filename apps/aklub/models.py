@@ -210,7 +210,7 @@ class Event(models.Model):
         return self.donorpaymentchannel_set.distinct().count()
 
     def number_of_confirmed_members(self):
-        return self.userincampaign_set.filter(email_confirmed=True).distinct().count()
+        return self.petitionsignature_set.filter(email_confirmed=True).distinct().count()
 
     def recruiters(self):
         return Recruiter.objects.filter(campaigns=self)
