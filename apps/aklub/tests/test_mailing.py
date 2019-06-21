@@ -99,7 +99,8 @@ class MailingTest(TestCase):
 
         mailing.send_mass_communication(c, sending_user, self.request)
         self.assertEqual(len(mail.outbox), 3)
-        msg = mail.outbox[0]
+        mail.outbox.sort(key=lambda m: m.recipients()[0])
+        msg = mail.outbox[2]
         self.assertEqual(msg.recipients(), ['without_payments@email.cz'])
         self.assertEqual(msg.subject, 'Testing email')
         self.assertIn("Testing template", msg.body)
@@ -107,7 +108,7 @@ class MailingTest(TestCase):
         self.assertEqual(msg.recipients(), ['test.user@email.cz'])
         self.assertEqual(msg.subject, 'Testing email')
         self.assertIn("Testing template", msg.body)
-        msg1 = mail.outbox[2]
+        msg1 = mail.outbox[0]
         self.assertEqual(msg1.recipients(), ['test.user1@email.cz'])
         self.assertEqual(msg1.subject, 'Testing email en')
         self.assertIn("Testing template", msg1.body)
