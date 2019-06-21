@@ -18,8 +18,6 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('date', models.DateTimeField(default=datetime.datetime(2019, 6, 20, 14, 16, 49, 397844), verbose_name='Date')),
-                ('created', models.DateTimeField(auto_now_add=True, null=True, verbose_name='Date of creation')),
-                ('updated', models.DateTimeField(auto_now=True, null=True, verbose_name='Date of last change')),
                 ('email_confirmed', models.BooleanField(default=False, verbose_name='Is confirmed via e-mail')),
                 ('gdpr_consent', models.BooleanField(default=False, verbose_name='GDPR consent')),
                 ('public', models.BooleanField(default=False, verbose_name='Publish my name in the list of supporters/petitents of this campaign')),
@@ -29,16 +27,6 @@ class Migration(migrations.Migration):
             options={
                 'abstract': False,
             },
-        ),
-        migrations.AddField(
-            model_name='interaction',
-            name='created',
-            field=models.DateTimeField(auto_now_add=True, null=True, verbose_name='Date of creation'),
-        ),
-        migrations.AddField(
-            model_name='interaction',
-            name='updated',
-            field=models.DateTimeField(auto_now=True, null=True, verbose_name='Date of last change'),
         ),
         migrations.AlterField(
             model_name='interaction',

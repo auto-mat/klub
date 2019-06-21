@@ -1360,8 +1360,8 @@ class DonorPaymentChannel(models.Model):
         verbose_name=_("User"),
         on_delete=models.CASCADE,
         related_name="userchannels",
-        null=True,
-        blank=True,
+        null=False,
+        blank=False,
     )
     registered_support = models.DateTimeField(
         verbose_name=_("Registered support"),
@@ -1987,7 +1987,8 @@ class BaseInteraction(models.Model):
     )
     date = models.DateTimeField(
         verbose_name=_("Date"),
-        default=datetime.datetime.now(),
+        auto_now_add=True,
+        null=True,
     )
 
     class Meta:

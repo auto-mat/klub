@@ -66,7 +66,7 @@ from .models import (
     Event, Expense, Interaction, MassCommunication, NewUser, Payment, Recruiter,
     Result, Source, TaxConfirmation, TaxConfirmationField,
     TaxConfirmationPdf, Telephone, TerminalCondition, UserBankAccount,
-    UserInCampaign, UserProfile, UserYearPayments,
+    UserProfile, UserYearPayments,
 )
 
 
@@ -196,9 +196,9 @@ def send_mass_communication_action(self, request, queryset, distinct=False):
     with the send_to_users M2M field prefilled with these
     users."""
     if queryset.model is UserProfile:
-        queryset = UserInCampaign.objects.filter(userprofile__in=queryset)
+        queryset = DonorPaymentChannel.objects.filter(user__in=queryset)
     if distinct:
-        queryset = queryset.order_by('userprofile__id').distinct('userprofile')
+        queryset = queryset.order_by('user__id').distinct('user')
     redirect_url = large_initial.build_redirect_url(
         request,
         "admin:aklub_masscommunication_add",
