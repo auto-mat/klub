@@ -73,6 +73,8 @@
     },
     {
         "fields": {
+            "expected_date_of_first_payment": "2015-12-16",
+            "no_upgrade": false,
             "registered_support": "2015-12-16T18:22:30.128",
             "bank_account": 1,
             "regular_amount": null,
@@ -250,6 +252,8 @@
     {
         "fields": {
             "user": 2978,
+            "expected_date_of_first_payment":  "2015-12-16",
+            "no_upgrade": false,
             "registered_support": "2015-12-16T18:22:30.128",
             "regular_amount": 100,
             "regular_frequency": "monthly",
@@ -323,6 +327,8 @@
     {
         "fields": {
             "user": 3,
+            "expected_date_of_first_payment":  "2015-12-16",
+            "no_upgrade": false,
             "registered_support": "2015-12-16T18:22:30.128",
             "regular_amount": 100,
             "regular_frequency": null,
@@ -336,6 +342,8 @@
     {
         "fields": {
             "user": 3,
+            "expected_date_of_first_payment":  "2015-12-16",
+            "no_upgrade": false,
             "registered_support": "2015-12-16T18:22:30.128",
             "regular_amount": 100,
             "regular_frequency": null,

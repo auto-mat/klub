@@ -639,7 +639,7 @@ class UserProfile(AbstractUser):
             return ""
 
     def mail_communications_count(self):
-        return self.communications.filter(method="mail").count()
+        return self.interaction_set.filter(method="mail").count()
 
     def person_name(self):
         if self.first_name or self.last_name:
@@ -1059,7 +1059,7 @@ class UserInCampaign(models.Model):
             return False
 
     def mail_communications_count(self):
-        return self.communications.filter(method="mail").count()
+        return self.interaction_set.filter(method="mail").count()
 
     def save(self, *args, **kwargs):
         """Record save hook
@@ -1473,6 +1473,14 @@ class DonorPaymentChannel(models.Model):
         else:
             self.VS = self.VS
             self.save()
+
+    def requires_action(self):
+        """Return true if the user requires some action from
+        the club manager, otherwise return False"""
+        if len(Interaction.objects.filter(user=self.user, dispatched=False)) > 0:
+            return True
+        else:
+            return False
 
     def check_duplicate(self, *args, **kwargs):
         qs = DonorPaymentChannel.objects.filter(VS=self.VS)
