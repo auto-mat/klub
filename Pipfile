@@ -70,7 +70,7 @@ newrelic = "*"
 django-nested-admin = "*"
 django_celery_monitor = "*"
 django_grapesjs = "*"
-
+django-stdnumfield = "*"
 
 [dev-packages]
 coverage = "*"

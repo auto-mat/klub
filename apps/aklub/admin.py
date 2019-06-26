@@ -62,7 +62,7 @@ from smmapdfs.admin_abcs import PdfSandwichAdmin, PdfSandwichFieldAdmin
 from . import darujme, filters, mailing, tasks
 from .forms import UserCreateForm, UserUpdateForm
 from .models import (
-    AccountStatements, AutomaticCommunication, BankAccount, Condition, DonorPaymentChannel,
+    AccountStatements, AdministrativeUnit, AutomaticCommunication, BankAccount, Condition, DonorPaymentChannel,
     Event, Expense, Interaction, MassCommunication, NewUser, Payment, Recruiter,
     Result, Source, TaxConfirmation, TaxConfirmationField,
     TaxConfirmationPdf, Telephone, TerminalCondition, UserBankAccount,
@@ -81,6 +81,7 @@ def admin_links(args_generator):
 # -- INLINE FORMS --
 class PaymentsInline(nested_admin.NestedTabularInline):
     readonly_fields = ('account_statement',)
+    exclude = ('user',)
     model = Payment
     extra = 1
 
@@ -372,6 +373,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         'telephone__telephone',
     )
     list_filter = (
+        'administrative_units',
         'is_staff',
         'is_superuser',
         'is_active',
@@ -391,6 +393,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
                 'username', ('first_name', 'last_name'), ('title_before', 'title_after'), 'email', 'sex',
                 ('birth_day', 'birth_month', 'age_group'),
                 'get_main_telephone',
+                'administrative_units',
             ),
         }),
         (_('Contact data'), {
@@ -419,6 +422,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
                 ('password',),
                 ('is_staff', 'is_superuser'),
                 'groups',
+                'administrated_units',
             ],
         }
         ),
@@ -1188,6 +1192,12 @@ class TaxConfirmationPdfAdmin(PdfSandwichAdmin):
 
 class TaxConfirmationFieldAdmin(PdfSandwichFieldAdmin):
     pass
+
+
+@admin.register(AdministrativeUnit)
+class AdministrativeUnitAdmin(admin.ModelAdmin):
+    list_display = ('name', 'ico')
+    readonly_fields = ('ico',)
 
 
 admin.site.register(DonorPaymentChannel, DonorPaymethChannelAdmin)

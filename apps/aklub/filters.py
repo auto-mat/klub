@@ -4,6 +4,7 @@ import operator
 from datetime import date, timedelta
 from functools import reduce
 
+from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
 from django.db.models import Count, Q
 from django.db.models.functions import Lower
@@ -196,3 +197,20 @@ class NameFilter(SimpleListFilter):
                 (Q(last_name__exact='') or Q(last_name__isnull=True)),
             )
         return queryset
+
+
+class AdministrativeUnitAdminMixin(object):
+    queryset_unit_param = 'administrative_units__in'
+
+    def get_queryset(self, request):
+        queryset = super(admin.ModelAdmin, self).get_queryset(request)
+        if request.user.has_perm('aklub.can_edit_all_units'):
+            return queryset
+        kwargs = {self.queryset_unit_param: request.user.administrated_units.all()}
+        return queryset.filter(**kwargs).distinct()  # The distinct is necessarry here for unit admins, that have more cities
+
+
+def unit_admin_mixin_generator(queryset_unit):
+    class AUAMixin(AdministrativeUnitAdminMixin):
+        queryset_unit_param = queryset_unit
+    return AUAMixin

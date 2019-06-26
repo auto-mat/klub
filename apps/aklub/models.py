@@ -53,6 +53,8 @@ from smmapdfs.models import PdfSandwichType
 
 import stdimage
 
+from stdnumfield.models import StdNumField
+
 from vokativ import vokativ
 
 from . import autocom
@@ -86,6 +88,30 @@ class Result(models.Model):
         max_length=30,
         choices=RESULT_SORT,
         default='individual',
+    )
+
+    def __str__(self):
+        return str(self.name)
+
+
+ICO_ERROR_MESSAGE = _("IČO není zadáno ve správném formátu. Zkontrolujte že číslo má osm číslic a případně ho doplňte nulami zleva.")
+
+
+class AdministrativeUnit(models.Model):
+    name = models.CharField(
+        verbose_name=_("Name"),
+        max_length=255,
+        blank=False,
+        null=False,
+    )
+    ico = StdNumField(
+        'cz.dic',
+        default=None,
+        verbose_name=_(u"IČO"),
+        validators=[RegexValidator(r'^[0-9]*$', _('IČO musí být číslo'))],
+        error_messages={'stdnum_format': ICO_ERROR_MESSAGE},
+        blank=True,
+        null=True,
     )
 
     def __str__(self):
@@ -189,6 +215,11 @@ class Event(models.Model):
     email_confirmation_redirect = models.URLField(
         blank=True,
         null=True,
+    )
+    administrative_units = models.ManyToManyField(
+        AdministrativeUnit,
+        verbose_name=_("administrative units"),
+        blank=True,
     )
 
     def number_of_members(self):
@@ -405,6 +436,10 @@ class UserProfile(AbstractUser):
         verbose_name = _("User profile")
         verbose_name_plural = _("User profiles")
 
+        permissions = (
+            ('can_edit_all_units', _('Může editovat všechno ve všech administrativních jednotkách')),
+        )
+
     GENDER = (
         ('male', _('Male')),
         ('female', _('Female')),
@@ -598,6 +633,17 @@ class UserProfile(AbstractUser):
         null=True,
         blank=True,
         default=False,
+    )
+    administrative_units = models.ManyToManyField(
+        AdministrativeUnit,
+        verbose_name=_("administrative units"),
+        blank=True,
+    )
+    administrated_units = models.ManyToManyField(
+        AdministrativeUnit,
+        verbose_name=_("administrated units"),
+        related_name='administrators',
+        blank=True,
     )
 
     """
@@ -1310,6 +1356,13 @@ class BankAccount(models.Model):
         verbose_name=_("Bank account note"),
         blank=True,
         null=True,
+    )
+    administrative_unit = models.ForeignKey(
+        AdministrativeUnit,
+        verbose_name=_("administrative unit"),
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
     )
 
     def __str__(self):
