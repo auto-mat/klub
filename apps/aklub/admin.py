@@ -351,9 +351,11 @@ class UnitUserChangeForm(forms.ModelForm):
         field_classes = {'username': UsernameField}
 
 
-class UserProfileAdmin(filters.AdministrativeUnitAdminMixin,
-                       ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFiltersMixin,
-                       UserAdmin, nested_admin.NestedModelAdmin):
+class UserProfileAdmin(
+    filters.AdministrativeUnitAdminMixin,
+    ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFiltersMixin,
+    UserAdmin, nested_admin.NestedModelAdmin,
+):
     resource_class = UserProfileResource
     import_template_name = "admin/import_export/userprofile_import.html"
     merge_form = UserProfileMergeForm
@@ -579,8 +581,12 @@ class DonorPaymentChannelResource(ModelResource):
 
 
 # -- ADMIN FORMS --
-class DonorPaymethChannelAdmin(filters.unit_admin_mixin_generator('user__administrative_units__in'),
-                               ImportExportMixin, AdminAdvancedFiltersMixin, RelatedFieldAdmin):
+class DonorPaymethChannelAdmin(
+    filters.unit_admin_mixin_generator('user__administrative_units__in'),
+    ImportExportMixin,
+    AdminAdvancedFiltersMixin,
+    RelatedFieldAdmin,
+):
     list_display = (
         'person_name',
         'user__email',
@@ -777,8 +783,11 @@ class UserYearPaymentsAdmin(DonorPaymethChannelAdmin):
         return super(UserYearPaymentsAdmin, self).changelist_view(request, extra_context=extra_context)
 
 
-class PaymentAdmin(filters.unit_admin_mixin_generator('user_donor_payment_channel__user__administrative_units__in'),
-                   ImportExportMixin, RelatedFieldAdmin):
+class PaymentAdmin(
+    filters.unit_admin_mixin_generator('user_donor_payment_channel__user__administrative_units__in'),
+    ImportExportMixin,
+    RelatedFieldAdmin,
+):
     list_display = (
         'id',
         'date',
@@ -866,8 +875,8 @@ class PaymentAdmin(filters.unit_admin_mixin_generator('user_donor_payment_channe
     list_filter = ['user_donor_payment_channel__user__administrative_units', 'type', 'date', filters.PaymentsAssignmentsFilter]
     date_hierarchy = 'date'
     search_fields = [
-        'user_donor_payment_channel__userprofile__last_name',
-        'user_donor_payment_channel__userprofile__first_name',
+        'user_donor_payment_channel__user__last_name',
+        'user_donor_payment_channel__user__first_name',
         'amount',
         'VS',
         'SS',
@@ -888,8 +897,11 @@ class NewUserAdmin(DonorPaymethChannelAdmin):
     )
 
 
-class InteractionAdmin(filters.unit_admin_mixin_generator('user__administrative_units__in'),
-                       RelatedFieldAdmin, admin.ModelAdmin):
+class InteractionAdmin(
+    filters.unit_admin_mixin_generator('user__administrative_units__in'),
+    RelatedFieldAdmin,
+    admin.ModelAdmin,
+):
     list_display = (
         'subject',
         'dispatched',
