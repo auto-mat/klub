@@ -380,7 +380,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         'userincampaign__campaign',
         filters.RegularPaymentsFilter,
         filters.EmailFilter,
-        # filters.TelephoneFilter,
+        filters.TelephoneFilter,
         filters.NameFilter,
     )
 
