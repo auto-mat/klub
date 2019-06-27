@@ -30,13 +30,14 @@ from advanced_filters.admin import AdminAdvancedFiltersMixin
 
 from daterange_filter.filter import DateRangeFilter
 
-import django.forms
+from django import forms
 from django.contrib import admin, messages
 from django.contrib.admin import site
 from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.forms import UsernameField
 from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator
-from django.db.models import Sum
+from django.db.models import CharField, Sum
 from django.http import HttpResponseRedirect
 from django.utils.html import format_html, format_html_join, mark_safe
 from django.utils.translation import ugettext as _
@@ -318,7 +319,41 @@ class UserBankAccountAdmin(admin.ModelAdmin):
     )
 
 
-class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFiltersMixin, UserAdmin, nested_admin.NestedModelAdmin):
+class UnitUserChangeForm(forms.ModelForm):
+    class Meta:
+        model = UserProfile
+        fields = (
+            'username',
+            'first_name',
+            'last_name',
+            'title_before',
+            'title_after',
+            'email',
+            'sex',
+            'birth_day',
+            'birth_month',
+            'age_group',
+            'administrative_units',
+            'street',
+            'city',
+            'country',
+            'zip_code',
+            'different_correspondence_address',
+            'addressment',
+            'addressment_on_envelope',
+            'public',
+            'send_mailing_lists',
+            'newsletter_on',
+            'letter_on',
+            'call_on',
+            'challenge_on',
+        )
+        field_classes = {'username': UsernameField}
+
+
+class UserProfileAdmin(filters.AdministrativeUnitAdminMixin,
+                       ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFiltersMixin,
+                       UserAdmin, nested_admin.NestedModelAdmin):
     resource_class = UserProfileResource
     import_template_name = "admin/import_export/userprofile_import.html"
     merge_form = UserProfileMergeForm
@@ -428,6 +463,11 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
 
     ordering = ('email',)
     filter_horizontal = ('groups', 'user_permissions',)
+
+    def get_form(self, request, obj=None, **kwargs):
+        if request.user.is_superuser:
+            return super().get_form(request, obj, **kwargs)
+        return UnitUserChangeForm
 
     def get_details(self, obj, attr, *args):
         return [f[attr] for f in list(obj.values(attr)) if f[attr] is not None]
@@ -539,7 +579,8 @@ class DonorPaymentChannelResource(ModelResource):
 
 
 # -- ADMIN FORMS --
-class DonorPaymethChannelAdmin(ImportExportMixin, AdminAdvancedFiltersMixin, RelatedFieldAdmin):
+class DonorPaymethChannelAdmin(filters.unit_admin_mixin_generator('user__administrative_units__in'),
+                               ImportExportMixin, AdminAdvancedFiltersMixin, RelatedFieldAdmin):
     list_display = (
         'person_name',
         'user__email',
@@ -581,6 +622,7 @@ class DonorPaymethChannelAdmin(ImportExportMixin, AdminAdvancedFiltersMixin, Rel
     )
     date_hierarchy = 'registered_support'
     list_filter = [
+        'user__administrative_units',
         'regular_payments',
         'user__language',
         'user__is_active',
@@ -735,7 +777,8 @@ class UserYearPaymentsAdmin(DonorPaymethChannelAdmin):
         return super(UserYearPaymentsAdmin, self).changelist_view(request, extra_context=extra_context)
 
 
-class PaymentAdmin(ImportExportMixin, RelatedFieldAdmin):
+class PaymentAdmin(filters.unit_admin_mixin_generator('user_donor_payment_channel__user__administrative_units__in'),
+                   ImportExportMixin, RelatedFieldAdmin):
     list_display = (
         'id',
         'date',
@@ -820,7 +863,7 @@ class PaymentAdmin(ImportExportMixin, RelatedFieldAdmin):
         'created',
     )
     raw_id_fields = ('user_donor_payment_channel',)
-    list_filter = ['type', 'date', filters.PaymentsAssignmentsFilter]
+    list_filter = ['user_donor_payment_channel__user__administrative_units', 'type', 'date', filters.PaymentsAssignmentsFilter]
     date_hierarchy = 'date'
     search_fields = [
         'user_donor_payment_channel__userprofile__last_name',
@@ -845,7 +888,8 @@ class NewUserAdmin(DonorPaymethChannelAdmin):
     )
 
 
-class InteractionAdmin(RelatedFieldAdmin, admin.ModelAdmin):
+class InteractionAdmin(filters.unit_admin_mixin_generator('user__administrative_units__in'),
+                       RelatedFieldAdmin, admin.ModelAdmin):
     list_display = (
         'subject',
         'dispatched',
@@ -929,7 +973,7 @@ class AutomaticCommunicationAdmin(admin.ModelAdmin):
         return obj
 
 
-class MassCommunicationForm(django.forms.ModelForm):
+class MassCommunicationForm(forms.ModelForm):
     class Meta:
         model = MassCommunication
         fields = '__all__'
@@ -962,7 +1006,7 @@ class MassCommunicationAdmin(large_initial.LargeInitialMixin, admin.ModelAdmin):
     form = MassCommunicationForm
 
     formfield_overrides = {
-        django.db.models.CharField: {'widget': django.forms.TextInput(attrs={'size': '60'})},
+        CharField: {'widget': forms.TextInput(attrs={'size': '60'})},
     }
 
     """
