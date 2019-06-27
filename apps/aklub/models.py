@@ -1959,12 +1959,6 @@ class Payment(models.Model):
         null=True,
     )
     # Pairing of payments with a specific club system user
-    user = models.ForeignKey(
-        UserInCampaign,
-        blank=True,
-        null=True,
-        on_delete=models.CASCADE,
-    )
     user_donor_payment_channel = models.ForeignKey(
         DonorPaymentChannel,
         blank=True,
@@ -2016,14 +2010,14 @@ class Payment(models.Model):
         else:
             insert = False
         super().save(*args, **kwargs)
-        if self.user:
+        if self.user_donor_payment_channel:
             # Evaluate autocom immediatelly only when the affected
             # user is known, otherwise the bellow check would be too
             # time-consuming (relying on Cron performing it in regular
             # intervals anyway)
             from .autocom import check as autocom_check
             autocom_check(
-                payment_channels=DonorPaymentChannel.objects.filter(pk=self.user.pk),
+                payment_channels=DonorPaymentChannel.objects.filter(pk=self.user_donor_payment_channel.pk),
                 action=(insert and 'new-payment' or None),
                 )
 

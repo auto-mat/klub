@@ -123,12 +123,10 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
 
 class PaymentsInlineNoExtra(PaymentsInline):
 
-    raw_id_fields = ('user',)
-    readonly_fields = ('user__campaign',)
+    raw_id_fields = ('user_donor_payment_channel',)
     fields = (
         'type',
-        # 'user__campaign',
-        # 'user',
+        'user_donor_payment_channel',
         'user_identification',
         'account_name',
         'recipient_message',
@@ -741,7 +739,7 @@ class PaymentAdmin(ImportExportMixin, RelatedFieldAdmin):
     list_display = (
         'id',
         'date',
-        'user__campaign',
+        'user_donor_payment_channel__event',
         'account_statement',
         'amount',
         'person_name',
@@ -767,7 +765,7 @@ class PaymentAdmin(ImportExportMixin, RelatedFieldAdmin):
     fieldsets = [
         (_("Basic"), {
             'fields': [
-                'user', 'date', 'amount',
+                'user_donor_payment_channel', 'date', 'amount',
                 ('type',),
             ],
         }),
@@ -821,12 +819,12 @@ class PaymentAdmin(ImportExportMixin, RelatedFieldAdmin):
         'account_statement',
         'created',
     )
-    raw_id_fields = ('user',)
+    raw_id_fields = ('user_donor_payment_channel',)
     list_filter = ['type', 'date', filters.PaymentsAssignmentsFilter]
     date_hierarchy = 'date'
     search_fields = [
-        'user__userprofile__last_name',
-        'user__userprofile__first_name',
+        'user_donor_payment_channel__userprofile__last_name',
+        'user_donor_payment_channel__userprofile__first_name',
         'amount',
         'VS',
         'SS',
