@@ -127,8 +127,8 @@ class PaymentsInlineNoExtra(PaymentsInline):
     readonly_fields = ('user__campaign',)
     fields = (
         'type',
-        'user__campaign',
-        'user',
+        # 'user__campaign',
+        # 'user',
         'user_identification',
         'account_name',
         'recipient_message',
