@@ -156,7 +156,7 @@ class PaymentsInlineNoExtra(PaymentsInline):
 
 class InteractionInline(nested_admin.NestedTabularInline):
     model = Interaction
-    extra = 1
+    extra = 0
     can_delete = True
     show_change_link = True
     readonly_fields = ('type', 'created_by', 'handled_by')
