@@ -124,11 +124,11 @@ class RegularPaymentsFilter(SimpleListFilter):
     def queryset(self, request, queryset):
         if self.value() == 'not-delayed':
             return UserProfile.objects.filter(
-                userincampaign__expected_regular_payment_date__gt=date.today() - timedelta(days=11),
+                userchannels__expected_regular_payment_date__gt=date.today() - timedelta(days=11),
             )
         if self.value() == 'delayed':
             return UserProfile.objects.exclude(
-                userincampaign__expected_regular_payment_date__gt=date.today() - timedelta(days=11),
+                userchannels__expected_regular_payment_date__gt=date.today() - timedelta(days=11),
             )
         return queryset
 
