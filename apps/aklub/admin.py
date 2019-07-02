@@ -227,7 +227,7 @@ class UserProfileResource(ModelResource):
     telephone = fields.Field()
     VS = fields.Field()
 
-    def import_obj(self, obj, data, dry_run):
+    def import_obj(self, obj, data, dry_run): # noqa
         bank_account = BankAccount.objects.all().first()
         if data["email"] == "":
             data["email"] = None
@@ -236,6 +236,22 @@ class UserProfileResource(ModelResource):
         if data['telephone'] != "":
             obj.save()
             telephone, _ = Telephone.objects.get_or_create(telephone=data['telephone'], user=obj, defaults={'is_primary': None})
+
+        if data["administrative_units"] != "":
+            obj.save()
+            user = UserProfile.objects.get(email=obj.email)
+            for unit in list(data["administrative_units"].replace(",", "")):
+                administrate_unit = AdministrativeUnit.objects.get(pk=unit)
+                user.administrative_units.add(administrate_unit)
+            user.save()
+
+        if data["administrated_units"] != "":
+            obj.save()
+            user = UserProfile.objects.get(email=obj.email)
+            administrated_unit = AdministrativeUnit.objects.get(pk=data["administrated_units"])
+            user.administrated_units.add(administrated_unit)
+            user.save()
+
         if data['donor'] != "":
             if data['VS']:
                 VS = data['VS']
@@ -351,9 +367,11 @@ class UnitUserChangeForm(forms.ModelForm):
         field_classes = {'username': UsernameField}
 
 
-class UserProfileAdmin(filters.AdministrativeUnitAdminMixin,
-                       ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFiltersMixin,
-                       UserAdmin, nested_admin.NestedModelAdmin):
+class UserProfileAdmin(
+    filters.AdministrativeUnitAdminMixin,
+    ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFiltersMixin,
+    UserAdmin, nested_admin.NestedModelAdmin,
+):
     resource_class = UserProfileResource
     import_template_name = "admin/import_export/userprofile_import.html"
     merge_form = UserProfileMergeForm
@@ -579,8 +597,12 @@ class DonorPaymentChannelResource(ModelResource):
 
 
 # -- ADMIN FORMS --
-class DonorPaymethChannelAdmin(filters.unit_admin_mixin_generator('user__administrative_units__in'),
-                               ImportExportMixin, AdminAdvancedFiltersMixin, RelatedFieldAdmin):
+class DonorPaymethChannelAdmin(
+    filters.unit_admin_mixin_generator('user__administrative_units__in'),
+    ImportExportMixin,
+    AdminAdvancedFiltersMixin,
+    RelatedFieldAdmin,
+):
     list_display = (
         'person_name',
         'user__email',
@@ -777,8 +799,11 @@ class UserYearPaymentsAdmin(DonorPaymethChannelAdmin):
         return super(UserYearPaymentsAdmin, self).changelist_view(request, extra_context=extra_context)
 
 
-class PaymentAdmin(filters.unit_admin_mixin_generator('user_donor_payment_channel__user__administrative_units__in'),
-                   ImportExportMixin, RelatedFieldAdmin):
+class PaymentAdmin(
+    filters.unit_admin_mixin_generator('user_donor_payment_channel__user__administrative_units__in'),
+    ImportExportMixin,
+    RelatedFieldAdmin,
+):
     list_display = (
         'id',
         'date',
@@ -866,8 +891,8 @@ class PaymentAdmin(filters.unit_admin_mixin_generator('user_donor_payment_channe
     list_filter = ['user_donor_payment_channel__user__administrative_units', 'type', 'date', filters.PaymentsAssignmentsFilter]
     date_hierarchy = 'date'
     search_fields = [
-        'user_donor_payment_channel__userprofile__last_name',
-        'user_donor_payment_channel__userprofile__first_name',
+        'user_donor_payment_channel__user__last_name',
+        'user_donor_payment_channel__user__first_name',
         'amount',
         'VS',
         'SS',
@@ -888,8 +913,11 @@ class NewUserAdmin(DonorPaymethChannelAdmin):
     )
 
 
-class InteractionAdmin(filters.unit_admin_mixin_generator('user__administrative_units__in'),
-                       RelatedFieldAdmin, admin.ModelAdmin):
+class InteractionAdmin(
+    filters.unit_admin_mixin_generator('user__administrative_units__in'),
+    RelatedFieldAdmin,
+    admin.ModelAdmin,
+):
     list_display = (
         'subject',
         'dispatched',
