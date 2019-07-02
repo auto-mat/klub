@@ -227,30 +227,14 @@ class UserProfileResource(ModelResource):
     telephone = fields.Field()
     VS = fields.Field()
 
-    def import_obj(self, obj, data, dry_run): # noqa
+    def import_obj(self, obj, data, dry_run):  # noqa
         bank_account = BankAccount.objects.all().first()
-        if data["email"] == "":
-            data["email"] = None
+
         if data["username"] == "":
             data["username"] = None
         if data['telephone'] != "":
             obj.save()
             telephone, _ = Telephone.objects.get_or_create(telephone=data['telephone'], user=obj, defaults={'is_primary': None})
-
-        if data["administrative_units"] != "":
-            obj.save()
-            user = UserProfile.objects.get(email=obj.email)
-            for unit in list(data["administrative_units"].replace(",", "")):
-                administrate_unit = AdministrativeUnit.objects.get(pk=unit)
-                user.administrative_units.add(administrate_unit)
-            user.save()
-
-        if data["administrated_units"] != "":
-            obj.save()
-            user = UserProfile.objects.get(email=obj.email)
-            administrated_unit = AdministrativeUnit.objects.get(pk=data["administrated_units"])
-            user.administrated_units.add(administrated_unit)
-            user.save()
 
         if data['donor'] != "":
             if data['VS']:
@@ -277,7 +261,26 @@ class UserProfileResource(ModelResource):
                 donors.event.add(event)
                 donors.user = obj
                 donors.save()
-        return super(UserProfileResource, self).import_obj(obj, data, dry_run)
+
+        if data["email"] != "":
+            super(UserProfileResource, self).import_obj(obj, data, dry_run)
+            if data["administrative_units"] != "":
+                obj.save()
+                user = UserProfile.objects.get(email=data["email"])
+                for unit in list(data["administrative_units"].replace(",", "")):
+                    administrate_unit = AdministrativeUnit.objects.get(pk=unit)
+                    user.administrative_units.add(administrate_unit)
+                    user.save()
+
+            if data["administrated_units"] != "":
+                obj.save()
+                user = UserProfile.objects.get(email=obj.email)
+                administrated_unit = AdministrativeUnit.objects.get(pk=data["administrated_units"])
+                user.administrated_units.add(administrated_unit)
+                user.save()
+        else:
+            data["email"] = None
+            super(UserProfileResource, self).import_obj(obj, data, dry_run)
 
     def dehydrate_telephone(self, profile):
         return profile.get_telephone()
