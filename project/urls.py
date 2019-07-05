@@ -1,3 +1,5 @@
+import os
+
 from aklub.views import stat_members, stat_payments
 
 from django.conf import settings
@@ -44,3 +46,8 @@ try:
     ]
 except ImportError:
     pass
+
+if os.environ.get('DJANGO_SETTINGS_MODULE', False) == 'project.settings.dev':
+    urlpatterns += [
+        url(r'^silk/', include('silk.urls', namespace='silk')),
+    ]
