@@ -222,13 +222,14 @@ send_mass_communication_distinct_action.short_description = _("Send mass communi
 class UserProfileResource(ModelResource):
     class Meta:
         model = UserProfile
-        exclude = ('id',)
+        exclude = ('id', 'is_superuser', 'is_staff', 'administrated_units')
         import_id_fields = ('email', )
         export_order = ('administrative_units', 'email')
-    telephone = fields.Field()
-    VS = fields.Field()
 
-    def import_obj(self, obj, data, dry_run):  # noqa
+    telephone = fields.Field()
+    donor = fields.Field()
+
+    def import_obj(self, obj, data, dry_run):
         bank_account = BankAccount.objects.all().first()
         obj.save()
         if data.get('username') == "":
@@ -249,9 +250,9 @@ class UserProfileResource(ModelResource):
                 VS = generate_variable_symbol()
             event, _ = Event.objects.get_or_create(name=data['event'])
             donors, _ = DonorPaymentChannel.objects.get_or_create(
-                VS=VS,
                 user=obj,
-                defaults={'bank_account': bank_account},
+                event=event,
+                defaults={'VS': VS},
             )
             if data.get('bank_account'):
                 bank_account, _ = BankAccount.objects.get_or_create(bank_account_number=data['bank_account'])
@@ -261,6 +262,7 @@ class UserProfileResource(ModelResource):
                 user_bank_account, _ = UserBankAccount.objects.get_or_create(bank_account_number=data['user_bank_account'])
                 donors.user_bank_account = user_bank_account
                 donors.save()
+
             if data.get('event'):
                 event, _ = Event.objects.get_or_create(name=data['event'])
                 donors.event.add(event)
@@ -272,11 +274,30 @@ class UserProfileResource(ModelResource):
     def dehydrate_telephone(self, profile):
         return profile.get_telephone()
 
-    def dehydrate_VS(self, profile):
-        return profile.get_donor()
+    def dehydrate_donor(self, profile):
+        donor_list = []
+        for donor in profile.userchannels.all():
+            if donor:
+                donor_list.append(f"VS:{donor.VS}\n")
+                donor_list.append(f"event:{donor.event.name}\n")
+                try:
+                    donor_list.append(f"bank_accout:{donor.bank_account.bank_account_number}\n")
+                except AttributeError:
+                    donor_list.append('bank_accout:\n')
+                try:
+                    donor_list.append(f"user_bank_account:{donor.user_bank_account.bank_account_number}\n")
+                except AttributeError:
+                    donor_list.append(f"user_bank_account:\n")
+                donor_list.append("\n")
+
+        return "".join(tuple(donor_list))
 
     def before_import_row(self, row, **kwargs):
+        row['is_superuser'] = 0
+        row['is_staff'] = 0
         row['email'] = row['email'].lower()
+        row["administrative_units"] = kwargs['user'].administrated_units.all()[0]
+        row["administrated_units"] = ""
 
     def import_field(self, field, obj, data, is_m2m=False):
         if field.attribute and field.column_name in data and not getattr(obj, field.column_name):
