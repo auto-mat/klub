@@ -232,14 +232,14 @@ class UserProfileResource(ModelResource):
     def import_obj(self, obj, data, dry_run):  # noqa
         bank_account = BankAccount.objects.all().first()
 
-        if data["username"] == "":
+        if not data.get("username"):
             data["username"] = None
-        if data['telephone'] != "":
+        if data.get('telephone'):
             obj.save()
             telephone, _ = Telephone.objects.get_or_create(telephone=data['telephone'], user=obj, defaults={'is_primary': None})
 
-        if data['donor'] != "":
-            if data['VS']:
+        if data.get('donor'):
+            if data.get('VS'):
                 VS = data['VS']
             else:
                 from .views import generate_variable_symbol
@@ -250,23 +250,23 @@ class UserProfileResource(ModelResource):
                 user=obj,
                 defaults={'bank_account': bank_account},
             )
-            if data['bank_account'] != "":
+            if data.get('bank_account'):
                 bank_account, _ = BankAccount.objects.get_or_create(bank_account_number=data['bank_account'])
                 donors.bank_account = bank_account
                 donors.save()
-            if data['user_bank_account'] != "":
+            if data.get('user_bank_account'):
                 user_bank_account, _ = UserBankAccount.objects.get_or_create(bank_account_number=data['user_bank_account'])
                 donors.user_bank_account = user_bank_account
                 donors.save()
-            if data['event'] != "":
+            if data.get('event'):
                 event, _ = Event.objects.get_or_create(name=data['event'])
                 donors.event.add(event)
                 donors.user = obj
                 donors.save()
 
-        if data["email"] != "":
+        if data.get("email"):
             super(UserProfileResource, self).import_obj(obj, data, dry_run)
-            if data["administrative_units"] != "":
+            if data.get("administrative_units"):
                 obj.save()
                 user = UserProfile.objects.get(email=data["email"])
                 for unit in list(data["administrative_units"].replace(",", "")):
@@ -274,7 +274,6 @@ class UserProfileResource(ModelResource):
                     user.administrative_units.add(administrate_unit)
                     user.save()
 
-            if data["administrated_units"] != "":
                 obj.save()
                 user = UserProfile.objects.get(email=obj.email)
                 administrated_unit = AdministrativeUnit.objects.get(pk=data["administrated_units"])
