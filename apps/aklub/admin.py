@@ -444,6 +444,16 @@ class UserProfileAdmin(
         (_('Personal data'), {
             'classes': ('wide',),
             'fields': (
+                ('first_name', 'last_name'), 'email', 'sex',
+                ('birth_day', 'birth_month', 'age_group'),
+            ),
+        }),
+    )
+
+    edit_fieldsets = (
+        (_('Personal data'), {
+            'classes': ('wide',),
+            'fields': (
                 'username', ('first_name', 'last_name'), ('title_before', 'title_after'), 'email', 'sex',
                 ('birth_day', 'birth_month', 'age_group'),
                 'get_main_telephone',
@@ -534,10 +544,14 @@ class UserProfileAdmin(
     inlines = [TelephoneInline, DonorPaymentChannelInline, InteractionInline]
 
     def get_fieldsets(self, request, obj=None):
-        if request.user.is_superuser and self.superuser_fieldsets:
-            return self.add_fieldsets + self.superuser_fieldsets
+        if obj:
+            fieldsets = self.edit_fieldsets
         else:
-            return self.add_fieldsets
+            fieldsets = self.add_fieldsets
+        if request.user.is_superuser and self.superuser_fieldsets:
+            return fieldsets + self.superuser_fieldsets
+        else:
+            return fieldsets
         super().get_fieldsets(request, obj)
 
     def save_formset(self, request, form, formset, change):
