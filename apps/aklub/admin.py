@@ -61,6 +61,7 @@ from smmapdfs.actions import make_pdfsandwich
 from smmapdfs.admin_abcs import PdfSandwichAdmin, PdfSandwichFieldAdmin
 
 from . import darujme, filters, mailing, tasks
+from .filters import unit_admin_mixin_generator
 from .forms import UserCreateForm, UserUpdateForm
 from .models import (
     AccountStatements, AdministrativeUnit, AutomaticCommunication, BankAccount, Condition, DonorPaymentChannel,
@@ -315,15 +316,19 @@ class TelephoneInline(nested_admin.NestedTabularInline):
     show_change_link = True
 
 
-class BankAccountAdmin(admin.ModelAdmin):
+class BankAccountAdmin(unit_admin_mixin_generator('administrative_unit__in'), admin.ModelAdmin):
     model = BankAccount
+
+    list_fields = (
+        'bank_account', 'bank_account_number', 'administrative_unit',
+    )
 
     search_fields = (
         'bank_account', 'bank_account_number',
     )
 
     list_filter = (
-        'bank_account', 'bank_account_number',
+        'bank_account', 'bank_account_number', 'administrative_unit',
     )
 
 
@@ -616,7 +621,7 @@ class DonorPaymentChannelResource(ModelResource):
 
 # -- ADMIN FORMS --
 class DonorPaymethChannelAdmin(
-    filters.unit_admin_mixin_generator('user__administrative_units__in'),
+    unit_admin_mixin_generator('user__administrative_units__in'),
     ImportExportMixin,
     AdminAdvancedFiltersMixin,
     RelatedFieldAdmin,
@@ -818,7 +823,7 @@ class UserYearPaymentsAdmin(DonorPaymethChannelAdmin):
 
 
 class PaymentAdmin(
-    filters.unit_admin_mixin_generator('user_donor_payment_channel__user__administrative_units__in'),
+    unit_admin_mixin_generator('user_donor_payment_channel__user__administrative_units__in'),
     ImportExportMixin,
     RelatedFieldAdmin,
 ):
@@ -932,7 +937,7 @@ class NewUserAdmin(DonorPaymethChannelAdmin):
 
 
 class InteractionAdmin(
-    filters.unit_admin_mixin_generator('user__administrative_units__in'),
+    unit_admin_mixin_generator('user__administrative_units__in'),
     RelatedFieldAdmin,
     admin.ModelAdmin,
 ):
@@ -1244,11 +1249,11 @@ class SourceAdmin(admin.ModelAdmin):
     list_display = ('slug', 'name', 'direct_dialogue')
 
 
-class TaxConfirmationAdmin(ImportExportMixin, admin.ModelAdmin):
+class TaxConfirmationAdmin(unit_admin_mixin_generator('user_profile__administrative_units__in'), ImportExportMixin, admin.ModelAdmin):
     change_list_template = "admin/aklub/taxconfirmation/change_list.html"
     list_display = ('user_profile', 'year', 'amount', 'get_pdf', )
     ordering = ('user_profile__last_name', 'user_profile__first_name',)
-    list_filter = ['year']
+    list_filter = ['user_profile__administrative_units', 'year']
     search_fields = ('user_profile__last_name', 'user_profile__first_name', 'user_profile__userincampaign__variable_symbol',)
     raw_id_fields = ('user_profile',)
     actions = (make_pdfsandwich,)
