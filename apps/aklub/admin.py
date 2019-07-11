@@ -98,6 +98,7 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
     can_delete = True
     show_change_link = True
     inlines = [PaymentsInline]
+    autocomplete_fields = ('event',)
 
     fieldsets = (
         (None, {
@@ -444,7 +445,7 @@ class UserProfileAdmin(
         (_('Personal data'), {
             'classes': ('wide',),
             'fields': (
-                ('first_name', 'last_name'), 'email', 'sex',
+                'username', ('first_name', 'last_name'), 'email', 'sex',
                 ('birth_day', 'birth_month', 'age_group'),
             ),
         }),
