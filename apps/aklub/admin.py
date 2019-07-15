@@ -34,7 +34,6 @@ from django import forms
 from django.contrib import admin, messages
 from django.contrib.admin import site
 from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.forms import UsernameField
 from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator
 from django.db.models import CharField, Sum
@@ -343,38 +342,6 @@ class UserBankAccountAdmin(admin.ModelAdmin):
     )
 
 
-class UnitUserChangeForm(forms.ModelForm):
-    class Meta:
-        model = UserProfile
-        fields = (
-            'username',
-            'first_name',
-            'last_name',
-            'title_before',
-            'title_after',
-            'email',
-            'sex',
-            'birth_day',
-            'birth_month',
-            'age_group',
-            'administrative_units',
-            'street',
-            'city',
-            'country',
-            'zip_code',
-            'different_correspondence_address',
-            'addressment',
-            'addressment_on_envelope',
-            'public',
-            'send_mailing_lists',
-            'newsletter_on',
-            'letter_on',
-            'call_on',
-            'challenge_on',
-        )
-        field_classes = {'username': UsernameField}
-
-
 class UserProfileAdmin(
     filters.AdministrativeUnitAdminMixin,
     ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFiltersMixin,
@@ -450,6 +417,7 @@ class UserProfileAdmin(
             'fields': (
                 'username', ('first_name', 'last_name'), 'email', 'sex',
                 ('birth_day', 'birth_month', 'age_group'),
+                'administrative_units',
             ),
         }),
     )
@@ -498,11 +466,6 @@ class UserProfileAdmin(
 
     ordering = ('email',)
     filter_horizontal = ('groups', 'user_permissions',)
-
-    def get_form(self, request, obj=None, **kwargs):
-        if request.user.is_superuser:
-            return super().get_form(request, obj, **kwargs)
-        return UnitUserChangeForm
 
     def get_details(self, obj, attr, *args):
         return [f[attr] for f in list(obj.values(attr)) if f[attr] is not None]
