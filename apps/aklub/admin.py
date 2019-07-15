@@ -1146,7 +1146,7 @@ def parse_statement(self, request, queryset):
 parse_statement.short_description = _("Reparse account statement")
 
 
-class AccountStatementsAdmin(nested_admin.NestedModelAdmin):
+class AccountStatementsAdmin(unit_admin_mixin_generator('administrative_unit'), nested_admin.NestedModelAdmin):
     list_display = ('type', 'import_date', 'payments_count', 'csv_file', 'date_from', 'date_to')
     list_filter = ('type',)
     inlines = [PaymentsInlineNoExtra]
