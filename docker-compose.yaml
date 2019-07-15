@@ -43,7 +43,7 @@ services:
    - ./pipenv:/home/test
  flower:
   build: .
-  entrypoint: pipenv run ./launch_flower
+  entrypoint: ./launch_flower
   ports:
    - "5555:5555"
   links:

@@ -139,6 +139,7 @@ MIDDLEWARE = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     # 'django.middleware.csrf.CsrfViewMiddleware',
+    'author.middlewares.AuthorDefaultBackendMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -199,6 +200,7 @@ INSTALLED_APPS = (
     'post_office',
     'raven.contrib.django.raven_compat',
     'import_export',
+    'import_export_celery',
     'corsheaders',
     'daterange_filter',
     'denorm',
@@ -349,3 +351,16 @@ X_FRAME_OPTIONS = 'DENY'
 
 BROKER_URL = os.environ.get('REDIS_URL', 'redis://redis')
 SMMAPDFS_CELERY = True
+
+def get_user_profile_resource():
+    from aklub.admin import UserProfileResource
+    return UserProfileResource
+
+
+IMPORT_EXPORT_CELERY_MODELS = {
+    "User profile": {
+        'app_label': 'aklub',
+        'model_name': 'UserProfile',
+        'resource': get_user_profile_resource
+    },
+}
