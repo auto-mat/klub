@@ -6,6 +6,7 @@ from functools import reduce
 
 from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
+from django.contrib.admin.filters import RelatedFieldListFilter
 from django.db.models import Count, Q
 from django.db.models.functions import Lower
 from django.utils.translation import ugettext as _
@@ -199,15 +200,34 @@ class NameFilter(SimpleListFilter):
         return queryset
 
 
+class UnitFilter(RelatedFieldListFilter):
+    def field_choices(self, field, request, model_admin):
+        return field.get_choices(include_blank=False, limit_choices_to={'pk__in': request.user.administrated_units.all()})
+
+
 class AdministrativeUnitAdminMixin(object):
-    queryset_unit_param = 'administrative_units__in'
+    queryset_unit_param = 'administrative_units'
 
     def get_queryset(self, request):
         queryset = super(admin.ModelAdmin, self).get_queryset(request)
         if request.user.has_perm('aklub.can_edit_all_units'):
             return queryset
-        kwargs = {self.queryset_unit_param: request.user.administrated_units.all()}
+        kwargs = {self.queryset_unit_param + '__in': request.user.administrated_units.all()}
         return queryset.filter(**kwargs).distinct()  # The distinct is necessarry here for unit admins, that have more cities
+
+    def lookup_allowed(self, key, value):
+        allowed_lookups = (
+            self.queryset_unit_param,
+            self.queryset_unit_param + "__id__exact",
+            self.queryset_unit_param + "__isnull",
+        )
+        if key in allowed_lookups:
+            return True
+        return super().lookup_allowed(key, value)
+
+    def get_list_filter(self, request):
+        list_filter = ((self.queryset_unit_param, UnitFilter),) + tuple(super().get_list_filter(request))
+        return list_filter
 
 
 def unit_admin_mixin_generator(queryset_unit):
