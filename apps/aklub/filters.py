@@ -225,6 +225,11 @@ class AdministrativeUnitAdminMixin(object):
             return True
         return super().lookup_allowed(key, value)
 
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == self.queryset_unit_param:
+            kwargs["queryset"] = request.user.administrated_units.all()
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
     def get_list_filter(self, request):
         list_filter = ((self.queryset_unit_param, UnitFilter),) + tuple(super().get_list_filter(request))
         return list_filter
