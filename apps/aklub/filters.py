@@ -226,9 +226,24 @@ class AdministrativeUnitAdminMixin(object):
         return super().lookup_allowed(key, value)
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == self.queryset_unit_param:
-            kwargs["queryset"] = request.user.administrated_units.all()
+        if not request.user.has_perm('aklub.can_edit_all_units'):
+            administrated_units = request.user.administrated_units.all()
+            if db_field.name == self.queryset_unit_param:
+                kwargs["queryset"] = administrated_units
+                kwargs["required"] = True
+                if administrated_units.count() == 1:
+                    kwargs["initial"] = administrated_units
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        if not request.user.has_perm('aklub.can_edit_all_units'):
+            administrated_units = request.user.administrated_units.all()
+            if db_field.name == self.queryset_unit_param:
+                kwargs["queryset"] = administrated_units
+                kwargs["required"] = True
+                if administrated_units.count() == 1:
+                    kwargs["initial"] = administrated_units
+        return super().formfield_for_manytomany(db_field, request, **kwargs)
 
     def get_list_filter(self, request):
         list_filter = ((self.queryset_unit_param, UnitFilter),) + tuple(super().get_list_filter(request))
