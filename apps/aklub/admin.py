@@ -919,7 +919,7 @@ class InteractionAdmin(
     )
     autocomplete_fields = ('user', 'event')
     readonly_fields = ('type', 'created_by', 'handled_by', )
-    list_filter = ['dispatched', 'send', 'date', 'method', 'type', 'user', 'event']
+    list_filter = ['dispatched', 'send', 'date', 'method', 'type', 'event']
     search_fields = (
         'subject',
         # 'user__userprofile__telephone',
