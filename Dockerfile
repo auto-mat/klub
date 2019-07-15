@@ -1,6 +1,29 @@
-FROM petrdlouhy/dopracenakole
+FROM python:3.6
+
 RUN curl -sL https://deb.nodesource.com/setup_10.x | bash -
-RUN apt-get -qq update; apt-get -y install nodejs gettext libgettextpo-dev libgraphviz-dev
+run apt-get update && apt-get install -y \
+   binutils \
+   gdal-bin \
+   gettext \
+   git \
+   gunicorn \
+   libfreetype6-dev \
+   libgeos-dev \
+   libjpeg-dev \
+   liblcms2-dev \
+   memcached \
+   poppler-utils \
+   postgresql-common \
+   zlib1g-dev \
+   nodejs \
+   libgettextpo-dev \
+   libgraphviz-dev
+
+run mkdir /home/aplikace -p
+WORKDIR "/home/aplikace"
+
+run pip3 install pipenv
+
 RUN npm install -g less bower
 RUN pip3 install pipenv==2018.11.14
 RUN useradd test
