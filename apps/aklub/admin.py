@@ -34,6 +34,7 @@ from django import forms
 from django.contrib import admin, messages
 from django.contrib.admin import site
 from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.forms import UsernameField
 from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator
 from django.db.models import CharField, Sum
@@ -61,7 +62,7 @@ from smmapdfs.admin_abcs import PdfSandwichAdmin, PdfSandwichFieldAdmin
 
 from . import darujme, filters, mailing, tasks
 from .filters import unit_admin_mixin_generator
-from .forms import UserCreateForm, UserUpdateForm
+from .forms import UserCreateForm, UserFormMixin, UserUpdateForm
 from .models import (
     AccountStatements, AdministrativeUnit, AutomaticCommunication, BankAccount, Condition, DonorPaymentChannel,
     Event, Expense, Interaction, MassCommunication, NewUser, Payment, Recruiter,
@@ -328,6 +329,38 @@ class UserBankAccountAdmin(admin.ModelAdmin):
     )
 
 
+class UnitUserChangeForm(UserFormMixin, forms.ModelForm):
+    class Meta:
+        model = UserProfile
+        fields = (
+            'username',
+            'first_name',
+            'last_name',
+            'title_before',
+            'title_after',
+            'email',
+            'sex',
+            'birth_day',
+            'birth_month',
+            'age_group',
+            'administrative_units',
+            'street',
+            'city',
+            'country',
+            'zip_code',
+            'different_correspondence_address',
+            'addressment',
+            'addressment_on_envelope',
+            'public',
+            'send_mailing_lists',
+            'newsletter_on',
+            'letter_on',
+            'call_on',
+            'challenge_on',
+        )
+        field_classes = {'username': UsernameField}
+
+
 class UserProfileAdmin(
     filters.AdministrativeUnitAdminMixin,
     ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFiltersMixin,
@@ -453,6 +486,15 @@ class UserProfileAdmin(
 
     ordering = ('email',)
     filter_horizontal = ('groups', 'user_permissions',)
+
+    def get_form(self, request, obj=None, **kwargs):
+        if request.user.is_superuser:
+            form = super().get_form(request, obj, **kwargs)
+            form.request = request
+            return form
+        form = UnitUserChangeForm
+        form.request = request
+        return form
 
     def get_details(self, obj, attr, *args):
         return [f[attr] for f in list(obj.values(attr)) if f[attr] is not None]

@@ -1,6 +1,9 @@
 from django.contrib.auth.forms import ReadOnlyPasswordHashField, UserChangeForm, UserCreationForm
+from django.shortcuts import reverse
 from django.urls import reverse_lazy
+from django.utils.safestring import mark_safe
 
+from .models import AdministrativeUnit, UserProfile
 from .views import get_unique_username
 
 
@@ -11,7 +14,23 @@ def username_validation(user, fields):
         user.username = fields['username']
 
 
-class UserCreateForm(UserCreationForm):
+class UserFormMixin(object):
+    def clean(self):
+        try:
+            user = UserProfile.objects.get(email=self.cleaned_data['email'])
+            administrated_unit = AdministrativeUnit.objects.get(id=self.request.user.administrated_units.all()[0].id)
+            user.administrative_units.add(administrated_unit)
+            user.save()
+            url = reverse('admin:aklub_userprofile_change', args=(user.pk,))
+            self.add_error('email', mark_safe(
+                        f'<a href="{url}">User with this email already exist in database and is available now, click here to edit</a>')
+                        )
+            return super(UserFormMixin, self).clean()
+        except UserProfile.DoesNotExist:
+            return super(UserFormMixin, self).clean()
+
+
+class UserCreateForm(UserFormMixin, UserCreationForm):
     password = ReadOnlyPasswordHashField()
 
     def __init__(self, *args, **kwargs):
