@@ -61,7 +61,7 @@ from smmapdfs.actions import make_pdfsandwich
 from smmapdfs.admin_abcs import PdfSandwichAdmin, PdfSandwichFieldAdmin
 
 from . import darujme, filters, mailing, tasks
-from .forms import UserCreateForm, UserUpdateForm
+from .forms import UserCreateForm, UserFormMixin, UserUpdateForm
 from .models import (
     AccountStatements, AdministrativeUnit, AutomaticCommunication, BankAccount, Condition, DonorPaymentChannel,
     Event, Expense, Interaction, MassCommunication, NewUser, Payment, Recruiter,
@@ -346,7 +346,7 @@ class UserBankAccountAdmin(admin.ModelAdmin):
     )
 
 
-class UnitUserChangeForm(forms.ModelForm):
+class UnitUserChangeForm(UserFormMixin, forms.ModelForm):
     class Meta:
         model = UserProfile
         fields = (
@@ -452,8 +452,8 @@ class UserProfileAdmin(
         (_('Personal data'), {
             'classes': ('wide',),
             'fields': (
-                ('first_name', 'last_name'), 'email', 'sex',
-                ('birth_day', 'birth_month', 'age_group'),
+                 'username', ('first_name', 'last_name'), 'email', 'sex',
+                 ('birth_day', 'birth_month', 'age_group'),
             ),
         }),
     )
@@ -505,8 +505,12 @@ class UserProfileAdmin(
 
     def get_form(self, request, obj=None, **kwargs):
         if request.user.is_superuser:
-            return super().get_form(request, obj, **kwargs)
-        return UnitUserChangeForm
+            form = super().get_form(request, obj, **kwargs)
+            form.request = request
+            return form
+        form = UnitUserChangeForm
+        form.request = request
+        return form
 
     def get_details(self, obj, attr, *args):
         return [f[attr] for f in list(obj.values(attr)) if f[attr] is not None]
