@@ -222,53 +222,48 @@ class UserProfileResource(ModelResource):
         model = UserProfile
         exclude = ('id', 'is_superuser', 'is_staff', 'administrated_units')
         import_id_fields = ('email', )
-
+        export_order = ('administrative_units', 'email')
     telephone = fields.Field()
     donor = fields.Field()
 
     def import_obj(self, obj, data, dry_run):
         bank_account = BankAccount.objects.all().first()
-
-        if data["username"] == "":
+        obj.save()
+        if data.get('username') == "":
             data["username"] = None
-        if data['telephone'] != "":
-            obj.save()
+        if data.get('telephone'):
             telephone, _ = Telephone.objects.get_or_create(telephone=data['telephone'], user=obj, defaults={'is_primary': None})
+        if data.get("email") == "":
+            data["email"] = None
 
-        if data['event'] != "":
-            if data['VS']:
+        obj.administrative_units.add(data["administrative_units"])
+        obj.save()
+
+        if data.get('event') and data.get('donor') == 'x':
+            if data.get('VS') != "":
                 VS = data['VS']
             else:
                 from .views import generate_variable_symbol
                 VS = generate_variable_symbol()
-            obj.save()
             event, _ = Event.objects.get_or_create(name=data['event'])
             donors, _ = DonorPaymentChannel.objects.get_or_create(
                 user=obj,
                 event=event,
                 defaults={'VS': VS},
             )
+
             donors.user = obj
             donors.save()
 
-            if data['bank_account'] != "":
+            if data.get('bank_account'):
                 bank_account, _ = BankAccount.objects.get_or_create(bank_account_number=data['bank_account'])
                 donors.bank_account = bank_account
                 donors.save()
-            if data['user_bank_account'] != "":
+            if data.get('user_bank_account'):
                 user_bank_account, _ = UserBankAccount.objects.get_or_create(bank_account_number=data['user_bank_account'])
                 donors.user_bank_account = user_bank_account
                 donors.save()
 
-        if data["email"] != "":
-            super(UserProfileResource, self).import_obj(obj, data, dry_run)
-            obj.save()
-            user = UserProfile.objects.get(email=data["email"])
-            administrate_unit = AdministrativeUnit.objects.get(pk=str(data["administrative_units"]))
-            user.administrative_units.add(administrate_unit)
-            user.save()
-        else:
-            data["email"] = None
         return super(UserProfileResource, self).import_obj(obj, data, dry_run)
 
     def dehydrate_telephone(self, profile):
