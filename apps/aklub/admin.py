@@ -460,6 +460,7 @@ class UserProfileAdmin(
                 'username', ('first_name', 'last_name'), ('title_before', 'title_after'), 'email', 'sex',
                 ('birth_day', 'birth_month', 'age_group'),
                 'get_main_telephone',
+                'note',
                 'administrative_units',
             ),
         }),
