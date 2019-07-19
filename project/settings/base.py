@@ -352,6 +352,7 @@ X_FRAME_OPTIONS = 'DENY'
 BROKER_URL = os.environ.get('REDIS_URL', 'redis://redis')
 SMMAPDFS_CELERY = True
 
+
 def get_user_profile_resource():
     from aklub.admin import UserProfileResource
     return UserProfileResource
@@ -361,6 +362,6 @@ IMPORT_EXPORT_CELERY_MODELS = {
     "User profile": {
         'app_label': 'aklub',
         'model_name': 'UserProfile',
-        'resource': get_user_profile_resource
+        'resource': get_user_profile_resource,
     },
 }
