@@ -229,7 +229,7 @@ class UserProfileResource(ModelResource):
     telephone = fields.Field()
     donor = fields.Field()
 
-    def import_obj(self, obj, data, dry_run):
+    def import_obj(self, obj, data, dry_run):  # noqa
         bank_account = BankAccount.objects.all().first()
         obj.save()
         if data.get('username') == "":
@@ -239,8 +239,9 @@ class UserProfileResource(ModelResource):
         if data.get("email") == "":
             data["email"] = None
 
-        obj.administrative_units.add(data["administrative_units"])
-        obj.save()
+        if data.get("administrative_units"):
+            obj.administrative_units.add(data["administrative_units"])
+            obj.save()
 
         if data.get('event') and data.get('donor') == 'x':
             if data.get('VS') != "":
@@ -296,7 +297,7 @@ class UserProfileResource(ModelResource):
         row['is_superuser'] = 0
         row['is_staff'] = 0
         row['email'] = row['email'].lower()
-        row["administrative_units"] = kwargs['user'].administrated_units.all()[0]
+        row["administrative_units"] = kwargs['user'].administrated_units.first()
         row["administrated_units"] = ""
 
     def import_field(self, field, obj, data, is_m2m=False):
