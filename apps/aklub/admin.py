@@ -61,6 +61,7 @@ from smmapdfs.actions import make_pdfsandwich
 from smmapdfs.admin_abcs import PdfSandwichAdmin, PdfSandwichFieldAdmin
 
 from . import darujme, filters, mailing, tasks
+from .filters import unit_admin_mixin_generator
 from .forms import UserCreateForm, UserFormMixin, UserUpdateForm
 from .models import (
     AccountStatements, AdministrativeUnit, AutomaticCommunication, BankAccount, Condition, DonorPaymentChannel,
@@ -98,6 +99,7 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
     can_delete = True
     show_change_link = True
     inlines = [PaymentsInline]
+    autocomplete_fields = ('event',)
 
     fieldsets = (
         (None, {
@@ -107,7 +109,7 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
             ),
         }),
         (_('Details'), {
-            'classes': ('collapse',),
+            'classes': ('collapse',),>>>>>>> diakonie
             'fields': [
                 ('VS'),
                 ('registered_support', 'regular_amount', 'regular_frequency'),
@@ -222,7 +224,8 @@ class UserProfileResource(ModelResource):
         model = UserProfile
         exclude = ('id', 'is_superuser', 'is_staff', 'administrated_units')
         import_id_fields = ('email', )
-        export_order = ('administrative_units', 'email')
+        export_order = ('administrative_units', 'email'
+
     telephone = fields.Field()
     donor = fields.Field()
 
@@ -252,9 +255,6 @@ class UserProfileResource(ModelResource):
                 defaults={'VS': VS},
             )
 
-            donors.user = obj
-            donors.save()
-
             if data.get('bank_account'):
                 bank_account, _ = BankAccount.objects.get_or_create(bank_account_number=data['bank_account'])
                 donors.bank_account = bank_account
@@ -262,6 +262,12 @@ class UserProfileResource(ModelResource):
             if data.get('user_bank_account'):
                 user_bank_account, _ = UserBankAccount.objects.get_or_create(bank_account_number=data['user_bank_account'])
                 donors.user_bank_account = user_bank_account
+                donors.save()
+
+            if data.get('event'):
+                event, _ = Event.objects.get_or_create(name=data['event'])
+                donors.event.add(event)
+                donors.user = obj
                 donors.save()
 
         return super(UserProfileResource, self).import_obj(obj, data, dry_run)
@@ -317,8 +323,12 @@ class TelephoneInline(nested_admin.NestedTabularInline):
     show_change_link = True
 
 
-class BankAccountAdmin(admin.ModelAdmin):
+class BankAccountAdmin(unit_admin_mixin_generator('administrative_unit'), admin.ModelAdmin):
     model = BankAccount
+
+    list_fields = (
+        'bank_account', 'bank_account_number', 'administrative_unit',
+    )
 
     search_fields = (
         'bank_account', 'bank_account_number',
@@ -430,7 +440,6 @@ class UserProfileAdmin(
         'telephone__telephone',
     )
     list_filter = (
-        'administrative_units',
         'is_staff',
         'is_superuser',
         'is_active',
@@ -447,8 +456,9 @@ class UserProfileAdmin(
         (_('Personal data'), {
             'classes': ('wide',),
             'fields': (
-                 'username', ('first_name', 'last_name'), 'email', 'sex',
-                 ('birth_day', 'birth_month', 'age_group'),
+                'username', ('first_name', 'last_name'), 'email', 'sex',
+                ('birth_day', 'birth_month', 'age_group'),
+                'administrative_units',
             ),
         }),
     )
@@ -623,7 +633,7 @@ class DonorPaymentChannelResource(ModelResource):
 
 # -- ADMIN FORMS --
 class DonorPaymethChannelAdmin(
-    filters.unit_admin_mixin_generator('user__administrative_units__in'),
+    unit_admin_mixin_generator('user__administrative_units'),
     ImportExportMixin,
     AdminAdvancedFiltersMixin,
     RelatedFieldAdmin,
@@ -669,7 +679,6 @@ class DonorPaymethChannelAdmin(
     )
     date_hierarchy = 'registered_support'
     list_filter = [
-        'user__administrative_units',
         'regular_payments',
         'user__language',
         'user__is_active',
@@ -825,7 +834,7 @@ class UserYearPaymentsAdmin(DonorPaymethChannelAdmin):
 
 
 class PaymentAdmin(
-    filters.unit_admin_mixin_generator('user_donor_payment_channel__user__administrative_units__in'),
+    unit_admin_mixin_generator('user_donor_payment_channel__user__administrative_units'),
     ImportExportMixin,
     RelatedFieldAdmin,
 ):
@@ -913,7 +922,7 @@ class PaymentAdmin(
         'created',
     )
     raw_id_fields = ('user_donor_payment_channel',)
-    list_filter = ['user_donor_payment_channel__user__administrative_units', 'type', 'date', filters.PaymentsAssignmentsFilter]
+    list_filter = ['type', 'date', filters.PaymentsAssignmentsFilter]
     date_hierarchy = 'date'
     search_fields = [
         'user_donor_payment_channel__user__last_name',
@@ -939,7 +948,7 @@ class NewUserAdmin(DonorPaymethChannelAdmin):
 
 
 class InteractionAdmin(
-    filters.unit_admin_mixin_generator('user__administrative_units__in'),
+    unit_admin_mixin_generator('user__administrative_units'),
     RelatedFieldAdmin,
     admin.ModelAdmin,
 ):
@@ -961,7 +970,7 @@ class InteractionAdmin(
     )
     autocomplete_fields = ('user', 'event')
     readonly_fields = ('type', 'created_by', 'handled_by', )
-    list_filter = ['dispatched', 'send', 'date', 'method', 'type', 'user', 'event']
+    list_filter = ['dispatched', 'send', 'date', 'method', 'type', 'event']
     search_fields = (
         'subject',
         # 'user__userprofile__telephone',
@@ -1151,8 +1160,8 @@ def parse_statement(self, request, queryset):
 parse_statement.short_description = _("Reparse account statement")
 
 
-class AccountStatementsAdmin(nested_admin.NestedModelAdmin):
-    list_display = ('type', 'import_date', 'payments_count', 'csv_file', 'date_from', 'date_to')
+class AccountStatementsAdmin(unit_admin_mixin_generator('administrative_unit'), nested_admin.NestedModelAdmin):
+    list_display = ('type', 'import_date', 'payments_count', 'csv_file', 'administrative_unit', 'date_from', 'date_to')
     list_filter = ('type',)
     inlines = [PaymentsInlineNoExtra]
     readonly_fields = ('import_date', 'payments_count')
@@ -1205,7 +1214,7 @@ class ResultAdmin(admin.ModelAdmin):
     save_as = True
 
 
-class EventAdmin(admin.ModelAdmin):
+class EventAdmin(unit_admin_mixin_generator('administrative_units'), admin.ModelAdmin):
     list_display = (
         'name',
         'slug',
@@ -1251,7 +1260,7 @@ class SourceAdmin(admin.ModelAdmin):
     list_display = ('slug', 'name', 'direct_dialogue')
 
 
-class TaxConfirmationAdmin(ImportExportMixin, admin.ModelAdmin):
+class TaxConfirmationAdmin(unit_admin_mixin_generator('user_profile__administrative_units'), ImportExportMixin, admin.ModelAdmin):
     change_list_template = "admin/aklub/taxconfirmation/change_list.html"
     list_display = ('user_profile', 'year', 'amount', 'get_pdf', )
     ordering = ('user_profile__last_name', 'user_profile__first_name',)

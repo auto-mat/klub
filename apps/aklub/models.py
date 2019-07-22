@@ -1225,6 +1225,13 @@ class AccountStatements(models.Model):
         blank=True,
         null=True,
     )
+    administrative_unit = models.ForeignKey(
+        AdministrativeUnit,
+        verbose_name=_("administrative unit"),
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
