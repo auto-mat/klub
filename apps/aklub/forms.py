@@ -2,6 +2,7 @@ from django.contrib.auth.forms import ReadOnlyPasswordHashField, UserChangeForm,
 from django.shortcuts import reverse
 from django.urls import reverse_lazy
 from django.utils.safestring import mark_safe
+from django.utils.translation import ugettext_lazy as _
 
 from .models import AdministrativeUnit, UserProfile
 from .views import get_unique_username
@@ -22,9 +23,10 @@ class UserFormMixin(object):
             user.administrative_units.add(administrated_unit)
             user.save()
             url = reverse('admin:aklub_userprofile_change', args=(user.pk,))
-            self.add_error('email', mark_safe(
-                        f'<a href="{url}">User with this email already exist in database and is available now, click here to edit</a>')
-                        )
+            self.add_error(
+                'email',
+                mark_safe(_(f'<a href="{url}">User with this email already exist in database and is available now, click here to edit</a>'))
+            )
             return super(UserFormMixin, self).clean()
         except UserProfile.DoesNotExist:
             return super(UserFormMixin, self).clean()
