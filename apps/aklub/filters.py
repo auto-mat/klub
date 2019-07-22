@@ -4,7 +4,9 @@ import operator
 from datetime import date, timedelta
 from functools import reduce
 
+from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
+from django.contrib.admin.filters import RelatedFieldListFilter
 from django.db.models import Count, Q
 from django.db.models.functions import Lower
 from django.utils.translation import ugettext as _
@@ -35,7 +37,7 @@ class NullFieldFilter(SimpleListFilter):
 
 
 class PaymentsAssignmentsFilter(NullFieldFilter):
-    field = 'user'
+    field = 'user_donor_payment_channel'
     title = _("User assignment")
     parameter_name = 'user_assignment'
 
@@ -123,11 +125,11 @@ class RegularPaymentsFilter(SimpleListFilter):
     def queryset(self, request, queryset):
         if self.value() == 'not-delayed':
             return UserProfile.objects.filter(
-                userincampaign__expected_regular_payment_date__gt=date.today() - timedelta(days=11),
+                userchannels__expected_regular_payment_date__gt=date.today() - timedelta(days=11),
             )
         if self.value() == 'delayed':
             return UserProfile.objects.exclude(
-                userincampaign__expected_regular_payment_date__gt=date.today() - timedelta(days=11),
+                userchannels__expected_regular_payment_date__gt=date.today() - timedelta(days=11),
             )
         return queryset
 
@@ -153,11 +155,15 @@ class TelephoneFilter(SimpleListFilter):
                 order_by().\
                 filter(id__count__gt=1).\
                 values_list('telephone', flat=True)
-            return queryset.filter(telephone__in=duplicates)
+            return queryset.filter(telephone__telephone__in=duplicates)
         if self.value() == 'blank':
-            return queryset.filter(Q(telephone__exact='') or Q(telephone__isnull=True))
+            return queryset.filter(Q(telephone__telephone__exact='') | Q(telephone__telephone__isnull=True) | Q(telephone__isnull=True))
         if self.value() == 'bad-format':
-            return queryset.exclude(telephone__iregex=r'^\+?([0-9] *){9,}$').exclude(telephone__exact='').exclude(telephone__isnull=True)
+            return queryset.exclude(
+                telephone__telephone__iregex=r'^\+?([0-9] *){9,}$',
+                telephone__telephone__exact='',
+                telephone__telephone__isnull=True,
+            )
         return queryset
 
 
@@ -192,3 +198,64 @@ class NameFilter(SimpleListFilter):
                 (Q(last_name__exact='') or Q(last_name__isnull=True)),
             )
         return queryset
+
+
+class UnitFilter(RelatedFieldListFilter):
+    def field_choices(self, field, request, model_admin):
+        return field.get_choices(include_blank=False, limit_choices_to={'pk__in': request.user.administrated_units.all()})
+
+
+class AdministrativeUnitAdminMixin(object):
+    queryset_unit_param = 'administrative_units'
+
+    def get_queryset(self, request):
+        queryset = super(admin.ModelAdmin, self).get_queryset(request)
+        if request.user.has_perm('aklub.can_edit_all_units'):
+            return queryset
+        kwargs = {self.queryset_unit_param + '__in': request.user.administrated_units.all()}
+        return queryset.filter(**kwargs).distinct()  # The distinct is necessarry here for unit admins, that have more cities
+
+    def lookup_allowed(self, key, value):
+        allowed_lookups = (
+            self.queryset_unit_param,
+            self.queryset_unit_param + "__id__exact",
+            self.queryset_unit_param + "__isnull",
+        )
+        if key in allowed_lookups:
+            return True
+        return super().lookup_allowed(key, value)
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if not request.user.has_perm('aklub.can_edit_all_units'):
+            administrated_units = request.user.administrated_units.all()
+            if db_field.name == self.queryset_unit_param:
+                kwargs["queryset"] = administrated_units
+                kwargs["required"] = True
+                if administrated_units.count() == 1:
+                    kwargs["initial"] = administrated_units
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        if not request.user.has_perm('aklub.can_edit_all_units'):
+            administrated_units = request.user.administrated_units.all()
+            if db_field.name == self.queryset_unit_param:
+                kwargs["queryset"] = administrated_units
+                kwargs["required"] = True
+                if administrated_units.count() == 1:
+                    kwargs["initial"] = administrated_units
+        return super().formfield_for_manytomany(db_field, request, **kwargs)
+
+    def get_readonly_fields(self, request, obj=None):
+        if not request.user.has_perm('aklub.can_edit_all_units') and obj:
+            return (self.queryset_unit_param,) + tuple(super().get_readonly_fields(request))
+        return self.readonly_fields
+
+    def get_list_filter(self, request):
+        list_filter = ((self.queryset_unit_param, UnitFilter),) + tuple(super().get_list_filter(request))
+        return list_filter
+
+
+def unit_admin_mixin_generator(queryset_unit):
+    class AUAMixin(AdministrativeUnitAdminMixin):
+        queryset_unit_param = queryset_unit
+    return AUAMixin

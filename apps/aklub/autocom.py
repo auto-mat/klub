@@ -86,38 +86,49 @@ def gendrify_text(text, sex=''):
     return gender_text
 
 
-def process_template(template_string, user):
+def process_template(template_string, user, payment_channel):
     from .models import UserInCampaign
     from sesame import utils as sesame_utils
 
     template = string.Template(template_string)
 
+    if payment_channel:
+        payment_substitutes = {
+            'regular_amount': payment_channel.regular_amount,
+            'regular_frequency': _localize_enum(
+                UserInCampaign.REGULAR_PAYMENT_FREQUENCIES,
+                payment_channel.regular_frequency,
+                user.language,
+            ),
+            'var_symbol': payment_channel.VS,
+            'last_payment_amount': payment_channel.last_payment and payment_channel.last_payment.amount or None,
+        }
+    else:
+        payment_substitutes = {}
+
     # Make variable substitutions
     text = template.substitute(
-        addressment=user.userprofile.get_addressment(),
-        last_name_vokativ=user.userprofile.get_last_name_vokativ(),
-        name=user.userprofile.first_name,
-        firstname=user.userprofile.first_name,
-        surname=user.userprofile.last_name,
-        street=user.userprofile.street,
-        city=user.userprofile.city,
-        zipcode=user.userprofile.zip_code,
-        email=user.userprofile.email,
-        telephone=user.userprofile.get_telephone(),
-        regular_amount=user.regular_amount,
-        regular_frequency=_localize_enum(UserInCampaign.REGULAR_PAYMENT_FREQUENCIES, user.regular_frequency, user.userprofile.language),
-        var_symbol=user.variable_symbol,
-        last_payment_amount=user.last_payment and user.last_payment.amount or None,
-        auth_token=sesame_utils.get_query_string(user.userprofile),
+        addressment=user.get_addressment(),
+        last_name_vokativ=user.get_last_name_vokativ(),
+        name=user.first_name,
+        firstname=user.first_name,
+        surname=user.last_name,
+        street=user.street,
+        city=user.city,
+        zipcode=user.zip_code,
+        email=user.email,
+        telephone=user.get_telephone(),
+        auth_token=sesame_utils.get_query_string(user),
+        **payment_substitutes,
     )
 
-    return gendrify_text(text, user.userprofile.sex)
+    return gendrify_text(text, user.sex)
 
 
-def check(users=None, action=None):
-    from .models import AutomaticCommunication, Interaction, UserInCampaign
-    if not users:
-        users = UserInCampaign.objects.all()
+def check(payment_channels=None, action=None):
+    from .models import AutomaticCommunication, DonorPaymentChannel, Interaction
+    if not payment_channels:
+        payment_channels = DonorPaymentChannel.objects.all()
     for auto_comm in AutomaticCommunication.objects.all():
         logger.info(
             u"Processin condition \"%s\" for autocom \"%s\", method: \"%s\", action: \"%s\"" % (
@@ -128,11 +139,12 @@ def check(users=None, action=None):
             ),
         )
 
-        filtered_users = users.filter(auto_comm.condition.get_query(action))
-        for user in filtered_users:
+        filtered_payment_channels = payment_channels.filter(auto_comm.condition.get_query(action))
+        for payment_channel in filtered_payment_channels:
+            user = payment_channel.user
             if auto_comm.only_once and auto_comm.sent_to_users.filter(pk=user.pk).exists():
                 continue
-            if user.userprofile.language == 'cs':
+            if user.language == 'cs':
                 template = auto_comm.template
                 subject = auto_comm.subject
             else:
@@ -142,9 +154,9 @@ def check(users=None, action=None):
                 logger.info(u"Added new automatic communication \"%s\" for user \"%s\", action \"%s\"" % (auto_comm, user, action))
                 c = Interaction(
                     user=user, method=auto_comm.method, date=datetime.datetime.now(),
-                    subject=subject, summary=process_template(template, user),
+                    subject=subject, summary=process_template(template, user, payment_channel),
                     note="Prepared by auto*mated mailer at %s" % datetime.datetime.now(),
                     send=auto_comm.dispatch_auto, type='auto',
                 )
-                auto_comm.sent_to_users.add(user)
+                auto_comm.sent_to_users.add(payment_channel)
                 c.save()

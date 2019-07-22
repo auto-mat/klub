@@ -75,7 +75,7 @@ class MailingTest(TestCase):
             subject_en="Testing email",
             method="email",
         )
-        u = models.UserInCampaign.objects.get(userprofile__email='test.user1@email.cz')
+        u = models.UserProfile.objects.get(email='test.user1@email.cz')
         with self.assertRaises(Exception) as ex:
             mailing.send_communication_sync(c.id, 'automatic', u.id, sending_user.id)
         self.assertEqual(str(ex.exception), "Message template is empty for one of the language variants.")
@@ -95,23 +95,20 @@ class MailingTest(TestCase):
             method="email",
             date="2015-5-1",
         )
-        c.send_to_users.set(models.UserInCampaign.objects.all())
+        c.send_to_users.set(models.UserProfile.objects.filter(pk__in=[3, 3, 2978, 2979]))
 
         mailing.send_mass_communication(c, sending_user, self.request)
-        self.assertEqual(len(mail.outbox), 4)
-        msg = mail.outbox[0]
+        self.assertEqual(len(mail.outbox), 3)
+        mail.outbox.sort(key=lambda m: m.recipients()[0])
+        msg = mail.outbox[2]
         self.assertEqual(msg.recipients(), ['without_payments@email.cz'])
         self.assertEqual(msg.subject, 'Testing email')
         self.assertIn("Testing template", msg.body)
         msg = mail.outbox[1]
-        self.assertEqual(msg.recipients(), ['without_payments@email.cz'])
-        self.assertEqual(msg.subject, 'Testing email')
-        self.assertIn("Testing template", msg.body)
-        msg = mail.outbox[2]
         self.assertEqual(msg.recipients(), ['test.user@email.cz'])
         self.assertEqual(msg.subject, 'Testing email')
         self.assertIn("Testing template", msg.body)
-        msg1 = mail.outbox[3]
+        msg1 = mail.outbox[0]
         self.assertEqual(msg1.recipients(), ['test.user1@email.cz'])
         self.assertEqual(msg1.subject, 'Testing email en')
         self.assertIn("Testing template", msg1.body)

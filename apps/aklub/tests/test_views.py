@@ -32,7 +32,7 @@ from model_mommy import mommy
 
 from .utils import print_response  # noqa
 from .. import views
-from ..models import UserInCampaign, UserProfile
+from ..models import DonorPaymentChannel, PetitionSignature, UserProfile
 
 
 class ClearCacheMixin(object):
@@ -102,8 +102,8 @@ class ViewsTests(ClearCacheMixin, TestCase):
         self.assertContains(
             response,
             '<div class="dashboard-module-content"> <p>Celkový počet položek: 2</p><ul class="stacked">'
-            '<li class="odd"><a href="/aklub/userincampaign/3/change/">Payments Without</a></li>'
-            '<li class="even"><a href="/aklub/userincampaign/2978/change/">User Test</a></li>'
+            '<li class="odd"><a href="/aklub/donorpaymentchannel/2978/change/">User Test</a></li>'
+            '<li class="even"><a href="/aklub/donorpaymentchannel/3/change/">Payments Without</a></li>'
             '</ul> </div>',
             html=True,
         )
@@ -194,11 +194,12 @@ class ViewsTests(ClearCacheMixin, TestCase):
     def test_darujme_existing_email_different_campaign(self):
         """ Test, that if the user exists in different campaign, he is able to register """
         address = reverse('regular-darujme')
-        user_in_campaign = mommy.make(
-            "aklub.UserInCampaign",
-            userprofile__email='test@email.cz',
-            userprofile__first_name='Foo',
-            userprofile__last_name='Duplabar',
+        donor_payment_channel = mommy.make(
+            "aklub.DonorPaymentChannel",
+            user__email='test@email.cz',
+            user__first_name='Foo',
+            user__last_name='Duplabar',
+            bank_account__bank_account="0000",
             campaign__id=1,
         )
         response = self.client.post(address, self.post_data_darujme, follow=False)
@@ -215,8 +216,8 @@ class ViewsTests(ClearCacheMixin, TestCase):
             msg.body,
             'New user has been created Jméno: Foo Příjmení: Duplabar Ulice: Město: PSC:\nE-mail: test@email.cz Telefon:\n\n',
         )
-        self.assertEqual(user_in_campaign.userprofile.last_name, 'Duplabar')
-        self.assertEqual(user_in_campaign.userprofile.userincampaign_set.count(), 2)
+        self.assertEqual(donor_payment_channel.user.last_name, 'Duplabar')
+        self.assertEqual(donor_payment_channel.user.userchannels.count(), 2)
 
     def test_regular_dpnk(self):
         mommy.make("Event", slug="dpnk")
@@ -261,11 +262,11 @@ class ViewsTests(ClearCacheMixin, TestCase):
 
         self.assertEqual(UserProfile.objects.get(email="test@test.cz").get_full_name(), "Testing User")
         self.assertEqual(UserProfile.objects.get(email="test@test.cz").username, "test4")
-        self.assertEqual(UserProfile.objects.get(email="test@test.cz").telephone, '111222333')
-        new_user = UserInCampaign.objects.get(userprofile__email="test@test.cz")
-        self.assertEqual(new_user.regular_amount, 321)
-        self.assertEqual(new_user.regular_payments, 'regular')
-        self.assertEqual(new_user.regular_frequency, 'monthly')
+        self.assertEqual(UserProfile.objects.get(email="test@test.cz").telephone_set.get().telephone, '111222333')
+        new_channel = DonorPaymentChannel.objects.get(user__email="test@test.cz")
+        self.assertEqual(new_channel.regular_amount, 321)
+        self.assertEqual(new_channel.regular_payments, 'regular')
+        self.assertEqual(new_channel.regular_frequency, 'monthly')
 
     def test_regular(self):
         address = reverse('regular')
@@ -281,10 +282,10 @@ class ViewsTests(ClearCacheMixin, TestCase):
 
         self.assertEqual(UserProfile.objects.get(email="test@test.cz").get_full_name(), "Testing User")
         self.assertEqual(UserProfile.objects.get(email="test@test.cz").username, "test4")
-        self.assertEqual(UserProfile.objects.get(email="test@test.cz").telephone, '111222333')
-        new_user = UserInCampaign.objects.get(userprofile__email="test@test.cz")
-        self.assertEqual(new_user.regular_amount, 321)
-        self.assertEqual(new_user.regular_payments, 'regular')
+        self.assertEqual(UserProfile.objects.get(email="test@test.cz").telephone_set.get().telephone, '111222333')
+        new_channel = DonorPaymentChannel.objects.get(user__email="test@test.cz")
+        self.assertEqual(new_channel.regular_amount, 321)
+        self.assertEqual(new_channel.regular_payments, 'regular')
 
     post_data_darujme = {
         "recurringfrequency": "28",
@@ -306,19 +307,19 @@ class ViewsTests(ClearCacheMixin, TestCase):
         self.assertContains(response, '<tr><th>Částka: </th><td>200 Kč</td></tr>', html=True)
         self.assertContains(response, '<tr><th>Frekvence: </th><td>Měsíčně</td></tr>', html=True)
         self.assertContains(response, '<tr><th>Pravidelné platby: </th><td>Pravidelné platby</td></tr>', html=True)
-        new_user = UserInCampaign.objects.get(userprofile__email="test@email.cz")
-        self.assertEqual(new_user.regular_amount, 200)
-        self.assertEqual(new_user.regular_payments, 'regular')
+        new_channel = DonorPaymentChannel.objects.get(user__email="test@email.cz")
+        self.assertEqual(new_channel.regular_amount, 200)
+        self.assertEqual(new_channel.regular_payments, 'regular')
 
     def test_regular_darujme_ajax(self):
         address = reverse('regular-darujme')
         response = self.client.post(address, self.post_data_darujme, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-        userincampaign = UserInCampaign.objects.get(userprofile__email="test@email.cz")
+        payment_channel = DonorPaymentChannel.objects.get(user__email="test@email.cz")
         self.assertJSONEqual(
             response.content.decode(),
             {
                 'account_number': '2400063333 / 2010',
-                'variable_symbol': userincampaign.variable_symbol,
+                'variable_symbol': payment_channel.VS,
                 'amount': 200,
                 'email': 'test@email.cz',
                 'frequency': 'monthly',
@@ -327,9 +328,9 @@ class ViewsTests(ClearCacheMixin, TestCase):
                 'addressment': 'Test_Name',
             },
         )
-        new_user = UserInCampaign.objects.get(userprofile__email="test@email.cz")
-        self.assertEqual(new_user.regular_amount, 200)
-        self.assertEqual(new_user.regular_payments, 'regular')
+        new_channel = DonorPaymentChannel.objects.get(user__email="test@email.cz")
+        self.assertEqual(new_channel.regular_amount, 200)
+        self.assertEqual(new_channel.regular_payments, 'regular')
 
     post_data_darujme_onetime = post_data_darujme.copy()
     post_data_darujme_onetime["recurringfrequency"] = ""
@@ -347,12 +348,12 @@ class ViewsTests(ClearCacheMixin, TestCase):
     def test_regular_darujme_ajax_onetime(self):
         address = reverse('regular-darujme')
         response = self.client.post(address, self.post_data_darujme_onetime, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-        userincampaign = UserInCampaign.objects.get(userprofile__email="test@email.cz")
+        payment_channel = DonorPaymentChannel.objects.get(user__email="test@email.cz")
         self.assertJSONEqual(
             response.content.decode(),
             {
                 'account_number': '2400063333 / 2010',
-                'variable_symbol': userincampaign.variable_symbol,
+                'variable_symbol': payment_channel.VS,
                 'amount': 200,
                 'email': 'test@email.cz',
                 'frequency': None,
@@ -471,10 +472,10 @@ class ViewsTests(ClearCacheMixin, TestCase):
 
         self.assertEqual(UserProfile.objects.get(email="test@test.cz").get_full_name(), "Testing User")
         self.assertEqual(UserProfile.objects.get(email="test@test.cz").username, "test4")
-        self.assertEqual(UserProfile.objects.get(email="test@test.cz").telephone, '111222333')
-        new_user = UserInCampaign.objects.get(userprofile__email="test@test.cz")
-        self.assertEqual(new_user.regular_amount, 321)
-        self.assertEqual(new_user.regular_payments, 'regular')
+        self.assertEqual(UserProfile.objects.get(email="test@test.cz").telephone_set.get().telephone, '111222333')
+        new_channel = DonorPaymentChannel.objects.get(user__email="test@test.cz")
+        self.assertEqual(new_channel.regular_amount, 321)
+        self.assertEqual(new_channel.regular_payments, 'regular')
 
     def test_sign_petition_no_gdpr_consent(self):
         address = reverse('petition')
@@ -499,12 +500,12 @@ class ViewsTests(ClearCacheMixin, TestCase):
             "gdpr": True,
         }
         response = self.client.post(address, post_data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-        userincampaign = UserInCampaign.objects.get(userprofile__email="test@email.cz")
+        payment_channel = DonorPaymentChannel.objects.get(user__email="test@email.cz")
         self.assertJSONEqual(
             response.content.decode(),
             {
                 'account_number': '2400063333 / 2010',
-                'variable_symbol': userincampaign.variable_symbol,
+                'variable_symbol': payment_channel.VS,
                 'amount': None,
                 'email': 'test@email.cz',
                 'frequency': None,
@@ -513,9 +514,10 @@ class ViewsTests(ClearCacheMixin, TestCase):
                 'addressment': 'příteli/kyně Auto*Matu',
             },
         )
-        new_user = UserInCampaign.objects.get(userprofile__email="test@email.cz")
+        new_user = DonorPaymentChannel.objects.get(user__email="test@email.cz")
         self.assertEqual(new_user.regular_amount, None)
         self.assertEqual(new_user.regular_payments, '')
+        self.assertTrue(PetitionSignature.objects.get(user__email="test@email.cz").gdpr_consent)
 
     def test_sign_petition_ajax_some_fields(self):
         address = reverse('petition')
@@ -528,12 +530,13 @@ class ViewsTests(ClearCacheMixin, TestCase):
             "gdpr": True,
         }
         response = self.client.post(address, post_data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-        userincampaign = UserInCampaign.objects.get(userprofile__email="test@email.cz")
+        self.assertEqual(response.status_code, 200)
+        payment_channel = DonorPaymentChannel.objects.get(user__email="test@email.cz")
         self.assertJSONEqual(
             response.content.decode(),
             {
                 'account_number': '2400063333 / 2010',
-                'variable_symbol': userincampaign.variable_symbol,
+                'variable_symbol': payment_channel.VS,
                 'amount': None,
                 'email': 'test@email.cz',
                 'frequency': None,
@@ -542,9 +545,10 @@ class ViewsTests(ClearCacheMixin, TestCase):
                 'addressment': 'Testingu',
             },
         )
-        new_user = UserInCampaign.objects.get(userprofile__email="test@email.cz")
+        new_user = DonorPaymentChannel.objects.get(user__email="test@email.cz")
         self.assertEqual(new_user.regular_amount, None)
         self.assertEqual(new_user.regular_payments, '')
+        self.assertTrue(PetitionSignature.objects.get(user__email="test@email.cz").gdpr_consent)
 
     def test_sign_petition_ajax_all(self):
         address = reverse('petition')
@@ -563,12 +567,12 @@ class ViewsTests(ClearCacheMixin, TestCase):
             "gdpr": True,
         }
         response = self.client.post(address, post_data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-        userincampaign = UserInCampaign.objects.get(userprofile__email="test@email.cz")
+        payment_channel = DonorPaymentChannel.objects.get(user__email="test@email.cz")
         self.assertJSONEqual(
             response.content.decode(),
             {
                 'account_number': '2400063333 / 2010',
-                'variable_symbol': userincampaign.variable_symbol,
+                'variable_symbol': payment_channel.VS,
                 'amount': None,
                 'email': 'test@email.cz',
                 'frequency': None,
@@ -577,9 +581,10 @@ class ViewsTests(ClearCacheMixin, TestCase):
                 'addressment': 'Testingu',
             },
         )
-        new_user = UserInCampaign.objects.get(userprofile__email="test@email.cz")
+        new_user = DonorPaymentChannel.objects.get(user__email="test@email.cz")
         self.assertEqual(new_user.regular_amount, None)
         self.assertEqual(new_user.regular_payments, '')
+        self.assertTrue(PetitionSignature.objects.get(user__email="test@email.cz").gdpr_consent)
 
 
 class VariableSymbolTests(TestCase):
@@ -590,4 +595,4 @@ class VariableSymbolTests(TestCase):
             for i in range(1, 400):
                 vs = views.generate_variable_symbol(99)
                 userprofile = UserProfile.objects.create(username=vs, email="test%s@test.cz" % i)
-                UserInCampaign.objects.create(variable_symbol=vs, campaign_id=1, userprofile=userprofile)
+                DonorPaymentChannel.objects.create(VS=vs, event_id=1, user=userprofile)

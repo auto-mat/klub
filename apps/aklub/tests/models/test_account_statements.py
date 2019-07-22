@@ -45,7 +45,7 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
             a.clean()
             a.save()
 
-        donor_channel = mommy.make('aklub.DonorPaymentChannel', VS=120127010, _fill_optional=True)
+        donor_channel = DonorPaymentChannel.objects.get(VS=120127010)
 
         self.run_commit_hooks()
         a1 = AccountStatements.objects.get(pk=a.pk)
@@ -76,7 +76,8 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
         self.assertEqual(p1.order_id, "1232")
         self.assertEqual(p1.user_donor_payment_channel, donor_channel)
 
-        self.assertEqual(donor_channel.paymentchannels.get(date=datetime.date(2016, 1, 18)), a1.payment_set.get(account=2150508001))
+        self.assertEqual(donor_channel.payment_set.get(date=datetime.date(2016, 1, 18)), a1.payment_set.get(account=2150508001))
+
 
     def test_bank_new_statement_cs(self):
         with open("apps/aklub/test_data/Pohyby_cs.csv", "rb") as f:
@@ -84,7 +85,7 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
             a.clean()
             a.save()
 
-        donor_channel = mommy.make('aklub.DonorPaymentChannel', VS=120127010, _fill_optional=True)
+        donor_channel = DonorPaymentChannel.objects.get(VS=120127010)
 
         self.run_commit_hooks()
         a1 = AccountStatements.objects.get(pk=a.pk)
@@ -115,7 +116,9 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
         self.assertEqual(p1.order_id, None)
         self.assertEqual(p1.user_donor_payment_channel, donor_channel)
 
-        self.assertEqual(donor_channel.paymentchannels.get(date=datetime.date(2019, 3, 11)), a1.payment_set.get(account='20000 92392323'))
+
+        self.assertEqual(donor_channel.payment_set.get(date=datetime.date(2019, 3, 11)), a1.payment_set.get(account='20000 92392323'))
+
 
     def check_account_statement_data(self):
         self.run_commit_hooks()
@@ -133,12 +136,13 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
                 ('User 1, Testing', datetime.date(2016, 1, 19), '22257'),
             ],
         )
-        user = DonorPaymentChannel.objects.get(id=2979)
 
-        self.assertEqual(user.paymentchannels.get(amount=150), a1.payment_set.get(SS=22256))
+        user = DonorPaymentChannel.objects.get(id=2978)
+        self.assertEqual(user.payment_set.get(SS=17529), a1.payment_set.get(amount=200))
 
         unknown_user = DonorPaymentChannel.objects.get(user__email="unknown@email.cz")
-        payment = unknown_user.paymentchannels.get(SS=22257)
+        payment = unknown_user.payment_set.get(SS=22257)
+
         tel_unknown_user = Telephone.objects.filter(user__email="unknown@email.cz").first()
         self.assertEqual(payment.amount, 150)
         self.assertEqual(payment.date, datetime.date(2016, 1, 19))
@@ -147,13 +151,16 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
         self.assertEqual(unknown_user.user.city, "Nová obec")
         self.assertEqual(unknown_user.user.zip_code, "12321")
         self.assertEqual(unknown_user.user.username, "unknown3")
+
         self.assertEqual(unknown_user.regular_payments, "regular")
         self.assertEqual(unknown_user.regular_amount, 150)
         self.assertEqual(unknown_user.regular_frequency, "annually")
 
         unknown_user1 = DonorPaymentChannel.objects.get(user__email="unknown1@email.cz")
         tel_unknown_user1 = Telephone.objects.filter(user__email="unknown1@email.cz").first()
-        self.assertEqual(tel_unknown_user1, None)
+
+        self.assertEqual(tel_unknown_user1, None)  # Telephone was submitted, but in bad format
+
         self.assertEqual(unknown_user1.user.zip_code, "123 21")
         self.assertEqual(unknown_user1.regular_amount, 150)
         self.assertEqual(unknown_user1.regular_frequency, 'monthly')
@@ -169,16 +176,19 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
         self.assertEqual(unknown_user3.regular_frequency, 'monthly')
         self.assertEqual(unknown_user3.regular_payments, "promise")
 
-        test_user1 = DonorPaymentChannel.objects.get(event__darujme_name='Klub přátel Auto*Matu', user__email="test.user1@email.cz")
+
+        test_user1 = DonorPaymentChannel.objects.get(user__email="test.user1@email.cz")
         tel_user1 = Telephone.objects.filter(user__email="test.user1@email.cz").first()
         self.assertEqual(test_user1.user.zip_code, "")
         self.assertEqual(tel_user1, None)
-        self.assertEqual(test_user1.regular_amount, None)
-        self.assertEqual(test_user1.regular_frequency, None)
+        self.assertEqual(test_user1.regular_amount, 150)
+        self.assertEqual(test_user1.end_of_regular_payments, None)
+        self.assertEqual(test_user1.regular_frequency, "annually")
         self.assertEqual(test_user1.regular_payments, "regular")
 
         blank_date_user = DonorPaymentChannel.objects.get(user__email="blank.date@seznam.cz")
-        payment_blank = blank_date_user.paymentchannels.get(SS=12345)
+        payment_blank = blank_date_user.payment_set.get(SS=12345)
+
         tel_blank_date_user = Telephone.objects.filter(user__email="blank.date@email.cz").first()
         self.assertEqual(tel_blank_date_user, None)
         self.assertEqual(payment_blank.amount, 500)
@@ -284,7 +294,8 @@ class TestPairVariableSymbol(TestCase):
             "aklub.AccountStatements",
             payment_set=[payment],
         )
-        donor_payment_channel = mommy.make('aklub.DonorPaymentChannel', VS=123, _fill_optional=True)
+
+        donor_payment_channel = mommy.make('aklub.DonorPaymentChannel', VS=123)
         return_value = account_statement.pair_vs(payment)
 
         self.assertEqual(payment.user_donor_payment_channel, donor_payment_channel)
@@ -299,5 +310,5 @@ class TestPairVariableSymbol(TestCase):
         )
 
         return_value = account_statement.pair_vs(payment)
-        self.assertEqual(payment.user, None)
+        self.assertEqual(payment.user_donor_payment_channel, None)
         self.assertEqual(return_value, False)

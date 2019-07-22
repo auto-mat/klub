@@ -30,13 +30,14 @@ from advanced_filters.admin import AdminAdvancedFiltersMixin
 
 from daterange_filter.filter import DateRangeFilter
 
-import django.forms
+from django import forms
 from django.contrib import admin, messages
 from django.contrib.admin import site
 from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.forms import UsernameField
 from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator
-from django.db.models import Sum
+from django.db.models import CharField, Sum
 from django.http import HttpResponseRedirect
 from django.utils.html import format_html, format_html_join, mark_safe
 from django.utils.translation import ugettext as _
@@ -60,13 +61,14 @@ from smmapdfs.actions import make_pdfsandwich
 from smmapdfs.admin_abcs import PdfSandwichAdmin, PdfSandwichFieldAdmin
 
 from . import darujme, filters, mailing, tasks
-from .forms import UserCreateForm, UserUpdateForm
+from .filters import unit_admin_mixin_generator
+from .forms import UserCreateForm, UserFormMixin, UserUpdateForm
 from .models import (
-    AccountStatements, AutomaticCommunication, BankAccount, Condition, DonorPaymentChannel,
+    AccountStatements, AdministrativeUnit, AutomaticCommunication, BankAccount, Condition, DonorPaymentChannel,
     Event, Expense, Interaction, MassCommunication, NewUser, Payment, Recruiter,
     Result, Source, TaxConfirmation, TaxConfirmationField,
     TaxConfirmationPdf, Telephone, TerminalCondition, UserBankAccount,
-    UserInCampaign, UserProfile, UserYearPayments,
+    UserProfile, UserYearPayments,
 )
 
 
@@ -81,6 +83,7 @@ def admin_links(args_generator):
 # -- INLINE FORMS --
 class PaymentsInline(nested_admin.NestedTabularInline):
     readonly_fields = ('account_statement',)
+    exclude = ('user',)
     model = Payment
     extra = 1
 
@@ -96,6 +99,7 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
     can_delete = True
     show_change_link = True
     inlines = [PaymentsInline]
+    autocomplete_fields = ('event',)
 
     fieldsets = (
         (None, {
@@ -122,12 +126,10 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
 
 class PaymentsInlineNoExtra(PaymentsInline):
 
-    raw_id_fields = ('user',)
-    readonly_fields = ('user__campaign',)
+    raw_id_fields = ('user_donor_payment_channel',)
     fields = (
         'type',
-        'user__campaign',
-        'user',
+        'user_donor_payment_channel',
         'user_identification',
         'account_name',
         'recipient_message',
@@ -156,7 +158,7 @@ class PaymentsInlineNoExtra(PaymentsInline):
 
 class InteractionInline(nested_admin.NestedTabularInline):
     model = Interaction
-    extra = 1
+    extra = 0
     can_delete = True
     show_change_link = True
     readonly_fields = ('type', 'created_by', 'handled_by')
@@ -174,7 +176,7 @@ class ExpenseInline(admin.TabularInline):
 
 
 def show_payments_by_year(self, request, queryset):
-    payments = Payment.objects.filter(user__in=queryset)
+    payments = Payment.objects.filter(user_donor_payment_channel__in=queryset)
     payment_dates = payments.dates('date', 'year')
     amount_string = [
         "%s: %s" % (
@@ -196,9 +198,9 @@ def send_mass_communication_action(self, request, queryset, distinct=False):
     with the send_to_users M2M field prefilled with these
     users."""
     if queryset.model is UserProfile:
-        queryset = UserInCampaign.objects.filter(userprofile__in=queryset)
+        queryset = DonorPaymentChannel.objects.filter(user__in=queryset)
     if distinct:
-        queryset = queryset.order_by('userprofile__id').distinct('userprofile')
+        queryset = queryset.order_by('user__id').distinct('user')
     redirect_url = large_initial.build_redirect_url(
         request,
         "admin:aklub_masscommunication_add",
@@ -220,59 +222,82 @@ send_mass_communication_distinct_action.short_description = _("Send mass communi
 class UserProfileResource(ModelResource):
     class Meta:
         model = UserProfile
-        exclude = ('id',)
+        exclude = ('id', 'is_superuser', 'is_staff', 'administrated_units')
         import_id_fields = ('email', )
-        import_id_field = 'email'
+        export_order = ('administrative_units', 'email')
 
     telephone = fields.Field()
-    VS = fields.Field()
+    donor = fields.Field()
 
     def import_obj(self, obj, data, dry_run):
         bank_account = BankAccount.objects.all().first()
-        if data["email"] == "":
-            data["email"] = None
-        if data["username"] == "":
+        obj.save()
+        if data.get('username') == "":
             data["username"] = None
-        if data['telephone'] != "":
-            if not obj.telephone_set.filter(user=obj.id, telephone=data['telephone'], is_primary=None):
-                obj.save()
-                telephone = Telephone.objects.create(telephone=data['telephone'], user=obj, is_primary=None)
-                obj.telephone_set.add(telephone, bulk=True)
-        if data['donor'] != "":
-            if data['VS'] != "":
-                if obj.userchannels.filter(VS=data['VS']):
-                    donors = DonorPaymentChannel.objects.get(VS=data['VS'], user=obj)
-                else:
-                    obj.save()
-                    donors = DonorPaymentChannel.objects.create(VS=data['VS'], user=obj, bank_account=bank_account)
+        if data.get('telephone'):
+            telephone, _ = Telephone.objects.get_or_create(telephone=data['telephone'], user=obj, defaults={'is_primary': None})
+        if data.get("email") == "":
+            data["email"] = None
+
+        obj.administrative_units.add(data["administrative_units"])
+        obj.save()
+
+        if data.get('event') and data.get('donor') == 'x':
+            if data.get('VS') != "":
+                VS = data['VS']
             else:
                 from .views import generate_variable_symbol
                 VS = generate_variable_symbol()
-                obj.save()
-                donors = DonorPaymentChannel.objects.create(VS=VS, user=obj, bank_account=bank_account)
-            if data['bank_account'] != "":
-                bank_account, created = BankAccount.objects.get_or_create(bank_account_number=data['bank_account'])
+            event, _ = Event.objects.get_or_create(name=data['event'])
+            donors, _ = DonorPaymentChannel.objects.get_or_create(
+                user=obj,
+                event=event,
+                defaults={'VS': VS},
+            )
+            if data.get('bank_account'):
+                bank_account, _ = BankAccount.objects.get_or_create(bank_account_number=data['bank_account'])
                 donors.bank_account = bank_account
                 donors.save()
-            if data['user_bank_account'] != "":
-                user_bank_account, created = UserBankAccount.objects.get_or_create(bank_account_number=data['user_bank_account'])
+            if data.get('user_bank_account'):
+                user_bank_account, _ = UserBankAccount.objects.get_or_create(bank_account_number=data['user_bank_account'])
                 donors.user_bank_account = user_bank_account
                 donors.save()
-            if data['event'] != "":
-                event, created = Event.objects.get_or_create(name=data['event'])
+
+            if data.get('event'):
+                event, _ = Event.objects.get_or_create(name=data['event'])
                 donors.event.add(event)
                 donors.user = obj
                 donors.save()
+
         return super(UserProfileResource, self).import_obj(obj, data, dry_run)
 
     def dehydrate_telephone(self, profile):
         return profile.get_telephone()
 
-    def dehydrate_VS(self, profile):
-        return profile.get_donor()
+    def dehydrate_donor(self, profile):
+        donor_list = []
+        for donor in profile.userchannels.all():
+            if donor:
+                donor_list.append(f"VS:{donor.VS}\n")
+                donor_list.append(f"event:{donor.event.name}\n")
+                try:
+                    donor_list.append(f"bank_accout:{donor.bank_account.bank_account_number}\n")
+                except AttributeError:
+                    donor_list.append('bank_accout:\n')
+                try:
+                    donor_list.append(f"user_bank_account:{donor.user_bank_account.bank_account_number}\n")
+                except AttributeError:
+                    donor_list.append(f"user_bank_account:\n")
+                donor_list.append("\n")
+
+        return "".join(tuple(donor_list))
 
     def before_import_row(self, row, **kwargs):
+        row['is_superuser'] = 0
+        row['is_staff'] = 0
         row['email'] = row['email'].lower()
+        row["administrative_units"] = kwargs['user'].administrated_units.all()[0]
+        row["administrated_units"] = ""
 
     def import_field(self, field, obj, data, is_m2m=False):
         if field.attribute and field.column_name in data and not getattr(obj, field.column_name):
@@ -297,8 +322,12 @@ class TelephoneInline(nested_admin.NestedTabularInline):
     show_change_link = True
 
 
-class BankAccountAdmin(admin.ModelAdmin):
+class BankAccountAdmin(unit_admin_mixin_generator('administrative_unit'), admin.ModelAdmin):
     model = BankAccount
+
+    list_fields = (
+        'bank_account', 'bank_account_number', 'administrative_unit',
+    )
 
     search_fields = (
         'bank_account', 'bank_account_number',
@@ -321,7 +350,43 @@ class UserBankAccountAdmin(admin.ModelAdmin):
     )
 
 
-class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFiltersMixin, UserAdmin, nested_admin.NestedModelAdmin):
+class UnitUserChangeForm(UserFormMixin, forms.ModelForm):
+    class Meta:
+        model = UserProfile
+        fields = (
+            'username',
+            'first_name',
+            'last_name',
+            'title_before',
+            'title_after',
+            'email',
+            'sex',
+            'birth_day',
+            'birth_month',
+            'age_group',
+            'administrative_units',
+            'street',
+            'city',
+            'country',
+            'zip_code',
+            'different_correspondence_address',
+            'addressment',
+            'addressment_on_envelope',
+            'public',
+            'send_mailing_lists',
+            'newsletter_on',
+            'letter_on',
+            'call_on',
+            'challenge_on',
+        )
+        field_classes = {'username': UsernameField}
+
+
+class UserProfileAdmin(
+    filters.AdministrativeUnitAdminMixin,
+    ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFiltersMixin,
+    UserAdmin, nested_admin.NestedModelAdmin,
+):
     resource_class = UserProfileResource
     import_template_name = "admin/import_export/userprofile_import.html"
     merge_form = UserProfileMergeForm
@@ -382,7 +447,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         'userincampaign__campaign',
         filters.RegularPaymentsFilter,
         filters.EmailFilter,
-        # filters.TelephoneFilter,
+        filters.TelephoneFilter,
         filters.NameFilter,
     )
 
@@ -390,9 +455,22 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
         (_('Personal data'), {
             'classes': ('wide',),
             'fields': (
+                'username', ('first_name', 'last_name'), 'email', 'sex',
+                ('birth_day', 'birth_month', 'age_group'),
+                'administrative_units',
+            ),
+        }),
+    )
+
+    edit_fieldsets = (
+        (_('Personal data'), {
+            'classes': ('wide',),
+            'fields': (
                 'username', ('first_name', 'last_name'), ('title_before', 'title_after'), 'email', 'sex',
                 ('birth_day', 'birth_month', 'age_group'),
                 'get_main_telephone',
+                'note',
+                'administrative_units',
             ),
         }),
         (_('Contact data'), {
@@ -421,6 +499,7 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
                 ('password',),
                 ('is_staff', 'is_superuser'),
                 'groups',
+                'administrated_units',
             ],
         }
         ),
@@ -428,6 +507,15 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
 
     ordering = ('email',)
     filter_horizontal = ('groups', 'user_permissions',)
+
+    def get_form(self, request, obj=None, **kwargs):
+        if request.user.is_superuser:
+            form = super().get_form(request, obj, **kwargs)
+            form.request = request
+            return form
+        form = UnitUserChangeForm
+        form.request = request
+        return form
 
     def get_details(self, obj, attr, *args):
         return [f[attr] for f in list(obj.values(attr)) if f[attr] is not None]
@@ -473,10 +561,14 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
     inlines = [TelephoneInline, DonorPaymentChannelInline, InteractionInline]
 
     def get_fieldsets(self, request, obj=None):
-        if request.user.is_superuser and self.superuser_fieldsets:
-            return self.add_fieldsets + self.superuser_fieldsets
+        if obj:
+            fieldsets = self.edit_fieldsets
         else:
-            return self.add_fieldsets
+            fieldsets = self.add_fieldsets
+        if request.user.is_superuser and self.superuser_fieldsets:
+            return fieldsets + self.superuser_fieldsets
+        else:
+            return fieldsets
         super().get_fieldsets(request, obj)
 
     def save_formset(self, request, form, formset, change):
@@ -488,41 +580,41 @@ class UserProfileAdmin(ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFilter
             obj.generate_VS()
 
 
-class UserInCampaignResource(ModelResource):
-    userprofile_email = fields.Field(
-        column_name='userprofile_email',
-        attribute='userprofile',
+class DonorPaymentChannelResource(ModelResource):
+    user_email = fields.Field(
+        column_name='user_email',
+        attribute='user',
         widget=widgets.ForeignKeyWidget(UserProfile, 'email'),
     )
 
     class Meta:
-        model = UserInCampaign
+        model = DonorPaymentChannel
         fields = (
             'id',
-            'campaign',
-            'userprofile',
-            'userprofile__title_before',
-            'userprofile__first_name',
-            'userprofile__last_name',
-            'userprofile__title_after',
-            'userprofile__sex',
+            'event',
+            'user',
+            'user__title_before',
+            'user__first_name',
+            'user__last_name',
+            'user__title_after',
+            'user__sex',
             # 'userprofile__telephone',
-            'userprofile_email',
-            'userprofile__street',
-            'userprofile__city',
-            'userprofile__zip_code',
-            'variable_symbol',
-            'userprofile__club_card_available',
-            'wished_information',
+            'user_email',
+            'user__street',
+            'user__city',
+            'user__zip_code',
+            'VS',
+            'user__club_card_available',
+            # 'wished_information',
             'regular_payments',
             'regular_frequency',
             'registered_support',
-            'note',
-            'additional_information',
-            'userprofile__is_active',
-            'userprofile__language',
-            'expected_regular_payment_date',
-            'expected_regular_payment_date',
+            # 'note',
+            # 'additional_information',
+            'user__is_active',
+            'user__language',
+            # 'expected_regular_payment_date',
+            # 'expected_regular_payment_date',
             'extra_money',
             'number_of_payments',
             'payment_total',
@@ -530,7 +622,7 @@ class UserInCampaignResource(ModelResource):
             'last_payment_date',
         )
         export_order = fields
-        import_id_fields = ('userprofile_email', 'campaign')
+        import_id_fields = ('user_email', 'campaign')
 
     last_payment_date = fields.Field()
 
@@ -539,97 +631,111 @@ class UserInCampaignResource(ModelResource):
 
 
 # -- ADMIN FORMS --
-class UserInCampaignAdmin(ImportExportMixin, AdminAdvancedFiltersMixin, RelatedFieldAdmin):
+class DonorPaymethChannelAdmin(
+    unit_admin_mixin_generator('user__administrative_units'),
+    ImportExportMixin,
+    AdminAdvancedFiltersMixin,
+    RelatedFieldAdmin,
+):
     list_display = (
         'person_name',
-        'userprofile__email',
-        # 'userprofile__telephone_url',
-        'source',
-        'campaign',
-        'variable_symbol',
-        'registered_support_date',
-        'regular_payments_info',
-        'payment_delay',
-        'extra_payments',
-        'number_of_payments',
-        'total_contrib_string',
+        'user__email',
+        # 'user__telephone_url',
+        # 'source',
+        'event',
+        'VS',
+        # 'registered_support_date',
+        # 'regular_payments_info',
+        # 'payment_delay',
+        # 'extra_payments',
+        # 'number_of_payments',
+        # 'total_contrib_string',
         'regular_amount',
-        'next_communication_date',
-        'next_communication_method',
-        'userprofile__is_active',
-        'last_payment_date',
-        'email_confirmed',
+        # 'next_communication_date',
+        # 'next_communication_method',
+        'user__is_active',
+        # 'last_payment_date',
+        # 'email_confirmed',
     )
     advanced_filter_fields = (
-        'userprofile__first_name',
-        'userprofile__last_name',
-        'userprofile__email',
-        # 'userprofile__telephone',
-        'source',
+        'user__first_name',
+        'user__last_name',
+        'user__email',
+        # 'user__telephone',
+        # 'source',
         ('campaign__name', _("Campaign name")),
-        'variable_symbol',
+        'VS',
         'registered_support',
         'regular_payments',
         'extra_money',
         'number_of_payments',
         'payment_total',
         'regular_amount',
-        'next_communication_date',
-        'next_communication_method',
-        'userprofile__is_active',
+        # 'next_communication_date',
+        # 'next_communication_method',
+        'user__is_active',
         'last_payment__date',
     )
     date_hierarchy = 'registered_support'
     list_filter = [
         'regular_payments',
-        'userprofile__language',
-        'userprofile__is_active',
-        'wished_information',
+        'user__language',
+        'user__is_active',
+        # 'wished_information',
         'old_account',
-        'email_confirmed',
-        'source',
-        ('campaign', RelatedFieldCheckBoxFilter),
+        # 'email_confirmed',
+        # 'source',
+        ('event', RelatedFieldCheckBoxFilter),
         ('registered_support', DateRangeFilter),
         filters.UserConditionFilter, filters.UserConditionFilter1,
     ]
     search_fields = [
-        'userprofile__first_name',
-        'userprofile__last_name',
-        'variable_symbol',
-        'userprofile__email',
-        # 'userprofile__telephone',
+        'user__first_name',
+        'user__last_name',
+        'VS',
+        'user__email',
+        # 'user__telephone',
     ]
-    ordering = ('userprofile__last_name',)
+    ordering = ('user__last_name',)
     actions = (
         send_mass_communication_action,
         send_mass_communication_distinct_action,
         show_payments_by_year,
     )
-    resource_class = UserInCampaignResource
+    resource_class = DonorPaymentChannelResource
     save_as = True
     list_max_show_all = 10000
     list_per_page = 100
     # inlines = [PaymentsInline, InteractionInline]
-    raw_id_fields = ('userprofile', 'recruiter',)
-    readonly_fields = ('verified_by', 'userprofile_telephone_url', 'userprofile_note')
+    raw_id_fields = (
+        'user',
+        # 'recruiter',
+    )
+    readonly_fields = (
+        # 'verified_by',
+        'user_telephone_url',
+        'user_note',
+    )
     fieldsets = [
         (_('Basic personal'), {
             'fields': [
-                ('campaign', 'userprofile'),
-                ('userprofile_telephone_url',),
-                ('userprofile_note',),
+                ('event', 'user'),
+                ('user_telephone_url',),
+                ('user_note',),
             ],
         }),
         (_('Additional'), {
             'fields': [
-                'knows_us_from', 'why_supports',
-                'field_of_work', 'additional_information',
+                # 'knows_us_from',
+                # 'why_supports',
+                # 'field_of_work',
+                # 'additional_information',
             ],
             'classes': ['collapse'],
         }),
         (_('Support'), {
             'fields': [
-                'variable_symbol',
+                'VS',
                 'registered_support',
                 (
                     'regular_payments', 'regular_frequency',
@@ -641,30 +747,37 @@ class UserInCampaignAdmin(ImportExportMixin, AdminAdvancedFiltersMixin, RelatedF
         }),
         (_('Communications'), {
             'fields': [
-                'wished_information',
-                'wished_tax_confirmation',
-                'wished_welcome_letter',
-                'email_confirmed',
-                'public',
-                'gdpr_consent',
+                # 'wished_information',
+                # 'wished_tax_confirmation',
+                # 'wished_welcome_letter',
+                # 'email_confirmed',
+                # 'public',
+                # 'gdpr_consent',
                 (
-                    'next_communication_date',
-                    'next_communication_method',
+                    # 'next_communication_date',
+                    # 'next_communication_method',
                 ),
             ],
             'classes': ['collapse'],
         }),
         (_('Notes'), {
-            'fields': ['note', 'source', 'verified', 'verified_by', 'activity_points', 'recruiter'],
+            'fields': [
+                # 'note',
+                # 'source',
+                # 'verified',
+                # 'verified_by',
+                # 'activity_points',
+                # 'recruiter',
+            ],
             'classes': ['collapse'],
         }),
     ]
 
-    def userprofile_note(self, obj):
-        return obj.userprofile.note
+    def user_note(self, obj):
+        return obj.user.note
 
-    def userprofile_telephone_url(self, obj):
-        return obj.userprofile.telephone_url()
+    def user_telephone_url(self, obj):
+        return obj.user.telephone_url()
 
     def save_formset(self, request, form, formset, change):
         # We need to save the request.user to inline Communication
@@ -681,20 +794,28 @@ class UserInCampaignAdmin(ImportExportMixin, AdminAdvancedFiltersMixin, RelatedF
             instance.save()
         formset.save_m2m()
 
-    def save_model(self, request, obj, form, change):
-        if obj.verified and not obj.verified_by:
-            obj.verified_by = request.user
-        obj.save()
+    # def save_model(self, request, obj, form, change):
+    #     if obj.verified and not obj.verified_by:
+    #         obj.verified_by = request.user
+    #     obj.save()
 
 
-class UserYearPaymentsAdmin(UserInCampaignAdmin):
-    list_display = ('person_name', 'userprofile__email', 'source',
-                    'variable_symbol', 'registered_support_date',
-                    'payment_total_by_year',
-                    'userprofile__is_active', 'last_payment_date')
+class UserYearPaymentsAdmin(DonorPaymethChannelAdmin):
+    list_display = (
+        'person_name',
+        'user__email',
+        # 'source',
+        'VS',
+        # 'registered_support_date',
+        'payment_total_by_year',
+        'user__is_active',
+        # 'last_payment_date',
+    )
     list_filter = [
-        ('payment__date', DateRangeFilter), 'regular_payments', 'userprofile__language', 'userprofile__is_active',
-        'wished_information', 'old_account', 'source',
+        ('payment__date', DateRangeFilter), 'regular_payments', 'user__language', 'user__is_active',
+        # 'wished_information',
+        'old_account',
+        # 'source',
         ('registered_support', DateRangeFilter), filters.UserConditionFilter, filters.UserConditionFilter1,
     ]
 
@@ -711,11 +832,15 @@ class UserYearPaymentsAdmin(UserInCampaignAdmin):
         return super(UserYearPaymentsAdmin, self).changelist_view(request, extra_context=extra_context)
 
 
-class PaymentAdmin(ImportExportMixin, RelatedFieldAdmin):
+class PaymentAdmin(
+    unit_admin_mixin_generator('user_donor_payment_channel__user__administrative_units'),
+    ImportExportMixin,
+    RelatedFieldAdmin,
+):
     list_display = (
         'id',
         'date',
-        'user__campaign',
+        'user_donor_payment_channel__event',
         'account_statement',
         'amount',
         'person_name',
@@ -741,7 +866,7 @@ class PaymentAdmin(ImportExportMixin, RelatedFieldAdmin):
     fieldsets = [
         (_("Basic"), {
             'fields': [
-                'user', 'date', 'amount',
+                'user_donor_payment_channel', 'date', 'amount',
                 ('type',),
             ],
         }),
@@ -795,12 +920,12 @@ class PaymentAdmin(ImportExportMixin, RelatedFieldAdmin):
         'account_statement',
         'created',
     )
-    raw_id_fields = ('user',)
+    raw_id_fields = ('user_donor_payment_channel',)
     list_filter = ['type', 'date', filters.PaymentsAssignmentsFilter]
     date_hierarchy = 'date'
     search_fields = [
-        'user__userprofile__last_name',
-        'user__userprofile__first_name',
+        'user_donor_payment_channel__user__last_name',
+        'user_donor_payment_channel__user__first_name',
         'amount',
         'VS',
         'SS',
@@ -809,13 +934,23 @@ class PaymentAdmin(ImportExportMixin, RelatedFieldAdmin):
     list_max_show_all = 10000
 
 
-class NewUserAdmin(UserInCampaignAdmin):
-    list_display = ('person_name', 'is_direct_dialogue',
-                    'variable_symbol', 'regular_payments', 'registered_support',
-                    'recruiter', 'userprofile__is_active')
+class NewUserAdmin(DonorPaymethChannelAdmin):
+    list_display = (
+        'person_name',
+        # 'is_direct_dialogue',
+        'VS',
+        'regular_payments',
+        'registered_support',
+        # 'recruiter',
+        'user__is_active',
+    )
 
 
-class InteractionAdmin(RelatedFieldAdmin, admin.ModelAdmin):
+class InteractionAdmin(
+    unit_admin_mixin_generator('user__administrative_units'),
+    RelatedFieldAdmin,
+    admin.ModelAdmin,
+):
     list_display = (
         'subject',
         'dispatched',
@@ -834,7 +969,7 @@ class InteractionAdmin(RelatedFieldAdmin, admin.ModelAdmin):
     )
     autocomplete_fields = ('user', 'event')
     readonly_fields = ('type', 'created_by', 'handled_by', )
-    list_filter = ['dispatched', 'send', 'date', 'method', 'type', 'user', 'event']
+    list_filter = ['dispatched', 'send', 'date', 'method', 'type', 'event']
     search_fields = (
         'subject',
         # 'user__userprofile__telephone',
@@ -899,7 +1034,7 @@ class AutomaticCommunicationAdmin(admin.ModelAdmin):
         return obj
 
 
-class MassCommunicationForm(django.forms.ModelForm):
+class MassCommunicationForm(forms.ModelForm):
     class Meta:
         model = MassCommunication
         fields = '__all__'
@@ -907,7 +1042,7 @@ class MassCommunicationForm(django.forms.ModelForm):
     def clean_send_to_users(self):
         v = EmailValidator()
         for user in self.cleaned_data['send_to_users']:
-            email = user.userprofile.email
+            email = user.email
             if email:
                 try:
                     v.__call__(email)
@@ -932,7 +1067,7 @@ class MassCommunicationAdmin(large_initial.LargeInitialMixin, admin.ModelAdmin):
     form = MassCommunicationForm
 
     formfield_overrides = {
-        django.db.models.CharField: {'widget': django.forms.TextInput(attrs={'size': '60'})},
+        CharField: {'widget': forms.TextInput(attrs={'size': '60'})},
     }
 
     """
@@ -952,10 +1087,6 @@ class MassCommunicationAdmin(large_initial.LargeInitialMixin, admin.ModelAdmin):
         }),
     ]
     """
-    def get_field_queryset(self, db, db_field, request):
-        if db_field.name == 'send_to_users':  # optimize queryset
-            return super().get_field_queryset(db, db_field, request).select_related('campaign', 'userprofile')
-        return super().get_field_queryset(db, db_field, request)
 
     def save_form(self, request, form, change):
         super(MassCommunicationAdmin, self).save_form(request, form, change)
@@ -1028,8 +1159,8 @@ def parse_statement(self, request, queryset):
 parse_statement.short_description = _("Reparse account statement")
 
 
-class AccountStatementsAdmin(nested_admin.NestedModelAdmin):
-    list_display = ('type', 'import_date', 'payments_count', 'csv_file', 'date_from', 'date_to')
+class AccountStatementsAdmin(unit_admin_mixin_generator('administrative_unit'), nested_admin.NestedModelAdmin):
+    list_display = ('type', 'import_date', 'payments_count', 'csv_file', 'administrative_unit', 'date_from', 'date_to')
     list_filter = ('type',)
     inlines = [PaymentsInlineNoExtra]
     readonly_fields = ('import_date', 'payments_count')
@@ -1082,7 +1213,7 @@ class ResultAdmin(admin.ModelAdmin):
     save_as = True
 
 
-class EventAdmin(admin.ModelAdmin):
+class EventAdmin(unit_admin_mixin_generator('administrative_units'), admin.ModelAdmin):
     list_display = (
         'name',
         'slug',
@@ -1128,7 +1259,7 @@ class SourceAdmin(admin.ModelAdmin):
     list_display = ('slug', 'name', 'direct_dialogue')
 
 
-class TaxConfirmationAdmin(ImportExportMixin, admin.ModelAdmin):
+class TaxConfirmationAdmin(unit_admin_mixin_generator('user_profile__administrative_units'), ImportExportMixin, admin.ModelAdmin):
     change_list_template = "admin/aklub/taxconfirmation/change_list.html"
     list_display = ('user_profile', 'year', 'amount', 'get_pdf', )
     ordering = ('user_profile__last_name', 'user_profile__first_name',)
@@ -1166,7 +1297,13 @@ class TaxConfirmationFieldAdmin(PdfSandwichFieldAdmin):
     pass
 
 
-admin.site.register(UserInCampaign, UserInCampaignAdmin)
+@admin.register(AdministrativeUnit)
+class AdministrativeUnitAdmin(admin.ModelAdmin):
+    list_display = ('name', 'ico')
+    readonly_fields = ('ico',)
+
+
+admin.site.register(DonorPaymentChannel, DonorPaymethChannelAdmin)
 admin.site.register(UserYearPayments, UserYearPaymentsAdmin)
 admin.site.register(NewUser, NewUserAdmin)
 admin.site.register(Interaction, InteractionAdmin)

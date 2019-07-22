@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-celery = "*"
+celery = "==4.3.0"
 django-celery-email = "*"
 django-stdimage = "*"
 reportlab = "*"
@@ -18,6 +18,8 @@ django-chart-tools = "*"
 django-mass-edit = "*"
 python-memcached = "*"
 django-import-export = "*"
+django-import-export-celery = ">=0.0.2"
+django-author = "*"
 django-qsstats-magic = "*"
 python-dateutil = "*"
 "html2text" = "*"
@@ -28,8 +30,8 @@ django-related-admin = "*"
 django-denorm = "*"
 gunicorn = "*"
 django-betterforms = "*"
-django-adminactions = {editable = true, ref = "develop", git = "https://github.com/saxix/django-adminactions.git"}
-django-helpdesk = {editable = true, ref = "abs-paths", git = "https://github.com/auto-mat/django-helpdesk.git"}
+django-adminactions = {editable = true,ref = "develop",git = "https://github.com/saxix/django-adminactions.git"}
+django-helpdesk = {editable = true,ref = "abs-paths",git = "https://github.com/auto-mat/django-helpdesk.git"}
 django-admin-large-initial-data = "*"
 django-admin-tools-stats = "*"
 django-bower = "*"
@@ -38,7 +40,7 @@ django-adminfilters = "<1.1"
 django-advanced-filters = "*"
 django-bulk-update = "*"
 django-extra-views = "*"
-django-sesame = "*"
+django-sesame = "==1.4"
 django-ses = "*"
 vokativ = "*"
 Django = ">=2,<3"
@@ -70,7 +72,7 @@ newrelic = "*"
 django-nested-admin = "*"
 django_celery_monitor = "*"
 django_grapesjs = "*"
-
+django-stdnumfield = "*"
 
 [dev-packages]
 coverage = "*"
@@ -85,10 +87,15 @@ pudb = "*"
 "flake8-tidy-imports" = "*"
 "flake8-builtins" = "*"
 coveralls = "*"
-django-admin-smoke-tests = {git = "https://github.com/jnoortheen/django-admin-smoke-tests", editable = true}
+django-admin-smoke-tests = {git = "https://github.com/PetrDlouhy/django-admin-smoke-tests",ref = "merge_all",editable = true}
 model_mommy = "*"
 mock = "*"
+flower = "*"
 
 [requires]
 python_version = "3.6"
+
 [dev-dependencies]
+
+[pipenv]
+allow_prereleases = false

@@ -53,6 +53,8 @@ from smmapdfs.models import PdfSandwichType
 
 import stdimage
 
+from stdnumfield.models import StdNumField
+
 from vokativ import vokativ
 
 from . import autocom
@@ -86,6 +88,30 @@ class Result(models.Model):
         max_length=30,
         choices=RESULT_SORT,
         default='individual',
+    )
+
+    def __str__(self):
+        return str(self.name)
+
+
+ICO_ERROR_MESSAGE = _("IČO není zadáno ve správném formátu. Zkontrolujte že číslo má osm číslic a případně ho doplňte nulami zleva.")
+
+
+class AdministrativeUnit(models.Model):
+    name = models.CharField(
+        verbose_name=_("Name"),
+        max_length=255,
+        blank=False,
+        null=False,
+    )
+    ico = StdNumField(
+        'cz.dic',
+        default=None,
+        verbose_name=_(u"IČO"),
+        validators=[RegexValidator(r'^[0-9]*$', _('IČO musí být číslo'))],
+        error_messages={'stdnum_format': ICO_ERROR_MESSAGE},
+        blank=True,
+        null=True,
     )
 
     def __str__(self):
@@ -190,27 +216,32 @@ class Event(models.Model):
         blank=True,
         null=True,
     )
+    administrative_units = models.ManyToManyField(
+        AdministrativeUnit,
+        verbose_name=_("administrative units"),
+        blank=True,
+    )
 
     def number_of_members(self):
-        return self.userincampaign_set.count()
+        return self.donorpaymentchannel_set.count()
 
     number_of_members.short_description = _("number of members")
 
     def number_of_regular_members(self):
-        return self.userincampaign_set.filter(regular_payments="regular", payment__amount__gt=0).distinct().count()
+        return self.donorpaymentchannel_set.filter(regular_payments="regular", payment__amount__gt=0).distinct().count()
 
     def number_of_onetime_members(self):
-        return self.userincampaign_set.exclude(regular_payments="regular")\
+        return self.donorpaymentchannel_set.exclude(regular_payments="regular")\
             .filter(payment__amount__gt=0).distinct().count()
 
     def number_of_active_members(self):
-        return self.userincampaign_set.filter(payment__amount__gt=0).distinct().count()
+        return self.donorpaymentchannel_set.filter(payment__amount__gt=0).distinct().count()
 
     def number_of_all_members(self):
-        return self.userincampaign_set.distinct().count()
+        return self.donorpaymentchannel_set.distinct().count()
 
     def number_of_confirmed_members(self):
-        return self.userincampaign_set.filter(email_confirmed=True).distinct().count()
+        return self.petitionsignature_set.filter(email_confirmed=True).distinct().count()
 
     def recruiters(self):
         return Recruiter.objects.filter(campaigns=self)
@@ -224,7 +255,7 @@ class Event(models.Model):
 
     def yield_total(self):
         if self.acquisition_campaign:
-            return UserInCampaign.objects.filter(campaign=self).aggregate(yield_total=Sum('payment__amount'))[
+            return DonorPaymentChannel.objects.filter(event=self).aggregate(yield_total=Sum('payment__amount'))[
                 'yield_total']
         else:
             return self.real_yield
@@ -233,7 +264,7 @@ class Event(models.Model):
 
     def expected_yearly_income(self):
         income = 0
-        for campaign_member in UserInCampaign.objects.filter(campaign=self, payment__amount__gt=0).distinct():
+        for campaign_member in DonorPaymentChannel.objects.filter(event=self, payment__amount__gt=0).distinct():
             # TODO: use aggregate to count this
             income += campaign_member.yearly_regular_amount()
         return income
@@ -405,6 +436,10 @@ class UserProfile(AbstractUser):
         verbose_name = _("User profile")
         verbose_name_plural = _("User profiles")
 
+        permissions = (
+            ('can_edit_all_units', _('Může editovat všechno ve všech administrativních jednotkách')),
+        )
+
     GENDER = (
         ('male', _('Male')),
         ('female', _('Female')),
@@ -575,29 +610,40 @@ class UserProfile(AbstractUser):
         blank=True,
         choices=[(i, i) for i in range(1, 32)],
     )
-    newsletter_on = models.BooleanField(
+    newsletter_on = models.NullBooleanField(
         verbose_name=_("newsletter_on"),
         null=True,
         blank=True,
         default=False,
     )
-    call_on = models.BooleanField(
+    call_on = models.NullBooleanField(
         verbose_name=_("call_on"),
         null=True,
         blank=True,
         default=False,
     )
-    challenge_on = models.BooleanField(
+    challenge_on = models.NullBooleanField(
         verbose_name=_("challenge_on"),
         null=True,
         blank=True,
         default=False,
     )
-    letter_on = models.BooleanField(
+    letter_on = models.NullBooleanField(
         verbose_name=_("letter_on"),
         null=True,
         blank=True,
         default=False,
+    )
+    administrative_units = models.ManyToManyField(
+        AdministrativeUnit,
+        verbose_name=_("administrative units"),
+        blank=True,
+    )
+    administrated_units = models.ManyToManyField(
+        AdministrativeUnit,
+        verbose_name=_("administrated units"),
+        related_name='administrators',
+        blank=True,
     )
 
     """
@@ -638,6 +684,9 @@ class UserProfile(AbstractUser):
         else:
             return ""
 
+    def mail_communications_count(self):
+        return self.interaction_set.filter(method="mail").count()
+
     def person_name(self):
         if self.first_name or self.last_name:
             return " ".join(
@@ -669,7 +718,7 @@ class UserProfile(AbstractUser):
     userattendance_links.short_description = _('Users in campaign')
 
     def make_tax_confirmation(self, year):
-        payment_set = Payment.objects.filter(user__userprofile=self)
+        payment_set = Payment.objects.filter(user_donor_payment_channel__user=self)
         amount = payment_set.exclude(type='expected').filter(date__year=year).aggregate(Sum('amount'))['amount__sum']
         if not amount:
             return None, False
@@ -758,7 +807,7 @@ class Telephone(models.Model):
         unique_together = ("user", "is_primary")
 
     def validate_unique(self, exclude=None):
-        super(Telephone, self).validate_unique(exclude=exclude)
+        super().validate_unique(exclude=exclude)
 
     def check_duplicate(self, *args, **kwargs):
         qs = Telephone.objects.filter(telephone=self.telephone, user=self.user)
@@ -772,11 +821,11 @@ class Telephone(models.Model):
         primary.is_primary = None
         primary.user = self.user
         self.validate_unique()
-        super(Telephone, self).clean(*args, **kwargs)
+        super().clean(*args, **kwargs)
 
     def save(self, *args, **kwargs):
         self.clean()
-        super(Telephone, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return u"%s" % self.telephone
@@ -995,11 +1044,6 @@ class UserInCampaign(models.Model):
         verbose_name=_("Send regular news via email"),
         default=True,
     )
-    end_of_regular_payments = models.DateField(
-        verbose_name=_("End of regular payments (for payments by card)"),
-        blank=True,
-        null=True,
-    )
     next_communication_date = models.DateField(
         verbose_name=_("Date of next communication"),
         blank=True,
@@ -1060,182 +1104,8 @@ class UserInCampaign(models.Model):
         else:
             return False
 
-    @denormalized(models.IntegerField, null=True)
-    @depend_on_related('Payment', foreign_key="user")
-    def number_of_payments(self):
-        """Return number of payments made by this user
-        """
-        return self.payment_set.aggregate(count=Count('amount'))['count']
-
-    number_of_payments.short_description = _("# payments")
-    number_of_payments.admin_order_field = 'payments_number'
-
-    def last_payment_function(self):
-        """Return last payment"""
-        return self.payment_set.order_by('date').last()
-
-    @denormalized(
-        models.ForeignKey,
-        to='Payment',
-        default=None,
-        null=True,
-        related_name="user_last_payment",
-        on_delete=models.SET_NULL,
-    )
-    def last_payment(self):
-        """Return last payment"""
-        return self.last_payment_function()
-
-    def last_payment_date(self):
-        """Return date of last payment or None
-        """
-        last_payment = self.last_payment
-        if last_payment:
-            return last_payment.date
-        else:
-            return None
-
-    last_payment_date.short_description = _("Last payment")
-    last_payment_date.admin_order_field = 'last_payment__date'
-
-    def last_payment_type(self):
-        """Return date of last payment or None
-        """
-        last_payment = self.last_payment
-        if last_payment:
-            return last_payment.type
-        else:
-            return None
-
-    last_payment_type.short_description = _("Last payment type")
-    last_payment_type.admin_order_field = 'last_payment__type'
-
-    def regular_frequency_td(self):
-        """Return regular frequency as timedelta"""
-        interval_in_days = {
-            'monthly': 31,
-            'quaterly': 92,
-            'biannually': 183,
-            'annually': 366,
-        }
-        try:
-            return datetime.timedelta(days=interval_in_days[self.regular_frequency])
-        except KeyError:
-            return None
-
-    @denormalized(models.DateField, null=True)
-    @depend_on_related('Payment', foreign_key="user")
-    def expected_regular_payment_date(self):
-        last_payment = self.last_payment_function()
-        if last_payment:
-            last_payment_date = last_payment.date
-        else:
-            last_payment_date = None
-        if self.regular_payments != "regular":
-            return None
-        if last_payment_date:
-            # Exactly a month after last payment or whatever
-            # expectation record for the given user is set to
-            freq = self.regular_frequency_td()
-            if not freq:
-                return None
-            expected = last_payment_date + freq
-            if self.expected_date_of_first_payment:
-                expected = max(expected, self.expected_date_of_first_payment)
-        elif self.expected_date_of_first_payment:
-            # Expected date + 3 days tolerance on user side
-            expected = self.expected_date_of_first_payment + datetime.timedelta(days=3)
-        else:
-            # Registration + month (always, even for quaterly and annual payments)
-            expected = self.registered_support.date() + datetime.timedelta(days=31)
-        return expected
-
-    def regular_payments_delay(self):
-        """Check if his payments are OK
-
-        Return True if so, otherwise return the delay in payment as dattime.timedelta
-        """
-        expected_regular_payment_date = self.expected_regular_payment_date
-        if self.regular_payments == "regular" and expected_regular_payment_date:
-            # Check for regular payments
-            # (Allow 7 days for payment processing)
-            if expected_regular_payment_date:
-                expected_with_tolerance = expected_regular_payment_date + datetime.timedelta(days=10)
-                if (expected_with_tolerance < datetime.date.today()):
-                    return datetime.date.today() - expected_with_tolerance
-        return False
-
-    @denormalized(models.IntegerField, null=True)
-    @depend_on_related('Payment', foreign_key="user")
-    def extra_money(self):
-        """Check if we didn't receive more money than expected in the last payment period"""
-        if self.regular_payments == "regular":
-            freq = self.regular_frequency_td()
-            if not freq:
-                return None
-            payments = self.payment_set.filter(
-                date__gt=datetime.date.today() - freq + datetime.timedelta(days=3),
-            )
-            total = payments.aggregate(total=Sum('amount'))['total'] or 0
-            if self.regular_amount and total > self.regular_amount:
-                return total - self.regular_amount
-        return None
-
-    def regular_payments_info(self):
-        if self.regular_payments == "onetime":
-            return _boolean_icon(False)
-        if self.regular_payments == "promise":
-            return _boolean_icon(None)
-        return self.expected_regular_payment_date
-
-    regular_payments_info.allow_tags = True
-    regular_payments_info.short_description = _(u"Expected payment")
-    regular_payments_info.admin_order_field = 'expected_regular_payment_date'
-
-    def payment_delay(self):
-        if self.regular_payments_delay():
-            return timesince(self.expected_regular_payment_date)
-        else:
-            return _boolean_icon(False)
-
-    payment_delay.allow_tags = True
-    payment_delay.short_description = _(u"Payment delay")
-    payment_delay.admin_order_field = 'expected_regular_payment_date'
-
-    def extra_payments(self):
-        if self.extra_money:
-            return "%s&nbsp;Kč" % self.extra_money
-        else:
-            return _boolean_icon(False)
-
-    extra_payments.allow_tags = True
-    extra_payments.short_description = _(u"Extra money")
-    extra_payments.admin_order_field = 'extra_money'
-
     def mail_communications_count(self):
-        return self.communications.filter(method="mail").count()
-
-    @denormalized(models.FloatField, null=True)
-    @depend_on_related('Payment', foreign_key="user")
-    def payment_total(self):
-        return self.payment_set.aggregate(sum=Sum('amount'))['sum'] or 0
-
-    def total_contrib_string(self):
-        """Return the sum of all money received from this user
-        """
-        return mark_safe(u"%s&nbsp;Kč" % intcomma(int(self.payment_total)))
-
-    total_contrib_string.short_description = _("Total")
-    total_contrib_string.admin_order_field = 'payment_total'
-
-    def registered_support_date(self):
-        return self.registered_support.strftime('%d. %m. %Y')
-
-    registered_support_date.short_description = _("Registration")
-    registered_support_date.admin_order_field = 'registered_support'
-
-    def payment_total_range(self, from_date, to_date):
-        return self.payment_set.filter(date__gte=from_date, date__lte=to_date).aggregate(sum=Sum('amount'))['sum'] or 0
+        return self.interaction_set.filter(method="mail").count()
 
     def save(self, *args, **kwargs):
         """Record save hook
@@ -1244,6 +1114,7 @@ class UserInCampaign(models.Model):
         user was changed, a new communication might arrise from this
         situation. See module 'autocom'.
         """
+        raise NotImplementedError("UserInCampaign was deprecated")
         if self.pk is None:
             insert = True
         else:
@@ -1257,72 +1128,9 @@ class UserInCampaign(models.Model):
         from .autocom import check as autocom_check
         autocom_check(users=UserInCampaign.objects.filter(pk=self.pk), action=(insert and 'new-user' or None))
 
-    @denormalized(models.NullBooleanField, null=True)
-    @depend_on_related('Payment', foreign_key="user")
-    def no_upgrade(self):
-        """Check for users without upgrade to payments
-
-        Returns true if:
-        1. user is regular at least for the last year
-        2. user didn't increase the amount of his payments during last year
-
-        This really only makes sense for monthly payments.
-        """
-        if self.regular_payments != "regular":
-            return False
-        payment_now = self.last_payment_function()
-        if ((not payment_now) or (payment_now.date < (datetime.date.today() - datetime.timedelta(days=45)))):
-            return False
-        payments_year_before = Payment.objects.filter(
-            user=self,
-            date__lt=datetime.datetime.now() - datetime.timedelta(days=365),
-        ).order_by('-date')
-        if (len(payments_year_before) == 0):
-            return False
-        if (payment_now.amount == payments_year_before[0].amount):
-            return True
-        else:
-            return False
-
-    def yearly_regular_amount(self):
-        times = {
-            'monthly': 12,
-            'quaterly': 4,
-            'biannually': 2,
-            'annually': 1,
-        }
-        if self.regular_frequency and self.regular_amount:
-            return self.regular_amount * times[self.regular_frequency]
-        else:
-            return 0
-
-    def monthly_regular_amount(self):
-        return float(self.yearly_regular_amount()) / 12.0
-
 
 def filter_by_condition(queryset, cond):
     return queryset.filter(cond.get_query())
-
-
-class NewUserManager(models.Manager):
-    def get_queryset(self):
-        return super(NewUserManager, self).get_queryset().filter(verified=False)
-
-
-class NewUser(UserInCampaign):
-    objects = NewUserManager()
-
-    class Meta:
-        proxy = True
-        verbose_name = _("new user")
-        verbose_name_plural = _("new users")
-
-
-class UserYearPayments(UserInCampaign):
-    class Meta:
-        proxy = True
-        verbose_name = _("Payment for users in time period")
-        verbose_name_plural = _("Payments for users in time periods")
 
 
 def str_to_datetime(date):
@@ -1417,9 +1225,16 @@ class AccountStatements(models.Model):
         blank=True,
         null=True,
     )
+    administrative_unit = models.ForeignKey(
+        AdministrativeUnit,
+        verbose_name=_("administrative unit"),
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
 
     def save(self, *args, **kwargs):
-        super(AccountStatements, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
         if hasattr(self, "payments"):
             for payment in self.payments:
                 if payment:
@@ -1541,13 +1356,20 @@ class BankAccount(models.Model):
     bank_account_number = models.CharField(
         verbose_name=_("Bank account number"),
         max_length=50,
-        blank=True,
-        null=True,
+        blank=False,
+        null=False,
     )
     note = models.TextField(
         verbose_name=_("Bank account note"),
         blank=True,
         null=True,
+    )
+    administrative_unit = models.ForeignKey(
+        AdministrativeUnit,
+        verbose_name=_("administrative unit"),
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
     )
 
     def __str__(self):
@@ -1567,8 +1389,8 @@ class UserBankAccount(models.Model):
     bank_account_number = models.CharField(
         verbose_name=_("Bank account number"),
         max_length=50,
-        blank=True,
-        null=True,
+        blank=False,
+        null=False,
     )
     note = models.TextField(
         verbose_name=_("Bank account note"),
@@ -1598,8 +1420,8 @@ class DonorPaymentChannel(models.Model):
         verbose_name=_("User"),
         on_delete=models.CASCADE,
         related_name="userchannels",
-        null=True,
-        blank=True,
+        null=False,
+        blank=False,
     )
     registered_support = models.DateTimeField(
         verbose_name=_("Registered support"),
@@ -1690,9 +1512,18 @@ class DonorPaymentChannel(models.Model):
         on_delete=models.CASCADE,
         null=True,
     )
+    end_of_regular_payments = models.DateField(
+        verbose_name=_("End of regular payments (for payments by card)"),
+        blank=True,
+        on_delete=models.CASCADE,
+        null=True,
+    )
 
     def __str__(self):
-        return "VS - {}".format(self.VS)
+        return "Payment channel: {} - {}".format(
+            self.user.email if self.user else '',
+            self.VS,
+        )
 
     def generate_VS(self):
         if self.VS == "" or self.VS is None:
@@ -1704,11 +1535,240 @@ class DonorPaymentChannel(models.Model):
             self.VS = self.VS
             self.save()
 
+    def requires_action(self):
+        """Return true if the user requires some action from
+        the club manager, otherwise return False"""
+        if len(Interaction.objects.filter(user=self.user, dispatched=False)) > 0:
+            return True
+        else:
+            return False
+
     def check_duplicate(self, *args, **kwargs):
         qs = DonorPaymentChannel.objects.filter(VS=self.VS)
         if self.pk is None and self.VS is not None:
             if qs.filter(VS=self.VS).exists():
                 raise ValidationError("Duplicate VS")
+
+    @denormalized(models.IntegerField, null=True)
+    @depend_on_related('Payment', foreign_key="user_donor_payment_channel")
+    def number_of_payments(self):
+        """Return number of payments made by this user
+        """
+        return self.payment_set.aggregate(count=Count('amount'))['count']
+
+    number_of_payments.short_description = _("# payments")
+    number_of_payments.admin_order_field = 'payments_number'
+
+    def last_payment_function(self):
+        """Return last payment"""
+        return self.payment_set.order_by('date').last()
+
+    @denormalized(
+        models.ForeignKey,
+        to='Payment',
+        default=None,
+        null=True,>>>>>>> diakonie
+        related_name="user_last_payment",
+        on_delete=models.SET_NULL,
+    )
+    def last_payment(self):
+        """Return last payment"""
+        return self.last_payment_function()
+
+    def last_payment_date(self):
+        """Return date of last payment or None
+        """
+        last_payment = self.last_payment
+        if last_payment:
+            return last_payment.date
+        else:
+            return None
+
+    last_payment_date.short_description = _("Last payment")
+    last_payment_date.admin_order_field = 'last_payment__date'
+
+    def registered_support_date(self):
+        return self.registered_support.strftime('%d. %m. %Y')
+
+    registered_support_date.short_description = _("Registration")
+    registered_support_date.admin_order_field = 'registered_support'
+
+    def payment_total_range(self, from_date, to_date):
+        return self.payment_set.filter(date__gte=from_date, date__lte=to_date).aggregate(sum=Sum('amount'))['sum'] or 0
+
+    def last_payment_type(self):
+        """Return date of last payment or None
+        """
+        last_payment = self.last_payment
+        if last_payment:
+            return last_payment.type
+        else:
+            return None
+
+    last_payment_type.short_description = _("Last payment type")
+    last_payment_type.admin_order_field = 'last_payment__type'
+
+    def regular_frequency_td(self):
+        """Return regular frequency as timedelta"""
+        interval_in_days = {
+            'monthly': 31,
+            'quaterly': 92,
+            'biannually': 183,
+            'annually': 366,
+        }
+        try:
+            return datetime.timedelta(days=interval_in_days[self.regular_frequency])
+        except KeyError:
+            return None
+
+    @denormalized(models.DateField, null=True)
+    @depend_on_related('Payment', foreign_key="user_donor_payment_channel")
+    def expected_regular_payment_date(self):
+        last_payment = self.last_payment_function()
+        last_payment_date = last_payment.date if last_payment else None
+        if self.regular_payments != "regular":
+            return None
+        if last_payment_date:
+            # Exactly a month after last payment or whatever
+            # expectation record for the given user is set to
+            freq = self.regular_frequency_td()
+            if not freq:
+                return None
+            expected = last_payment_date + freq
+            if self.expected_date_of_first_payment:
+                expected = max(expected, self.expected_date_of_first_payment)
+        elif self.expected_date_of_first_payment:
+            # Expected date + 3 days tolerance on user side
+            expected = self.expected_date_of_first_payment + datetime.timedelta(days=3)
+        else:
+            # Registration + month (always, even for quaterly and annual payments)
+            expected = self.registered_support.date() + datetime.timedelta(days=31)
+        return expected
+
+    @denormalized(models.FloatField, null=True)
+    @depend_on_related('Payment', foreign_key="user_donor_payment_channel")
+    def payment_total(self):
+        return self.payment_set.aggregate(sum=Sum('amount'))['sum'] or 0
+
+    def total_contrib_string(self):
+        """Return the sum of all money received from this user
+        """
+        return mark_safe(u"%s&nbsp;Kč" % intcomma(int(self.payment_total)))
+
+    total_contrib_string.short_description = _("Total")
+    total_contrib_string.admin_order_field = 'payment_total'
+
+    def regular_payments_delay(self):
+        """Check if his payments are OK
+
+        Return True if so, otherwise return the delay in payment as dattime.timedelta
+        """
+        expected_regular_payment_date = self.expected_regular_payment_date
+        if self.regular_payments == "regular" and expected_regular_payment_date:
+            # Check for regular payments
+            # (Allow 7 days for payment processing)
+            if expected_regular_payment_date:
+                expected_with_tolerance = expected_regular_payment_date + datetime.timedelta(days=10)
+                if (expected_with_tolerance < datetime.date.today()):
+                    return datetime.date.today() - expected_with_tolerance
+        return False
+
+    @denormalized(models.IntegerField, null=True)
+    @depend_on_related('Payment', foreign_key="user_donor_payment_channel")
+    def extra_money(self):
+        """Check if we didn't receive more money than expected in the last payment period"""
+        if self.regular_payments == "regular":
+            freq = self.regular_frequency_td()
+            if not freq:
+                return None
+            payments = self.payment_set.filter(
+                date__gt=datetime.date.today() - freq + datetime.timedelta(days=3),
+            )
+            total = payments.aggregate(total=Sum('amount'))['total'] or 0
+            if self.regular_amount and total > self.regular_amount:
+                return total - self.regular_amount
+        return None
+
+    def regular_payments_info(self):
+        if self.regular_payments == "onetime":
+            return _boolean_icon(False)
+        if self.regular_payments == "promise":
+            return _boolean_icon(None)
+        return self.expected_regular_payment_date
+
+    regular_payments_info.allow_tags = True
+    regular_payments_info.short_description = _(u"Expected payment")
+    regular_payments_info.admin_order_field = 'expected_regular_payment_date'
+
+    def payment_delay(self):
+        if self.regular_payments_delay():
+            return timesince(self.expected_regular_payment_date)
+        else:
+            return _boolean_icon(False)
+
+    payment_delay.allow_tags = True
+    payment_delay.short_description = _(u"Payment delay")
+    payment_delay.admin_order_field = 'expected_regular_payment_date'
+
+    def extra_payments(self):
+        if self.extra_money:
+            return "%s&nbsp;Kč" % self.extra_money
+        else:
+            return _boolean_icon(False)
+
+    extra_payments.allow_tags = True
+    extra_payments.short_description = _(u"Extra money")
+    extra_payments.admin_order_field = 'extra_money'
+
+    @denormalized(models.NullBooleanField, null=True)
+    @depend_on_related('Payment', foreign_key="user_donor_payment_channel")
+    def no_upgrade(self):
+        """Check for users without upgrade to payments
+
+        Returns true if:
+        1. user is regular at least for the last year
+        2. user didn't increase the amount of his payments during last year
+
+        This really only makes sense for monthly payments.
+        """
+        if self.regular_payments != "regular":
+            return False
+        payment_now = self.last_payment_function()
+        if ((not payment_now) or (payment_now.date < (datetime.date.today() - datetime.timedelta(days=45)))):
+            return False
+        payments_year_before = Payment.objects.filter(
+            user_donor_payment_channel=self,
+            date__lt=datetime.datetime.now() - datetime.timedelta(days=365),
+        ).order_by('-date')
+        if (len(payments_year_before) == 0):
+            return False
+        if (payment_now.amount == payments_year_before[0].amount):
+            return True
+        else:
+            return False
+
+    def yearly_regular_amount(self):
+        times = {
+            'monthly': 12,
+            'quaterly': 4,
+            'biannually': 2,
+            'annually': 1,
+        }
+        if self.regular_frequency and self.regular_amount:
+            return self.regular_amount * times[self.regular_frequency]
+        else:
+            return 0
+
+    def person_name(self):
+        try:
+            return self.user.__str__()
+        except UserProfile.DoesNotExist:  # This happens, when UserInCampaign is cached, but it is deleted already
+            return "No UserProfile"
+
+    person_name.short_description = _("Full name")
+
+    def monthly_regular_amount(self):
+        return float(self.yearly_regular_amount()) / 12.0
 
     def clean(self, *args, **kwargs):
         self.check_duplicate()
@@ -1716,7 +1776,40 @@ class DonorPaymentChannel(models.Model):
 
     def save(self, *args, **kwargs):
         self.clean()
+
+        if self.pk is None:
+            insert = True
+        else:
+            insert = False
         super().save(*args, **kwargs)
+        if self.user:
+            # Evaluate autocom immediatelly only when the affected
+            # user is known, otherwise the bellow check would be too
+            # time-consuming (relying on Cron performing it in regular
+            # intervals anyway)
+            from .autocom import check as autocom_check
+            autocom_check(payment_channels=DonorPaymentChannel.objects.filter(pk=self.pk), action=(insert and 'new-user' or None))
+
+
+class UserYearPayments(DonorPaymentChannel):
+    class Meta:
+        proxy = True
+        verbose_name = _("Payment for users in time period")
+        verbose_name_plural = _("Payments for users in time periods")
+
+
+class NewUserManager(models.Manager):
+    def get_queryset(self):
+        return super(NewUserManager, self).get_queryset().filter()
+
+
+class NewUser(DonorPaymentChannel):
+    objects = NewUserManager()
+
+    class Meta:
+        proxy = True
+        verbose_name = _("new user")
+        verbose_name_plural = _("new users")
 
 
 class Payment(models.Model):
@@ -1874,18 +1967,11 @@ class Payment(models.Model):
         null=True,
     )
     # Pairing of payments with a specific club system user
-    user = models.ForeignKey(
-        UserInCampaign,
-        blank=True,
-        null=True,
-        on_delete=models.CASCADE,
-    )
     user_donor_payment_channel = models.ForeignKey(
         DonorPaymentChannel,
         blank=True,
         null=True,
         on_delete=models.CASCADE,
-        related_name='paymentchannels',
     )
     # Origin of payment from bank account statement
     account_statement = models.ForeignKey(
@@ -1932,19 +2018,58 @@ class Payment(models.Model):
         else:
             insert = False
         super().save(*args, **kwargs)
-        if self.user:
+        if self.user_donor_payment_channel:
             # Evaluate autocom immediatelly only when the affected
             # user is known, otherwise the bellow check would be too
             # time-consuming (relying on Cron performing it in regular
             # intervals anyway)
             from .autocom import check as autocom_check
             autocom_check(
-                users=UserInCampaign.objects.filter(pk=self.user.pk),
+                payment_channels=DonorPaymentChannel.objects.filter(pk=self.user_donor_payment_channel.pk),
                 action=(insert and 'new-payment' or None),
                 )
 
     def __str__(self):
         return str(self.amount)
+
+
+class BaseInteraction(models.Model):
+    user = models.ForeignKey(
+        UserProfile,
+        verbose_name=_("User"),
+        on_delete=models.CASCADE,
+        # related_name="communications",
+    )
+    event = models.ForeignKey(
+        Event,
+        verbose_name=_("Event"),
+        on_delete=models.SET_NULL,
+        # related_name="events",
+        null=True,
+        blank=True,
+    )
+    date = models.DateTimeField(
+        verbose_name=_("Date and time of the communication"),
+        null=True,
+    )
+    created = models.DateTimeField(
+        verbose_name=_("Date of creation"),
+        auto_now_add=True,
+        null=True,
+    )
+    updated = models.DateTimeField(
+        verbose_name=_("Date of last change"),
+        auto_now=True,
+        null=True,
+    )
+
+    def save(self, *args, **kwargs):
+        if not self.date:
+            self.date = datetime.datetime.now()
+        super().save(*args, **kwargs)
+
+    class Meta:
+        abstract = True
 
 
 COMMUNICATION_TYPE = (
@@ -1954,7 +2079,7 @@ COMMUNICATION_TYPE = (
 )
 
 
-class Interaction(models.Model):
+class Interaction(BaseInteraction):
     """Interaction entry and DB Model
 
     A communication is one action in the dialog between the club
@@ -1969,20 +2094,6 @@ class Interaction(models.Model):
         verbose_name_plural = _("Interactions")
         ordering = ['date']
 
-    user = models.ForeignKey(
-        UserProfile,
-        verbose_name=_("User"),
-        on_delete=models.CASCADE,
-        related_name="communications",
-    )
-    event = models.ForeignKey(
-        Event,
-        verbose_name=_("Event"),
-        on_delete=models.SET_NULL,
-        related_name="events",
-        null=True,
-        blank=True,
-    )
     method = models.CharField(
         verbose_name=_("Method"),
         max_length=30,
@@ -1992,9 +2103,6 @@ class Interaction(models.Model):
         verbose_name=_("Type of communication"),
         max_length=30, choices=COMMUNICATION_TYPE,
         default='individual',
-    )
-    date = models.DateTimeField(
-        verbose_name=_("Date"),
     )
     subject = models.CharField(
         verbose_name=_("Subject"),
@@ -2062,7 +2170,7 @@ class Interaction(models.Model):
         """
         if self.send:
             self.dispatch(save=False)  # then try to dispatch this email automatically
-        super(Interaction, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     def dispatch(self, save=True):
         """Dispatch the communication
@@ -2106,6 +2214,21 @@ class Interaction(models.Model):
             return self.summary
         else:
             return html2text.html2text(self.summary)
+
+
+class PetitionSignature(BaseInteraction):
+    email_confirmed = models.BooleanField(
+        verbose_name=_("Is confirmed via e-mail"),
+        default=False,
+    )
+    gdpr_consent = models.BooleanField(
+        _("GDPR consent"),
+        default=False,
+    )
+    public = models.BooleanField(
+        verbose_name=_("Publish my name in the list of supporters/petitents of this campaign"),
+        default=False,
+    )
 
 
 class ConditionValues(object):
@@ -2373,7 +2496,7 @@ class TerminalCondition(models.Model):
 
     def get_querystring(self, spec, operation):
         spec_ = spec.split('.')
-        if spec_[0] != 'UserInCampaign':
+        if spec_[0] != 'DonorPaymentChannel':
             raise NotImplementedError("Unknown spec %s" % spec_[0])
 
         join_querystring = "__".join(spec_[1:])
@@ -2490,7 +2613,7 @@ class AutomaticCommunication(models.Model):
         default=False,
     )
     sent_to_users = models.ManyToManyField(
-        UserInCampaign,
+        DonorPaymentChannel,
         help_text=_(
             "List of users to whom this communication was already sent"),
         blank=True,
@@ -2576,13 +2699,14 @@ class MassCommunication(models.Model):
         default=False,
     )
     send_to_users = models.ManyToManyField(
-        UserInCampaign,
+        UserProfile,
         verbose_name=_("send to users"),
         help_text=_(
             "All users who should receive the communication"),
         limit_choices_to={
-            'userprofile__is_active': 'True', 'wished_information': 'True',
-            'userprofile__send_mailing_lists': 'True',
+            'is_active': 'True',
+            # 'wished_information': 'True',
+            'send_mailing_lists': 'True',
         },
         blank=True,
     )
