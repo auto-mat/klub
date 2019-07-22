@@ -25,7 +25,9 @@ class UserFormMixin(object):
             url = reverse('admin:aklub_userprofile_change', args=(user.pk,))
             self.add_error(
                 'email',
-                mark_safe(_(f'<a href="{url}">User with this email already exist in database and is available now, click here to edit</a>'))
+                mark_safe(
+                    _(f'<a href="{url}">User with this email already exist in database and is available now, click here to edit</a>'),
+                ),
             )
             return super(UserFormMixin, self).clean()
         except UserProfile.DoesNotExist:
