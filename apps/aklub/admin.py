@@ -365,6 +365,7 @@ class UnitUserChangeForm(UserFormMixin, forms.ModelForm):
             'birth_day',
             'birth_month',
             'age_group',
+            'note',
             'administrative_units',
             'street',
             'city',
