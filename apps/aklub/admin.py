@@ -104,7 +104,9 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
         (None, {
             'classes': ('wide',),
             'fields': (
-                ('bank_account', 'user_bank_account', 'regular_payments',),
+                ('user_bank_account',),
+                ('bank_account', 'regular_payments',),
+
             ),
         }),
         (_('Details'), {
@@ -120,7 +122,19 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
          )
     )
 
-    # filter_horizontal = ('event', )
+    def get_queryset(self, request):
+        if not request.user.is_superuser:
+            return DonorPaymentChannel.objects.filter(bank_account__administrative_unit=request.user.administrated_units.first())
+        else:
+            return super(DonorPaymentChannelInline, self).get_queryset(request)
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "bank_account":
+            if not request.user.is_superuser:
+                kwargs["queryset"] = BankAccount.objects.filter(administrative_unit=request.user.administrated_units.first())
+            else:
+                kwargs["queryset"] = BankAccount.objects.all()
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 class PaymentsInlineNoExtra(PaymentsInline):

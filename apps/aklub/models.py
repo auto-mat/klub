@@ -1373,7 +1373,7 @@ class BankAccount(models.Model):
     )
 
     def __str__(self):
-        return u"%s" % (self.bank_account_number)
+        return u"%s - %s" % (self.bank_account, self.bank_account_number)
 
 
 class UserBankAccount(models.Model):
@@ -1496,11 +1496,9 @@ class DonorPaymentChannel(models.Model):
         null=True,
         blank=True,
     )
-    user_bank_account = models.ForeignKey(
-        UserBankAccount,
-        related_name='userbankaccounts',
-        on_delete=models.CASCADE,
+    user_bank_account = models.CharField(
         default=None,
+        max_length=30,
         null=True,
         blank=True,
     )
@@ -1770,12 +1768,13 @@ class DonorPaymentChannel(models.Model):
         return float(self.yearly_regular_amount()) / 12.0
 
     def clean(self, *args, **kwargs):
+        if self.bank_account is None:
+            raise ValidationError("Bank account field can't be empty")
         self.check_duplicate()
+
         super().clean(*args, **kwargs)
 
     def save(self, *args, **kwargs):
-        self.clean()
-
         if self.pk is None:
             insert = True
         else:
