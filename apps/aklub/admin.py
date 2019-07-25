@@ -62,7 +62,7 @@ from smmapdfs.admin_abcs import PdfSandwichAdmin, PdfSandwichFieldAdmin
 
 from . import darujme, filters, mailing, tasks
 from .filters import unit_admin_mixin_generator
-from .forms import UserCreateForm, UserFormMixin, UserUpdateForm
+from .forms import UserCreateForm, UserUpdateForm
 from .models import (
     AccountStatements, AdministrativeUnit, AutomaticCommunication, BankAccount, Condition, DonorPaymentChannel,
     Event, Expense, Interaction, MassCommunication, NewUser, Payment, Recruiter,
@@ -351,7 +351,7 @@ class UserBankAccountAdmin(admin.ModelAdmin):
     )
 
 
-class UnitUserChangeForm(UserFormMixin, forms.ModelForm):
+class UnitUserAddForm(forms.ModelForm):
     class Meta:
         model = UserProfile
         fields = (
@@ -382,6 +382,34 @@ class UnitUserChangeForm(UserFormMixin, forms.ModelForm):
             'challenge_on',
         )
         field_classes = {'username': UsernameField}
+
+    def clean(self):
+        try:
+            user = UserProfile.objects.get(email=self.cleaned_data['email'])
+            administrated_unit = AdministrativeUnit.objects.get(id=self.request.user.administrated_units.first().id)
+            user.administrative_units.add(administrated_unit)
+            user.save()
+            url = reverse('admin:aklub_userprofile_change', args=(user.pk,))
+            self.add_error(
+                'email',
+                mark_safe(
+                    _(f'<a href="{url}">User with this email already exist in database and is available now, click here to edit</a>'),
+                ),
+            )
+            return super(UnitUserAddForm, self).clean()
+
+        except UserProfile.DoesNotExist:
+            return super(UnitUserAddForm, self).clean()
+
+
+class UnitUserChangeForm(UnitUserAddForm):
+
+    class Meta(UnitUserAddForm.Meta):
+        pass
+
+    def clean(self):
+        user = UserProfile.objects.get(email=self.cleaned_data['email'])
+        self.cleaned_data['administrative_units'] = user.administrative_units.all()
 
 
 class UserProfileAdmin(
@@ -513,6 +541,10 @@ class UserProfileAdmin(
     def get_form(self, request, obj=None, **kwargs):
         if request.user.is_superuser:
             form = super().get_form(request, obj, **kwargs)
+            form.request = request
+            return form
+        if obj is None:
+            form = UnitUserAddForm
             form.request = request
             return form
         form = UnitUserChangeForm
