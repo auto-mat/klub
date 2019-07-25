@@ -27,10 +27,9 @@ Instalace (Docker compose)
     $ docker-compose up
 
     $ docker attach klub_web_1
-    # su test
-    $ pipenv install --dev --python python3
     $ pipenv shell
-    $ cd apps/aklub && django-admin.py compilemessages -l "cs\_CZ"
+    $ export PYTHONPATH=/klub-v
+    $ django-admin.py compilemessages -l "cs\_CZ"
     $ django-admin.py migrate
     $ django-admin.py createsuperuser
 
