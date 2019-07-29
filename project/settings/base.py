@@ -174,6 +174,7 @@ USE_L10N = True
 ROOT_URLCONF = 'urls'
 
 INSTALLED_APPS = (
+    'polymorphic',
     'django_grapesjs',
     'django.contrib.admindocs',
     'admin_tools',
