@@ -91,6 +91,7 @@ django-admin-smoke-tests = {git = "https://github.com/PetrDlouhy/django-admin-sm
 model_mommy = "*"
 mock = "*"
 flower = "*"
+ipython = "*"
 
 [requires]
 python_version = "3.6"
