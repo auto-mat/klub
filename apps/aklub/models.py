@@ -1396,7 +1396,7 @@ class BankAccount(models.Model):
     )
 
     def __str__(self):
-        return u"%s" % (self.bank_account_number)
+        return u"%s - %s" % (self.bank_account, self.bank_account_number)
 
 
 class UserBankAccount(models.Model):

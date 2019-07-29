@@ -93,8 +93,32 @@ class PaymentsInline(nested_admin.NestedTabularInline):
         return qs
 
 
+class DonorPaymentChannelInlineForm(forms.ModelForm):
+    user_bank_account_char = forms.CharField(
+        label='user_bank_account',
+        max_length=50,
+        required=False,
+        )
+
+    class Meta():
+        model = DonorPaymentChannel
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['user_bank_account_char'].initial = self.instance.user_bank_account
+
+    def save(self, commit=False):
+        donor = super().save()
+        bank_acc, _ = UserBankAccount.objects.get_or_create(bank_account_number=self.cleaned_data['user_bank_account_char'])
+        donor.user_bank_account = bank_acc
+        donor.save()
+        return super().save()
+
+
 class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
     model = DonorPaymentChannel
+    form = DonorPaymentChannelInlineForm
     extra = 0
     can_delete = True
     show_change_link = True
@@ -105,7 +129,9 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
         (None, {
             'classes': ('wide',),
             'fields': (
-                ('bank_account', 'user_bank_account', 'regular_payments',),
+                ('bank_account', 'user_bank_account_char'),
+                ('regular_payments'),
+                ('event'),
             ),
         }),
         (_('Details'), {
@@ -115,13 +141,24 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
                 ('registered_support', 'regular_amount', 'regular_frequency'),
                 ('expected_date_of_first_payment', 'exceptional_membership'),
                 ('other_support'),
-                ('event'),
             ],
         }
          )
     )
 
-    # filter_horizontal = ('event', )
+    def get_queryset(self, request):
+        if not request.user.has_perm('aklub.can_edit_all_units'):
+            return DonorPaymentChannel.objects.filter(bank_account__administrative_unit__in=request.user.administrated_units.all())
+        else:
+            return super().get_queryset(request)
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "bank_account":
+            if not request.user.has_perm('aklub.can_edit_all_units'):
+                kwargs["queryset"] = BankAccount.objects.filter(administrative_unit__in=request.user.administrated_units.all())
+            else:
+                kwargs["queryset"] = BankAccount.objects.all()
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 class PaymentsInlineNoExtra(PaymentsInline):
