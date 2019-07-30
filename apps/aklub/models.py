@@ -28,7 +28,7 @@ import os.path
 from denorm import denormalized, depend_on_related
 
 from django.contrib.admin.templatetags.admin_list import _boolean_icon
-from django.contrib.auth.models import AbstractUser, User
+from django.contrib.auth.models import AbstractUser, User, UserManager
 from django.contrib.humanize.templatetags.humanize import intcomma
 from django.core.exceptions import ValidationError
 from django.core.files.storage import FileSystemStorage
@@ -37,7 +37,7 @@ try:
     from django.urls import reverse
 except ImportError:  # Django<2.0
     from django.core.urlresolvers import reverse
-from django.core.validators import RegexValidator
+from django.core.validators import RegexValidator, MaxValueValidator
 from django.db import models, transaction
 from django.db.models import Count, Q, Sum
 from django.utils import timezone
@@ -45,6 +45,9 @@ from django.utils.html import format_html, mark_safe
 from django.utils.text import format_lazy
 from django.utils.timesince import timesince
 from django.utils.translation import ugettext_lazy as _
+
+from polymorphic.managers import PolymorphicManager
+from polymorphic.models import PolymorphicModel
 
 import html2text
 
@@ -68,6 +71,9 @@ COMMUNICATION_METHOD = (
     ('personal', _("Personal")),
     ('internal', _("Internal")),
 )
+
+class CustomUserManager(PolymorphicManager, UserManager):
+    pass
 
 
 class Result(models.Model):
@@ -431,10 +437,12 @@ class Source(models.Model):
         return str(self.name)
 
 
-class UserProfile(AbstractUser):
+class Profile(PolymorphicModel, AbstractUser):
+    objects = CustomUserManager()
+    
     class Meta:
-        verbose_name = _("User profile")
-        verbose_name_plural = _("User profiles")
+        verbose_name = _("Profile")
+        verbose_name_plural = _("Profiles")
 
         permissions = (
             ('can_edit_all_units', _('Může editovat všechno ve všech administrativních jednotkách')),
@@ -452,7 +460,7 @@ class UserProfile(AbstractUser):
         _('email address'),
         blank=True,
         null=True,
-        unique=True,
+        unique=False,
     )
     password = models.CharField(
         _('password'),
@@ -475,12 +483,6 @@ class UserProfile(AbstractUser):
     title_before = models.CharField(
         verbose_name=_("Title before name"),
         max_length=15, blank=True,
-    )
-    sex = models.CharField(
-        verbose_name=_("Gender"),
-        choices=GENDER,
-        max_length=50,
-        default='unknown',
     )
     addressment = models.CharField(
         verbose_name=_("Addressment in letter"),
@@ -764,6 +766,37 @@ class UserProfile(AbstractUser):
     get_main_telephone.short_description = _("Telephone")
     get_main_telephone.admin_order_field = "telephone"
 
+    
+class CompanyProfile(Profile):
+    class Meta:
+        verbose_name = _("Company profile")
+        verbose_name_plural = _("Company profiles")
+
+    crn = models.IntegerField(
+        validators=[MaxValueValidator(99999999)],
+        blank=False,
+        null=False,
+        verbose_name=_("Company Registration Number")
+    )
+
+    
+class UserProfile(Profile):
+    class Meta:
+        verbose_name = _("User profile")
+        verbose_name_plural = _("User profiles")
+
+    GENDER = (
+        ('male', _('Male')),
+        ('female', _('Female')),
+        ('unknown', _('Unknown')))
+
+    sex = models.CharField(
+        verbose_name=_("Gender"),
+        choices=GENDER,
+        max_length=50,
+        default='unknown',
+    )
+    
 
 class Telephone(models.Model):
     bool_choices = (
@@ -846,6 +879,19 @@ class Telephone(models.Model):
             else:
                 return format_html("<a href='sip:{}'>{}</a>", formated_telephone, formated_telephone)
 
+ 
+class CompanyProfile(Profile):
+    class Meta:
+        verbose_name = _("Company profile")
+        verbose_name_plural = _("Company profiles")
+
+    crn = models.IntegerField(
+        validators=[MaxValueValidator(99999999)],
+        blank=False,
+        null=False,
+        verbose_name=_("Company Registration Number")
+    )
+            
 
 class UserInCampaign(models.Model):
     """
