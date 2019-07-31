@@ -879,20 +879,7 @@ class Telephone(models.Model):
             else:
                 return format_html("<a href='sip:{}'>{}</a>", formated_telephone, formated_telephone)
 
- 
-class CompanyProfile(Profile):
-    class Meta:
-        verbose_name = _("Company profile")
-        verbose_name_plural = _("Company profiles")
-
-    crn = models.IntegerField(
-        validators=[MaxValueValidator(99999999)],
-        blank=False,
-        null=False,
-        verbose_name=_("Company Registration Number")
-    )
             
-
 class UserInCampaign(models.Model):
     """
     User instance in a campaign
