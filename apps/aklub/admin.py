@@ -62,7 +62,7 @@ from smmapdfs.admin_abcs import PdfSandwichAdmin, PdfSandwichFieldAdmin
 
 from . import darujme, filters, mailing, tasks
 from .filters import unit_admin_mixin_generator
-from .forms import UserCreateForm, UserFormMixin, UserUpdateForm
+from .forms import UserCreateForm, UserUpdateForm
 from .models import (
     AccountStatements, AdministrativeUnit, AutomaticCommunication, BankAccount, Condition, DonorPaymentChannel,
     Event, Expense, Interaction, MassCommunication, NewUser, Payment, Recruiter,
@@ -280,7 +280,10 @@ class UserProfileResource(ModelResource):
         for donor in profile.userchannels.all():
             if donor:
                 donor_list.append(f"VS:{donor.VS}\n")
-                donor_list.append(f"event:{donor.event.name}\n")
+                try:
+                    donor_list.append(f"event:{donor.event.name}\n")
+                except AttributeError:
+                    donor_list.append('event:\n')
                 try:
                     donor_list.append(f"bank_accout:{donor.bank_account.bank_account_number}\n")
                 except AttributeError:
@@ -351,7 +354,7 @@ class UserBankAccountAdmin(admin.ModelAdmin):
     )
 
 
-class UnitUserChangeForm(UserFormMixin, forms.ModelForm):
+class UnitUserAddForm(forms.ModelForm):
     class Meta:
         model = UserProfile
         fields = (
@@ -372,6 +375,10 @@ class UnitUserChangeForm(UserFormMixin, forms.ModelForm):
             'country',
             'zip_code',
             'different_correspondence_address',
+            'correspondence_street',
+            'correspondence_city',
+            'correspondence_country',
+            'correspondence_zip_code',
             'addressment',
             'addressment_on_envelope',
             'public',
@@ -382,6 +389,34 @@ class UnitUserChangeForm(UserFormMixin, forms.ModelForm):
             'challenge_on',
         )
         field_classes = {'username': UsernameField}
+
+    def clean(self):
+        try:
+            user = UserProfile.objects.get(email=self.cleaned_data['email'])
+            administrated_unit = AdministrativeUnit.objects.get(id=self.request.user.administrated_units.first().id)
+            user.administrative_units.add(administrated_unit)
+            user.save()
+            url = reverse('admin:aklub_userprofile_change', args=(user.pk,))
+            self.add_error(
+                'email',
+                mark_safe(
+                    _(f'<a href="{url}">User with this email already exist in database and is available now, click here to edit</a>'),
+                ),
+            )
+            return super(UnitUserAddForm, self).clean()
+
+        except UserProfile.DoesNotExist:
+            return super(UnitUserAddForm, self).clean()
+
+
+class UnitUserChangeForm(UnitUserAddForm):
+
+    class Meta(UnitUserAddForm.Meta):
+        pass
+
+    def clean(self):
+        user = UserProfile.objects.get(email=self.cleaned_data['email'])
+        self.cleaned_data['administrative_units'] = user.administrative_units.all()
 
 
 class UserProfileAdmin(
@@ -480,11 +515,18 @@ class UserProfileAdmin(
             'fields': [
                 ('street', 'city',),
                 ('country', 'zip_code'),
-                'different_correspondence_address',
                 ('addressment', 'addressment_on_envelope'),
+                'different_correspondence_address',
             ],
-        }
-         ),
+        }),
+        (_('correspondence_address'), {
+             'classes': ('collapse',),
+             'fields': (
+                 ('correspondence_street', 'correspondence_city',),
+                 ('correspondence_country', 'correspondence_zip_code'),
+
+             ),
+         }),
         ('Preferences', {
             'fields': (
                 ('public', 'send_mailing_lists', ),
@@ -513,6 +555,10 @@ class UserProfileAdmin(
     def get_form(self, request, obj=None, **kwargs):
         if request.user.is_superuser:
             form = super().get_form(request, obj, **kwargs)
+            form.request = request
+            return form
+        if obj is None:
+            form = UnitUserAddForm
             form.request = request
             return form
         form = UnitUserChangeForm
