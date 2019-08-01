@@ -55,6 +55,7 @@ import large_initial
 
 import nested_admin
 
+from polymorphic.admin import PolymorphicParentModelAdmin, PolymorphicChildModelAdmin
 from related_admin import RelatedFieldAdmin
 
 from smmapdfs.actions import make_pdfsandwich
@@ -68,7 +69,7 @@ from .models import (
     Event, Expense, Interaction, MassCommunication, NewUser, Payment, Recruiter,
     Result, Source, TaxConfirmation, TaxConfirmationField,
     TaxConfirmationPdf, Telephone, TerminalCondition, UserBankAccount,
-    Profile, UserYearPayments,
+    Profile, UserProfile, CompanyProfile, UserYearPayments,
 )
 
 
@@ -219,7 +220,7 @@ def send_mass_communication_distinct_action(self, req, queryset, distinct=False)
 send_mass_communication_distinct_action.short_description = _("Send mass communication withoud duplicities")
 
 
-class UserProfileResource(ModelResource):
+class ProfileResource(ModelResource):
     class Meta:
         model = Profile
         exclude = ('id', 'is_superuser', 'is_staff', 'administrated_units')
@@ -270,7 +271,7 @@ class UserProfileResource(ModelResource):
                 donors.user = obj
                 donors.save()
 
-        return super(UserProfileResource, self).import_obj(obj, data, dry_run)
+        return super(ProfileResource, self).import_obj(obj, data, dry_run)
 
     def dehydrate_telephone(self, profile):
         return profile.get_telephone()
@@ -305,7 +306,7 @@ class UserProfileResource(ModelResource):
             field.save(obj, data, is_m2m)
 
 
-class UserProfileMergeForm(merge.MergeForm):
+class ProfileMergeForm(merge.MergeForm):
     def __init__(self, *args, **kwargs):
         ret_val = super().__init__(*args, **kwargs)
         self.fields['sex'].required = False
@@ -322,7 +323,7 @@ class TelephoneInline(nested_admin.NestedTabularInline):
     can_delete = True
     show_change_link = True
 
-
+    
 class BankAccountAdmin(unit_admin_mixin_generator('administrative_unit'), admin.ModelAdmin):
     model = BankAccount
 
@@ -351,7 +352,7 @@ class UserBankAccountAdmin(admin.ModelAdmin):
     )
 
 
-class UnitUserChangeForm(UserFormMixin, forms.ModelForm):
+class UnitProfileChangeForm(UserFormMixin, forms.ModelForm):
     class Meta:
         model = Profile
         fields = (
@@ -383,17 +384,19 @@ class UnitUserChangeForm(UserFormMixin, forms.ModelForm):
         )
         field_classes = {'username': UsernameField}
 
-
+        
 class ProfileAdmin(
     filters.AdministrativeUnitAdminMixin,
     ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFiltersMixin,
-    UserAdmin, nested_admin.NestedModelAdmin,
+    UserAdmin, nested_admin.NestedModelAdmin, PolymorphicParentModelAdmin
 ):
-    resource_class = UserProfileResource
+    resource_class = ProfileResource
     import_template_name = "admin/import_export/userprofile_import.html"
-    merge_form = UserProfileMergeForm
-    add_form = UserCreateForm
-    form = UserUpdateForm
+    # merge_form = ProfileMergeForm
+    # add_form = UserCreateForm
+    # form = UserUpdateForm
+    base_model = Profile 
+    child_models = (UserProfile, CompanyProfile)
 
     list_display = (
         'person_name',
@@ -404,7 +407,7 @@ class ProfileAdmin(
         'get_main_telephone',
         'title_before',
         'title_after',
-        # 'sex',
+        'sex', 
         'is_staff',
         'registered_support_date',
         'event',
@@ -453,60 +456,6 @@ class ProfileAdmin(
         filters.NameFilter,
     )
 
-    add_fieldsets = (
-        (_('Personal data'), {
-            'classes': ('wide',),
-            'fields': (
-                'username', ('first_name', 'last_name'), 'email', 'sex',
-                ('birth_day', 'birth_month', 'age_group'),
-                'administrative_units',
-            ),
-        }),
-    )
-
-    edit_fieldsets = (
-        (_('Personal data'), {
-            'classes': ('wide',),
-            'fields': (
-                'username', ('first_name', 'last_name'), ('title_before', 'title_after'), 'email', 'sex',
-                ('birth_day', 'birth_month', 'age_group'),
-                'get_main_telephone',
-                'note',
-                'administrative_units',
-            ),
-        }),
-        (_('Contact data'), {
-            'classes': ('wide', ),
-            'fields': [
-                ('street', 'city',),
-                ('country', 'zip_code'),
-                'different_correspondence_address',
-                ('addressment', 'addressment_on_envelope'),
-            ],
-        }
-         ),
-        ('Preferences', {
-            'fields': (
-                ('public', 'send_mailing_lists', ),
-                ('newsletter_on', 'call_on', ),
-                ('challenge_on', 'letter_on', ),
-            ),
-        })
-    )
-
-    superuser_fieldsets = (
-        (_('Rights and permissions'), {
-            'classes': ('collapse',),
-            'fields': [
-                ('password',),
-                ('is_staff', 'is_superuser'),
-                'groups',
-                'administrated_units',
-            ],
-        }
-        ),
-    )
-
     ordering = ('email',)
     filter_horizontal = ('groups', 'user_permissions',)
 
@@ -533,7 +482,7 @@ class ProfileAdmin(
     registered_support_date.admin_order_field = 'registered_support'
 
     def event(self, obj):
-        result = UserProfile.objects.get(id=obj.id)
+        result = Profile.objects.get(id=obj.id)
         donors = result.userchannels.select_related().all()
         return [e.event for e in donors]
 
@@ -558,28 +507,11 @@ class ProfileAdmin(
     regular_amount.short_description = _("Regular amount")
     regular_amount.admin_order_field = 'regular_amount'
 
-    readonly_fields = ('userattendance_links', 'date_joined', 'last_login', 'get_main_telephone')
-    actions = (send_mass_communication_distinct_action,)
-    inlines = [TelephoneInline, DonorPaymentChannelInline, InteractionInline]
+    def sex(self, obj):
+        return self.sex if hasattr(obj, 'sex') else 'Company'
 
-    def get_fieldsets(self, request, obj=None):
-        if obj:
-            fieldsets = self.edit_fieldsets
-        else:
-            fieldsets = self.add_fieldsets
-        if request.user.is_superuser and self.superuser_fieldsets:
-            return fieldsets + self.superuser_fieldsets
-        else:
-            return fieldsets
-        super().get_fieldsets(request, obj)
-
-    def save_formset(self, request, form, formset, change):
-        if not issubclass(formset.model, DonorPaymentChannel):
-            return super().save_formset(request, form, formset, change)
-        formset.save()
-        for f in formset.forms:
-            obj = f.instance
-            obj.generate_VS()
+    sex.short_description = _("Gender")
+    sex.admin_order_field = 'sex'
 
 
 class DonorPaymentChannelResource(ModelResource):
@@ -1303,6 +1235,146 @@ class TaxConfirmationFieldAdmin(PdfSandwichFieldAdmin):
 class AdministrativeUnitAdmin(admin.ModelAdmin):
     list_display = ('name', 'ico')
     readonly_fields = ('ico',)
+
+    
+class BaseChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelAdmin):
+    """ Base admin class for all child models """
+    merge_form = ProfileMergeForm
+    add_form = UserCreateForm
+    base_form = UserUpdateForm
+    
+    add_fieldsets = (
+        (_('Personal data'), {
+            'classes': ('wide',),
+            'fields': (
+                'username', ('first_name', 'last_name'), 'email', 'sex',
+                ('birth_day', 'birth_month', 'age_group'),
+                'administrative_units',
+            ),
+        }),
+    )
+
+    edit_fieldsets = (
+        (_('Personal data'), {
+            'classes': ('wide',),
+            'fields': (
+                'username', ('first_name', 'last_name'), ('title_before', 'title_after'), 'email', 'sex',
+                ('birth_day', 'birth_month', 'age_group'),
+                'get_main_telephone',
+                'note',
+                'administrative_units',
+            ),
+        }),
+        (_('Contact data'), {
+            'classes': ('wide', ),
+            'fields': [
+                ('street', 'city',),
+                ('country', 'zip_code'),
+                'different_correspondence_address',
+                ('addressment', 'addressment_on_envelope'),
+            ],
+        }
+         ),
+        ('Preferences', {
+            'fields': (
+                ('public', 'send_mailing_lists', ),
+                ('newsletter_on', 'call_on', ),
+                ('challenge_on', 'letter_on', ),
+            ),
+        })
+    )
+
+    superuser_fieldsets = (
+        (_('Rights and permissions'), {
+            'classes': ('collapse',),
+            'fields': [
+                ('password',),
+                ('is_staff', 'is_superuser'),
+                'groups',
+                'administrated_units',
+            ],
+        }
+        ),
+    )
+
+    def get_fieldsets(self, request, obj=None):
+        if obj:
+            fieldsets = self.edit_fieldsets
+        else:
+            fieldsets = self.add_fieldsets
+        if request.user.is_superuser and self.superuser_fieldsets:
+            return fieldsets + self.superuser_fieldsets
+        else:
+            return fieldsets
+        super().get_fieldsets(request, obj)
+
+    def save_formset(self, request, form, formset, change):
+        if not issubclass(formset.model, DonorPaymentChannel):
+            return super().save_formset(request, form, formset, change)
+        formset.save()
+        for f in formset.forms:
+            obj = f.instance
+            obj.generate_VS()
+            
+    readonly_fields = (
+        'userattendance_links', 'date_joined', 'last_login', 'get_main_telephone',
+    )
+
+    actions = (send_mass_communication_distinct_action,)
+    inlines = [TelephoneInline, DonorPaymentChannelInline, InteractionInline]
+
+    
+@admin.register(UserProfile)
+class UserProfileAdmin(BaseChildAdmin):
+    base_model = UserProfile
+    show_in_index = False  # makes child model admin visible in main admin site
+
+    
+@admin.register(CompanyProfile)
+class CompanyProfileAdmin(BaseChildAdmin):
+    base_model = CompanyProfile 
+    show_in_index = False
+
+    add_fieldsets = (
+        (_('Personal data'), {
+            'classes': ('wide',),
+            'fields': (
+                'username', ('first_name', 'last_name'), 'email',
+                ('birth_day', 'birth_month', 'age_group'),
+                'administrative_units',
+            ),
+        }),
+    )
+    
+    edit_fieldsets = (
+        (_('Personal data'), {
+            'classes': ('wide',),
+            'fields': (
+                'username', ('first_name', 'last_name'), ('title_before', 'title_after'), 'email',
+                ('birth_day', 'birth_month', 'age_group'),
+                'get_main_telephone',
+                'note',
+                'administrative_units',
+            ),
+        }),
+        (_('Contact data'), {
+            'classes': ('wide', ),
+            'fields': [
+                ('street', 'city',),
+                ('country', 'zip_code'),
+                'different_correspondence_address',
+                ('addressment', 'addressment_on_envelope'),
+            ],
+        }
+         ),
+        ('Preferences', {
+            'fields': (
+                ('public', 'send_mailing_lists', ),
+                ('newsletter_on', 'call_on', ),
+                ('challenge_on', 'letter_on', ),
+            ),
+        })
+    )
 
 
 admin.site.register(DonorPaymentChannel, DonorPaymethChannelAdmin)
