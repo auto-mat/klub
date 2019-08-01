@@ -280,7 +280,10 @@ class UserProfileResource(ModelResource):
         for donor in profile.userchannels.all():
             if donor:
                 donor_list.append(f"VS:{donor.VS}\n")
-                donor_list.append(f"event:{donor.event.name}\n")
+                try:
+                    donor_list.append(f"event:{donor.event.name}\n")
+                except AttributeError:
+                    donor_list.append('event:\n')
                 try:
                     donor_list.append(f"bank_accout:{donor.bank_account.bank_account_number}\n")
                 except AttributeError:
