@@ -50,4 +50,4 @@ class InvalidStringError(str):
         return "!!!!!empty string %s!!!!!" % other
 
 
-TEMPLATES[0]['OPTIONS']['string_if_invalid'] = InvalidStringError("%s")
+# TEMPLATES[0]['OPTIONS']['string_if_invalid'] = InvalidStringError("%s")
