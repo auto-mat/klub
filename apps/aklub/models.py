@@ -527,6 +527,29 @@ class UserProfile(AbstractUser):
         help_text=_("User has different correspondence address"),
         default=False,
     )
+
+    correspondence_street = models.CharField(
+        verbose_name=_("Street and number"),
+        max_length=80,
+        blank=True,
+    )
+    correspondence_city = models.CharField(
+        verbose_name=_("City/City part"),
+        max_length=40, blank=True,
+    )
+    correspondence_country = models.CharField(
+        verbose_name=_("Country"),
+        # TODO: Default country should come from app settings
+        default=u"Česká republika",
+        max_length=40,
+        blank=True,
+    )
+    correspondence_zip_code = models.CharField(
+        verbose_name=_("ZIP Code"),
+        max_length=30,
+        blank=True,
+    )
+
     other_support = models.TextField(
         verbose_name=_("Other support"),
         help_text=_(
