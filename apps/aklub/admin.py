@@ -375,6 +375,10 @@ class UnitUserAddForm(forms.ModelForm):
             'country',
             'zip_code',
             'different_correspondence_address',
+            'correspondence_street',
+            'correspondence_city',
+            'correspondence_country',
+            'correspondence_zip_code',
             'addressment',
             'addressment_on_envelope',
             'public',
@@ -511,11 +515,18 @@ class UserProfileAdmin(
             'fields': [
                 ('street', 'city',),
                 ('country', 'zip_code'),
-                'different_correspondence_address',
                 ('addressment', 'addressment_on_envelope'),
+                'different_correspondence_address',
             ],
-        }
-         ),
+        }),
+        (_('correspondence_address'), {
+             'classes': ('collapse',),
+             'fields': (
+                 ('correspondence_street', 'correspondence_city',),
+                 ('correspondence_country', 'correspondence_zip_code'),
+
+             ),
+         }),
         ('Preferences', {
             'fields': (
                 ('public', 'send_mailing_lists', ),
