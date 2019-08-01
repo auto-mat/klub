@@ -257,6 +257,9 @@ class UserProfileResource(ModelResource):
             )
             if data.get('bank_account'):
                 bank_account, _ = BankAccount.objects.get_or_create(bank_account_number=data['bank_account'])
+                bank_account.administrative_unit = data["administrative_units"]
+                bank_account.save()
+
                 donors.bank_account = bank_account
                 donors.save()
             if data.get('user_bank_account'):
@@ -264,13 +267,7 @@ class UserProfileResource(ModelResource):
                 donors.user_bank_account = user_bank_account
                 donors.save()
 
-            if data.get('event'):
-                event, _ = Event.objects.get_or_create(name=data['event'])
-                donors.event.add(event)
-                donors.user = obj
-                donors.save()
-
-        return super(UserProfileResource, self).import_obj(obj, data, dry_run)
+        return super().import_obj(obj, data, dry_run)
 
     def dehydrate_telephone(self, profile):
         return profile.get_telephone()
