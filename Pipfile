@@ -73,6 +73,7 @@ django-nested-admin = "*"
 django_celery_monitor = {git = "https://github.com/peergradeio/django-celery-monitor",editable = true,ref = "django-2.2"}
 django_grapesjs = "*"
 django-stdnumfield = "*"
+django-polymorphic = "*"
 
 [dev-packages]
 coverage = "*"
