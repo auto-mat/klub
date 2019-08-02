@@ -448,7 +448,7 @@ class UnitProfileAddForm(forms.ModelForm):
             return super(UnitProfileAddForm, self).clean()
 
 
-class UnitProfileChangeForm(UnitUserAddForm):
+class UnitProfileChangeForm(UnitProfileAddForm):
 
     class Meta(UnitProfileAddForm.Meta):
         pass
