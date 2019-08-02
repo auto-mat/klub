@@ -852,7 +852,7 @@ class Telephone(models.Model):
         blank=True,
     )
     user = models.ForeignKey(
-        UserProfile,
+        Profile,
         blank=True,
         null=True,
         on_delete=models.SET_NULL,
@@ -937,7 +937,7 @@ class UserInCampaign(models.Model):
 
     # -- Basic personal information
     userprofile = models.ForeignKey(
-        UserProfile,
+        Profile,
         blank=False,
         default=None,
         on_delete=models.CASCADE,
@@ -1065,7 +1065,7 @@ class UserInCampaign(models.Model):
         default=False,
     )
     verified_by = models.ForeignKey(
-        UserProfile,
+        Profile,
         verbose_name=_("Verified by"),
         related_name='verified_users',
         null=True,
@@ -1142,8 +1142,8 @@ class UserInCampaign(models.Model):
     def person_name(self):
         try:
             return self.userprofile.__str__()
-        except UserProfile.DoesNotExist:  # This happens, when UserInCampaign is cached, but it is deleted already
-            return "No UserProfile"
+        except Profile.DoesNotExist:  # This happens, when UserInCampaign is cached, but it is deleted already
+            return "No Profile"
 
     person_name.short_description = _("Full name")
 
@@ -1473,7 +1473,7 @@ class DonorPaymentChannel(models.Model):
         null=True,
     )
     user = models.ForeignKey(
-        'aklub.UserProfile',
+        'aklub.Profile',
         verbose_name=_("User"),
         on_delete=models.CASCADE,
         related_name="userchannels",
@@ -1818,8 +1818,8 @@ class DonorPaymentChannel(models.Model):
     def person_name(self):
         try:
             return self.user.__str__()
-        except UserProfile.DoesNotExist:  # This happens, when UserInCampaign is cached, but it is deleted already
-            return "No UserProfile"
+        except Profile.DoesNotExist:  # This happens, when UserInCampaign is cached, but it is deleted already
+            return "No Profile"
 
     person_name.short_description = _("Full name")
 
@@ -2091,7 +2091,7 @@ class Payment(models.Model):
 
 class BaseInteraction(models.Model):
     user = models.ForeignKey(
-        UserProfile,
+        Profile,
         verbose_name=_("User"),
         on_delete=models.CASCADE,
         # related_name="communications",
@@ -2183,7 +2183,7 @@ class Interaction(BaseInteraction):
         blank=True,
     )
     created_by = models.ForeignKey(
-        UserProfile,
+        Profile,
         verbose_name=_("Created by"),
         related_name='created_by_communication',
         null=True,
@@ -2191,7 +2191,7 @@ class Interaction(BaseInteraction):
         on_delete=models.SET_NULL,
     )
     handled_by = models.ForeignKey(
-        UserProfile,
+        Profile,
         verbose_name=_("Last handled by"),
         related_name='handled_by_communication',
         null=True,
@@ -2307,7 +2307,7 @@ class ConditionValues(object):
         for name in model_names:
             model = {
                 'User': User,
-                'UserProfile': UserProfile,
+                'Profile': Profile,
                 'UserInCampaign': UserInCampaign,
                 'Payment': Payment,
                 'User.source': Source,
@@ -2481,7 +2481,7 @@ class TerminalCondition(models.Model):
 
     variable = models.CharField(
         verbose_name=_("Variable"),
-        choices=ConditionValues(('User', 'UserProfile', 'UserInCampaign', 'User.source', 'User.last_payment')),
+        choices=ConditionValues(('User', 'Profile', 'UserInCampaign', 'User.source', 'User.last_payment')),
         help_text=_("Value or variable on left-hand side"),
         max_length=50,
         blank=True,
@@ -2755,7 +2755,7 @@ class MassCommunication(models.Model):
         default=False,
     )
     send_to_users = models.ManyToManyField(
-        UserProfile,
+        Profile,
         verbose_name=_("send to users"),
         help_text=_(
             "All users who should receive the communication"),
@@ -2819,7 +2819,7 @@ def confirmation_upload_to(instance, filename):
 
 class TaxConfirmation(models.Model):
     user_profile = models.ForeignKey(
-        UserProfile,
+        Profile,
         on_delete=models.CASCADE,
         null=True,
     )

@@ -68,7 +68,7 @@ from .models import (
     Event, Expense, Interaction, MassCommunication, NewUser, Payment, Recruiter,
     Result, Source, TaxConfirmation, TaxConfirmationField,
     TaxConfirmationPdf, Telephone, TerminalCondition, UserBankAccount,
-    UserProfile, UserYearPayments,
+    Profile, UserYearPayments,
 )
 
 
@@ -234,7 +234,7 @@ def send_mass_communication_action(self, request, queryset, distinct=False):
     queryset and redirect us to insert form for mass communications
     with the send_to_users M2M field prefilled with these
     users."""
-    if queryset.model is UserProfile:
+    if queryset.model is Profile:
         queryset = DonorPaymentChannel.objects.filter(user__in=queryset)
     if distinct:
         queryset = queryset.order_by('user__id').distinct('user')
@@ -258,7 +258,7 @@ send_mass_communication_distinct_action.short_description = _("Send mass communi
 
 class UserProfileResource(ModelResource):
     class Meta:
-        model = UserProfile
+        model = Profile
         exclude = ('id', 'is_superuser', 'is_staff', 'administrated_units')
         import_id_fields = ('email', )
         export_order = ('administrative_units', 'email')
@@ -352,7 +352,7 @@ class UserProfileMergeForm(merge.MergeForm):
         return ret_val
 
     class Meta:
-        model = UserProfile
+        model = Profile
         fields = '__all__'
 
 
@@ -393,7 +393,7 @@ class UserBankAccountAdmin(admin.ModelAdmin):
 
 class UnitUserAddForm(forms.ModelForm):
     class Meta:
-        model = UserProfile
+        model = Profile
         fields = (
             'username',
             'first_name',
@@ -401,7 +401,7 @@ class UnitUserAddForm(forms.ModelForm):
             'title_before',
             'title_after',
             'email',
-            'sex',
+            # 'sex',
             'birth_day',
             'birth_month',
             'age_group',
@@ -456,7 +456,7 @@ class UnitUserChangeForm(UnitUserAddForm):
         self.cleaned_data['administrative_units'] = user.administrative_units.all()
 
 
-class UserProfileAdmin(
+class ProfileAdmin(
     filters.AdministrativeUnitAdminMixin,
     ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFiltersMixin,
     UserAdmin, nested_admin.NestedModelAdmin,
@@ -476,7 +476,7 @@ class UserProfileAdmin(
         'get_main_telephone',
         'title_before',
         'title_after',
-        'sex',
+        # 'sex',
         'is_staff',
         'registered_support_date',
         'event',
@@ -616,7 +616,7 @@ class UserProfileAdmin(
     registered_support_date.admin_order_field = 'registered_support'
 
     def event(self, obj):
-        result = UserProfile.objects.get(id=obj.id)
+        result = Profile.objects.get(id=obj.id)
         donors = result.userchannels.select_related().all()
         return [e.event for e in donors]
 
@@ -669,7 +669,7 @@ class DonorPaymentChannelResource(ModelResource):
     user_email = fields.Field(
         column_name='user_email',
         attribute='user',
-        widget=widgets.ForeignKeyWidget(UserProfile, 'email'),
+        widget=widgets.ForeignKeyWidget(Profile, 'email'),
     )
 
     class Meta:
@@ -682,7 +682,7 @@ class DonorPaymentChannelResource(ModelResource):
             'user__first_name',
             'user__last_name',
             'user__title_after',
-            'user__sex',
+            'user__userprofile__sex',
             # 'userprofile__telephone',
             'user_email',
             'user__street',
@@ -1405,7 +1405,7 @@ admin.site.register(TaxConfirmation, TaxConfirmationAdmin)
 admin.site.register(TaxConfirmationPdf, TaxConfirmationPdfAdmin)
 admin.site.register(TaxConfirmationField, TaxConfirmationFieldAdmin)
 admin.site.register(Source, SourceAdmin)
-admin.site.register(UserProfile, UserProfileAdmin)
+admin.site.register(Profile, ProfileAdmin)
 admin.site.register(BankAccount, BankAccountAdmin)
 admin.site.register(UserBankAccount, UserBankAccountAdmin)
 # register all adminactions
