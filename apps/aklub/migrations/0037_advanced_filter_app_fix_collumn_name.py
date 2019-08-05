@@ -3,7 +3,17 @@
 from django.contrib.auth import get_user_model
 from django.db import migrations
 
+COLUMN_NAME = 'userprofile_id'
 
+
+def forwards_func(apps, schema_editor):
+    migrations.RunSQL("ALTER TABLE advanced_filters_advancedfilter_users RENAME {} TO {}_id".format(COLUMN_NAME, get_user_model()._meta.model_name)),
+
+    
+def reverse_func(apps, schema_editor):
+    migrations.RunSQL("ALTER TABLE advanced_filters_advancedfilter_users RENAME {}_id TO {}".format(get_user_model()._meta.model_name), COLUMN_NAME),
+
+    
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -12,5 +22,5 @@ class Migration(migrations.Migration):
     
     operations = [
         # Change column name from old UserProfile db model to the new Profile db model for 'advanced_filter' app
-        migrations.RunSQL("ALTER TABLE advanced_filters_advancedfilter_users RENAME userprofile_id TO {}_id".format(get_user_model()._meta.model_name)),
+        migrations.RunPython(forwards_func, reverse_func),
     ]
