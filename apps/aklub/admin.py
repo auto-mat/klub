@@ -809,15 +809,6 @@ class DonorPaymethChannelAdmin(
                 ('user_note',),
             ],
         }),
-        (_('Additional'), {
-            'fields': [
-                # 'knows_us_from',
-                # 'why_supports',
-                # 'field_of_work',
-                # 'additional_information',
-            ],
-            'classes': ['collapse'],
-        }),
         (_('Support'), {
             'fields': [
                 'VS',
@@ -829,32 +820,6 @@ class DonorPaymethChannelAdmin(
                 ),
                 'other_support', 'old_account',
             ],
-        }),
-        (_('Communications'), {
-            'fields': [
-                # 'wished_information',
-                # 'wished_tax_confirmation',
-                # 'wished_welcome_letter',
-                # 'email_confirmed',
-                # 'public',
-                # 'gdpr_consent',
-                (
-                    # 'next_communication_date',
-                    # 'next_communication_method',
-                ),
-            ],
-            'classes': ['collapse'],
-        }),
-        (_('Notes'), {
-            'fields': [
-                # 'note',
-                # 'source',
-                # 'verified',
-                # 'verified_by',
-                # 'activity_points',
-                # 'recruiter',
-            ],
-            'classes': ['collapse'],
         }),
     ]
 
