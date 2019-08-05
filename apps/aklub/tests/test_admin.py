@@ -37,7 +37,7 @@ from .utils import print_response  # noqa
 from .. import admin
 from ..models import (
     AccountStatements, AutomaticCommunication, DonorPaymentChannel, Interaction, MassCommunication,
-    TaxConfirmation, UserProfile, UserYearPayments,
+    TaxConfirmation, Profile, UserYearPayments,
 )
 
 
@@ -94,7 +94,7 @@ class AdminTest(RunCommitHooksMixin, TestCase):
 
     def test_send_mass_communication_userprofile(self):
         """
-        Test, that sending mass communication works for UserProfileAdmin.
+        Test, that sending mass communication works for ProfileAdmin.
         Communication shoul be send only once for every userprofile.
         """
         mutual_userprofile = mommy.make("aklub.Userprofile")
@@ -104,7 +104,7 @@ class AdminTest(RunCommitHooksMixin, TestCase):
         donor_payment_channel_recipe.make(id=2979)
         model_admin = django_admin.site._registry[DonorPaymentChannel]
         request = self.post_request({})
-        queryset = UserProfile.objects.all()
+        queryset = Profile.objects.all()
         response = admin.send_mass_communication_distinct_action(model_admin, request, queryset)
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/aklub/masscommunication/add/?send_to_users=3%2C2978%2C2979")
@@ -219,9 +219,9 @@ class AdminTest(RunCommitHooksMixin, TestCase):
             )
 
     def test_mass_communication_changelist_post_send_mails(self):
-        mommy.make("UserProfile", id=2978, email="foo@email.com", language="cs")
-        mommy.make("UserProfile", id=2979, email="bar@email.com", language="cs")
-        mommy.make("UserProfile", id=3, email="baz@email.com", language="en")
+        mommy.make("Profile", id=2978, email="foo@email.com", language="cs")
+        mommy.make("Profile", id=2979, email="bar@email.com", language="cs")
+        mommy.make("Profile", id=3, email="baz@email.com", language="en")
         model_admin = django_admin.site._registry[MassCommunication]
         request = self.get_request()
         response = model_admin.add_view(request)
@@ -303,7 +303,7 @@ class AdminTest(RunCommitHooksMixin, TestCase):
         self.assertEqual(response.url, "/aklub/automaticcommunication/%s/change/" % obj.id)
 
     def test_communication_changelist_post(self):
-        user_profile = mommy.make('UserProfile')
+        user_profile = mommy.make('Profile')
         model_admin = django_admin.site._registry[Interaction]
         request = self.get_request()
         response = model_admin.add_view(request)
@@ -383,7 +383,7 @@ class AdminImportExportTests(TestCase):
 
     def setUp(self):
         super().setUp()
-        self.user = UserProfile.objects.create_superuser(
+        self.user = Profile.objects.create_superuser(
             username='admin',
             email='test_user@test_user.com',
             password='admin',
