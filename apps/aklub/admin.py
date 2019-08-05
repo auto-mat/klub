@@ -392,6 +392,8 @@ class UserBankAccountAdmin(admin.ModelAdmin):
 
 
 class UnitUserAddForm(forms.ModelForm):
+    username = forms.CharField(required=False,)
+
     class Meta:
         model = UserProfile
         fields = (
