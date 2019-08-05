@@ -53,8 +53,6 @@ from smmapdfs.models import PdfSandwichType
 
 import stdimage
 
-from stdnumfield.models import StdNumField
-
 from vokativ import vokativ
 
 from . import autocom
@@ -104,15 +102,17 @@ class AdministrativeUnit(models.Model):
         blank=False,
         null=False,
     )
-    ico = StdNumField(
-        'cz.dic',
+    ico = models.CharField(
         default=None,
+        max_length=8,
         verbose_name=_(u"IČO"),
-        validators=[RegexValidator(r'^[0-9]*$', _('IČO musí být číslo'))],
-        error_messages={'stdnum_format': ICO_ERROR_MESSAGE},
+        validators=[
+            RegexValidator('^.{8}$', ICO_ERROR_MESSAGE),
+            RegexValidator(r'^[0-9]*$', _('IČO musí být číslo'),),
+        ],
         blank=True,
         null=True,
-    )
+        )
 
     def __str__(self):
         return str(self.name)
