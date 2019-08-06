@@ -69,7 +69,7 @@ from .models import (
     AccountStatements, AdministrativeUnit, AutomaticCommunication, BankAccount, CompanyProfile, Condition,
     DonorPaymentChannel, Event, Expense, Interaction, MassCommunication, NewUser, Payment, Profile, Recruiter,
     Result, Source, TaxConfirmation, TaxConfirmationField, TaxConfirmationPdf, Telephone, TerminalCondition,
-    UserBankAccount, UserProfile,  UserYearPayments
+    UserBankAccount, UserProfile,  UserYearPayments,
 )
 
 
@@ -459,7 +459,7 @@ class UnitProfileChangeForm(UnitProfileAddForm):
 class ProfileAdmin(
     filters.AdministrativeUnitAdminMixin,
     ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFiltersMixin,
-    UserAdmin, nested_admin.NestedModelAdmin, PolymorphicParentModelAdmin
+    UserAdmin, nested_admin.NestedModelAdmin, PolymorphicParentModelAdmin,
 ):
     resource_class = ProfileResource
     import_template_name = "admin/import_export/userprofile_import.html"

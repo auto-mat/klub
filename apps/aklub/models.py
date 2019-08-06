@@ -798,7 +798,7 @@ class CompanyProfile(Profile):
         validators=[MaxValueValidator(99999999)],
         blank=False,
         null=False,
-        verbose_name=_("Company Registration Number")
+        verbose_name=_("Company Registration Number"),
     )
 
 
