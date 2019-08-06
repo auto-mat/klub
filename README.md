@@ -28,7 +28,6 @@ Instalace (Docker compose)
 
     $ docker attach klub_web_1
     # su test
-    $ pipenv install --dev --python python3
     $ pipenv shell
     $ cd apps/aklub && django-admin.py compilemessages -l cs_CZ
     $ django-admin.py migrate
