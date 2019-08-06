@@ -294,6 +294,9 @@ class UserProfileResource(ModelResource):
             )
             if data.get('bank_account'):
                 bank_account, _ = BankAccount.objects.get_or_create(bank_account_number=data['bank_account'])
+                bank_account.administrative_unit = data["administrative_units"]
+                bank_account.save()
+
                 donors.bank_account = bank_account
                 donors.save()
             if data.get('user_bank_account'):
@@ -301,13 +304,7 @@ class UserProfileResource(ModelResource):
                 donors.user_bank_account = user_bank_account
                 donors.save()
 
-            if data.get('event'):
-                event, _ = Event.objects.get_or_create(name=data['event'])
-                donors.event.add(event)
-                donors.user = obj
-                donors.save()
-
-        return super(UserProfileResource, self).import_obj(obj, data, dry_run)
+        return super().import_obj(obj, data, dry_run)
 
     def dehydrate_telephone(self, profile):
         return profile.get_telephone()
@@ -392,6 +389,8 @@ class UserBankAccountAdmin(admin.ModelAdmin):
 
 
 class UnitUserAddForm(forms.ModelForm):
+    username = forms.CharField(required=False,)
+
     class Meta:
         model = UserProfile
         fields = (
@@ -809,15 +808,6 @@ class DonorPaymethChannelAdmin(
                 ('user_note',),
             ],
         }),
-        (_('Additional'), {
-            'fields': [
-                # 'knows_us_from',
-                # 'why_supports',
-                # 'field_of_work',
-                # 'additional_information',
-            ],
-            'classes': ['collapse'],
-        }),
         (_('Support'), {
             'fields': [
                 'VS',
@@ -829,32 +819,6 @@ class DonorPaymethChannelAdmin(
                 ),
                 'other_support', 'old_account',
             ],
-        }),
-        (_('Communications'), {
-            'fields': [
-                # 'wished_information',
-                # 'wished_tax_confirmation',
-                # 'wished_welcome_letter',
-                # 'email_confirmed',
-                # 'public',
-                # 'gdpr_consent',
-                (
-                    # 'next_communication_date',
-                    # 'next_communication_method',
-                ),
-            ],
-            'classes': ['collapse'],
-        }),
-        (_('Notes'), {
-            'fields': [
-                # 'note',
-                # 'source',
-                # 'verified',
-                # 'verified_by',
-                # 'activity_points',
-                # 'recruiter',
-            ],
-            'classes': ['collapse'],
         }),
     ]
 
@@ -1012,9 +976,26 @@ class PaymentAdmin(
         'user_donor_payment_channel__user__last_name',
         'user_donor_payment_channel__user__first_name',
         'amount',
-        'VS',
+        'BIC',
+        'KS',
         'SS',
+        'VS',
+        'VS2',
+        'account',
+        'account_name',
+        'bank_code',
+        'bank_name',
+        'currency',
+        'operation_id',
+        'order_id',
+        'recipient_message',
+        'specification',
+        'transfer_note',
+        'transfer_type',
         'user_identification',
+        'done_by',
+        'updated',
+        'created',
     ]
     list_max_show_all = 10000
 
