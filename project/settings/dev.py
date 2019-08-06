@@ -1,5 +1,5 @@
 from settings import *  # noqa
-from settings import ALLOWED_HOSTS, INSTALLED_APPS, LOGGING, MIDDLEWARE, TEMPLATES
+from settings import ALLOWED_HOSTS, INSTALLED_APPS, LOGGING, MIDDLEWARE  # TEMPLATES
 
 INSTALLED_APPS += (
     'debug_toolbar',

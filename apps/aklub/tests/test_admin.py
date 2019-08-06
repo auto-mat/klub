@@ -37,7 +37,7 @@ from .utils import print_response  # noqa
 from .. import admin
 from ..models import (
     AccountStatements, AutomaticCommunication, DonorPaymentChannel, Interaction, MassCommunication,
-    TaxConfirmation, Profile, UserYearPayments,
+    Profile, TaxConfirmation, UserYearPayments,
 )
 
 

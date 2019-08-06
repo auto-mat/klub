@@ -55,7 +55,7 @@ import large_initial
 
 import nested_admin
 
-from polymorphic.admin import PolymorphicParentModelAdmin, PolymorphicChildModelAdmin
+from polymorphic.admin import PolymorphicChildModelAdmin, PolymorphicParentModelAdmin
 
 from related_admin import RelatedFieldAdmin
 
@@ -66,11 +66,10 @@ from . import darujme, filters, mailing, tasks
 from .filters import unit_admin_mixin_generator
 from .forms import UserCreateForm, UserUpdateForm
 from .models import (
-    AccountStatements, AdministrativeUnit, AutomaticCommunication, BankAccount, Condition, DonorPaymentChannel,
-    Event, Expense, Interaction, MassCommunication, NewUser, Payment, Recruiter,
-    Result, Source, TaxConfirmation, TaxConfirmationField,
-    TaxConfirmationPdf, Telephone, TerminalCondition, UserBankAccount,
-    Profile,  UserProfile, CompanyProfile, UserYearPayments,
+    AccountStatements, AdministrativeUnit, AutomaticCommunication, BankAccount, CompanyProfile, Condition,
+    DonorPaymentChannel, Event, Expense, Interaction, MassCommunication, NewUser, Payment, Profile, Recruiter,
+    Result, Source, TaxConfirmation, TaxConfirmationField, TaxConfirmationPdf, Telephone, TerminalCondition,
+    UserBankAccount, UserProfile,  UserYearPayments
 )
 
 
@@ -306,9 +305,7 @@ class ProfileResource(ModelResource):
                 donors.user_bank_account = user_bank_account
                 donors.save()
 
-
         return super().import_obj(obj, data, dry_run)
-
 
     def dehydrate_telephone(self, profile):
         return profile.get_telephone()
@@ -392,7 +389,6 @@ class UserBankAccountAdmin(admin.ModelAdmin):
     )
 
 
-
 class UnitProfileAddForm(forms.ModelForm):
     username = forms.CharField(required=False,)
 
@@ -467,10 +463,10 @@ class ProfileAdmin(
 ):
     resource_class = ProfileResource
     import_template_name = "admin/import_export/userprofile_import.html"
-    # merge_form = UserProfileMergeForm
+    # merge_form = UserMergeForm
     # add_form = UserCreateForm
     # form = UserUpdateForm
-    base_model = Profile 
+    base_model = Profile
     child_models = (UserProfile, CompanyProfile)
 
     list_display = (
@@ -531,7 +527,6 @@ class ProfileAdmin(
         filters.NameFilter,
     )
 
-
     ordering = ('email',)
     filter_horizontal = ('groups', 'user_permissions',)
 
@@ -541,10 +536,10 @@ class ProfileAdmin(
             form.request = request
             return form
         if obj is None:
-            form = UnitUserAddForm
+            form = UnitProfileAddForm
             form.request = request
             return form
-        form = UnitUserChangeForm
+        form = UnitProfileChangeForm
         form.request = request
         return form
 
@@ -592,7 +587,7 @@ class ProfileAdmin(
 
     sex.short_description = _("Gender")
     sex.admin_order_field = 'sex'
-    
+
 
 class DonorPaymentChannelResource(ModelResource):
     user_email = fields.Field(
@@ -1304,7 +1299,6 @@ class BaseChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelAdmin):
     merge_form = ProfileMergeForm
     add_form = UserCreateForm
     base_form = UserUpdateForm
-    
     add_fieldsets = (
         (_('Personal data'), {
             'classes': ('wide',),
@@ -1377,7 +1371,6 @@ class BaseChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelAdmin):
         for f in formset.forms:
             obj = f.instance
             obj.generate_VS()
-            
     readonly_fields = (
         'userattendance_links', 'date_joined', 'last_login', 'get_main_telephone',
     )
@@ -1385,18 +1378,17 @@ class BaseChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelAdmin):
     actions = (send_mass_communication_distinct_action,)
     inlines = [TelephoneInline, DonorPaymentChannelInline, InteractionInline]
 
-    
+
 @admin.register(UserProfile)
 class UserProfileAdmin(BaseChildAdmin):
     base_model = UserProfile
     show_in_index = False  # makes child model admin visible in main admin site
 
-    
+
 @admin.register(CompanyProfile)
 class CompanyProfileAdmin(BaseChildAdmin):
-    base_model = CompanyProfile 
+    base_model = CompanyProfile
     show_in_index = False
-
     add_fieldsets = (
         (_('Personal data'), {
             'classes': ('wide',),
@@ -1407,7 +1399,6 @@ class CompanyProfileAdmin(BaseChildAdmin):
             ),
         }),
     )
-    
     edit_fieldsets = (
         (_('Personal data'), {
             'classes': ('wide',),
@@ -1438,7 +1429,7 @@ class CompanyProfileAdmin(BaseChildAdmin):
         })
     )
 
-    
+
 admin.site.register(DonorPaymentChannel, DonorPaymethChannelAdmin)
 admin.site.register(UserYearPayments, UserYearPaymentsAdmin)
 admin.site.register(NewUser, NewUserAdmin)

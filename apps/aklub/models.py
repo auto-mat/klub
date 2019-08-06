@@ -37,7 +37,7 @@ try:
     from django.urls import reverse
 except ImportError:  # Django<2.0
     from django.core.urlresolvers import reverse
-from django.core.validators import RegexValidator, MaxValueValidator
+from django.core.validators import MaxValueValidator, RegexValidator
 from django.db import models, transaction
 from django.db.models import Count, Q, Sum
 from django.utils import timezone
@@ -46,10 +46,10 @@ from django.utils.text import format_lazy
 from django.utils.timesince import timesince
 from django.utils.translation import ugettext_lazy as _
 
+import html2text
+
 from polymorphic.managers import PolymorphicManager
 from polymorphic.models import PolymorphicModel
-
-import html2text
 
 from smmapdfs.model_abcs import PdfSandwichABC, PdfSandwichFieldABC
 from smmapdfs.models import PdfSandwichType
@@ -439,8 +439,6 @@ class Source(models.Model):
 
 
 class Profile(PolymorphicModel, AbstractUser):
-    objects = CustomUserManager()
-    
     class Meta:
         verbose_name = _("Profile")
         verbose_name_plural = _("Profiles")
@@ -448,7 +446,7 @@ class Profile(PolymorphicModel, AbstractUser):
         permissions = (
             ('can_edit_all_units', _('Může editovat všechno ve všech administrativních jednotkách')),
         )
-
+    objects = CustomUserManager()
     GENDER = (
         ('male', _('Male')),
         ('female', _('Female')),
@@ -790,7 +788,7 @@ class Profile(PolymorphicModel, AbstractUser):
     get_main_telephone.short_description = _("Telephone")
     get_main_telephone.admin_order_field = "telephone"
 
-    
+
 class CompanyProfile(Profile):
     class Meta:
         verbose_name = _("Company profile")
@@ -803,7 +801,7 @@ class CompanyProfile(Profile):
         verbose_name=_("Company Registration Number")
     )
 
-    
+
 class UserProfile(Profile):
     class Meta:
         verbose_name = _("User profile")
@@ -821,7 +819,7 @@ class UserProfile(Profile):
         default='unknown',
     )
 
-    
+
 class Telephone(models.Model):
     bool_choices = (
         (None, "No"),

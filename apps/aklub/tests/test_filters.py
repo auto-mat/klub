@@ -36,9 +36,9 @@ class FilterTestCase(TestCase):
 
 class FilterTests(FilterTestCase):
     def test_email_filter_blank(self):
-        mommy.make('UserProfile', email="", first_name="Foo", last_name="")
-        f = filters.EmailFilter(self.request, {"email": "blank"}, UserProfile, None)
-        q = f.queryset(self.request, UserProfile.objects.all())
+        mommy.make('Profile', email="", first_name="Foo", last_name="")
+        f = filters.EmailFilter(self.request, {"email": "blank"}, Profile, None)
+        q = f.queryset(self.request, Profile.objects.all())
         self.assertQuerysetEqual(q, ["<Profile: Foo>"])
 
     def test_email_filter_format(self):
