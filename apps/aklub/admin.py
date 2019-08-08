@@ -432,6 +432,8 @@ class UnitUserAddForm(forms.ModelForm):
         field_classes = {'username': UsernameField}
 
     def clean(self):
+        if self.cleaned_data['email'] is None:
+            return super().clean()
         try:
             user = UserProfile.objects.get(email=self.cleaned_data['email'])
             administrated_unit = AdministrativeUnit.objects.get(id=self.request.user.administrated_units.first().id)
@@ -444,10 +446,10 @@ class UnitUserAddForm(forms.ModelForm):
                     _(f'<a href="{url}">User with this email already exist in database and is available now, click here to edit</a>'),
                 ),
             )
-            return super(UnitUserAddForm, self).clean()
-
         except UserProfile.DoesNotExist:
-            return super(UnitUserAddForm, self).clean()
+            pass
+
+        return super().clean()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
