@@ -245,11 +245,6 @@ class AdministrativeUnitAdminMixin(object):
                     kwargs["initial"] = administrated_units
         return super().formfield_for_manytomany(db_field, request, **kwargs)
 
-    def get_readonly_fields(self, request, obj=None):
-        if not request.user.has_perm('aklub.can_edit_all_units') and obj:
-            return (self.queryset_unit_param,) + tuple(super().get_readonly_fields(request))
-        return self.readonly_fields
-
     def get_list_filter(self, request):
         list_filter = ((self.queryset_unit_param, UnitFilter),) + tuple(super().get_list_filter(request))
         return list_filter
