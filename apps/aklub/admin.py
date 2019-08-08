@@ -1366,7 +1366,6 @@ class TaxConfirmationFieldAdmin(PdfSandwichFieldAdmin):
 @admin.register(AdministrativeUnit)
 class AdministrativeUnitAdmin(admin.ModelAdmin):
     list_display = ('name', 'ico')
-    readonly_fields = ('ico',)
 
 
 admin.site.register(DonorPaymentChannel, DonorPaymethChannelAdmin)
