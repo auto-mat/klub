@@ -123,7 +123,6 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
     can_delete = True
     show_change_link = True
     inlines = [PaymentsInline]
-    autocomplete_fields = ('event',)
 
     fieldsets = (
         (None, {
@@ -158,6 +157,12 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
                 kwargs["queryset"] = BankAccount.objects.filter(administrative_unit__in=request.user.administrated_units.all())
             else:
                 kwargs["queryset"] = BankAccount.objects.all()
+
+        if db_field.name == "event":
+            if not request.user.has_perm('aklub.can_edit_all_units'):
+                kwargs["queryset"] = Event.objects.filter(administrative_units__in=request.user.administrated_units.all())
+            else:
+                kwargs["queryset"] = Event.objects.all()
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
