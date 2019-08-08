@@ -193,8 +193,29 @@ class PaymentsInlineNoExtra(PaymentsInline):
         return obj.user.campaign
 
 
+class InteractionInlineForm(forms.ModelForm):
+    created_by_administrated_unit = forms.CharField(
+            label='administrated_unit',
+            required=False
+            )
+
+    class Meta:
+        model = Interaction
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        try:
+            administrated_unit = self.instance.created_by.administrated_units.first()
+            self.fields['created_by_administrated_unit'].initial = administrated_unit
+        except AttributeError:
+            pass
+        self.fields['created_by_administrated_unit'].widget.attrs['readonly'] = True
+
+
 class InteractionInline(nested_admin.NestedTabularInline):
     model = Interaction
+    form = InteractionInlineForm
     extra = 0
     can_delete = True
     show_change_link = True
@@ -656,12 +677,20 @@ class UserProfileAdmin(
         super().get_fieldsets(request, obj)
 
     def save_formset(self, request, form, formset, change):
-        if not issubclass(formset.model, DonorPaymentChannel):
-            return super().save_formset(request, form, formset, change)
         formset.save()
-        for f in formset.forms:
-            obj = f.instance
-            obj.generate_VS()
+        if issubclass(formset.model, DonorPaymentChannel):
+            for f in formset.forms:
+                obj = f.instance
+                obj.generate_VS()
+
+        if issubclass(formset.model, Interaction):
+            for f in formset.forms:
+                obj = f.instance
+                if not obj.created_by:
+                    obj.created_by = request.user
+                obj.handled_by = request.user
+
+        return super().save_formset(request, form, formset, change)
 
 
 class DonorPaymentChannelResource(ModelResource):
