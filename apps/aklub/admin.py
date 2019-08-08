@@ -857,26 +857,6 @@ class DonorPaymethChannelAdmin(
     def user_telephone_url(self, obj):
         return obj.user.telephone_url()
 
-    def save_formset(self, request, form, formset, change):
-        # We need to save the request.user to inline Communication
-        # the same as we do in CommunicationAdmin.save_model().
-        # Unfortunatelly, save_model() doesn't work on CommunicationInline
-        # so we need to workaround it using save_formset here.
-        if not issubclass(formset.model, Interaction):
-            return super().save_formset(request, form, formset, change)
-        instances = formset.save(commit=False)
-        for instance in instances:
-            if not instance.pk:
-                instance.created_by = request.user
-            instance.handled_by = request.user
-            instance.save()
-        formset.save_m2m()
-
-    # def save_model(self, request, obj, form, change):
-    #     if obj.verified and not obj.verified_by:
-    #         obj.verified_by = request.user
-    #     obj.save()
-
 
 class UserYearPaymentsAdmin(DonorPaymethChannelAdmin):
     list_display = (
