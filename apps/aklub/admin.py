@@ -196,7 +196,7 @@ class PaymentsInlineNoExtra(PaymentsInline):
 class InteractionInlineForm(forms.ModelForm):
     created_by_administrated_unit = forms.CharField(
             label='administrated_unit',
-            required=False
+            required=False,
             )
 
     class Meta:
