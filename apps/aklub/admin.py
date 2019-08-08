@@ -444,6 +444,11 @@ class UnitUserAddForm(forms.ModelForm):
         except UserProfile.DoesNotExist:
             return super(UnitUserAddForm, self).clean()
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['administrative_units'].queryset = self.request.user.administrated_units.all()
+        self.fields['administrative_units'].required = True
+
 
 class UnitUserChangeForm(UnitUserAddForm):
 
@@ -451,8 +456,7 @@ class UnitUserChangeForm(UnitUserAddForm):
         pass
 
     def clean(self):
-        user = UserProfile.objects.get(email=self.cleaned_data['email'])
-        self.cleaned_data['administrative_units'] = user.administrative_units.all()
+        pass
 
 
 class UserProfileAdmin(
