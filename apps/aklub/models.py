@@ -690,12 +690,15 @@ class Profile(PolymorphicModel, AbstractUser):
         if self.first_name:
             return vokativ(self.first_name.strip()).title()
         if self.language == 'cs':
-            if self.sex == 'male':
-                return 'příteli Auto*Matu'
-            elif self.sex == 'female':
-                return 'přítelkyně Auto*Matu'
+            if hasattr(self, 'sex'):
+                if self.sex == 'male':
+                    return 'příteli Auto*Matu'
+                elif self.sex == 'female':
+                    return 'přítelkyně Auto*Matu'
+                else:
+                    return 'příteli/kyně Auto*Matu'
             else:
-                return 'příteli/kyně Auto*Matu'
+                return 'company'
         else:
             return 'Auto*Mat friend'
 
