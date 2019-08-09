@@ -2,7 +2,7 @@
 
 import aklub.autocom
 import aklub.models
-from django.conf import settings
+from django.conf import settings as django_settings
 import django.contrib.auth.validators
 import django.core.validators
 from django.db import migrations, models
@@ -960,7 +960,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='CompanyProfile',
             fields=[
-                ('profile_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to=settings.AUTH_USER_MODEL)),
+                ('profile_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to=django_settings.AUTH_USER_MODEL)),
                 ('crn', models.IntegerField(validators=[django.core.validators.MaxValueValidator(99999999)], verbose_name='Company Registration Number')),
             ],
             options={
@@ -975,7 +975,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='userprofile',
             name='profile_ptr',
-            field=models.OneToOneField(auto_created=True, null=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, serialize=False, to=settings.AUTH_USER_MODEL),
+            field=models.OneToOneField(auto_created=True, null=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, serialize=False, to=django_settings.AUTH_USER_MODEL),
             preserve_default=False,
         ),
         migrations.RunSQL(
@@ -992,7 +992,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='userprofile',
             name='profile_ptr',
-            field=models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to=settings.AUTH_USER_MODEL),
+            field=models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to=django_settings.AUTH_USER_MODEL),
         ),
         migrations.AlterField(
             model_name='donorpaymentchannel',
@@ -1002,12 +1002,12 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='interaction',
             name='created_by',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='created_by_communication', to=settings.AUTH_USER_MODEL, verbose_name='Created by'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='created_by_communication', to=django_settings.AUTH_USER_MODEL, verbose_name='Created by'),
         ),
         migrations.AlterField(
             model_name='interaction',
             name='handled_by',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='handled_by_communication', to=settings.AUTH_USER_MODEL, verbose_name='Last handled by'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='handled_by_communication', to=django_settings.AUTH_USER_MODEL, verbose_name='Last handled by'),
         ),
         migrations.AlterField(
             model_name='interaction',
@@ -1017,22 +1017,22 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='masscommunication',
             name='send_to_users',
-            field=models.ManyToManyField(blank=True, help_text='All users who should receive the communication', limit_choices_to={'is_active': 'True', 'send_mailing_lists': 'True'}, to=settings.AUTH_USER_MODEL, verbose_name='send to users'),
+            field=models.ManyToManyField(blank=True, help_text='All users who should receive the communication', limit_choices_to={'is_active': 'True', 'send_mailing_lists': 'True'}, to=django_settings.AUTH_USER_MODEL, verbose_name='send to users'),
         ),
         migrations.AlterField(
             model_name='petitionsignature',
             name='user',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL, verbose_name='User'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=django_settings.AUTH_USER_MODEL, verbose_name='User'),
         ),
         migrations.AlterField(
             model_name='taxconfirmation',
             name='user_profile',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to=django_settings.AUTH_USER_MODEL),
         ),
         migrations.AlterField(
             model_name='telephone',
             name='user',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to=django_settings.AUTH_USER_MODEL),
         ),
         migrations.AlterField(
             model_name='terminalcondition',
@@ -1042,12 +1042,12 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='userincampaign',
             name='userprofile',
-            field=models.ForeignKey(default=None, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(default=None, on_delete=django.db.models.deletion.CASCADE, to=django_settings.AUTH_USER_MODEL),
         ),
         migrations.AlterField(
             model_name='userincampaign',
             name='verified_by',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='verified_users', to=settings.AUTH_USER_MODEL, verbose_name='Verified by'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='verified_users', to=django_settings.AUTH_USER_MODEL, verbose_name='Verified by'),
         ),
         # migrations.RunPython(
         #     code=aklub.migrations.0037_advanced_filter_app_fix_collumn_name.forwards_func,
