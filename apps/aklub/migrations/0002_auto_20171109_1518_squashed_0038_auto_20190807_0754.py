@@ -13,7 +13,10 @@ import django_grapesjs.models.fields
 import stdimage.models
 import stdnumfield.models
 
-from .data_migration import fix_advanced_filters_app_table_column, migrate_user_data
+from .data_migration import (
+    fix_advanced_filters_app_table_column, migrate_user_data
+    )
+from .data_migration.old_user_profile_model_hack import Settings as settings
 
 # Functions from the following migrations need manual copying.
 # Move them and any dependencies into this file, then update the
