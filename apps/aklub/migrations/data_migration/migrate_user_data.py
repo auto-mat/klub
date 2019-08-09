@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from django.db import connection
 from  django.contrib.contenttypes.models import ContentType
 
 ONETOONE_USER_PROFILE_MODEL_DATA = []
@@ -15,7 +14,7 @@ def get_user_model_data(apps, schema_editor):
     global USER_PROFILE_MODEL_DATA
     global SPECIFIC_USER_PROFILE_DATA
     if ContentType.objects.count() > 0:
-        with connection.cursor() as cursor:
+        with schema_editor.connection.cursor() as cursor:
             cursor.execute("SELECT * FROM aklub_userprofile")
             content_type_id = ContentType.objects.get(model=user_profile_model._meta.model_name).id        
             rows = [list(row) + [content_type_id] for row in cursor.fetchall()]
@@ -42,7 +41,7 @@ def set_user_model_data(apps, schema_editor):
         new_model = profile_model(**user)
         new_model.save()
     # Handle OneToOne relationship
-    with connection.cursor() as cursor:
+    with schema_editor.connection.cursor() as cursor:
         for extend_user_data in ONETOONE_USER_PROFILE_MODEL_DATA:
             cursor.execute("INSERT INTO aklub_userprofile (profile_ptr_id, sex) VALUES(%s, %s)",
                            [extend_user_data['user_id'], extend_user_data['sex']])
