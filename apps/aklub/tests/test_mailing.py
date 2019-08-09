@@ -75,14 +75,14 @@ class MailingTest(TestCase):
             subject_en="Testing email",
             method="email",
         )
-        u = models.UserProfile.objects.get(email='test.user1@email.cz')
+        u = models.Profile.objects.get(email='test.user1@email.cz')
         with self.assertRaises(Exception) as ex:
             mailing.send_communication_sync(c.id, 'automatic', u.id, sending_user.id)
         self.assertEqual(str(ex.exception), "Message template is empty for one of the language variants.")
 
     @freeze_time("2015-5-1")
     def test_mailing(self):
-        sending_user = models.UserProfile.objects.create(
+        sending_user = models.Profile.objects.create(
             first_name="Testing",
             last_name="UserInCampaign",
             email="test@test.com",
@@ -95,7 +95,7 @@ class MailingTest(TestCase):
             method="email",
             date="2015-5-1",
         )
-        c.send_to_users.set(models.UserProfile.objects.filter(pk__in=[3, 3, 2978, 2979]))
+        c.send_to_users.set(models.Profile.objects.filter(pk__in=[3, 2978, 2979]))
 
         mailing.send_mass_communication(c, sending_user, self.request)
         self.assertEqual(len(mail.outbox), 3)

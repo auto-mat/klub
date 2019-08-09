@@ -12,7 +12,7 @@ from django.db.models.functions import Lower
 from django.utils.translation import ugettext as _
 
 from . import models
-from .models import Condition, Telephone, UserProfile
+from .models import Condition, Profile, Telephone 
 
 
 class NullFieldFilter(SimpleListFilter):
@@ -95,7 +95,7 @@ class EmailFilter(SimpleListFilter):
 
     def queryset(self, request, queryset):
         if self.value() == 'duplicate':
-            duplicates = UserProfile.objects.filter(email__isnull=False).\
+            duplicates = Profile.objects.filter(email__isnull=False).\
                 exclude(email__exact='').\
                 annotate(email_lower=Lower('email')).\
                 values('email_lower').\
@@ -124,11 +124,11 @@ class RegularPaymentsFilter(SimpleListFilter):
 
     def queryset(self, request, queryset):
         if self.value() == 'not-delayed':
-            return UserProfile.objects.filter(
+            return Profile.objects.filter(
                 userchannels__expected_regular_payment_date__gt=date.today() - timedelta(days=11),
             )
         if self.value() == 'delayed':
-            return UserProfile.objects.exclude(
+            return Profile.objects.exclude(
                 userchannels__expected_regular_payment_date__gt=date.today() - timedelta(days=11),
             )
         return queryset
@@ -179,7 +179,7 @@ class NameFilter(SimpleListFilter):
 
     def queryset(self, request, queryset):
         if self.value() == 'duplicate':
-            duplicates = UserProfile.objects.filter(first_name__isnull=False, last_name__isnull=False)
+            duplicates = Profile.objects.filter(first_name__isnull=False, last_name__isnull=False)
             duplicates = duplicates.exclude(first_name__exact='', last_name__exact='')
             duplicates = duplicates.values('first_name', 'last_name')
             duplicates = duplicates.annotate(Count('id'))
