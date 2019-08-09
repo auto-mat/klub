@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "e47eeb8fc9652bbbc72f077ee28a98c3a611521f79089a1652d74fdf97744726"
+            "sha256": "89b429af784b72f0e241c33421f3549bec94fa169dc2b4b7a83e98bccd432b66"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -105,6 +105,7 @@
                 "sha256:16a5d54411599780ac9dfe3b9b38f90f785c51259a584e0b24b6f14a7f69aae8",
                 "sha256:9a2f98211ab474c710fcdad29c82f30fc14ce9917c7a70c3682162a624de4035"
             ],
+            "index": "pypi",
             "version": "==2.2.4"
         },
         "django-admin-large-initial-data": {
@@ -417,11 +418,9 @@
             "version": "==5.0.0"
         },
         "django-stdnumfield": {
-            "hashes": [
-                "sha256:5d3039c99612a94458054e71788cbb78efbb4da21e574c2556b814fe207284bc"
-            ],
-            "index": "pypi",
-            "version": "==0.1.5"
+            "editable": true,
+            "git": "https://github.com/PetrDlouhy/django-stdnumfield.git",
+            "ref": "mergeup"
         },
         "django-storages": {
             "hashes": [
@@ -459,6 +458,7 @@
                 "sha256:42979bd5441bb4d8fd69d0f385024a114c3cae7df0f110600b718751250f6929",
                 "sha256:aedb48010ebfab9651aaab1df5fd3b4848eb4182afc909852a2110c24f89a359"
             ],
+            "index": "pypi",
             "version": "==3.10.2"
         },
         "djcacheutils": {
@@ -622,10 +622,10 @@
         },
         "newrelic": {
             "hashes": [
-                "sha256:708ac6a75c76a59e3d6c0d714e2fbb1e4ec7d540f7d34bddd81e61bdb636e895"
+                "sha256:96cc8d37127f84718fa9a93f19648b3b8287267c9ceb1386d0ff9dc47e5859f3"
             ],
             "index": "pypi",
-            "version": "==4.20.1.121"
+            "version": "==5.0.0.124"
         },
         "odfpy": {
             "hashes": [
@@ -767,6 +767,7 @@
                 "sha256:26c0b32e437e54a18161324a2fca3c4b9846b74a8dccddd843113109e1116b32",
                 "sha256:c894d57500a4cd2d5c71114aaab77dbab5eabd9022308ce5ac9bb93a60a6f0c7"
             ],
+            "index": "pypi",
             "version": "==2019.2"
         },
         "pyyaml": {
@@ -797,11 +798,11 @@
         },
         "redis": {
             "hashes": [
-                "sha256:1f2493b72f669a096c59ca7cf7f4067b1ab58a0a3c6bef51d5d8fd384298c6a2",
-                "sha256:b851b0ef53b6d416f1dc692dc168f3d390b37995925bfe29351b3a869976598c"
+                "sha256:45682ecf226c7611efe731974c4fa3390170ba045b9cdb26f0051114a5c2a68b",
+                "sha256:f2609a85e5f37f489ba3b5652e1175dc3711c4d7a7818c4f657615810afd23df"
             ],
             "index": "pypi",
-            "version": "==3.3.4"
+            "version": "==3.3.6"
         },
         "reportlab": {
             "hashes": [
@@ -1079,6 +1080,7 @@
                 "sha256:16a5d54411599780ac9dfe3b9b38f90f785c51259a584e0b24b6f14a7f69aae8",
                 "sha256:9a2f98211ab474c710fcdad29c82f30fc14ce9917c7a70c3682162a624de4035"
             ],
+            "index": "pypi",
             "version": "==2.2.4"
         },
         "django-admin-smoke-tests": {
@@ -1311,6 +1313,7 @@
                 "sha256:26c0b32e437e54a18161324a2fca3c4b9846b74a8dccddd843113109e1116b32",
                 "sha256:c894d57500a4cd2d5c71114aaab77dbab5eabd9022308ce5ac9bb93a60a6f0c7"
             ],
+            "index": "pypi",
             "version": "==2019.2"
         },
         "requests": {

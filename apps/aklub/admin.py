@@ -124,7 +124,6 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
     can_delete = True
     show_change_link = True
     inlines = [PaymentsInline]
-    autocomplete_fields = ('event',)
 
     fieldsets = (
         (None, {
@@ -159,6 +158,12 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
                 kwargs["queryset"] = BankAccount.objects.filter(administrative_unit__in=request.user.administrated_units.all())
             else:
                 kwargs["queryset"] = BankAccount.objects.all()
+
+        if db_field.name == "event":
+            if not request.user.has_perm('aklub.can_edit_all_units'):
+                kwargs["queryset"] = Event.objects.filter(administrative_units__in=request.user.administrated_units.all())
+            else:
+                kwargs["queryset"] = Event.objects.all()
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
@@ -428,6 +433,8 @@ class UnitProfileAddForm(forms.ModelForm):
         field_classes = {'username': UsernameField}
 
     def clean(self):
+        if self.cleaned_data['email'] is None:
+            return super().clean()
         try:
             user = Profile.objects.get(email=self.cleaned_data['email'])
             administrated_unit = AdministrativeUnit.objects.get(id=self.request.user.administrated_units.first().id)
@@ -440,10 +447,15 @@ class UnitProfileAddForm(forms.ModelForm):
                     _(f'<a href="{url}">User with this email already exist in database and is available now, click here to edit</a>'),
                 ),
             )
-            return super(UnitProfileAddForm, self).clean()
-
         except Profile.DoesNotExist:
-            return super(UnitProfileAddForm, self).clean()
+            pass
+
+        return super().clean()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['administrative_units'].queryset = self.request.user.administrated_units.all()
+        self.fields['administrative_units'].required = True
 
 
 class UnitProfileChangeForm(UnitProfileAddForm):
@@ -452,8 +464,7 @@ class UnitProfileChangeForm(UnitProfileAddForm):
         pass
 
     def clean(self):
-        user = Profile.objects.get(email=self.cleaned_data['email'])
-        self.cleaned_data['administrative_units'] = user.administrative_units.all()
+        pass
 
 
 class ProfileAdmin(
@@ -1291,7 +1302,6 @@ class TaxConfirmationFieldAdmin(PdfSandwichFieldAdmin):
 @admin.register(AdministrativeUnit)
 class AdministrativeUnitAdmin(admin.ModelAdmin):
     list_display = ('name', 'ico')
-    readonly_fields = ('ico',)
 
 
 class BaseChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelAdmin):

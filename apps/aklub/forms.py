@@ -26,6 +26,8 @@ class UserCreateForm(UserCreationForm):
         self.fields['password'].help_text = 'You can set password in the next step or anytime in user detail form'
 
     def clean(self):
+        if self.cleaned_data['email'] is None:
+            return super().clean()
         try:
             user = UserProfile.objects.get(email=self.cleaned_data['email'])
             url = reverse('admin:aklub_userprofile_change', args=(user.pk,))
@@ -36,7 +38,7 @@ class UserCreateForm(UserCreationForm):
                 ),
             )
         except UserProfile.DoesNotExist:
-            return super(UserCreateForm, self).clean()
+            return super().clean()
 
     def save(self, commit=True):
         user = super(UserCreationForm, self).save(commit=False)
