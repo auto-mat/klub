@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+from django.db import connection
+from  django.contrib.contenttypes.models import ContentType
+
 ONETOONE_USER_PROFILE_MODEL_DATA = []
 USER_PROFILE_MODEL_DATA = []
 
@@ -36,7 +39,6 @@ def set_user_model_data(apps, schema_editor):
     profile_model = apps.get_model('aklub', 'Profile')
     user_profile_model = apps.get_model('aklub', 'UserProfile')
     for user in USER_PROFILE_MODEL_DATA:
-        
         new_model = profile_model(**user)
         new_model.save()
     # Handle OneToOne relationship

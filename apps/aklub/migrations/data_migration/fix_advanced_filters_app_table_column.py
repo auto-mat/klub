@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+from django.contrib.auth import get_user_model
+from django.db import migrations
+
 COLUMN_NAME = 'userprofile_id'
 
 
