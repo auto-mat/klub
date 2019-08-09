@@ -29,7 +29,9 @@ def populate_usersettings(apps, schema_editor):
 
     settings_pickled = picke_settings(DEFAULT_USER_SETTINGS)
 
-    for u in User.objects.all():
+    # Get model via apps.get_model() raise
+    # AttributeError: type object 'Profile' has no attribute 'polymorphic_primary_key_name'    
+    for u in _User.objects.all(): # User.objects.all():
         try:
             UserSettings.objects.get(user=u)
         except UserSettings.DoesNotExist:
