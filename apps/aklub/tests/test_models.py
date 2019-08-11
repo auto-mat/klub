@@ -27,7 +27,7 @@ from django.test import TestCase
 from freezegun import freeze_time
 
 from .utils import ICON_FALSE, ICON_UNKNOWN
-from ..models import DonorPaymentChannel, Event, Interaction, Payment, Profile
+from ..models import DonorPaymentChannel, Event, Interaction, Payment, UserProfile
 
 
 @freeze_time("2016-5-1")
@@ -96,7 +96,7 @@ class ModelTests(TestCase):
 class CommunicationTest(TestCase):
     def setUp(self):
         print("SETUP")
-        self.userprofile = Profile.objects.create(sex='male', email="test@test.cz")
+        self.userprofile = UserProfile.objects.create(sex='male', email="test@test.cz")
         self.campaign = Event.objects.create(created=datetime.date(2010, 10, 10))
 
     def test_communication(self):
