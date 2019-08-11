@@ -194,13 +194,18 @@ class ViewsTests(ClearCacheMixin, TestCase):
     def test_darujme_existing_email_different_campaign(self):
         """ Test, that if the user exists in different campaign, he is able to register """
         address = reverse('regular-darujme')
+        _foo_user = mommy.make(
+            'aklub.UserProfile',
+            first_name="Foo",
+            last_name='Duplabar',
+            email='test@email.cz'
+        )
+        _foo_user.save()
         donor_payment_channel = mommy.make(
             "aklub.DonorPaymentChannel",
-            user__email='test@email.cz',
-            user__first_name='Foo',
-            user__last_name='Duplabar',
             bank_account__bank_account="0000",
             campaign__id=1,
+            user=_foo_user
         )
         response = self.client.post(address, self.post_data_darujme, follow=False)
         self.assertContains(
