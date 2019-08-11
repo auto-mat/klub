@@ -82,7 +82,7 @@ class MailingTest(TestCase):
 
     @freeze_time("2015-5-1")
     def test_mailing(self):
-        sending_user = models.Profile.objects.create(
+        sending_user = models.UserProfile.objects.create(
             first_name="Testing",
             last_name="UserInCampaign",
             email="test@test.com",
