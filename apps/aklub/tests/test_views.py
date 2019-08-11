@@ -198,14 +198,14 @@ class ViewsTests(ClearCacheMixin, TestCase):
             'aklub.UserProfile',
             first_name="Foo",
             last_name='Duplabar',
-            email='test@email.cz'
+            email='test@email.cz',
         )
         _foo_user.save()
         donor_payment_channel = mommy.make(
             "aklub.DonorPaymentChannel",
             bank_account__bank_account="0000",
             campaign__id=1,
-            user=_foo_user
+            user=_foo_user,
         )
         response = self.client.post(address, self.post_data_darujme, follow=False)
         self.assertContains(

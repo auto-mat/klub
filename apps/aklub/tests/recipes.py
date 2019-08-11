@@ -22,7 +22,7 @@ from model_mommy.recipe import Recipe, seq
 
 
 donor_payment_channel_recipe = Recipe(
-    "aklub.DonorPaymentChannel", 
+    "aklub.DonorPaymentChannel",
     event__name="Foo campaign",
     userprofile__is_active=True,
     userprofile__username=seq("username"),
