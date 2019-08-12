@@ -194,23 +194,23 @@ class PaymentsInlineNoExtra(PaymentsInline):
 
 
 class InteractionInlineForm(forms.ModelForm):
-    created_by_administrated_unit = forms.CharField(
-            label='administrated_unit',
-            required=False,
-            )
-
     class Meta:
         model = Interaction
         fields = '__all__'
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        try:
-            administrated_unit = self.instance.created_by.administrated_units.first()
-            self.fields['created_by_administrated_unit'].initial = administrated_unit
-        except AttributeError:
-            pass
-        self.fields['created_by_administrated_unit'].widget.attrs['readonly'] = True
+        if not self.request.user.has_perm('aklub.can_edit_all_units'):
+            if not self.instance.pk:
+                self.fields['administrative_unit'].queryset = self.request.user.administrated_units
+                self.fields['administrative_unit'].empty_label = None
+            else:
+                if self.request.user.administrated_units.first() != self.instance.administrative_unit:
+                    for field_name in self.fields:
+                        self.fields[field_name].disabled = True
+                else:
+                    self.fields['administrative_unit'].queryset = self.request.user.administrated_units
+                    self.fields['administrative_unit'].empty_label = None
 
 
 class InteractionInline(nested_admin.NestedTabularInline):
@@ -219,7 +219,7 @@ class InteractionInline(nested_admin.NestedTabularInline):
     extra = 0
     can_delete = True
     show_change_link = True
-    readonly_fields = ('type', 'created_by', 'handled_by')
+    readonly_fields = ('type', 'created_by', 'handled_by',)
     fk_name = 'user'
 
     def get_queryset(self, request):
@@ -227,6 +227,14 @@ class InteractionInline(nested_admin.NestedTabularInline):
         qs = qs.filter(type__in=('individual', 'auto')).order_by('-date')
         qs = qs.select_related('created_by', 'handled_by')
         return qs
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "event":
+            if not request.user.has_perm('aklub.can_edit_all_units'):
+                kwargs["queryset"] = Event.objects.filter(administrative_units__in=request.user.administrated_units.all())
+            else:
+                kwargs["queryset"] = Event.objects.all()
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 class ExpenseInline(admin.TabularInline):
@@ -691,6 +699,11 @@ class UserProfileAdmin(
                 obj.handled_by = request.user
 
         return super().save_formset(request, form, formset, change)
+
+    def get_formsets_with_inlines(self, request, obj=None):
+        for inline in self.get_inline_instances(request, obj):
+            inline.form.request = request
+            yield inline.get_formset(request, obj), inline
 
 
 class DonorPaymentChannelResource(ModelResource):
