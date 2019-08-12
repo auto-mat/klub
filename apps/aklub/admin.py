@@ -489,7 +489,7 @@ class ProfileAdmin(
         'get_main_telephone',
         'title_before',
         'title_after',
-        # 'sex',
+        'sex',
         'is_staff',
         'registered_support_date',
         'event',
@@ -1408,6 +1408,8 @@ class CompanyProfileAdmin(BaseChildAdmin):
                 'username', ('first_name', 'last_name'), 'email',
                 ('birth_day', 'birth_month', 'age_group'),
                 'administrative_units',
+                'language',
+                'crn',
             ),
         }),
     )
@@ -1420,6 +1422,8 @@ class CompanyProfileAdmin(BaseChildAdmin):
                 'get_main_telephone',
                 'note',
                 'administrative_units',
+                'language',
+                'crn',
             ),
         }),
         (_('Contact data'), {
