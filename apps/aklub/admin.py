@@ -37,7 +37,7 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import UsernameField
 from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator
-from django.db.models import CharField, Sum
+from django.db.models import CharField, Count, Max, Sum
 from django.http import HttpResponseRedirect
 from django.utils.html import format_html, format_html_join, mark_safe
 from django.utils.translation import ugettext as _
@@ -123,7 +123,11 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
     extra = 0
     can_delete = True
     show_change_link = True
-    inlines = [PaymentsInline]
+    readonly_fields = (
+        'get_sum_amount',
+        'get_payment_count',
+        'get_last_payment_date',
+    )
 
     fieldsets = (
         (None, {
@@ -132,6 +136,11 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
                 ('bank_account', 'user_bank_account_char'),
                 ('regular_payments'),
                 ('event'),
+                (
+                    'get_sum_amount',
+                    'get_payment_count',
+                    'get_last_payment_date',
+                ),
             ),
         }),
         (_('Details'), {
@@ -146,11 +155,27 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
          )
     )
 
+    def get_sum_amount(self, obj):
+        return obj.sum_amount
+    get_sum_amount.short_description = _('Total amount')
+
+    def get_payment_count(self, obj):
+        return obj.payment_count
+    get_payment_count.short_description = _('Total payment count')
+
+    def get_last_payment_date(self, obj):
+        return obj.last_payment_date
+    get_last_payment_date.short_description = _('Total last payment date')
+
     def get_queryset(self, request):
         if not request.user.has_perm('aklub.can_edit_all_units'):
-            return DonorPaymentChannel.objects.filter(bank_account__administrative_unit__in=request.user.administrated_units.all())
+            queryset = DonorPaymentChannel.objects.filter(bank_account__administrative_unit__in=request.user.administrated_units.all())
         else:
-            return super().get_queryset(request)
+            queryset = super().get_queryset(request)
+        return queryset.\
+            annotate(sum_amount=Sum('payment__amount')).\
+            annotate(payment_count=Count('payment')).\
+            annotate(last_payment_date=Max('payment__date'))
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "bank_account":
@@ -199,12 +224,33 @@ class PaymentsInlineNoExtra(PaymentsInline):
         return obj.user.campaign
 
 
+class InteractionInlineForm(forms.ModelForm):
+    class Meta:
+        model = Interaction
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.request.user.has_perm('aklub.can_edit_all_units'):
+            if not self.instance.pk:
+                self.fields['administrative_unit'].queryset = self.request.user.administrated_units
+                self.fields['administrative_unit'].empty_label = None
+            else:
+                if self.request.user.administrated_units.first() != self.instance.administrative_unit:
+                    for field_name in self.fields:
+                        self.fields[field_name].disabled = True
+                else:
+                    self.fields['administrative_unit'].queryset = self.request.user.administrated_units
+                    self.fields['administrative_unit'].empty_label = None
+
+
 class InteractionInline(nested_admin.NestedTabularInline):
     model = Interaction
+    form = InteractionInlineForm
     extra = 0
     can_delete = True
     show_change_link = True
-    readonly_fields = ('type', 'created_by', 'handled_by')
+    readonly_fields = ('type', 'created_by', 'handled_by',)
     fk_name = 'user'
 
     def get_queryset(self, request):
@@ -212,6 +258,14 @@ class InteractionInline(nested_admin.NestedTabularInline):
         qs = qs.filter(type__in=('individual', 'auto')).order_by('-date')
         qs = qs.select_related('created_by', 'handled_by')
         return qs
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "event":
+            if not request.user.has_perm('aklub.can_edit_all_units'):
+                kwargs["queryset"] = Event.objects.filter(administrative_units__in=request.user.administrated_units.all())
+            else:
+                kwargs["queryset"] = Event.objects.all()
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 class ExpenseInline(admin.TabularInline):
@@ -763,26 +817,6 @@ class DonorPaymethChannelAdmin(
 
     def user_telephone_url(self, obj):
         return obj.user.telephone_url()
-
-    def save_formset(self, request, form, formset, change):
-        # We need to save the request.user to inline Communication
-        # the same as we do in CommunicationAdmin.save_model().
-        # Unfortunatelly, save_model() doesn't work on CommunicationInline
-        # so we need to workaround it using save_formset here.
-        if not issubclass(formset.model, Interaction):
-            return super().save_formset(request, form, formset, change)
-        instances = formset.save(commit=False)
-        for instance in instances:
-            if not instance.pk:
-                instance.created_by = request.user
-            instance.handled_by = request.user
-            instance.save()
-        formset.save_m2m()
-
-    # def save_model(self, request, obj, form, change):
-    #     if obj.verified and not obj.verified_by:
-    #         obj.verified_by = request.user
-    #     obj.save()
 
 
 class UserYearPaymentsAdmin(DonorPaymethChannelAdmin):
@@ -1377,12 +1411,25 @@ class BaseChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelAdmin):
         super().get_fieldsets(request, obj)
 
     def save_formset(self, request, form, formset, change):
-        if not issubclass(formset.model, DonorPaymentChannel):
-            return super().save_formset(request, form, formset, change)
         formset.save()
-        for f in formset.forms:
-            obj = f.instance
-            obj.generate_VS()
+        if issubclass(formset.model, DonorPaymentChannel):
+            for f in formset.forms:
+                obj = f.instance
+                obj.generate_VS()
+
+        if issubclass(formset.model, Interaction):
+            for f in formset.forms:
+                obj = f.instance
+                if not obj.created_by:
+                    obj.created_by = request.user
+                obj.handled_by = request.user
+
+        return super().save_formset(request, form, formset, change)
+
+    def get_formsets_with_inlines(self, request, obj=None):
+        for inline in self.get_inline_instances(request, obj):
+            inline.form.request = request
+            yield inline.get_formset(request, obj), inline
     readonly_fields = (
         'userattendance_links', 'date_joined', 'last_login', 'get_main_telephone',
     )

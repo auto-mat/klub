@@ -18,7 +18,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-import django
 from django.contrib import admin as django_admin, auth
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -222,6 +221,9 @@ class AdminTest(RunCommitHooksMixin, TestCase):
                 ' byla úspěšně přidána.' % {'id': obj.id},
             )
 
+    @override_settings(
+        LANGUAGE_CODE='en',
+    )
     def test_mass_communication_changelist_post_send_mails(self):
         mommy.make("Profile", id=2978, email="foo@email.com", language="cs")
         mommy.make("Profile", id=2979, email="bar@email.com", language="cs")
@@ -250,14 +252,11 @@ class AdminTest(RunCommitHooksMixin, TestCase):
             request._messages._queued_messages[0].message,
             "Communication sending was queued for 3 users",
         )
-        if django.VERSION < (2, 1):
-            edit_text = 'Níže ji můžete dále upravovat.'
-        else:
-            edit_text = 'Níže můžete údaje znovu upravovat.'
+        edit_text = 'You may edit it again below.'
         self.assertEqual(
             request._messages._queued_messages[1].message,
-            'Položka typu Hromadná komunikace "<a href="/aklub/masscommunication/%s/change/">test communication</a>"'
-            ' byla úspěšně přidána. %s' % (obj.id, edit_text),
+            'The Mass Communication "<a href="/aklub/masscommunication/%s/change/">test communication</a>"'
+            ' was added successfully. %s' % (obj.id, edit_text),
         )
 
     def test_mass_communication_changelist_post(self):
