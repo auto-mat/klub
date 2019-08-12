@@ -13,10 +13,7 @@ import django_grapesjs.models.fields
 import stdimage.models
 import stdnumfield.models
 
-from .data_migration import (
-    fix_advanced_filters_app_table_column, # fix_helpdesk_kbitem_voted_by_collumn,
-    migrate_user_data
-    )
+from .data_migration import migrate_user_data
 from .data_migration.old_user_profile_model_hack import Settings as settings
 
 # Functions from the following migrations need manual copying.
@@ -1050,18 +1047,6 @@ class Migration(migrations.Migration):
             name='verified_by',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='verified_users', to=django_settings.AUTH_USER_MODEL, verbose_name='Verified by'),
         ),
-        # migrations.RunPython(
-        #     code=aklub.migrations.0037_advanced_filter_app_fix_collumn_name.forwards_func,
-        #     reverse_code=aklub.migrations.0037_advanced_filter_app_fix_collumn_name.reverse_func,
-        # ),
-        migrations.RunPython(
-            code=fix_advanced_filters_app_table_column.forwards_func,
-            reverse_code=fix_advanced_filters_app_table_column.reverse_func,
-        ),
-        # migrations.RunPython(
-        #     code=fix_helpdesk_kbitem_voted_by_collumn.forwards_func,
-        #     reverse_code=fix_helpdesk_kbitem_voted_by_collumn.reverse_func,
-        # ),
         migrations.AlterField(
             model_name='terminalcondition',
             name='variable',
