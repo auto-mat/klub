@@ -787,6 +787,14 @@ class UserProfile(AbstractUser):
     get_main_telephone.short_description = _("Telephone")
     get_main_telephone.admin_order_field = "telephone"
 
+    def get_administrative_units(self):
+        administrative_units = ', '.join(administrative_unit.name for administrative_unit in self.administrative_units.all())
+        return administrative_units
+
+    def get_event(self):
+        event = ', '.join(str(donor.event.id) + ') ' + donor.event.name for donor in self.userchannels.all() if donor.event is not None)
+        return event
+
 
 class Telephone(models.Model):
     bool_choices = (

@@ -509,6 +509,7 @@ class UserProfileAdmin(
     list_display = (
         'person_name',
         'email',
+        'get_administrative_units',
         'addressment',
         'get_addressment',
         'get_last_name_vokativ',
@@ -518,7 +519,7 @@ class UserProfileAdmin(
         'sex',
         'is_staff',
         'registered_support_date',
-        'event',
+        'get_event',
         'variable_symbol',
         'regular_payments_info',
         'regular_amount',
