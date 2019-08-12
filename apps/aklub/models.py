@@ -2183,6 +2183,13 @@ class Interaction(BaseInteraction):
         help_text=_("Was this message already sent, communicated and/or resolved?"),
         default=False,
     )
+    administrative_unit = models.ForeignKey(
+        AdministrativeUnit,
+        verbose_name=_("administrative units"),
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        )
 
     def save(self, *args, **kwargs):
         """Record save hook
