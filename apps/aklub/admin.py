@@ -1316,6 +1316,7 @@ class BaseChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelAdmin):
                 'username', ('first_name', 'last_name'), 'email', 'sex',
                 ('birth_day', 'birth_month', 'age_group'),
                 'administrative_units',
+                'language',
             ),
         }),
     )
@@ -1329,6 +1330,7 @@ class BaseChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelAdmin):
                 'get_main_telephone',
                 'note',
                 'administrative_units',
+                'language',
             ),
         }),
         (_('Contact data'), {
