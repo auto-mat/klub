@@ -14,7 +14,8 @@ import stdimage.models
 import stdnumfield.models
 
 from .data_migration import (
-    fix_advanced_filters_app_table_column, migrate_user_data
+    fix_advanced_filters_app_table_column, fix_helpdesk_kbitem_voted_by_collumn,
+    migrate_user_data
     )
 from .data_migration.old_user_profile_model_hack import Settings as settings
 
@@ -1056,6 +1057,10 @@ class Migration(migrations.Migration):
         migrations.RunPython(
             code=fix_advanced_filters_app_table_column.forwards_func,
             reverse_code=fix_advanced_filters_app_table_column.reverse_func,
+        ),
+        migrations.RunPython(
+            code=fix_helpdesk_kbitem_voted_by_collumn.forwards_func,
+            reverse_code=fix_helpdesk_kbitem_voted_by_collumn.reverse_func,
         ),
         migrations.AlterField(
             model_name='terminalcondition',
