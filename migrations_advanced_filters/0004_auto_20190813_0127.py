@@ -4,8 +4,6 @@ from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
 
-# from apps.aklub.migrations.data_migration.old_user_profile_model_hack import Settings as settings
-
 
 class Migration(migrations.Migration):
 
