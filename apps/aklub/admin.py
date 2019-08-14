@@ -519,6 +519,11 @@ class UnitUserChangeForm(UnitUserAddForm):
     def clean(self):
         pass
 
+    def __init__(self, *args, **kwargs):
+        super(UnitUserAddForm, self).__init__(*args, **kwargs)
+        self.fields['administrative_units'].queryset = self.instance.administrative_units.all()
+        self.fields['administrative_units'].disabled = True
+
 
 class UserProfileAdmin(
     filters.AdministrativeUnitAdminMixin,
