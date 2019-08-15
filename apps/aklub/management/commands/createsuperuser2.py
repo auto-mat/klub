@@ -6,7 +6,7 @@ from django.contrib.auth.management.commands import createsuperuser
 from django.contrib.contenttypes.models import ContentType
 from django.core.management import CommandError
 
-from ....models import CompanyProfile, UserProfile
+from aklub.models import CompanyProfile, UserProfile
 
 
 class Command(createsuperuser.Command):
@@ -45,7 +45,7 @@ class Command(createsuperuser.Command):
         username = options.get('username')
         database = options.get('database')
         email = options.get('email')
-        profile_type = options.get('polymorphic_ctype_id')
+        profile_type = options.get('polymorphic_ctype_id')[0]
         crn = options.get('crn')
 
         if profile_type == 'user':
@@ -77,4 +77,5 @@ class Command(createsuperuser.Command):
         elif crn:
             user = model._default_manager.db_manager(database).get(username=username)
             user.crn = crn
-        user.save()
+        if user:
+            user.save()
