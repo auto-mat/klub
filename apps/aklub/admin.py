@@ -37,7 +37,7 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import UsernameField
 from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator
-from django.db.models import CharField, Sum
+from django.db.models import CharField, Count, Max, Sum
 from django.http import HttpResponseRedirect
 from django.utils.html import format_html, format_html_join, mark_safe
 from django.utils.translation import ugettext as _
@@ -122,7 +122,11 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
     extra = 0
     can_delete = True
     show_change_link = True
-    inlines = [PaymentsInline]
+    readonly_fields = (
+        'get_sum_amount',
+        'get_payment_count',
+        'get_last_payment_date',
+    )
 
     fieldsets = (
         (None, {
@@ -131,6 +135,11 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
                 ('bank_account', 'user_bank_account_char'),
                 ('regular_payments'),
                 ('event'),
+                (
+                    'get_sum_amount',
+                    'get_payment_count',
+                    'get_last_payment_date',
+                ),
             ),
         }),
         (_('Details'), {
@@ -145,11 +154,27 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
          )
     )
 
+    def get_sum_amount(self, obj):
+        return obj.sum_amount
+    get_sum_amount.short_description = _('Total amount')
+
+    def get_payment_count(self, obj):
+        return obj.payment_count
+    get_payment_count.short_description = _('Total payment count')
+
+    def get_last_payment_date(self, obj):
+        return obj.last_payment_date
+    get_last_payment_date.short_description = _('Total last payment date')
+
     def get_queryset(self, request):
         if not request.user.has_perm('aklub.can_edit_all_units'):
-            return DonorPaymentChannel.objects.filter(bank_account__administrative_unit__in=request.user.administrated_units.all())
+            queryset = DonorPaymentChannel.objects.filter(bank_account__administrative_unit__in=request.user.administrated_units.all())
         else:
-            return super().get_queryset(request)
+            queryset = super().get_queryset(request)
+        return queryset.\
+            annotate(sum_amount=Sum('payment__amount')).\
+            annotate(payment_count=Count('payment')).\
+            annotate(last_payment_date=Max('payment__date'))
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "bank_account":
@@ -387,12 +412,6 @@ class UserProfileMergeForm(merge.MergeForm):
         fields = '__all__'
 
 
-class PreferenceInlineForm(forms.ModelForm):
-    class Meta:
-        model = Preference
-        fields = '__all__'
-
-
 class PreferenceInline(nested_admin.NestedStackedInline):
     model = Preference
     max_num = 0
@@ -400,10 +419,11 @@ class PreferenceInline(nested_admin.NestedStackedInline):
     can_delete = False
     fieldsets = (
         (None, {
+            'classes': ('wide',),
             'fields': (
-                'public', 'send_mailing_lists',
-                ('newsletter_on', 'call_on'),
-                ('challenge_on', 'letter_on'),
+                ('public', 'send_mailing_lists',),
+                ('newsletter_on', 'call_on',),
+                ('challenge_on', 'letter_on',),
             ),
         }),
     )
@@ -479,12 +499,6 @@ class UnitUserAddForm(forms.ModelForm):
             'correspondence_zip_code',
             'addressment',
             'addressment_on_envelope',
-            'public',
-            'send_mailing_lists',
-            'newsletter_on',
-            'letter_on',
-            'call_on',
-            'challenge_on',
         )
         field_classes = {'username': UsernameField}
 
@@ -636,13 +650,6 @@ class UserProfileAdmin(
 
              ),
          }),
-        ('Preferences', {
-            'fields': (
-                ('public', 'send_mailing_lists', ),
-                ('newsletter_on', 'call_on', ),
-                ('challenge_on', 'letter_on', ),
-            ),
-        })
     )
 
     superuser_fieldsets = (

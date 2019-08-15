@@ -557,10 +557,6 @@ class UserProfile(AbstractUser):
         max_length=500,
         blank=True,
     )
-    public = models.BooleanField( ###########################################################
-        verbose_name=_("Publish my name in the list of supporters"),
-        default=True,
-    )
     profile_text = models.TextField(
         verbose_name=_("What is your reason?"),
         help_text=_("Tell others why you support Auto*Mat"),
@@ -611,10 +607,6 @@ class UserProfile(AbstractUser):
         auto_now=True,
         null=True,
     )
-    send_mailing_lists = models.BooleanField( #################################
-        verbose_name=_("Sending of mailing lists allowed"),
-        default=True,
-    )
     age_group = models.PositiveIntegerField(
         verbose_name=_("Birth year"),
         null=True,
@@ -633,32 +625,6 @@ class UserProfile(AbstractUser):
         blank=True,
         choices=[(i, i) for i in range(1, 32)],
     )
-    ######## moving
-    newsletter_on = models.NullBooleanField(
-        verbose_name=_("newsletter_on"),
-        null=True,
-        blank=True,
-        default=False,
-    )
-    call_on = models.NullBooleanField(
-        verbose_name=_("call_on"),
-        null=True,
-        blank=True,
-        default=False,
-    )
-    challenge_on = models.NullBooleanField(
-        verbose_name=_("challenge_on"),
-        null=True,
-        blank=True,
-        default=False,
-    )
-    letter_on = models.NullBooleanField(
-        verbose_name=_("letter_on"),
-        null=True,
-        blank=True,
-        default=False,
-    )
-    ############
     administrative_units = models.ManyToManyField(
         AdministrativeUnit,
         verbose_name=_("administrative units"),
