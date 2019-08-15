@@ -2,11 +2,11 @@
 
 import re
 
+from aklub.models import CompanyProfile, UserProfile
+
 from django.contrib.auth.management.commands import createsuperuser
 from django.contrib.contenttypes.models import ContentType
 from django.core.management import CommandError
-
-from aklub.models import CompanyProfile, UserProfile
 
 
 class Command(createsuperuser.Command):
@@ -22,7 +22,7 @@ class Command(createsuperuser.Command):
             '--profile',
             dest='polymorphic_ctype_id',
             choices=['user', 'company'],
-            default=['user'],
+            default='user',
             help='Choose how user profile save as, user or company profile '
             'type, default is user profile',
         )
@@ -45,7 +45,7 @@ class Command(createsuperuser.Command):
         username = options.get('username')
         database = options.get('database')
         email = options.get('email')
-        profile_type = options.get('polymorphic_ctype_id')[0]
+        profile_type = options.get('polymorphic_ctype_id')
         crn = options.get('crn')
 
         if profile_type == 'user':
@@ -67,15 +67,9 @@ class Command(createsuperuser.Command):
 
         super(Command, self).handle(*args, **options)
 
-        user = None
+        user = model._default_manager.db_manager(database).get(username=username)
         if password:
-            user = self.UserModel._default_manager.db_manager(database).get(username=username)
             user.set_password(password)
-
-        if crn and user:
+        if crn:
             user.crn = crn
-        elif crn:
-            user = model._default_manager.db_manager(database).get(username=username)
-            user.crn = crn
-        if user:
-            user.save()
+        user.save()
