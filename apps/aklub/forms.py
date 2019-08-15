@@ -73,3 +73,19 @@ class UserUpdateForm(UserChangeForm):
         if commit:
             user.save()
         return user
+
+    def clean(self):
+        if 'email' in self.changed_data:
+            if self.cleaned_data['email'] is None:
+                self.add_error(
+                    'email',
+                    _('Set email address please'),
+                )
+                return self.cleaned_data
+            emails = self._meta.model.objects.values_list('email', flat=True)
+            if self.cleaned_data['email'] in emails:
+                self.add_error(
+                    'email',
+                    _('User with this email already exist in database'),
+                )
+            return self.cleaned_data
