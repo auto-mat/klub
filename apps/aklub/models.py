@@ -81,7 +81,7 @@ class CustomUserManager(PolymorphicManager, UserManager):
             ctype_id = extra_fields.pop('polymorphic_ctype_id')
             self.model = ContentType.objects.get(id=ctype_id).model_class()
             if self.model._meta.model_name == CompanyProfile._meta.model_name:
-                extra_fields['crn'] = 1111111 # null constrain
+                extra_fields['crn'] = 1111111  # null constrain
         if not email:
             raise ValueError(_('The Email must be set'))
         email = self.normalize_email(email)
