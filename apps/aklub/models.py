@@ -39,13 +39,13 @@ except ImportError:  # Django<2.0
     from django.core.urlresolvers import reverse
 from django.core.validators import RegexValidator
 from django.db import models, transaction
-from django.db.models import Count, Q, Sum
+from django.db.models import Count, Q, Sum, signals
 from django.utils import timezone
 from django.utils.html import format_html, mark_safe
 from django.utils.text import format_lazy
 from django.utils.timesince import timesince
 from django.utils.translation import ugettext_lazy as _
-
+from django.dispatch import receiver
 import html2text
 
 from smmapdfs.model_abcs import PdfSandwichABC, PdfSandwichFieldABC
@@ -557,7 +557,7 @@ class UserProfile(AbstractUser):
         max_length=500,
         blank=True,
     )
-    public = models.BooleanField(
+    public = models.BooleanField( ###########################################################
         verbose_name=_("Publish my name in the list of supporters"),
         default=True,
     )
@@ -611,7 +611,7 @@ class UserProfile(AbstractUser):
         auto_now=True,
         null=True,
     )
-    send_mailing_lists = models.BooleanField(
+    send_mailing_lists = models.BooleanField( #################################
         verbose_name=_("Sending of mailing lists allowed"),
         default=True,
     )
@@ -633,6 +633,7 @@ class UserProfile(AbstractUser):
         blank=True,
         choices=[(i, i) for i in range(1, 32)],
     )
+    ######## moving
     newsletter_on = models.NullBooleanField(
         verbose_name=_("newsletter_on"),
         null=True,
@@ -657,6 +658,7 @@ class UserProfile(AbstractUser):
         blank=True,
         default=False,
     )
+    ############
     administrative_units = models.ManyToManyField(
         AdministrativeUnit,
         verbose_name=_("administrative units"),
@@ -786,6 +788,68 @@ class UserProfile(AbstractUser):
 
     get_main_telephone.short_description = _("Telephone")
     get_main_telephone.admin_order_field = "telephone"
+
+
+@receiver(signals.m2m_changed, sender=UserProfile.administrative_units.through)
+def Userprofile_administrative_unit_changed(sender, **kwargs):
+    user = kwargs['instance']
+    for unit in user.administrative_units.all():
+        Preference.objects.get_or_create(
+            user=user,
+            administrative_unit=unit,
+        )
+
+
+class Preference(models.Model):
+    user = models.ForeignKey(
+        UserProfile,
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+    )
+    newsletter_on = models.NullBooleanField(
+        verbose_name=_("newsletter_on"),
+        null=True,
+        blank=True,
+        default=False,
+    )
+    call_on = models.NullBooleanField(
+        verbose_name=_("call_on"),
+        null=True,
+        blank=True,
+        default=False,
+    )
+    challenge_on = models.NullBooleanField(
+        verbose_name=_("challenge_on"),
+        null=True,
+        blank=True,
+        default=False,
+    )
+    letter_on = models.NullBooleanField(
+        verbose_name=_("letter_on"),
+        null=True,
+        blank=True,
+        default=False,
+    )
+    send_mailing_lists = models.BooleanField(
+        verbose_name=_("Sending of mailing lists allowed"),
+        default=True,
+    )
+    public = models.BooleanField(
+        verbose_name=_("Publish my name in the list of supporters"),
+        default=True,
+    )
+
+    administrative_unit = models.ForeignKey(
+        AdministrativeUnit,
+        verbose_name=_("administrative unit"),
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
+
+    def __str__(self):
+        return (self.administrative_unit.name)
 
 
 class Telephone(models.Model):
