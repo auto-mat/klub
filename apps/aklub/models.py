@@ -74,7 +74,31 @@ COMMUNICATION_METHOD = (
 
 
 class CustomUserManager(PolymorphicManager, UserManager):
-    pass
+
+    def create_user(self, email, password, **extra_fields):
+        if extra_fields.get('polymorphic_ctype_id', None):
+            from django.contrib.contenttypes.models import ContentType
+            ctype_id = extra_fields.pop('polymorphic_ctype_id')
+            self.model = ContentType.objects.get(id=ctype_id).model_class()
+        if not email:
+            raise ValueError(_('The Email must be set'))
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save()
+
+        return user
+
+    def create_superuser(self, email, password, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('is_active', True)
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError(_('Superuser must have is_staff=True.'))
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError(_('Superuser must have is_superuser=True.'))
+
+        return self.create_user(email, password, **extra_fields)
 
 
 class Result(models.Model):
@@ -447,6 +471,7 @@ class Profile(PolymorphicModel, AbstractUser):
             ('can_edit_all_units', _('Může editovat všechno ve všech administrativních jednotkách')),
         )
     objects = CustomUserManager()
+    REQUIRED_FIELDS = ['email', 'polymorphic_ctype_id']
     GENDER = (
         ('male', _('Male')),
         ('female', _('Female')),
