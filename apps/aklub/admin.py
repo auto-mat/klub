@@ -520,6 +520,11 @@ class UnitProfileChangeForm(UnitProfileAddForm):
     def clean(self):
         pass
 
+    def __init__(self, *args, **kwargs):
+        super(UnitUserAddForm, self).__init__(*args, **kwargs)
+        self.fields['administrative_units'].queryset = self.instance.administrative_units.all()
+        self.fields['administrative_units'].disabled = True
+
 
 class ProfileAdmin(
     filters.AdministrativeUnitAdminMixin,
@@ -537,6 +542,7 @@ class ProfileAdmin(
     list_display = (
         'person_name',
         'email',
+        'get_administrative_units',
         'addressment',
         'get_addressment',
         'get_last_name_vokativ',
@@ -546,7 +552,7 @@ class ProfileAdmin(
         'sex',
         'is_staff',
         'registered_support_date',
-        'event',
+        'get_event',
         'variable_symbol',
         'regular_payments_info',
         'regular_amount',
