@@ -19,6 +19,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 from django.contrib import admin as django_admin, auth
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory, TestCase
@@ -34,15 +35,38 @@ from .recipes import donor_payment_channel_recipe, user_profile_recipe
 from .utils import RunCommitHooksMixin
 from .utils import print_response  # noqa
 from .. import admin
-from ..models import (
-    AccountStatements, AutomaticCommunication, DonorPaymentChannel, Interaction, MassCommunication,
-    Profile, TaxConfirmation, UserYearPayments,
+from .. models import (
+    AccountStatements, AutomaticCommunication, DonorPaymentChannel, Interaction,
+    MassCommunication, Profile, TaxConfirmation, UserProfile, UserYearPayments,
 )
 
 
-class AdminSmokeTest(tests.AdminSiteSmokeTest):
+class CreateSuperUserMixin:
+
+    def setUp(self):
+        self.superuser = auth.get_user_model().objects.create_superuser(
+            username='testuser',
+            email='testuser@example.com',
+            password='foo',
+            polymorphic_ctype_id=ContentType.objects.get(model=UserProfile._meta.model_name).id,
+        )
+
+
+class AdminSmokeTest(CreateSuperUserMixin, tests.AdminSiteSmokeTest):
     fixtures = ['conditions', 'users']
     exclude_apps = ['helpdesk', 'postoffice', 'advanced_filters', 'celery_monitor']
+
+    def setUp(self):
+        super().setUp()
+        self.factory = RequestFactory()
+
+        if not self.modeladmins:
+            self.modeladmins = admin.site._registry.items()
+
+        try:
+            admin.autodiscover()
+        except Exception:
+            pass
 
     def post_request(self, post_data={}, params=None):
         request = self.factory.post('/', data=post_data)
@@ -56,14 +80,10 @@ class AdminSmokeTest(tests.AdminSiteSmokeTest):
 @override_settings(
     CELERY_ALWAYS_EAGER=True,
 )
-class AdminTest(RunCommitHooksMixin, TestCase):
+class AdminTest(CreateSuperUserMixin, RunCommitHooksMixin, TestCase):
     def setUp(self):
+        super().setUp()
         self.factory = RequestFactory()
-        self.superuser = auth.get_user_model().objects.create_superuser(
-            'testuser',
-            'testuser@example.com',
-            'foo',
-        )
 
     def get_request(self, params=None):
         request = self.factory.get('/', params)
@@ -306,7 +326,7 @@ class AdminTest(RunCommitHooksMixin, TestCase):
         self.assertEqual(response.url, "/aklub/automaticcommunication/%s/change/" % obj.id)
 
     def test_communication_changelist_post(self):
-        user_profile = mommy.make('Profile')
+        user_profile = mommy.make('aklub.UserProfile')
         model_admin = django_admin.site._registry[Interaction]
         request = self.get_request()
         response = model_admin.add_view(request)
@@ -381,17 +401,12 @@ class AdminTest(RunCommitHooksMixin, TestCase):
         self.assertEqual('Variabilní symboly úspěšně spárovány.', request._messages._queued_messages[0].message)
 
 
-class AdminImportExportTests(TestCase):
+class AdminImportExportTests(CreateSuperUserMixin, TestCase):
     fixtures = ['conditions', 'users', 'communications']
 
     def setUp(self):
         super().setUp()
-        self.user = Profile.objects.create_superuser(
-            username='admin',
-            email='test_user@test_user.com',
-            password='admin',
-        )
-        self.client.force_login(self.user)
+        self.client.force_login(self.superuser)
 
     def test_paymetnchannel_export(self):
         address = "/aklub/donorpaymentchannel/export/"

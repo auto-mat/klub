@@ -30,6 +30,7 @@ from django.test.utils import override_settings
 
 from model_mommy import mommy
 
+from .test_admin import CreateSuperUserMixin
 from .utils import print_response  # noqa
 from .. import views
 from ..models import DonorPaymentChannel, PetitionSignature, UserProfile
@@ -44,16 +45,12 @@ class ClearCacheMixin(object):
 @override_settings(
     MANAGERS=(('Manager', 'manager@test.com'),),
 )
-class ViewsTests(ClearCacheMixin, TestCase):
+class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
     fixtures = ['conditions', 'users', 'communications', 'dashboard_stats']
 
     def setUp(self):
-        self.user = UserProfile.objects.create_superuser(
-            username='admin',
-            email='test_user@test_user.com',
-            password='admin',
-        )
-        self.client.force_login(self.user)
+        super().setUp()
+        self.client.force_login(self.superuser)
 
     regular_post_data = {
         'userprofile-email': 'test@test.cz',
