@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from django.conf import settings
+# from django.conf import settings
 from django.test.runner import DiscoverRunner
 
 
@@ -29,5 +29,5 @@ class AklubTestSuiteRunner(DiscoverRunner):
             return "!!!!!empty string %s!!!!!" % other
 
     def __init__(self, *args, **kwargs):
-        settings.TEMPLATES[0]['OPTIONS']['string_if_invalid'] = self.InvalidStringError("%s")
+        # settings.TEMPLATES[0]['OPTIONS']['string_if_invalid'] = self.InvalidStringError("%s")
         super().__init__(*args, **kwargs)
