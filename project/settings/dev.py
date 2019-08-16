@@ -1,5 +1,5 @@
 from settings import *  # noqa
-from settings import ALLOWED_HOSTS, INSTALLED_APPS, LOGGING, MIDDLEWARE  # TEMPLATES
+from settings import ALLOWED_HOSTS, INSTALLED_APPS, LOGGING, MIDDLEWARE, TEMPLATES
 
 INSTALLED_APPS += (
     'debug_toolbar',
@@ -50,4 +50,4 @@ class InvalidStringError(str):
         return "!!!!!empty string %s!!!!!" % other
 
 
-# TEMPLATES[0]['OPTIONS']['string_if_invalid'] = InvalidStringError("%s")
+TEMPLATES[0]['OPTIONS']['string_if_invalid'] = InvalidStringError("%s")
