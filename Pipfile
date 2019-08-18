@@ -37,7 +37,7 @@ django-admin-tools-stats = {git = "https://github.com/areski/django-admin-tools-
 django-bower = "*"
 djcacheutils = "*"
 django-adminfilters = "<1.1"
-django-advanced-filters = "*"
+django-advanced-filters = {git = "https://github.com/tmszi/django-polymorphic", editable = true, ref = "fix_django_advanced_filters"}
 django-bulk-update = "*"
 django-extra-views = "*"
 django-sesame = "==1.4"
