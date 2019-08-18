@@ -37,7 +37,7 @@ django-admin-tools-stats = {git = "https://github.com/areski/django-admin-tools-
 django-bower = "*"
 djcacheutils = "*"
 django-adminfilters = "<1.1"
-django-advanced-filters = {git = "https://github.com/tmszi/django-polymorphic", editable = true, ref = "fix_django_advanced_filters"}
+django-advanced-filters = "*"
 django-bulk-update = "*"
 django-extra-views = "*"
 django-sesame = "==1.4"
@@ -72,7 +72,7 @@ newrelic = "*"
 django-nested-admin = "*"
 django_celery_monitor = {git = "https://github.com/peergradeio/django-celery-monitor",editable = true,ref = "django-2.2"}
 django_grapesjs = "*"
-django-polymorphic = "*"
+django-polymorphic = {git = "https://github.com/tmszi/django-polymorphic", editable = true, ref = "fix_django_advanced_filters"}
 django-stdnumfield = {git = "https://github.com/PetrDlouhy/django-stdnumfield.git", editable = true, ref = "mergeup"}
 
 [dev-packages]
