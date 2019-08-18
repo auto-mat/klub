@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "ea2a06f8184087c52f8a4a9703446e2c93cadfc34c47abdab49ecdde589e34f4"
+            "sha256": "5de1984dbb8d4b9df60397595b5c980ea118161f5ebb0bea4428874792221050"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -140,9 +140,12 @@
             "version": "==1.0.0"
         },
         "django-advanced-filters": {
-            "editable": true,
-            "git": "https://github.com/tmszi/django-polymorphic",
-            "ref": "5e7ccd35def01c6849bdbe795830af60d4b28c71"
+            "hashes": [
+                "sha256:3dc3af3b016b350adceb6458958238a5ed68cf90b579c315686129b3979bfcc7",
+                "sha256:4b1cd3bea31a95de20192c6ecf211263c90576d2d0630f44e928713e483cb3da"
+            ],
+            "index": "pypi",
+            "version": "==1.1.1"
         },
         "django-appconf": {
             "hashes": [
@@ -184,6 +187,13 @@
                 "sha256:f1cf649842c0cb28f8aa28617e99fc7fb7773bac4e8886ee4e36962a38c99a6e"
             ],
             "version": "==5.2.0"
+        },
+        "django-braces": {
+            "hashes": [
+                "sha256:a457d74ea29478123c0c4652272681b3cea0bf1232187fd9f9b6f1d97d32a890",
+                "sha256:ba68e98b817c6f01d71d10849f359979617b3fe4cefb7f289adefddced092ddc"
+            ],
+            "version": "==1.13.0"
         },
         "django-bulk-update": {
             "hashes": [
@@ -294,10 +304,10 @@
         },
         "django-jsonfield": {
             "hashes": [
-                "sha256:af7938ebf0eb945d29648d80bad4845973f1ab1d9fea67f65a963753e913e271",
-                "sha256:f357e196565daa503e914b6bdbeeaa104288a5e3b3f982a928a8de46f54e55ea"
+                "sha256:3b4be05bc57b3ab6e6a57ff1a18652a7aad473283c8df3390274a2d44e009c88",
+                "sha256:8d99b514a6da926f514d2ae834de126638d26cb71cca98f5f8bd2dd6321f200a"
             ],
-            "version": "==1.2.0"
+            "version": "==1.3.0"
         },
         "django-markdown-deux": {
             "hashes": [
@@ -334,6 +344,11 @@
                 "sha256:1ec0ba4c74fe84f4ce65d1246a4a471ddd51d7a2ed8f69c60d70229d41a06c63"
             ],
             "version": "==0.9.7"
+        },
+        "django-polymorphic": {
+            "editable": true,
+            "git": "https://github.com/tmszi/django-polymorphic",
+            "ref": "5e7ccd35def01c6849bdbe795830af60d4b28c71"
         },
         "django-post-office": {
             "hashes": [
