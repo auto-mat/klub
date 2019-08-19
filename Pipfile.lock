@@ -125,7 +125,7 @@
         "django-admin-tools-stats": {
             "editable": true,
             "git": "https://github.com/tmszi/django-admin-tools-stats.git",
-            "ref": "7610f5c09ab3657e6f6a479ace59352403c8d285"
+            "ref": "10b1102eb69e819f30873cc6ec6570098e0fbe6d"
         },
         "django-adminactions": {
             "editable": true,
