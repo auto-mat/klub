@@ -65,7 +65,7 @@ from .filters import unit_admin_mixin_generator
 from .forms import UserCreateForm, UserUpdateForm
 from .models import (
     AccountStatements, AdministrativeUnit, AutomaticCommunication, BankAccount, Condition, DonorPaymentChannel,
-    Event, Expense, Interaction, MassCommunication, NewUser, Payment, Recruiter,
+    Event, Expense, Interaction, MassCommunication, NewUser, Payment, Preference, Recruiter,
     Result, Source, TaxConfirmation, TaxConfirmationField,
     TaxConfirmationPdf, Telephone, TerminalCondition, UserBankAccount,
     UserProfile, UserYearPayments,
@@ -424,6 +424,29 @@ class UserProfileMergeForm(merge.MergeForm):
         fields = '__all__'
 
 
+class PreferenceInline(nested_admin.NestedStackedInline):
+    model = Preference
+    max_num = 0
+    extra = 0
+    can_delete = False
+    fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': (
+                ('public', 'send_mailing_lists'),
+                ('newsletter_on', 'call_on'),
+                ('challenge_on', 'letter_on'),
+            ),
+        }),
+    )
+
+    def get_queryset(self, request):
+        if not request.user.has_perm('aklub.can_edit_all_units'):
+            return Preference.objects.filter(administrative_unit__in=request.user.administrated_units.all())
+        else:
+            return super().get_queryset(request)
+
+
 class TelephoneInline(nested_admin.NestedTabularInline):
     model = Telephone
     extra = 0
@@ -488,12 +511,6 @@ class UnitUserAddForm(forms.ModelForm):
             'correspondence_zip_code',
             'addressment',
             'addressment_on_envelope',
-            'public',
-            'send_mailing_lists',
-            'newsletter_on',
-            'letter_on',
-            'call_on',
-            'challenge_on',
         )
         field_classes = {'username': UsernameField}
 
@@ -646,13 +663,6 @@ class UserProfileAdmin(
 
              ),
          }),
-        ('Preferences', {
-            'fields': (
-                ('public', 'send_mailing_lists', ),
-                ('newsletter_on', 'call_on', ),
-                ('challenge_on', 'letter_on', ),
-            ),
-        })
     )
 
     superuser_fieldsets = (
@@ -725,7 +735,7 @@ class UserProfileAdmin(
 
     readonly_fields = ('userattendance_links', 'date_joined', 'last_login', 'get_main_telephone')
     actions = (send_mass_communication_distinct_action,)
-    inlines = [TelephoneInline, DonorPaymentChannelInline, InteractionInline]
+    inlines = [PreferenceInline, TelephoneInline, DonorPaymentChannelInline, InteractionInline]
 
     def get_fieldsets(self, request, obj=None):
         if obj:
