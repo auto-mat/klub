@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "5de1984dbb8d4b9df60397595b5c980ea118161f5ebb0bea4428874792221050"
+            "sha256": "0501f3bf08a8cf2ab39fb6efc084d63b06c3c4319bb0a3e4d61d54ae9963a505"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -124,8 +124,8 @@
         },
         "django-admin-tools-stats": {
             "editable": true,
-            "git": "https://github.com/areski/django-admin-tools-stats",
-            "ref": "22e1b4399136777ada9e9c597f1f2bc7344d22ee"
+            "git": "https://github.com/tmszi/django-admin-tools-stats.git",
+            "ref": "7610f5c09ab3657e6f6a479ace59352403c8d285"
         },
         "django-adminactions": {
             "editable": true,

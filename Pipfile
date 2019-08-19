@@ -33,7 +33,7 @@ django-betterforms = "*"
 django-adminactions = {git = "https://github.com/saxix/django-adminactions.git",editable = true,ref = "develop"}
 django-helpdesk = {git = "https://github.com/auto-mat/django-helpdesk.git",editable = true,ref = "abs-paths"}
 django-admin-large-initial-data = "*"
-django-admin-tools-stats = {git = "https://github.com/areski/django-admin-tools-stats", editable = true, ref = "develop"}
+django-admin-tools-stats = {git = "https://github.com/tmszi/django-admin-tools-stats.git", editable = true, ref = "fix_create_dict_obj_from_str"}
 django-bower = "*"
 djcacheutils = "*"
 django-adminfilters = "<1.1"
