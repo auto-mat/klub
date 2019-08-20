@@ -40,7 +40,8 @@ except ImportError:  # Django<2.0
     from django.core.urlresolvers import reverse
 from django.core.validators import MaxValueValidator, RegexValidator
 from django.db import models, transaction
-from django.db.models import Count, Q, Sum
+from django.db.models import Count, Q, Sum, signals
+from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.html import format_html, mark_safe
 from django.utils.text import format_lazy
@@ -586,7 +587,7 @@ class Profile(PolymorphicModel, AbstractUser):
         blank=True,
     )
     public = models.BooleanField(
-        verbose_name=_("Publish my name in the list of supporters"),
+        verbose_name=_("DEPRECATED FIELD"),
         default=True,
     )
     profile_text = models.TextField(
@@ -640,7 +641,7 @@ class Profile(PolymorphicModel, AbstractUser):
         null=True,
     )
     send_mailing_lists = models.BooleanField(
-        verbose_name=_("Sending of mailing lists allowed"),
+        verbose_name=_("DEPRECATED FIELD"),
         default=True,
     )
     age_group = models.PositiveIntegerField(
@@ -662,25 +663,25 @@ class Profile(PolymorphicModel, AbstractUser):
         choices=[(i, i) for i in range(1, 32)],
     )
     newsletter_on = models.NullBooleanField(
-        verbose_name=_("newsletter_on"),
+        verbose_name=_("DEPRECATED FIELD"),
         null=True,
         blank=True,
         default=False,
     )
     call_on = models.NullBooleanField(
-        verbose_name=_("call_on"),
+        verbose_name=_("DEPRECATED FIELD"),
         null=True,
         blank=True,
         default=False,
     )
     challenge_on = models.NullBooleanField(
-        verbose_name=_("challenge_on"),
+        verbose_name=_("DEPRECATED FIELD"),
         null=True,
         blank=True,
         default=False,
     )
     letter_on = models.NullBooleanField(
-        verbose_name=_("letter_on"),
+        verbose_name=_("DEPRECATED FIELD"),
         null=True,
         blank=True,
         default=False,
@@ -856,6 +857,68 @@ class UserProfile(Profile):
         max_length=50,
         default='unknown',
     )
+
+
+@receiver(signals.m2m_changed, sender=UserProfile.administrative_units.through)
+def Userprofile_administrative_unit_changed(sender, **kwargs):
+    user = kwargs['instance']
+    for unit in user.administrative_units.all():
+        Preference.objects.get_or_create(
+            user=user,
+            administrative_unit=unit,
+        )
+
+
+class Preference(models.Model):
+    user = models.ForeignKey(
+        UserProfile,
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+    )
+    newsletter_on = models.NullBooleanField(
+        verbose_name=_("newsletter_on"),
+        null=True,
+        blank=True,
+        default=False,
+    )
+    call_on = models.NullBooleanField(
+        verbose_name=_("call_on"),
+        null=True,
+        blank=True,
+        default=False,
+    )
+    challenge_on = models.NullBooleanField(
+        verbose_name=_("challenge_on"),
+        null=True,
+        blank=True,
+        default=False,
+    )
+    letter_on = models.NullBooleanField(
+        verbose_name=_("letter_on"),
+        null=True,
+        blank=True,
+        default=False,
+    )
+    send_mailing_lists = models.BooleanField(
+        verbose_name=_("Sending of mailing lists allowed"),
+        default=True,
+    )
+    public = models.BooleanField(
+        verbose_name=_("Publish my name in the list of supporters"),
+        default=True,
+    )
+
+    administrative_unit = models.ForeignKey(
+        AdministrativeUnit,
+        verbose_name=_("administrative unit"),
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
+
+    def __str__(self):
+        return (self.administrative_unit.name)
 
 
 class Telephone(models.Model):

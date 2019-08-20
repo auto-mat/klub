@@ -67,9 +67,10 @@ from .filters import unit_admin_mixin_generator
 from .forms import UserCreateForm, UserUpdateForm
 from .models import (
     AccountStatements, AdministrativeUnit, AutomaticCommunication, BankAccount, CompanyProfile, Condition,
-    DonorPaymentChannel, Event, Expense, Interaction, MassCommunication, NewUser, Payment, Profile, Recruiter,
-    Result, Source, TaxConfirmation, TaxConfirmationField, TaxConfirmationPdf, Telephone, TerminalCondition,
-    UserBankAccount, UserProfile,  UserYearPayments,
+    DonorPaymentChannel, Event, Expense, Interaction, MassCommunication, NewUser, Payment, Preference, Profile, Recruiter,
+    Result, Source, TaxConfirmation, TaxConfirmationField,
+    TaxConfirmationPdf, Telephone, TerminalCondition, UserBankAccount,
+    UserProfile, UserYearPayments,
 )
 
 
@@ -127,8 +128,8 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
         'get_sum_amount',
         'get_payment_count',
         'get_last_payment_date',
+        'get_payment_details',
     )
-
     fieldsets = (
         (None, {
             'classes': ('wide',),
@@ -140,6 +141,7 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
                     'get_sum_amount',
                     'get_payment_count',
                     'get_last_payment_date',
+                    'get_payment_details',
                 ),
             ),
         }),
@@ -165,7 +167,18 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
 
     def get_last_payment_date(self, obj):
         return obj.last_payment_date
-    get_last_payment_date.short_description = _('Total last payment date')
+    get_last_payment_date.short_description = _('Last payment date')
+
+    def get_payment_details(self, obj):
+        url = reverse('admin:aklub_donorpaymentchannel_change', args=(obj.pk,))
+        if obj.pk:
+            redirect_button = mark_safe(
+                                f"<a href='{url}'><input type='button' value='Details'></a>"
+                                )
+        else:
+            redirect_button = None
+        return redirect_button
+    get_payment_details.short_description = _('Payment Details')
 
     def get_queryset(self, request):
         if not request.user.has_perm('aklub.can_edit_all_units'):
@@ -413,6 +426,29 @@ class ProfileMergeForm(merge.MergeForm):
         fields = '__all__'
 
 
+class PreferenceInline(nested_admin.NestedStackedInline):
+    model = Preference
+    max_num = 0
+    extra = 0
+    can_delete = False
+    fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': (
+                ('public', 'send_mailing_lists'),
+                ('newsletter_on', 'call_on'),
+                ('challenge_on', 'letter_on'),
+            ),
+        }),
+    )
+
+    def get_queryset(self, request):
+        if not request.user.has_perm('aklub.can_edit_all_units'):
+            return Preference.objects.filter(administrative_unit__in=request.user.administrated_units.all())
+        else:
+            return super().get_queryset(request)
+
+
 class TelephoneInline(nested_admin.NestedTabularInline):
     model = Telephone
     extra = 0
@@ -477,12 +513,6 @@ class UnitProfileAddForm(forms.ModelForm):
             'correspondence_zip_code',
             'addressment',
             'addressment_on_envelope',
-            'public',
-            'send_mailing_lists',
-            'newsletter_on',
-            'letter_on',
-            'call_on',
-            'challenge_on',
         )
         field_classes = {'username': UsernameField}
 
@@ -717,6 +747,7 @@ class DonorPaymethChannelAdmin(
     ImportExportMixin,
     AdminAdvancedFiltersMixin,
     RelatedFieldAdmin,
+    nested_admin.NestedModelAdmin,
 ):
     list_display = (
         'person_name',
@@ -787,7 +818,7 @@ class DonorPaymethChannelAdmin(
     save_as = True
     list_max_show_all = 10000
     list_per_page = 100
-    # inlines = [PaymentsInline, InteractionInline]
+    inlines = (PaymentsInline, )
     raw_id_fields = (
         'user',
         # 'recruiter',
@@ -1442,7 +1473,7 @@ class BaseChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelAdmin):
     )
 
     actions = (send_mass_communication_distinct_action,)
-    inlines = [TelephoneInline, DonorPaymentChannelInline, InteractionInline]
+    inlines = [PreferenceInline, TelephoneInline, DonorPaymentChannelInline, InteractionInline]
 
 
 @admin.register(UserProfile)
