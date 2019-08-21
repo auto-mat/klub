@@ -859,7 +859,7 @@ class UserProfile(Profile):
     )
 
 
-@receiver(signals.m2m_changed, sender=UserProfile.administrative_units.through)
+@receiver(signals.m2m_changed, sender=Profile.administrative_units.through)
 def Userprofile_administrative_unit_changed(sender, **kwargs):
     user = kwargs['instance']
     for unit in user.administrative_units.all():
@@ -871,7 +871,7 @@ def Userprofile_administrative_unit_changed(sender, **kwargs):
 
 class Preference(models.Model):
     user = models.ForeignKey(
-        UserProfile,
+        Profile,
         blank=True,
         null=True,
         on_delete=models.CASCADE,
