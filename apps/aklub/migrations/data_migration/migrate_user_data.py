@@ -7,7 +7,7 @@ USER_PROFILE_MODEL_DATA = []
 
 
 def get_user_model_data(apps, schema_editor):
-    """Copy exist user model data before change model name/structure
+    """Copy existing user model data before changing model name/structure
     old model UserProfile -> new model Profile
     """
     user_profile_model = apps.get_model('aklub', 'UserProfile')
@@ -34,9 +34,8 @@ def get_user_model_data(apps, schema_editor):
 
             
 def set_user_model_data(apps, schema_editor):
-    """Fullfill new model Profile with old UserProfile model data"""
+    """Create Profile model with old UserProfile data"""
     profile_model = apps.get_model('aklub', 'Profile')
-    user_profile_model = apps.get_model('aklub', 'UserProfile')
     for user in USER_PROFILE_MODEL_DATA:
         new_model = profile_model(**user)
         new_model.save()
