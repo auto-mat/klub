@@ -38,7 +38,7 @@ try:
     from django.urls import reverse
 except ImportError:  # Django<2.0
     from django.core.urlresolvers import reverse
-from django.core.validators import MaxValueValidator, RegexValidator
+from django.core.validators import RegexValidator
 from django.db import models, transaction
 from django.db.models import Count, Q, Sum, signals
 from django.dispatch import receiver
@@ -81,8 +81,6 @@ class CustomUserManager(PolymorphicManager, UserManager):
         if extra_fields.get('polymorphic_ctype_id', None):
             ctype_id = extra_fields.pop('polymorphic_ctype_id')
             model = ContentType.objects.get(id=ctype_id).model_class()
-            if model._meta.model_name == CompanyProfile._meta.model_name:
-                extra_fields['crn'] = 1111111  # null constrain
         if not email:
             raise ValueError(_('The Email must be set'))
         email = self.normalize_email(email)
@@ -828,16 +826,22 @@ class Profile(PolymorphicModel, AbstractUser):
         return event
 
 
+CRN_ERROR_MESSAGE = _("CRN format is incorrect. Check that the number has eight digits, and if necessary, add zeros from the left.")
+
+
 class CompanyProfile(Profile):
     class Meta:
         verbose_name = _("Company profile")
         verbose_name_plural = _("Company profiles")
 
-    crn = models.IntegerField(
-        validators=[MaxValueValidator(99999999)],
-        blank=False,
-        null=False,
-        verbose_name=_("Company Registration Number"),
+    crn = StdNumField(
+        'cz.dic',
+        default=11111111,
+        verbose_name=_(u"Company Registration Number"),
+        validators=[RegexValidator(r'^[0-9]{8}$', _('CRN must be integer number'))],
+        error_messages={'stdnum_format': CRN_ERROR_MESSAGE},
+        blank=True,
+        null=True,
     )
 
 
