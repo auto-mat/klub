@@ -1376,7 +1376,7 @@ class AdministrativeUnitAdmin(admin.ModelAdmin):
     list_display = ('name', 'ico')
 
 
-class BaseChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelAdmin):
+class BaseProfileChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelAdmin):
     """Base admin class for all Profile child models"""
     merge_form = ProfileMergeForm
     add_form = UserCreateForm
@@ -1477,13 +1477,13 @@ class BaseChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelAdmin):
 
 
 @admin.register(UserProfile)
-class UserProfileAdmin(BaseChildAdmin):
+class UserProfileAdmin(BaseProfileChildAdmin):
     base_model = UserProfile
     show_in_index = False  # makes child model admin visible in main admin site
 
 
 @admin.register(CompanyProfile)
-class CompanyProfileAdmin(BaseChildAdmin):
+class CompanyProfileAdmin(BaseProfileChildAdmin):
     base_model = CompanyProfile
     show_in_index = False
     add_fieldsets = (
