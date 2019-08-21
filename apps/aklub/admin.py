@@ -1377,7 +1377,7 @@ class AdministrativeUnitAdmin(admin.ModelAdmin):
 
 
 class BaseChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelAdmin):
-    """ Base admin class for all child models """
+    """Base admin class for all Profile child models"""
     merge_form = ProfileMergeForm
     add_form = UserCreateForm
     base_form = UserUpdateForm
