@@ -95,7 +95,6 @@ class ModelTests(TestCase):
 
 class CommunicationTest(TestCase):
     def setUp(self):
-        print("SETUP")
         self.userprofile = UserProfile.objects.create(sex='male', email="test@test.cz")
         self.campaign = Event.objects.create(created=datetime.date(2010, 10, 10))
 
