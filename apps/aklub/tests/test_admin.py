@@ -459,7 +459,7 @@ class AdminTest(CreateSuperUserMixin, RunCommitHooksMixin, TestCase):
                 if 'sex' in (f.name for f in child_model._meta.fields):
                     profile_post_data.update({'sex': 'male'})
                 if 'crn' in (f.name for f in child_model._meta.fields):
-                    profile_post_data.update({'crn': 25123891})
+                    profile_post_data.update({'crn': '00000000'})
                 profile_post_data.update(managementform_data)
 
                 view_method = getattr(model_admin, view_method_name)
