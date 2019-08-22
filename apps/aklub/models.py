@@ -82,7 +82,7 @@ class CustomUserManager(PolymorphicManager, UserManager):
             ctype_id = extra_fields.pop('polymorphic_ctype_id')
             model = ContentType.objects.get(id=ctype_id).model_class()
             if model._meta.model_name == CompanyProfile._meta.model_name:
-                extra_fields['crn'] = 25123891  # null constrain, random valid value
+                extra_fields['crn'] = '00000000'  # null constrain, random valid value
         if not email:
             raise ValueError(_('The Email must be set'))
         email = self.normalize_email(email)
@@ -828,21 +828,14 @@ class Profile(PolymorphicModel, AbstractUser):
         return event
 
 
-CRN_ERROR_MESSAGE = _("CRN format is incorrect. Check that the number has eight digits, and if necessary, add zeros from the left.")
-
-
 class CompanyProfile(Profile):
     class Meta:
         verbose_name = _("Company profile")
         verbose_name_plural = _("Company profiles")
 
-    crn = StdNumField(
-        'cz.dic',
+    crn = models.CharField(
+        max_length=20,
         verbose_name=_(u"Company Registration Number"),
-        validators=[RegexValidator(r'^[0-9]*$', _('CRN must be integer number'))],
-        error_messages={'stdnum_format': CRN_ERROR_MESSAGE},
-        blank=True,
-        null=True,
     )
 
 
