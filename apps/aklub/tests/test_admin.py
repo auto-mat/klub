@@ -19,6 +19,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 from django.contrib import admin as django_admin, auth
+from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -399,6 +400,100 @@ class AdminTest(CreateSuperUserMixin, RunCommitHooksMixin, TestCase):
         payment.refresh_from_db()
         self.assertEqual(payment.user_donor_payment_channel, payment_channel)
         self.assertEqual('Variabilní symboly úspěšně spárovány.', request._messages._queued_messages[0].message)
+
+    def test_profile_post(self):
+        model_admin = django_admin.site._registry[Group]
+        request = self.get_request()
+        response = model_admin.add_view(request)
+        self.assertEqual(response.status_code, 200)
+
+        group_post_data = {
+            'name': 'test',
+            'permissions': 1,
+        }
+        request = self.post_request(post_data=group_post_data)
+        response = model_admin.add_view(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Group.objects.count(), 1)
+
+        managementform_data = {
+            'preference_set-TOTAL_FORMS': 0,
+            'preference_set-INITIAL_FORMS': 0,
+            'preference_set-MIN_NUM_FORMS': 0,
+            'preference_set-MAX_NUM_FORMS': 0,
+            'telephone_set-TOTAL_FORMS': 0,
+            'telephone_set-INITIAL_FORMS': 0,
+            'telephone_set-MIN_NUM_FORMS': 0,
+            'telephone_set-MAX_NUM_FORMS': 1000,
+            'userchannels-TOTAL_FORMS': 0,
+            'userchannels-INITIAL_FORMS': 0,
+            'userchannels-MIN_NUM_FORMS': 0,
+            'userchannels-MAX_NUM_FORMS': 1000,
+            'interaction_set-TOTAL_FORMS': 0,
+            'interaction_set-INITIAL_FORMS': 0,
+            'interaction_set-MIN_NUM_FORMS': 0,
+            'interaction_set-MAX_NUM_FORMS': 1000,
+        }
+
+        actions = ['add_view', 'change_view']
+        child_models = Profile.__subclasses__()
+
+        for child_model in child_models:
+            model_admin = django_admin.site._registry[child_model]
+            request = self.get_request()
+            response = model_admin.add_view(request)
+            self.assertEqual(response.status_code, 200)
+
+            for view_method_name in actions:
+                action = view_method_name.split('_')[0]
+                model_name = child_model._meta.model_name
+                test_str = '{}.{}'.format(action, model_name)
+                profile_post_data = {
+                    'username': '{}'.format(test_str),
+                    'email': '{0}@{0}.test'.format(test_str),
+                    'language': 'cs',
+                    'is_staff': 'on',
+                    'groups': Group.objects.get().id,
+                }
+
+                if 'sex' in (f.name for f in child_model._meta.fields):
+                    profile_post_data.update({'sex': 'male'})
+                if 'crn' in (f.name for f in child_model._meta.fields):
+                    profile_post_data.update({'crn': 25123891})
+                profile_post_data.update(managementform_data)
+
+                view_method = getattr(model_admin, view_method_name)
+                request = self.post_request(post_data=profile_post_data)
+
+                if action == 'change':
+                    user_id = str(Profile.objects.get(username='add.{}'.format(model_name)).id)
+                    response = view_method(request, object_id=user_id)
+                else:
+                    response = view_method(request)
+
+                self.assertEqual(response.status_code, 302)
+
+                user = Profile.objects.get(username='{}'.format(test_str))
+                group_id = user.groups.all().values_list("id", flat=True)[0]
+
+                self.assertEqual(user.username, profile_post_data['username'])
+                self.assertEqual(user.email, profile_post_data['email'])
+                self.assertEqual(user.is_staff, True)
+                self.assertEqual(group_id, profile_post_data['groups'])
+
+        new_users = Profile.objects.exclude(username=self.superuser.username)
+        self.assertEqual(new_users.count(), len(child_models))
+
+        for user in new_users:
+            model_admin = django_admin.site._registry[user._meta.model]
+            delete_post_data = {
+                'submit': 'Ano, jsem si jist(a)',
+            }
+            request = self.post_request(post_data=delete_post_data)
+            response = model_admin.delete_view(request, object_id=str(user.id))
+            self.assertEqual(response.status_code, 302)
+
+        self.assertEqual(Profile.objects.exclude(username=self.superuser.username).count(), 0)
 
 
 class AdminImportExportTests(CreateSuperUserMixin, TestCase):
