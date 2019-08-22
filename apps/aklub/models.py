@@ -836,9 +836,9 @@ class CompanyProfile(Profile):
 
     crn = StdNumField(
         'cz.dic',
-        default=11111111,
+        default=25123891,
         verbose_name=_(u"Company Registration Number"),
-        validators=[RegexValidator(r'^[0-9]{8}$', _('CRN must be integer number'))],
+        validators=[RegexValidator(r'^[0-9]$', _('CRN must be integer number'))],
         error_messages={'stdnum_format': CRN_ERROR_MESSAGE},
         blank=True,
         null=True,
