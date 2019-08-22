@@ -81,6 +81,8 @@ class CustomUserManager(PolymorphicManager, UserManager):
         if extra_fields.get('polymorphic_ctype_id', None):
             ctype_id = extra_fields.pop('polymorphic_ctype_id')
             model = ContentType.objects.get(id=ctype_id).model_class()
+            if model._meta.model_name == CompanyProfile._meta.model_name:
+                extra_fields['crn'] = 25123891  # null constrain, random valid value
         if not email:
             raise ValueError(_('The Email must be set'))
         email = self.normalize_email(email)
@@ -836,9 +838,8 @@ class CompanyProfile(Profile):
 
     crn = StdNumField(
         'cz.dic',
-        default=25123891,
         verbose_name=_(u"Company Registration Number"),
-        validators=[RegexValidator(r'^[0-9]$', _('CRN must be integer number'))],
+        validators=[RegexValidator(r'^[0-9]*$', _('CRN must be integer number'))],
         error_messages={'stdnum_format': CRN_ERROR_MESSAGE},
         blank=True,
         null=True,

@@ -15,6 +15,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='companyprofile',
             name='crn',
-            field=stdnumfield.models.StdNumField(alphabets=[None], blank=True, default=11111111, error_messages={'stdnum_format': 'CRN format is incorrect. Check that the number has eight digits, and if necessary, add zeros from the left.'}, formats=['cz.dic'], null=True, validators=[django.core.validators.RegexValidator('^[0-9]{8}$', 'CRN must be integer number')], verbose_name='Company Registration Number'),
+            field=stdnumfield.models.StdNumField(alphabets=[None], blank=True, error_messages={'stdnum_format': 'CRN format is incorrect. Check that the number has eight digits, and if necessary, add zeros from the left.'}, formats=['cz.dic'], null=True, validators=[django.core.validators.RegexValidator('^[0-9]*$', 'CRN must be integer number')], verbose_name='Company Registration Number'),
         ),
     ]
