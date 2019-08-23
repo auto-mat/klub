@@ -55,6 +55,8 @@ import large_initial
 
 import nested_admin
 
+from polymorphic.admin import PolymorphicChildModelAdmin, PolymorphicParentModelAdmin
+
 from related_admin import RelatedFieldAdmin
 
 from smmapdfs.actions import make_pdfsandwich
@@ -64,8 +66,8 @@ from . import darujme, filters, mailing, tasks
 from .filters import unit_admin_mixin_generator
 from .forms import UserCreateForm, UserUpdateForm
 from .models import (
-    AccountStatements, AdministrativeUnit, AutomaticCommunication, BankAccount, Condition, DonorPaymentChannel,
-    Event, Expense, Interaction, MassCommunication, NewUser, Payment, Preference, Recruiter,
+    AccountStatements, AdministrativeUnit, AutomaticCommunication, BankAccount, CompanyProfile, Condition,
+    DonorPaymentChannel, Event, Expense, Interaction, MassCommunication, NewUser, Payment, Preference, Profile, Recruiter,
     Result, Source, TaxConfirmation, TaxConfirmationField,
     TaxConfirmationPdf, Telephone, TerminalCondition, UserBankAccount,
     UserProfile, UserYearPayments,
@@ -305,7 +307,7 @@ def send_mass_communication_action(self, request, queryset, distinct=False):
     queryset and redirect us to insert form for mass communications
     with the send_to_users M2M field prefilled with these
     users."""
-    if queryset.model is UserProfile:
+    if queryset.model is Profile:
         queryset = DonorPaymentChannel.objects.filter(user__in=queryset)
     if distinct:
         queryset = queryset.order_by('user__id').distinct('user')
@@ -327,9 +329,9 @@ def send_mass_communication_distinct_action(self, req, queryset, distinct=False)
 send_mass_communication_distinct_action.short_description = _("Send mass communication withoud duplicities")
 
 
-class UserProfileResource(ModelResource):
+class ProfileResource(ModelResource):
     class Meta:
-        model = UserProfile
+        model = Profile
         exclude = ('id', 'is_superuser', 'is_staff', 'administrated_units')
         import_id_fields = ('email', )
         export_order = ('administrative_units', 'email')
@@ -413,14 +415,14 @@ class UserProfileResource(ModelResource):
             field.save(obj, data, is_m2m)
 
 
-class UserProfileMergeForm(merge.MergeForm):
+class ProfileMergeForm(merge.MergeForm):
     def __init__(self, *args, **kwargs):
         ret_val = super().__init__(*args, **kwargs)
         self.fields['sex'].required = False
         return ret_val
 
     class Meta:
-        model = UserProfile
+        model = Profile
         fields = '__all__'
 
 
@@ -482,11 +484,11 @@ class UserBankAccountAdmin(admin.ModelAdmin):
     )
 
 
-class UnitUserAddForm(forms.ModelForm):
+class UnitProfileAddForm(forms.ModelForm):
     username = forms.CharField(required=False,)
 
     class Meta:
-        model = UserProfile
+        model = Profile
         fields = (
             'username',
             'first_name',
@@ -494,7 +496,7 @@ class UnitUserAddForm(forms.ModelForm):
             'title_before',
             'title_after',
             'email',
-            'sex',
+            # 'sex',
             'birth_day',
             'birth_month',
             'age_group',
@@ -518,7 +520,7 @@ class UnitUserAddForm(forms.ModelForm):
         if self.cleaned_data['email'] is None:
             return super().clean()
         try:
-            user = UserProfile.objects.get(email=self.cleaned_data['email'])
+            user = Profile.objects.get(email=self.cleaned_data['email'])
             administrated_unit = AdministrativeUnit.objects.get(id=self.request.user.administrated_units.first().id)
             user.administrative_units.add(administrated_unit)
             user.save()
@@ -529,7 +531,7 @@ class UnitUserAddForm(forms.ModelForm):
                     _(f'<a href="{url}">User with this email already exist in database and is available now, click here to edit</a>'),
                 ),
             )
-        except UserProfile.DoesNotExist:
+        except Profile.DoesNotExist:
             pass
 
         return super().clean()
@@ -540,30 +542,32 @@ class UnitUserAddForm(forms.ModelForm):
         self.fields['administrative_units'].required = True
 
 
-class UnitUserChangeForm(UnitUserAddForm):
+class UnitProfileChangeForm(UnitProfileAddForm):
 
-    class Meta(UnitUserAddForm.Meta):
+    class Meta(UnitProfileAddForm.Meta):
         pass
 
     def clean(self):
         pass
 
     def __init__(self, *args, **kwargs):
-        super(UnitUserAddForm, self).__init__(*args, **kwargs)
+        super(UnitProfileAddForm, self).__init__(*args, **kwargs)
         self.fields['administrative_units'].queryset = self.instance.administrative_units.all()
         self.fields['administrative_units'].disabled = True
 
 
-class UserProfileAdmin(
+class ProfileAdmin(
     filters.AdministrativeUnitAdminMixin,
     ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFiltersMixin,
-    UserAdmin, nested_admin.NestedModelAdmin,
+    UserAdmin, nested_admin.NestedModelAdmin, PolymorphicParentModelAdmin,
 ):
-    resource_class = UserProfileResource
+    resource_class = ProfileResource
     import_template_name = "admin/import_export/userprofile_import.html"
-    merge_form = UserProfileMergeForm
-    add_form = UserCreateForm
-    form = UserUpdateForm
+    # merge_form = UserMergeForm
+    # add_form = UserCreateForm
+    # form = UserUpdateForm
+    base_model = Profile
+    child_models = (UserProfile, CompanyProfile)
 
     list_display = (
         'person_name',
@@ -594,7 +598,8 @@ class UserProfileAdmin(
         'first_name',
         'last_name',
         'title_after',
-        'sex',
+        'userprofile__sex',
+        'companyprofile__crn',
         'is_staff',
         'date_joined',
         'last_login',
@@ -624,60 +629,6 @@ class UserProfileAdmin(
         filters.NameFilter,
     )
 
-    add_fieldsets = (
-        (_('Personal data'), {
-            'classes': ('wide',),
-            'fields': (
-                'username', ('first_name', 'last_name'), 'email', 'sex',
-                ('birth_day', 'birth_month', 'age_group'),
-                'administrative_units',
-            ),
-        }),
-    )
-
-    edit_fieldsets = (
-        (_('Personal data'), {
-            'classes': ('wide',),
-            'fields': (
-                'username', ('first_name', 'last_name'), ('title_before', 'title_after'), 'email', 'sex',
-                ('birth_day', 'birth_month', 'age_group'),
-                'get_main_telephone',
-                'note',
-                'administrative_units',
-            ),
-        }),
-        (_('Contact data'), {
-            'classes': ('wide', ),
-            'fields': [
-                ('street', 'city',),
-                ('country', 'zip_code'),
-                ('addressment', 'addressment_on_envelope'),
-                'different_correspondence_address',
-            ],
-        }),
-        (_('correspondence_address'), {
-             'classes': ('collapse',),
-             'fields': (
-                 ('correspondence_street', 'correspondence_city',),
-                 ('correspondence_country', 'correspondence_zip_code'),
-
-             ),
-         }),
-    )
-
-    superuser_fieldsets = (
-        (_('Rights and permissions'), {
-            'classes': ('collapse',),
-            'fields': [
-                ('password',),
-                ('is_staff', 'is_superuser'),
-                'groups',
-                'administrated_units',
-            ],
-        }
-        ),
-    )
-
     ordering = ('email',)
     filter_horizontal = ('groups', 'user_permissions',)
 
@@ -687,10 +638,10 @@ class UserProfileAdmin(
             form.request = request
             return form
         if obj is None:
-            form = UnitUserAddForm
+            form = UnitProfileAddForm
             form.request = request
             return form
-        form = UnitUserChangeForm
+        form = UnitProfileChangeForm
         form.request = request
         return form
 
@@ -708,7 +659,7 @@ class UserProfileAdmin(
     registered_support_date.admin_order_field = 'registered_support'
 
     def event(self, obj):
-        result = UserProfile.objects.get(id=obj.id)
+        result = Profile.objects.get(id=obj.id)
         donors = result.userchannels.select_related().all()
         return [e.event for e in donors]
 
@@ -733,48 +684,18 @@ class UserProfileAdmin(
     regular_amount.short_description = _("Regular amount")
     regular_amount.admin_order_field = 'regular_amount'
 
-    readonly_fields = ('userattendance_links', 'date_joined', 'last_login', 'get_main_telephone')
-    actions = (send_mass_communication_distinct_action,)
-    inlines = [PreferenceInline, TelephoneInline, DonorPaymentChannelInline, InteractionInline]
+    def sex(self, obj):
+        return self.sex if hasattr(obj, 'sex') else 'Company'
 
-    def get_fieldsets(self, request, obj=None):
-        if obj:
-            fieldsets = self.edit_fieldsets
-        else:
-            fieldsets = self.add_fieldsets
-        if request.user.is_superuser and self.superuser_fieldsets:
-            return fieldsets + self.superuser_fieldsets
-        else:
-            return fieldsets
-        super().get_fieldsets(request, obj)
-
-    def save_formset(self, request, form, formset, change):
-        formset.save()
-        if issubclass(formset.model, DonorPaymentChannel):
-            for f in formset.forms:
-                obj = f.instance
-                obj.generate_VS()
-
-        if issubclass(formset.model, Interaction):
-            for f in formset.forms:
-                obj = f.instance
-                if not obj.created_by:
-                    obj.created_by = request.user
-                obj.handled_by = request.user
-
-        return super().save_formset(request, form, formset, change)
-
-    def get_formsets_with_inlines(self, request, obj=None):
-        for inline in self.get_inline_instances(request, obj):
-            inline.form.request = request
-            yield inline.get_formset(request, obj), inline
+    sex.short_description = _("Gender")
+    sex.admin_order_field = 'sex'
 
 
 class DonorPaymentChannelResource(ModelResource):
     user_email = fields.Field(
         column_name='user_email',
         attribute='user',
-        widget=widgets.ForeignKeyWidget(UserProfile, 'email'),
+        widget=widgets.ForeignKeyWidget(Profile, 'email'),
     )
 
     class Meta:
@@ -787,7 +708,7 @@ class DonorPaymentChannelResource(ModelResource):
             'user__first_name',
             'user__last_name',
             'user__title_after',
-            'user__sex',
+            'user__userprofile__sex',
             # 'userprofile__telephone',
             'user_email',
             'user__street',
@@ -1455,6 +1376,161 @@ class AdministrativeUnitAdmin(admin.ModelAdmin):
     list_display = ('name', 'ico')
 
 
+class BaseProfileChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelAdmin):
+    """Base admin class for all Profile child models"""
+    merge_form = ProfileMergeForm
+    add_form = UserCreateForm
+    base_form = UserUpdateForm
+    add_fieldsets = (
+        (_('Personal data'), {
+            'classes': ('wide',),
+            'fields': (
+                'username', ('first_name', 'last_name'), 'email', 'sex',
+                ('birth_day', 'birth_month', 'age_group'),
+                'administrative_units',
+                'language',
+            ),
+        }),
+    )
+
+    edit_fieldsets = (
+        (_('Personal data'), {
+            'classes': ('wide',),
+            'fields': (
+                'username', ('first_name', 'last_name'), ('title_before', 'title_after'), 'email', 'sex',
+                ('birth_day', 'birth_month', 'age_group'),
+                'get_main_telephone',
+                'note',
+                'administrative_units',
+                'language',
+            ),
+        }),
+        (_('Contact data'), {
+            'classes': ('wide', ),
+            'fields': [
+                ('street', 'city',),
+                ('country', 'zip_code'),
+                'different_correspondence_address',
+                ('addressment', 'addressment_on_envelope'),
+            ],
+        }
+         ),
+        ('Preferences', {
+            'fields': (
+                ('public', 'send_mailing_lists', ),
+                ('newsletter_on', 'call_on', ),
+                ('challenge_on', 'letter_on', ),
+            ),
+        })
+    )
+
+    superuser_fieldsets = (
+        (_('Rights and permissions'), {
+            'classes': ('collapse',),
+            'fields': [
+                ('password',),
+                ('is_staff', 'is_superuser'),
+                'groups',
+                'administrated_units',
+            ],
+        }
+        ),
+    )
+
+    def get_fieldsets(self, request, obj=None):
+        if obj:
+            fieldsets = self.edit_fieldsets
+        else:
+            fieldsets = self.add_fieldsets
+        if request.user.is_superuser and self.superuser_fieldsets:
+            return fieldsets + self.superuser_fieldsets
+        else:
+            return fieldsets
+        super().get_fieldsets(request, obj)
+
+    def save_formset(self, request, form, formset, change):
+        formset.save()
+        if issubclass(formset.model, DonorPaymentChannel):
+            for f in formset.forms:
+                obj = f.instance
+                obj.generate_VS()
+
+        if issubclass(formset.model, Interaction):
+            for f in formset.forms:
+                obj = f.instance
+                if not obj.created_by:
+                    obj.created_by = request.user
+                obj.handled_by = request.user
+
+        return super().save_formset(request, form, formset, change)
+
+    def get_formsets_with_inlines(self, request, obj=None):
+        for inline in self.get_inline_instances(request, obj):
+            inline.form.request = request
+            yield inline.get_formset(request, obj), inline
+    readonly_fields = (
+        'userattendance_links', 'date_joined', 'last_login', 'get_main_telephone',
+    )
+
+    actions = (send_mass_communication_distinct_action,)
+    inlines = [PreferenceInline, TelephoneInline, DonorPaymentChannelInline, InteractionInline]
+
+
+@admin.register(UserProfile)
+class UserProfileAdmin(BaseProfileChildAdmin):
+    base_model = UserProfile
+    show_in_index = False  # makes child model admin visible in main admin site
+
+
+@admin.register(CompanyProfile)
+class CompanyProfileAdmin(BaseProfileChildAdmin):
+    base_model = CompanyProfile
+    show_in_index = False
+    add_fieldsets = (
+        (_('Personal data'), {
+            'classes': ('wide',),
+            'fields': (
+                'username', ('first_name', 'last_name'), 'email',
+                ('birth_day', 'birth_month', 'age_group'),
+                'administrative_units',
+                'language',
+                'crn',
+            ),
+        }),
+    )
+    edit_fieldsets = (
+        (_('Personal data'), {
+            'classes': ('wide',),
+            'fields': (
+                'username', ('first_name', 'last_name'), ('title_before', 'title_after'), 'email',
+                ('birth_day', 'birth_month', 'age_group'),
+                'get_main_telephone',
+                'note',
+                'administrative_units',
+                'language',
+                'crn',
+            ),
+        }),
+        (_('Contact data'), {
+            'classes': ('wide', ),
+            'fields': [
+                ('street', 'city',),
+                ('country', 'zip_code'),
+                'different_correspondence_address',
+                ('addressment', 'addressment_on_envelope'),
+            ],
+        }
+         ),
+        ('Preferences', {
+            'fields': (
+                ('public', 'send_mailing_lists', ),
+                ('newsletter_on', 'call_on', ),
+                ('challenge_on', 'letter_on', ),
+            ),
+        })
+    )
+
+
 admin.site.register(DonorPaymentChannel, DonorPaymethChannelAdmin)
 admin.site.register(UserYearPayments, UserYearPaymentsAdmin)
 admin.site.register(NewUser, NewUserAdmin)
@@ -1472,7 +1548,7 @@ admin.site.register(TaxConfirmation, TaxConfirmationAdmin)
 admin.site.register(TaxConfirmationPdf, TaxConfirmationPdfAdmin)
 admin.site.register(TaxConfirmationField, TaxConfirmationFieldAdmin)
 admin.site.register(Source, SourceAdmin)
-admin.site.register(UserProfile, UserProfileAdmin)
+admin.site.register(Profile, ProfileAdmin)
 admin.site.register(BankAccount, BankAccountAdmin)
 admin.site.register(UserBankAccount, UserBankAccountAdmin)
 # register all adminactions

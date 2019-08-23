@@ -29,3 +29,10 @@ donor_payment_channel_recipe = Recipe(
     userprofile__email=seq("test@email.cz"),
     VS=seq(1),
 )
+
+user_profile_recipe = Recipe(
+    "aklub.UserProfile",
+    is_active=True,
+    username=seq("username"),
+    email=seq("test@email.cz"),
+)

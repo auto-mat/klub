@@ -30,10 +30,11 @@ django-related-admin = "*"
 django-denorm = "*"
 gunicorn = "*"
 django-betterforms = "*"
-django-adminactions = {git = "https://github.com/saxix/django-adminactions.git", editable = true, ref = "develop"}
-django-helpdesk = {git = "https://github.com/auto-mat/django-helpdesk.git", editable = true, ref = "abs-paths"}
+django-adminactions = {git = "https://github.com/saxix/django-adminactions.git",editable = true,ref = "develop"}
+django-helpdesk = {git = "https://github.com/auto-mat/django-helpdesk.git",editable = true,ref = "abs-paths"}
 django-admin-large-initial-data = "*"
-django-admin-tools-stats = {git = "https://github.com/areski/django-admin-tools-stats", editable = true, ref = "develop"}
+# https://github.com/areski/django-admin-tools-stats/pull/49
+django-admin-tools-stats = {git = "https://github.com/tmszi/django-admin-tools-stats.git", editable = true, ref = "fix_create_dict_obj_from_str"}
 django-bower = "*"
 djcacheutils = "*"
 django-adminfilters = "<1.1"
@@ -70,8 +71,10 @@ email_reply_parser = "*"
 django-smmapdfs = "*"
 newrelic = "*"
 django-nested-admin = "*"
-django_celery_monitor = {git = "https://github.com/peergradeio/django-celery-monitor", editable = true, ref = "django-2.2"}
+django_celery_monitor = {git = "https://github.com/peergradeio/django-celery-monitor",editable = true,ref = "django-2.2"}
 django_grapesjs = "*"
+# https://github.com/django-polymorphic/django-polymorphic/pull/400
+django-polymorphic = {git = "https://github.com/tmszi/django-polymorphic", editable = true, ref = "fix_django_advanced_filters"}
 django-stdnumfield = {git = "https://github.com/PetrDlouhy/django-stdnumfield.git", editable = true, ref = "mergeup"}
 
 [dev-packages]
@@ -91,6 +94,7 @@ django-admin-smoke-tests = {git = "https://github.com/PetrDlouhy/django-admin-sm
 model_mommy = "*"
 mock = "*"
 flower = "*"
+ipython = "*"
 
 [requires]
 python_version = "3.6"

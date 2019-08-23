@@ -10,15 +10,6 @@
     },
     {
         "fields": {
-            "dispatched": "False",
-            "date": "2016-2-9",
-            "user": "2978"
-        },
-        "model": "aklub.interaction",
-        "pk": 1
-    },
-    {
-        "fields": {
             "amount": 150,
             "date": "2016-2-9",
             "type": "cash",
@@ -59,33 +50,6 @@
         },
         "model": "aklub.payment",
         "pk": 3
-    },
-    {
-        "fields": {
-            "amount": 130,
-            "date": "2016-1-9",
-            "type": "darujme",
-            "SS": "22259",
-            "user_donor_payment_channel": "2979"
-        },
-        "model": "aklub.payment",
-        "pk": 4
-    },
-    {
-        "fields": {
-            "expected_date_of_first_payment": "2015-12-16",
-            "no_upgrade": false,
-            "registered_support": "2015-12-16T18:22:30.128",
-            "bank_account": 1,
-            "regular_amount": null,
-            "regular_frequency": null,
-            "regular_payments": "onetime",
-            "VS": "130430001",
-            "user": "2979",
-            "event": 2
-        },
-        "model": "aklub.donorpaymentchannel",
-        "pk": 2979
     },
     {
         "fields": {
@@ -132,57 +96,163 @@
         "pk": 1
     },
     {
-        "fields": {
+	"model": "aklub.profile",
+	"pk": 2979,
+	"fields": {
+            "polymorphic_ctype": 26,
+            "last_login": null,
+            "is_superuser": false,
             "username": "test.user3",
             "first_name": "Test",
             "last_name": "User 1",
-            "date_joined": "2016-09-16T18:22:30.128",
+            "is_staff": false,
+            "is_active": true,
+            "date_joined": "2016-09-16T16:22:30.128Z",
             "email": "test.user1@email.cz",
-            "profile_picture": "",
-            "sex": "male",
-            "other_benefits": "",
+            "password": null,
+            "title_after": "",
+            "title_before": "",
             "addressment": "Zbyn\u011bku",
             "addressment_on_envelope": "",
-            "city": "Praha 4",
-            "different_correspondence_address": false,
             "language": "en",
-            "campaigns": [1],
-            "club_card_dispatched": false,
+            "street": "",
+            "city": "Praha 4",
+            "country": "\u010cesk\u00e1 republika",
             "zip_code": "",
-            "profile_text": null
-        },
-        "model": "aklub.userprofile",
-        "pk": 2979
+            "different_correspondence_address": false,
+            "correspondence_street": "",
+            "correspondence_city": "",
+            "correspondence_country": "\u010cesk\u00e1 republika",
+            "correspondence_zip_code": "",
+            "other_support": "",
+            "public": true,
+            "profile_text": null,
+            "profile_picture": "",
+            "club_card_available": false,
+            "club_card_dispatched": false,
+            "other_benefits": "",
+            "note": "",
+            "created": "2019-08-02T09:32:12.836Z",
+            "updated": "2019-08-02T09:32:12.836Z",
+            "send_mailing_lists": true,
+            "age_group": null,
+            "birth_month": null,
+            "birth_day": null,
+            "newsletter_on": false,
+            "call_on": false,
+            "challenge_on": false,
+            "letter_on": false,
+            "groups": [],
+            "user_permissions": [],
+            "campaigns": [1],
+            "administrative_units": [],
+            "administrated_units": []
+	}
+    },
+    {
+	"model": "aklub.userprofile",
+	"pk": 2979,
+	"fields": {
+            "sex": "male"
+	}
     },
     {
         "fields": {
+            "amount": 130,
+            "date": "2016-1-9",
+            "type": "darujme",
+            "SS": "22259",
+            "user_donor_payment_channel": "2979"
+        },
+        "model": "aklub.payment",
+        "pk": 4
+    },
+    {
+        "fields": {
+            "expected_date_of_first_payment": "2015-12-16",
+            "no_upgrade": false,
+            "registered_support": "2015-12-16T18:22:30.128",
+            "bank_account": 1,
+            "regular_amount": null,
+            "regular_frequency": null,
+            "regular_payments": "onetime",
+            "VS": "130430001",
+            "user": "2979",
+            "event": 2
+        },
+        "model": "aklub.donorpaymentchannel",
+        "pk": 2979
+    },
+    {
+	"model": "aklub.profile",
+	"pk": 2978,
+	"fields": {
+            "polymorphic_ctype": 26,
+            "last_login": null,
+            "is_superuser": false,
             "username": "testuser0",
             "first_name": "Test",
             "last_name": "User",
-            "date_joined": "2016-09-16T18:22:30.128",
+            "is_staff": false,
+            "is_active": true,
+            "date_joined": "2016-09-16T16:22:30.128Z",
             "email": "test.user@email.cz",
-            "profile_picture": "",
-            "sex": "male",
-            "street": "",
-            "addressment": "Zbyn\u011bku",
-            "addressment_on_envelope": "",
-            "city": "Praha 4",
-            "different_correspondence_address": false,
-            "language": "cs",
-            "club_card_available": false,
-            "country": "\u010cesk\u00e1 republika",
-            "other_benefits": "",
-            "public": true,
-            "zip_code": "",
+            "password": null,
             "title_after": "",
             "title_before": "",
-            "campaigns": [],
+            "addressment": "Zbyn\u011bku",
+            "addressment_on_envelope": "",
+            "language": "cs",
+            "street": "",
+            "city": "Praha 4",
+            "country": "\u010cesk\u00e1 republika",
+            "zip_code": "",
+            "different_correspondence_address": false,
+            "correspondence_street": "",
+            "correspondence_city": "",
+            "correspondence_country": "\u010cesk\u00e1 republika",
+            "correspondence_zip_code": "",
+            "other_support": "",
+            "public": true,
+            "profile_text": null,
+            "profile_picture": "",
+            "club_card_available": false,
             "club_card_dispatched": false,
-            "profile_text": null
-        },
-        "model": "aklub.userprofile",
-        "pk": 2978
+            "other_benefits": "",
+            "note": "",
+            "created": "2019-08-02T09:32:12.838Z",
+            "updated": "2019-08-02T09:32:12.838Z",
+            "send_mailing_lists": true,
+            "age_group": null,
+            "birth_month": null,
+            "birth_day": null,
+            "newsletter_on": false,
+            "call_on": false,
+            "challenge_on": false,
+            "letter_on": false,
+            "groups": [],
+            "user_permissions": [],
+            "campaigns": [],
+            "administrative_units": [],
+            "administrated_units": []
+	}
     },
+    {
+	"model": "aklub.userprofile",
+	"pk": 2978,
+	"fields": {
+            "sex": "male"
+	}
+    },
+    {
+        "fields": {
+            "dispatched": "False",
+            "date": "2016-2-9",
+            "user": "2978"
+        },
+        "model": "aklub.interaction",
+        "pk": 1
+    },    
     {
         "fields": {
             "import_date": "2016-08-01",
@@ -296,33 +366,65 @@
         "pk": 3
     },
     {
-        "fields": {
+	"model": "aklub.profile",
+	"pk": 3,
+	"fields": {
+            "polymorphic_ctype": 26,
+            "last_login": null,
+            "is_superuser": false,
             "username": "without_payments",
             "first_name": "Without",
             "last_name": "Payments",
-            "date_joined": "2016-09-16T18:22:30.128",
+            "is_staff": false,
+            "is_active": true,
+            "date_joined": "2016-09-16T16:22:30.128Z",
             "email": "without_payments@email.cz",
-            "profile_picture": "",
-            "sex": "male",
-            "street": "",
-            "addressment": "Street",
-            "addressment_on_envelope": "",
-            "city": "Praha 4",
-            "different_correspondence_address": false,
-            "language": "cs",
-            "club_card_available": false,
-            "country": "\u010cesk\u00e1 republika",
-            "other_benefits": "",
-            "public": true,
-            "zip_code": "",
+            "password": null,
             "title_after": "",
             "title_before": "",
-            "campaigns": [],
+            "addressment": "Street",
+            "addressment_on_envelope": "",
+            "language": "cs",
+            "street": "",
+            "city": "Praha 4",
+            "country": "\u010cesk\u00e1 republika",
+            "zip_code": "",
+            "different_correspondence_address": false,
+            "correspondence_street": "",
+            "correspondence_city": "",
+            "correspondence_country": "\u010cesk\u00e1 republika",
+            "correspondence_zip_code": "",
+            "other_support": "",
+            "public": true,
+            "profile_text": null,
+            "profile_picture": "",
+            "club_card_available": false,
             "club_card_dispatched": false,
-            "profile_text": null
-        },
-        "model": "aklub.userprofile",
-        "pk": 3
+            "other_benefits": "",
+            "note": "",
+            "created": "2019-08-02T09:32:12.841Z",
+            "updated": "2019-08-02T09:32:12.841Z",
+            "send_mailing_lists": true,
+            "age_group": null,
+            "birth_month": null,
+            "birth_day": null,
+            "newsletter_on": false,
+            "call_on": false,
+            "challenge_on": false,
+            "letter_on": false,
+            "groups": [],
+            "user_permissions": [],
+            "campaigns": [],
+            "administrative_units": [],
+            "administrated_units": []
+	}
+    },
+    {
+	"model": "aklub.userprofile",
+	"pk": 3,
+	"fields": {
+            "sex": "male"
+	}
     },
     {
         "fields": {
