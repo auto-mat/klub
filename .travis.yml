@@ -12,7 +12,6 @@ env:
     - SECRET_KEY="sadfjasasdfasdfsadfsadfsadfeq"
 
   matrix:
-    - DJANGO_VERSION="Django>=2.0,<2.1"
     - DJANGO_VERSION="Django>=2.1,<2.2"
     - DJANGO_VERSION="Django>=2.2,<2.3"
     - DJANGO_VERSION='https://github.com/django/django/archive/master.tar.gz'
@@ -21,7 +20,7 @@ python:
 before_install:
   - sudo apt-get install -y python-gdal
 install:
-  - 
+  -
   - pip install pipenv
   - pipenv install --dev --ignore-pipfile
   - pipenv run pip install flake8-strict  # not installable with pipenv, move ther when repaired
