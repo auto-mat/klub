@@ -122,7 +122,7 @@ def process_template(template_string, user, payment_channel):
         **payment_substitutes,
     )
 
-    return gendrify_text(text, user.sex)
+    return gendrify_text(text, user.sex if hasattr(user, 'sex') else '')
 
 
 def check(payment_channels=None, action=None):
