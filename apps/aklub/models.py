@@ -28,7 +28,8 @@ import os.path
 from denorm import denormalized, depend_on_related
 
 from django.contrib.admin.templatetags.admin_list import _boolean_icon
-from django.contrib.auth.models import AbstractUser, User
+from django.contrib.auth.models import AbstractUser, User, UserManager
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.humanize.templatetags.humanize import intcomma
 from django.core.exceptions import ValidationError
 from django.core.files.storage import FileSystemStorage
@@ -48,6 +49,9 @@ from django.utils.timesince import timesince
 from django.utils.translation import ugettext_lazy as _
 
 import html2text
+
+from polymorphic.managers import PolymorphicManager
+from polymorphic.models import PolymorphicModel
 
 from smmapdfs.model_abcs import PdfSandwichABC, PdfSandwichFieldABC
 from smmapdfs.models import PdfSandwichType
@@ -69,6 +73,35 @@ COMMUNICATION_METHOD = (
     ('personal', _("Personal")),
     ('internal', _("Internal")),
 )
+
+
+class CustomUserManager(PolymorphicManager, UserManager):
+
+    def create_user(self, email, password, **extra_fields):
+        if extra_fields.get('polymorphic_ctype_id', None):
+            ctype_id = extra_fields.pop('polymorphic_ctype_id')
+            model = ContentType.objects.get(id=ctype_id).model_class()
+            if model._meta.model_name == CompanyProfile._meta.model_name:
+                extra_fields['crn'] = '00000000'  # null constrain, random valid value
+        if not email:
+            raise ValueError(_('The Email must be set'))
+        email = self.normalize_email(email)
+        user = model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save()
+
+        return user
+
+    def create_superuser(self, email, password, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('is_active', True)
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError(_('Superuser must have is_staff=True.'))
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError(_('Superuser must have is_superuser=True.'))
+
+        return self.create_user(email, password, **extra_fields)
 
 
 class Result(models.Model):
@@ -432,15 +465,15 @@ class Source(models.Model):
         return str(self.name)
 
 
-class UserProfile(AbstractUser):
+class Profile(PolymorphicModel, AbstractUser):
     class Meta:
-        verbose_name = _("User profile")
-        verbose_name_plural = _("User profiles")
+        verbose_name = _("Profile")
+        verbose_name_plural = _("Profiles")
 
         permissions = (
             ('can_edit_all_units', _('Může editovat všechno ve všech administrativních jednotkách')),
         )
-
+    objects = CustomUserManager()
     GENDER = (
         ('male', _('Male')),
         ('female', _('Female')),
@@ -476,12 +509,6 @@ class UserProfile(AbstractUser):
     title_before = models.CharField(
         verbose_name=_("Title before name"),
         max_length=15, blank=True,
-    )
-    sex = models.CharField(
-        verbose_name=_("Gender"),
-        choices=GENDER,
-        max_length=50,
-        default='unknown',
     )
     addressment = models.CharField(
         verbose_name=_("Addressment in letter"),
@@ -795,6 +822,35 @@ class UserProfile(AbstractUser):
     def get_event(self):
         event = ', '.join(str(donor.event.id) + ') ' + donor.event.name for donor in self.userchannels.all() if donor.event is not None)
         return event
+
+
+class CompanyProfile(Profile):
+    class Meta:
+        verbose_name = _("Company profile")
+        verbose_name_plural = _("Company profiles")
+
+    crn = models.CharField(
+        max_length=20,
+        verbose_name=_(u"Company Registration Number"),
+    )
+
+
+class UserProfile(Profile):
+    class Meta:
+        verbose_name = _("User profile")
+        verbose_name_plural = _("User profiles")
+
+    GENDER = (
+        ('male', _('Male')),
+        ('female', _('Female')),
+        ('unknown', _('Unknown')))
+
+    sex = models.CharField(
+        verbose_name=_("Gender"),
+        choices=GENDER,
+        max_length=50,
+        default='unknown',
+    )
 
 
 @receiver(signals.m2m_changed, sender=UserProfile.administrative_units.through)
