@@ -5,6 +5,8 @@ from django.conf import settings
 
 import helpdesk.models
 
+from aklub.migrations.data_migration.old_user_profile_model_hack import Settings as settings
+
 
 class Migration(migrations.Migration):
 
