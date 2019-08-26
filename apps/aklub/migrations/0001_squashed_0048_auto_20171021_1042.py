@@ -14,6 +14,7 @@ import django.db.models.deletion
 import django.utils.timezone
 import stdimage.models
 
+from .data_migration.old_user_profile_model_hack import Settings as settings
 
 # Functions from the following migrations need manual copying.
 # Move them and any dependencies into this file, then update the
