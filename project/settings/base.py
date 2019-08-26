@@ -308,6 +308,7 @@ MIGRATION_MODULES = {
     'advanced_filters': 'migrations_advanced_filters',
     'menu': 'migrations_admin_tools.menu',
     'dashboard': 'migrations_admin_tools.dashboard',
+    'helpdesk': 'migrations_helpdesk',
 }
 
 AUTH_USER_MODEL = "aklub.Profile"
