@@ -309,6 +309,7 @@ MIGRATION_MODULES = {
     'menu': 'migrations_admin_tools.menu',
     'dashboard': 'migrations_admin_tools.dashboard',
     'helpdesk': 'migrations_helpdesk',
+    'import_export_celery': 'migrations_import_export_celery',
 }
 
 AUTH_USER_MODEL = "aklub.Profile"
