@@ -307,7 +307,7 @@ MIGRATION_MODULES = {
     'admin': 'migrations_admin',
 }
 
-AUTH_USER_MODEL = "aklub.UserProfile"
+AUTH_USER_MODEL = "aklub.Profile"
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
