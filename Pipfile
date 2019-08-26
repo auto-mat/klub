@@ -74,7 +74,8 @@ django-nested-admin = "*"
 django_celery_monitor = {git = "https://github.com/peergradeio/django-celery-monitor",editable = true,ref = "django-2.2"}
 django_grapesjs = "*"
 django-stdnumfield = {git = "https://github.com/PetrDlouhy/django-stdnumfield.git",editable = true,ref = "mergeup"}
-django-polymorphic = "*"
+# https://github.com/django-polymorphic/django-polymorphic/pull/400
+django-polymorphic = {git = "https://github.com/tmszi/django-polymorphic", editable = true, ref = "fix_django_advanced_filters"}
 
 [dev-packages]
 coverage = "*"

@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "0f22ccb2215b26ba5221ee634c5493ccfe2e46636721a51698f2719ce0c2f16f"
+            "sha256": "0501f3bf08a8cf2ab39fb6efc084d63b06c3c4319bb0a3e4d61d54ae9963a505"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -346,12 +346,9 @@
             "version": "==0.9.7"
         },
         "django-polymorphic": {
-            "hashes": [
-                "sha256:0a25058e95e5e99fe0beeabb8f4734effe242d7b5b77dca416fba9fd3062da6a",
-                "sha256:6e08a76c91066635ccb7ef3ebbe9a0ad149febae6b30be2579716ec16d3c6461"
-            ],
-            "index": "pypi",
-            "version": "==2.1.2"
+            "editable": true,
+            "git": "https://github.com/tmszi/django-polymorphic",
+            "ref": "5e7ccd35def01c6849bdbe795830af60d4b28c71"
         },
         "django-post-office": {
             "hashes": [
