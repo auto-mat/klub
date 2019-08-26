@@ -474,6 +474,7 @@ class Profile(PolymorphicModel, AbstractUser):
             ('can_edit_all_units', _('Může editovat všechno ve všech administrativních jednotkách')),
         )
     objects = CustomUserManager()
+    REQUIRED_FIELDS = ['email', 'polymorphic_ctype_id']
     GENDER = (
         ('male', _('Male')),
         ('female', _('Female')),
