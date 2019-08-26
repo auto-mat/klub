@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from django.contrib.auth import get_user_model
-
+from .old_user_profile_model_hack import Settings as settings
 
 def preference_model_create(apps, schema_editor):
-    profile_model = get_user_model()  # get Profile model this way, check the commit d3180343ac0a8a3ad9b1dad401ddf6e802fafdc4
+    profile_model = apps.get_model('aklub', settings.AUTH_USER_MODEL.split('.')[1])
     preference_model = apps.get_model('aklub', 'Preference')
     for user in profile_model.objects.all():
         for unit in user.administrative_units.all():
@@ -12,4 +11,3 @@ def preference_model_create(apps, schema_editor):
                 user=user,
                 administrative_unit=unit,
             )
-
