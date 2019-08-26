@@ -30,10 +30,10 @@ django-related-admin = "*"
 django-denorm = "*"
 gunicorn = "*"
 django-betterforms = "*"
-django-adminactions = {git = "https://github.com/saxix/django-adminactions.git", editable = true, ref = "develop"}
-django-helpdesk = {git = "https://github.com/auto-mat/django-helpdesk.git", editable = true, ref = "abs-paths"}
+django-adminactions = {git = "https://github.com/saxix/django-adminactions.git",editable = true,ref = "develop"}
+django-helpdesk = {git = "https://github.com/auto-mat/django-helpdesk.git",editable = true,ref = "abs-paths"}
 django-admin-large-initial-data = "*"
-django-admin-tools-stats = {git = "https://github.com/areski/django-admin-tools-stats", editable = true, ref = "develop"}
+django-admin-tools-stats = {git = "https://github.com/areski/django-admin-tools-stats",editable = true,ref = "develop"}
 django-bower = "*"
 djcacheutils = "*"
 django-adminfilters = "<1.1"
@@ -70,9 +70,9 @@ email_reply_parser = "*"
 django-smmapdfs = "*"
 newrelic = "*"
 django-nested-admin = "*"
-django_celery_monitor = {git = "https://github.com/peergradeio/django-celery-monitor", editable = true, ref = "django-2.2"}
+django_celery_monitor = {git = "https://github.com/peergradeio/django-celery-monitor",editable = true,ref = "django-2.2"}
 django_grapesjs = "*"
-django-stdnumfield = {git = "https://github.com/PetrDlouhy/django-stdnumfield.git", editable = true, ref = "mergeup"}
+django-stdnumfield = {git = "https://github.com/PetrDlouhy/django-stdnumfield.git",editable = true,ref = "mergeup"}
 
 [dev-packages]
 coverage = "*"
@@ -91,6 +91,7 @@ django-admin-smoke-tests = {git = "https://github.com/PetrDlouhy/django-admin-sm
 model_mommy = "*"
 mock = "*"
 flower = "*"
+ipython = "*"
 
 [requires]
 python_version = "3.6"
