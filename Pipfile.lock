@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "dbd47dfdea5402c706eee4b3c62c1763c0d1259885554ca0541791a36499d35f"
+            "sha256": "b70ece61175e289da90b68c13c4eb6e0b7546512eee539984edc5063cb35daf0"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -344,6 +344,14 @@
                 "sha256:1ec0ba4c74fe84f4ce65d1246a4a471ddd51d7a2ed8f69c60d70229d41a06c63"
             ],
             "version": "==0.9.7"
+        },
+        "django-polymorphic": {
+            "hashes": [
+                "sha256:0a25058e95e5e99fe0beeabb8f4734effe242d7b5b77dca416fba9fd3062da6a",
+                "sha256:6e08a76c91066635ccb7ef3ebbe9a0ad149febae6b30be2579716ec16d3c6461"
+            ],
+            "index": "pypi",
+            "version": "==2.1.2"
         },
         "django-post-office": {
             "hashes": [
