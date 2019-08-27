@@ -1577,13 +1577,13 @@ class BaseProfileChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModel
 @admin.register(UserProfile)
 class UserProfileAdmin(BaseProfileChildAdmin):
     base_model = UserProfile
-    show_in_index = False  # makes child model admin visible in main admin site
+    show_in_index = True
 
 
 @admin.register(CompanyProfile)
 class CompanyProfileAdmin(BaseProfileChildAdmin):
     base_model = CompanyProfile
-    show_in_index = False
+    show_in_index = True
     add_fieldsets = (
         (_('Personal data'), {
             'classes': ('wide',),
