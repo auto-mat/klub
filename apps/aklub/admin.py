@@ -421,6 +421,22 @@ class ProfileResource(ProfileModelResource):
             obj.administrative_units.add(data["administrative_units"])
             obj.save()
 
+        preference, _ = Preference.objects.get_or_create(user=obj,  administrative_unit=data["administrative_units"])
+        if data.get("newsletter_on"):
+            preference.newsletter_on = data['newsletter_on']
+        if data.get("call_on"):
+            preference.call_on = data['call_on']
+        if data.get("challenge_on"):
+            preference.challenge_on = data['challenge_on']
+        if data.get("letter_on"):
+            preference.letter_on = data['letter_on']
+        if data.get("send_mailing_lists"):
+            preference.send_mailing_lists = data['send_mailing_lists']
+        if data.get("public"):
+            preference.public = data['public']
+
+        preference.save()
+
         if data.get('event') and data.get('donor') == 'x':
             if data.get('VS') != "":
                 VS = data['VS']
@@ -470,7 +486,38 @@ class ProfileResource(ProfileModelResource):
 
         return "".join(tuple(donor_list))
 
+    def dehydrate_newsletter_on(self, profile):
+        preference = profile.preference_set.filter(administrative_unit=self.administrative_unit).first()
+        if preference:
+            return preference.newsletter_on
+
+    def dehydrate_call_on(self, profile):
+        preference = profile.preference_set.filter(administrative_unit=self.administrative_unit).first()
+        if preference:
+            return preference.call_on
+
+    def dehydrate_challenge_on(self, profile):
+        preference = profile.preference_set.filter(administrative_unit=self.administrative_unit).first()
+        if preference:
+            return preference.challenge_on
+
+    def dehydrate_letter_on(self, profile):
+        preference = profile.preference_set.filter(administrative_unit=self.administrative_unit).first()
+        if preference:
+            return preference.letter_on
+
+    def dehydrate_send_mailing_lists(self, profile):
+        preference = profile.preference_set.filter(administrative_unit=self.administrative_unit).first()
+        if preference:
+            return preference.send_mailing_lists
+
+    def dehydrate_public(self, profile):
+        preference = profile.preference_set.filter(administrative_unit=self.administrative_unit).first()
+        if preference:
+            return preference.public
+
     def before_import_row(self, row, **kwargs):
+        self.administrative_unit = kwargs['user'].administrated_units.first()
         row['is_superuser'] = 0
         row['is_staff'] = 0
         row['email'] = row['email'].lower()
