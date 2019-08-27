@@ -7,7 +7,7 @@ import django.db.models.deletion
 import django.utils.timezone
 import stdimage.models
 
-from .data_migration import migrate_user_data
+from .data_migration import migrate_user_data, truncate_profile_child_models_tables
 
 
 class Migration(migrations.Migration):
@@ -19,6 +19,11 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        # Get user data
+        migrations.RunPython(
+            code=migrate_user_data.get_user_model_data,
+            reverse_code=django.db.migrations.operations.special.RunPython.noop,
+        ),
         migrations.CreateModel(
             name='Profile',
             fields=[
@@ -293,7 +298,7 @@ class Migration(migrations.Migration):
             fields=[
                 # Manual fix according https://docs.djangoproject.com/en/2.2/howto/writing-migrations/#migrations-that-add-unique-fields
                 # Remove primary_key=True, add null=True
-                ('profile_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='aklub.Profile')),
+                ('profile_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, null=True, serialize=False, to='aklub.Profile')),
                 ('crn', models.CharField(max_length=20, verbose_name='Company Registration Number')),
             ],
             options={
@@ -312,6 +317,11 @@ class Migration(migrations.Migration):
             name='profile_ptr',
             field=models.OneToOneField(auto_created=True, null=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, serialize=False, to='aklub.Profile'),
             preserve_default=False,
+        ),
+        # Fix error 'django.db.utils.IntegrityError: column "profile_ptr_id" contains null value'
+        migrations.RunPython(
+            code=truncate_profile_child_models_tables.truncate_profile_child_models_tables,
+            reverse_code=django.db.migrations.operations.special.RunPython.noop,
         ),
         migrations.RunPython(
             code=migrate_user_data.set_user_model_data,
