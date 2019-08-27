@@ -608,35 +608,34 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
             'file_format': 0,
         }
         response = self.client.post(address, post_data)
-
         date_time_format = '%Y-%m-%d %H:%M:%S'
         user = Profile.objects.get(username='test.{}'.format(UserProfile._meta.model_name))
         self.assertContains(
             response,
-            (
-                ',test.userprofile@userprofile.test,,male,,'
-                '"VS:140147010\nevent:Klub přátel Auto*Matu\nbank_accout:\nuser_bank_account:\n\n",'
-                'userprofile,,,,test.userprofile,First_name_userprofile,Last_name_userprofile,'
-                '1,2016-09-16 16:22:30,,,,,,,en,,Praha 4,Česká republika,,1,,,Česká republika,,,1,,,0,0,,,'
-                '{created},{updated},1,,,,0,0,0,0'.format(
+            ''.join([
+                ',test.userprofile@userprofile.test,,male,,',
+                '"VS:140147010\nevent:Klub přátel Auto*Matu\nbank_accout:\nuser_bank_account:\n\n"',
+                ',userprofile,,,,test.userprofile,First_name_userprofile,Last_name_userprofile,1,',
+                '2016-09-16 16:22:30,,,,,,,en,,Praha 4,Česká republika,,1,,,Česká republika,,,1,,,0,',
+                '0,,,{created},{updated},1,,,,0,0,0,0'.format(
                     created=user.created.strftime(date_time_format),
                     updated=user.updated.strftime(date_time_format),
-                ),
-            ),
+                )]
+            )
         )
         user = Profile.objects.get(username='test.{}'.format(CompanyProfile._meta.model_name))
         self.assertContains(
             response,
-            (
-                ',test.companyprofile@companyprofile.test,11223344,,,'
-                '"VS:150157010\nevent:Klub přátel Auto*Matu\nbank_accout:\nuser_bank_account:\n\n",'
-                'companyprofile,,,,test.companyprofile,First_name_companyprofile,Last_name_companyprofile,'
-                '1,2016-09-16 16:22:30,,,,,,,en,,Praha 4,Česká republika,,1,,,Česká republika,,,1,,,0,0,,,'
+            ''.join([
+                ',test.companyprofile@companyprofile.test,11223344,,,',
+                '"VS:150157010\nevent:Klub přátel Auto*Matu\nbank_accout:\nuser_bank_account:\n\n"',
+                ',companyprofile,,,,test.companyprofile,First_name_companyprofile,Last_name_companyprofile,',
+                '1,2016-09-16 16:22:30,,,,,,,en,,Praha 4,Česká republika,,1,,,Česká republika,,,1,,,0,0,,,',
                 '{created},{updated},1,,,,0,0,0,0'.format(
                     created=user.created.strftime(date_time_format),
                     updated=user.updated.strftime(date_time_format),
-                ),
-             ),
+                )]
+            )
         )
 
     def test_profile_import(self):
