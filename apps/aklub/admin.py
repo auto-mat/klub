@@ -85,16 +85,13 @@ def admin_links(args_generator):
 
 
 def get_polymorphic_parent_child_fields(parent_model):
-    exclude_fields = ["profile_ptr"]
+    exclude_fields = {"profile_ptr"}
     parent_model_fields = [f.name for f in parent_model._meta.fields]
     result = {}
     for child_model in parent_model.__subclasses__():
         child_model_fields = [f.name for f in child_model._meta.fields]
-        child_model_fields_only = list(
-            set(parent_model_fields).symmetric_difference(set(child_model_fields)),
-        )
-        for field in exclude_fields:
-            child_model_fields_only.remove(field)
+        child_model_fields_only = set(parent_model_fields).symmetric_difference(set(child_model_fields))
+        child_model_fields_only = child_model_fields_only - exclude_fields
         result[child_model._meta.model_name] = child_model_fields_only
     return result
 
