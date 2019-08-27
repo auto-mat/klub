@@ -59,6 +59,7 @@ from related_admin import RelatedFieldAdmin
 
 from smmapdfs.actions import make_pdfsandwich
 from smmapdfs.admin_abcs import PdfSandwichAdmin, PdfSandwichFieldAdmin
+from smmapdfs.models import PdfSandwichFont, PdfSandwichType
 
 from . import darujme, filters, mailing, tasks
 from .filters import unit_admin_mixin_generator
@@ -70,6 +71,9 @@ from .models import (
     TaxConfirmationPdf, Telephone, TerminalCondition, UserBankAccount,
     UserProfile, UserYearPayments,
 )
+from .monkey_patching import monkey_admin_smmapdfs
+
+monkey_admin_smmapdfs()  # editing smmapdfs library
 
 
 def admin_links(args_generator):
@@ -1442,12 +1446,22 @@ class TaxConfirmationAdmin(unit_admin_mixin_generator('user_profile__administrat
         return my_urls + urls
 
 
-class TaxConfirmationPdfAdmin(PdfSandwichAdmin):
-    pass
+class TaxConfirmationPdfAdmin(unit_admin_mixin_generator('pdfsandwich_type__administrative_unit'), PdfSandwichAdmin):
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if not request.user.has_perm('aklub.can_edit_all_units'):
+            if db_field.name == 'pdfsandwich_type':
+                kwargs["queryset"] = PdfSandwichType.objects.filter(administrative_unit=request.user.administrative_units.first())
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
-class TaxConfirmationFieldAdmin(PdfSandwichFieldAdmin):
-    pass
+class TaxConfirmationFieldAdmin(unit_admin_mixin_generator('pdfsandwich_type__administrative_unit'), PdfSandwichFieldAdmin):
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if not request.user.has_perm('aklub.can_edit_all_units'):
+            if db_field.name == 'pdfsandwich_type':
+                kwargs["queryset"] = PdfSandwichType.objects.filter(administrative_unit=request.user.administrative_units.first())
+            if db_field.name == 'font':
+                kwargs["queryset"] = PdfSandwichFont.objects.filter(administrative_unit=request.user.administrative_units.first())
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 @admin.register(AdministrativeUnit)

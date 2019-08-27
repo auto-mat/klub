@@ -59,6 +59,10 @@ from stdnumfield.models import StdNumField
 from vokativ import vokativ
 
 from . import autocom
+from .monkey_patching import monkey_model_smmapdfs
+
+monkey_model_smmapdfs()  # editing smmapdfs library
+
 
 logger = logging.getLogger(__name__)
 
