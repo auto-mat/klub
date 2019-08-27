@@ -27,7 +27,7 @@ from . import autocom
 from .models import (
     AutomaticCommunication, DonorPaymentChannel, Interaction,
     MassCommunication, Payment, Profile, TaxConfirmation,
-    TaxConfirmationPdf
+    TaxConfirmationPdf,
 )
 """Mailing"""
 

@@ -621,8 +621,8 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
                 '{created},{updated},1,,,,0,0,0,0'.format(
                     created=user.created.strftime(date_time_format),
                     updated=user.updated.strftime(date_time_format),
-                )
-            )
+                ),
+            ),
         )
         user = Profile.objects.get(username='test.{}'.format(CompanyProfile._meta.model_name))
         self.assertContains(
@@ -635,7 +635,7 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
                 '{created},{updated},1,,,,0,0,0,0'.format(
                     created=user.created.strftime(date_time_format),
                     updated=user.updated.strftime(date_time_format),
-                )
+                ),
              ),
         )
 
