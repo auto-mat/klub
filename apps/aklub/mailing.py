@@ -24,9 +24,11 @@ from django.contrib import messages
 from django.utils.translation import ugettext as _
 
 from . import autocom
-from .models import AutomaticCommunication, DonorPaymentChannel, Interaction, MassCommunication, Payment, TaxConfirmation, \
-    TaxConfirmationPdf, UserProfile
-
+from .models import (
+    AutomaticCommunication, DonorPaymentChannel, Interaction,
+    MassCommunication, Payment, Profile, TaxConfirmation,
+    TaxConfirmationPdf
+)
 """Mailing"""
 
 
@@ -74,14 +76,14 @@ def create_mass_communication_tasks_sync(communication_id, sending_user_id):
 
 
 def send_communication_sync(communication_id, communication_type, userincampaign_id, sending_user_id):
-    sending_user = UserProfile.objects.get(id=sending_user_id)
+    sending_user = Profile.objects.get(id=sending_user_id)
     payment_channel = None
     if userincampaign_id == "fake_user":
         payment_channel = create_fake_payment_channel(sending_user)
         userprofile = sending_user
         save = False
     else:
-        userprofile = UserProfile.objects.get(id=userincampaign_id)
+        userprofile = Profile.objects.get(id=userincampaign_id)
         save = True
     if communication_type == 'mass':
         mass_communication = MassCommunication.objects.get(id=communication_id)
