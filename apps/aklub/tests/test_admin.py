@@ -73,7 +73,7 @@ class AdminSmokeTest(CreateSuperUserMixin, tests.AdminSiteSmokeTest):
             pass
 
     def post_request(self, post_data={}, params=None):
-        request = self.factory.post(url='/', data=post_data)
+        request = self.factory.post(path='/', data=post_data)
         request.user = self.superuser
         request._dont_enforce_csrf_checks = True
         request.session = 'session'
