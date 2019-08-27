@@ -35,7 +35,7 @@ from freezegun import freeze_time
 
 from model_mommy import mommy
 
-from .recipes import donor_payment_channel_recipe, user_profile_recipe
+from .recipes import donor_payment_channel_recipe, generic_profile_recipe, user_profile_recipe
 from .utils import RunCommitHooksMixin
 from .utils import print_response  # noqa
 from .. import admin
@@ -535,3 +535,143 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
             # '"Domníváte se, že má město po zprovoznění tunelu Blanka omezit tranzit historickým centrem? '
             # 'Ano, hned se zprovozněním tunelu",editor,1,cs,,,,0,0.0,100',
         )
+
+    def test_profile_export(self):
+        profiles_data = [
+            {
+                'type': 'user',
+                'model_name': UserProfile._meta.model_name,
+                'vs': '140147010',
+                'extra_fields': {'sex': 'male'},
+            },
+            {
+                'type': 'company',
+                'model_name': CompanyProfile._meta.model_name,
+                'vs': '150157010',
+                'extra_fields': {'crn': '11223344'},
+            },
+        ]
+        # event = mommy.make(
+        #     'aklub.Event',
+        #     name='Klub přátel Auto*Matu',
+        #     created='2015-12-16',
+        #     slug='klub',
+        #     allow_statistics=True,
+        #     darujme_api_id=38571205,
+        #     darujme_project_id=38571205,
+        #     acquisition_campaign=True,
+        #     enable_signing_petitions=True,
+        #     enable_registration=True,
+        #     darujme_name='Klub přátel Auto*Matu',
+        # )
+        event = Event.objects.get(pk=2)
+        for profile_type in profiles_data:
+            model_name = profile_type['model_name']
+            generic_profile_recipe._model = 'aklub.{}'.format(model_name)
+            fields = {
+                'username': 'test.{}'.format(model_name),
+                'first_name': 'First_name_{}'.format(model_name),
+                'last_name': 'Last_name_{}'.format(model_name),
+                'email': 'test.{0}@{0}.test'.format(model_name),
+            }
+            fields.update(profile_type['extra_fields'])
+            user = generic_profile_recipe.make(**fields)
+            mommy.make(
+                'aklub.Interaction',
+                dispatched=False,
+                date='2016-2-9',
+                user=user,
+            )
+            mommy.make(
+                'aklub.TaxConfirmation',
+                user_profile=user,
+                year=2014,
+                amount=2014,
+            )
+            mommy.make(
+                'aklub.DonorPaymentChannel',
+                user=user,
+                expected_date_of_first_payment=datetime.strptime('2015-12-16', '%Y-%m-%d'),
+                no_upgrade=False,
+                registered_support='2015-12-16T18:22:30.128',
+                regular_amount=100,
+                regular_frequency='monthly',
+                regular_payments='regular',
+                event=event,
+                VS=profile_type['vs'],
+            )
+
+        address = '/aklub/profile/export/'
+        post_data = {
+            'file_format': 0,
+        }
+        response = self.client.post(address, post_data)
+
+        date_time_format = '%Y-%m-%d %H:%M:%S'
+        user = Profile.objects.get(username='test.{}'.format(UserProfile._meta.model_name))
+        self.assertContains(
+            response,
+            (
+                ',test.userprofile@userprofile.test,,male,,'
+                '"VS:140147010\nevent:Klub přátel Auto*Matu\nbank_accout:\nuser_bank_account:\n\n",'
+                'userprofile,,,,test.userprofile,First_name_userprofile,Last_name_userprofile,'
+                '1,2016-09-16 16:22:30,,,,,,,en,,Praha 4,Česká republika,,1,,,Česká republika,,,1,,,0,0,,,'
+                '{created},{updated},1,,,,0,0,0,0'.format(
+                    created=user.created.strftime(date_time_format),
+                    updated=user.updated.strftime(date_time_format),
+                )
+            )
+        )
+        user = Profile.objects.get(username='test.{}'.format(CompanyProfile._meta.model_name))
+        self.assertContains(
+            response,
+            (
+                ',test.companyprofile@companyprofile.test,11223344,,,'
+                '"VS:150157010\nevent:Klub přátel Auto*Matu\nbank_accout:\nuser_bank_account:\n\n",'
+                'companyprofile,,,,test.companyprofile,First_name_companyprofile,Last_name_companyprofile,'
+                '1,2016-09-16 16:22:30,,,,,,,en,,Praha 4,Česká republika,,1,,,Česká republika,,,1,,,0,0,,,'
+                '{created},{updated},1,,,,0,0,0,0'.format(
+                    created=user.created.strftime(date_time_format),
+                    updated=user.updated.strftime(date_time_format),
+                )
+             ),
+        )
+
+    def test_profile_import(self):
+        p = pathlib.PurePath(__file__)
+        csv_file = p.parents[1] / 'test_data' / 'create_profiles.csv'
+        fp = open(csv_file)
+        address = '/aklub/profile/import/'
+        post_data = {
+            'import_file': fp,
+            'input_format': 0,
+        }
+        response = self.client.post(address, post_data, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            'test.companyprofile@companyprofile.test',
+            html=True,
+        )
+        self.assertContains(
+            response,
+            'test.userprofile@userprofile.test',
+            html=True,
+        )
+        self.assertContains(
+            response,
+            'male',
+            html=True,
+        )
+        self.assertContains(
+            response,
+            '11223344',
+            html=True,
+        )
+        # TODO
+        # https://stackoverflow.com/questions/57644863/how-could-i-write-test-wich-test-import-data-from-csv-file-into-db-model-via-dj
+        # fp = open(csv_file)
+        # post_data = {
+        # }
+        # address = '/aklub/profile/process_import/'
+        # response = self.client.post(address, post_data, content_type='application/x-www-form-urlencoded')

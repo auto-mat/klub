@@ -36,3 +36,24 @@ user_profile_recipe = Recipe(
     username=seq("username"),
     email=seq("test@email.cz"),
 )
+
+# Model name set later, User/CompanyProfile
+generic_profile_recipe = Recipe(
+    '',
+    is_staff=False,
+    is_active=True,
+    date_joined='2016-09-16T16:22:30.128Z',
+    language='en',
+    city='Praha 4',
+    country='Česká republika',
+    different_correspondence_address=True,
+    correspondence_country='Česká republika',
+    public=True,
+    club_card_available=False,
+    club_card_dispatched=False,
+    send_mailing_lists=True,
+    newsletter_on=False,
+    call_on=False,
+    challenge_on=False,
+    letter_on=False,
+)

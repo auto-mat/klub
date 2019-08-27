@@ -31,10 +31,12 @@ from advanced_filters.admin import AdminAdvancedFiltersMixin
 from daterange_filter.filter import DateRangeFilter
 
 from django import forms
+from django.apps import apps
 from django.contrib import admin, messages
 from django.contrib.admin import site
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import UsernameField
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator
 from django.db.models import CharField, Count, Max, Sum
@@ -67,8 +69,8 @@ from .filters import unit_admin_mixin_generator
 from .forms import UserCreateForm, UserUpdateForm
 from .models import (
     AccountStatements, AdministrativeUnit, AutomaticCommunication, BankAccount, CompanyProfile, Condition,
-    DonorPaymentChannel, Event, Expense, Interaction, MassCommunication, NewUser, Payment, Preference,
-    Profile, Recruiter, Result, Source, TaxConfirmation, TaxConfirmationField,
+    DonorPaymentChannel, Event, Expense, Interaction, MassCommunication, NewUser, Payment, Preference, Profile, Recruiter,
+    Result, Source, TaxConfirmation, TaxConfirmationField,
     TaxConfirmationPdf, Telephone, TerminalCondition, UserBankAccount,
     UserProfile, UserYearPayments,
 )
@@ -80,6 +82,72 @@ def admin_links(args_generator):
         '<a href="{}">{}</a>',
         args_generator,
     )
+
+
+def get_polymorphic_parent_child_fields(parent_model):
+    exclude_fields = ["profile_ptr"]
+    parent_model_fields = [f.name for f in parent_model._meta.fields]
+    result = {}
+    for child_model in parent_model.__subclasses__():
+        child_model_fields = [f.name for f in child_model._meta.fields]
+        child_model_fields_only = list(
+            set(parent_model_fields).symmetric_difference(set(child_model_fields)),
+        )
+        for field in exclude_fields:
+            child_model_fields_only.remove(field)
+        result[child_model._meta.model_name] = child_model_fields_only
+    return result
+
+
+def dehydrate_base(self, profile):
+    pass
+
+
+def dehydrate_decorator(field):
+    def wrap(f):
+        def wrapped_f(self, profile):
+            if profile.pk and field in (f.name for f in profile._meta.fields):
+                return getattr(profile, field)
+            else:
+                return None
+        return wrapped_f
+    return wrap
+
+
+def get_parent_child_instance(self, row):
+    all_child_models_fields = get_polymorphic_parent_child_fields(self._meta.model)
+    for model_name, model_fields in all_child_models_fields.items():
+        for field in model_fields:
+            if field in row:
+                return apps.get_model('aklub', model_name)()
+
+
+def init_instance(self, row=None):
+    return self.get_polymorphic_child_instance(row=row)
+
+
+def get_class_body(parent_model):
+    body = {}
+    all_child_models_fields = get_polymorphic_parent_child_fields(parent_model=parent_model)
+    for model, model_fields in all_child_models_fields.items():
+        for field in model_fields:
+            # Additional child field
+            body[field] = fields.Field()
+            # Additional child field dehydrate method
+            dehydrate_func = (dehydrate_decorator(field=field))(dehydrate_base)
+            body['dehydrate_{}'.format(field)] = dehydrate_func
+
+    body['get_polymorphic_child_instance'] = get_parent_child_instance
+    body['init_instance'] = init_instance
+
+    return body
+
+
+ProfileModelResource = type(
+    'ProfileModelResource',
+    (ModelResource,),
+    get_class_body(parent_model=Profile),
+)
 
 
 # -- INLINE FORMS --
@@ -329,18 +397,20 @@ def send_mass_communication_distinct_action(self, req, queryset, distinct=False)
 send_mass_communication_distinct_action.short_description = _("Send mass communication withoud duplicities")
 
 
-class ProfileResource(ModelResource):
+class ProfileResource(ProfileModelResource):
     class Meta:
         model = Profile
-        exclude = ('id', 'is_superuser', 'is_staff', 'administrated_units')
+        exclude = ('id', 'is_superuser', 'is_staff', 'administrated_units', 'polymorphic_ctype')
         import_id_fields = ('email', )
         export_order = ('administrative_units', 'email')
 
     telephone = fields.Field()
     donor = fields.Field()
+    profile_type = fields.Field()
 
     def import_obj(self, obj, data, dry_run):  # noqa
         bank_account = BankAccount.objects.all().first()
+        self._set_child_model_field_value(obj=obj, data=data)
         obj.save()
         if data.get('username') == "":
             data["username"] = None
@@ -376,7 +446,6 @@ class ProfileResource(ModelResource):
                 user_bank_account, _ = UserBankAccount.objects.get_or_create(bank_account_number=data['user_bank_account'])
                 donors.user_bank_account = user_bank_account
                 donors.save()
-
         return super().import_obj(obj, data, dry_run)
 
     def dehydrate_telephone(self, profile):
@@ -408,11 +477,35 @@ class ProfileResource(ModelResource):
         row['is_staff'] = 0
         row['email'] = row['email'].lower()
         row["administrative_units"] = kwargs['user'].administrated_units.first()
-        row["administrated_units"] = ""
+        row['polymorphic_ctype_id'] = ContentType.objects.get(model=row['profile_type']).id
+        self._get_row_model_column(row=row)
 
     def import_field(self, field, obj, data, is_m2m=False):
-        if field.attribute and field.column_name in data and not getattr(obj, field.column_name):
+        if field.attribute and field.column_name in data:  # and not getattr(obj, field.column_name):
             field.save(obj, data, is_m2m)
+
+    def dehydrate_profile_type(self, profile):
+        if profile.pk:
+            polymorphic_ctype = profile.polymorphic_ctype
+            model = polymorphic_ctype.model_class()
+            return model._meta.model_name
+        else:
+            return None
+
+    def _get_row_model_column(self, row):
+        all_child_models_fields = get_polymorphic_parent_child_fields(self._meta.model)
+        for model_name, model_fields in all_child_models_fields.items():
+            for field in model_fields:
+                if not row.get(field):
+                    del row[field]
+        return row
+
+    def _set_child_model_field_value(self, obj, data):
+        all_child_models_fields = get_polymorphic_parent_child_fields(self._meta.model)
+        for model_name, model_fields in all_child_models_fields.items():
+            for field in model_fields:
+                if hasattr(obj, field):
+                    setattr(obj, field, data.get(field))
 
 
 class ProfileMergeForm(merge.MergeForm):
@@ -542,7 +635,7 @@ class UnitProfileAddForm(forms.ModelForm):
         self.fields['administrative_units'].required = True
 
 
-class UnitUserChangeForm(UnitProfileAddForm):
+class UnitProfileChangeForm(UnitProfileAddForm):
 
     class Meta(UnitProfileAddForm.Meta):
         pass
@@ -563,6 +656,9 @@ class ProfileAdmin(
 ):
     resource_class = ProfileResource
     import_template_name = "admin/import_export/userprofile_import.html"
+    # merge_form = UserMergeForm
+    # add_form = UserCreateForm
+    # form = UserUpdateForm
     base_model = Profile
     child_models = (UserProfile, CompanyProfile)
 
@@ -576,6 +672,7 @@ class ProfileAdmin(
         'get_main_telephone',
         'title_before',
         'title_after',
+        'sex',
         'is_staff',
         'registered_support_date',
         'get_event',
@@ -596,7 +693,6 @@ class ProfileAdmin(
         'title_after',
         'userprofile__sex',
         'companyprofile__crn',
-        'sex',
         'is_staff',
         'date_joined',
         'last_login',
@@ -638,7 +734,7 @@ class ProfileAdmin(
             form = UnitProfileAddForm
             form.request = request
             return form
-        form = UnitUserChangeForm
+        form = UnitProfileChangeForm
         form.request = request
         return form
 
