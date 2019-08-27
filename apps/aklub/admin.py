@@ -384,7 +384,7 @@ def send_mass_communication_action(self, request, queryset, distinct=False):
         "admin:aklub_masscommunication_add",
         params={'send_to_users': queryset},
     )
-    
+
     return HttpResponseRedirect(redirect_url)
 
 
@@ -791,7 +791,7 @@ class ProfileAdmin(
     sex.short_description = _("Company Registration Number")
     sex.admin_order_field = 'crn'
 
-    
+
 class DonorPaymentChannelResource(ModelResource):
     user_email = fields.Field(
         column_name='user_email',
