@@ -120,14 +120,16 @@ class AdminTest(CreateSuperUserMixin, RunCommitHooksMixin, TestCase):
         Test, that sending mass communication works for ProfileAdmin.
         Communication shoul be send only once for every userprofile.
         """
-        mutual_userprofile = mommy.make("aklub.Profile")
+        mutual_userprofile = mommy.make("aklub.UserProfile")
+        foo = mommy.make("aklub.UserProfile")
+        bar = mommy.make("aklub.UserProfile")
         donor_payment_channel_recipe.make(id=3, user=mutual_userprofile)
         donor_payment_channel_recipe.make(id=4, user=mutual_userprofile)
-        donor_payment_channel_recipe.make(id=2978)
-        donor_payment_channel_recipe.make(id=2979)
+        donor_payment_channel_recipe.make(id=2978, user=foo)
+        donor_payment_channel_recipe.make(id=2979, user=bar)
         model_admin = django_admin.site._registry[DonorPaymentChannel]
         request = self.post_request({})
-        queryset = Profile.objects.all()
+        queryset = UserProfile.objects.exclude(username=self.superuser.username)
         response = admin.send_mass_communication_distinct_action(model_admin, request, queryset)
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/aklub/masscommunication/add/?send_to_users=3%2C2978%2C2979")

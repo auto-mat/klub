@@ -375,7 +375,7 @@ def send_mass_communication_action(self, request, queryset, distinct=False):
     queryset and redirect us to insert form for mass communications
     with the send_to_users M2M field prefilled with these
     users."""
-    if queryset.model is Profile:
+    if queryset.model in Profile.__subclasses__():
         queryset = DonorPaymentChannel.objects.filter(user__in=queryset)
     if distinct:
         queryset = queryset.order_by('user__id').distinct('user')
@@ -384,6 +384,7 @@ def send_mass_communication_action(self, request, queryset, distinct=False):
         "admin:aklub_masscommunication_add",
         params={'send_to_users': queryset},
     )
+    
     return HttpResponseRedirect(redirect_url)
 
 
