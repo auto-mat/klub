@@ -219,7 +219,7 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
             'New user has been created Jméno: Foo Příjmení: Duplabar Ulice: Město: PSC:\nE-mail: test@email.cz Telefon:\n\n',
         )
         self.assertEqual(donor_payment_channel.user.last_name, 'Duplabar')
-        self.assertEqual(donor_payment_channel.user.userchannels.count(), 1)
+        self.assertEqual(donor_payment_channel.user.userchannels.count(), 2)
 
     def test_regular_dpnk(self):
         mommy.make("Event", slug="dpnk")
