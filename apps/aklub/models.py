@@ -28,7 +28,8 @@ import os.path
 from denorm import denormalized, depend_on_related
 
 from django.contrib.admin.templatetags.admin_list import _boolean_icon
-from django.contrib.auth.models import AbstractUser, User
+from django.contrib.auth.models import AbstractUser, User, UserManager
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.humanize.templatetags.humanize import intcomma
 from django.core.exceptions import ValidationError
 from django.core.files.storage import FileSystemStorage
@@ -48,6 +49,9 @@ from django.utils.timesince import timesince
 from django.utils.translation import ugettext_lazy as _
 
 import html2text
+
+from polymorphic.managers import PolymorphicManager
+from polymorphic.models import PolymorphicModel
 
 from smmapdfs.model_abcs import PdfSandwichABC, PdfSandwichFieldABC
 from smmapdfs.models import PdfSandwichType
@@ -69,6 +73,35 @@ COMMUNICATION_METHOD = (
     ('personal', _("Personal")),
     ('internal', _("Internal")),
 )
+
+
+class CustomUserManager(PolymorphicManager, UserManager):
+
+    def create_user(self, email, password, **extra_fields):
+        if extra_fields.get('polymorphic_ctype_id', None):
+            ctype_id = extra_fields.pop('polymorphic_ctype_id')
+            model = ContentType.objects.get(id=ctype_id).model_class()
+            if model._meta.model_name == CompanyProfile._meta.model_name:
+                extra_fields['crn'] = '00000000'  # null constrain, random valid value
+        if not email:
+            raise ValueError(_('The Email must be set'))
+        email = self.normalize_email(email)
+        user = model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save()
+
+        return user
+
+    def create_superuser(self, email, password, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('is_active', True)
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError(_('Superuser must have is_staff=True.'))
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError(_('Superuser must have is_superuser=True.'))
+
+        return self.create_user(email, password, **extra_fields)
 
 
 class Result(models.Model):
@@ -432,15 +465,16 @@ class Source(models.Model):
         return str(self.name)
 
 
-class UserProfile(AbstractUser):
+class Profile(PolymorphicModel, AbstractUser):
     class Meta:
-        verbose_name = _("User profile")
-        verbose_name_plural = _("User profiles")
+        verbose_name = _("Profile")
+        verbose_name_plural = _("Profiles")
 
         permissions = (
             ('can_edit_all_units', _('Může editovat všechno ve všech administrativních jednotkách')),
         )
-
+    objects = CustomUserManager()
+    REQUIRED_FIELDS = ['email', 'polymorphic_ctype_id']
     GENDER = (
         ('male', _('Male')),
         ('female', _('Female')),
@@ -476,12 +510,6 @@ class UserProfile(AbstractUser):
     title_before = models.CharField(
         verbose_name=_("Title before name"),
         max_length=15, blank=True,
-    )
-    sex = models.CharField(
-        verbose_name=_("Gender"),
-        choices=GENDER,
-        max_length=50,
-        default='unknown',
     )
     addressment = models.CharField(
         verbose_name=_("Addressment in letter"),
@@ -690,12 +718,15 @@ class UserProfile(AbstractUser):
         if self.first_name:
             return vokativ(self.first_name.strip()).title()
         if self.language == 'cs':
-            if self.sex == 'male':
-                return 'příteli Auto*Matu'
-            elif self.sex == 'female':
-                return 'přítelkyně Auto*Matu'
+            if hasattr(self, 'sex'):
+                if self.sex == 'male':
+                    return 'příteli Auto*Matu'
+                elif self.sex == 'female':
+                    return 'přítelkyně Auto*Matu'
+                else:
+                    return 'příteli/kyně Auto*Matu'
             else:
-                return 'příteli/kyně Auto*Matu'
+                return 'Company'
         else:
             return 'Auto*Mat friend'
 
@@ -797,7 +828,36 @@ class UserProfile(AbstractUser):
         return event
 
 
-@receiver(signals.m2m_changed, sender=UserProfile.administrative_units.through)
+class CompanyProfile(Profile):
+    class Meta:
+        verbose_name = _("Company profile")
+        verbose_name_plural = _("Company profiles")
+
+    crn = models.CharField(
+        max_length=20,
+        verbose_name=_(u"Company Registration Number"),
+    )
+
+
+class UserProfile(Profile):
+    class Meta:
+        verbose_name = _("User profile")
+        verbose_name_plural = _("User profiles")
+
+    GENDER = (
+        ('male', _('Male')),
+        ('female', _('Female')),
+        ('unknown', _('Unknown')))
+
+    sex = models.CharField(
+        verbose_name=_("Gender"),
+        choices=GENDER,
+        max_length=50,
+        default='unknown',
+    )
+
+
+@receiver(signals.m2m_changed, sender=Profile.administrative_units.through)
 def Userprofile_administrative_unit_changed(sender, **kwargs):
     user = kwargs['instance']
     for unit in user.administrative_units.all():
@@ -809,7 +869,7 @@ def Userprofile_administrative_unit_changed(sender, **kwargs):
 
 class Preference(models.Model):
     user = models.ForeignKey(
-        UserProfile,
+        Profile,
         blank=True,
         null=True,
         on_delete=models.CASCADE,
@@ -889,7 +949,7 @@ class Telephone(models.Model):
         blank=True,
     )
     user = models.ForeignKey(
-        UserProfile,
+        Profile,
         blank=True,
         null=True,
         on_delete=models.SET_NULL,
@@ -974,7 +1034,7 @@ class UserInCampaign(models.Model):
 
     # -- Basic personal information
     userprofile = models.ForeignKey(
-        UserProfile,
+        Profile,
         blank=False,
         default=None,
         on_delete=models.CASCADE,
@@ -1102,7 +1162,7 @@ class UserInCampaign(models.Model):
         default=False,
     )
     verified_by = models.ForeignKey(
-        UserProfile,
+        Profile,
         verbose_name=_("Verified by"),
         related_name='verified_users',
         null=True,
@@ -1179,8 +1239,8 @@ class UserInCampaign(models.Model):
     def person_name(self):
         try:
             return self.userprofile.__str__()
-        except UserProfile.DoesNotExist:  # This happens, when UserInCampaign is cached, but it is deleted already
-            return "No UserProfile"
+        except Profile.DoesNotExist:  # This happens, when UserInCampaign is cached, but it is deleted already
+            return "No Profile"
 
     person_name.short_description = _("Full name")
 
@@ -1510,7 +1570,7 @@ class DonorPaymentChannel(models.Model):
         null=True,
     )
     user = models.ForeignKey(
-        'aklub.UserProfile',
+        Profile,
         verbose_name=_("User"),
         on_delete=models.CASCADE,
         related_name="userchannels",
@@ -1855,8 +1915,8 @@ class DonorPaymentChannel(models.Model):
     def person_name(self):
         try:
             return self.user.__str__()
-        except UserProfile.DoesNotExist:  # This happens, when UserInCampaign is cached, but it is deleted already
-            return "No UserProfile"
+        except Profile.DoesNotExist:  # This happens, when UserInCampaign is cached, but it is deleted already
+            return "No Profile"
 
     person_name.short_description = _("Full name")
 
@@ -2128,7 +2188,7 @@ class Payment(models.Model):
 
 class BaseInteraction(models.Model):
     user = models.ForeignKey(
-        UserProfile,
+        Profile,
         verbose_name=_("User"),
         on_delete=models.CASCADE,
         # related_name="communications",
@@ -2220,7 +2280,7 @@ class Interaction(BaseInteraction):
         blank=True,
     )
     created_by = models.ForeignKey(
-        UserProfile,
+        Profile,
         verbose_name=_("Created by"),
         related_name='created_by_communication',
         null=True,
@@ -2228,7 +2288,7 @@ class Interaction(BaseInteraction):
         on_delete=models.SET_NULL,
     )
     handled_by = models.ForeignKey(
-        UserProfile,
+        Profile,
         verbose_name=_("Last handled by"),
         related_name='handled_by_communication',
         null=True,
@@ -2351,7 +2411,7 @@ class ConditionValues(object):
         for name in model_names:
             model = {
                 'User': User,
-                'UserProfile': UserProfile,
+                'Profile': Profile,
                 'UserInCampaign': UserInCampaign,
                 'Payment': Payment,
                 'User.source': Source,
@@ -2525,7 +2585,7 @@ class TerminalCondition(models.Model):
 
     variable = models.CharField(
         verbose_name=_("Variable"),
-        choices=ConditionValues(('User', 'UserProfile', 'UserInCampaign', 'User.source', 'User.last_payment')),
+        choices=ConditionValues(('User', 'Profile', 'UserInCampaign', 'User.source', 'User.last_payment')),
         help_text=_("Value or variable on left-hand side"),
         max_length=50,
         blank=True,
@@ -2799,7 +2859,7 @@ class MassCommunication(models.Model):
         default=False,
     )
     send_to_users = models.ManyToManyField(
-        UserProfile,
+        Profile,
         verbose_name=_("send to users"),
         help_text=_(
             "All users who should receive the communication"),
@@ -2863,7 +2923,7 @@ def confirmation_upload_to(instance, filename):
 
 class TaxConfirmation(models.Model):
     user_profile = models.ForeignKey(
-        UserProfile,
+        Profile,
         on_delete=models.CASCADE,
         null=True,
     )

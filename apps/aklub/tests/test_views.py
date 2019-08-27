@@ -30,6 +30,7 @@ from django.test.utils import override_settings
 
 from model_mommy import mommy
 
+from .test_admin import CreateSuperUserMixin
 from .utils import print_response  # noqa
 from .. import views
 from ..models import DonorPaymentChannel, PetitionSignature, UserProfile
@@ -44,16 +45,12 @@ class ClearCacheMixin(object):
 @override_settings(
     MANAGERS=(('Manager', 'manager@test.com'),),
 )
-class ViewsTests(ClearCacheMixin, TestCase):
+class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
     fixtures = ['conditions', 'users', 'communications', 'dashboard_stats']
 
     def setUp(self):
-        self.user = UserProfile.objects.create_superuser(
-            username='admin',
-            email='test_user@test_user.com',
-            password='admin',
-        )
-        self.client.force_login(self.user)
+        super().setUp()
+        self.client.force_login(self.superuser)
 
     regular_post_data = {
         'userprofile-email': 'test@test.cz',
@@ -194,13 +191,18 @@ class ViewsTests(ClearCacheMixin, TestCase):
     def test_darujme_existing_email_different_campaign(self):
         """ Test, that if the user exists in different campaign, he is able to register """
         address = reverse('regular-darujme')
+        _foo_user = mommy.make(
+            'aklub.UserProfile',
+            first_name="Foo",
+            last_name='Duplabar',
+            email='test@email.cz',
+        )
+        _foo_user.save()
         donor_payment_channel = mommy.make(
             "aklub.DonorPaymentChannel",
-            user__email='test@email.cz',
-            user__first_name='Foo',
-            user__last_name='Duplabar',
             bank_account__bank_account="0000",
             campaign__id=1,
+            user=_foo_user,
         )
         response = self.client.post(address, self.post_data_darujme, follow=False)
         self.assertContains(

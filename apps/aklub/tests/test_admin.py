@@ -18,7 +18,12 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+import pathlib
+from datetime import datetime
+
 from django.contrib import admin as django_admin, auth
+from django.contrib.auth.models import Group
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory, TestCase
@@ -30,22 +35,45 @@ from freezegun import freeze_time
 
 from model_mommy import mommy
 
-from .recipes import donor_payment_channel_recipe
+from .recipes import donor_payment_channel_recipe, generic_profile_recipe, user_profile_recipe
 from .utils import RunCommitHooksMixin
 from .utils import print_response  # noqa
 from .. import admin
-from ..models import (
-    AccountStatements, AutomaticCommunication, DonorPaymentChannel, Interaction, MassCommunication,
-    TaxConfirmation, UserProfile, UserYearPayments,
+from .. models import (
+    AccountStatements, AutomaticCommunication, CompanyProfile, DonorPaymentChannel, Event,
+    Interaction, MassCommunication, Profile, TaxConfirmation, UserProfile, UserYearPayments,
 )
 
 
-class AdminSmokeTest(tests.AdminSiteSmokeTest):
+class CreateSuperUserMixin:
+
+    def setUp(self):
+        self.superuser = auth.get_user_model().objects.create_superuser(
+            username='testuser',
+            email='testuser@example.com',
+            password='foo',
+            polymorphic_ctype_id=ContentType.objects.get(model=UserProfile._meta.model_name).id,
+        )
+
+
+class AdminSmokeTest(CreateSuperUserMixin, tests.AdminSiteSmokeTest):
     fixtures = ['conditions', 'users']
     exclude_apps = ['helpdesk', 'postoffice', 'advanced_filters', 'celery_monitor']
 
+    def setUp(self):
+        super().setUp()
+        self.factory = RequestFactory()
+
+        if not self.modeladmins:
+            self.modeladmins = admin.site._registry.items()
+
+        try:
+            admin.autodiscover()
+        except Exception:
+            pass
+
     def post_request(self, post_data={}, params=None):
-        request = self.factory.post('/', data=post_data)
+        request = self.factory.post(path='/', data=post_data)
         request.user = self.superuser
         request._dont_enforce_csrf_checks = True
         request.session = 'session'
@@ -56,14 +84,10 @@ class AdminSmokeTest(tests.AdminSiteSmokeTest):
 @override_settings(
     CELERY_ALWAYS_EAGER=True,
 )
-class AdminTest(RunCommitHooksMixin, TestCase):
+class AdminTest(CreateSuperUserMixin, RunCommitHooksMixin, TestCase):
     def setUp(self):
+        super().setUp()
         self.factory = RequestFactory()
-        self.superuser = auth.get_user_model().objects.create_superuser(
-            'testuser',
-            'testuser@example.com',
-            'foo',
-        )
 
     def get_request(self, params=None):
         request = self.factory.get('/', params)
@@ -93,25 +117,31 @@ class AdminTest(RunCommitHooksMixin, TestCase):
 
     def test_send_mass_communication_userprofile(self):
         """
-        Test, that sending mass communication works for UserProfileAdmin.
+        Test, that sending mass communication works for ProfileAdmin.
         Communication shoul be send only once for every userprofile.
         """
-        mutual_userprofile = mommy.make("aklub.Userprofile")
+        mutual_userprofile = mommy.make("aklub.UserProfile")
+        foo = mommy.make("aklub.UserProfile")
+        bar = mommy.make("aklub.UserProfile")
         donor_payment_channel_recipe.make(id=3, user=mutual_userprofile)
         donor_payment_channel_recipe.make(id=4, user=mutual_userprofile)
-        donor_payment_channel_recipe.make(id=2978)
-        donor_payment_channel_recipe.make(id=2979)
+        donor_payment_channel_recipe.make(id=2978, user=foo)
+        donor_payment_channel_recipe.make(id=2979, user=bar)
         model_admin = django_admin.site._registry[DonorPaymentChannel]
         request = self.post_request({})
-        queryset = UserProfile.objects.all()
+        queryset = UserProfile.objects.exclude(username=self.superuser.username)
         response = admin.send_mass_communication_distinct_action(model_admin, request, queryset)
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/aklub/masscommunication/add/?send_to_users=3%2C2978%2C2979")
 
     @freeze_time("2017-5-1")
     def test_tax_confirmation_generate(self):
-        foo_user = donor_payment_channel_recipe.make(user__first_name="Foo", user__id=2978)
-        bar_user = donor_payment_channel_recipe.make(user__first_name="Bar", user__id=2979)
+        _foo_user = user_profile_recipe.make(id=2978, first_name="Foo")
+        _foo_user.save()
+        _bar_user = user_profile_recipe.make(id=2979, first_name="Bar")
+        _bar_user.save()
+        foo_user = donor_payment_channel_recipe.make(user=_foo_user)
+        bar_user = donor_payment_channel_recipe.make(user=_bar_user)
         mommy.make("aklub.Payment", amount=350, date="2016-01-02", user_donor_payment_channel=foo_user, type="cash")
         mommy.make("aklub.Payment", amount=130, date="2016-01-02", user_donor_payment_channel=bar_user, type="cash")
         model_admin = django_admin.site._registry[TaxConfirmation]
@@ -221,9 +251,9 @@ class AdminTest(RunCommitHooksMixin, TestCase):
         LANGUAGE_CODE='en',
     )
     def test_mass_communication_changelist_post_send_mails(self):
-        mommy.make("UserProfile", id=2978, email="foo@email.com", language="cs")
-        mommy.make("UserProfile", id=2979, email="bar@email.com", language="cs")
-        mommy.make("UserProfile", id=3, email="baz@email.com", language="en")
+        mommy.make("Profile", id=2978, email="foo@email.com", language="cs")
+        mommy.make("Profile", id=2979, email="bar@email.com", language="cs")
+        mommy.make("Profile", id=3, email="baz@email.com", language="en")
         model_admin = django_admin.site._registry[MassCommunication]
         request = self.get_request()
         response = model_admin.add_view(request)
@@ -302,7 +332,7 @@ class AdminTest(RunCommitHooksMixin, TestCase):
         self.assertEqual(response.url, "/aklub/automaticcommunication/%s/change/" % obj.id)
 
     def test_communication_changelist_post(self):
-        user_profile = mommy.make('UserProfile')
+        user_profile = mommy.make('aklub.UserProfile')
         model_admin = django_admin.site._registry[Interaction]
         request = self.get_request()
         response = model_admin.add_view(request)
@@ -376,18 +406,122 @@ class AdminTest(RunCommitHooksMixin, TestCase):
         self.assertEqual(payment.user_donor_payment_channel, payment_channel)
         self.assertEqual('Variabilní symboly úspěšně spárovány.', request._messages._queued_messages[0].message)
 
+    def test_profile_post(self):
+        model_admin = django_admin.site._registry[Group]
+        request = self.get_request()
+        response = model_admin.add_view(request)
+        self.assertEqual(response.status_code, 200)
 
-class AdminImportExportTests(TestCase):
+        group_post_data = {
+            'name': 'test',
+            'permissions': 1,
+        }
+        request = self.post_request(post_data=group_post_data)
+        response = model_admin.add_view(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Group.objects.count(), 1)
+
+        managementform_data = {
+            'preference_set-TOTAL_FORMS': 0,
+            'preference_set-INITIAL_FORMS': 0,
+            'preference_set-MIN_NUM_FORMS': 0,
+            'preference_set-MAX_NUM_FORMS': 0,
+            'telephone_set-TOTAL_FORMS': 0,
+            'telephone_set-INITIAL_FORMS': 0,
+            'telephone_set-MIN_NUM_FORMS': 0,
+            'telephone_set-MAX_NUM_FORMS': 1000,
+            'userchannels-TOTAL_FORMS': 0,
+            'userchannels-INITIAL_FORMS': 0,
+            'userchannels-MIN_NUM_FORMS': 0,
+            'userchannels-MAX_NUM_FORMS': 1000,
+            'interaction_set-TOTAL_FORMS': 0,
+            'interaction_set-INITIAL_FORMS': 0,
+            'interaction_set-MIN_NUM_FORMS': 0,
+            'interaction_set-MAX_NUM_FORMS': 1000,
+        }
+
+        actions = ['add_view', 'change_view']
+        child_models = Profile.__subclasses__()
+
+        for child_model in child_models:
+            model_admin = django_admin.site._registry[child_model]
+            request = self.get_request()
+            response = model_admin.add_view(request)
+            self.assertEqual(response.status_code, 200)
+
+            for view_method_name in actions:
+                action = view_method_name.split('_')[0]
+                model_name = child_model._meta.model_name
+                test_str = '{}.{}'.format(action, model_name)
+                profile_post_data = {
+                    'username': '{}'.format(test_str),
+                    'email': '{0}@{0}.test'.format(test_str),
+                    'language': 'cs',
+                    'is_staff': 'on',
+                    'groups': Group.objects.get().id,
+                }
+
+                if 'sex' in (f.name for f in child_model._meta.fields):
+                    profile_post_data.update({'sex': 'male'})
+                if 'crn' in (f.name for f in child_model._meta.fields):
+                    profile_post_data.update({'crn': '00000000'})
+                profile_post_data.update(managementform_data)
+
+                view_method = getattr(model_admin, view_method_name)
+                request = self.post_request(post_data=profile_post_data)
+
+                if action == 'change':
+                    user_id = str(Profile.objects.get(username='add.{}'.format(model_name)).id)
+                    response = view_method(request, object_id=user_id)
+                else:
+                    response = view_method(request)
+
+                self.assertEqual(response.status_code, 302)
+
+                user = Profile.objects.get(username='{}'.format(test_str))
+                group_id = user.groups.all().values_list("id", flat=True)[0]
+
+                self.assertEqual(user.username, profile_post_data['username'])
+                self.assertEqual(user.email, profile_post_data['email'])
+                self.assertEqual(user.is_staff, True)
+                self.assertEqual(group_id, profile_post_data['groups'])
+
+        new_users = Profile.objects.exclude(username=self.superuser.username)
+        self.assertEqual(new_users.count(), len(child_models))
+
+        for user in new_users:
+            model_admin = django_admin.site._registry[user._meta.model]
+            delete_post_data = {
+                'submit': 'Ano, jsem si jist(a)',
+            }
+            request = self.post_request(post_data=delete_post_data)
+            response = model_admin.delete_view(request, object_id=str(user.id))
+            self.assertEqual(response.status_code, 302)
+
+        self.assertEqual(Profile.objects.exclude(username=self.superuser.username).count(), 0)
+
+
+class AdminImportExportTests(CreateSuperUserMixin, TestCase):
     fixtures = ['conditions', 'users', 'communications']
 
     def setUp(self):
         super().setUp()
-        self.user = UserProfile.objects.create_superuser(
-            username='admin',
-            email='test_user@test_user.com',
-            password='admin',
-        )
-        self.client.force_login(self.user)
+        self.factory = RequestFactory()
+        self.client.force_login(self.superuser)
+
+    def get_request(self, params=None):
+        request = self.factory.get('/', params)
+
+        request.user = self.superuser
+        return request
+
+    def post_request(self, post_data={}, params=None):
+        request = self.factory.post('/', data=post_data)
+        request.user = self.superuser
+        request._dont_enforce_csrf_checks = True
+        request.session = 'session'
+        request._messages = FallbackStorage(request)
+        return request
 
     def test_paymetnchannel_export(self):
         address = "/aklub/donorpaymentchannel/export/"
@@ -403,3 +537,146 @@ class AdminImportExportTests(TestCase):
             # '"Domníváte se, že má město po zprovoznění tunelu Blanka omezit tranzit historickým centrem? '
             # 'Ano, hned se zprovozněním tunelu",editor,1,cs,,,,0,0.0,100',
         )
+
+    def test_profile_export(self):
+        profiles_data = [
+            {
+                'type': 'user',
+                'model_name': UserProfile._meta.model_name,
+                'vs': '140147010',
+                'extra_fields': {'sex': 'male'},
+            },
+            {
+                'type': 'company',
+                'model_name': CompanyProfile._meta.model_name,
+                'vs': '150157010',
+                'extra_fields': {'crn': '11223344'},
+            },
+        ]
+        # event = mommy.make(
+        #     'aklub.Event',
+        #     name='Klub přátel Auto*Matu',
+        #     created='2015-12-16',
+        #     slug='klub',
+        #     allow_statistics=True,
+        #     darujme_api_id=38571205,
+        #     darujme_project_id=38571205,
+        #     acquisition_campaign=True,
+        #     enable_signing_petitions=True,
+        #     enable_registration=True,
+        #     darujme_name='Klub přátel Auto*Matu',
+        # )
+        event = Event.objects.get(pk=2)
+        for profile_type in profiles_data:
+            model_name = profile_type['model_name']
+            generic_profile_recipe._model = 'aklub.{}'.format(model_name)
+            fields = {
+                'username': 'test.{}'.format(model_name),
+                'first_name': 'First_name_{}'.format(model_name),
+                'last_name': 'Last_name_{}'.format(model_name),
+                'email': 'test.{0}@{0}.test'.format(model_name),
+            }
+            fields.update(profile_type['extra_fields'])
+            user = generic_profile_recipe.make(**fields)
+            mommy.make(
+                'aklub.Interaction',
+                dispatched=False,
+                date='2016-2-9',
+                user=user,
+            )
+            mommy.make(
+                'aklub.TaxConfirmation',
+                user_profile=user,
+                year=2014,
+                amount=2014,
+            )
+            mommy.make(
+                'aklub.DonorPaymentChannel',
+                user=user,
+                expected_date_of_first_payment=datetime.strptime('2015-12-16', '%Y-%m-%d'),
+                no_upgrade=False,
+                registered_support='2015-12-16T18:22:30.128',
+                regular_amount=100,
+                regular_frequency='monthly',
+                regular_payments='regular',
+                event=event,
+                VS=profile_type['vs'],
+            )
+
+        address = '/aklub/profile/export/'
+        post_data = {
+            'file_format': 0,
+        }
+        response = self.client.post(address, post_data)
+        date_time_format = '%Y-%m-%d %H:%M:%S'
+        user = Profile.objects.get(username='test.{}'.format(UserProfile._meta.model_name))
+        self.assertContains(
+            response,
+            ''.join(
+                [
+                    ',test.userprofile@userprofile.test,,male,,',
+                    '"VS:140147010\nevent:Klub přátel Auto*Matu\nbank_accout:\nuser_bank_account:\n\n"',
+                    ',userprofile,,,,test.userprofile,First_name_userprofile,Last_name_userprofile,1,',
+                    '2016-09-16 16:22:30,,,,,,,en,,Praha 4,Česká republika,,1,,,Česká republika,,,1,,,0,',
+                    '0,,,{created},{updated},1,,,,0,0,0,0'.format(
+                        created=user.created.strftime(date_time_format),
+                        updated=user.updated.strftime(date_time_format),
+                    ),
+                ],
+            ),
+        )
+        user = Profile.objects.get(username='test.{}'.format(CompanyProfile._meta.model_name))
+        self.assertContains(
+            response,
+            ''.join(
+                [
+                    ',test.companyprofile@companyprofile.test,11223344,,,',
+                    '"VS:150157010\nevent:Klub přátel Auto*Matu\nbank_accout:\nuser_bank_account:\n\n"',
+                    ',companyprofile,,,,test.companyprofile,First_name_companyprofile,Last_name_companyprofile,',
+                    '1,2016-09-16 16:22:30,,,,,,,en,,Praha 4,Česká republika,,1,,,Česká republika,,,1,,,0,0,,,',
+                    '{created},{updated},1,,,,0,0,0,0'.format(
+                        created=user.created.strftime(date_time_format),
+                        updated=user.updated.strftime(date_time_format),
+                    ),
+                ],
+            ),
+        )
+
+    def test_profile_import(self):
+        p = pathlib.PurePath(__file__)
+        csv_file = p.parents[1] / 'test_data' / 'create_profiles.csv'
+        fp = open(csv_file)
+        address = '/aklub/profile/import/'
+        post_data = {
+            'import_file': fp,
+            'input_format': 0,
+        }
+        response = self.client.post(address, post_data, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            'test.companyprofile@companyprofile.test',
+            html=True,
+        )
+        self.assertContains(
+            response,
+            'test.userprofile@userprofile.test',
+            html=True,
+        )
+        self.assertContains(
+            response,
+            'male',
+            html=True,
+        )
+        self.assertContains(
+            response,
+            '11223344',
+            html=True,
+        )
+        # TODO
+        # https://stackoverflow.com/questions/57644863/how-could-i-write-test-wich-test-import-data-from-csv-file-into-db-model-via-dj
+        # fp = open(csv_file)
+        # post_data = {
+        # }
+        # address = '/aklub/profile/process_import/'
+        # response = self.client.post(address, post_data, content_type='application/x-www-form-urlencoded')

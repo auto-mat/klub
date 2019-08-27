@@ -7,6 +7,7 @@ import django.db.models.deletion
 import django.utils.timezone
 import django_grapesjs.models.fields
 
+from .data_migration.old_user_profile_model_hack import Settings as settings
 
 class Migration(migrations.Migration):
 
