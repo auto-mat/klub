@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from  django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.models import ContentType
 
 ONETOONE_USER_PROFILE_MODEL_DATA = []
 USER_PROFILE_MODEL_DATA = []
@@ -16,7 +16,7 @@ def get_user_model_data(apps, schema_editor):
     if ContentType.objects.count() > 0:
         with schema_editor.connection.cursor() as cursor:
             cursor.execute("SELECT * FROM aklub_userprofile")
-            content_type_id = ContentType.objects.get(model=user_profile_model._meta.model_name).id        
+            content_type_id = ContentType.objects.get(model=user_profile_model._meta.model_name).id
             rows = [list(row) + [content_type_id] for row in cursor.fetchall()]
             columns = [col[0] for col in cursor.description]
             columns.append('polymorphic_ctype_id')
@@ -32,7 +32,7 @@ def get_user_model_data(apps, schema_editor):
                     }
                 )
 
-            
+
 def set_user_model_data(apps, schema_editor):
     """Create Profile model with old UserProfile data"""
     profile_model = apps.get_model('aklub', 'Profile')
