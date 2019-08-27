@@ -673,6 +673,7 @@ class ProfileAdmin(
         'title_before',
         'title_after',
         'sex',
+        'crn',
         'is_staff',
         'registered_support_date',
         'get_event',
@@ -783,7 +784,13 @@ class ProfileAdmin(
     sex.short_description = _("Gender")
     sex.admin_order_field = 'sex'
 
+    def crn(self, obj):
+        return self.sex if hasattr(obj, 'crn') else 'User'
 
+    sex.short_description = _("Company Registration Number")
+    sex.admin_order_field = 'crn'
+
+    
 class DonorPaymentChannelResource(ModelResource):
     user_email = fields.Field(
         column_name='user_email',
