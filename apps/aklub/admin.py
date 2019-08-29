@@ -429,7 +429,7 @@ class ProfileResource(ProfileModelResource):
 
         if data.get("administrative_units"):
             admin_unit_value = data.get("administrative_units")
-            admin_units, _ = AdministrativeUnit.objects.get_or_create(name=admin_unit_value)
+            admin_units, _ = AdministrativeUnit.objects.get_or_create(pk=admin_unit_value)
             obj.administrative_units.add(admin_units)
             obj.administrated_units.add(admin_units)
             obj.save()
