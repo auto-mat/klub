@@ -422,7 +422,7 @@ class ProfileResource(ProfileModelResource):
             telephone, _ = Telephone.objects.get_or_create(
                 telephone=data['telephone'],
                 user=obj,
-                defaults={'is_primary': None}
+                defaults={'is_primary': None},
             )
         if data.get("email") == "":
             data["email"] = None
@@ -433,10 +433,10 @@ class ProfileResource(ProfileModelResource):
             obj.administrative_units.add(admin_units)
             obj.administrated_units.add(admin_units)
             obj.save()
-            
+
             preference, _ = Preference.objects.get_or_create(
                 user=obj,
-                administrative_unit=admin_units
+                administrative_unit=admin_units,
             )
             if data.get("newsletter_on") is not None:
                 preference.newsletter_on = data['newsletter_on']
@@ -505,42 +505,42 @@ class ProfileResource(ProfileModelResource):
     def dehydrate_newsletter_on(self, profile):
         if profile.pk:
             preference = profile.preference_set.filter(
-                administrative_unit=profile.administrated_units.first()).first()
+                administrative_unit=profile.administrated_units.first(),).first()
             if preference:
                 return preference.newsletter_on
 
     def dehydrate_call_on(self, profile):
         if profile.pk:
             preference = profile.preference_set.filter(
-                administrative_unit=profile.administrated_units.first()).first()
+                administrative_unit=profile.administrated_units.first(),).first()
             if preference:
                 return preference.call_on
 
     def dehydrate_challenge_on(self, profile):
         if profile.pk:
             preference = profile.preference_set.filter(
-                administrative_unit=profile.administrated_units.first()).first()
+                administrative_unit=profile.administrated_units.first(),).first()
             if preference:
                 return preference.challenge_on
 
     def dehydrate_letter_on(self, profile):
         if profile.pk:
             preference = profile.preference_set.filter(
-                administrative_unit=profile.administrated_units.first()).first()
+                administrative_unit=profile.administrated_units.first(),).first()
             if preference:
                 return preference.letter_on
 
     def dehydrate_send_mailing_lists(self, profile):
         if profile.pk:
             preference = profile.preference_set.filter(
-                administrative_unit=profile.administrated_units.first()).first()
+                administrative_unit=profile.administrated_units.first(),).first()
             if preference:
                 return preference.send_mailing_lists
 
     def dehydrate_public(self, profile):
         if profile.pk:
             preference = profile.preference_set.filter(
-                administrative_unit=profile.administrated_units.first()).first()
+                administrative_unit=profile.administrated_units.first(),).first()
             if preference:
                 return preference.public
 
