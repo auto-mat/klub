@@ -615,10 +615,10 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
             ''.join(
                 [
                     ',test.userprofile@userprofile.test,,male,,',
-                    '"VS:140147010\nevent:Klub přátel Auto*Matu\nbank_accout:\nuser_bank_account:\n\n"',
-                    ',userprofile,,,,test.userprofile,First_name_userprofile,Last_name_userprofile,1,',
-                    '2016-09-16 16:22:30,,,,,,,en,,Praha 4,Česká republika,,1,,,Česká republika,,,1,,,0,',
-                    '0,,,{created},{updated},1,,,,0,0,0,0'.format(
+                    '"VS:140147010\nevent:Klub přátel Auto*Matu\nbank_accout:\nuser_bank_account:\n\n",',
+                    'userprofile,,,,,,,,,,test.userprofile,First_name_userprofile,Last_name_userprofile,',
+                    '1,2016-09-16 16:22:30,,,,,,,en,,Praha 4,Česká republika,,1,,,Česká republika,,,,,0,0,,,',
+                    '{created},{updated},,,'.format(
                         created=user.created.strftime(date_time_format),
                         updated=user.updated.strftime(date_time_format),
                     ),
@@ -631,10 +631,10 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
             ''.join(
                 [
                     ',test.companyprofile@companyprofile.test,11223344,,,',
-                    '"VS:150157010\nevent:Klub přátel Auto*Matu\nbank_accout:\nuser_bank_account:\n\n"',
-                    ',companyprofile,,,,test.companyprofile,First_name_companyprofile,Last_name_companyprofile,',
-                    '1,2016-09-16 16:22:30,,,,,,,en,,Praha 4,Česká republika,,1,,,Česká republika,,,1,,,0,0,,,',
-                    '{created},{updated},1,,,,0,0,0,0'.format(
+                    '"VS:150157010\nevent:Klub přátel Auto*Matu\nbank_accout:\nuser_bank_account:\n\n",',
+                    'companyprofile,,,,,,,,,,test.companyprofile,First_name_companyprofile,',
+                    'Last_name_companyprofile,1,2016-09-16 16:22:30,,,,,,,en,,Praha 4,Česká republika,,1,,,',
+                    'Česká republika,,,,,0,0,,,{created},{updated},,,'.format(
                         created=user.created.strftime(date_time_format),
                         updated=user.updated.strftime(date_time_format),
                     ),
