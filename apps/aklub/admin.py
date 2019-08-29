@@ -405,12 +405,6 @@ class ProfileResource(ProfileModelResource):
     telephone = fields.Field()
     donor = fields.Field()
     profile_type = fields.Field()
-    newsletter_on = fields.Field()
-    call_on = fields.Field()
-    challenge_on = fields.Field()
-    letter_on = fields.Field()
-    send_mailing_lists = fields.Field()
-    public = fields.Field()
 
     def import_obj(self, obj, data, dry_run):  # noqa
         bank_account = BankAccount.objects.all().first()
