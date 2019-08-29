@@ -12,7 +12,6 @@ env:
     - SECRET_KEY="sadfjasasdfasdfsadfsadfsadfeq"
 
   matrix:
-    - DJANGO_VERSION="Django>=2.1,<2.2"
     - DJANGO_VERSION="Django>=2.2,<2.3"
     - DJANGO_VERSION='https://github.com/django/django/archive/master.tar.gz'
 python:
