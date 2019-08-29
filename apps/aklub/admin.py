@@ -1486,7 +1486,6 @@ class BaseProfileChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModel
                 'username', ('first_name', 'last_name'), 'email', 'sex',
                 ('birth_day', 'birth_month', 'age_group'),
                 'administrative_units',
-                'language',
             ),
         }),
     )
@@ -1500,7 +1499,6 @@ class BaseProfileChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModel
                 'get_main_telephone',
                 'note',
                 'administrative_units',
-                'language',
             ),
         }),
         (_('Contact data'), {
@@ -1570,6 +1568,11 @@ class BaseProfileChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModel
         'userattendance_links', 'date_joined', 'last_login', 'get_main_telephone',
     )
 
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        form.base_fields['language'].required = False
+        return form
+
     actions = (send_mass_communication_distinct_action,)
     inlines = [PreferenceInline, TelephoneInline, DonorPaymentChannelInline, InteractionInline]
 
@@ -1591,7 +1594,6 @@ class CompanyProfileAdmin(BaseProfileChildAdmin):
                 'username', ('first_name', 'last_name'), 'email',
                 ('birth_day', 'birth_month', 'age_group'),
                 'administrative_units',
-                'language',
                 'crn',
             ),
         }),
@@ -1605,7 +1607,6 @@ class CompanyProfileAdmin(BaseProfileChildAdmin):
                 'get_main_telephone',
                 'note',
                 'administrative_units',
-                'language',
                 'crn',
             ),
         }),
