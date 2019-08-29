@@ -413,13 +413,39 @@ class ProfileResource(ProfileModelResource):
         if data.get('username') == "":
             data["username"] = None
         if data.get('telephone'):
-            telephone, _ = Telephone.objects.get_or_create(telephone=data['telephone'], user=obj, defaults={'is_primary': None})
+            telephone, _ = Telephone.objects.get_or_create(
+                telephone=data['telephone'],
+                user=obj,
+                defaults={'is_primary': None},
+            )
         if data.get("email") == "":
             data["email"] = None
 
         if data.get("administrative_units"):
-            obj.administrative_units.add(data["administrative_units"])
+            admin_unit_value = data.get("administrative_units")
+            admin_units, _ = AdministrativeUnit.objects.get_or_create(pk=admin_unit_value)
+            obj.administrative_units.add(admin_units)
+            obj.administrated_units.add(admin_units)
             obj.save()
+
+            preference, _ = Preference.objects.get_or_create(
+                user=obj,
+                administrative_unit=admin_units,
+            )
+            if data.get("newsletter_on") is not None:
+                preference.newsletter_on = data['newsletter_on']
+            if data.get("call_on") is not None:
+                preference.call_on = data['call_on']
+            if data.get("challenge_on") is not None:
+                preference.challenge_on = data['challenge_on']
+            if data.get("letter_on") is not None:
+                preference.letter_on = data['letter_on']
+            if data.get("send_mailing_lists") is not None:
+                preference.send_mailing_lists = data['send_mailing_lists']
+            if data.get("public") is not None:
+                preference.public = data['public']
+
+            preference.save()
 
         if data.get('event') and data.get('donor') == 'x':
             if data.get('VS') != "":
@@ -470,11 +496,52 @@ class ProfileResource(ProfileModelResource):
 
         return "".join(tuple(donor_list))
 
+    def dehydrate_newsletter_on(self, profile):
+        if profile.pk:
+            preference = profile.preference_set.filter(
+                administrative_unit=profile.administrated_units.first(),).first()
+            if preference:
+                return preference.newsletter_on
+
+    def dehydrate_call_on(self, profile):
+        if profile.pk:
+            preference = profile.preference_set.filter(
+                administrative_unit=profile.administrated_units.first(),).first()
+            if preference:
+                return preference.call_on
+
+    def dehydrate_challenge_on(self, profile):
+        if profile.pk:
+            preference = profile.preference_set.filter(
+                administrative_unit=profile.administrated_units.first(),).first()
+            if preference:
+                return preference.challenge_on
+
+    def dehydrate_letter_on(self, profile):
+        if profile.pk:
+            preference = profile.preference_set.filter(
+                administrative_unit=profile.administrated_units.first(),).first()
+            if preference:
+                return preference.letter_on
+
+    def dehydrate_send_mailing_lists(self, profile):
+        if profile.pk:
+            preference = profile.preference_set.filter(
+                administrative_unit=profile.administrated_units.first(),).first()
+            if preference:
+                return preference.send_mailing_lists
+
+    def dehydrate_public(self, profile):
+        if profile.pk:
+            preference = profile.preference_set.filter(
+                administrative_unit=profile.administrated_units.first(),).first()
+            if preference:
+                return preference.public
+
     def before_import_row(self, row, **kwargs):
         row['is_superuser'] = 0
         row['is_staff'] = 0
         row['email'] = row['email'].lower()
-        row["administrative_units"] = kwargs['user'].administrated_units.first()
         row['polymorphic_ctype_id'] = ContentType.objects.get(model=row['profile_type']).id
         self._get_row_model_column(row=row)
 
