@@ -20,6 +20,7 @@
 
 import pathlib
 from datetime import datetime
+import re
 
 from django.contrib import admin as django_admin, auth
 from django.contrib.auth.models import Group
@@ -42,7 +43,7 @@ from .. import admin
 from .. models import (
     AccountStatements, AutomaticCommunication, CompanyProfile,
     DonorPaymentChannel, Event, Interaction, MassCommunication,
-    Profile, TaxConfirmation, UserProfile, UserYearPayments,
+    Preference, Profile, TaxConfirmation, UserProfile, UserYearPayments,
 )
 
 
@@ -665,14 +666,14 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
 
     def test_profile_import(self):
         p = pathlib.PurePath(__file__)
-        csv_file = p.parents[1] / 'test_data' / 'create_profiles.csv'
-        fp = open(csv_file)
+        csv_file_create_profiles = p.parents[1] / 'test_data' / 'create_profiles.csv'
         address = '/aklub/profile/import/'
-        post_data = {
-            'import_file': fp,
-            'input_format': 0,
-        }
-        response = self.client.post(address, post_data, follow=True)
+        with open(csv_file_create_profiles) as fp:
+            post_data = {
+                'import_file': fp,
+                'input_format': 0,
+            }
+            response = self.client.post(address, post_data)
         self.assertEqual(response.status_code, 200)
         self.assertContains(
             response,
@@ -694,10 +695,99 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
             '11223344',
             html=True,
         )
-        # TODO
-        # https://stackoverflow.com/questions/57644863/how-could-i-write-test-wich-test-import-data-from-csv-file-into-db-model-via-dj
-        # fp = open(csv_file)
-        # post_data = {
-        # }
-        # address = '/aklub/profile/process_import/'
-        # response = self.client.post(address, post_data, content_type='application/x-www-form-urlencoded')
+
+        # Create model
+        result = re.search(
+            r'<input type="hidden" name="import_file_name".*?>',
+            response.rendered_content,
+        )
+        file_name = [val.split('=')[-1].replace('"', '') for val in result.group(0).split(' ') if 'value' in val][0]
+        post_data = {
+            'import_file_name': file_name,
+            'original_file_name': csv_file_create_profiles.name,
+            'input_format': post_data['input_format'],
+        }
+        address = '/aklub/profile/process_import/'
+        response = self.client.post(address, post_data)
+        self.assertRedirects(response, expected_url='/aklub/profile/')
+
+        user_profile = Profile.objects.filter(email='test.userprofile@userprofile.test')
+        self.assertEqual(user_profile.count(), 1)
+        self.assertEqual(user_profile[0].sex, 'male')
+        self.assertEqual(DonorPaymentChannel.objects.filter(user=user_profile[0]).count(), 1)
+        self.assertEqual(DonorPaymentChannel.objects.filter(user=user_profile[0])[0].VS, '140147010')
+        self.assertEqual(DonorPaymentChannel.objects.filter(user=user_profile[0])[0].event.name, 'Klub přátel Auto*Matu')
+        self.assertEqual(DonorPaymentChannel.objects.filter(user=user_profile[0])[0].bank_account, None)
+        self.assertEqual(DonorPaymentChannel.objects.filter(user=user_profile[0])[0].user_bank_account, None)
+        self.assertEqual(user_profile[0].polymorphic_ctype, ContentType.objects.get(model='userprofile'))
+        self.assertEqual(user_profile[0].username, 'test.userprofile')
+        self.assertEqual(Preference.objects.filter(user=user_profile[0]).count(), 1)
+        self.assertEqual(Preference.objects.filter(user=user_profile[0])[0].send_mailing_lists, True)
+        self.assertEqual(Preference.objects.filter(user=user_profile[0])[0].letter_on, True)
+
+        company_profile = Profile.objects.filter(email='test.companyprofile@companyprofile.test')
+        self.assertEqual(company_profile.count(), 1)
+        self.assertEqual(company_profile[0].crn, '11223344')
+        self.assertEqual(DonorPaymentChannel.objects.filter(user=company_profile[0]).count(), 1)
+        self.assertEqual(DonorPaymentChannel.objects.filter(user=company_profile[0])[0].VS, '150157010')
+        self.assertEqual(DonorPaymentChannel.objects.filter(user=company_profile[0])[0].event.name, 'Klub přátel Auto*Matu')
+        self.assertEqual(DonorPaymentChannel.objects.filter(user=company_profile[0])[0].bank_account, None)
+        self.assertEqual(DonorPaymentChannel.objects.filter(user=company_profile[0])[0].user_bank_account, None)
+        self.assertEqual(company_profile[0].polymorphic_ctype, ContentType.objects.get(model='companyprofile'))
+        self.assertEqual(company_profile[0].username, 'test.companyprofile')
+        self.assertEqual(Preference.objects.filter(user=company_profile[0]).count(), 1)
+        self.assertEqual(Preference.objects.filter(user=company_profile[0])[0].send_mailing_lists, True)
+        self.assertEqual(Preference.objects.filter(user=company_profile[0])[0].letter_on, True)
+
+        # Update model
+        p = pathlib.PurePath(__file__)
+        csv_file_update_profiles = p.parents[1] / 'test_data' / 'update_profiles.csv'
+        address = '/aklub/profile/import/'
+        with open(csv_file_update_profiles) as fp:
+            post_data = {
+                'import_file': fp,
+                'input_format': 0,
+            }
+            response = self.client.post(address, post_data)
+        result = re.search(
+            r'<input type="hidden" name="import_file_name".*?>',
+            response.rendered_content,
+        )
+        file_name = [val.split("=")[-1].replace('"', '') for val in result.group(0).split(" ") if "value" in val][0]
+        post_data = {
+            'import_file_name': file_name,
+            'original_file_name': csv_file_create_profiles.name,
+            'input_format': post_data['input_format'],
+        }
+        address = '/aklub/profile/process_import/'
+        response = self.client.post(address, post_data)
+        self.assertRedirects(response, expected_url='/aklub/profile/')
+
+        user_profile = Profile.objects.filter(email='test.userprofile@userprofile.test')
+        self.assertEqual(user_profile.count(), 1)
+        self.assertEqual(user_profile[0].sex, 'female')
+        self.assertEqual(DonorPaymentChannel.objects.filter(user=user_profile[0]).count(), 1)
+        self.assertEqual(DonorPaymentChannel.objects.filter(user=user_profile[0])[0].VS, '140147010')
+        self.assertEqual(DonorPaymentChannel.objects.filter(user=user_profile[0])[0].event.name, 'Klub přátel Auto*Matu')
+        self.assertEqual(DonorPaymentChannel.objects.filter(user=user_profile[0])[0].bank_account, None)
+        self.assertEqual(DonorPaymentChannel.objects.filter(user=user_profile[0])[0].user_bank_account, None)
+        self.assertEqual(user_profile[0].polymorphic_ctype, ContentType.objects.get(model='userprofile'))
+        self.assertEqual(user_profile[0].username, 'test.userprofile')
+        self.assertEqual(Preference.objects.filter(user=user_profile[0]).count(), 1)
+        self.assertEqual(Preference.objects.filter(user=user_profile[0])[0].send_mailing_lists, False)
+        self.assertEqual(Preference.objects.filter(user=user_profile[0])[0].letter_on, False)
+
+        company_profile = Profile.objects.filter(email='test.companyprofile@companyprofile.test')
+        self.assertEqual(company_profile.count(), 1)
+        self.assertEqual(company_profile[0].crn, '22334455')
+        self.assertEqual(DonorPaymentChannel.objects.filter(user=company_profile[0]).count(), 1)
+        self.assertEqual(DonorPaymentChannel.objects.filter(user=company_profile[0])[0].VS, '150157010')
+        self.assertEqual(DonorPaymentChannel.objects.filter(user=company_profile[0])[0].event.name, 'Klub přátel Auto*Matu')
+        self.assertEqual(DonorPaymentChannel.objects.filter(user=company_profile[0])[0].bank_account, None)
+        self.assertEqual(DonorPaymentChannel.objects.filter(user=company_profile[0])[0].user_bank_account, None)
+        self.assertEqual(company_profile[0].polymorphic_ctype, ContentType.objects.get(model='companyprofile'))
+        self.assertEqual(company_profile[0].username, 'test.companyprofile')
+        self.assertEqual(company_profile[0].first_name, 'First_name_companyprofile_upd')
+        self.assertEqual(Preference.objects.filter(user=company_profile[0]).count(), 1)
+        self.assertEqual(Preference.objects.filter(user=company_profile[0])[0].send_mailing_lists, False)
+        self.assertEqual(Preference.objects.filter(user=company_profile[0])[0].letter_on, False)
