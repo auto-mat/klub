@@ -40,8 +40,9 @@ from .utils import RunCommitHooksMixin
 from .utils import print_response  # noqa
 from .. import admin
 from .. models import (
-    AccountStatements, AutomaticCommunication, CompanyProfile, DonorPaymentChannel, Event,
-    Interaction, MassCommunication, Profile, TaxConfirmation, UserProfile, UserYearPayments,
+    AccountStatements, AutomaticCommunication, CompanyProfile,
+    DonorPaymentChannel, Event, Interaction, MassCommunication,
+    Profile, TaxConfirmation, UserProfile, UserYearPayments,
 )
 
 
@@ -566,8 +567,9 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         #     enable_registration=True,
         #     darujme_name='Klub přátel Auto*Matu',
         # )
+        administrative_units = ['AU1', 'AU2']
         event = Event.objects.get(pk=2)
-        for profile_type in profiles_data:
+        for index, profile_type in enumerate(profiles_data):
             model_name = profile_type['model_name']
             generic_profile_recipe._model = 'aklub.{}'.format(model_name)
             fields = {
@@ -578,6 +580,12 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
             }
             fields.update(profile_type['extra_fields'])
             user = generic_profile_recipe.make(**fields)
+            administrative_unit = mommy.make(
+                'aklub.AdministrativeUnit',
+                id=index,
+                name=administrative_units[index],
+            )
+            user.administrated_units.add(administrative_unit)
             mommy.make(
                 'aklub.Interaction',
                 dispatched=False,
@@ -602,6 +610,21 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
                 event=event,
                 VS=profile_type['vs'],
             )
+            mommy.make(
+                'aklub.Preference',
+                user=user,
+                administrative_unit=administrative_unit,
+                newsletter_on=True,
+                call_on=True,
+                challenge_on=True,
+                letter_on=True,
+                send_mailing_lists=False,
+                public=False,
+            )
+            user.administrative_units.add(administrative_unit)
+
+        user_profile = Profile.objects.get(email='test.{0}@{0}.test'.format('userprofile'))
+        company_profile = Profile.objects.get(email='test.{0}@{0}.test'.format('companyprofile'))
 
         address = '/aklub/profile/export/'
         post_data = {
@@ -613,29 +636,28 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
             response,
             ''.join(
                 [
-                    ',test.userprofile@userprofile.test,,male,,',
+                    '0,test.userprofile@userprofile.test,,male,,',
                     '"VS:140147010\nevent:Klub přátel Auto*Matu\nbank_accout:\nuser_bank_account:\n\n",',
                     'userprofile,,,,test.userprofile,First_name_userprofile,Last_name_userprofile,1,',
-                    '2016-09-16 16:22:30,,,,,,,en,,Praha 4,Česká republika,,1,,,Česká republika,,,,,,0,',
-                    '0,,,{created},{updated},,,,,,,,'.format(
-                        created=user.created.strftime(date_time_format),
-                        updated=user.updated.strftime(date_time_format),
+                    '2016-09-16 16:22:30,,,,,,,en,,Praha 4,Česká republika,,1,,,Česká republika,,,False,,,0,0,,,',
+                    '{created},{updated},False,,,,True,True,True,True'.format(
+                        created=user_profile.created.strftime(date_time_format),
+                        updated=user_profile.updated.strftime(date_time_format),
                     ),
                 ],
             ),
         )
-        user = Profile.objects.get(username='test.{}'.format(CompanyProfile._meta.model_name))
         self.assertContains(
             response,
             ''.join(
                 [
-                    ',test.companyprofile@companyprofile.test,11223344,,,',
-                    '"VS:150157010\nevent:Klub přátel Auto*Matu\nbank_accout:\nuser_bank_account:\n\n",',
-                    'companyprofile,,,,test.companyprofile,First_name_companyprofile,Last_name_companyprofile,1,',
-                    '2016-09-16 16:22:30,,,,,,,en,,Praha 4,Česká republika,,1,,,Česká republika,,,,,,0,0,,,',
-                    '{created},{updated},,,,,,,,'.format(
-                        created=user.created.strftime(date_time_format),
-                        updated=user.updated.strftime(date_time_format),
+                    '1,test.companyprofile@companyprofile.test,11223344,,,',
+                    '"VS:150157010\nevent:Klub přátel Auto*Matu\nbank_accout:\nuser_bank_account:\n\n",'
+                    'companyprofile,,,,test.companyprofile,First_name_companyprofile,Last_name_companyprofile,1,'
+                    '2016-09-16 16:22:30,,,,,,,en,,Praha 4,Česká republika,,1,,,Česká republika,,,False,,,0,0,,,'
+                    '{created},{updated},False,,,,True,True,True,True'.format(
+                        created=company_profile.created.strftime(date_time_format),
+                        updated=company_profile.updated.strftime(date_time_format),
                     ),
                 ],
             ),
