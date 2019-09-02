@@ -68,11 +68,11 @@ from . import darujme, filters, mailing, tasks
 from .filters import unit_admin_mixin_generator
 from .forms import UserCreateForm, UserUpdateForm
 from .models import (
-    AccountStatements, AdministrativeUnit, AutomaticCommunication, BankAccount, CompanyProfile, Condition,
-    DonorPaymentChannel, Event, Expense, Interaction, MassCommunication, NewUser, Payment, Preference, Profile, Recruiter,
-    Result, Source, TaxConfirmation, TaxConfirmationField,
-    TaxConfirmationPdf, Telephone, TerminalCondition, UserBankAccount,
-    UserProfile, UserYearPayments,
+    AccountStatements, AdministrativeUnit, AutomaticCommunication, BankAccount,
+    CompanyProfile, Condition, DonorPaymentChannel, Event, Expense, Interaction,
+    MassCommunication, NewUser, Payment, Preference, Profile, Recruiter, Result,
+    Source, TaxConfirmation, TaxConfirmationField, TaxConfirmationPdf, Telephone,
+    TerminalCondition, UserBankAccount, UserProfile, UserYearPayments,
 )
 
 
@@ -422,7 +422,7 @@ class ProfileResource(ProfileModelResource):
             data["email"] = None
 
         if data.get("administrative_units"):
-            admin_unit_value = data.get("administrative_units")
+            admin_unit_value = data["administrative_units"]
             admin_units, _ = AdministrativeUnit.objects.get_or_create(pk=admin_unit_value)
             obj.administrative_units.add(admin_units)
             obj.administrated_units.add(admin_units)
@@ -447,27 +447,33 @@ class ProfileResource(ProfileModelResource):
 
             preference.save()
 
-        if data.get('event') and data.get('donor') == 'x':
-            if data.get('VS') != "":
-                VS = data['VS']
+        if data.get('donor'):
+            _data = data['donor']
+            parsed_data = dict(self.__get_row_data(row) for row in _data.split('\n'))
+            if parsed_data.get('VS'):
+                VS = parsed_data['VS']
             else:
                 from .views import generate_variable_symbol
                 VS = generate_variable_symbol()
-            event, _ = Event.objects.get_or_create(name=data['event'])
+            event, _ = Event.objects.get_or_create(name=parsed_data['event'])
             donors, _ = DonorPaymentChannel.objects.get_or_create(
                 user=obj,
                 event=event,
                 defaults={'VS': VS},
             )
-            if data.get('bank_account'):
-                bank_account, _ = BankAccount.objects.get_or_create(bank_account_number=data['bank_account'])
-                bank_account.administrative_unit = data["administrative_units"]
+            if parsed_data.get('bank_account'):
+                bank_account, _ = BankAccount.objects.get_or_create(
+                    bank_account_number=parsed_data['bank_account'],
+                )
+                bank_account.administrative_unit = parsed_data['administrative_units']
                 bank_account.save()
 
                 donors.bank_account = bank_account
                 donors.save()
             if data.get('user_bank_account'):
-                user_bank_account, _ = UserBankAccount.objects.get_or_create(bank_account_number=data['user_bank_account'])
+                user_bank_account, _ = UserBankAccount.objects.get_or_create(
+                    bank_account_number=parsed_data['user_bank_account'],
+                )
                 donors.user_bank_account = user_bank_account
                 donors.save()
         return super().import_obj(obj, data, dry_run)
@@ -571,6 +577,9 @@ class ProfileResource(ProfileModelResource):
             for field in model_fields:
                 if hasattr(obj, field):
                     setattr(obj, field, data.get(field))
+
+    def __get_row_data(self, row):
+        return (row.split(':')[0].strip(), row.split(':')[-1].strip())
 
 
 class ProfileMergeForm(merge.MergeForm):
