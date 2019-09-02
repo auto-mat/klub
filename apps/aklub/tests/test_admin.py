@@ -19,8 +19,8 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import pathlib
-from datetime import datetime
 import re
+from datetime import datetime
 
 from django.contrib import admin as django_admin, auth
 from django.contrib.auth.models import Group
