@@ -70,8 +70,8 @@ from .forms import UserCreateForm, UserUpdateForm
 from .models import (
     AccountStatements, AdministrativeUnit, AutomaticCommunication, BankAccount,
     CompanyProfile, Condition, DonorPaymentChannel, Event, Expense, Interaction,
-    MassCommunication, NewUser, Payment, Preference, Profile, Recruiter, Result,
-    Source, TaxConfirmation, TaxConfirmationField, TaxConfirmationPdf, Telephone,
+    MassCommunication, NewUser, Payment, Preference, Profile, ProfileEmail, Recruiter,
+    Result, Source, TaxConfirmation, TaxConfirmationField, TaxConfirmationPdf, Telephone,
     TerminalCondition, UserBankAccount, UserProfile, UserYearPayments,
 )
 
@@ -638,6 +638,49 @@ class TelephoneInline(nested_admin.NestedTabularInline):
     show_change_link = True
 
 
+class ProfileEmailAdminForm(forms.ModelForm):
+    class Meta:
+        model = ProfileEmail
+        fields = '__all__'
+
+    def check_duplicate(self, *args, **kwargs):
+        cleaned_data = kwargs['cleaned_data']
+        qs = ProfileEmail.objects.filter(
+            email=cleaned_data['email'],
+            user=cleaned_data['user'],
+        )
+        if cleaned_data['id'] is None:
+            if qs.filter(email=cleaned_data['email'], user=cleaned_data['user']).exists():
+                raise ValidationError("Duplicate email address for this user")
+
+    def check_unique(self, *args, **kwargs):
+        cleaned_data = kwargs['cleaned_data']
+        model = cleaned_data['user']._meta.model_name
+        qs = ProfileEmail.objects.filter(
+            user__polymorphic_ctype=ContentType.objects.get(model=model),
+        )
+        if cleaned_data['id'] is None:
+            if qs.filter(email=cleaned_data['email']).exists():
+                raise ValidationError(_("Email address exist"))
+            else:
+                cleaned_data['email'] = cleaned_data['email'].lower()
+
+    def clean(self):
+        cleaned_data = super().clean()
+        self.check_duplicate(cleaned_data=cleaned_data)
+        self.check_unique(cleaned_data=cleaned_data)
+
+        return cleaned_data
+
+
+class ProfileEmailInline(nested_admin.NestedTabularInline):
+    model = ProfileEmail
+    extra = 0
+    can_delete = True
+    show_change_link = True
+    form = ProfileEmailAdminForm
+
+
 class BankAccountAdmin(unit_admin_mixin_generator('administrative_unit'), admin.ModelAdmin):
     model = BankAccount
 
@@ -753,7 +796,7 @@ class ProfileAdmin(
 
     list_display = (
         'person_name',
-        'email',
+        'get_email',
         'get_administrative_units',
         'addressment',
         'get_addressment',
@@ -876,8 +919,12 @@ class ProfileAdmin(
     def crn(self, obj):
         return self.sex if hasattr(obj, 'crn') else 'User'
 
-    sex.short_description = _("Company Registration Number")
-    sex.admin_order_field = 'crn'
+    crn.short_description = _("Company Registration Number")
+    crn.admin_order_field = 'crn'
+
+    def delete_queryset(self, request, queryset):
+        ProfileEmail.objects.filter(user__in=queryset).delete()
+        return super().delete_queryset(request, queryset)
 
 
 class DonorPaymentChannelResource(ModelResource):
@@ -1579,7 +1626,7 @@ class BaseProfileChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModel
         (_('Personal data'), {
             'classes': ('wide',),
             'fields': (
-                'username', ('first_name', 'last_name'), 'email', 'sex',
+                'username', ('first_name', 'last_name'), 'sex',
                 ('birth_day', 'birth_month', 'age_group'),
                 'administrative_units',
             ),
@@ -1590,8 +1637,9 @@ class BaseProfileChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModel
         (_('Personal data'), {
             'classes': ('wide',),
             'fields': (
-                'username', ('first_name', 'last_name'), ('title_before', 'title_after'), 'email', 'sex',
+                'username', ('first_name', 'last_name'), ('title_before', 'title_after'), 'sex',
                 ('birth_day', 'birth_month', 'age_group'),
+                'get_email',
                 'get_main_telephone',
                 'note',
                 'administrative_units',
@@ -1662,6 +1710,7 @@ class BaseProfileChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModel
             yield inline.get_formset(request, obj), inline
     readonly_fields = (
         'userattendance_links', 'date_joined', 'last_login', 'get_main_telephone',
+        'get_email',
     )
 
     def get_form(self, request, obj=None, **kwargs):
@@ -1670,7 +1719,10 @@ class BaseProfileChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModel
         return form
 
     actions = (send_mass_communication_distinct_action,)
-    inlines = [PreferenceInline, TelephoneInline, DonorPaymentChannelInline, InteractionInline]
+    inlines = [
+        PreferenceInline, ProfileEmailInline, TelephoneInline,
+        DonorPaymentChannelInline, InteractionInline,
+    ]
 
 
 @admin.register(UserProfile)
@@ -1687,7 +1739,7 @@ class CompanyProfileAdmin(BaseProfileChildAdmin):
         (_('Personal data'), {
             'classes': ('wide',),
             'fields': (
-                'username', ('first_name', 'last_name'), 'email',
+                'username', ('first_name', 'last_name'),
                 ('birth_day', 'birth_month', 'age_group'),
                 'administrative_units',
                 'crn',
@@ -1698,8 +1750,9 @@ class CompanyProfileAdmin(BaseProfileChildAdmin):
         (_('Personal data'), {
             'classes': ('wide',),
             'fields': (
-                'username', ('first_name', 'last_name'), ('title_before', 'title_after'), 'email',
+                'username', ('first_name', 'last_name'), ('title_before', 'title_after'),
                 ('birth_day', 'birth_month', 'age_group'),
+                'get_email',
                 'get_main_telephone',
                 'note',
                 'administrative_units',
