@@ -106,7 +106,7 @@ class EmailFilter(SimpleListFilter):
                 values_list('email_lower', flat=True)
             return queryset.annotate(email_lower=Lower('email')).filter(email_lower__in=duplicates)
         if self.value() == 'blank':
-            return queryset.filter(Q(email__exact='') or Q(email__isnull=True))
+            return queryset.filter(Q(email__exact='') | Q(email__isnull=True))
         if self.value() == 'email-format':
             return queryset.exclude(email__iregex=r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9.-]+$)")
         return queryset
