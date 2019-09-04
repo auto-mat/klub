@@ -27,6 +27,7 @@ import os.path
 
 from denorm import denormalized, depend_on_related
 
+from django.conf import settings
 from django.contrib.admin.templatetags.admin_list import _boolean_icon
 from django.contrib.auth.models import AbstractUser, User, UserManager
 from django.contrib.contenttypes.models import ContentType
@@ -89,6 +90,12 @@ class CustomUserManager(PolymorphicManager, UserManager):
         user = model(email=email, **extra_fields)
         user.set_password(password)
         user.save()
+        email = ProfileEmail(
+            email=email,
+            is_primary=True,
+            user=user,
+        )
+        email.save()
 
         return user
 
@@ -483,19 +490,17 @@ class Profile(PolymorphicModel, AbstractUser):
         # TODO: List of languages used in the club should come from app settings
         ('cs', _('Czech')),
         ('en', _('English')))
-    email = models.EmailField(
-        _('email address'),
-        blank=True,
-        null=True,
-        unique=True,
-    )
     password = models.CharField(
         _('password'),
         max_length=128,
         blank=True,
         null=True,
     )
-
+    email = models.EmailField(
+        _('email address'),
+        blank=True,
+        null=True,
+    )
     campaigns = models.ManyToManyField(
         Event,
         help_text=_("Associated campaigns"),
@@ -796,6 +801,7 @@ class Profile(PolymorphicModel, AbstractUser):
             self.email = None
 
     def save(self, *args, **kwargs):
+        self.clean()
         if not self.username and not self.id:
             from .views import get_unique_username
             self.username = get_unique_username(self.email)
@@ -827,6 +833,23 @@ class Profile(PolymorphicModel, AbstractUser):
         event = ', '.join(str(donor.event.id) + ') ' + donor.event.name for donor in self.userchannels.all() if donor.event is not None)
         return event
 
+    def get_email(self):
+        emails = ProfileEmail.objects.filter(user=self)
+        result = list(
+            map(
+                lambda email:
+                format_html('<b>{}</b>'.format(email.email))
+                if email.is_primary
+                else
+                format_html('{}'.format(email.email)),
+                emails,
+            ),
+        )
+        return mark_safe('\n'.join(result))
+
+    get_email.short_description = _("Email")
+    get_email.admin_order_field = "email"
+
 
 class CompanyProfile(Profile):
     class Meta:
@@ -855,6 +878,48 @@ class UserProfile(Profile):
         max_length=50,
         default='unknown',
     )
+
+
+class ProfileEmail(models.Model):
+    class Meta:
+        verbose_name = _("Email")
+        verbose_name_plural = _("Emails")
+        unique_together = ("user", "is_primary")
+
+    bool_choices = (
+        (None, "No"),
+        (True, "Yes")
+    )
+    email = models.EmailField(
+        _('email address'),
+        blank=True,
+        null=True,
+    )
+    is_primary = models.NullBooleanField(
+        verbose_name=_("Primary email"),
+        blank=True,
+        default=None,
+        choices=bool_choices,
+    )
+    note = models.CharField(
+        verbose_name=_("Note"),
+        max_length=70,
+        blank=True,
+        null=True,
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+    )
+
+    def save(self, *args, **kwargs):
+        if self.is_primary:
+            profile = Profile.objects.get(username=self.user.username)
+            profile.email = self.email
+            profile.save()
+        super().save(*args, **kwargs)
 
 
 @receiver(signals.m2m_changed, sender=Profile.administrative_units.through)
