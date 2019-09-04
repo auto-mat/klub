@@ -4,7 +4,7 @@ from django.urls import reverse_lazy
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
-from .models import UserProfile
+from .models import UserProfile, ProfileEmail
 from .views import get_unique_username
 
 
@@ -74,15 +74,16 @@ class UserUpdateForm(UserChangeForm):
             user.save()
         return user
 
-    def clean(self):
-        email_field = 'email'
-        if email_field in self.changed_data:
-            if email_field not in self.cleaned_data:
-                return self.cleaned_data
-            emails = self._meta.model.objects.values_list(email_field, flat=True)
-            if self.cleaned_data[email_field] in emails:
-                self.add_error(
-                    email_field,
-                    _('User with this email already exist in database'),
-                )
-            return self.cleaned_data
+    # def clean(self):
+    #     email_field = 'email'
+    #     print(self.cleaned_data)
+    #     if email_field in self.changed_data:
+    #         if email_field not in self.cleaned_data:
+    #             return self.cleaned_data
+    #         emails = self._meta.model.objects.values_list(email_field, flat=True)
+    #         if self.cleaned_data[email_field] in emails:
+    #             self.add_error(
+    #                 email_field,
+    #                 _('User with this email already exist in database'),
+    #             )
+    #         return self.cleaned_data        

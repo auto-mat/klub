@@ -1,6 +1,6 @@
 # https://github.com/adamcharnock/swiftwind-heroku/blob/master/swiftwind_heroku/management/commands/create_superuser_with_password.py
 
-from aklub.models import CompanyProfile, UserProfile
+from aklub.models import CompanyProfile, ProfileEmail, UserProfile
 
 from django.contrib.auth.management.commands import createsuperuser
 from django.contrib.contenttypes.models import ContentType
@@ -55,7 +55,8 @@ class Command(createsuperuser.Command):
         options['polymorphic_ctype_id'] = profile_type_id
 
         model = ContentType.objects.get(id=profile_type_id).model_class()
-        if email and email in model.objects.all().values_list('email', flat=True):
+        qs = ProfileEmail.objects.filter(user__polymorphic_ctype_id=profile_type_id)
+        if qs.filter(email=email).exists():
             raise CommandError("use another email address")
 
         if password and not username:
