@@ -48,7 +48,10 @@ from extra_views import InlineFormSet, UpdateWithInlinesView
 from sesame.backends import ModelBackend
 
 from . import autocom
-from .models import DonorPaymentChannel, Event, Payment, PetitionSignature, Source, Telephone, UserInCampaign, UserProfile
+from .models import (
+    DonorPaymentChannel, Event, Payment, PetitionSignature,
+    Profile, Source, Telephone, UserInCampaign, UserProfile
+)
 
 
 class RegularUserForm_UserProfile(forms.ModelForm):
@@ -299,11 +302,11 @@ class PetitionUserForm(RegularUserForm):
 def get_unique_username(email):
     if not email:
         email = ""
-    i = UserProfile.objects.count()
+    i = Profile.objects.count()
     while True:
         username = '%s%s' % (email.split('@', 1)[0], i)
         i += 1
-        if not UserProfile.objects.filter(username=username).exists():
+        if not Profile.objects.filter(username=username).exists():
             break
     return username
 
