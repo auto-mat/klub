@@ -50,7 +50,8 @@ from sesame.backends import ModelBackend
 from . import autocom
 from .models import (
     DonorPaymentChannel, Event, Payment, PetitionSignature,
-    Profile, Source, Telephone, UserInCampaign, UserProfile
+    Profile, ProfileEmail, Source, Telephone, UserInCampaign,
+    UserProfile,
 )
 
 
@@ -70,6 +71,9 @@ class RegularUserForm_UserProfile(forms.ModelForm):
     def clean(self):
         if not self.errors:
             self.cleaned_data['username'] = get_unique_username(self.cleaned_data['email'])
+        emails = ProfileEmail.objects.all().values_list('email', flat=True)
+        if self.cleaned_data['email'] in list(emails):
+            self._errors['email'] = self.error_class(['This e-mail is already used.'])
         super().clean()
         return self.cleaned_data
 
@@ -330,7 +334,7 @@ def create_new_user_profile(form, regular):
     new_user_profile = new_user_objects['userprofile']
     # Save new user instance
     if hasattr(form.forms['userprofile'], 'email_used') and form.forms['userprofile'].email_used:
-        new_user_profile = UserProfile.objects.get(email=form.forms['userprofile'].email_used)
+        new_user_profile = Profile.objects.get(email=form.forms['userprofile'].email_used)
     else:
         new_user_profile.save()
     Telephone.objects.create(telephone=form.forms['userprofile'].cleaned_data['telephone'], user=new_user_profile)
