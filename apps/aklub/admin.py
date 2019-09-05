@@ -624,7 +624,6 @@ class ProfileMergeForm(merge.MergeForm):
 
 class PreferenceInline(nested_admin.NestedStackedInline):
     model = Preference
-    max_num = 0
     extra = 0
     can_delete = False
     fieldsets = (
@@ -1699,13 +1698,6 @@ class BaseProfileChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModel
             ],
         }
          ),
-        ('Preferences', {
-            'fields': (
-                ('public', 'send_mailing_lists', ),
-                ('newsletter_on', 'call_on', ),
-                ('challenge_on', 'letter_on', ),
-            ),
-        })
     )
 
     superuser_fieldsets = (
@@ -1811,13 +1803,6 @@ class CompanyProfileAdmin(BaseProfileChildAdmin):
             ],
         }
          ),
-        ('Preferences', {
-            'fields': (
-                ('public', 'send_mailing_lists', ),
-                ('newsletter_on', 'call_on', ),
-                ('challenge_on', 'letter_on', ),
-            ),
-        })
     )
 
 
