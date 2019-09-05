@@ -872,7 +872,6 @@ class ProfileAdmin(
     filter_horizontal = ('groups', 'user_permissions',)
 
     def get_form(self, request, obj=None, **kwargs):
-        print("START")
         if request.user.is_superuser:
             form = super().get_form(request, obj, **kwargs)
             form.request = request
@@ -881,7 +880,6 @@ class ProfileAdmin(
             form = UnitProfileAddForm
             form.request = request
             return form
-        print("HERE")
         form = UnitProfileChangeForm
         form.request = request
         return form
@@ -1767,9 +1765,18 @@ class UserProfileAdmin(BaseProfileChildAdmin):
     show_in_index = True
 
 
+class CompanyProfileAdminForm(UserUpdateForm):
+    last_name = forms.CharField(label='Name', required=False)
+
+    class Meta:
+        model = CompanyProfile
+        fields = '__all__'
+
+
 @admin.register(CompanyProfile)
 class CompanyProfileAdmin(BaseProfileChildAdmin):
     base_model = CompanyProfile
+    base_form = CompanyProfileAdminForm
     show_in_index = True
     add_fieldsets = (
         (_('Personal data'), {
