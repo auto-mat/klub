@@ -6,7 +6,6 @@ import django.core.validators
 from django.db import migrations, models
 import django.db.models.deletion
 
-
 from .data_migration import migrate_user_email
 
 
@@ -47,7 +46,7 @@ class Migration(migrations.Migration):
                 'unique_together': {('user', 'is_primary')},
             },
         ),
-        # User email data migration
+        # Migrate user email data
         migrations.RunPython(
             code=migrate_user_email.migrate_user_email,
             reverse_code=django.db.migrations.operations.special.RunPython.noop,
