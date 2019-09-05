@@ -415,7 +415,21 @@ class ProfileResource(ProfileModelResource):
         model = Profile
         exclude = ('id', 'is_superuser', 'is_staff', 'administrated_units', 'polymorphic_ctype')
         import_id_fields = ('email', )
-        export_order = ('administrative_units', 'email')
+        export_order = (
+            'administrative_units', 'email', 'crn', 'sex',
+            'telephone', 'donor', 'profile_type', 'last_login',
+            'groups', 'user_permissions', 'username', 'first_name',
+            'last_name', 'is_active', 'date_joined', 'password',
+            'campaigns', 'title_after', 'title_before', 'addressment',
+            'addressment_on_envelope', 'language', 'street', 'city',
+            'country', 'zip_code', 'different_correspondence_address',
+            'correspondence_street', 'correspondence_city', 'correspondence_country',
+            'correspondence_zip_code', 'other_support', 'public', 'profile_text',
+            'profile_picture', 'club_card_available', 'club_card_dispatched',
+            'other_benefits', 'note', 'created', 'updated', 'send_mailing_lists',
+            'age_group', 'birth_month', 'birth_day', 'newsletter_on', 'call_on',
+            'challenge_on', 'letter_on'
+        )
 
     telephone = fields.Field()
     donor = fields.Field()
@@ -718,13 +732,13 @@ class UnitProfileAddForm(forms.ModelForm):
             'username',
             'first_name',
             'last_name',
-            'title_before',
-            'title_after',
+            # 'title_before',
+            # 'title_after',
             'email',
-            # 'sex',
-            'birth_day',
-            'birth_month',
-            'age_group',
+            # 'useprofile__sex',
+            # 'birth_day',
+            # 'birth_month',
+            # 'age_group',
             'note',
             'administrative_units',
             'street',
@@ -820,10 +834,10 @@ class ProfileAdmin(
         'email',
         'addressment',
         'telephone__telephone',
-        'title_before',
+        'userprofile__title_before',
         'first_name',
         'last_name',
-        'title_after',
+        'userprofile__title_after',
         'userprofile__sex',
         'companyprofile__crn',
         'is_staff',
@@ -836,10 +850,10 @@ class ProfileAdmin(
     )
     search_fields = (
         'email',
-        'title_before',
+        'userprofile__title_before',
         'first_name',
         'last_name',
-        'title_after',
+        'userprofile__title_after',
         'telephone__telephone',
     )
     list_filter = (
@@ -859,6 +873,7 @@ class ProfileAdmin(
     filter_horizontal = ('groups', 'user_permissions',)
 
     def get_form(self, request, obj=None, **kwargs):
+        print("START")
         if request.user.is_superuser:
             form = super().get_form(request, obj, **kwargs)
             form.request = request
@@ -867,6 +882,7 @@ class ProfileAdmin(
             form = UnitProfileAddForm
             form.request = request
             return form
+        print("HERE")
         form = UnitProfileChangeForm
         form.request = request
         return form
@@ -922,6 +938,18 @@ class ProfileAdmin(
     crn.short_description = _("Company Registration Number")
     crn.admin_order_field = 'crn'
 
+    def title_before(self, obj):
+        return self.title_before if hasattr(obj, 'title_before') else None
+
+    crn.short_description = _("Title before")
+    crn.admin_order_field = 'title_before'
+
+    def title_after(self, obj):
+        return self.title_after if hasattr(obj, 'title_after') else None
+
+    crn.short_description = _("Title after")
+    crn.admin_order_field = 'title_after'
+
     def delete_queryset(self, request, queryset):
         ProfileEmail.objects.filter(user__in=queryset).delete()
         return super().delete_queryset(request, queryset)
@@ -933,6 +961,8 @@ class DonorPaymentChannelResource(ModelResource):
         attribute='user',
         widget=widgets.ForeignKeyWidget(Profile, 'email'),
     )
+    title_before = fields.Field()
+    title_after = fields.Field()
 
     class Meta:
         model = DonorPaymentChannel
@@ -940,10 +970,10 @@ class DonorPaymentChannelResource(ModelResource):
             'id',
             'event',
             'user',
-            'user__title_before',
+            'title_before',
             'user__first_name',
             'user__last_name',
-            'user__title_after',
+            'title_after',
             'user__userprofile__sex',
             # 'userprofile__telephone',
             'user_email',
@@ -975,6 +1005,20 @@ class DonorPaymentChannelResource(ModelResource):
 
     def dehydrate_last_payment_date(self, user_in_campaign):
         return user_in_campaign.last_payment_date()
+
+    def dehydrate_title_before(self, donor_payment_channel):
+        profile_model = Profile.objects.get(username=donor_payment_channel.user.username)
+        if hasattr(profile_model, 'title_before'):
+            return profile_model.title_before
+        else:
+            return None
+
+    def dehydrate_title_after(self, donor_payment_channel):
+        profile_model = Profile.objects.get(username=donor_payment_channel.user.username)
+        if hasattr(profile_model, 'title_after'):
+            return profile_model.title_after
+        else:
+            return None
 
 
 # -- ADMIN FORMS --
@@ -1740,7 +1784,6 @@ class CompanyProfileAdmin(BaseProfileChildAdmin):
             'classes': ('wide',),
             'fields': (
                 'username', ('first_name', 'last_name'),
-                ('birth_day', 'birth_month', 'age_group'),
                 'administrative_units',
                 'crn',
             ),
@@ -1750,8 +1793,7 @@ class CompanyProfileAdmin(BaseProfileChildAdmin):
         (_('Personal data'), {
             'classes': ('wide',),
             'fields': (
-                'username', ('first_name', 'last_name'), ('title_before', 'title_after'),
-                ('birth_day', 'birth_month', 'age_group'),
+                'username', ('first_name', 'last_name'),
                 'get_email',
                 'get_main_telephone',
                 'note',

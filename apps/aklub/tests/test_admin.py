@@ -546,13 +546,19 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
                 'type': 'user',
                 'model_name': UserProfile._meta.model_name,
                 'vs': '140147010',
-                'extra_fields': {'sex': 'male'},
+                'extra_fields': {
+                    'sex': 'male',
+                    'title_before': 'Ing.',
+                    'title_after': 'Phdr.'
+                },
             },
             {
                 'type': 'company',
                 'model_name': CompanyProfile._meta.model_name,
                 'vs': '150157010',
-                'extra_fields': {'crn': '11223344'},
+                'extra_fields': {
+                    'crn': '11223344'
+                },
             },
         ]
         # event = mommy.make(
@@ -640,8 +646,8 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
                     '0,test.userprofile@userprofile.test,,male,,',
                     '"VS:140147010\nevent:Klub přátel Auto*Matu\nbank_accout:\nuser_bank_account:\n\n",',
                     'userprofile,,,,test.userprofile,First_name_userprofile,Last_name_userprofile,1,',
-                    '2016-09-16 16:22:30,,,,,,,en,,Praha 4,Česká republika,,1,,,Česká republika,,,False,,,0,0,,,',
-                    '{created},{updated},False,,,,True,True,True,True'.format(
+                    '2016-09-16 16:22:30,,,Phdr.,Ing.,,,en,,Praha 4,Česká republika,,1,,,Česká republika,,,',
+                    'False,,,0,0,,,{created},{updated},False,,,,True,True,True,True'.format(
                         created=user_profile.created.strftime(date_time_format),
                         updated=user_profile.updated.strftime(date_time_format),
                     ),
@@ -653,10 +659,10 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
             ''.join(
                 [
                     '1,test.companyprofile@companyprofile.test,11223344,,,',
-                    '"VS:150157010\nevent:Klub přátel Auto*Matu\nbank_accout:\nuser_bank_account:\n\n",'
-                    'companyprofile,,,,test.companyprofile,First_name_companyprofile,Last_name_companyprofile,1,'
-                    '2016-09-16 16:22:30,,,,,,,en,,Praha 4,Česká republika,,1,,,Česká republika,,,False,,,0,0,,,'
-                    '{created},{updated},False,,,,True,True,True,True'.format(
+                    '"VS:150157010\nevent:Klub přátel Auto*Matu\nbank_accout:\nuser_bank_account:\n\n",',
+                    'companyprofile,,,,test.companyprofile,First_name_companyprofile,Last_name_companyprofile,',
+                    '1,2016-09-16 16:22:30,,,,,,,en,,Praha 4,Česká republika,,1,,,Česká republika,,,False,,,',
+                    '0,0,,,{created},{updated},False,,,,True,True,True,True'.format(
                         created=company_profile.created.strftime(date_time_format),
                         updated=company_profile.updated.strftime(date_time_format),
                     ),
@@ -721,6 +727,8 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         self.assertEqual(DonorPaymentChannel.objects.filter(user=user_profile[0])[0].user_bank_account, None)
         self.assertEqual(user_profile[0].polymorphic_ctype, ContentType.objects.get(model='userprofile'))
         self.assertEqual(user_profile[0].username, 'test.userprofile')
+        self.assertEqual(user_profile[0].title_before, 'Ing.')
+        self.assertEqual(user_profile[0].title_after, 'Phdr.')
         self.assertEqual(Preference.objects.filter(user=user_profile[0]).count(), 1)
         self.assertEqual(Preference.objects.filter(user=user_profile[0])[0].send_mailing_lists, True)
         self.assertEqual(Preference.objects.filter(user=user_profile[0])[0].letter_on, True)
@@ -773,6 +781,7 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         self.assertEqual(DonorPaymentChannel.objects.filter(user=user_profile[0])[0].user_bank_account, None)
         self.assertEqual(user_profile[0].polymorphic_ctype, ContentType.objects.get(model='userprofile'))
         self.assertEqual(user_profile[0].username, 'test.userprofile')
+        self.assertEqual(user_profile[0].title_before, 'Mgr.')
         self.assertEqual(Preference.objects.filter(user=user_profile[0]).count(), 1)
         self.assertEqual(Preference.objects.filter(user=user_profile[0])[0].send_mailing_lists, False)
         self.assertEqual(Preference.objects.filter(user=user_profile[0])[0].letter_on, False)
