@@ -508,14 +508,6 @@ class Profile(PolymorphicModel, AbstractUser):
         editable=True,
     )
 
-    title_after = models.CharField(
-        verbose_name=_("Title after name"),
-        max_length=15, blank=True,
-    )
-    title_before = models.CharField(
-        verbose_name=_("Title before name"),
-        max_length=15, blank=True,
-    )
     addressment = models.CharField(
         verbose_name=_("Addressment in letter"),
         max_length=40, blank=True,
@@ -649,24 +641,6 @@ class Profile(PolymorphicModel, AbstractUser):
         verbose_name=_("DEPRECATED FIELD"),
         default=True,
     )
-    age_group = models.PositiveIntegerField(
-        verbose_name=_("Birth year"),
-        null=True,
-        blank=True,
-        choices=[(i, i) for i in range(datetime.date.today().year, datetime.date.today().year - 100, -1)],
-    )
-    birth_month = models.PositiveIntegerField(
-        verbose_name=_("Month of birth"),
-        null=True,
-        blank=True,
-        choices=[(i, i) for i in range(1, 13)],
-    )
-    birth_day = models.PositiveIntegerField(
-        verbose_name=_("Day of birth"),
-        null=True,
-        blank=True,
-        choices=[(i, i) for i in range(1, 32)],
-    )
     newsletter_on = models.NullBooleanField(
         verbose_name=_("DEPRECATED FIELD"),
         null=True,
@@ -748,19 +722,21 @@ class Profile(PolymorphicModel, AbstractUser):
         return self.interaction_set.filter(method="mail").count()
 
     def person_name(self):
-        if self.first_name or self.last_name:
-            return " ".join(
-                filter(
-                    None,
-                    [
-                        self.title_before,
-                        self.last_name,
-                        self.first_name,
-                    ],
-                ),
-            ) + (", %s" % self.title_after if self.title_after else "")
-        else:
-            return self.username
+        if hasattr(self, 'title_before'):
+            if self.first_name or self.last_name:
+                return " ".join(
+                    filter(
+                        None,
+                        [
+                            self.title_before,
+                            self.last_name,
+                            self.first_name,
+                        ],
+                    ),
+                ) + (", %s" % self.title_after if self.title_after else "")
+            else:
+                return self.username
+        return self.username
 
     person_name.short_description = _("Full name")
     person_name.admin_order_field = 'last_name'
@@ -871,7 +847,32 @@ class UserProfile(Profile):
         ('male', _('Male')),
         ('female', _('Female')),
         ('unknown', _('Unknown')))
-
+    title_after = models.CharField(
+        verbose_name=_("Title after name"),
+        max_length=15, blank=True,
+    )
+    title_before = models.CharField(
+        verbose_name=_("Title before name"),
+        max_length=15, blank=True,
+    )
+    age_group = models.PositiveIntegerField(
+        verbose_name=_("Birth year"),
+        null=True,
+        blank=True,
+        choices=[(i, i) for i in range(datetime.date.today().year, datetime.date.today().year - 100, -1)],
+    )
+    birth_month = models.PositiveIntegerField(
+        verbose_name=_("Month of birth"),
+        null=True,
+        blank=True,
+        choices=[(i, i) for i in range(1, 13)],
+    )
+    birth_day = models.PositiveIntegerField(
+        verbose_name=_("Day of birth"),
+        null=True,
+        blank=True,
+        choices=[(i, i) for i in range(1, 32)],
+    )
     sex = models.CharField(
         verbose_name=_("Gender"),
         choices=GENDER,
