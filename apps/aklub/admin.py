@@ -1766,7 +1766,7 @@ class UserProfileAdmin(BaseProfileChildAdmin):
 
 
 class CompanyProfileAdminForm(UserUpdateForm):
-    last_name = forms.CharField(label='Name', required=False)
+    last_name = forms.CharField(label=_('Name'), required=False)
 
     class Meta:
         model = CompanyProfile
