@@ -110,8 +110,6 @@
             "date_joined": "2016-09-16T16:22:30.128Z",
             "email": "test.user1@email.cz",
             "password": null,
-            "title_after": "",
-            "title_before": "",
             "addressment": "Zbyn\u011bku",
             "addressment_on_envelope": "",
             "language": "en",
@@ -135,9 +133,6 @@
             "created": "2019-08-02T09:32:12.836Z",
             "updated": "2019-08-02T09:32:12.836Z",
             "send_mailing_lists": true,
-            "age_group": null,
-            "birth_month": null,
-            "birth_day": null,
             "newsletter_on": false,
             "call_on": false,
             "challenge_on": false,
@@ -150,10 +145,24 @@
 	}
     },
     {
+	"model": "aklub.profileemail",
+	"pk": 2979,
+	"fields": {
+            "email": "test.user1@email.cz",
+            "is_primary": true,
+	    "note": "test"
+	}
+    },    
+    {
 	"model": "aklub.userprofile",
 	"pk": 2979,
 	"fields": {
-            "sex": "male"
+            "sex": "male",
+	    "title_before": "Ing.",
+	    "title_after": "Phdr.",
+            "age_group": null,
+            "birth_month": null,
+            "birth_day": null
 	}
     },
     {
@@ -198,8 +207,6 @@
             "date_joined": "2016-09-16T16:22:30.128Z",
             "email": "test.user@email.cz",
             "password": null,
-            "title_after": "",
-            "title_before": "",
             "addressment": "Zbyn\u011bku",
             "addressment_on_envelope": "",
             "language": "cs",
@@ -223,9 +230,6 @@
             "created": "2019-08-02T09:32:12.838Z",
             "updated": "2019-08-02T09:32:12.838Z",
             "send_mailing_lists": true,
-            "age_group": null,
-            "birth_month": null,
-            "birth_day": null,
             "newsletter_on": false,
             "call_on": false,
             "challenge_on": false,
@@ -238,10 +242,24 @@
 	}
     },
     {
+	"model": "aklub.profileemail",
+	"pk": 2978,
+	"fields": {
+            "email": "test.user@email.cz",
+            "is_primary": true,
+	    "note": "test"
+	}
+    },    
+    {
 	"model": "aklub.userprofile",
 	"pk": 2978,
 	"fields": {
-            "sex": "male"
+            "sex": "male",
+	    "title_before": "",
+            "title_after": "",
+            "age_group": null,
+            "birth_month": null,
+            "birth_day": null
 	}
     },
     {
@@ -380,8 +398,6 @@
             "date_joined": "2016-09-16T16:22:30.128Z",
             "email": "without_payments@email.cz",
             "password": null,
-            "title_after": "",
-            "title_before": "",
             "addressment": "Street",
             "addressment_on_envelope": "",
             "language": "cs",
@@ -405,9 +421,6 @@
             "created": "2019-08-02T09:32:12.841Z",
             "updated": "2019-08-02T09:32:12.841Z",
             "send_mailing_lists": true,
-            "age_group": null,
-            "birth_month": null,
-            "birth_day": null,
             "newsletter_on": false,
             "call_on": false,
             "challenge_on": false,
@@ -420,10 +433,24 @@
 	}
     },
     {
+	"model": "aklub.profileemail",
+	"pk": 3,
+	"fields": {
+            "email": "without_payments@email.cz",
+            "is_primary": true,
+	    "note": "test"
+	}
+    },
+    {
 	"model": "aklub.userprofile",
 	"pk": 3,
 	"fields": {
-            "sex": "male"
+            "sex": "male",
+	    "title_before": "",
+            "title_after": "",
+            "age_group": null,
+            "birth_month": null,
+            "birth_day": null
 	}
     },
     {

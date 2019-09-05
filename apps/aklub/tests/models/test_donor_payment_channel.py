@@ -179,17 +179,36 @@ class TestNameFunctions(TestCase):
     """ Test DonorPaymentChannel.person_name(), DonorPaymentChannel.__str__() """
 
     def setUp(self):
-        self.donor_payment_channel = mommy.make(
+        user_profile = mommy.make(
+            "aklub.UserProfile",
+            first_name="Test",
+            last_name="User 1",
+            email="test@test.com",
+            title_before="Ing.",
+        )
+        company_profile = mommy.make(
+            "aklub.CompanyProfile",
+            username="test",
+            first_name="Test",
+            last_name="User 1",
+            email="test@test.com",
+        )
+        self.donor_payment_channel_user_profile = mommy.make(
             "aklub.DonorPaymentChannel",
             event__name="Foo campaign",
-            user__last_name="User 1",
-            user__first_name="Test",
-            user__email="test@test.com",
+            user=user_profile,
             VS=1234,
+        )
+        self.donor_payment_channel_company_profile = mommy.make(
+            "aklub.DonorPaymentChannel",
+            event__name="Foo campaign",
+            user=company_profile,
+            VS=5678,
         )
 
     def test_user_person_name(self):
-        self.assertEqual(self.donor_payment_channel.person_name(), 'User 1 Test')
+        self.assertEqual(self.donor_payment_channel_user_profile.person_name(), 'Ing. User 1 Test')
+        self.assertEqual(self.donor_payment_channel_company_profile.person_name(), 'test')
 
     def test_str(self):
-        self.assertEqual(self.donor_payment_channel.__str__(), 'Payment channel: test@test.com - 1234')
+        self.assertEqual(self.donor_payment_channel_user_profile.__str__(), 'Payment channel: test@test.com - 1234')
