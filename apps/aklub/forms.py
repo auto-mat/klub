@@ -4,7 +4,7 @@ from django.urls import reverse_lazy
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
-from .models import UserProfile, ProfileEmail
+from .models import UserProfile
 from .views import get_unique_username
 
 
