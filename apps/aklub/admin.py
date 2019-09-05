@@ -305,7 +305,22 @@ class PaymentsInlineNoExtra(PaymentsInline):
 class InteractionInlineForm(forms.ModelForm):
     class Meta:
         model = Interaction
-        fields = '__all__'
+        fields = (
+            'event',
+            'administrative_unit',
+            'date',
+            'method',
+            'type',
+            'subject',
+            'summary',
+            'attachment',
+            'note',
+            'created_by',
+            'handled_by',
+            'result',
+            'send',
+            'dispatched',
+        )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -1464,6 +1479,7 @@ class ResultAdmin(admin.ModelAdmin):
 class EventAdmin(unit_admin_mixin_generator('administrative_units'), admin.ModelAdmin):
     list_display = (
         'name',
+        'id',
         'slug',
         'darujme_name',
         'darujme_api_id',
@@ -1547,7 +1563,11 @@ class TaxConfirmationFieldAdmin(PdfSandwichFieldAdmin):
 
 @admin.register(AdministrativeUnit)
 class AdministrativeUnitAdmin(admin.ModelAdmin):
-    list_display = ('name', 'ico')
+    list_display = (
+        'name',
+        'id',
+        'ico',
+    )
 
 
 class BaseProfileChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelAdmin):
