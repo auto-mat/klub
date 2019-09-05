@@ -549,7 +549,7 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
                 'extra_fields': {
                     'sex': 'male',
                     'title_before': 'Ing.',
-                    'title_after': 'Phdr.'
+                    'title_after': 'Phdr.',
                 },
             },
             {
@@ -557,7 +557,7 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
                 'model_name': CompanyProfile._meta.model_name,
                 'vs': '150157010',
                 'extra_fields': {
-                    'crn': '11223344'
+                    'crn': '11223344',
                 },
             },
         ]
