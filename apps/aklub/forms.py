@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+
+from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import ReadOnlyPasswordHashField, UserChangeForm, UserCreationForm
 from django.shortcuts import reverse
 from django.urls import reverse_lazy
@@ -6,6 +9,8 @@ from django.utils.translation import ugettext_lazy as _
 
 from .models import UserProfile
 from .views import get_unique_username
+
+Profile = get_user_model()
 
 
 def username_validation(user, fields):
@@ -17,6 +22,10 @@ def username_validation(user, fields):
 
 class UserCreateForm(UserCreationForm):
     password = ReadOnlyPasswordHashField()
+
+    class Meta:
+        model = Profile
+        fields = '__all__'
 
     def __init__(self, *args, **kwargs):
         super(UserCreateForm, self).__init__(*args, **kwargs)
@@ -52,6 +61,10 @@ class UserCreateForm(UserCreationForm):
 
 class UserUpdateForm(UserChangeForm):
     password = ReadOnlyPasswordHashField()
+
+    class Meta:
+        model = Profile
+        fields = '__all__'
 
     def __init__(self, *args, **kwargs):
         super(UserChangeForm, self).__init__(*args, **kwargs)
