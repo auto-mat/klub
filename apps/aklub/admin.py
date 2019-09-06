@@ -662,9 +662,14 @@ class ProfileEmailAdminForm(forms.ModelForm):
             email=cleaned_data['email'],
             user=cleaned_data['user'],
         )
-        if cleaned_data['id'] is None:
+        msg = _('Duplicate email address for this user')
+        if not cleaned_data.get('id'):
             if qs.filter(email=cleaned_data['email'], user=cleaned_data['user']).exists():
-                raise ValidationError("Duplicate email address for this user")
+                raise ValidationError(msg)
+        else:
+            if 'email' in self.changed_data:
+                if qs.filter(email=cleaned_data['email'], user=cleaned_data['user']).exists():
+                    raise ValidationError(msg)
 
     def check_unique(self, *args, **kwargs):
         cleaned_data = kwargs['cleaned_data']
@@ -672,11 +677,15 @@ class ProfileEmailAdminForm(forms.ModelForm):
         qs = ProfileEmail.objects.filter(
             user__polymorphic_ctype=ContentType.objects.get(model=model),
         )
-        if cleaned_data['id'] is None:
+        msg = _('Email address exist')
+        if not cleaned_data.get('id'):
             if qs.filter(email=cleaned_data['email']).exists():
-                raise ValidationError(_("Email address exist"))
-            else:
-                cleaned_data['email'] = cleaned_data['email'].lower()
+                raise ValidationError(msg)
+        else:
+            if (qs.filter(email=cleaned_data['email']).exclude(user=cleaned_data['user']).exists()):
+                raise ValidationError(msg)
+        if cleaned_data.get('email'):
+            cleaned_data['email'] = cleaned_data['email'].lower()
 
     def clean(self):
         cleaned_data = super().clean()
@@ -1661,8 +1670,6 @@ class AdministrativeUnitAdmin(admin.ModelAdmin):
 class BaseProfileChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelAdmin):
     """Base admin class for all Profile child models"""
     merge_form = ProfileMergeForm
-    add_form = UserCreateForm
-    base_form = UserUpdateForm
     add_fieldsets = (
         (_('Personal data'), {
             'classes': ('wide',),
@@ -1748,6 +1755,10 @@ class BaseProfileChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModel
     )
 
     def get_form(self, request, obj=None, **kwargs):
+        if obj:
+            self.form = UserUpdateForm
+        else:
+            self.form = UserCreateForm
         form = super().get_form(request, obj, **kwargs)
         form.base_fields['language'].required = False
         return form
