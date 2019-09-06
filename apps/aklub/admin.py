@@ -1776,7 +1776,15 @@ class UserProfileAdmin(BaseProfileChildAdmin):
     show_in_index = True
 
 
-class CompanyProfileAdminForm(UserUpdateForm):
+class CompanyProfileAdminUpdateForm(UserUpdateForm):
+    last_name = forms.CharField(label=_('Name'), required=False)
+
+    class Meta:
+        model = CompanyProfile
+        fields = '__all__'
+
+
+class CompanyProfileAdminCreateForm(UserCreateForm):
     last_name = forms.CharField(label=_('Name'), required=False)
 
     class Meta:
@@ -1787,7 +1795,6 @@ class CompanyProfileAdminForm(UserUpdateForm):
 @admin.register(CompanyProfile)
 class CompanyProfileAdmin(BaseProfileChildAdmin):
     base_model = CompanyProfile
-    base_form = CompanyProfileAdminForm
     show_in_index = True
     add_fieldsets = (
         (_('Personal data'), {
@@ -1822,6 +1829,14 @@ class CompanyProfileAdmin(BaseProfileChildAdmin):
         }
          ),
     )
+
+    def get_form(self, request, obj=None, **kwargs):
+        if obj:
+            self.form = CompanyProfileAdminUpdateForm
+        else:
+            self.form = CompanyProfileAdminCreateForm
+        form = super().get_form(request, obj, **kwargs)
+        return form
 
 
 admin.site.register(DonorPaymentChannel, DonorPaymethChannelAdmin)
