@@ -208,7 +208,8 @@ class TestNameFunctions(TestCase):
 
     def test_user_person_name(self):
         self.assertEqual(self.donor_payment_channel_user_profile.person_name(), 'Ing. User 1 Test')
-        self.assertEqual(self.donor_payment_channel_company_profile.person_name(), 'test')
+        self.assertEqual(self.donor_payment_channel_company_profile.person_name(), 'User 1 Test')
 
     def test_str(self):
         self.assertEqual(self.donor_payment_channel_user_profile.__str__(), 'Payment channel: test@test.com - 1234')
+        self.assertEqual(self.donor_payment_channel_company_profile.__str__(), 'Payment channel: test@test.com - 5678')

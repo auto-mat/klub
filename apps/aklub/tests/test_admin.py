@@ -139,9 +139,7 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
     @freeze_time("2017-5-1")
     def test_tax_confirmation_generate(self):
         _foo_user = user_profile_recipe.make(id=2978, first_name="Foo")
-        _foo_user.save()
         _bar_user = user_profile_recipe.make(id=2979, first_name="Bar")
-        _bar_user.save()
         foo_user = donor_payment_channel_recipe.make(user=_foo_user)
         bar_user = donor_payment_channel_recipe.make(user=_bar_user)
         mommy.make("aklub.Payment", amount=350, date="2016-01-02", user_donor_payment_channel=foo_user, type="cash")

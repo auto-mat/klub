@@ -33,7 +33,7 @@ from model_mommy import mommy
 from .test_admin import CreateSuperUserMixin
 from .utils import print_response  # noqa
 from .. import views
-from ..models import DonorPaymentChannel, Event, PetitionSignature, UserProfile
+from ..models import DonorPaymentChannel, PetitionSignature, UserProfile
 
 
 class ClearCacheMixin(object):
@@ -202,11 +202,10 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
             email='test@email.cz',
             user=foo_user,
         )
-        event = Event.objects.get(slug='pnk')
         donor_payment_channel = mommy.make(
             "aklub.DonorPaymentChannel",
             bank_account__bank_account="0000",
-            event=event,
+            event__id=1,
             user=foo_user,
         )
         response = self.client.post(address, self.post_data_darujme, follow=False)
