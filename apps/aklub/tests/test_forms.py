@@ -9,11 +9,11 @@ from ..admin import ProfileEmailAdminForm
 from ..models import Profile, ProfileEmail
 
 
-class FormTest(TestCase):
-    def setUp(self):
-        super().setUp()
+class AdminFormTest(TestCase):
+    """ Test admin model form """
 
     def test_profile_email_admin_form(self):
+        """ Test ProfileEmailAdminForm form """
         child_models = [model._meta.model_name for model in Profile.__subclasses__()]
         for model in child_models:
             username1 = 'test.{}1'.format(model)
@@ -21,7 +21,7 @@ class FormTest(TestCase):
                 'aklub.UserProfile',
                 username=username1,
             )
-            mommy.make(
+            user1_email = mommy.make(
                 'aklub.ProfileEmail',
                 email='{0}@{0}.test'.format(username1),
                 is_primary=True,
@@ -57,14 +57,27 @@ class FormTest(TestCase):
             self.assertEqual(form['email'].errors[0], _('Email address exist'))
             self.assertEqual(form.is_valid(), False)
 
-            # Create new email address
+            # Primary email exist
             form_data = {
                 'user': user1.id,
                 'email': '{0}.new@{0}.new.test'.format(username1),
+                'is_primary': True,
             }
             form = ProfileEmailAdminForm(form_data)
-            self.assertEqual(len(form['email'].errors), 0)
+            self.assertEqual(form.is_valid(), False)
+
+            # Create new email address
+            user1_email.is_primary = False
+            user1_email.save()
+            email = '{0}.new@{0}.new.test'.format(username1)
+            form_data = {
+                'user': user1.id,
+                'email': email,
+                'is_primary': True,
+            }
+            form = ProfileEmailAdminForm(form_data)
             self.assertEqual(form.is_valid(), True)
             form.save()
             emails = ProfileEmail.objects.filter(user=user1).values_list('email', flat=True)
             self.assertIn('{0}.new@{0}.new.test'.format(username1), tuple(emails))
+            self.assertEqual(Profile.objects.get(username=user1.username).email, email)
