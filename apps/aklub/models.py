@@ -736,7 +736,19 @@ class Profile(PolymorphicModel, AbstractUser):
                 ) + (", %s" % self.title_after if self.title_after else "")
             else:
                 return self.username
-        return self.username
+        else:
+            if self.first_name or self.last_name:
+                return " ".join(
+                    filter(
+                        None,
+                        [
+                            self.last_name,
+                            self.first_name,
+                        ],
+                    ),
+                )
+            else:
+                return self.username
 
     person_name.short_description = _("Full name")
     person_name.admin_order_field = 'last_name'
