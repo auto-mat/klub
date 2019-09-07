@@ -37,6 +37,13 @@ class TestStr(TestCase):
         )
         self.assertEqual(str(t), "User Foo")
 
+        t = mommy.make(
+            "aklub.CompanyProfile",
+            first_name="Foo",
+            last_name="User",
+        )
+        self.assertEqual(str(t), "User Foo")
+
     def test_str_titles(self):
         """ Test, that __str__ works, when full name is set """
         t = mommy.make(
@@ -48,10 +55,23 @@ class TestStr(TestCase):
         )
         self.assertEqual(str(t), "Ing. User Foo, CSc.")
 
+        t = mommy.make(
+            "aklub.CompanyProfile",
+            first_name="Foo",
+            last_name="User",
+        )
+        self.assertEqual(str(t), "User Foo")
+
     def test_str_only_surname(self):
         """ Test, that __str__ works, when full name is set """
         t = mommy.make(
             "aklub.UserProfile",
+            last_name="User",
+        )
+        self.assertEqual(str(t), "User")
+
+        t = mommy.make(
+            "aklub.CompanyProfile",
             last_name="User",
         )
         self.assertEqual(str(t), "User")
@@ -63,11 +83,24 @@ class TestStr(TestCase):
             username="foo_user",
         )
         self.assertEqual(str(t), "foo_user")
+        t.delete()
+
+        t = mommy.make(
+            "aklub.CompanyProfile",
+            username="foo_user",
+        )
+        self.assertEqual(str(t), "foo_user")
 
     def test_get_addressment(self):
         """ Test, that get_addresment function makes vokativ """
         t = mommy.make(
             "aklub.UserProfile",
+            first_name="Petr",
+        )
+        self.assertEqual(t.get_addressment(), "Petře")
+
+        t = mommy.make(
+            "aklub.CompanyProfile",
             first_name="Petr",
         )
         self.assertEqual(t.get_addressment(), "Petře")
@@ -81,6 +114,13 @@ class TestStr(TestCase):
         )
         self.assertEqual(t.get_addressment(), "Petříčku")
 
+        t = mommy.make(
+            "aklub.CompanyProfile",
+            first_name="Petr",
+            addressment="Petříčku",
+        )
+        self.assertEqual(t.get_addressment(), "Petříčku")
+
     def test_get_addressment_default_female(self):
         """ Test, that get_addresment function returns default for female """
         t = mommy.make(
@@ -88,6 +128,11 @@ class TestStr(TestCase):
             sex='female',
         )
         self.assertEqual(t.get_addressment(), "přítelkyně Auto*Matu")
+
+        t = mommy.make(
+            "aklub.CompanyProfile",
+        )
+        self.assertEqual(t.get_addressment(), "Company")
 
     def test_get_addressment_default(self):
         """ Test, that get_addresment function returns default """
@@ -105,6 +150,12 @@ class TestStr(TestCase):
         )
         self.assertEqual(t.email, "test@test.cz")
 
+        t = mommy.make(
+            "aklub.CompanyProfile",
+            email='tEsT@TeSt.cz',
+        )
+        self.assertEqual(t.email, "test@test.cz")
+
     def test_get_email_str_blank(self):
         """ Test, that get_email_str works when no email is set """
         t = mommy.make(
@@ -112,10 +163,21 @@ class TestStr(TestCase):
         )
         self.assertEqual(t.get_email_str(), "")
 
+        t = mommy.make(
+            "aklub.CompanyProfile",
+        )
+        self.assertEqual(t.get_email_str(), "")
+
     def test_get_email_str(self):
         """ Test, that get_email_str strips the email """
         t = mommy.make(
             "aklub.UserProfile",
+            email='  test@test.cz',
+        )
+        self.assertEqual(t.get_email_str(), "test@test.cz")
+
+        t = mommy.make(
+            "aklub.CompanyProfile",
             email='  test@test.cz',
         )
         self.assertEqual(t.get_email_str(), "test@test.cz")
@@ -129,9 +191,21 @@ class TestStr(TestCase):
         t.clean()
         self.assertEqual(t.email, None)
 
+        t = mommy.make(
+            "aklub.CompanyProfile",
+            email='',
+        )
+        t.clean()
+        self.assertEqual(t.email, None)
+
     def test_make_tax_confirmation_no_payment(self):
         """ Test, that make_tax_confirmation function without any payment """
         t = mommy.make("aklub.UserProfile")
+        tax_confirmation, created = t.make_tax_confirmation(2016)
+        self.assertEqual(tax_confirmation, None)
+        self.assertEqual(created, False)
+
+        t = mommy.make("aklub.CompanyProfile")
         tax_confirmation, created = t.make_tax_confirmation(2016)
         self.assertEqual(tax_confirmation, None)
         self.assertEqual(created, False)
@@ -140,6 +214,14 @@ class TestStr(TestCase):
     def test_make_tax_confirmation(self):
         """ Test, that make_tax_confirmation function """
         t = mommy.make("aklub.UserProfile", sex='male')
+        uc = mommy.make("aklub.DonorPaymentChannel", user=t, event=mommy.make("Event"))
+        mommy.make("aklub.Payment", amount=350, date="2016-01-01", type='regular', user_donor_payment_channel=uc)
+        tax_confirmation, created = t.make_tax_confirmation(2016)
+        self.assertEqual(t.email, None)
+        self.assertEqual(tax_confirmation.year, 2016)
+        self.assertEqual(tax_confirmation.amount, 350)
+
+        t = mommy.make("aklub.CompanyProfile")
         uc = mommy.make("aklub.DonorPaymentChannel", user=t, event=mommy.make("Event"))
         mommy.make("aklub.Payment", amount=350, date="2016-01-01", type='regular', user_donor_payment_channel=uc)
         tax_confirmation, created = t.make_tax_confirmation(2016)

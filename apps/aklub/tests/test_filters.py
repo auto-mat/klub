@@ -36,16 +36,22 @@ class FilterTestCase(TestCase):
 
 class FilterTests(FilterTestCase):
     def test_email_filter_blank(self):
-        mommy.make('UserProfile', email="", first_name="Foo", last_name="")
-        f = filters.EmailFilter(self.request, {"email": "blank"}, Profile, None)
-        q = f.queryset(self.request, Profile.objects.all())
-        self.assertQuerysetEqual(q, ["<UserProfile: Foo>"])
+        for model in Profile.__subclasses__():
+            model_name = model._meta.object_name
+            profile = mommy.make(model_name, email="", first_name="Foo", last_name="")
+            f = filters.EmailFilter(self.request, {"email": "blank"}, Profile, None)
+            q = f.queryset(self.request, Profile.objects.all())
+            self.assertQuerysetEqual(q, ["<{}: Foo>".format(model_name)])
+            profile.delete()
 
     def test_email_filter_format(self):
-        mommy.make('UserProfile', email='foo', first_name="Foo", last_name="")
-        f = filters.EmailFilter(self.request, {"email": "email-format"}, Profile, None)
-        q = f.queryset(self.request, Profile.objects.all())
-        self.assertQuerysetEqual(q, ["<UserProfile: Foo>"])
+        for model in Profile.__subclasses__():
+            model_name = model._meta.object_name
+            profile = mommy.make(model_name, email='foo', first_name="Foo", last_name="")
+            f = filters.EmailFilter(self.request, {"email": "email-format"}, Profile, None)
+            q = f.queryset(self.request, Profile.objects.all())
+            self.assertQuerysetEqual(q, ["<{}: Foo>".format(model_name)])
+            profile.delete()
 
     def test_telephone_filter_duplicate_blank(self):
         f = filters.TelephoneFilter(self.request, {"telephone": "duplicate"}, Profile, None)
@@ -53,57 +59,97 @@ class FilterTests(FilterTestCase):
         self.assertQuerysetEqual(q, [], ordered=False)
 
     def test_telephone_filter_duplicate(self):
-        user_profile1 = mommy.make('UserProfile', telephone='123456', first_name="Foo", last_name="")
-        mommy.make('Telephone', telephone='123456', user=user_profile1)
-        user_profile2 = mommy.make('UserProfile', telephone='123456', first_name="Bar", last_name="")
-        mommy.make('Telephone', telephone='123456', user=user_profile2)
-        f = filters.TelephoneFilter(self.request, {"telephone": "duplicate"}, Profile, None)
-        q = f.queryset(self.request, Profile.objects.all())
-        self.assertQuerysetEqual(q, ["<UserProfile: Foo>", "<UserProfile: Bar>"], ordered=False)
+        for model in Profile.__subclasses__():
+            model_name = model._meta.object_name
+            profile1 = mommy.make(model_name, telephone='123456', first_name="Foo", last_name="")
+            mommy.make('Telephone', telephone='123456', user=profile1)
+            profile2 = mommy.make(model_name, telephone='123456', first_name="Bar", last_name="")
+            mommy.make('Telephone', telephone='123456', user=profile2)
+            f = filters.TelephoneFilter(self.request, {"telephone": "duplicate"}, Profile, None)
+            q = f.queryset(self.request, Profile.objects.all())
+            self.assertQuerysetEqual(
+                q,
+                [
+                    "<{}: Foo>".format(model_name),
+                    "<{}: Bar>".format(model_name),
+                ],
+                ordered=False,
+            )
+            profile1.delete()
+            profile2.delete()
 
     def test_telephone_filter_blank(self):
-        mommy.make('UserProfile', telephone=None, first_name="Foo", last_name="")
-        f = filters.TelephoneFilter(self.request, {"telephone": "blank"}, Profile, None)
-        q = f.queryset(self.request, Profile.objects.all())
-        self.assertQuerysetEqual(q, ["<UserProfile: Foo>"])
+        for model in Profile.__subclasses__():
+            model_name = model._meta.object_name
+            profile = mommy.make(model_name, telephone=None, first_name="Foo", last_name="")
+            f = filters.TelephoneFilter(self.request, {"telephone": "blank"}, Profile, None)
+            q = f.queryset(self.request, Profile.objects.all())
+            self.assertQuerysetEqual(q, ["<{}: Foo>".format(model_name)])
+            profile.delete()
 
     def test_telephone_filter_blank_foreign(self):
-        user_profile = mommy.make('UserProfile', first_name="Foo", last_name="")
-        mommy.make('Telephone', user=user_profile, telephone='')
-        f = filters.TelephoneFilter(self.request, {"telephone": "blank"}, Profile, None)
-        q = f.queryset(self.request, Profile.objects.all())
-        self.assertQuerysetEqual(q, ["<UserProfile: Foo>"])
+        for model in Profile.__subclasses__():
+            model_name = model._meta.object_name
+            profile = mommy.make(model_name, first_name="Foo", last_name="")
+            mommy.make('Telephone', user=profile, telephone='')
+            f = filters.TelephoneFilter(self.request, {"telephone": "blank"}, Profile, None)
+            q = f.queryset(self.request, Profile.objects.all())
+            self.assertQuerysetEqual(q, ["<{}: Foo>".format(model_name)])
+            profile.delete()
 
     def test_telephone_filter_format(self):
-        mommy.make('UserProfile', telephone='1111', first_name="Foo", last_name="")
-        f = filters.TelephoneFilter(self.request, {"telephone": "bad-format"}, Profile, None)
-        q = f.queryset(self.request, Profile.objects.all())
-        self.assertQuerysetEqual(q, ["<UserProfile: Foo>"])
+        for model in Profile.__subclasses__():
+            model_name = model._meta.object_name
+            profile = mommy.make(model_name, telephone='1111', first_name="Foo", last_name="")
+            f = filters.TelephoneFilter(self.request, {"telephone": "bad-format"}, Profile, None)
+            q = f.queryset(self.request, Profile.objects.all())
+            self.assertQuerysetEqual(q, ["<{}: Foo>".format(model_name)])
+            profile.delete()
 
     def test_telephone_filter_without_query(self):
-        mommy.make('UserProfile', telephone='1111', first_name="Foo", last_name="")
-        f = filters.TelephoneFilter(self.request, {}, Profile, None)
-        q = f.queryset(self.request, Profile.objects.all())
-        self.assertQuerysetEqual(q, ["<UserProfile: Foo>"])
+        for model in Profile.__subclasses__():
+            model_name = model._meta.object_name
+            profile = mommy.make(model_name, telephone='1111', first_name="Foo", last_name="")
+            f = filters.TelephoneFilter(self.request, {}, Profile, None)
+            q = f.queryset(self.request, Profile.objects.all())
+            self.assertQuerysetEqual(q, ["<{}: Foo>".format(model_name)])
+            profile.delete()
 
     def test_name_filter_duplicate(self):
-        mommy.make('UserProfile', first_name="Foo", last_name="")
-        mommy.make('UserProfile', first_name="Foo", last_name="")
-        f = filters.NameFilter(self.request, {"name": "duplicate"}, Profile, None)
-        q = f.queryset(self.request, Profile.objects.all())
-        self.assertQuerysetEqual(q, ["<UserProfile: Foo>", "<UserProfile: Foo>"], ordered=False)
+        for model in Profile.__subclasses__():
+            model_name = model._meta.object_name
+            profile1 = mommy.make(model_name, first_name="Foo", last_name="")
+            profile2 = mommy.make(model_name, first_name="Foo", last_name="")
+            f = filters.NameFilter(self.request, {"name": "duplicate"}, Profile, None)
+            q = f.queryset(self.request, Profile.objects.all())
+            self.assertQuerysetEqual(
+                q,
+                [
+                    "<{}: Foo>".format(model_name),
+                    "<{}: Foo>".format(model_name),
+                ],
+                ordered=False,
+            )
+            profile1.delete()
+            profile2.delete()
 
     def test_name_filter_blank(self):
-        mommy.make('UserProfile', first_name="", last_name="", username="foo_username")
-        f = filters.NameFilter(self.request, {"name": "blank"}, Profile, None)
-        q = f.queryset(self.request, Profile.objects.all())
-        self.assertQuerysetEqual(q, ["<UserProfile: foo_username>"])
+        for model in Profile.__subclasses__():
+            model_name = model._meta.object_name
+            profile = mommy.make(model_name, first_name="", last_name="", username="foo_username")
+            f = filters.NameFilter(self.request, {"name": "blank"}, Profile, None)
+            q = f.queryset(self.request, Profile.objects.all())
+            self.assertQuerysetEqual(q, ["<{}: foo_username>".format(model_name)])
+            profile.delete()
 
     def test_name_filter_without_query(self):
-        mommy.make('UserProfile', first_name="", last_name="", username="foo_username")
-        f = filters.NameFilter(self.request, {}, Profile, None)
-        q = f.queryset(self.request, Profile.objects.all())
-        self.assertQuerysetEqual(q, ["<UserProfile: foo_username>"])
+        for model in Profile.__subclasses__():
+            model_name = model._meta.object_name
+            profile = mommy.make(model_name, first_name="", last_name="", username="foo_username")
+            f = filters.NameFilter(self.request, {}, Profile, None)
+            q = f.queryset(self.request, Profile.objects.all())
+            self.assertQuerysetEqual(q, ["<{}: foo_username>".format(model_name)])
+            profile.delete()
 
 
 class FixtureFilterTests(FilterTestCase):
