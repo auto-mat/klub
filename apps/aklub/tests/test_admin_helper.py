@@ -9,6 +9,8 @@ from .. models import ProfileEmail
 
 
 class TestProfilePostMixin:
+    """ 'test_profile_post' test helper class """
+
     def register_admin_model(self, admin_model):
         admin_model = django_admin.site._registry[admin_model]
         request = self.get_request()
