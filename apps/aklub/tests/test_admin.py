@@ -489,7 +489,6 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
 
     def get_request(self, params=None):
         request = self.factory.get('/', params)
-
         request.user = self.superuser
         return request
 
@@ -778,3 +777,61 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         self.assertEqual(Preference.objects.filter(user=company_profile[0]).count(), 1)
         self.assertEqual(Preference.objects.filter(user=company_profile[0])[0].send_mailing_lists, False)
         self.assertEqual(Preference.objects.filter(user=company_profile[0])[0].letter_on, False)
+
+
+class AdminActionsTests(CreateSuperUserMixin, RunCommitHooksMixin, TestCase):
+    """ Admin actions tests """
+
+    def setUp(self):
+        super().setUp()
+        self.factory = RequestFactory()
+        self.client.force_login(self.superuser)
+
+    def get_request(self, params=None):
+        request = self.factory.get('/', params)
+        request.user = self.superuser
+        return request
+
+    def post_request(self, post_data={}, params=None):
+        request = self.factory.post('/', data=post_data)
+        request.user = self.superuser
+        request._dont_enforce_csrf_checks = True
+        request.session = 'session'
+        request._messages = FallbackStorage(request)
+        return request
+
+    def test_delete_selected_profiles(self):
+        """
+        Test admin profile model 'Delete selected Profiles'
+        action
+        """
+        user_profile = mommy.make(
+            'aklub.UserProfile',
+            username='test.userprofile',
+        )
+        mommy.make(
+            'aklub.ProfileEmail',
+            email='test.userprofile@test.userprofile.test',
+            is_primary=True,
+            user=user_profile,
+        )
+        company_profile = mommy.make(
+            'aklub.CompanyProfile',
+            username='test.companyprofile',
+        )
+        mommy.make(
+            'aklub.ProfileEmail',
+            email='test.companyprofile@test.companyprofile.test',
+            is_primary=True,
+            user=company_profile,
+        )
+        post_data = {
+            '_selected_action': [user_profile.id, company_profile.id],
+            'action': 'delete_selected',
+            'post': 'yes',
+        }
+        self.assertEqual(Profile.objects.exclude(username=self.superuser.username).count(), 2)
+        address = '/aklub/profile/'
+        response = self.client.post(address, post_data)
+        self.assertRedirects(response, expected_url='/aklub/profile/')
+        self.assertEqual(Profile.objects.exclude(username=self.superuser.username).count(), 0)
