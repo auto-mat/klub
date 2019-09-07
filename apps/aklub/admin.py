@@ -665,11 +665,13 @@ class ProfileEmailAdminForm(forms.ModelForm):
         msg = _('Duplicate email address for this user')
         if not cleaned_data.get('id'):
             if qs.filter(email=cleaned_data['email'], user=cleaned_data['user']).exists():
-                raise ValidationError(msg)
+                self.add_error('email', msg)
+                return True
         else:
             if 'email' in self.changed_data:
                 if qs.filter(email=cleaned_data['email'], user=cleaned_data['user']).exists():
-                    raise ValidationError(msg)
+                    self.add_error('email', msg)
+                    return True
 
     def check_unique(self, *args, **kwargs):
         cleaned_data = kwargs['cleaned_data']
@@ -680,19 +682,21 @@ class ProfileEmailAdminForm(forms.ModelForm):
         msg = _('Email address exist')
         if not cleaned_data.get('id'):
             if qs.filter(email=cleaned_data['email']).exists():
-                raise ValidationError(msg)
+                self.add_error('email', msg)
+                return True
         else:
             if (qs.filter(email=cleaned_data['email']).exclude(user=cleaned_data['user']).exists()):
-                raise ValidationError(msg)
+                self.add_error('email', msg)
+                return True
         if cleaned_data.get('email'):
             cleaned_data['email'] = cleaned_data['email'].lower()
 
     def clean(self):
         cleaned_data = super().clean()
-        self.check_duplicate(cleaned_data=cleaned_data)
-        self.check_unique(cleaned_data=cleaned_data)
-
-        return cleaned_data
+        if self.check_duplicate(cleaned_data=cleaned_data):
+            return cleaned_data
+        if self.check_unique(cleaned_data=cleaned_data):
+            return cleaned_data
 
 
 class ProfileEmailInline(nested_admin.NestedTabularInline):
