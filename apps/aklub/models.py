@@ -821,6 +821,8 @@ class Profile(PolymorphicModel, AbstractUser):
                 emails,
             ),
         )
+        result.sort(key=lambda item: -1 if '<b>' in item else 0)
+
         return mark_safe('\n'.join(result))
 
     get_email.short_description = _("Email")
@@ -982,7 +984,7 @@ class Preference(models.Model):
     )
 
     def __str__(self):
-        return (self.administrative_unit.name)
+        return self.administrative_unit.name if self.administrative_unit else ''
 
 
 class Telephone(models.Model):
