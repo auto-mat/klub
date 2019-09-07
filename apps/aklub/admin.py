@@ -961,8 +961,21 @@ class ProfileAdmin(
     crn.admin_order_field = 'title_after'
 
     def delete_queryset(self, request, queryset):
-        ProfileEmail.objects.filter(user__in=queryset).delete()
-        return super().delete_queryset(request, queryset)
+        """
+        Fix 'IntegrityError update or delete on table
+        "aklub_profile" violates foreign key constraint' error,
+        delete mixed models ('User/CompanyProfile' model) in the
+        'Profile' admin model list view, via
+        'Delete selected Profiles' action
+        """
+        # Filter queryset according 'Profile' child models type
+        user_profile_qs = queryset.instance_of(UserProfile)
+        company_profile_qs = queryset.instance_of(CompanyProfile)
+        # Delete standalone queryset
+        if user_profile_qs:
+            super().delete_queryset(request, user_profile_qs)
+        if company_profile_qs:
+            super().delete_queryset(request, company_profile_qs)
 
 
 class DonorPaymentChannelResource(ModelResource):
