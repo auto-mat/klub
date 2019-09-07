@@ -1672,7 +1672,7 @@ class AdministrativeUnitAdmin(admin.ModelAdmin):
 
 
 class BaseProfileChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelAdmin):
-    """Base admin class for all Profile child models"""
+    """ Base admin class for all Profile child models """
     merge_form = ProfileMergeForm
     add_fieldsets = (
         (_('Personal data'), {
@@ -1776,11 +1776,13 @@ class BaseProfileChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModel
 
 @admin.register(UserProfile)
 class UserProfileAdmin(BaseProfileChildAdmin):
+    """ User profile polymorphic admin model child class """
     base_model = UserProfile
     show_in_index = True
 
 
 class CompanyProfileAdminUpdateForm(UserUpdateForm):
+    """ Company profile update form """
     last_name = forms.CharField(label=_('Name'), required=False)
 
     class Meta:
@@ -1789,6 +1791,7 @@ class CompanyProfileAdminUpdateForm(UserUpdateForm):
 
 
 class CompanyProfileAdminCreateForm(UserCreateForm):
+    """ Company profile create form """
     last_name = forms.CharField(label=_('Name'), required=False)
 
     class Meta:
@@ -1798,6 +1801,7 @@ class CompanyProfileAdminCreateForm(UserCreateForm):
 
 @admin.register(CompanyProfile)
 class CompanyProfileAdmin(BaseProfileChildAdmin):
+    """ Company profile polymorphic admin model child class """
     base_model = CompanyProfile
     show_in_index = True
     add_fieldsets = (

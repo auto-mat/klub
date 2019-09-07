@@ -409,6 +409,7 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
         self.assertEqual('Variabilní symboly úspěšně spárovány.', request._messages._queued_messages[0].message)
 
     def test_profile_post(self):
+        """ Test Profile admin model add/change view """
         self.create_group()
         event = self.create_event()
         actions = ['add_view', 'change_view']
@@ -446,7 +447,7 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
                     response = view_method(request, object_id=user_id)
                 else:
                     response = view_method(request)
-                    
+
                 self.assertEqual(response.status_code, 302)
 
                 user = Profile.objects.get(username='{}'.format(test_str))
@@ -518,6 +519,7 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         )
 
     def test_profile_export(self):
+        """ Test Profile admin model export """
         profiles_data = [
             {
                 'type': 'user',
@@ -648,6 +650,7 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         )
 
     def test_profile_import(self):
+        """ Test Profile admin model import """
         p = pathlib.PurePath(__file__)
         csv_file_create_profiles = p.parents[1] / 'test_data' / 'create_profiles.csv'
         address = '/aklub/profile/import/'
