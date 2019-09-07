@@ -1817,6 +1817,7 @@ class CompanyProfileAdmin(BaseProfileChildAdmin):
     """ Company profile polymorphic admin model child class """
     base_model = CompanyProfile
     show_in_index = True
+    base_form = CompanyProfileAdminCreateForm
     add_fieldsets = (
         (_('Personal data'), {
             'classes': ('wide',),
@@ -1854,8 +1855,6 @@ class CompanyProfileAdmin(BaseProfileChildAdmin):
     def get_form(self, request, obj=None, **kwargs):
         if obj:
             self.form = CompanyProfileAdminUpdateForm
-        else:
-            self.form = CompanyProfileAdminCreateForm
         form = super().get_form(request, obj, **kwargs)
         return form
 
