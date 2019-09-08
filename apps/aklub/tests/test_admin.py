@@ -35,8 +35,8 @@ from freezegun import freeze_time
 
 from model_mommy import mommy
 
-from .test_admin_helper import TestProfilePostMixin
 from .recipes import donor_payment_channel_recipe, generic_profile_recipe, user_profile_recipe
+from .test_admin_helper import TestProfilePostMixin
 from .utils import RunCommitHooksMixin
 from .utils import print_response  # noqa
 from .. import admin
