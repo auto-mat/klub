@@ -596,7 +596,7 @@ class ProfileResource(ProfileModelResource):
         all_child_models_fields = get_polymorphic_parent_child_fields(self._meta.model)
         for model_name, model_fields in all_child_models_fields.items():
             for field in model_fields:
-                if not row.get(field):
+                if not row.get(field) and field in row:
                     del row[field]
         return row
 
