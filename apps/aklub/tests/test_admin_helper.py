@@ -119,12 +119,10 @@ class TestProfilePostMixin:
             self.assertEqual(user.email, primary_email)
             self.assertEqual(
                 emails,
-                set(
-                    [
-                        post_data['profileemail_set-0-email'],
-                        post_data['profileemail_set-1-email'],
-                    ]
-                ),
+                {
+                    post_data['profileemail_set-0-email'],
+                    post_data['profileemail_set-1-email'],
+                },
             )
         else:
             self.assertEqual(user.email, None)
