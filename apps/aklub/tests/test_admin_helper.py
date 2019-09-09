@@ -5,7 +5,7 @@ from django.contrib.auth.models import Group
 
 from model_mommy import mommy
 
-from .. models import ProfileEmail
+from .. models import ProfileEmail, UserProfile
 
 
 class TestProfilePostMixin:
@@ -101,22 +101,40 @@ class TestProfilePostMixin:
             post_data['userchannels-TOTAL_FORMS'] = 0
             post_data['interaction_set-TOTAL_FORMS'] = 0
         if 'sex' in (f.name for f in child_model._meta.fields):
-            post_data.update({'sex': 'male'})
+            post_data.update(
+                {
+                    'sex': 'male',
+                    'first_name': 'First name' if action == 'add' else 'First name edit',
+                    'last_name': 'Last name' if action == 'add' else 'Last name edit',
+                }
+            )
         if 'crn' in (f.name for f in child_model._meta.fields):
-            post_data.update({'crn': '00000000'})
-
+            post_data.update(
+                {
+                    'crn': '00000000' if action == 'add' else '11111111',
+                    'name': 'Company' if action == 'add' else 'Company edit',
+                }
+            )
         return post_data
 
-    def compare_profile_personal_info(self, action, post_data, user):
-        group_id = user.groups.all().values_list("id", flat=True)[0]
-        primary_email = ProfileEmail.objects.get(user=user, is_primary=True).email
+    def compare_profile_personal_info(self, action, post_data, profile):
+        group_id = profile.groups.all().values_list("id", flat=True)[0]
+        primary_email = ProfileEmail.objects.get(user=profile, is_primary=True).email
         emails = set(
-            ProfileEmail.objects.filter(user=user).values_list('email', flat=True),
+            ProfileEmail.objects.filter(user=profile).values_list('email', flat=True),
         )
-        self.assertEqual(user.username, post_data['username'])
+        self.assertEqual(profile.username, post_data['username'])
+
         if action == 'add':
-            self.assertEqual(user.email, post_data['profileemail_set-0-email'])
-            self.assertEqual(user.email, primary_email)
+            if isinstance(profile, UserProfile):
+                self.assertEqual(profile.first_name, post_data['first_name'])
+                self.assertEqual(profile.last_name, post_data['last_name'])
+            else:
+                self.assertEqual(profile.name, post_data['name'])
+                self.assertEqual(profile.crn, post_data['crn'])
+
+            self.assertEqual(profile.email, post_data['profileemail_set-0-email'])
+            self.assertEqual(profile.email, primary_email)
             self.assertEqual(
                 emails,
                 {
@@ -125,14 +143,22 @@ class TestProfilePostMixin:
                 },
             )
         else:
-            self.assertEqual(user.email, None)
-        self.assertEqual(user.is_staff, True)
+            if isinstance(profile, UserProfile):
+                self.assertEqual(profile.first_name, 'First name edit')
+                self.assertEqual(profile.last_name, 'Last name edit')
+            else:
+                self.assertEqual(profile.name, 'Company edit')
+                self.assertEqual(profile.crn, '11111111')
+
+            self.assertEqual(profile.email, None)
+
+        self.assertEqual(profile.is_staff, True)
         self.assertEqual(group_id, post_data['groups'])
         self.assertEqual(group_id, post_data['groups'])
 
-    def compare_profile_preference(self, action, user, post_data):
-        preference = user.preference_set.first()
-        self.assertEqual(user.preference_set.count(), 1)
+    def compare_profile_preference(self, action, profile, post_data):
+        preference = profile.preference_set.first()
+        self.assertEqual(profile.preference_set.count(), 1)
         if action == 'add':
             self.assertEqual(
                 preference.newsletter_on,

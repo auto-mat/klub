@@ -103,8 +103,6 @@
             "last_login": null,
             "is_superuser": false,
             "username": "test.user3",
-            "first_name": "Test",
-            "last_name": "User 1",
             "is_staff": false,
             "is_active": true,
             "date_joined": "2016-09-16T16:22:30.128Z",
@@ -162,7 +160,9 @@
 	    "title_after": "Phdr.",
             "age_group": null,
             "birth_month": null,
-            "birth_day": null
+            "birth_day": null,
+	    "first_name": "Test",
+            "last_name": "User 1"
 	}
     },
     {
@@ -200,8 +200,6 @@
             "last_login": null,
             "is_superuser": false,
             "username": "testuser0",
-            "first_name": "Test",
-            "last_name": "User",
             "is_staff": false,
             "is_active": true,
             "date_joined": "2016-09-16T16:22:30.128Z",
@@ -259,7 +257,9 @@
             "title_after": "",
             "age_group": null,
             "birth_month": null,
-            "birth_day": null
+            "birth_day": null,
+	    "first_name": "Test",
+            "last_name": "User"
 	}
     },
     {
@@ -391,8 +391,6 @@
             "last_login": null,
             "is_superuser": false,
             "username": "without_payments",
-            "first_name": "Without",
-            "last_name": "Payments",
             "is_staff": false,
             "is_active": true,
             "date_joined": "2016-09-16T16:22:30.128Z",
@@ -450,7 +448,9 @@
             "title_after": "",
             "age_group": null,
             "birth_month": null,
-            "birth_day": null
+            "birth_day": null,
+            "first_name": "Without",
+            "last_name": "Payments"
 	}
     },
     {
