@@ -907,6 +907,11 @@ class CompanyProfile(Profile):
         max_length=20,
         null=True,
     )
+    tin = models.CharField(
+        verbose_name=_(u"Tax Identification Number"),
+        max_length=20,
+        null=True,
+    )
 
 
 class UserProfile(Profile, AbstractUserProfile):
