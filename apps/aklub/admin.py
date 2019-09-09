@@ -942,25 +942,25 @@ class ProfileAdmin(
         return self.sex if hasattr(obj, 'sex') else None
 
     sex.short_description = _("Gender")
-    sex.admin_order_field = 'sex'
+    sex.admin_order_field = 'userprofile__sex'
 
     def crn(self, obj):
         return self.sex if hasattr(obj, 'crn') else None
 
     crn.short_description = _("Company Registration Number")
-    crn.admin_order_field = 'crn'
+    crn.admin_order_field = 'companyprofile__crn'
 
     def title_before(self, obj):
         return self.title_before if hasattr(obj, 'title_before') else None
 
     title_before.short_description = _("Title before")
-    title_before.admin_order_field = 'title_before'
+    title_before.admin_order_field = 'userprofile__title_before'
 
     def title_after(self, obj):
         return self.title_after if hasattr(obj, 'title_after') else None
 
     title_after.short_description = _("Title after")
-    title_after.admin_order_field = 'title_after'
+    title_after.admin_order_field = 'userprofile__title_after'
 
     # def first_name(self, obj):
     #     return self.first_name if hasattr(obj, 'first_name') else None
@@ -974,11 +974,6 @@ class ProfileAdmin(
     # last_name.short_description = _("Last name")
     # last_name.admin_order_field = 'last_name'
 
-    def name(self, obj):
-        return self.first_name if hasattr(obj, 'name') else None
-
-    name.short_description = _("Name")
-    name.admin_order_field = 'Name'
 
     def delete_queryset(self, request, queryset):
         """
