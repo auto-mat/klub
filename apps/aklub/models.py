@@ -29,7 +29,10 @@ from denorm import denormalized, depend_on_related
 
 from django.conf import settings
 from django.contrib.admin.templatetags.admin_list import _boolean_icon
-from django.contrib.auth.models import AbstractUser, User, UserManager
+from django.contrib.auth.models import (
+    AbstractBaseUser, AbstractUser, PermissionsMixin,
+    User, UserManager,
+)
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.humanize.templatetags.humanize import intcomma
 from django.core.exceptions import ValidationError
@@ -64,6 +67,7 @@ from stdnumfield.models import StdNumField
 from vokativ import vokativ
 
 from . import autocom
+from .utils import create_model
 
 logger = logging.getLogger(__name__)
 
@@ -109,6 +113,52 @@ class CustomUserManager(PolymorphicManager, UserManager):
             raise ValueError(_('Superuser must have is_superuser=True.'))
 
         return self.create_user(email, password, **extra_fields)
+
+
+def get_full_name(self):
+    return self.first_name + ' ' + self.last_name
+
+
+def get_profile_abstract_base_user_model_attrs():
+    attrs = {}
+    for field in AbstractUser._meta.fields:
+        if field.name not in ['first_name', 'last_name', 'last_login']:
+            attrs[field.name] = field
+    attrs['USERNAME_FIELD'] = 'username'
+    attrs['get_full_name'] = get_full_name
+    return attrs
+
+
+AbstractProfileBaseUser = create_model(
+    name='AbstractProfileBaseUser',
+    fields=get_profile_abstract_base_user_model_attrs(),
+    app_label='aklub',
+    module='',
+    options={'abstract': True},
+    parent_class=(
+        AbstractBaseUser,
+        PermissionsMixin,
+        models.Model,
+    ),
+)
+
+
+def get_abstract_user_profile_model_attrs():
+    attrs = {}
+    for field in AbstractUser._meta.fields:
+        if field.name in ['first_name', 'last_name']:
+            attrs[field.name] = field
+
+    return attrs
+
+
+AbstractUserProfile = create_model(
+    name='AbstractUserProfile',
+    fields=get_abstract_user_profile_model_attrs(),
+    app_label='aklub',
+    module='',
+    options={'abstract': True},
+)
 
 
 class Result(models.Model):
@@ -472,7 +522,7 @@ class Source(models.Model):
         return str(self.name)
 
 
-class Profile(PolymorphicModel, AbstractUser):
+class Profile(PolymorphicModel, AbstractProfileBaseUser):
     class Meta:
         verbose_name = _("Profile")
         verbose_name_plural = _("Profiles")
@@ -686,7 +736,13 @@ class Profile(PolymorphicModel, AbstractUser):
     """
 
     def get_last_name_vokativ(self):
-        return vokativ(self.last_name.strip(), last_name=True).title()
+        if hasattr(self, 'last_name'):
+            return vokativ(self.last_name.strip(), last_name=True).title()
+        else:
+            if hasattr(self, 'name'):
+                if self.name:
+                    return vokativ(self.name.strip(), last_name=False).title()
+        return None
 
     get_last_name_vokativ.short_description = _("Last name vokativ")
     get_last_name_vokativ.admin_order_field = 'last_name'
@@ -694,8 +750,9 @@ class Profile(PolymorphicModel, AbstractUser):
     def get_addressment(self):
         if self.addressment:
             return self.addressment
-        if self.first_name:
-            return vokativ(self.first_name.strip()).title()
+        if hasattr(self, 'first_name'):
+            if self.first_name:
+                return vokativ(self.first_name.strip()).title()
         if self.language == 'cs':
             if hasattr(self, 'sex'):
                 if self.sex == 'male':
@@ -734,21 +791,14 @@ class Profile(PolymorphicModel, AbstractUser):
                         ],
                     ),
                 ) + (", %s" % self.title_after if self.title_after else "")
-            else:
-                return self.username
+            return self.username
         else:
-            if self.first_name or self.last_name:
-                return " ".join(
-                    filter(
-                        None,
-                        [
-                            self.last_name,
-                            self.first_name,
-                        ],
-                    ),
-                )
-            else:
-                return self.username
+            if hasattr(self, 'name'):
+                if self.name:
+                    return self.name
+                else:
+                    return self.username
+            return self.username
 
     person_name.short_description = _("Full name")
     person_name.admin_order_field = 'last_name'
@@ -846,13 +896,20 @@ class CompanyProfile(Profile):
         verbose_name = _("Company profile")
         verbose_name_plural = _("Company profiles")
 
+    name = models.CharField(
+        verbose_name=_("Name"),
+        max_length=180,
+        blank=True,
+        null=True,
+    )
     crn = models.CharField(
-        max_length=20,
         verbose_name=_(u"Company Registration Number"),
+        max_length=20,
+        null=True,
     )
 
 
-class UserProfile(Profile):
+class UserProfile(Profile, AbstractUserProfile):
     class Meta:
         verbose_name = _("User profile")
         verbose_name_plural = _("User profiles")
@@ -863,11 +920,15 @@ class UserProfile(Profile):
         ('unknown', _('Unknown')))
     title_after = models.CharField(
         verbose_name=_("Title after name"),
-        max_length=15, blank=True,
+        max_length=15,
+        null=True,
+        blank=True,
     )
     title_before = models.CharField(
         verbose_name=_("Title before name"),
-        max_length=15, blank=True,
+        max_length=15,
+        null=True,
+        blank=True,
     )
     age_group = models.PositiveIntegerField(
         verbose_name=_("Birth year"),
@@ -926,7 +987,7 @@ class ProfileEmail(models.Model):
         settings.AUTH_USER_MODEL,
         blank=True,
         null=True,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
     )
 
     def save(self, *args, **kwargs):
@@ -1090,7 +1151,11 @@ class UserInCampaign(models.Model):
         verbose_name = _("User in campaign")
         verbose_name_plural = _("Users in campaign")
         unique_together = ('userprofile', 'campaign',)
-        ordering = ["userprofile__last_name", "userprofile__first_name"]
+        ordering = [
+            "userprofile__userprofile__last_name",
+            "userprofile__userprofile__first_name",
+            "userprofile__companyprofile__name",
+        ]
 
     GENDER = (
         ('male', _('Male')),
