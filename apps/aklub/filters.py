@@ -12,7 +12,10 @@ from django.db.models.functions import Lower
 from django.utils.translation import ugettext as _
 
 from . import models
-from .models import Condition, Profile, Telephone
+from .models import (
+    CompanyProfile, Condition, Profile, Telephone,
+    UserProfile,
+)
 
 
 class NullFieldFilter(SimpleListFilter):
@@ -178,25 +181,48 @@ class NameFilter(SimpleListFilter):
         )
 
     def queryset(self, request, queryset):
+        user_profile_qs = queryset.instance_of(UserProfile)
+        company_profile_qs = queryset.instance_of(CompanyProfile)
         if self.value() == 'duplicate':
-            duplicates = Profile.objects.filter(first_name__isnull=False, last_name__isnull=False)
-            duplicates = duplicates.exclude(first_name__exact='', last_name__exact='')
-            duplicates = duplicates.values('first_name', 'last_name')
-            duplicates = duplicates.annotate(Count('id'))
-            duplicates = duplicates.values('first_name', 'last_name', 'id')
-            duplicates = duplicates.order_by()
-            duplicates = duplicates.filter(id__count__gt=1)
-            duplicates = duplicates.values_list('first_name', 'last_name')
-            query = reduce(
-                operator.or_,
-                (Q(first_name=fn, last_name=ln) for fn, ln in duplicates),
-            )
-            return queryset.filter(query)
+            if user_profile_qs:
+                duplicates = UserProfile.objects.filter(first_name__isnull=False, last_name__isnull=False)
+                duplicates = duplicates.exclude(first_name__exact='', last_name__exact='')
+                duplicates = duplicates.values('first_name', 'last_name')
+                duplicates = duplicates.annotate(Count('id'))
+                duplicates = duplicates.values('first_name', 'last_name', 'id')
+                duplicates = duplicates.order_by()
+                duplicates = duplicates.filter(id__count__gt=1)
+                duplicates = duplicates.values_list('first_name', 'last_name')
+                query = reduce(
+                    operator.or_,
+                    (Q(first_name=fn, last_name=ln) for fn, ln in duplicates),
+                )
+                return queryset.filter(query)
+            if company_profile_qs:
+                duplicates = CompanyProfile.objects.filter(name__isnull=False)
+                duplicates = duplicates.exclude(name__exact='')
+                duplicates = duplicates.values('name')
+                duplicates = duplicates.annotate(Count('id'))
+                duplicates = duplicates.values('name', 'id')
+                duplicates = duplicates.order_by()
+                duplicates = duplicates.filter(id__count__gt=1)
+                duplicates = duplicates.values_list('name', flat=True)
+                query = reduce(
+                    operator.or_,
+                    (Q(name=name) for name in duplicates),
+                )
+                return queryset.filter(query)
+
         if self.value() == 'blank':
-            return queryset.filter(
-                (Q(first_name__exact='') or Q(first_name__isnull=True)) and
-                (Q(last_name__exact='') or Q(last_name__isnull=True)),
-            )
+            if user_profile_qs:
+                return queryset.filter(
+                    (Q(first_name__exact='') or Q(first_name__isnull=True)) and
+                    (Q(last_name__exact='') or Q(last_name__isnull=True)),
+                )
+            if company_profile_qs:
+                return queryset.filter(
+                    Q(name__exact='') or Q(name__isnull=True),
+                )
         return queryset
 
 

@@ -106,8 +106,10 @@ class RegularUserForm_UserProfile(forms.ModelForm):
 
     class Meta:
         model = UserProfile
-        fields = ('first_name', 'last_name', 'email', 'username', 'telephone',)
-        required = ('first_name', 'last_name', 'email', 'telephone',)
+        fields = ('first_name', 'last_name',
+                  'email', 'username', 'telephone',)
+        required = ('first_name', 'last_name',
+                    'email', 'telephone',)
 
 
 class CampaignMixin(forms.ModelForm):
@@ -182,7 +184,8 @@ class PetitionUserForm_UserProfile(RegularUserForm_UserProfile):
 
     class Meta:
         model = UserProfile
-        fields = ('age_group', 'sex', 'first_name', 'last_name', 'email', 'username', 'telephone', 'street', 'city', 'country', 'zip_code')
+        fields = ('age_group', 'sex', 'first_name', 'last_name',
+                  'email', 'username', 'telephone', 'street', 'city', 'country', 'zip_code')
         required = ('email',)
 
 
@@ -522,7 +525,12 @@ class PetitionView(RegularView):
 
 def donators(request):
     payed = Payment.objects.exclude(type='expected')
-    donators = DonorPaymentChannel.objects.filter(user__public=True, payment__in=payed).distinct().order_by('user__last_name')
+    donators = DonorPaymentChannel.objects.filter(
+        user__public=True,
+        payment__in=payed,).distinct().order_by(
+        'user__userprofile__last_name',
+        'user__companyprofile__name',
+    )
     n_donators = len(donators)
     n_regular = len(donators.filter(user__is_active=True, regular_payments="regular"))
     return render_to_response(
@@ -591,7 +599,11 @@ def profiles(request):
         DonorPaymentChannel.objects.filter(registered_support__gte=from_date).order_by('-registered_support') |
         DonorPaymentChannel.objects.filter(id__in=(493, 89, 98, 921, 33, 886, 1181, 842, 954, 25))).\
         exclude(user__public=False, user__profile_picture__isnull=False).\
-        order_by("-user__last_name", "user__first_name")
+        order_by(
+            "-user__userprofile__last_name",
+            "-user__companyprofile__name",
+            "user__userprofile__first_name",
+        )
 
     result = [
         {
@@ -639,20 +651,26 @@ class PetitionSignatures(View):
         signatures = PetitionSignature.objects.filter(event=event, email_confirmed=True)
         signatures = signatures.order_by('-date')
         signatures = signatures.annotate(
-            first_name=Case(
-                When(public=True, then='user__first_name'),
+            userprofile_first_name=Case(
+                When(public=True, then='user__userprofile__first_name'),
                 default=Value('------'),
                 output_field=CharField(),
             ),
-            last_name=Case(
-                When(public=True, then='user__last_name'),
+            userprofile_last_name=Case(
+                When(public=True, then='user__userprofile__last_name'),
+                default=Value('------'),
+                output_field=CharField(),
+            ),
+            companyprofile_name=Case(
+                When(public=True, then='user__companyprofile__name'),
                 default=Value('------'),
                 output_field=CharField(),
             ),
         )
         signatures = signatures.values(
-            'first_name',
-            'last_name',
+            'userprofile_first_name',
+            'userprofile_last_name',
+            'companyprofile_name',
             'date',
         )
         signatures = signatures[:100]
