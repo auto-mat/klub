@@ -416,7 +416,7 @@ class ProfileResource(ProfileModelResource):
         exclude = ('id', 'is_superuser', 'is_staff', 'administrated_units', 'polymorphic_ctype')
         import_id_fields = ('email', )
         export_order = (
-            'administrative_units', 'email', 'crn', 'sex',
+            'administrative_units', 'email', 'crn', 'tin', 'sex',
             'telephone', 'donor', 'profile_type', 'last_login',
             'groups', 'user_permissions', 'username', 'first_name',
             'last_name', 'is_active', 'date_joined', 'password',
@@ -832,6 +832,7 @@ class ProfileAdmin(
         'title_after',
         'sex',
         'crn',
+        'tin',
         'is_staff',
         'registered_support_date',
         'get_event',
@@ -852,6 +853,7 @@ class ProfileAdmin(
         'userprofile__title_after',
         'userprofile__sex',
         'companyprofile__crn',
+        'companyprofile__tin',
         'companyprofile__name',
         'is_staff',
         'date_joined',
@@ -949,6 +951,12 @@ class ProfileAdmin(
 
     crn.short_description = _("Company Registration Number")
     crn.admin_order_field = 'companyprofile__crn'
+
+    def tin(self, obj):
+        return self.tin if hasattr(obj, 'tin') else None
+
+    tin.short_description = _("Tax Identification Number")
+    tin.admin_order_field = 'companyprofile__tin'
 
     def title_before(self, obj):
         return self.title_before if hasattr(obj, 'title_before') else None
@@ -1820,6 +1828,7 @@ class CompanyProfileAdmin(BaseProfileChildAdmin):
                 'username', ('name'),
                 'administrative_units',
                 'crn',
+                'tin',
             ),
         }),
     )
@@ -1833,6 +1842,7 @@ class CompanyProfileAdmin(BaseProfileChildAdmin):
                 'note',
                 'administrative_units',
                 'crn',
+                'tin',
             ),
         }),
         (_('Contact data'), {

@@ -112,6 +112,7 @@ class TestProfilePostMixin:
             post_data.update(
                 {
                     'crn': '00000000' if action == 'add' else '11111111',
+                    'tin': '11111111' if action == 'add' else '22222222',
                     'name': 'Company' if action == 'add' else 'Company edit',
                 }
             )
@@ -132,6 +133,7 @@ class TestProfilePostMixin:
             else:
                 self.assertEqual(profile.name, post_data['name'])
                 self.assertEqual(profile.crn, post_data['crn'])
+                self.assertEqual(profile.tin, post_data['tin'])
 
             self.assertEqual(profile.email, post_data['profileemail_set-0-email'])
             self.assertEqual(profile.email, primary_email)
@@ -149,6 +151,7 @@ class TestProfilePostMixin:
             else:
                 self.assertEqual(profile.name, 'Company edit')
                 self.assertEqual(profile.crn, '11111111')
+                self.assertEqual(profile.tin, '22222222')
 
             self.assertEqual(profile.email, None)
 
