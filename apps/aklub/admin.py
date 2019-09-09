@@ -962,19 +962,6 @@ class ProfileAdmin(
     title_after.short_description = _("Title after")
     title_after.admin_order_field = 'userprofile__title_after'
 
-    # def first_name(self, obj):
-    #     return self.first_name if hasattr(obj, 'first_name') else None
-
-    # first_name.short_description = _("First name")
-    # first_name.admin_order_field = 'first_name'
-
-    # def last_name(self, obj):
-    #     return self.first_name if hasattr(obj, 'last_name') else None
-
-    # last_name.short_description = _("Last name")
-    # last_name.admin_order_field = 'last_name'
-
-
     def delete_queryset(self, request, queryset):
         """
         Fix 'IntegrityError update or delete on table
