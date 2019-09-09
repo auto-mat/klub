@@ -945,7 +945,7 @@ class ProfileAdmin(
     sex.admin_order_field = 'userprofile__sex'
 
     def crn(self, obj):
-        return self.sex if hasattr(obj, 'crn') else None
+        return self.crn if hasattr(obj, 'crn') else None
 
     crn.short_description = _("Company Registration Number")
     crn.admin_order_field = 'companyprofile__crn'
