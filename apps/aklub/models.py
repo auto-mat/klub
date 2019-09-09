@@ -897,7 +897,7 @@ class CompanyProfile(Profile):
         verbose_name_plural = _("Company profiles")
 
     name = models.CharField(
-        verbose_name=_("Name"),
+        verbose_name=_("Company name"),
         max_length=180,
         blank=True,
         null=True,
