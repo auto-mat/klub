@@ -742,8 +742,8 @@ class UnitProfileAddForm(forms.ModelForm):
         model = Profile
         fields = (
             'username',
-            'first_name',
-            'last_name',
+            # 'first_name',
+            # 'last_name',
             # 'title_before',
             # 'title_after',
             'email',
@@ -847,11 +847,12 @@ class ProfileAdmin(
         'addressment',
         'telephone__telephone',
         'userprofile__title_before',
-        'first_name',
-        'last_name',
+        'userprofile__first_name',
+        'userprofile__last_name',
         'userprofile__title_after',
         'userprofile__sex',
         'companyprofile__crn',
+        'companyprofile__name',
         'is_staff',
         'date_joined',
         'last_login',
@@ -863,9 +864,10 @@ class ProfileAdmin(
     search_fields = (
         'email',
         'userprofile__title_before',
-        'first_name',
-        'last_name',
+        'userprofile__first_name',
+        'userprofile__last_name',
         'userprofile__title_after',
+        'companyprofile__name',
         'telephone__telephone',
     )
     list_filter = (
@@ -951,14 +953,32 @@ class ProfileAdmin(
     def title_before(self, obj):
         return self.title_before if hasattr(obj, 'title_before') else None
 
-    crn.short_description = _("Title before")
-    crn.admin_order_field = 'title_before'
+    title_before.short_description = _("Title before")
+    title_before.admin_order_field = 'title_before'
 
     def title_after(self, obj):
         return self.title_after if hasattr(obj, 'title_after') else None
 
-    crn.short_description = _("Title after")
-    crn.admin_order_field = 'title_after'
+    title_after.short_description = _("Title after")
+    title_after.admin_order_field = 'title_after'
+
+    # def first_name(self, obj):
+    #     return self.first_name if hasattr(obj, 'first_name') else None
+
+    # first_name.short_description = _("First name")
+    # first_name.admin_order_field = 'first_name'
+
+    # def last_name(self, obj):
+    #     return self.first_name if hasattr(obj, 'last_name') else None
+
+    # last_name.short_description = _("Last name")
+    # last_name.admin_order_field = 'last_name'
+
+    def name(self, obj):
+        return self.first_name if hasattr(obj, 'name') else None
+
+    name.short_description = _("Name")
+    name.admin_order_field = 'Name'
 
     def delete_queryset(self, request, queryset):
         """
@@ -993,13 +1013,13 @@ class DonorPaymentChannelResource(ModelResource):
             'id',
             'event',
             'user',
-            'title_before',
-            'user__first_name',
-            'user__last_name',
-            'title_after',
+            'user__userprofile__title_before',
+            'user__userprofile__first_name',
+            'user__userprofile__last_name',
+            'user__userprofile__title_after',
             'user__userprofile__sex',
             # 'userprofile__telephone',
-            'user_email',
+            'user__email',
             'user__street',
             'user__city',
             'user__zip_code',
@@ -1073,8 +1093,8 @@ class DonorPaymethChannelAdmin(
         # 'email_confirmed',
     )
     advanced_filter_fields = (
-        'user__first_name',
-        'user__last_name',
+        'user__userprofile__first_name',
+        'user__userprofile__last_name',
         'user__email',
         # 'user__telephone',
         # 'source',
@@ -1105,13 +1125,13 @@ class DonorPaymethChannelAdmin(
         filters.UserConditionFilter, filters.UserConditionFilter1,
     ]
     search_fields = [
-        'user__first_name',
-        'user__last_name',
+        'user__userprofile__first_name',
+        'user__userprofile__last_name',
         'VS',
         'user__email',
         # 'user__telephone',
     ]
-    ordering = ('user__last_name',)
+    ordering = ('user__userprofile__last_name', 'user__companyprofile__name')
     actions = (
         send_mass_communication_action,
         send_mass_communication_distinct_action,
@@ -1284,8 +1304,9 @@ class PaymentAdmin(
     list_filter = ['type', 'date', filters.PaymentsAssignmentsFilter]
     date_hierarchy = 'date'
     search_fields = [
-        'user_donor_payment_channel__user__last_name',
-        'user_donor_payment_channel__user__first_name',
+        'user_donor_payment_channel__user__userprofile__last_name',
+        'user_donor_payment_channel__user__userprofile__first_name',
+        'user_donor_payment_channel__user__companyprofile__name',
         'amount',
         'BIC',
         'KS',
@@ -1350,8 +1371,9 @@ class InteractionAdmin(
     search_fields = (
         'subject',
         # 'user__userprofile__telephone',
-        'user__first_name',
-        'user__last_name',
+        'user__userprofile__first_name',
+        'user__userprofile__last_name',
+        'user__companyprofile__name',
         'user__email',
     )
     date_hierarchy = 'date'
@@ -1640,9 +1662,18 @@ class SourceAdmin(admin.ModelAdmin):
 class TaxConfirmationAdmin(unit_admin_mixin_generator('user_profile__administrative_units'), ImportExportMixin, admin.ModelAdmin):
     change_list_template = "admin/aklub/taxconfirmation/change_list.html"
     list_display = ('user_profile', 'year', 'amount', 'get_pdf', )
-    ordering = ('user_profile__last_name', 'user_profile__first_name',)
+    ordering = (
+        'user_profile__userprofile__last_name',
+        'user_profile__userprofile__first_name',
+        'user_profile__companyprofile__name',
+    )
     list_filter = ['year']
-    search_fields = ('user_profile__last_name', 'user_profile__first_name', 'user_profile__userincampaign__variable_symbol',)
+    search_fields = (
+        'user_profile__userprofile__last_name',
+        'user_profile__userprofile__first_name',
+        'user_profile__companyprofile__name',
+        'user_profile__userincampaign__variable_symbol',
+    )
     raw_id_fields = ('user_profile',)
     actions = (make_pdfsandwich,)
     list_max_show_all = 10000
@@ -1687,40 +1718,6 @@ class AdministrativeUnitAdmin(admin.ModelAdmin):
 class BaseProfileChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelAdmin):
     """ Base admin class for all Profile child models """
     merge_form = ProfileMergeForm
-    add_fieldsets = (
-        (_('Personal data'), {
-            'classes': ('wide',),
-            'fields': (
-                'username', ('first_name', 'last_name'), 'sex',
-                ('birth_day', 'birth_month', 'age_group'),
-                'administrative_units',
-            ),
-        }),
-    )
-
-    edit_fieldsets = (
-        (_('Personal data'), {
-            'classes': ('wide',),
-            'fields': (
-                'username', ('first_name', 'last_name'), ('title_before', 'title_after'), 'sex',
-                ('birth_day', 'birth_month', 'age_group'),
-                'get_email',
-                'get_main_telephone',
-                'note',
-                'administrative_units',
-            ),
-        }),
-        (_('Contact data'), {
-            'classes': ('wide', ),
-            'fields': [
-                ('street', 'city',),
-                ('country', 'zip_code'),
-                'different_correspondence_address',
-                ('addressment', 'addressment_on_envelope'),
-            ],
-        }
-         ),
-    )
 
     superuser_fieldsets = (
         (_('Rights and permissions'), {
@@ -1792,24 +1789,40 @@ class UserProfileAdmin(BaseProfileChildAdmin):
     """ User profile polymorphic admin model child class """
     base_model = UserProfile
     show_in_index = True
+    add_fieldsets = (
+        (_('Personal data'), {
+            'classes': ('wide',),
+            'fields': (
+                'username', ('first_name', 'last_name'), 'sex',
+                ('birth_day', 'birth_month', 'age_group'),
+                'administrative_units',
+            ),
+        }),
+    )
 
-
-class CompanyProfileAdminUpdateForm(UserUpdateForm):
-    """ Company profile update form """
-    last_name = forms.CharField(label=_('Name'), required=False)
-
-    class Meta:
-        model = CompanyProfile
-        fields = '__all__'
-
-
-class CompanyProfileAdminCreateForm(UserCreateForm):
-    """ Company profile create form """
-    last_name = forms.CharField(label=_('Name'), required=False)
-
-    class Meta:
-        model = CompanyProfile
-        fields = '__all__'
+    edit_fieldsets = (
+        (_('Personal data'), {
+            'classes': ('wide',),
+            'fields': (
+                'username', ('first_name', 'last_name'), ('title_before', 'title_after'), 'sex',
+                ('birth_day', 'birth_month', 'age_group'),
+                'get_email',
+                'get_main_telephone',
+                'note',
+                'administrative_units',
+            ),
+        }),
+        (_('Contact data'), {
+            'classes': ('wide', ),
+            'fields': [
+                ('street', 'city',),
+                ('country', 'zip_code'),
+                'different_correspondence_address',
+                ('addressment', 'addressment_on_envelope'),
+            ],
+        }
+         ),
+    )
 
 
 @admin.register(CompanyProfile)
@@ -1817,12 +1830,12 @@ class CompanyProfileAdmin(BaseProfileChildAdmin):
     """ Company profile polymorphic admin model child class """
     base_model = CompanyProfile
     show_in_index = True
-    base_form = CompanyProfileAdminCreateForm
+    base_form = UserCreateForm
     add_fieldsets = (
         (_('Personal data'), {
             'classes': ('wide',),
             'fields': (
-                'username', ('first_name', 'last_name'),
+                'username', ('name'),
                 'administrative_units',
                 'crn',
             ),
@@ -1832,7 +1845,7 @@ class CompanyProfileAdmin(BaseProfileChildAdmin):
         (_('Personal data'), {
             'classes': ('wide',),
             'fields': (
-                'username', ('first_name', 'last_name'),
+                'username', ('name'),
                 'get_email',
                 'get_main_telephone',
                 'note',
@@ -1851,12 +1864,6 @@ class CompanyProfileAdmin(BaseProfileChildAdmin):
         }
          ),
     )
-
-    def get_form(self, request, obj=None, **kwargs):
-        if obj:
-            self.form = CompanyProfileAdminUpdateForm
-        form = super().get_form(request, obj, **kwargs)
-        return form
 
 
 admin.site.register(DonorPaymentChannel, DonorPaymethChannelAdmin)
