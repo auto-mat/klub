@@ -3,8 +3,8 @@
 USER_PROFILE_MODEL_DATA = []
 
 
-def dictfetchall(cursor):
-    """Return all rows from a cursor as a dict"""
+def dict_fetch_all(cursor):
+    """ Return all rows from a cursor as a dict """
     columns = [col[0] for col in cursor.description]
     return [
         dict(zip(columns, row))
@@ -29,7 +29,7 @@ def get_user_model_data(apps, schema_editor):
                     content_type_model.objects.get(app_label='aklub', model='userprofile').id
                 ]
             )
-            USER_PROFILE_MODEL_DATA = dictfetchall(cursor)
+            USER_PROFILE_MODEL_DATA = dict_fetch_all(cursor)
 
 
 def set_user_model_data(apps, schema_editor):
