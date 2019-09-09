@@ -48,7 +48,11 @@ from extra_views import InlineFormSet, UpdateWithInlinesView
 from sesame.backends import ModelBackend
 
 from . import autocom
-from .models import DonorPaymentChannel, Event, Payment, PetitionSignature, Source, Telephone, UserInCampaign, UserProfile
+from .models import (
+    DonorPaymentChannel, Event, Payment, PetitionSignature,
+    Profile, ProfileEmail, Source, Telephone, UserInCampaign,
+    UserProfile,
+)
 
 
 class RegularUserForm_UserProfile(forms.ModelForm):
@@ -67,6 +71,9 @@ class RegularUserForm_UserProfile(forms.ModelForm):
     def clean(self):
         if not self.errors:
             self.cleaned_data['username'] = get_unique_username(self.cleaned_data['email'])
+        emails = ProfileEmail.objects.all().values_list('email', flat=True)
+        if self.cleaned_data['email'] in list(emails):
+            self._errors['email'] = self.error_class(['This e-mail is already used.'])
         super().clean()
         return self.cleaned_data
 
@@ -299,11 +306,11 @@ class PetitionUserForm(RegularUserForm):
 def get_unique_username(email):
     if not email:
         email = ""
-    i = UserProfile.objects.count()
+    i = Profile.objects.count()
     while True:
         username = '%s%s' % (email.split('@', 1)[0], i)
         i += 1
-        if not UserProfile.objects.filter(username=username).exists():
+        if not Profile.objects.filter(username=username).exists():
             break
     return username
 
@@ -327,7 +334,7 @@ def create_new_user_profile(form, regular):
     new_user_profile = new_user_objects['userprofile']
     # Save new user instance
     if hasattr(form.forms['userprofile'], 'email_used') and form.forms['userprofile'].email_used:
-        new_user_profile = UserProfile.objects.get(email=form.forms['userprofile'].email_used)
+        new_user_profile = Profile.objects.get(email=form.forms['userprofile'].email_used)
     else:
         new_user_profile.save()
     Telephone.objects.create(telephone=form.forms['userprofile'].cleaned_data['telephone'], user=new_user_profile)

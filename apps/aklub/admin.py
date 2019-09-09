@@ -31,10 +31,12 @@ from advanced_filters.admin import AdminAdvancedFiltersMixin
 from daterange_filter.filter import DateRangeFilter
 
 from django import forms
+from django.apps import apps
 from django.contrib import admin, messages
 from django.contrib.admin import site
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import UsernameField
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator
 from django.db.models import CharField, Count, Max, Sum
@@ -55,6 +57,8 @@ import large_initial
 
 import nested_admin
 
+from polymorphic.admin import PolymorphicChildModelAdmin, PolymorphicParentModelAdmin
+
 from related_admin import RelatedFieldAdmin
 
 from smmapdfs.actions import make_pdfsandwich
@@ -65,11 +69,11 @@ from . import darujme, filters, mailing, tasks
 from .filters import unit_admin_mixin_generator
 from .forms import UserCreateForm, UserUpdateForm
 from .models import (
-    AccountStatements, AdministrativeUnit, AutomaticCommunication, BankAccount, Condition, DonorPaymentChannel,
-    Event, Expense, Interaction, MassCommunication, NewUser, Payment, Preference, Recruiter,
-    Result, Source, TaxConfirmation, TaxConfirmationField,
-    TaxConfirmationPdf, Telephone, TerminalCondition, UserBankAccount,
-    UserProfile, UserYearPayments,
+    AccountStatements, AdministrativeUnit, AutomaticCommunication, BankAccount,
+    CompanyProfile, Condition, DonorPaymentChannel, Event, Expense, Interaction,
+    MassCommunication, NewUser, Payment, Preference, Profile, ProfileEmail, Recruiter,
+    Result, Source, TaxConfirmation, TaxConfirmationField, TaxConfirmationPdf, Telephone,
+    TerminalCondition, UserBankAccount, UserProfile, UserYearPayments,
 )
 from .monkey_patching import monkey_admin_smmapdfs
 
@@ -82,6 +86,69 @@ def admin_links(args_generator):
         '<a href="{}">{}</a>',
         args_generator,
     )
+
+
+def get_polymorphic_parent_child_fields(parent_model):
+    exclude_fields = {"profile_ptr"}
+    parent_model_fields = [f.name for f in parent_model._meta.fields]
+    result = {}
+    for child_model in parent_model.__subclasses__():
+        child_model_fields = [f.name for f in child_model._meta.fields]
+        child_model_fields_only = set(parent_model_fields).symmetric_difference(set(child_model_fields))
+        child_model_fields_only = child_model_fields_only - exclude_fields
+        result[child_model._meta.model_name] = child_model_fields_only
+    return result
+
+
+def dehydrate_base(self, profile):
+    pass
+
+
+def dehydrate_decorator(field):
+    def wrap(f):
+        def wrapped_f(self, profile):
+            if profile.pk and field in (f.name for f in profile._meta.fields):
+                return getattr(profile, field)
+            else:
+                return None
+        return wrapped_f
+    return wrap
+
+
+def get_parent_child_instance(self, row):
+    all_child_models_fields = get_polymorphic_parent_child_fields(self._meta.model)
+    for model_name, model_fields in all_child_models_fields.items():
+        for field in model_fields:
+            if field in row:
+                return apps.get_model('aklub', model_name)()
+
+
+def init_instance(self, row=None):
+    return self.get_polymorphic_child_instance(row=row)
+
+
+def get_class_body(parent_model):
+    body = {}
+    all_child_models_fields = get_polymorphic_parent_child_fields(parent_model=parent_model)
+    for model, model_fields in all_child_models_fields.items():
+        for field in model_fields:
+            # Additional child field
+            body[field] = fields.Field()
+            # Additional child field dehydrate method
+            dehydrate_func = (dehydrate_decorator(field=field))(dehydrate_base)
+            body['dehydrate_{}'.format(field)] = dehydrate_func
+
+    body['get_polymorphic_child_instance'] = get_parent_child_instance
+    body['init_instance'] = init_instance
+
+    return body
+
+
+ProfileModelResource = type(
+    'ProfileModelResource',
+    (ModelResource,),
+    get_class_body(parent_model=Profile),
+)
 
 
 # -- INLINE FORMS --
@@ -242,7 +309,22 @@ class PaymentsInlineNoExtra(PaymentsInline):
 class InteractionInlineForm(forms.ModelForm):
     class Meta:
         model = Interaction
-        fields = '__all__'
+        fields = (
+            'event',
+            'administrative_unit',
+            'date',
+            'method',
+            'type',
+            'subject',
+            'summary',
+            'attachment',
+            'note',
+            'created_by',
+            'handled_by',
+            'result',
+            'send',
+            'dispatched',
+        )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -309,7 +391,7 @@ def send_mass_communication_action(self, request, queryset, distinct=False):
     queryset and redirect us to insert form for mass communications
     with the send_to_users M2M field prefilled with these
     users."""
-    if queryset.model is UserProfile:
+    if queryset.model in Profile.__subclasses__():
         queryset = DonorPaymentChannel.objects.filter(user__in=queryset)
     if distinct:
         queryset = queryset.order_by('user__id').distinct('user')
@@ -318,6 +400,7 @@ def send_mass_communication_action(self, request, queryset, distinct=False):
         "admin:aklub_masscommunication_add",
         params={'send_to_users': queryset},
     )
+
     return HttpResponseRedirect(redirect_url)
 
 
@@ -331,54 +414,101 @@ def send_mass_communication_distinct_action(self, req, queryset, distinct=False)
 send_mass_communication_distinct_action.short_description = _("Send mass communication withoud duplicities")
 
 
-class UserProfileResource(ModelResource):
+class ProfileResource(ProfileModelResource):
     class Meta:
-        model = UserProfile
-        exclude = ('id', 'is_superuser', 'is_staff', 'administrated_units')
+        model = Profile
+        exclude = ('id', 'is_superuser', 'is_staff', 'administrated_units', 'polymorphic_ctype')
         import_id_fields = ('email', )
-        export_order = ('administrative_units', 'email')
+        export_order = (
+            'administrative_units', 'email', 'crn', 'sex',
+            'telephone', 'donor', 'profile_type', 'last_login',
+            'groups', 'user_permissions', 'username', 'first_name',
+            'last_name', 'is_active', 'date_joined', 'password',
+            'campaigns', 'title_after', 'title_before', 'addressment',
+            'addressment_on_envelope', 'language', 'street', 'city',
+            'country', 'zip_code', 'different_correspondence_address',
+            'correspondence_street', 'correspondence_city', 'correspondence_country',
+            'correspondence_zip_code', 'other_support', 'public', 'profile_text',
+            'profile_picture', 'club_card_available', 'club_card_dispatched',
+            'other_benefits', 'note', 'created', 'updated', 'send_mailing_lists',
+            'age_group', 'birth_month', 'birth_day', 'newsletter_on', 'call_on',
+            'challenge_on', 'letter_on'
+        )
 
     telephone = fields.Field()
     donor = fields.Field()
+    profile_type = fields.Field()
 
     def import_obj(self, obj, data, dry_run):  # noqa
         bank_account = BankAccount.objects.all().first()
+        self._set_child_model_field_value(obj=obj, data=data)
         obj.save()
         if data.get('username') == "":
             data["username"] = None
         if data.get('telephone'):
-            telephone, _ = Telephone.objects.get_or_create(telephone=data['telephone'], user=obj, defaults={'is_primary': None})
+            telephone, _ = Telephone.objects.get_or_create(
+                telephone=data['telephone'],
+                user=obj,
+                defaults={'is_primary': None},
+            )
         if data.get("email") == "":
             data["email"] = None
 
         if data.get("administrative_units"):
-            obj.administrative_units.add(data["administrative_units"])
+            admin_unit_value = data["administrative_units"]
+            admin_units, _ = AdministrativeUnit.objects.get_or_create(pk=admin_unit_value)
+            obj.administrative_units.add(admin_units)
+            obj.administrated_units.add(admin_units)
             obj.save()
 
-        if data.get('event') and data.get('donor') == 'x':
-            if data.get('VS') != "":
-                VS = data['VS']
+            preference, _ = Preference.objects.get_or_create(
+                user=obj,
+                administrative_unit=admin_units,
+            )
+            if data.get("newsletter_on") is not None:
+                preference.newsletter_on = data['newsletter_on']
+            if data.get("call_on") is not None:
+                preference.call_on = data['call_on']
+            if data.get("challenge_on") is not None:
+                preference.challenge_on = data['challenge_on']
+            if data.get("letter_on") is not None:
+                preference.letter_on = data['letter_on']
+            if data.get("send_mailing_lists") is not None:
+                preference.send_mailing_lists = data['send_mailing_lists']
+            if data.get("public") is not None:
+                preference.public = data['public']
+
+            preference.save()
+
+        if data.get('donor'):
+            _data = data['donor']
+            parsed_data = dict(self.__get_row_data(row) for row in _data.split('\n'))
+            if parsed_data.get('VS'):
+                VS = parsed_data['VS']
             else:
                 from .views import generate_variable_symbol
                 VS = generate_variable_symbol()
-            event, _ = Event.objects.get_or_create(name=data['event'])
+            event, _ = Event.objects.get_or_create(name=parsed_data['event'])
             donors, _ = DonorPaymentChannel.objects.get_or_create(
                 user=obj,
                 event=event,
                 defaults={'VS': VS},
             )
-            if data.get('bank_account'):
-                bank_account, _ = BankAccount.objects.get_or_create(bank_account_number=data['bank_account'])
-                bank_account.administrative_unit = data["administrative_units"]
+            if parsed_data.get('bank_account'):
+                bank_account, _ = BankAccount.objects.get_or_create(
+                    bank_account_number=parsed_data['bank_account'],
+                )
+                bank_account.administrative_unit = parsed_data['administrative_units']
                 bank_account.save()
 
                 donors.bank_account = bank_account
                 donors.save()
             if data.get('user_bank_account'):
-                user_bank_account, _ = UserBankAccount.objects.get_or_create(bank_account_number=data['user_bank_account'])
+                user_bank_account, _ = UserBankAccount.objects.get_or_create(
+                    bank_account_number=parsed_data['user_bank_account'],
+                )
                 donors.user_bank_account = user_bank_account
                 donors.save()
-
         return super().import_obj(obj, data, dry_run)
 
     def dehydrate_telephone(self, profile):
@@ -405,32 +535,99 @@ class UserProfileResource(ModelResource):
 
         return "".join(tuple(donor_list))
 
+    def dehydrate_newsletter_on(self, profile):
+        if profile.pk:
+            preference = profile.preference_set.filter(
+                administrative_unit=profile.administrated_units.first(),).first()
+            if preference:
+                return preference.newsletter_on
+
+    def dehydrate_call_on(self, profile):
+        if profile.pk:
+            preference = profile.preference_set.filter(
+                administrative_unit=profile.administrated_units.first(),).first()
+            if preference:
+                return preference.call_on
+
+    def dehydrate_challenge_on(self, profile):
+        if profile.pk:
+            preference = profile.preference_set.filter(
+                administrative_unit=profile.administrated_units.first(),).first()
+            if preference:
+                return preference.challenge_on
+
+    def dehydrate_letter_on(self, profile):
+        if profile.pk:
+            preference = profile.preference_set.filter(
+                administrative_unit=profile.administrated_units.first(),).first()
+            if preference:
+                return preference.letter_on
+
+    def dehydrate_send_mailing_lists(self, profile):
+        if profile.pk:
+            preference = profile.preference_set.filter(
+                administrative_unit=profile.administrated_units.first(),).first()
+            if preference:
+                return preference.send_mailing_lists
+
+    def dehydrate_public(self, profile):
+        if profile.pk:
+            preference = profile.preference_set.filter(
+                administrative_unit=profile.administrated_units.first(),).first()
+            if preference:
+                return preference.public
+
     def before_import_row(self, row, **kwargs):
         row['is_superuser'] = 0
         row['is_staff'] = 0
         row['email'] = row['email'].lower()
-        row["administrative_units"] = kwargs['user'].administrated_units.first()
-        row["administrated_units"] = ""
+        row['polymorphic_ctype_id'] = ContentType.objects.get(model=row['profile_type']).id
+        self._get_row_model_column(row=row)
 
     def import_field(self, field, obj, data, is_m2m=False):
-        if field.attribute and field.column_name in data and not getattr(obj, field.column_name):
+        if field.attribute and field.column_name in data:  # and not getattr(obj, field.column_name):
             field.save(obj, data, is_m2m)
 
+    def dehydrate_profile_type(self, profile):
+        if profile.pk:
+            polymorphic_ctype = profile.polymorphic_ctype
+            model = polymorphic_ctype.model_class()
+            return model._meta.model_name
+        else:
+            return None
 
-class UserProfileMergeForm(merge.MergeForm):
+    def _get_row_model_column(self, row):
+        all_child_models_fields = get_polymorphic_parent_child_fields(self._meta.model)
+        for model_name, model_fields in all_child_models_fields.items():
+            for field in model_fields:
+                if not row.get(field) and field in row:
+                    del row[field]
+        return row
+
+    def _set_child_model_field_value(self, obj, data):
+        all_child_models_fields = get_polymorphic_parent_child_fields(self._meta.model)
+        for model_name, model_fields in all_child_models_fields.items():
+            for field in model_fields:
+                if hasattr(obj, field):
+                    setattr(obj, field, data.get(field))
+
+    def __get_row_data(self, row):
+        return (row.split(':')[0].strip(), row.split(':')[-1].strip())
+
+
+class ProfileMergeForm(merge.MergeForm):
     def __init__(self, *args, **kwargs):
         ret_val = super().__init__(*args, **kwargs)
         self.fields['sex'].required = False
         return ret_val
 
     class Meta:
-        model = UserProfile
+        model = Profile
         fields = '__all__'
 
 
 class PreferenceInline(nested_admin.NestedStackedInline):
     model = Preference
-    max_num = 0
     extra = 0
     can_delete = False
     fieldsets = (
@@ -456,6 +653,49 @@ class TelephoneInline(nested_admin.NestedTabularInline):
     extra = 0
     can_delete = True
     show_change_link = True
+
+
+class ProfileEmailAdminForm(forms.ModelForm):
+    class Meta:
+        model = ProfileEmail
+        fields = '__all__'
+
+    def check_duplicate(self, *args, **kwargs):
+        cleaned_data = kwargs['cleaned_data']
+        qs = ProfileEmail.objects.filter(
+            email=cleaned_data['email'],
+            user=cleaned_data['user'],
+        )
+        if cleaned_data['id'] is None:
+            if qs.filter(email=cleaned_data['email'], user=cleaned_data['user']).exists():
+                raise ValidationError("Duplicate email address for this user")
+
+    def check_unique(self, *args, **kwargs):
+        cleaned_data = kwargs['cleaned_data']
+        model = cleaned_data['user']._meta.model_name
+        qs = ProfileEmail.objects.filter(
+            user__polymorphic_ctype=ContentType.objects.get(model=model),
+        )
+        if cleaned_data['id'] is None:
+            if qs.filter(email=cleaned_data['email']).exists():
+                raise ValidationError(_("Email address exist"))
+            else:
+                cleaned_data['email'] = cleaned_data['email'].lower()
+
+    def clean(self):
+        cleaned_data = super().clean()
+        self.check_duplicate(cleaned_data=cleaned_data)
+        self.check_unique(cleaned_data=cleaned_data)
+
+        return cleaned_data
+
+
+class ProfileEmailInline(nested_admin.NestedTabularInline):
+    model = ProfileEmail
+    extra = 0
+    can_delete = True
+    show_change_link = True
+    form = ProfileEmailAdminForm
 
 
 class BankAccountAdmin(unit_admin_mixin_generator('administrative_unit'), admin.ModelAdmin):
@@ -486,22 +726,22 @@ class UserBankAccountAdmin(admin.ModelAdmin):
     )
 
 
-class UnitUserAddForm(forms.ModelForm):
+class UnitProfileAddForm(forms.ModelForm):
     username = forms.CharField(required=False,)
 
     class Meta:
-        model = UserProfile
+        model = Profile
         fields = (
             'username',
             'first_name',
             'last_name',
-            'title_before',
-            'title_after',
+            # 'title_before',
+            # 'title_after',
             'email',
-            'sex',
-            'birth_day',
-            'birth_month',
-            'age_group',
+            # 'useprofile__sex',
+            # 'birth_day',
+            # 'birth_month',
+            # 'age_group',
             'note',
             'administrative_units',
             'street',
@@ -522,7 +762,7 @@ class UnitUserAddForm(forms.ModelForm):
         if self.cleaned_data['email'] is None:
             return super().clean()
         try:
-            user = UserProfile.objects.get(email=self.cleaned_data['email'])
+            user = Profile.objects.get(email=self.cleaned_data['email'])
             administrated_unit = AdministrativeUnit.objects.get(id=self.request.user.administrated_units.first().id)
             user.administrative_units.add(administrated_unit)
             user.save()
@@ -533,7 +773,7 @@ class UnitUserAddForm(forms.ModelForm):
                     _(f'<a href="{url}">User with this email already exist in database and is available now, click here to edit</a>'),
                 ),
             )
-        except UserProfile.DoesNotExist:
+        except Profile.DoesNotExist:
             pass
 
         return super().clean()
@@ -544,34 +784,36 @@ class UnitUserAddForm(forms.ModelForm):
         self.fields['administrative_units'].required = True
 
 
-class UnitUserChangeForm(UnitUserAddForm):
+class UnitProfileChangeForm(UnitProfileAddForm):
 
-    class Meta(UnitUserAddForm.Meta):
+    class Meta(UnitProfileAddForm.Meta):
         pass
 
     def clean(self):
         pass
 
     def __init__(self, *args, **kwargs):
-        super(UnitUserAddForm, self).__init__(*args, **kwargs)
+        super(UnitProfileAddForm, self).__init__(*args, **kwargs)
         self.fields['administrative_units'].queryset = self.instance.administrative_units.all()
         self.fields['administrative_units'].disabled = True
 
 
-class UserProfileAdmin(
+class ProfileAdmin(
     filters.AdministrativeUnitAdminMixin,
     ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFiltersMixin,
-    UserAdmin, nested_admin.NestedModelAdmin,
+    UserAdmin, nested_admin.NestedModelAdmin, PolymorphicParentModelAdmin,
 ):
-    resource_class = UserProfileResource
+    resource_class = ProfileResource
     import_template_name = "admin/import_export/userprofile_import.html"
-    merge_form = UserProfileMergeForm
-    add_form = UserCreateForm
-    form = UserUpdateForm
+    # merge_form = UserMergeForm
+    # add_form = UserCreateForm
+    # form = UserUpdateForm
+    base_model = Profile
+    child_models = (UserProfile, CompanyProfile)
 
     list_display = (
         'person_name',
-        'email',
+        'get_email',
         'get_administrative_units',
         'addressment',
         'get_addressment',
@@ -580,6 +822,7 @@ class UserProfileAdmin(
         'title_before',
         'title_after',
         'sex',
+        'crn',
         'is_staff',
         'registered_support_date',
         'get_event',
@@ -594,11 +837,12 @@ class UserProfileAdmin(
         'email',
         'addressment',
         'telephone__telephone',
-        'title_before',
+        'userprofile__title_before',
         'first_name',
         'last_name',
-        'title_after',
-        'sex',
+        'userprofile__title_after',
+        'userprofile__sex',
+        'companyprofile__crn',
         'is_staff',
         'date_joined',
         'last_login',
@@ -609,10 +853,10 @@ class UserProfileAdmin(
     )
     search_fields = (
         'email',
-        'title_before',
+        'userprofile__title_before',
         'first_name',
         'last_name',
-        'title_after',
+        'userprofile__title_after',
         'telephone__telephone',
     )
     list_filter = (
@@ -628,60 +872,6 @@ class UserProfileAdmin(
         filters.NameFilter,
     )
 
-    add_fieldsets = (
-        (_('Personal data'), {
-            'classes': ('wide',),
-            'fields': (
-                'username', ('first_name', 'last_name'), 'email', 'sex',
-                ('birth_day', 'birth_month', 'age_group'),
-                'administrative_units',
-            ),
-        }),
-    )
-
-    edit_fieldsets = (
-        (_('Personal data'), {
-            'classes': ('wide',),
-            'fields': (
-                'username', ('first_name', 'last_name'), ('title_before', 'title_after'), 'email', 'sex',
-                ('birth_day', 'birth_month', 'age_group'),
-                'get_main_telephone',
-                'note',
-                'administrative_units',
-            ),
-        }),
-        (_('Contact data'), {
-            'classes': ('wide', ),
-            'fields': [
-                ('street', 'city',),
-                ('country', 'zip_code'),
-                ('addressment', 'addressment_on_envelope'),
-                'different_correspondence_address',
-            ],
-        }),
-        (_('correspondence_address'), {
-             'classes': ('collapse',),
-             'fields': (
-                 ('correspondence_street', 'correspondence_city',),
-                 ('correspondence_country', 'correspondence_zip_code'),
-
-             ),
-         }),
-    )
-
-    superuser_fieldsets = (
-        (_('Rights and permissions'), {
-            'classes': ('collapse',),
-            'fields': [
-                ('password',),
-                ('is_staff', 'is_superuser'),
-                'groups',
-                'administrated_units',
-            ],
-        }
-        ),
-    )
-
     ordering = ('email',)
     filter_horizontal = ('groups', 'user_permissions',)
 
@@ -691,10 +881,10 @@ class UserProfileAdmin(
             form.request = request
             return form
         if obj is None:
-            form = UnitUserAddForm
+            form = UnitProfileAddForm
             form.request = request
             return form
-        form = UnitUserChangeForm
+        form = UnitProfileChangeForm
         form.request = request
         return form
 
@@ -712,7 +902,7 @@ class UserProfileAdmin(
     registered_support_date.admin_order_field = 'registered_support'
 
     def event(self, obj):
-        result = UserProfile.objects.get(id=obj.id)
+        result = Profile.objects.get(id=obj.id)
         donors = result.userchannels.select_related().all()
         return [e.event for e in donors]
 
@@ -737,49 +927,43 @@ class UserProfileAdmin(
     regular_amount.short_description = _("Regular amount")
     regular_amount.admin_order_field = 'regular_amount'
 
-    readonly_fields = ('userattendance_links', 'date_joined', 'last_login', 'get_main_telephone')
-    actions = (send_mass_communication_distinct_action,)
-    inlines = [PreferenceInline, TelephoneInline, DonorPaymentChannelInline, InteractionInline]
+    def sex(self, obj):
+        return self.sex if hasattr(obj, 'sex') else 'Company'
 
-    def get_fieldsets(self, request, obj=None):
-        if obj:
-            fieldsets = self.edit_fieldsets
-        else:
-            fieldsets = self.add_fieldsets
-        if request.user.is_superuser and self.superuser_fieldsets:
-            return fieldsets + self.superuser_fieldsets
-        else:
-            return fieldsets
-        super().get_fieldsets(request, obj)
+    sex.short_description = _("Gender")
+    sex.admin_order_field = 'sex'
 
-    def save_formset(self, request, form, formset, change):
-        formset.save()
-        if issubclass(formset.model, DonorPaymentChannel):
-            for f in formset.forms:
-                obj = f.instance
-                obj.generate_VS()
+    def crn(self, obj):
+        return self.sex if hasattr(obj, 'crn') else 'User'
 
-        if issubclass(formset.model, Interaction):
-            for f in formset.forms:
-                obj = f.instance
-                if not obj.created_by:
-                    obj.created_by = request.user
-                obj.handled_by = request.user
+    crn.short_description = _("Company Registration Number")
+    crn.admin_order_field = 'crn'
 
-        return super().save_formset(request, form, formset, change)
+    def title_before(self, obj):
+        return self.title_before if hasattr(obj, 'title_before') else None
 
-    def get_formsets_with_inlines(self, request, obj=None):
-        for inline in self.get_inline_instances(request, obj):
-            inline.form.request = request
-            yield inline.get_formset(request, obj), inline
+    crn.short_description = _("Title before")
+    crn.admin_order_field = 'title_before'
+
+    def title_after(self, obj):
+        return self.title_after if hasattr(obj, 'title_after') else None
+
+    crn.short_description = _("Title after")
+    crn.admin_order_field = 'title_after'
+
+    def delete_queryset(self, request, queryset):
+        ProfileEmail.objects.filter(user__in=queryset).delete()
+        return super().delete_queryset(request, queryset)
 
 
 class DonorPaymentChannelResource(ModelResource):
     user_email = fields.Field(
         column_name='user_email',
         attribute='user',
-        widget=widgets.ForeignKeyWidget(UserProfile, 'email'),
+        widget=widgets.ForeignKeyWidget(Profile, 'email'),
     )
+    title_before = fields.Field()
+    title_after = fields.Field()
 
     class Meta:
         model = DonorPaymentChannel
@@ -787,11 +971,11 @@ class DonorPaymentChannelResource(ModelResource):
             'id',
             'event',
             'user',
-            'user__title_before',
+            'title_before',
             'user__first_name',
             'user__last_name',
-            'user__title_after',
-            'user__sex',
+            'title_after',
+            'user__userprofile__sex',
             # 'userprofile__telephone',
             'user_email',
             'user__street',
@@ -822,6 +1006,20 @@ class DonorPaymentChannelResource(ModelResource):
 
     def dehydrate_last_payment_date(self, user_in_campaign):
         return user_in_campaign.last_payment_date()
+
+    def dehydrate_title_before(self, donor_payment_channel):
+        profile_model = Profile.objects.get(username=donor_payment_channel.user.username)
+        if hasattr(profile_model, 'title_before'):
+            return profile_model.title_before
+        else:
+            return None
+
+    def dehydrate_title_after(self, donor_payment_channel):
+        profile_model = Profile.objects.get(username=donor_payment_channel.user.username)
+        if hasattr(profile_model, 'title_after'):
+            return profile_model.title_after
+        else:
+            return None
 
 
 # -- ADMIN FORMS --
@@ -1373,6 +1571,7 @@ class ResultAdmin(admin.ModelAdmin):
 class EventAdmin(unit_admin_mixin_generator('administrative_units'), admin.ModelAdmin):
     list_display = (
         'name',
+        'id',
         'slug',
         'darujme_name',
         'darujme_api_id',
@@ -1466,7 +1665,166 @@ class TaxConfirmationFieldAdmin(unit_admin_mixin_generator('pdfsandwich_type__ad
 
 @admin.register(AdministrativeUnit)
 class AdministrativeUnitAdmin(admin.ModelAdmin):
-    list_display = ('name', 'ico')
+    list_display = (
+        'name',
+        'id',
+        'ico',
+    )
+
+
+class BaseProfileChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelAdmin):
+    """Base admin class for all Profile child models"""
+    merge_form = ProfileMergeForm
+    add_form = UserCreateForm
+    base_form = UserUpdateForm
+    add_fieldsets = (
+        (_('Personal data'), {
+            'classes': ('wide',),
+            'fields': (
+                'username', ('first_name', 'last_name'), 'sex',
+                ('birth_day', 'birth_month', 'age_group'),
+                'administrative_units',
+            ),
+        }),
+    )
+
+    edit_fieldsets = (
+        (_('Personal data'), {
+            'classes': ('wide',),
+            'fields': (
+                'username', ('first_name', 'last_name'), ('title_before', 'title_after'), 'sex',
+                ('birth_day', 'birth_month', 'age_group'),
+                'get_email',
+                'get_main_telephone',
+                'note',
+                'administrative_units',
+            ),
+        }),
+        (_('Contact data'), {
+            'classes': ('wide', ),
+            'fields': [
+                ('street', 'city',),
+                ('country', 'zip_code'),
+                'different_correspondence_address',
+                ('addressment', 'addressment_on_envelope'),
+            ],
+        }
+         ),
+    )
+
+    superuser_fieldsets = (
+        (_('Rights and permissions'), {
+            'classes': ('collapse',),
+            'fields': [
+                ('password',),
+                ('is_staff', 'is_superuser'),
+                'groups',
+                'administrated_units',
+            ],
+        }
+        ),
+    )
+
+    def get_fieldsets(self, request, obj=None):
+        if obj:
+            fieldsets = self.edit_fieldsets
+        else:
+            fieldsets = self.add_fieldsets
+        if request.user.is_superuser and self.superuser_fieldsets:
+            return fieldsets + self.superuser_fieldsets
+        else:
+            return fieldsets
+        super().get_fieldsets(request, obj)
+
+    def save_formset(self, request, form, formset, change):
+        formset.save()
+        if issubclass(formset.model, DonorPaymentChannel):
+            for f in formset.forms:
+                obj = f.instance
+                obj.generate_VS()
+
+        if issubclass(formset.model, Interaction):
+            for f in formset.forms:
+                obj = f.instance
+                if not obj.created_by:
+                    obj.created_by = request.user
+                obj.handled_by = request.user
+
+        return super().save_formset(request, form, formset, change)
+
+    def get_formsets_with_inlines(self, request, obj=None):
+        for inline in self.get_inline_instances(request, obj):
+            inline.form.request = request
+            yield inline.get_formset(request, obj), inline
+    readonly_fields = (
+        'userattendance_links', 'date_joined', 'last_login', 'get_main_telephone',
+        'get_email',
+    )
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        form.base_fields['language'].required = False
+        return form
+
+    actions = (send_mass_communication_distinct_action,)
+    inlines = [
+        PreferenceInline, ProfileEmailInline, TelephoneInline,
+        DonorPaymentChannelInline, InteractionInline,
+    ]
+
+
+@admin.register(UserProfile)
+class UserProfileAdmin(BaseProfileChildAdmin):
+    base_model = UserProfile
+    show_in_index = True
+
+
+class CompanyProfileAdminForm(UserUpdateForm):
+    last_name = forms.CharField(label=_('Name'), required=False)
+
+    class Meta:
+        model = CompanyProfile
+        fields = '__all__'
+
+
+@admin.register(CompanyProfile)
+class CompanyProfileAdmin(BaseProfileChildAdmin):
+    base_model = CompanyProfile
+    base_form = CompanyProfileAdminForm
+    show_in_index = True
+    add_fieldsets = (
+        (_('Personal data'), {
+            'classes': ('wide',),
+            'fields': (
+                'username', ('first_name', 'last_name'),
+                'administrative_units',
+                'crn',
+            ),
+        }),
+    )
+    edit_fieldsets = (
+        (_('Personal data'), {
+            'classes': ('wide',),
+            'fields': (
+                'username', ('first_name', 'last_name'),
+                'get_email',
+                'get_main_telephone',
+                'note',
+                'administrative_units',
+                'crn',
+            ),
+        }),
+        (_('Contact data'), {
+            'classes': ('wide', ),
+            'fields': [
+                ('street', 'city',),
+                ('country', 'zip_code'),
+                'different_correspondence_address',
+                ('addressment', 'addressment_on_envelope'),
+            ],
+        }
+         ),
+    )
 
 
 admin.site.register(DonorPaymentChannel, DonorPaymethChannelAdmin)
@@ -1486,7 +1844,7 @@ admin.site.register(TaxConfirmation, TaxConfirmationAdmin)
 admin.site.register(TaxConfirmationPdf, TaxConfirmationPdfAdmin)
 admin.site.register(TaxConfirmationField, TaxConfirmationFieldAdmin)
 admin.site.register(Source, SourceAdmin)
-admin.site.register(UserProfile, UserProfileAdmin)
+admin.site.register(Profile, ProfileAdmin)
 admin.site.register(BankAccount, BankAccountAdmin)
 admin.site.register(UserBankAccount, UserBankAccountAdmin)
 # register all adminactions

@@ -174,6 +174,7 @@ USE_L10N = True
 ROOT_URLCONF = 'urls'
 
 INSTALLED_APPS = (
+    'polymorphic',
     'django_grapesjs',
     'django.contrib.admindocs',
     'admin_tools',
@@ -304,10 +305,15 @@ TEST_RUNNER = 'aklub.tests.AklubTestSuiteRunner'
 MIGRATION_MODULES = {
     'auth': 'migrations_auth',
     'admin': 'migrations_admin',
+    'advanced_filters': 'migrations_advanced_filters',
+    'menu': 'migrations_admin_tools.menu',
+    'dashboard': 'migrations_admin_tools.dashboard',
+    'helpdesk': 'migrations_helpdesk',
+    'import_export_celery': 'migrations_import_export_celery',
     'smmapdfs': 'migrations_smmapdfs',
 }
 
-AUTH_USER_MODEL = "aklub.UserProfile"
+AUTH_USER_MODEL = "aklub.Profile"
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
