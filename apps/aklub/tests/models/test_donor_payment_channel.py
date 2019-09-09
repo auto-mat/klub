@@ -26,8 +26,8 @@ from freezegun import freeze_time
 from model_mommy import mommy
 from model_mommy.recipe import Recipe
 
-from ...models import Profile
 from ..utils import ICON_FALSE
+from ...models import Profile
 
 
 @freeze_time("2010-5-1")
