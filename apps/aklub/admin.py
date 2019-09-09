@@ -1747,6 +1747,12 @@ class BaseProfileChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModel
         'get_email',
     )
 
+    def get_inline_instances(self, request, obj=None):
+        inlines = super().get_inline_instances(request, obj)
+        if not obj:
+            inlines = [inline for inline in inlines if not isinstance(inline, PreferenceInline)]
+        return inlines
+
     def get_form(self, request, obj=None, **kwargs):
         form = super().get_form(request, obj, **kwargs)
         form.base_fields['language'].required = False
