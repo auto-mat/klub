@@ -939,13 +939,13 @@ class ProfileAdmin(
     regular_amount.admin_order_field = 'regular_amount'
 
     def sex(self, obj):
-        return self.sex if hasattr(obj, 'sex') else 'Company'
+        return self.sex if hasattr(obj, 'sex') else None
 
     sex.short_description = _("Gender")
     sex.admin_order_field = 'sex'
 
     def crn(self, obj):
-        return self.sex if hasattr(obj, 'crn') else 'User'
+        return self.sex if hasattr(obj, 'crn') else None
 
     crn.short_description = _("Company Registration Number")
     crn.admin_order_field = 'crn'
