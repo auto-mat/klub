@@ -85,9 +85,24 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         self.assertJSONEqual(
             response.content.decode(),
             [
-                {"created": "2017-12-16T17:22:30.128Z", "first_name": "------", "last_name": "------"},
-                {"created": "2016-12-16T17:22:30.128Z", "first_name": "Test", "last_name": "User"},
-                {"created": "2015-12-16T17:22:30.128Z", "first_name": "------", "last_name": "------"},
+                {
+                    "created": "2017-12-16T17:22:30.128Z",
+                    "userprofile_first_name": "------",
+                    "userprofile_last_name": "------",
+                    "companyprofile_name": "------",
+                },
+                {
+                    "created": "2016-12-16T17:22:30.128Z",
+                    "userprofile_first_name": "Test",
+                    "userprofile_last_name": "User",
+                    "companyprofile_name": None,
+                },
+                {
+                    "created": "2015-12-16T17:22:30.128Z",
+                    "userprofile_first_name": "------",
+                    "userprofile_last_name": "------",
+                    "companyprofile_name": "------",
+                },
             ],
         )
         self.assertEqual(response.status_code, 200)

@@ -39,10 +39,9 @@ class TestStr(TestCase):
 
         t = mommy.make(
             "aklub.CompanyProfile",
-            first_name="Foo",
-            last_name="User",
+            name="Company",
         )
-        self.assertEqual(str(t), "User Foo")
+        self.assertEqual(str(t), "Company")
 
     def test_str_titles(self):
         """ Test, that __str__ works, when full name is set """
@@ -57,10 +56,9 @@ class TestStr(TestCase):
 
         t = mommy.make(
             "aklub.CompanyProfile",
-            first_name="Foo",
-            last_name="User",
+            name="Company",
         )
-        self.assertEqual(str(t), "User Foo")
+        self.assertEqual(str(t), "Company")
 
     def test_str_only_surname(self):
         """ Test, that __str__ works, when full name is set """
@@ -72,9 +70,9 @@ class TestStr(TestCase):
 
         t = mommy.make(
             "aklub.CompanyProfile",
-            last_name="User",
+            name="Company",
         )
-        self.assertEqual(str(t), "User")
+        self.assertEqual(str(t), "Company")
 
     def test_username(self):
         """ Test, that __str__ works, when only username is set """
@@ -101,9 +99,9 @@ class TestStr(TestCase):
 
         t = mommy.make(
             "aklub.CompanyProfile",
-            first_name="Petr",
+            name="Company",
         )
-        self.assertEqual(t.get_addressment(), "Petře")
+        self.assertEqual(t.get_addressment(), "Company")
 
     def test_get_addressment_override(self):
         """ Test, that get_addresment function takes addressment override """
@@ -116,10 +114,10 @@ class TestStr(TestCase):
 
         t = mommy.make(
             "aklub.CompanyProfile",
-            first_name="Petr",
-            addressment="Petříčku",
+            name="Company",
+            addressment="Companies",
         )
-        self.assertEqual(t.get_addressment(), "Petříčku")
+        self.assertEqual(t.get_addressment(), "Companies")
 
     def test_get_addressment_default_female(self):
         """ Test, that get_addresment function returns default for female """
