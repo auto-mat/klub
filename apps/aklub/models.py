@@ -47,7 +47,7 @@ from django.db import models, transaction
 from django.db.models import Count, Q, Sum, signals
 from django.dispatch import receiver
 from django.utils import timezone
-from django.utils.html import format_html, mark_safe
+from django.utils.html import format_html, format_html_join, mark_safe
 from django.utils.text import format_lazy
 from django.utils.timesince import timesince
 from django.utils.translation import ugettext_lazy as _
@@ -862,6 +862,40 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
 
     get_main_telephone.short_description = _("Telephone")
     get_main_telephone.admin_order_field = "telephone"
+
+    def get_details(self, obj, attr, *args):
+        return format_html_join(mark_safe('<br/>'), "{}", ((f[attr],) for f in list(obj.values(attr)) if f[attr] is not None))
+
+    def format_list(self, values_list):
+        return format_html_join(mark_safe('<br/>'), "{}", (values_list))
+
+    def date_format(self, obj):
+        return list(map(lambda o: (o[0].strftime('%d. %m. %Y'),), obj))
+
+    def regular_payments_info(self):
+        return self.format_list(self.userchannels.values_list("regular_payments"))
+
+    regular_payments_info.short_description = _("Regular payment info")
+    regular_payments_info.admin_order_field = 'userchannels'
+
+    def regular_amount(self):
+        return self.format_list(self.userchannels.values_list("regular_amount"))
+
+    regular_amount.short_description = _("Regular amount")
+    regular_amount.admin_order_field = 'userchannels'
+
+    def registered_support_date(self):
+        result = self.userchannels.values_list("registered_support")
+        return self.format_list(self.date_format(result))
+
+    registered_support_date.short_description = _("Registration")
+    registered_support_date.admin_order_field = 'registered_support'
+
+    def variable_symbol(self):
+        return self.get_details(self.userchannels.all(), "VS")
+
+    variable_symbol.short_description = _("VS")
+    variable_symbol.admin_order_field = 'variable_symbol'
 
     def get_administrative_units(self):
         administrative_units = ', '.join(administrative_unit.name for administrative_unit in self.administrative_units.all())

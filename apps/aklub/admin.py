@@ -901,19 +901,6 @@ class ProfileAdmin(
         form.request = request
         return form
 
-    def get_details(self, obj, attr, *args):
-        return [f[attr] for f in list(obj.values(attr)) if f[attr] is not None]
-
-    def date_format(self, obj):
-        return list(map(lambda o: o.strftime('%d. %m. %Y'), obj))
-
-    def registered_support_date(self, obj):
-        result = self.get_details(obj.userchannels.all(), "registered_support")
-        return self.date_format(result)
-
-    registered_support_date.short_description = _("Registration")
-    registered_support_date.admin_order_field = 'registered_support'
-
     def event(self, obj):
         result = Profile.objects.get(id=obj.id)
         donors = result.userchannels.select_related().all()
@@ -921,24 +908,6 @@ class ProfileAdmin(
 
     event.short_description = _("Event")
     event.admin_order_field = 'event'
-
-    def variable_symbol(self, obj):
-        return self.get_details(obj.userchannels.all(), "VS")
-
-    variable_symbol.short_description = _("VS")
-    variable_symbol.admin_order_field = 'variable_symbol'
-
-    def regular_payments_info(self, obj):
-        return self.get_details(obj.userchannels.all(), "regular_payments")
-
-    regular_payments_info.short_description = _("Regular payment info")
-    regular_payments_info.admin_order_field = 'regular_payments_info'
-
-    def regular_amount(self, obj):
-        return self.get_details(obj.userchannels.all(), "regular_amount")
-
-    regular_amount.short_description = _("Regular amount")
-    regular_amount.admin_order_field = 'regular_amount'
 
     def sex(self, obj):
         return self.sex if hasattr(obj, 'sex') else None
@@ -1755,7 +1724,7 @@ class BaseProfileChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModel
             yield inline.get_formset(request, obj), inline
     readonly_fields = (
         'userattendance_links', 'date_joined', 'last_login', 'get_main_telephone',
-        'get_email',
+        'get_email', 'regular_amount', 'regular_payments_info', 'variable_symbol', 'registered_support_date',
     )
 
     def get_form(self, request, obj=None, **kwargs):
@@ -1800,6 +1769,7 @@ class UserProfileAdmin(BaseProfileChildAdmin):
                 'get_main_telephone',
                 'note',
                 'administrative_units',
+                ('regular_amount', 'regular_payments_info', 'variable_symbol', 'registered_support_date'),
             ),
         }),
         (_('Contact data'), {
