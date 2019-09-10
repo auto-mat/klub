@@ -1643,7 +1643,7 @@ class BaseProfileChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModel
             yield inline.get_formset(request, obj), inline
     readonly_fields = (
         'userattendance_links', 'date_joined', 'last_login', 'get_main_telephone',
-        'get_email',
+        'get_email', 'regular_amount', 'regular_payments_info', 'variable_symbol', 'registered_support_date',
     )
 
     def get_form(self, request, obj=None, **kwargs):
@@ -1753,6 +1753,7 @@ class UserProfileAdmin(
                 'get_main_telephone',
                 'note',
                 'administrative_units',
+                ('regular_amount', 'regular_payments_info', 'variable_symbol', 'registered_support_date'),
             ),
         }),
         (_('Contact data'), {
