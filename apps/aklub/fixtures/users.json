@@ -145,7 +145,8 @@
             "newsletter_on": false,
             "call_on": false,
             "challenge_on": false,
-            "letter_on": false
+            "letter_on": false,
+	    "user": 2979
 	}
     },    
     {
@@ -154,7 +155,8 @@
 	"fields": {
             "email": "test.user1@email.cz",
             "is_primary": true,
-	    "note": "test"
+	    "note": "test",
+	    "user": 2979
 	}
     },    
     {
@@ -248,7 +250,8 @@
             "newsletter_on": false,
             "call_on": false,
             "challenge_on": false,
-            "letter_on": false
+            "letter_on": false,
+	    "user": 2978
 	}
     },    
     {
@@ -257,7 +260,8 @@
 	"fields": {
             "email": "test.user@email.cz",
             "is_primary": true,
-	    "note": "test"
+	    "note": "test",
+	    "user": 2978
 	}
     },    
     {
@@ -442,7 +446,8 @@
 	"fields": {
             "email": "without_payments@email.cz",
             "is_primary": true,
-	    "note": "test"
+	    "note": "test",
+	    "user": 3
 	}
     },
     {
@@ -468,7 +473,8 @@
             "newsletter_on": false,
             "call_on": false,
             "challenge_on": false,
-            "letter_on": false
+            "letter_on": false,
+	    "user": 3
 	}
     },
     {
