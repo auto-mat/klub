@@ -2995,7 +2995,7 @@ class MassCommunication(models.Model):
         limit_choices_to={
             'is_active': 'True',
             # 'wished_information': 'True',
-            'send_mailing_lists': 'True',
+            'preference__send_mailing_lists': 'True',
         },
         blank=True,
     )

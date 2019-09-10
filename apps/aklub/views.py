@@ -526,7 +526,7 @@ class PetitionView(RegularView):
 def donators(request):
     payed = Payment.objects.exclude(type='expected')
     donators = DonorPaymentChannel.objects.filter(
-        user__public=True,
+        user__preference__public=True,
         payment__in=payed,).distinct().order_by(
         'user__userprofile__last_name',
         'user__companyprofile__name',
@@ -598,17 +598,22 @@ def profiles(request):
     users = (
         DonorPaymentChannel.objects.filter(registered_support__gte=from_date).order_by('-registered_support') |
         DonorPaymentChannel.objects.filter(id__in=(493, 89, 98, 921, 33, 886, 1181, 842, 954, 25))).\
-        exclude(user__public=False, user__profile_picture__isnull=False).\
+        exclude(user__preference__public=False, user__profile_picture__isnull=False).\
         order_by(
             "-user__userprofile__last_name",
             "-user__companyprofile__name",
             "user__userprofile__first_name",
         )
-
     result = [
         {
-            'firstname': u.user.public and u.user.first_name or '',
-            'surname': u.user.public and u.user.last_name or '',
+            'firstname': (
+                (u.user.preference_set.first().public if u.user.preference_set.first() else None)
+                and u.user.first_name or ''
+            ),
+            'surname': (
+                (u.user.preference_set.first().public if u.user.preference_set.first() else None)
+                and u.user.last_name or ''
+                ),
             'text': u.user.profile_text or '',
             'picture': u.user.profile_picture and u.user.profile_picture.url or '',
             'picture_thumbnail': u.user.profile_picture and u.user.profile_picture.thumbnail.url or '',
