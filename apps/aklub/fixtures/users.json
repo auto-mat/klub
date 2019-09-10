@@ -121,7 +121,6 @@
             "correspondence_country": "\u010cesk\u00e1 republika",
             "correspondence_zip_code": "",
             "other_support": "",
-            "public": true,
             "profile_text": null,
             "profile_picture": "",
             "club_card_available": false,
@@ -130,11 +129,6 @@
             "note": "",
             "created": "2019-08-02T09:32:12.836Z",
             "updated": "2019-08-02T09:32:12.836Z",
-            "send_mailing_lists": true,
-            "newsletter_on": false,
-            "call_on": false,
-            "challenge_on": false,
-            "letter_on": false,
             "groups": [],
             "user_permissions": [],
             "campaigns": [1],
@@ -142,6 +136,18 @@
             "administrated_units": []
 	}
     },
+    {
+	"model": "aklub.preference",
+	"pk": 2979,
+	"fields": {
+            "public": true,	    
+            "send_mailing_lists": true,
+            "newsletter_on": false,
+            "call_on": false,
+            "challenge_on": false,
+            "letter_on": false
+	}
+    },    
     {
 	"model": "aklub.profileemail",
 	"pk": 2979,
@@ -218,7 +224,6 @@
             "correspondence_country": "\u010cesk\u00e1 republika",
             "correspondence_zip_code": "",
             "other_support": "",
-            "public": true,
             "profile_text": null,
             "profile_picture": "",
             "club_card_available": false,
@@ -227,11 +232,6 @@
             "note": "",
             "created": "2019-08-02T09:32:12.838Z",
             "updated": "2019-08-02T09:32:12.838Z",
-            "send_mailing_lists": true,
-            "newsletter_on": false,
-            "call_on": false,
-            "challenge_on": false,
-            "letter_on": false,
             "groups": [],
             "user_permissions": [],
             "campaigns": [],
@@ -239,6 +239,18 @@
             "administrated_units": []
 	}
     },
+    {
+	"model": "aklub.preference",
+	"pk": 2978,
+	"fields": {
+            "public": true,	    
+            "send_mailing_lists": true,
+            "newsletter_on": false,
+            "call_on": false,
+            "challenge_on": false,
+            "letter_on": false
+	}
+    },    
     {
 	"model": "aklub.profileemail",
 	"pk": 2978,
@@ -409,7 +421,6 @@
             "correspondence_country": "\u010cesk\u00e1 republika",
             "correspondence_zip_code": "",
             "other_support": "",
-            "public": true,
             "profile_text": null,
             "profile_picture": "",
             "club_card_available": false,
@@ -418,11 +429,6 @@
             "note": "",
             "created": "2019-08-02T09:32:12.841Z",
             "updated": "2019-08-02T09:32:12.841Z",
-            "send_mailing_lists": true,
-            "newsletter_on": false,
-            "call_on": false,
-            "challenge_on": false,
-            "letter_on": false,
             "groups": [],
             "user_permissions": [],
             "campaigns": [],
@@ -451,6 +457,18 @@
             "birth_day": null,
             "first_name": "Without",
             "last_name": "Payments"
+	}
+    },
+    {
+	"model": "aklub.preference",
+	"pk": 3,
+	"fields": {
+            "public": true,
+            "send_mailing_lists": true,
+            "newsletter_on": false,
+            "call_on": false,
+            "challenge_on": false,
+            "letter_on": false
 	}
     },
     {
