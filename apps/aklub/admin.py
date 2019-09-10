@@ -450,18 +450,21 @@ class ProfileResource(ProfileModelResource):
             )
         if data.get("email") == "":
             data["email"] = None
-        ProfileEmail.objects.get_or_create(email=data["email"], is_primary=True, user=obj)
+        if data.get("email"):
+            ProfileEmail.objects.get_or_create(
+                email=data["email"],
+                user=obj,
+                defaults={'is_primary': True},
+            )
 
         if data.get("administrative_units"):
             if not obj.administrative_units.filter(id=data["administrative_units"]):
                 obj.administrative_units.add(data["administrative_units"])
                 obj.save()
-
             preference, _ = Preference.objects.get_or_create(
                 user=obj,
                 administrative_unit=obj.administrative_units.get(id=data["administrative_units"]),
             )
-
             if data.get("newsletter_on") is not None:
                 preference.newsletter_on = data['newsletter_on']
             if data.get("call_on") is not None:
@@ -483,7 +486,7 @@ class ProfileResource(ProfileModelResource):
             else:
                 from .views import generate_variable_symbol
                 VS = generate_variable_symbol()
-            event, _ = Event.objects.get_or_create(pk=data['event'])
+            event, _ = Event.objects.get_or_create(id=data['event'])
             donors, _ = DonorPaymentChannel.objects.get_or_create(
                 user=obj,
                 event=event,
@@ -500,7 +503,6 @@ class ProfileResource(ProfileModelResource):
                 user_bank_account, _ = UserBankAccount.objects.get_or_create(bank_account_number=data['user_bank_account'])
                 donors.user_bank_account = user_bank_account
                 donors.save()
-
         return super().import_obj(obj, data, dry_run)
 
     def dehydrate_telephone(self, profile):
@@ -572,7 +574,7 @@ class ProfileResource(ProfileModelResource):
     def before_import_row(self, row, **kwargs):
         row['is_superuser'] = 0
         row['is_staff'] = 0
-        row['email'] = row['email'].lower()
+        row['email'] = row['email'].lower() if row.get('email') else ''
         row['polymorphic_ctype_id'] = ContentType.objects.get(model=row['profile_type']).id
         self._get_row_model_column(row=row)
 
