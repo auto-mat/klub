@@ -1,13 +1,3 @@
-administrative_units,email,crn,sex,telephone,donor,profile_type,last_login,groups,user_permissions,username,first_name,last_name,is_active,date_joined,password,campaigns,title_after,title_before,addressment,addressment_on_envelope,language,street,city,country,zip_code,different_correspondence_address,correspondence_street,correspondence_city,correspondence_country,correspondence_zip_code,other_support,public,profile_text,profile_picture,club_card_available,club_card_dispatched,other_benefits,note,created,updated,send_mailing_lists,age_group,birth_month,birth_day,newsletter_on,call_on,challenge_on,letter_on
-1,test.companyprofile@companyprofile.test,11223344,,,"VS:150157010
-event:Klub přátel Auto*Matu
-bank_accout:
-user_bank_account:
-
-",companyprofile,,,,test.companyprofile,First_name_companyprofile,Last_name_companyprofile,1,2016-09-16 16:22:30,,,,,,,en,,Praha 4,Česká republika,,1,,,Česká republika,,,1,,,0,0,,,2019-08-23 12:11:53,2019-08-23 12:11:53,True,,,,True,True,True,True
-2,test.userprofile@userprofile.test,,male,,"VS:140147010
-event:Klub přátel Auto*Matu
-bank_accout:
-user_bank_account:
-
-",userprofile,,,,test.userprofile,First_name_userprofile,Last_name_userprofile,1,2016-09-16 16:22:30,,,Phdr.,Ing.,,,en,,Praha 4,Česká republika,,1,,,Česká republika,,,1,,,0,0,,,2019-08-23 12:11:53,2019-08-23 12:11:53,True,,,,True,True,True,True
+administrative_units,email,crn,sex,name,tin,telephone,donor,bank_account,user_bank_account,event,VS,profile_type,last_login,groups,user_permissions,username,first_name,last_name,is_active,date_joined,password,campaigns,title_after,title_before,addressment,addressment_on_envelope,language,street,city,country,zip_code,different_correspondence_address,correspondence_street,correspondence_city,correspondence_country,correspondence_zip_code,other_support,public,profile_text,profile_picture,club_card_available,club_card_dispatched,other_benefits,note,created,updated,send_mailing_lists,age_group,birth_month,birth_day,newsletter_on,call_on,challenge_on,letter_on
+1,test.companyprofile@companyprofile.test,11223344,,Company,55667788,,x,1234567890/0200,5554443331/0900,3,1960243939,companyprofile,,,,test.companyprofile,,,1,2016-09-16 16:22:30,,,,,,,en,,Praha 4,Česká republika,,1,,,Česká republika,,,1,,,0,0,,,2019-08-23 12:11:53,2019-08-23 12:11:53,True,,,,True,True,True,True
+2,test.userprofile@userprofile.test,,male,,,,x,2233445566/0100,9988776655/0100,3,150157010,userprofile,,,,test.userprofile,First_name_userprofile,Last_name_userprofile,1,2016-09-16 16:22:30,,,Phdr.,Ing.,,,en,,Praha 4,Česká republika,,1,,,Česká republika,,,1,,,0,0,,,2019-08-23 12:11:53,2019-08-23 12:11:53,True,,,,True,True,True,True

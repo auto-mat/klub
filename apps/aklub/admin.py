@@ -112,11 +112,7 @@ def dehydrate_decorator(field):
 
 
 def get_parent_child_instance(self, row):
-    all_child_models_fields = get_polymorphic_parent_child_fields(self._meta.model)
-    for model_name, model_fields in all_child_models_fields.items():
-        for field in model_fields:
-            if field in row:
-                return apps.get_model('aklub', model_name)()
+    return apps.get_model('aklub', row['profile_type'])()
 
 
 def init_instance(self, row=None):
@@ -434,6 +430,11 @@ class ProfileResource(ProfileModelResource):
     telephone = fields.Field()
     donor = fields.Field()
     profile_type = fields.Field()
+    send_mailing_lists = fields.Field()
+    newsletter_on = fields.Field()
+    call_on = fields.Field()
+    challenge_on = fields.Field()
+    letter_on = fields.Field()
 
     def import_obj(self, obj, data, dry_run):  # noqa
         bank_account = BankAccount.objects.all().first()
@@ -449,18 +450,18 @@ class ProfileResource(ProfileModelResource):
             )
         if data.get("email") == "":
             data["email"] = None
+        ProfileEmail.objects.get_or_create(email=data["email"], is_primary=True, user=obj)
 
         if data.get("administrative_units"):
-            admin_unit_value = data["administrative_units"]
-            admin_units, _ = AdministrativeUnit.objects.get_or_create(pk=admin_unit_value)
-            obj.administrative_units.add(admin_units)
-            obj.administrated_units.add(admin_units)
-            obj.save()
+            if not obj.administrative_units.filter(id=data["administrative_units"]):
+                obj.administrative_units.add(data["administrative_units"])
+                obj.save()
 
             preference, _ = Preference.objects.get_or_create(
                 user=obj,
-                administrative_unit=admin_units,
+                administrative_unit=obj.administrative_units.get(id=data["administrative_units"]),
             )
+
             if data.get("newsletter_on") is not None:
                 preference.newsletter_on = data['newsletter_on']
             if data.get("call_on") is not None:
@@ -476,35 +477,30 @@ class ProfileResource(ProfileModelResource):
 
             preference.save()
 
-        if data.get('donor'):
-            _data = data['donor']
-            parsed_data = dict(self.__get_row_data(row) for row in _data.split('\n'))
-            if parsed_data.get('VS'):
-                VS = parsed_data['VS']
+        if data.get('event') and data.get('donor') == 'x':
+            if data.get('VS') != "":
+                VS = data['VS']
             else:
                 from .views import generate_variable_symbol
                 VS = generate_variable_symbol()
-            event, _ = Event.objects.get_or_create(name=parsed_data['event'])
+            event, _ = Event.objects.get_or_create(pk=data['event'])
             donors, _ = DonorPaymentChannel.objects.get_or_create(
                 user=obj,
                 event=event,
                 defaults={'VS': VS},
             )
-            if parsed_data.get('bank_account'):
-                bank_account, _ = BankAccount.objects.get_or_create(
-                    bank_account_number=parsed_data['bank_account'],
-                )
-                bank_account.administrative_unit = parsed_data['administrative_units']
+            if data.get('bank_account'):
+                bank_account, _ = BankAccount.objects.get_or_create(bank_account_number=data['bank_account'])
+                bank_account.administrative_unit = obj.administrative_units.get(id=data["administrative_units"])
                 bank_account.save()
 
                 donors.bank_account = bank_account
                 donors.save()
             if data.get('user_bank_account'):
-                user_bank_account, _ = UserBankAccount.objects.get_or_create(
-                    bank_account_number=parsed_data['user_bank_account'],
-                )
+                user_bank_account, _ = UserBankAccount.objects.get_or_create(bank_account_number=data['user_bank_account'])
                 donors.user_bank_account = user_bank_account
                 donors.save()
+
         return super().import_obj(obj, data, dry_run)
 
     def dehydrate_telephone(self, profile):
@@ -605,7 +601,8 @@ class ProfileResource(ProfileModelResource):
         for model_name, model_fields in all_child_models_fields.items():
             for field in model_fields:
                 if hasattr(obj, field):
-                    setattr(obj, field, data.get(field))
+                    if data.get(field):
+                        setattr(obj, field, data[field])
 
     def __get_row_data(self, row):
         return (row.split(':')[0].strip(), row.split(':')[-1].strip())

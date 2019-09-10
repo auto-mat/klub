@@ -110,9 +110,9 @@ def process_template(template_string, user, payment_channel):
     text = template.substitute(
         addressment=user.get_addressment(),
         last_name_vokativ=user.get_last_name_vokativ(),
-        name=user.first_name,
-        firstname=user.first_name,
-        surname=user.last_name,
+        name=user.first_name if hasattr(user, 'first_name') else user.name,
+        firstname=user.first_name if hasattr(user, 'first_name') else user.name,
+        surname=user.last_name if hasattr(user, 'first_name') else user.name,
         street=user.street,
         city=user.city,
         zipcode=user.zip_code,
