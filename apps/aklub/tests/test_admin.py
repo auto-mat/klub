@@ -41,9 +41,10 @@ from .utils import RunCommitHooksMixin
 from .utils import print_response  # noqa
 from .. import admin
 from .. models import (
-    AccountStatements, AutomaticCommunication, CompanyProfile,
-    DonorPaymentChannel, Event, Interaction, MassCommunication,
-    Preference, Profile, TaxConfirmation, UserProfile, UserYearPayments,
+    AccountStatements, AutomaticCommunication, BankAccount,
+    CompanyProfile, DonorPaymentChannel, Event, Interaction, MassCommunication,
+    Preference, Profile, TaxConfirmation, UserBankAccount, UserProfile,
+    UserYearPayments,
 )
 
 
@@ -522,7 +523,7 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
             # 'Ano, hned se zprovozněním tunelu",editor,1,cs,,,,0,0.0,100',
         )
 
-    def not_test_profile_export(self):
+    def test_profile_export(self):
         """ Test Profile admin model export """
         profiles_data = [
             {
@@ -533,6 +534,8 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
                     'sex': 'male',
                     'title_before': 'Ing.',
                     'title_after': 'Phdr.',
+                    'first_name': 'Foo',
+                    'last_name': 'Bar',
                 },
             },
             {
@@ -541,6 +544,8 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
                 'vs': '150157010',
                 'extra_fields': {
                     'crn': '11223344',
+                    'tin': '55667788',
+                    'name': 'Company',
                 },
             },
         ]
@@ -564,8 +569,6 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
             generic_profile_recipe._model = 'aklub.{}'.format(model_name)
             fields = {
                 'username': 'test.{}'.format(model_name),
-                'first_name': 'First_name_{}'.format(model_name),
-                'last_name': 'Last_name_{}'.format(model_name),
                 'email': 'test.{0}@{0}.test'.format(model_name),
             }
             fields.update(profile_type['extra_fields'])
@@ -626,11 +629,11 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
             response,
             ''.join(
                 [
-                    '0,test.userprofile@userprofile.test,,male,,',
+                    '0,test.userprofile@userprofile.test,,,male,,',
                     '"VS:140147010\nevent:Klub přátel Auto*Matu\nbank_accout:\nuser_bank_account:\n\n",',
-                    'userprofile,,,,test.userprofile,First_name_userprofile,Last_name_userprofile,1,',
-                    '2016-09-16 16:22:30,,,Phdr.,Ing.,,,en,,Praha 4,Česká republika,,1,,,Česká republika,,,',
-                    'False,,,0,0,,,{created},{updated},False,,,,True,True,True,True'.format(
+                    'userprofile,,,,test.userprofile,Foo,Bar,1,2016-09-16 16:22:30,,,Phdr.,Ing.,,,en,,',
+                    'Praha 4,Česká republika,,1,,,Česká republika,,,False,,,0,0,,,',
+                    '{created},{updated},False,,,,True,True,True,True,'.format(
                         created=user_profile.created.strftime(date_time_format),
                         updated=user_profile.updated.strftime(date_time_format),
                     ),
@@ -641,11 +644,11 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
             response,
             ''.join(
                 [
-                    '1,test.companyprofile@companyprofile.test,11223344,,,',
-                    '"VS:150157010\nevent:Klub přátel Auto*Matu\nbank_accout:\nuser_bank_account:\n\n",',
-                    'companyprofile,,,,test.companyprofile,First_name_companyprofile,Last_name_companyprofile,',
-                    '1,2016-09-16 16:22:30,,,,,,,en,,Praha 4,Česká republika,,1,,,Česká republika,,,False,,,',
-                    '0,0,,,{created},{updated},False,,,,True,True,True,True'.format(
+                    '1,test.companyprofile@companyprofile.test,11223344,55667788,,,',
+                    '"VS:150157010\nevent:Klub přátel Auto*Matu\nbank_accout:\nuser_bank_account:\n\n",'
+                    'companyprofile,,,,test.companyprofile,,,1,2016-09-16 16:22:30,,,,,,,en,,'
+                    'Praha 4,Česká republika,,1,,,Česká republika,,,False,,,0,0,,,',
+                    '{created},{updated},False,,,,True,True,True,True,Company'.format(
                         created=company_profile.created.strftime(date_time_format),
                         updated=company_profile.updated.strftime(date_time_format),
                     ),
@@ -653,8 +656,16 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
             ),
         )
 
-    def not_test_profile_import(self):
+    def test_profile_import(self):
         """ Test Profile admin model import """
+        administrative_units = ['AU1', 'AU2']
+        for index, au in enumerate(administrative_units, 1):
+            mommy.make(
+                'aklub.AdministrativeUnit',
+                id=index,
+                name=administrative_units[index - 1],
+            )
+
         p = pathlib.PurePath(__file__)
         csv_file_create_profiles = p.parents[1] / 'test_data' / 'create_profiles.csv'
         address = '/aklub/profile/import/'
@@ -665,7 +676,6 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
             }
             response = self.client.post(address, post_data)
         self.assertEqual(response.status_code, 200)
-        # print(response.rendered_content)
         self.assertContains(
             response,
             'test.companyprofile@companyprofile.test',
@@ -684,6 +694,11 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         self.assertContains(
             response,
             '11223344',
+            html=True,
+        )
+        self.assertContains(
+            response,
+            'Company',
             html=True,
         )
 
@@ -705,32 +720,48 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         user_profile = Profile.objects.filter(email='test.userprofile@userprofile.test')
         self.assertEqual(user_profile.count(), 1)
         self.assertEqual(user_profile[0].sex, 'male')
-        self.assertEqual(DonorPaymentChannel.objects.filter(user=user_profile[0]).count(), 1)
-        self.assertEqual(DonorPaymentChannel.objects.filter(user=user_profile[0])[0].VS, '140147010')
-        self.assertEqual(DonorPaymentChannel.objects.filter(user=user_profile[0])[0].event.name, 'Klub přátel Auto*Matu')
-        self.assertEqual(DonorPaymentChannel.objects.filter(user=user_profile[0])[0].bank_account, None)
-        self.assertEqual(DonorPaymentChannel.objects.filter(user=user_profile[0])[0].user_bank_account, None)
+        donor = DonorPaymentChannel.objects.filter(user=user_profile[0])
+        self.assertEqual(donor.count(), 1)
+        self.assertEqual(donor[0].VS, '150157010')
+        self.assertEqual(donor[0].event.name, 'Zažít město jinak')
+        bank_account = BankAccount.objects.filter(bank_account_number='2233445566/0100')
+        self.assertEqual(bank_account.count(), 1)
+        self.assertEqual(donor[0].bank_account, bank_account[0])
+        user_bank_account = UserBankAccount.objects.filter(bank_account_number='9988776655/0100')
+        self.assertEqual(user_bank_account.count(), 1)
+        self.assertEqual(donor[0].user_bank_account, user_bank_account[0])
         self.assertEqual(user_profile[0].polymorphic_ctype, ContentType.objects.get(model='userprofile'))
         self.assertEqual(user_profile[0].username, 'test.userprofile')
         self.assertEqual(user_profile[0].title_before, 'Ing.')
         self.assertEqual(user_profile[0].title_after, 'Phdr.')
-        self.assertEqual(Preference.objects.filter(user=user_profile[0]).count(), 1)
-        self.assertEqual(Preference.objects.filter(user=user_profile[0])[0].send_mailing_lists, True)
-        self.assertEqual(Preference.objects.filter(user=user_profile[0])[0].letter_on, True)
+        self.assertEqual(user_profile[0].first_name, 'First_name_userprofile')
+        self.assertEqual(user_profile[0].last_name, 'Last_name_userprofile')
+        preference = Preference.objects.filter(user=user_profile[0])
+        self.assertEqual(preference.count(), 1)
+        self.assertEqual(preference[0].send_mailing_lists, True)
+        self.assertEqual(preference[0].letter_on, True)
 
         company_profile = Profile.objects.filter(email='test.companyprofile@companyprofile.test')
         self.assertEqual(company_profile.count(), 1)
         self.assertEqual(company_profile[0].crn, '11223344')
-        self.assertEqual(DonorPaymentChannel.objects.filter(user=company_profile[0]).count(), 1)
-        self.assertEqual(DonorPaymentChannel.objects.filter(user=company_profile[0])[0].VS, '150157010')
-        self.assertEqual(DonorPaymentChannel.objects.filter(user=company_profile[0])[0].event.name, 'Klub přátel Auto*Matu')
-        self.assertEqual(DonorPaymentChannel.objects.filter(user=company_profile[0])[0].bank_account, None)
-        self.assertEqual(DonorPaymentChannel.objects.filter(user=company_profile[0])[0].user_bank_account, None)
+        self.assertEqual(company_profile[0].tin, '55667788')
+        self.assertEqual(company_profile[0].name, 'Company')
+        donor = DonorPaymentChannel.objects.filter(user=company_profile[0])
+        self.assertEqual(donor.count(), 1)
+        self.assertEqual(donor[0].VS, '1960243939')
+        self.assertEqual(donor[0].event.name, 'Zažít město jinak')
+        bank_account = BankAccount.objects.filter(bank_account_number='1234567890/0200')
+        self.assertEqual(bank_account.count(), 1)
+        self.assertEqual(donor[0].bank_account, bank_account[0])
+        user_bank_account = UserBankAccount.objects.filter(bank_account_number='5554443331/0900')
+        self.assertEqual(user_bank_account.count(), 1)
+        self.assertEqual(donor[0].user_bank_account, user_bank_account[0])
         self.assertEqual(company_profile[0].polymorphic_ctype, ContentType.objects.get(model='companyprofile'))
         self.assertEqual(company_profile[0].username, 'test.companyprofile')
-        self.assertEqual(Preference.objects.filter(user=company_profile[0]).count(), 1)
-        self.assertEqual(Preference.objects.filter(user=company_profile[0])[0].send_mailing_lists, True)
-        self.assertEqual(Preference.objects.filter(user=company_profile[0])[0].letter_on, True)
+        preference = Preference.objects.filter(user=user_profile[0])
+        self.assertEqual(preference.count(), 1)
+        self.assertEqual(preference[0].send_mailing_lists, True)
+        self.assertEqual(preference[0].letter_on, True)
 
         # Update model
         p = pathlib.PurePath(__file__)
@@ -742,6 +773,7 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
                 'input_format': 0,
             }
             response = self.client.post(address, post_data)
+
         result = re.search(
             r'<input type="hidden" name="import_file_name".*?>',
             response.rendered_content,
@@ -759,32 +791,43 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         user_profile = Profile.objects.filter(email='test.userprofile@userprofile.test')
         self.assertEqual(user_profile.count(), 1)
         self.assertEqual(user_profile[0].sex, 'female')
-        self.assertEqual(DonorPaymentChannel.objects.filter(user=user_profile[0]).count(), 1)
-        self.assertEqual(DonorPaymentChannel.objects.filter(user=user_profile[0])[0].VS, '140147010')
-        self.assertEqual(DonorPaymentChannel.objects.filter(user=user_profile[0])[0].event.name, 'Klub přátel Auto*Matu')
-        self.assertEqual(DonorPaymentChannel.objects.filter(user=user_profile[0])[0].bank_account, None)
-        self.assertEqual(DonorPaymentChannel.objects.filter(user=user_profile[0])[0].user_bank_account, None)
+        donor = DonorPaymentChannel.objects.filter(user=user_profile[0])
+        self.assertEqual(donor.count(), 1)
+        self.assertEqual(donor[0].VS, '150157010')
+        self.assertEqual(donor[0].event.name, 'Zažít město jinak')
+        bank_account = BankAccount.objects.filter(bank_account_number='2233445566/0100')
+        self.assertEqual(bank_account.count(), 1)
+        self.assertEqual(donor[0].bank_account, bank_account[0])
+        user_bank_account = UserBankAccount.objects.filter(bank_account_number='1111111111/0100')
+        self.assertEqual(user_bank_account.count(), 1)
         self.assertEqual(user_profile[0].polymorphic_ctype, ContentType.objects.get(model='userprofile'))
         self.assertEqual(user_profile[0].username, 'test.userprofile')
         self.assertEqual(user_profile[0].title_before, 'Mgr.')
-        self.assertEqual(Preference.objects.filter(user=user_profile[0]).count(), 1)
-        self.assertEqual(Preference.objects.filter(user=user_profile[0])[0].send_mailing_lists, False)
-        self.assertEqual(Preference.objects.filter(user=user_profile[0])[0].letter_on, False)
+        preference = Preference.objects.filter(user=user_profile[0])
+        self.assertEqual(preference.count(), 1)
+        self.assertEqual(preference[0].send_mailing_lists, False)
+        self.assertEqual(preference[0].letter_on, False)
 
         company_profile = Profile.objects.filter(email='test.companyprofile@companyprofile.test')
         self.assertEqual(company_profile.count(), 1)
         self.assertEqual(company_profile[0].crn, '22334455')
-        self.assertEqual(DonorPaymentChannel.objects.filter(user=company_profile[0]).count(), 1)
-        self.assertEqual(DonorPaymentChannel.objects.filter(user=company_profile[0])[0].VS, '150157010')
-        self.assertEqual(DonorPaymentChannel.objects.filter(user=company_profile[0])[0].event.name, 'Klub přátel Auto*Matu')
-        self.assertEqual(DonorPaymentChannel.objects.filter(user=company_profile[0])[0].bank_account, None)
-        self.assertEqual(DonorPaymentChannel.objects.filter(user=company_profile[0])[0].user_bank_account, None)
+        self.assertEqual(company_profile[0].tin, '99887766')
+        self.assertEqual(company_profile[0].name, 'Update Company')
+        donor = DonorPaymentChannel.objects.filter(user=company_profile[0])
+        self.assertEqual(donor.count(), 1)
+        self.assertEqual(donor[0].event.name, 'Zažít město jinak')
+        bank_account = BankAccount.objects.filter(bank_account_number='3333333333/0300')
+        self.assertEqual(bank_account.count(), 1)
+        self.assertEqual(donor[0].bank_account, bank_account[0])
+        user_bank_account = UserBankAccount.objects.filter(bank_account_number='5554443331/0900')
+        self.assertEqual(user_bank_account.count(), 1)
+        self.assertEqual(donor[0].user_bank_account, user_bank_account[0])
         self.assertEqual(company_profile[0].polymorphic_ctype, ContentType.objects.get(model='companyprofile'))
         self.assertEqual(company_profile[0].username, 'test.companyprofile')
-        self.assertEqual(company_profile[0].first_name, 'First_name_companyprofile_upd')
-        self.assertEqual(Preference.objects.filter(user=company_profile[0]).count(), 1)
-        self.assertEqual(Preference.objects.filter(user=company_profile[0])[0].send_mailing_lists, False)
-        self.assertEqual(Preference.objects.filter(user=company_profile[0])[0].letter_on, False)
+        preference = Preference.objects.filter(user=user_profile[0])
+        self.assertEqual(preference.count(), 1)
+        self.assertEqual(preference[0].send_mailing_lists, False)
+        self.assertEqual(preference[0].letter_on, False)
 
 
 class AdminActionsTests(CreateSuperUserMixin, RunCommitHooksMixin, TestCase):
