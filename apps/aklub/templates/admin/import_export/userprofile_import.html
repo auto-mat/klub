@@ -1,4 +1,5 @@
 {% extends "admin/import_export/import.html" %}
+{% load i18n %}
 {% block content %}
 <div class="form-row">
 <h3>Pole:</h3>
@@ -28,6 +29,12 @@
         <p>You can setup bank account (company, organization unit) or user bank account of the specific user.
             Set bank accounts in format number/bank_code (123456789/0800)
         </p>
+    </li>
+    <li>
+       <b>tin</b>: {% trans 'DIČ' %}
+    </li>
+    <li>
+       <b>crn</b>: {% trans 'IČO' %}
     </li>
 </ul>
 </div>
