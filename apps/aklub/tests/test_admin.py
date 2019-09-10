@@ -259,9 +259,9 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
         LANGUAGE_CODE='en',
     )
     def test_mass_communication_changelist_post_send_mails(self):
-        mommy.make("Profile", id=2978, email="foo@email.com", language="cs")
-        mommy.make("Profile", id=2979, email="bar@email.com", language="cs")
-        mommy.make("Profile", id=3, email="baz@email.com", language="en")
+        mommy.make("CompanyProfile", id=2978, email="foo@email.com", language="cs")
+        mommy.make("UserProfile", id=2979, email="bar@email.com", language="cs")
+        mommy.make("UserProfile", id=3, email="baz@email.com", language="en")
         model_admin = django_admin.site._registry[MassCommunication]
         request = self.get_request()
         response = model_admin.add_view(request)
