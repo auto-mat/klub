@@ -540,6 +540,13 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
         # TODO: List of languages used in the club should come from app settings
         ('cs', _('Czech')),
         ('en', _('English')))
+    username = models.CharField(
+        _('user name'),
+        max_length=150,
+        blank=True,
+        null=True,
+        unique=True,
+    )
     password = models.CharField(
         _('password'),
         max_length=128,
@@ -633,10 +640,6 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
         max_length=500,
         blank=True,
     )
-    public = models.BooleanField(
-        verbose_name=_("DEPRECATED FIELD"),
-        default=True,
-    )
     profile_text = models.TextField(
         verbose_name=_("What is your reason?"),
         help_text=_("Tell others why you support Auto*Mat"),
@@ -686,34 +689,6 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
         verbose_name=_("Date of last change"),
         auto_now=True,
         null=True,
-    )
-    send_mailing_lists = models.BooleanField(
-        verbose_name=_("DEPRECATED FIELD"),
-        default=True,
-    )
-    newsletter_on = models.NullBooleanField(
-        verbose_name=_("DEPRECATED FIELD"),
-        null=True,
-        blank=True,
-        default=False,
-    )
-    call_on = models.NullBooleanField(
-        verbose_name=_("DEPRECATED FIELD"),
-        null=True,
-        blank=True,
-        default=False,
-    )
-    challenge_on = models.NullBooleanField(
-        verbose_name=_("DEPRECATED FIELD"),
-        null=True,
-        blank=True,
-        default=False,
-    )
-    letter_on = models.NullBooleanField(
-        verbose_name=_("DEPRECATED FIELD"),
-        null=True,
-        blank=True,
-        default=False,
     )
     administrative_units = models.ManyToManyField(
         AdministrativeUnit,
@@ -906,11 +881,13 @@ class CompanyProfile(Profile):
         verbose_name=_(u"Company Registration Number"),
         max_length=20,
         null=True,
+        blank=False,
     )
     tin = models.CharField(
         verbose_name=_(u"Tax Identification Number"),
         max_length=20,
         null=True,
+        blank=False,
     )
 
 
@@ -1046,10 +1023,12 @@ class Preference(models.Model):
     )
     send_mailing_lists = models.BooleanField(
         verbose_name=_("Sending of mailing lists allowed"),
+        null=True,
         default=True,
     )
     public = models.BooleanField(
         verbose_name=_("Publish my name in the list of supporters"),
+        null=True,
         default=True,
     )
 
