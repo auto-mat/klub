@@ -435,6 +435,7 @@ class ProfileResource(ProfileModelResource):
     call_on = fields.Field()
     challenge_on = fields.Field()
     letter_on = fields.Field()
+    public = fields.Field()
 
     def import_obj(self, obj, data, dry_run):  # noqa
         bank_account = BankAccount.objects.all().first()
