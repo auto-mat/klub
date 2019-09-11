@@ -56,7 +56,7 @@ def get_preference_model_custom_field_dehydrate_func():
 
 def import_obj(self, obj, data, dry_run):  # noqa
     bank_account = BankAccount.objects.all().first()
-    # Call this method only in ProfileResource model resource subclass
+    # Call this method only in the ProfileResource model resource subclass
     if hasattr(self, '_set_child_model_field_value'):
         self._set_child_model_field_value(obj=obj, data=data)
     obj.save()
