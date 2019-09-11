@@ -31,6 +31,13 @@ class Command(createsuperuser.Command):
             help='If profile type is the company, you must set company '
             'registration number (crn)',
         )
+        parser.add_argument(
+            '--tin',
+            dest='tin',
+            type=str,
+            help='If profile type is the company, you must set company '
+            'tax identification number (tin)',
+        )
         # Remove default --polymorphic_ctype_id arg (REQUIRED_FIELDS var)
         # and replace with --profile arg
         ctype_opt = '--polymorphic_ctype_id'
@@ -45,6 +52,7 @@ class Command(createsuperuser.Command):
         email = options.get('email')
         profile_type = options.get('polymorphic_ctype_id')
         crn = options.get('crn')
+        tin = options.get('tin')
 
         if profile_type == 'user':
             profile_type_id = ContentType.objects.get(model=UserProfile._meta.model_name).id
@@ -52,6 +60,8 @@ class Command(createsuperuser.Command):
             profile_type_id = ContentType.objects.get(model=CompanyProfile._meta.model_name).id
             if not crn:
                 raise CommandError("--crn is required if specifying --profile company")
+            if not tin:
+                raise CommandError("--tin is required if specifying --profile company")
         options['polymorphic_ctype_id'] = profile_type_id
 
         model = ContentType.objects.get(id=profile_type_id).model_class()
@@ -69,4 +79,6 @@ class Command(createsuperuser.Command):
             user.set_password(password)
         if crn:
             user.crn = crn
+        if tin:
+            user.tin = tin
         user.save()
