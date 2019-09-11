@@ -28,6 +28,7 @@ from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory, TestCase
 from django.test.utils import override_settings
+from django.urls import reverse
 
 from django_admin_smoke_tests import tests
 
@@ -543,8 +544,7 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
             # 'Ano, hned se zprovozněním tunelu",editor,1,cs,,,,0,0.0,100',
         )
 
-    def test_profile_export(self):
-        """ Test Profile admin model export """
+    def create_profiles(self):
         profiles_data = [
             {
                 'type': 'user',
@@ -636,10 +636,13 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
             )
             user.administrative_units.add(administrative_unit)
 
+    def test_profile_export(self):
+        """ Test ProfileAdmin admin model export """
+        self.create_profiles()
         user_profile = Profile.objects.get(email='test.{0}@{0}.test'.format('userprofile'))
         company_profile = Profile.objects.get(email='test.{0}@{0}.test'.format('companyprofile'))
 
-        address = '/aklub/profile/export/'
+        address = reverse('admin:aklub_profile_export')
         post_data = {
             'file_format': 0,
         }
@@ -649,14 +652,14 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
             response,
             ''.join(
                 [
-                    '0,test.userprofile@userprofile.test,,,male,,',
-                    '"VS:140147010\nevent:Klub přátel Auto*Matu\nbank_accout:\nuser_bank_account:\n\n",',
-                    'userprofile,,,,test.userprofile,Foo,Bar,1,2016-09-16 16:22:30,,,Phdr.,Ing.,,,en,,',
-                    'Praha 4,Česká republika,,1,,,Česká republika,,,False,,,0,0,,,',
-                    '{created},{updated},False,,,,True,True,True,True,'.format(
+                    '0,test.userprofile@userprofile.test,,',
+                    '"VS:140147010\nevent:Klub přátel Auto*Matu\nbank_accout:\nuser_bank_account:\n\n"',
+                    ',,,,test.userprofile,1,2016-09-16 16:22:30,,,,,en,,Praha 4,Česká republika,,1,,,',
+                    'Česká republika,,,True,,,0,0,,,{created},{updated},True,True,True,'.format(
                         created=user_profile.created.strftime(date_time_format),
                         updated=user_profile.updated.strftime(date_time_format),
                     ),
+                    'True,True,,,,male,Phdr.,Foo,Bar,Ing.,,,userprofile,',
                 ],
             ),
         )
@@ -664,14 +667,66 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
             response,
             ''.join(
                 [
-                    '1,test.companyprofile@companyprofile.test,11223344,55667788,,,',
+                    '1,test.companyprofile@companyprofile.test,,',
                     '"VS:150157010\nevent:Klub přátel Auto*Matu\nbank_accout:\nuser_bank_account:\n\n",'
-                    'companyprofile,,,,test.companyprofile,,,1,2016-09-16 16:22:30,,,,,,,en,,'
-                    'Praha 4,Česká republika,,1,,,Česká republika,,,False,,,0,0,,,',
-                    '{created},{updated},False,,,,True,True,True,True,Company'.format(
+                    ',,,test.companyprofile,1,2016-09-16 16:22:30,,,,,en,,Praha 4,Česká republika,,1,,,',
+                    'Česká republika,,,True,,,0,0,,,{created},{updated},True,True,True,'.format(
                         created=company_profile.created.strftime(date_time_format),
                         updated=company_profile.updated.strftime(date_time_format),
                     ),
+                    'True,True,Company,11223344,55667788,,,,,,,,companyprofile,',
+                ],
+            ),
+        )
+
+    def test_userprofile_export(self):
+        """ Test UserProfileAdmin admin model export """
+        self.create_profiles()
+        user_profile = Profile.objects.get(email='test.{0}@{0}.test'.format('userprofile'))
+        address = reverse('admin:aklub_userprofile_export')
+        post_data = {
+            'file_format': 0,
+        }
+        response = self.client.post(address, post_data)
+        date_time_format = '%Y-%m-%d %H:%M:%S'
+        self.assertContains(
+            response,
+            ''.join(
+                [
+                    '0,test.userprofile@userprofile.test,,',
+                    '"VS:140147010\nevent:Klub přátel Auto*Matu\nbank_accout:\nuser_bank_account:\n\n",',
+                    ',,,test.userprofile,1,2016-09-16 16:22:30,,,,,en,,Praha 4,Česká republika,,1,,,',
+                    'Česká republika,,,True,,,0,0,,,{created},{updated},True,True,'.format(
+                        created=user_profile.created.strftime(date_time_format),
+                        updated=user_profile.updated.strftime(date_time_format),
+                    ),
+                    'True,True,True,Ing.,Foo,Bar,Phdr.,male,,,',
+                ],
+            ),
+        )
+
+    def test_companyprofile_export(self):
+        """ Test CompanyProfileAdmin admin model export """
+        self.create_profiles()
+        company_profile = Profile.objects.get(email='test.{0}@{0}.test'.format('companyprofile'))
+        address = reverse('admin:aklub_companyprofile_export')
+        post_data = {
+            'file_format': 0,
+        }
+        response = self.client.post(address, post_data)
+        date_time_format = '%Y-%m-%d %H:%M:%S'
+        self.assertContains(
+            response,
+            ''.join(
+                [
+                    '1,test.companyprofile@companyprofile.test,,',
+                    '"VS:150157010\nevent:Klub přátel Auto*Matu\nbank_accout:\nuser_bank_account:\n\n",'
+                    ',,,test.companyprofile,1,2016-09-16 16:22:30,,,,,en,,Praha 4,Česká republika,,1,,,',
+                    'Česká republika,,,True,,,0,0,,,{created},{updated},True,True,True,'.format(
+                        created=company_profile.created.strftime(date_time_format),
+                        updated=company_profile.updated.strftime(date_time_format),
+                    ),
+                    'True,True,Company,11223344,55667788',
                 ],
             ),
         )
@@ -688,7 +743,7 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
 
         p = pathlib.PurePath(__file__)
         csv_file_create_profiles = p.parents[1] / 'test_data' / 'create_profiles.csv'
-        address = '/aklub/profile/import/'
+        address = reverse('admin:aklub_profile_import')
         with open(csv_file_create_profiles) as fp:
             post_data = {
                 'import_file': fp,
@@ -733,9 +788,9 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
             'original_file_name': csv_file_create_profiles.name,
             'input_format': post_data['input_format'],
         }
-        address = '/aklub/profile/process_import/'
+        address = reverse('admin:aklub_profile_process_import')
         response = self.client.post(address, post_data)
-        self.assertRedirects(response, expected_url='/aklub/profile/')
+        self.assertRedirects(response, expected_url=reverse('admin:aklub_profile_changelist'))
 
         user_profile = Profile.objects.filter(email='test.userprofile@userprofile.test')
         self.assertEqual(user_profile.count(), 1)
@@ -804,9 +859,9 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
             'original_file_name': csv_file_create_profiles.name,
             'input_format': post_data['input_format'],
         }
-        address = '/aklub/profile/process_import/'
+        address = reverse('admin:aklub_profile_process_import')
         response = self.client.post(address, post_data)
-        self.assertRedirects(response, expected_url='/aklub/profile/')
+        self.assertRedirects(response, expected_url=reverse('admin:aklub_profile_changelist'))
 
         user_profile = Profile.objects.filter(email='test.userprofile@userprofile.test')
         self.assertEqual(user_profile.count(), 1)
@@ -844,7 +899,371 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         self.assertEqual(donor[0].user_bank_account, user_bank_account[0])
         self.assertEqual(company_profile[0].polymorphic_ctype, ContentType.objects.get(model='companyprofile'))
         self.assertEqual(company_profile[0].username, 'test.companyprofile')
+        preference = Preference.objects.filter(user=company_profile[0])
+        self.assertEqual(preference.count(), 1)
+        self.assertEqual(preference[0].send_mailing_lists, False)
+        self.assertEqual(preference[0].letter_on, False)
+
+    def test_profile_minimal_fields_import(self):
+        """ Test Profile admin model minimal fields import """
+        p = pathlib.PurePath(__file__)
+        csv_file = 'create_profiles_minimal_fields.csv'
+        csv_file_create_profiles = p.parents[1] / 'test_data' / csv_file
+        address = reverse('admin:aklub_profile_import')
+        with open(csv_file_create_profiles) as fp:
+            post_data = {
+                'import_file': fp,
+                'input_format': 0,
+            }
+            response = self.client.post(address, post_data)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            '11223344',
+            html=True,
+        )
+        self.assertContains(
+            response,
+            'male',
+            html=True,
+        )
+
+        # Create model
+        result = re.search(
+            r'<input type="hidden" name="import_file_name".*?>',
+            response.rendered_content,
+        )
+        file_name = [val.split('=')[-1].replace('"', '') for val in result.group(0).split(' ') if 'value' in val][0]
+        post_data = {
+            'import_file_name': file_name,
+            'original_file_name': csv_file_create_profiles.name,
+            'input_format': post_data['input_format'],
+        }
+        address = reverse('admin:aklub_profile_process_import')
+        number_of_new_profiles = 2
+        profile_count = Profile.objects.count() + number_of_new_profiles
+        response = self.client.post(address, post_data)
+        self.assertRedirects(response, expected_url=reverse('admin:aklub_profile_changelist'))
+        self.assertEqual(profile_count, Profile.objects.count())
+
+    def test_userprofile_import(self):
+        """ Test UserProfile admin model import """
+        administrative_units = ['AU1', 'AU2']
+        for index, au in enumerate(administrative_units, 1):
+            mommy.make(
+                'aklub.AdministrativeUnit',
+                id=index,
+                name=administrative_units[index - 1],
+            )
+
+        p = pathlib.PurePath(__file__)
+        csv_file = 'create_user_profiles.csv'
+        csv_file_create_user_profiles = p.parents[1] / 'test_data' / csv_file
+        address = reverse('admin:aklub_userprofile_import')
+        with open(csv_file_create_user_profiles) as fp:
+            post_data = {
+                'import_file': fp,
+                'input_format': 0,
+            }
+            response = self.client.post(address, post_data)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            'test.userprofile@userprofile.test',
+            html=True,
+        )
+        self.assertContains(
+            response,
+            'male',
+            html=True,
+        )
+
+        # Create model
+        result = re.search(
+            r'<input type="hidden" name="import_file_name".*?>',
+            response.rendered_content,
+        )
+        file_name = [val.split('=')[-1].replace('"', '') for val in result.group(0).split(' ') if 'value' in val][0]
+        post_data = {
+            'import_file_name': file_name,
+            'original_file_name': csv_file_create_user_profiles.name,
+            'input_format': post_data['input_format'],
+        }
+        address = reverse('admin:aklub_userprofile_process_import')
+        response = self.client.post(address, post_data)
+        self.assertRedirects(response, expected_url=reverse('admin:aklub_userprofile_changelist'))
+
+        user_profile = Profile.objects.filter(email='test.userprofile@userprofile.test')
+        self.assertEqual(user_profile.count(), 1)
+        self.assertEqual(user_profile[0].sex, 'male')
+        donor = DonorPaymentChannel.objects.filter(user=user_profile[0])
+        self.assertEqual(donor.count(), 1)
+        self.assertEqual(donor[0].VS, '150157010')
+        self.assertEqual(donor[0].event.name, 'Zažít město jinak')
+        bank_account = BankAccount.objects.filter(bank_account_number='2233445566/0100')
+        self.assertEqual(bank_account.count(), 1)
+        self.assertEqual(donor[0].bank_account, bank_account[0])
+        user_bank_account = UserBankAccount.objects.filter(bank_account_number='9988776655/0100')
+        self.assertEqual(user_bank_account.count(), 1)
+        self.assertEqual(donor[0].user_bank_account, user_bank_account[0])
+        self.assertEqual(user_profile[0].polymorphic_ctype, ContentType.objects.get(model='userprofile'))
+        self.assertEqual(user_profile[0].username, 'test.userprofile')
+        self.assertEqual(user_profile[0].title_before, 'Ing.')
+        self.assertEqual(user_profile[0].title_after, 'Phdr.')
+        self.assertEqual(user_profile[0].first_name, 'First_name_userprofile')
+        self.assertEqual(user_profile[0].last_name, 'Last_name_userprofile')
         preference = Preference.objects.filter(user=user_profile[0])
+        self.assertEqual(preference.count(), 1)
+        self.assertEqual(preference[0].send_mailing_lists, True)
+        self.assertEqual(preference[0].letter_on, True)
+
+        # Update model
+        p = pathlib.PurePath(__file__)
+        csv_file = 'update_user_profiles.csv'
+        csv_file_update_user_profiles = p.parents[1] / 'test_data' / csv_file
+        address = reverse('admin:aklub_userprofile_import')
+        with open(csv_file_update_user_profiles) as fp:
+            post_data = {
+                'import_file': fp,
+                'input_format': 0,
+            }
+            response = self.client.post(address, post_data)
+
+        result = re.search(
+            r'<input type="hidden" name="import_file_name".*?>',
+            response.rendered_content,
+        )
+        file_name = [val.split("=")[-1].replace('"', '') for val in result.group(0).split(" ") if "value" in val][0]
+        post_data = {
+            'import_file_name': file_name,
+            'original_file_name': csv_file_update_user_profiles.name,
+            'input_format': post_data['input_format'],
+        }
+        address = reverse('admin:aklub_userprofile_process_import')
+        response = self.client.post(address, post_data)
+        self.assertRedirects(response, expected_url=reverse('admin:aklub_userprofile_changelist'))
+
+        user_profile = Profile.objects.filter(email='test.userprofile@userprofile.test')
+        self.assertEqual(user_profile.count(), 1)
+        self.assertEqual(user_profile[0].sex, 'female')
+        donor = DonorPaymentChannel.objects.filter(user=user_profile[0])
+        self.assertEqual(donor.count(), 1)
+        self.assertEqual(donor[0].VS, '150157010')
+        self.assertEqual(donor[0].event.name, 'Zažít město jinak')
+        bank_account = BankAccount.objects.filter(bank_account_number='2233445566/0100')
+        self.assertEqual(bank_account.count(), 1)
+        self.assertEqual(donor[0].bank_account, bank_account[0])
+        user_bank_account = UserBankAccount.objects.filter(bank_account_number='1111111111/0100')
+        self.assertEqual(user_bank_account.count(), 1)
+        self.assertEqual(user_profile[0].polymorphic_ctype, ContentType.objects.get(model='userprofile'))
+        self.assertEqual(user_profile[0].username, 'test.userprofile')
+        self.assertEqual(user_profile[0].title_before, 'Mgr.')
+        preference = Preference.objects.filter(user=user_profile[0])
+        self.assertEqual(preference.count(), 1)
+        self.assertEqual(preference[0].send_mailing_lists, False)
+        self.assertEqual(preference[0].letter_on, False)
+
+    def test_userprofile_minimal_fields_import(self):
+        """ Test UserProfile admin model minimal fields import """
+        p = pathlib.PurePath(__file__)
+        csv_file = 'create_user_profiles_minimal_fields.csv'
+        csv_file_create_user_profiles = p.parents[1] / 'test_data' / csv_file
+        address = reverse('admin:aklub_userprofile_import')
+        with open(csv_file_create_user_profiles) as fp:
+            post_data = {
+                'import_file': fp,
+                'input_format': 0,
+            }
+            response = self.client.post(address, post_data)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            'male',
+            html=True,
+        )
+        self.assertContains(
+            response,
+            'female',
+            html=True,
+        )
+
+        # Create model
+        result = re.search(
+            r'<input type="hidden" name="import_file_name".*?>',
+            response.rendered_content,
+        )
+        file_name = [val.split('=')[-1].replace('"', '') for val in result.group(0).split(' ') if 'value' in val][0]
+        post_data = {
+            'import_file_name': file_name,
+            'original_file_name': csv_file_create_user_profiles.name,
+            'input_format': post_data['input_format'],
+        }
+        address = reverse('admin:aklub_userprofile_process_import')
+        number_of_new_user_profiles = 4
+        user_profile_count = UserProfile.objects.count() + number_of_new_user_profiles
+        response = self.client.post(address, post_data)
+        self.assertRedirects(response, expected_url=reverse('admin:aklub_userprofile_changelist'))
+        self.assertEqual(user_profile_count, UserProfile.objects.count())
+
+    def test_companyprofile_minimal_fields_import(self):
+        """ Test CompanyProfile admin model minimal fields import """
+        p = pathlib.PurePath(__file__)
+        csv_file = 'create_company_profiles_minimal_fields.csv'
+        csv_file_create_company_profiles = p.parents[1] / 'test_data' / csv_file
+        address = reverse('admin:aklub_companyprofile_import')
+        with open(csv_file_create_company_profiles) as fp:
+            post_data = {
+                'import_file': fp,
+                'input_format': 0,
+            }
+            response = self.client.post(address, post_data)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            '11223344',
+            html=True,
+        )
+        self.assertContains(
+            response,
+            '55667788',
+            html=True,
+        )
+
+        # Create model
+        result = re.search(
+            r'<input type="hidden" name="import_file_name".*?>',
+            response.rendered_content,
+        )
+        file_name = [val.split('=')[-1].replace('"', '') for val in result.group(0).split(' ') if 'value' in val][0]
+        post_data = {
+            'import_file_name': file_name,
+            'original_file_name': csv_file_create_company_profiles.name,
+            'input_format': post_data['input_format'],
+        }
+        address = reverse('admin:aklub_companyprofile_process_import')
+        number_of_new_company_profiles = 4
+        company_profile_count = CompanyProfile.objects.count() + number_of_new_company_profiles
+        response = self.client.post(address, post_data)
+        self.assertRedirects(response, expected_url=reverse('admin:aklub_companyprofile_changelist'))
+        self.assertEqual(company_profile_count, CompanyProfile.objects.count())
+
+    def test_companyprofile_import(self):
+        """ Test CompanyProfile admin model import """
+        administrative_units = ['AU1', 'AU2']
+        for index, au in enumerate(administrative_units, 1):
+            mommy.make(
+                'aklub.AdministrativeUnit',
+                id=index,
+                name=administrative_units[index - 1],
+            )
+
+        p = pathlib.PurePath(__file__)
+        csv_file = 'create_company_profiles.csv'
+        csv_file_create_companyprofiles = p.parents[1] / 'test_data' / csv_file
+        address = reverse('admin:aklub_companyprofile_import')
+        with open(csv_file_create_companyprofiles) as fp:
+            post_data = {
+                'import_file': fp,
+                'input_format': 0,
+            }
+            response = self.client.post(address, post_data)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            'test.companyprofile@companyprofile.test',
+            html=True,
+        )
+        self.assertContains(
+            response,
+            '11223344',
+            html=True,
+        )
+        self.assertContains(
+            response,
+            'Company',
+            html=True,
+        )
+
+        # Create model
+        result = re.search(
+            r'<input type="hidden" name="import_file_name".*?>',
+            response.rendered_content,
+        )
+        file_name = [val.split('=')[-1].replace('"', '') for val in result.group(0).split(' ') if 'value' in val][0]
+        post_data = {
+            'import_file_name': file_name,
+            'original_file_name': csv_file_create_companyprofiles.name,
+            'input_format': post_data['input_format'],
+        }
+        address = reverse('admin:aklub_companyprofile_process_import')
+        response = self.client.post(address, post_data)
+        self.assertRedirects(response, expected_url=reverse('admin:aklub_companyprofile_changelist'))
+
+        company_profile = Profile.objects.filter(email='test.companyprofile@companyprofile.test')
+        self.assertEqual(company_profile.count(), 1)
+        self.assertEqual(company_profile[0].crn, '11223344')
+        self.assertEqual(company_profile[0].tin, '55667788')
+        self.assertEqual(company_profile[0].name, 'Company')
+        donor = DonorPaymentChannel.objects.filter(user=company_profile[0])
+        self.assertEqual(donor.count(), 1)
+        self.assertEqual(donor[0].VS, '1960243939')
+        self.assertEqual(donor[0].event.name, 'Zažít město jinak')
+        bank_account = BankAccount.objects.filter(bank_account_number='1234567890/0200')
+        self.assertEqual(bank_account.count(), 1)
+        self.assertEqual(donor[0].bank_account, bank_account[0])
+        user_bank_account = UserBankAccount.objects.filter(bank_account_number='5554443331/0900')
+        self.assertEqual(user_bank_account.count(), 1)
+        self.assertEqual(donor[0].user_bank_account, user_bank_account[0])
+        self.assertEqual(company_profile[0].polymorphic_ctype, ContentType.objects.get(model='companyprofile'))
+        self.assertEqual(company_profile[0].username, 'test.companyprofile')
+        preference = Preference.objects.filter(user=company_profile[0])
+        self.assertEqual(preference.count(), 1)
+        self.assertEqual(preference[0].send_mailing_lists, True)
+        self.assertEqual(preference[0].letter_on, True)
+
+        # Update model
+        p = pathlib.PurePath(__file__)
+        csv_file = 'update_company_profiles.csv'
+        csv_file_update_company_profiles = p.parents[1] / 'test_data' / csv_file
+        address = reverse('admin:aklub_companyprofile_import')
+        with open(csv_file_update_company_profiles) as fp:
+            post_data = {
+                'import_file': fp,
+                'input_format': 0,
+            }
+            response = self.client.post(address, post_data)
+
+        result = re.search(
+            r'<input type="hidden" name="import_file_name".*?>',
+            response.rendered_content,
+        )
+        file_name = [val.split("=")[-1].replace('"', '') for val in result.group(0).split(" ") if "value" in val][0]
+        post_data = {
+            'import_file_name': file_name,
+            'original_file_name': csv_file_update_company_profiles.name,
+            'input_format': post_data['input_format'],
+        }
+        address = reverse('admin:aklub_companyprofile_process_import')
+        response = self.client.post(address, post_data)
+        self.assertRedirects(response, expected_url=reverse('admin:aklub_companyprofile_changelist'))
+
+        company_profile = Profile.objects.filter(email='test.companyprofile@companyprofile.test')
+        self.assertEqual(company_profile.count(), 1)
+        self.assertEqual(company_profile[0].crn, '22334455')
+        self.assertEqual(company_profile[0].tin, '99887766')
+        self.assertEqual(company_profile[0].name, 'Update Company')
+        donor = DonorPaymentChannel.objects.filter(user=company_profile[0])
+        self.assertEqual(donor.count(), 1)
+        self.assertEqual(donor[0].event.name, 'Zažít město jinak')
+        bank_account = BankAccount.objects.filter(bank_account_number='3333333333/0300')
+        self.assertEqual(bank_account.count(), 1)
+        self.assertEqual(donor[0].bank_account, bank_account[0])
+        user_bank_account = UserBankAccount.objects.filter(bank_account_number='5554443331/0900')
+        self.assertEqual(user_bank_account.count(), 1)
+        self.assertEqual(donor[0].user_bank_account, user_bank_account[0])
+        self.assertEqual(company_profile[0].polymorphic_ctype, ContentType.objects.get(model='companyprofile'))
+        self.assertEqual(company_profile[0].username, 'test.companyprofile')
+        preference = Preference.objects.filter(user=company_profile[0])
         self.assertEqual(preference.count(), 1)
         self.assertEqual(preference[0].send_mailing_lists, False)
         self.assertEqual(preference[0].letter_on, False)
@@ -902,7 +1321,7 @@ class AdminActionsTests(CreateSuperUserMixin, RunCommitHooksMixin, TestCase):
             'post': 'yes',
         }
         self.assertEqual(Profile.objects.exclude(username=self.superuser.username).count(), 2)
-        address = '/aklub/profile/'
+        address = reverse('admin:aklub_profile_changelist')
         response = self.client.post(address, post_data)
-        self.assertRedirects(response, expected_url='/aklub/profile/')
+        self.assertRedirects(response, expected_url=address)
         self.assertEqual(Profile.objects.exclude(username=self.superuser.username).count(), 0)
