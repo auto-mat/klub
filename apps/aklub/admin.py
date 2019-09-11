@@ -869,6 +869,12 @@ class ProfileAdmin(
         if company_profile_qs:
             super().delete_queryset(request, company_profile_qs)
 
+    def get_model_perms(self, request):
+        """
+        Return empty perms dict thus hiding the model from admin index.
+        """
+        return {}
+
 
 class DonorPaymentChannelResource(ModelResource):
     user_email = fields.Field(
