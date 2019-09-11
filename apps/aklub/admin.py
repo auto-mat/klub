@@ -1768,9 +1768,17 @@ class UserProfileAdmin(
     )
 
     def response_add(self, request, obj, post_url_continue=None):
+        response = super(nested_admin.NestedModelAdmin, self).response_add(
+            request, obj, post_url_continue,)
+        if 'add' in response.url or 'change' in response.url:
+            return response
         return redirect('admin:aklub_userprofile_changelist')
 
     def response_change(self, request, obj):
+        response = super(nested_admin.NestedModelAdmin, self).response_add(
+            request, obj,)
+        if 'change' in response.url:
+            return response
         return redirect('admin:aklub_userprofile_changelist')
 
 
@@ -1868,9 +1876,17 @@ class CompanyProfileAdmin(
     )
 
     def response_add(self, request, obj, post_url_continue=None):
+        response = super(nested_admin.NestedModelAdmin, self).response_add(
+            request, obj, post_url_continue,)
+        if 'add' in response.url or 'change' in response.url:
+            return response
         return redirect('admin:aklub_companyprofile_changelist')
 
     def response_change(self, request, obj):
+        response = super(nested_admin.NestedModelAdmin, self).response_add(
+            request, obj,)
+        if 'change' in response.url:
+            return response
         return redirect('admin:aklub_companyprofile_changelist')
 
 
