@@ -1602,7 +1602,7 @@ class BaseProfileChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModel
             'classes': ('collapse',),
             'fields': [
                 ('password',),
-                ('is_staff', 'is_superuser'),
+                ('is_staff', 'is_superuser', 'is_active'),
                 'groups',
                 'administrated_units',
             ],
