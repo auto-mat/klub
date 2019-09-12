@@ -916,13 +916,13 @@ class CompanyProfile(Profile):
         verbose_name=_(u"Company Registration Number"),
         max_length=20,
         null=True,
-        blank=False,
+        blank=True,
     )
     tin = models.CharField(
         verbose_name=_(u"Tax Identification Number"),
         max_length=20,
         null=True,
-        blank=False,
+        blank=True,
     )
 
 
