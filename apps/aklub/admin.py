@@ -830,6 +830,7 @@ class ProfileAdmin(
         'get_main_telephone',
         'title_before',
         'title_after',
+        'is_active',
         'sex',
         'crn',
         'tin',
@@ -1784,6 +1785,7 @@ class UserProfileAdmin(BaseProfileChildAdmin):
             'classes': ('wide',),
             'fields': (
                 'username', ('first_name', 'last_name'), 'sex',
+                'is_active',
                 ('birth_day', 'birth_month', 'age_group'),
                 'administrative_units',
             ),
@@ -1795,6 +1797,7 @@ class UserProfileAdmin(BaseProfileChildAdmin):
             'classes': ('wide',),
             'fields': (
                 'username', ('first_name', 'last_name'), ('title_before', 'title_after'), 'sex',
+                'is_active',
                 ('birth_day', 'birth_month', 'age_group'),
                 'get_email',
                 'get_main_telephone',
@@ -1826,6 +1829,7 @@ class CompanyProfileAdmin(BaseProfileChildAdmin):
             'classes': ('wide',),
             'fields': (
                 'username', ('name'),
+                'is_active',
                 'administrative_units',
                 'crn',
                 'tin',
@@ -1837,6 +1841,7 @@ class CompanyProfileAdmin(BaseProfileChildAdmin):
             'classes': ('wide',),
             'fields': (
                 'username', ('name'),
+                'is_active',
                 'get_email',
                 'get_main_telephone',
                 'note',
