@@ -1783,6 +1783,39 @@ class UserProfileAdmin(BaseProfileChildAdmin):
         }
          ),
     )
+    list_display = (
+        'person_name',
+        'get_email',
+        'get_administrative_units',
+        'addressment',
+        'get_addressment',
+        'get_last_name_vokativ',
+        'get_main_telephone',
+        'title_before',
+        'title_after',
+        'is_active',
+        'sex',
+        'is_staff',
+        'registered_support_date',
+        'get_event',
+        'variable_symbol',
+        'regular_payments_info',
+        'regular_amount',
+        'date_joined',
+        'last_login',
+    )
+    list_filter = (
+        'is_staff',
+        'is_superuser',
+        'is_active',
+        'groups',
+        'language',
+        'userincampaign__campaign',
+        filters.RegularPaymentsFilter,
+        filters.EmailFilter,
+        filters.TelephoneFilter,
+        filters.NameFilter,
+    )
 
 
 @admin.register(CompanyProfile)
@@ -1825,6 +1858,20 @@ class CompanyProfileAdmin(BaseProfileChildAdmin):
             ],
         }
          ),
+    )
+    list_display = (
+        'person_name',
+        'username',
+        'crn',
+        'tin',
+    )
+    list_filter = (
+        'language',
+        'userincampaign__campaign',
+        filters.RegularPaymentsFilter,
+        filters.EmailFilter,
+        filters.TelephoneFilter,
+        filters.NameFilter,
     )
 
 
