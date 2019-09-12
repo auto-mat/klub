@@ -1598,30 +1598,6 @@ class BaseProfileChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModel
     """ Base admin class for all Profile child models """
     merge_form = ProfileMergeForm
 
-    superuser_fieldsets = (
-        (_('Rights and permissions'), {
-            'classes': ('collapse',),
-            'fields': [
-                ('password',),
-                ('is_staff', 'is_superuser', 'is_active'),
-                'groups',
-                'administrated_units',
-            ],
-        }
-        ),
-    )
-
-    def get_fieldsets(self, request, obj=None):
-        if obj:
-            fieldsets = self.edit_fieldsets
-        else:
-            fieldsets = self.add_fieldsets
-        if request.user.is_superuser and self.superuser_fieldsets:
-            return fieldsets + self.superuser_fieldsets
-        else:
-            return fieldsets
-        super().get_fieldsets(request, obj)
-
     def save_formset(self, request, form, formset, change):
         formset.save()
         if issubclass(formset.model, DonorPaymentChannel):
@@ -1770,39 +1746,29 @@ class UserProfileAdmin(
         }
          ),
     )
-    list_display = (
-        'person_name',
-        'get_email',
-        'get_administrative_units',
-        'addressment',
-        'get_addressment',
-        'get_last_name_vokativ',
-        'get_main_telephone',
-        'title_before',
-        'title_after',
-        'is_active',
-        'sex',
-        'is_staff',
-        'registered_support_date',
-        'get_event',
-        'variable_symbol',
-        'regular_payments_info',
-        'regular_amount',
-        'date_joined',
-        'last_login',
+    superuser_fieldsets = (
+        (_('Rights and permissions'), {
+            'classes': ('collapse',),
+            'fields': [
+                ('password',),
+                ('is_staff', 'is_superuser', 'is_active'),
+                'groups',
+                'administrated_units',
+            ],
+        }
+        ),
     )
-    list_filter = (
-        'is_staff',
-        'is_superuser',
-        'is_active',
-        'groups',
-        'language',
-        'userincampaign__campaign',
-        filters.RegularPaymentsFilter,
-        filters.EmailFilter,
-        filters.TelephoneFilter,
-        filters.NameFilter,
-    )
+
+    def get_fieldsets(self, request, obj=None):
+        if obj:
+            fieldsets = self.edit_fieldsets
+        else:
+            fieldsets = self.add_fieldsets
+        if request.user.is_superuser and self.superuser_fieldsets:
+            return fieldsets + self.superuser_fieldsets
+        else:
+            return fieldsets
+        super().get_fieldsets(request, obj)
 
     def response_add(self, request, obj, post_url_continue=None):
         response = super(nested_admin.NestedModelAdmin, self).response_add(
@@ -1913,20 +1879,26 @@ class CompanyProfileAdmin(
         }
          ),
     )
-    list_display = (
-        'person_name',
-        'username',
-        'crn',
-        'tin',
+    superuser_fieldsets = (
+        (_('Rights and permissions'), {
+            'classes': ('collapse',),
+            'fields': [
+                ('is_active',),
+            ],
+        }
+        ),
     )
-    list_filter = (
-        'language',
-        'userincampaign__campaign',
-        filters.RegularPaymentsFilter,
-        filters.EmailFilter,
-        filters.TelephoneFilter,
-        filters.NameFilter,
-    )
+
+    def get_fieldsets(self, request, obj=None):
+        if obj:
+            fieldsets = self.edit_fieldsets
+        else:
+            fieldsets = self.add_fieldsets
+        if request.user.is_superuser and self.superuser_fieldsets:
+            return fieldsets + self.superuser_fieldsets
+        else:
+            return fieldsets
+        super().get_fieldsets(request, obj)
 
     def response_add(self, request, obj, post_url_continue=None):
         response = super(nested_admin.NestedModelAdmin, self).response_add(
