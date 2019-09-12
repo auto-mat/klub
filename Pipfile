@@ -28,8 +28,8 @@ django-related-admin = "*"
 django-denorm = "*"
 gunicorn = "*"
 django-betterforms = "*"
-django-adminactions = {editable = true, ref = "develop", git = "https://github.com/saxix/django-adminactions.git"}
-django-helpdesk = {editable = true, ref = "912727555774151c39d1eb9039a0882fcdde9550", git = "https://github.com/django-helpdesk/django-helpdesk.git"}
+django-adminactions = {editable = true,ref = "develop",git = "https://github.com/saxix/django-adminactions.git"}
+django-helpdesk = {editable = true,ref = "develop",git = "https://github.com/django-helpdesk/django-helpdesk.git"}
 django-admin-large-initial-data = "*"
 django-admin-tools-stats = "*"
 django-bower = "*"
@@ -38,7 +38,7 @@ django-adminfilters = "<1.1"
 django-advanced-filters = "*"
 django-bulk-update = "*"
 django-extra-views = "*"
-django-sesame = "*"
+django-sesame = "==1.4" # File "/home/travis/build/auto-mat/klub/.venv/lib/python3.6/site-packages/sesame/backends.py", line 96, in get_revocation_key | value += user.password | TypeError: must be str, not NoneType
 django-ses = "*"
 vokativ = "*"
 Django = ">=2,<3"
@@ -70,6 +70,7 @@ newrelic = "*"
 django_celery_monitor = "*"
 
 [dev-packages]
+django-silk = "*"
 coverage = "*"
 django_coverage_plugin = "*"
 freezegun = "*"
@@ -82,7 +83,7 @@ pudb = "*"
 "flake8-tidy-imports" = "*"
 "flake8-builtins" = "*"
 coveralls = "*"
-django-admin-smoke-tests = {git = "https://github.com/jnoortheen/django-admin-smoke-tests", editable = true}
+django-admin-smoke-tests = {git = "https://github.com/jnoortheen/django-admin-smoke-tests",editable = true}
 model_mommy = "*"
 mock = "*"
 

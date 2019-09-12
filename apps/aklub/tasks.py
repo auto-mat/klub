@@ -56,7 +56,11 @@ def parse_account_statement(statement_id):
     statement = models.AccountStatements.objects.get(id=statement_id)
     if statement.csv_file:  # new Account statement
         if statement.type == 'account':
-            statement.payments = statement.parse_bank_csv()
+            statement.payments = statement.parse_bank_csv_fio()
+
+        elif statement.type == 'account_cs':
+            statement.payments = statement.parse_bank_csv_cs()
+
         elif statement.type == 'darujme':
             statement.payments, statement.skipped_payments = parse_darujme(statement.csv_file)
     statement.save()

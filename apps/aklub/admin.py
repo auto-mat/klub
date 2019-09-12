@@ -103,6 +103,7 @@ class PaymentsInlineNoExtra(PaymentsInline):
         'account',
         'bank_code',
         'VS',
+        'VS2',
         'SS',
         'KS',
         'BIC',
@@ -183,7 +184,7 @@ send_mass_communication_distinct_action.short_description = _("Send mass communi
 class UserProfileResource(ModelResource):
     class Meta:
         model = UserProfile
-        exclude = ('id',)
+        exclude = ('id', 'groups', 'user_permissions', 'campaigns')
         import_id_fields = ('email',)
 
     def before_import_row(self, row, **kwargs):
@@ -559,6 +560,7 @@ class PaymentAdmin(ImportExportMixin, RelatedFieldAdmin):
         "specification",
         "order_id",
         'VS',
+        'VS2',
         'SS',
         'user_identification',
         'type',
@@ -580,6 +582,7 @@ class PaymentAdmin(ImportExportMixin, RelatedFieldAdmin):
                 'account_name',
                 'bank_name',
                 'VS',
+                'VS2',
                 'KS',
                 'SS',
                 'BIC',
@@ -603,6 +606,7 @@ class PaymentAdmin(ImportExportMixin, RelatedFieldAdmin):
         'KS',
         'SS',
         'VS',
+        'VS2',
         'account',
         'account_name',
         'account_statement',
