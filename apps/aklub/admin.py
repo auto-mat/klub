@@ -351,20 +351,14 @@ def send_mass_communication_distinct_action(self, req, queryset, distinct=False)
 send_mass_communication_distinct_action.short_description = _("Send mass communication withoud duplicities")
 
 
-def get_profile_admin_export_base_fields():
+def get_profile_admin_export_base_order_fields():
     return [
         'administrative_units',
         'email',
         'telephone',
         'donor',
-        'last_login',
-        'groups',
-        'user_permissions',
         'username',
-        'is_active',
         'date_joined',
-        'password',
-        'campaigns',
         'addressment',
         'addressment_on_envelope',
         'language',
@@ -379,14 +373,7 @@ def get_profile_admin_export_base_fields():
         'correspondence_zip_code',
         'other_support',
         'public',
-        'profile_text',
-        'profile_picture',
-        'club_card_available',
-        'club_card_dispatched',
-        'other_benefits',
         'note',
-        'created',
-        'updated',
         'send_mailing_lists',
         'newsletter_on',
         'call_on',
@@ -395,16 +382,37 @@ def get_profile_admin_export_base_fields():
     ]
 
 
+def get_profile_admin_model_import_export_exclude_fields():
+    return [
+        'id',
+        'is_superuser',
+        'is_staff',
+        'administrated_units',
+        'polymorphic_ctype',
+        'profile_ptr',
+        'last_login',
+        'groups',
+        'user_permissions',
+        'is_active',
+        'password',
+        'campaigns',
+        'profile_text',
+        'profile_picture',
+        'club_card_available',
+        'club_card_dispatched',
+        'other_benefits',
+        'created',
+        'updated',
+    ]
+
+
 class UserProfileResource(ProfileModelResourceMixin):
     class Meta:
         model = UserProfile
-        exclude = (
-            'id', 'is_superuser', 'is_staff', 'administrated_units',
-            'polymorphic_ctype', 'profile_ptr',
-        )
+        exclude = get_profile_admin_model_import_export_exclude_fields()
         import_id_fields = ('email', )
         export_order = (
-            get_profile_admin_export_base_fields() +
+            get_profile_admin_export_base_order_fields() +
             [
                 'title_before', 'first_name', 'last_name',
                 'title_after', 'sex', 'age_group', 'birth_month',
@@ -416,14 +424,10 @@ class UserProfileResource(ProfileModelResourceMixin):
 class CompanyProfileResource(ProfileModelResourceMixin):
     class Meta:
         model = CompanyProfile
-        exclude = (
-            'id', 'is_superuser', 'is_staff', 'administrated_units',
-            'polymorphic_ctype', 'profile_ptr',
-        )
+        exclude = get_profile_admin_model_import_export_exclude_fields()
         import_id_fields = ('email', )
-
         export_order = (
-            get_profile_admin_export_base_fields() +
+            get_profile_admin_export_base_order_fields() +
             [
                 'name', 'crn', 'tin',
             ]
@@ -433,13 +437,10 @@ class CompanyProfileResource(ProfileModelResourceMixin):
 class ProfileResource(ProfileModelResource):
     class Meta:
         model = Profile
-        exclude = (
-            'id', 'is_superuser', 'is_staff',
-            'administrated_units', 'polymorphic_ctype',
-        )
+        exclude = get_profile_admin_model_import_export_exclude_fields()
         import_id_fields = ('email', )
         export_order = (
-            get_profile_admin_export_base_fields() +
+            get_profile_admin_export_base_order_fields() +
             [
                 'name', 'crn', 'tin', 'sex', 'title_after',
                 'first_name', 'last_name', 'title_before',
