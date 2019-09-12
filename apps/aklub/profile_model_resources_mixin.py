@@ -40,7 +40,7 @@ def preference_model_dehydrate_decorator(field):
                     administrative_unit=profile.administrated_units.first(),
                 ).first()
                 if preference:
-                    return preference.newsletter_on
+                    return getattr(preference, field)
         return wrapped_f
     return wrap
 
