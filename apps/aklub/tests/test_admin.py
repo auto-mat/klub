@@ -653,13 +653,13 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
             ''.join(
                 [
                     '0,test.userprofile@userprofile.test,,',
-                    '"VS:140147010\nevent:Klub přátel Auto*Matu\nbank_accout:\nuser_bank_account:\n\n"',
-                    ',,,,test.userprofile,1,2016-09-16 16:22:30,,,,,en,,Praha 4,Česká republika,,1,,,',
-                    'Česká republika,,,True,,,0,0,,,{created},{updated},True,True,True,'.format(
+                    '"VS:140147010\nevent:Klub přátel Auto*Matu\nbank_accout:\nuser_bank_account:\n\n",'
+                    ',,,test.userprofile,1,2016-09-16 16:22:30,,,,,en,,Praha 4,Česká republika,,1,,,',
+                    'Česká republika,,,False,,,0,0,,,{created},{updated},False,True,'.format(
                         created=user_profile.created.strftime(date_time_format),
                         updated=user_profile.updated.strftime(date_time_format),
                     ),
-                    'True,True,,,,male,Phdr.,Foo,Bar,Ing.,,,userprofile,',
+                    'True,True,True,,,,male,Phdr.,Foo,Bar,Ing.,,,userprofile,',
                 ],
             ),
         )
@@ -668,13 +668,13 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
             ''.join(
                 [
                     '1,test.companyprofile@companyprofile.test,,',
-                    '"VS:150157010\nevent:Klub přátel Auto*Matu\nbank_accout:\nuser_bank_account:\n\n",'
+                    '"VS:150157010\nevent:Klub přátel Auto*Matu\nbank_accout:\nuser_bank_account:\n\n",',
                     ',,,test.companyprofile,1,2016-09-16 16:22:30,,,,,en,,Praha 4,Česká republika,,1,,,',
-                    'Česká republika,,,True,,,0,0,,,{created},{updated},True,True,True,'.format(
+                    'Česká republika,,,False,,,0,0,,,{created},{updated},False,'.format(
                         created=company_profile.created.strftime(date_time_format),
                         updated=company_profile.updated.strftime(date_time_format),
                     ),
-                    'True,True,Company,11223344,55667788,,,,,,,,companyprofile,',
+                    'True,True,True,True,Company,11223344,55667788,,,,,,,,companyprofile,',
                 ],
             ),
         )
@@ -696,11 +696,11 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
                     '0,test.userprofile@userprofile.test,,',
                     '"VS:140147010\nevent:Klub přátel Auto*Matu\nbank_accout:\nuser_bank_account:\n\n",',
                     ',,,test.userprofile,1,2016-09-16 16:22:30,,,,,en,,Praha 4,Česká republika,,1,,,',
-                    'Česká republika,,,True,,,0,0,,,{created},{updated},True,True,'.format(
+                    'Česká republika,,,False,,,0,0,,,{created},{updated},'.format(
                         created=user_profile.created.strftime(date_time_format),
                         updated=user_profile.updated.strftime(date_time_format),
                     ),
-                    'True,True,True,Ing.,Foo,Bar,Phdr.,male,,,',
+                    'False,True,True,True,True,Ing.,Foo,Bar,Phdr.,male,,,',
                 ],
             ),
         )
@@ -720,13 +720,13 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
             ''.join(
                 [
                     '1,test.companyprofile@companyprofile.test,,',
-                    '"VS:150157010\nevent:Klub přátel Auto*Matu\nbank_accout:\nuser_bank_account:\n\n",'
+                    '"VS:150157010\nevent:Klub přátel Auto*Matu\nbank_accout:\nuser_bank_account:\n\n",',
                     ',,,test.companyprofile,1,2016-09-16 16:22:30,,,,,en,,Praha 4,Česká republika,,1,,,',
-                    'Česká republika,,,True,,,0,0,,,{created},{updated},True,True,True,'.format(
+                    'Česká republika,,,False,,,0,0,,,{created},{updated},'.format(
                         created=company_profile.created.strftime(date_time_format),
                         updated=company_profile.updated.strftime(date_time_format),
                     ),
-                    'True,True,Company,11223344,55667788',
+                    'False,True,True,True,True,Company,11223344,55667788',
                 ],
             ),
         )
