@@ -62,7 +62,6 @@ from polymorphic.admin import PolymorphicChildModelAdmin, PolymorphicParentModel
 from related_admin import RelatedFieldAdmin
 
 from smmapdfs.actions import make_pdfsandwich
-from smmapdfs.admin_abcs import PdfSandwichAdmin, PdfSandwichFieldAdmin
 
 from . import darujme, filters, mailing, tasks
 from .filters import unit_admin_mixin_generator
@@ -71,7 +70,7 @@ from .models import (
     AccountStatements, AdministrativeUnit, AutomaticCommunication, BankAccount,
     CompanyProfile, Condition, DonorPaymentChannel, Event, Expense, Interaction,
     MassCommunication, NewUser, Payment, Preference, Profile, ProfileEmail, Recruiter,
-    Result, Source, TaxConfirmation, TaxConfirmationField, TaxConfirmationPdf, Telephone,
+    Result, Source, TaxConfirmation, Telephone,
     TerminalCondition, UserBankAccount, UserProfile, UserYearPayments,
 )
 
@@ -1688,14 +1687,6 @@ class TaxConfirmationAdmin(unit_admin_mixin_generator('user_profile__administrat
         return my_urls + urls
 
 
-class TaxConfirmationPdfAdmin(PdfSandwichAdmin):
-    pass
-
-
-class TaxConfirmationFieldAdmin(PdfSandwichFieldAdmin):
-    pass
-
-
 @admin.register(AdministrativeUnit)
 class AdministrativeUnitAdmin(admin.ModelAdmin):
     list_display = (
@@ -1872,8 +1863,6 @@ admin.site.register(Event, EventAdmin)
 admin.site.register(Result, ResultAdmin)
 admin.site.register(Recruiter, RecruiterAdmin)
 admin.site.register(TaxConfirmation, TaxConfirmationAdmin)
-admin.site.register(TaxConfirmationPdf, TaxConfirmationPdfAdmin)
-admin.site.register(TaxConfirmationField, TaxConfirmationFieldAdmin)
 admin.site.register(Source, SourceAdmin)
 admin.site.register(Profile, ProfileAdmin)
 admin.site.register(BankAccount, BankAccountAdmin)

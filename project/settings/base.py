@@ -219,6 +219,7 @@ INSTALLED_APPS = (
     'djcelery_email',
     'nested_admin',
     'smmapdfs',
+    'smmapdfs_edit',
     'repolinks',
 )
 
