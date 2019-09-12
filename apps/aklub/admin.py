@@ -184,7 +184,7 @@ send_mass_communication_distinct_action.short_description = _("Send mass communi
 class UserProfileResource(ModelResource):
     class Meta:
         model = UserProfile
-        exclude = ('id',)
+        exclude = ('id', 'groups', 'user_permissions', 'campaigns')
         import_id_fields = ('email',)
 
     def before_import_row(self, row, **kwargs):

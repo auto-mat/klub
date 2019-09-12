@@ -1,11 +1,14 @@
 from settings import *  # noqa
-from settings import ALLOWED_HOSTS, INSTALLED_APPS, LOGGING, MIDDLEWARE, TEMPLATES
+from settings import ALLOWED_HOSTS, INSTALLED_APPS, LOGGING, MIDDLEWARE
 
 INSTALLED_APPS += (
     'debug_toolbar',
+    'silk',
 )
 
-MIDDLEWARE += (
+MIDDLEWARE = (
+    'silk.middleware.SilkyMiddleware',  # Placement sensitive https://github.com/jazzband/django-silk
+    ) + MIDDLEWARE + (
     'debug_toolbar.middleware.DebugToolbarMiddleware',
 )
 
@@ -40,11 +43,4 @@ X_FRAME_OPTIONS = 'ALLOW'
 
 CORS_ORIGIN_ALLOW_ALL = True
 
-
-class InvalidStringError(str):
-    def __mod__(self, other):
-        raise Exception("empty string %s" % other)
-        return "!!!!!empty string %s!!!!!" % other
-
-
-TEMPLATES[0]['OPTIONS']['string_if_invalid'] = InvalidStringError("%s")
+SILKY_PYTHON_PROFILER = True
