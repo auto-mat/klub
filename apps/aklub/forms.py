@@ -7,7 +7,7 @@ from django.urls import reverse_lazy
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
-from .models import AdministrativeUnit, ProfileEmail
+from .models import AdministrativeUnit, CompanyProfile, ProfileEmail
 from .views import get_unique_username
 
 Profile = get_user_model()
@@ -171,3 +171,48 @@ class UnitUserProfileChangeForm(UnitUserProfileAddForm):
         super(UnitUserProfileAddForm, self).__init__(*args, **kwargs)
         self.fields['administrative_units'].queryset = self.instance.administrative_units.all()
         self.fields['administrative_units'].disabled = True
+
+
+class CompanyProfileAddForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = '__all__'
+
+    def clean(self):
+        try:
+            company = CompanyProfile.objects.get(crn=self.cleaned_data['crn'])
+            if not self.request.user.has_perm('aklub.can_edit_all_units'):
+                administrated_unit = AdministrativeUnit.objects.get(id=self.request.user.administrated_units.first().id)
+                company.administrative_units.add(administrated_unit)
+                message = 'Company with this crn already exist in database and is available now, click here to edit'
+            else:
+                message = 'Company with this crn already exist click here to see'
+            url = reverse('admin:aklub_companyprofile_change', args=(company.pk,))
+            self.add_error(
+                'crn',
+                mark_safe(
+                    _(f'<a href="{url}">{message}</a>'),
+                ),
+            )
+        except CompanyProfile.DoesNotExist:
+            return super().clean()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.request.user.has_perm('aklub.can_edit_all_units'):
+            self.fields['administrative_units'].queryset = self.request.user.administrated_units.all()
+            self.fields['administrative_units'].required = True
+
+
+class CompanyProfileChangeForm(CompanyProfileAddForm):
+    class Meta(CompanyProfileAddForm.Meta):
+        pass
+
+    def clean(self):
+        pass
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.request.user.has_perm('aklub.can_edit_all_units'):
+            self.fields['administrative_units'].queryset = self.instance.administrative_units.all()
+            self.fields['administrative_units'].disabled = True

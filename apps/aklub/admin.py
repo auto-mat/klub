@@ -65,7 +65,10 @@ from smmapdfs.admin_abcs import PdfSandwichAdmin, PdfSandwichFieldAdmin
 
 from . import darujme, filters, mailing, tasks
 from .filters import unit_admin_mixin_generator
-from .forms import UnitUserProfileAddForm, UnitUserProfileChangeForm, UserCreateForm, UserUpdateForm
+from .forms import (
+    CompanyProfileAddForm, CompanyProfileChangeForm, UnitUserProfileAddForm,
+    UnitUserProfileChangeForm, UserCreateForm, UserUpdateForm,
+)
 from .models import (
     AccountStatements, AdministrativeUnit, AutomaticCommunication, BankAccount,
     CompanyProfile, Condition, DonorPaymentChannel, Event, Expense, Interaction,
@@ -1859,9 +1862,9 @@ class CompanyProfileAdmin(
 
     def get_form(self, request, obj=None, **kwargs):
         if obj:
-            self.form = UserUpdateForm
+            self.form = CompanyProfileChangeForm
         else:
-            self.form = UserCreateForm
+            self.form = CompanyProfileAddForm
         form = super().get_form(request, obj, **kwargs)
         form.base_fields['language'].required = False
         form.request = request
