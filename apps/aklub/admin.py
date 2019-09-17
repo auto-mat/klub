@@ -34,7 +34,6 @@ from django import forms
 from django.contrib import admin, messages
 from django.contrib.admin import site
 from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.forms import UsernameField
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator
@@ -65,7 +64,10 @@ from smmapdfs.actions import make_pdfsandwich
 
 from . import darujme, filters, mailing, tasks
 from .filters import unit_admin_mixin_generator
-from .forms import UserCreateForm, UserUpdateForm
+from .forms import (
+    CompanyProfileAddForm, CompanyProfileChangeForm, UnitUserProfileAddForm,
+    UnitUserProfileChangeForm, UserCreateForm, UserUpdateForm,
+)
 from .models import (
     AccountStatements, AdministrativeUnit, AutomaticCommunication, BankAccount,
     CompanyProfile, Condition, DonorPaymentChannel, Event, Expense, Interaction,
@@ -612,78 +614,6 @@ class UserBankAccountAdmin(admin.ModelAdmin):
     )
 
 
-class UnitProfileAddForm(forms.ModelForm):
-    username = forms.CharField(required=False,)
-
-    class Meta:
-        model = Profile
-        fields = (
-            'username',
-            # 'first_name',
-            # 'last_name',
-            # 'title_before',
-            # 'title_after',
-            'email',
-            # 'useprofile__sex',
-            # 'birth_day',
-            # 'birth_month',
-            # 'age_group',
-            'note',
-            'administrative_units',
-            'street',
-            'city',
-            'country',
-            'zip_code',
-            'different_correspondence_address',
-            'correspondence_street',
-            'correspondence_city',
-            'correspondence_country',
-            'correspondence_zip_code',
-            'addressment',
-            'addressment_on_envelope',
-        )
-        field_classes = {'username': UsernameField}
-
-    def clean(self):
-        if self.cleaned_data['email'] is None:
-            return super().clean()
-        try:
-            user = Profile.objects.get(email=self.cleaned_data['email'])
-            administrated_unit = AdministrativeUnit.objects.get(id=self.request.user.administrated_units.first().id)
-            user.administrative_units.add(administrated_unit)
-            user.save()
-            url = reverse('admin:aklub_userprofile_change', args=(user.pk,))
-            self.add_error(
-                'email',
-                mark_safe(
-                    _(f'<a href="{url}">User with this email already exist in database and is available now, click here to edit</a>'),
-                ),
-            )
-        except Profile.DoesNotExist:
-            pass
-
-        return super().clean()
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['administrative_units'].queryset = self.request.user.administrated_units.all()
-        self.fields['administrative_units'].required = True
-
-
-class UnitProfileChangeForm(UnitProfileAddForm):
-
-    class Meta(UnitProfileAddForm.Meta):
-        pass
-
-    def clean(self):
-        pass
-
-    def __init__(self, *args, **kwargs):
-        super(UnitProfileAddForm, self).__init__(*args, **kwargs)
-        self.fields['administrative_units'].queryset = self.instance.administrative_units.all()
-        self.fields['administrative_units'].disabled = True
-
-
 class ProfileAdminMixin:
     """ ProfileAdmin mixin """
 
@@ -801,19 +731,6 @@ class ProfileAdmin(
 
     ordering = ('email',)
     filter_horizontal = ('groups', 'user_permissions',)
-
-    def get_form(self, request, obj=None, **kwargs):
-        if request.user.is_superuser:
-            form = super().get_form(request, obj, **kwargs)
-            form.request = request
-            return form
-        if obj is None:
-            form = UnitProfileAddForm
-            form.request = request
-            return form
-        form = UnitProfileChangeForm
-        form.request = request
-        return form
 
     def event(self, obj):
         result = Profile.objects.get(id=obj.id)
@@ -1610,20 +1527,18 @@ class BaseProfileChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModel
         for inline in self.get_inline_instances(request, obj):
             inline.form.request = request
             yield inline.get_formset(request, obj), inline
+
     readonly_fields = (
         'userattendance_links', 'date_joined', 'last_login', 'get_main_telephone',
         'get_email', 'regular_amount', 'regular_payments_info', 'variable_symbol', 'registered_support_date',
     )
-
-    def get_form(self, request, obj=None, **kwargs):
-        if obj:
-            self.form = UserUpdateForm
-        else:
-            self.form = UserCreateForm
-        form = super().get_form(request, obj, **kwargs)
-        form.base_fields['language'].required = False
-        return form
-
+    '''
+    def get_inline_instances(self, request, obj=None):
+        inlines = super().get_inline_instances(request, obj)
+        if not obj:
+            inlines = []
+        return inlines
+    '''
     actions = (send_mass_communication_distinct_action,)
     inlines = [
         PreferenceInline, ProfileEmailInline, TelephoneInline,
@@ -1707,7 +1622,7 @@ class UserProfileAdmin(
             'classes': ('wide',),
             'fields': (
                 'username', ('first_name', 'last_name'), 'sex',
-                'is_active',
+                'email', 'is_active',
                 ('birth_day', 'birth_month', 'age_group'),
                 'administrative_units',
             ),
@@ -1750,6 +1665,23 @@ class UserProfileAdmin(
         }
         ),
     )
+
+    def get_form(self, request, obj=None, **kwargs):
+        if request.user.is_superuser:
+            if obj:
+                self.form = UserUpdateForm
+            else:
+                self.form = UserCreateForm
+        else:
+            if obj:
+                self.form = UnitUserProfileChangeForm
+            else:
+                self.form = UnitUserProfileAddForm
+
+        form = super().get_form(request, obj, **kwargs)
+        form.base_fields['language'].required = False
+        form.request = request
+        return form
 
     def get_fieldsets(self, request, obj=None):
         if obj:
@@ -1880,6 +1812,17 @@ class CompanyProfileAdmin(
         }
         ),
     )
+
+    def get_form(self, request, obj=None, **kwargs):
+        if obj:
+            self.form = CompanyProfileChangeForm
+        else:
+            self.form = CompanyProfileAddForm
+        form = super().get_form(request, obj, **kwargs)
+        form.base_fields['language'].required = False
+        form.request = request
+
+        return form
 
     def get_fieldsets(self, request, obj=None):
         if obj:
