@@ -1815,6 +1815,7 @@ class CompanyProfileAdmin(
                 'username', ('name'),
                 'is_active',
                 'administrative_units',
+                'no_crn_check',
                 'crn',
                 'tin',
             ),

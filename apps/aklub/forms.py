@@ -94,7 +94,6 @@ class UserUpdateForm(UserChangeForm):
 
 
 class UnitUserProfileAddForm(forms.ModelForm):
-    username = forms.CharField(required=False,)
 
     class Meta:
         model = Profile
@@ -174,28 +173,49 @@ class UnitUserProfileChangeForm(UnitUserProfileAddForm):
 
 
 class CompanyProfileAddForm(forms.ModelForm):
+    no_crn_check = forms.BooleanField(
+                required=False,
+                initial=False,
+    )
+
     class Meta:
         model = Profile
         fields = '__all__'
 
     def clean(self):
-        try:
-            company = CompanyProfile.objects.get(crn=self.cleaned_data['crn'])
-            if not self.request.user.has_perm('aklub.can_edit_all_units'):
-                administrated_unit = AdministrativeUnit.objects.get(id=self.request.user.administrated_units.first().id)
-                company.administrative_units.add(administrated_unit)
-                message = 'Company with this crn already exist in database and is available now, click here to edit'
-            else:
-                message = 'Company with this crn already exist click here to see'
-            url = reverse('admin:aklub_companyprofile_change', args=(company.pk,))
-            self.add_error(
-                'crn',
-                mark_safe(
-                    _(f'<a href="{url}">{message}</a>'),
-                ),
-            )
-        except CompanyProfile.DoesNotExist:
-            return super().clean()
+        if self.cleaned_data.get('crn') is None and self.cleaned_data.get('tin') is None and self.cleaned_data.get('no_crn_check') is True:
+            pass
+        elif self.cleaned_data.get('crn') is None and self.cleaned_data.get('no_crn_check') is False:
+            self.add_error('no_crn_check', 'Please confirm empty crn number')
+        elif self.cleaned_data.get('crn') is not None and self.cleaned_data.get('no_crn_check') is True:
+            self.add_error('no_crn_check', 'Crn is not empty, please uncheck')
+        else:
+            try:
+                if self.cleaned_data.get('crn') is not None:
+                    company = CompanyProfile.objects.get(crn=self.cleaned_data['crn'])
+                    field = 'crn'
+                elif self.cleaned_data.get('tin') is not None:
+                    company = CompanyProfile.objects.get(tin=self.cleaned_data['tin'])
+                    field = 'tin'
+                else:
+                    return super().clean()
+
+                if not self.request.user.has_perm('aklub.can_edit_all_units'):
+                    administrated_unit = AdministrativeUnit.objects.get(id=self.request.user.administrated_units.first().id)
+                    company.administrative_units.add(administrated_unit)
+                    message = f'Company with this {field} already exist in database and is available now, click here to edit'
+                else:
+                    message = f'Company with this {field} already exist click here to see'
+                url = reverse('admin:aklub_companyprofile_change', args=(company.pk,))
+                self.add_error(
+                    field,
+                    mark_safe(
+                        _(f'<a href="{url}">{message}</a>'),
+                    ),
+                )
+            except CompanyProfile.DoesNotExist:
+                pass
+        return super().clean()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
