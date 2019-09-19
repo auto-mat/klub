@@ -111,8 +111,8 @@ class TestProfilePostMixin:
         if 'crn' in (f.name for f in child_model._meta.fields):
             post_data.update(
                 {
-                    'crn': '00000000' if action == 'add' else '11111111',
-                    'tin': '11111111' if action == 'add' else '22222222',
+                    'crn': '64949681' if action == 'add' else '63278260',
+                    'tin': 'CZ64949681' if action == 'add' else 'CZ63278260',
                     'name': 'Company' if action == 'add' else 'Company edit',
                 }
             )
@@ -150,8 +150,8 @@ class TestProfilePostMixin:
                 self.assertEqual(profile.last_name, 'Last name edit')
             else:
                 self.assertEqual(profile.name, 'Company edit')
-                self.assertEqual(profile.crn, '11111111')
-                self.assertEqual(profile.tin, '22222222')
+                self.assertEqual(profile.crn, '63278260')
+                self.assertEqual(profile.tin, 'CZ63278260')
 
             self.assertEqual(profile.email, None)
 
