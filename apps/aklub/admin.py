@@ -504,6 +504,7 @@ class ProfileMergeForm(merge.MergeForm):
 class PreferenceInline(nested_admin.NestedStackedInline):
     model = Preference
     extra = 0
+    max_number = 1
     can_delete = False
     fieldsets = (
         (None, {
