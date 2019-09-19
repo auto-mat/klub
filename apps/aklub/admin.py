@@ -34,7 +34,6 @@ from django import forms
 from django.contrib import admin, messages
 from django.contrib.admin import site
 from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.forms import UsernameField
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator
@@ -62,16 +61,18 @@ from polymorphic.admin import PolymorphicChildModelAdmin, PolymorphicParentModel
 from related_admin import RelatedFieldAdmin
 
 from smmapdfs.actions import make_pdfsandwich
-from smmapdfs.admin_abcs import PdfSandwichAdmin, PdfSandwichFieldAdmin
 
 from . import darujme, filters, mailing, tasks
 from .filters import unit_admin_mixin_generator
-from .forms import UserCreateForm, UserUpdateForm
+from .forms import (
+    CompanyProfileAddForm, CompanyProfileChangeForm, UnitUserProfileAddForm,
+    UnitUserProfileChangeForm, UserCreateForm, UserUpdateForm,
+)
 from .models import (
     AccountStatements, AdministrativeUnit, AutomaticCommunication, BankAccount,
     CompanyProfile, Condition, DonorPaymentChannel, Event, Expense, Interaction,
     MassCommunication, NewUser, Payment, Preference, Profile, ProfileEmail, Recruiter,
-    Result, Source, TaxConfirmation, TaxConfirmationField, TaxConfirmationPdf, Telephone,
+    Result, Source, TaxConfirmation, Telephone,
     TerminalCondition, UserBankAccount, UserProfile, UserYearPayments,
 )
 from .profile_model_resources import (
@@ -351,20 +352,14 @@ def send_mass_communication_distinct_action(self, req, queryset, distinct=False)
 send_mass_communication_distinct_action.short_description = _("Send mass communication withoud duplicities")
 
 
-def get_profile_admin_export_base_fields():
+def get_profile_admin_export_base_order_fields():
     return [
         'administrative_units',
         'email',
         'telephone',
         'donor',
-        'last_login',
-        'groups',
-        'user_permissions',
         'username',
-        'is_active',
         'date_joined',
-        'password',
-        'campaigns',
         'addressment',
         'addressment_on_envelope',
         'language',
@@ -379,14 +374,7 @@ def get_profile_admin_export_base_fields():
         'correspondence_zip_code',
         'other_support',
         'public',
-        'profile_text',
-        'profile_picture',
-        'club_card_available',
-        'club_card_dispatched',
-        'other_benefits',
         'note',
-        'created',
-        'updated',
         'send_mailing_lists',
         'newsletter_on',
         'call_on',
@@ -395,16 +383,37 @@ def get_profile_admin_export_base_fields():
     ]
 
 
+def get_profile_admin_model_import_export_exclude_fields():
+    return [
+        'id',
+        'is_superuser',
+        'is_staff',
+        'administrated_units',
+        'polymorphic_ctype',
+        'profile_ptr',
+        'last_login',
+        'groups',
+        'user_permissions',
+        'is_active',
+        'password',
+        'campaigns',
+        'profile_text',
+        'profile_picture',
+        'club_card_available',
+        'club_card_dispatched',
+        'other_benefits',
+        'created',
+        'updated',
+    ]
+
+
 class UserProfileResource(ProfileModelResourceMixin):
     class Meta:
         model = UserProfile
-        exclude = (
-            'id', 'is_superuser', 'is_staff', 'administrated_units',
-            'polymorphic_ctype', 'profile_ptr',
-        )
+        exclude = get_profile_admin_model_import_export_exclude_fields()
         import_id_fields = ('email', )
         export_order = (
-            get_profile_admin_export_base_fields() +
+            get_profile_admin_export_base_order_fields() +
             [
                 'title_before', 'first_name', 'last_name',
                 'title_after', 'sex', 'age_group', 'birth_month',
@@ -416,14 +425,10 @@ class UserProfileResource(ProfileModelResourceMixin):
 class CompanyProfileResource(ProfileModelResourceMixin):
     class Meta:
         model = CompanyProfile
-        exclude = (
-            'id', 'is_superuser', 'is_staff', 'administrated_units',
-            'polymorphic_ctype', 'profile_ptr',
-        )
+        exclude = get_profile_admin_model_import_export_exclude_fields()
         import_id_fields = ('email', )
-
         export_order = (
-            get_profile_admin_export_base_fields() +
+            get_profile_admin_export_base_order_fields() +
             [
                 'name', 'crn', 'tin',
             ]
@@ -433,13 +438,10 @@ class CompanyProfileResource(ProfileModelResourceMixin):
 class ProfileResource(ProfileModelResource):
     class Meta:
         model = Profile
-        exclude = (
-            'id', 'is_superuser', 'is_staff',
-            'administrated_units', 'polymorphic_ctype',
-        )
+        exclude = get_profile_admin_model_import_export_exclude_fields()
         import_id_fields = ('email', )
         export_order = (
-            get_profile_admin_export_base_fields() +
+            get_profile_admin_export_base_order_fields() +
             [
                 'name', 'crn', 'tin', 'sex', 'title_after',
                 'first_name', 'last_name', 'title_before',
@@ -613,78 +615,6 @@ class UserBankAccountAdmin(admin.ModelAdmin):
     )
 
 
-class UnitProfileAddForm(forms.ModelForm):
-    username = forms.CharField(required=False,)
-
-    class Meta:
-        model = Profile
-        fields = (
-            'username',
-            # 'first_name',
-            # 'last_name',
-            # 'title_before',
-            # 'title_after',
-            'email',
-            # 'useprofile__sex',
-            # 'birth_day',
-            # 'birth_month',
-            # 'age_group',
-            'note',
-            'administrative_units',
-            'street',
-            'city',
-            'country',
-            'zip_code',
-            'different_correspondence_address',
-            'correspondence_street',
-            'correspondence_city',
-            'correspondence_country',
-            'correspondence_zip_code',
-            'addressment',
-            'addressment_on_envelope',
-        )
-        field_classes = {'username': UsernameField}
-
-    def clean(self):
-        if self.cleaned_data['email'] is None:
-            return super().clean()
-        try:
-            user = Profile.objects.get(email=self.cleaned_data['email'])
-            administrated_unit = AdministrativeUnit.objects.get(id=self.request.user.administrated_units.first().id)
-            user.administrative_units.add(administrated_unit)
-            user.save()
-            url = reverse('admin:aklub_userprofile_change', args=(user.pk,))
-            self.add_error(
-                'email',
-                mark_safe(
-                    _(f'<a href="{url}">User with this email already exist in database and is available now, click here to edit</a>'),
-                ),
-            )
-        except Profile.DoesNotExist:
-            pass
-
-        return super().clean()
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['administrative_units'].queryset = self.request.user.administrated_units.all()
-        self.fields['administrative_units'].required = True
-
-
-class UnitProfileChangeForm(UnitProfileAddForm):
-
-    class Meta(UnitProfileAddForm.Meta):
-        pass
-
-    def clean(self):
-        pass
-
-    def __init__(self, *args, **kwargs):
-        super(UnitProfileAddForm, self).__init__(*args, **kwargs)
-        self.fields['administrative_units'].queryset = self.instance.administrative_units.all()
-        self.fields['administrative_units'].disabled = True
-
-
 class ProfileAdminMixin:
     """ ProfileAdmin mixin """
 
@@ -802,19 +732,6 @@ class ProfileAdmin(
 
     ordering = ('email',)
     filter_horizontal = ('groups', 'user_permissions',)
-
-    def get_form(self, request, obj=None, **kwargs):
-        if request.user.is_superuser:
-            form = super().get_form(request, obj, **kwargs)
-            form.request = request
-            return form
-        if obj is None:
-            form = UnitProfileAddForm
-            form.request = request
-            return form
-        form = UnitProfileChangeForm
-        form.request = request
-        return form
 
     def event(self, obj):
         result = Profile.objects.get(id=obj.id)
@@ -1578,14 +1495,6 @@ class TaxConfirmationAdmin(unit_admin_mixin_generator('user_profile__administrat
         return my_urls + urls
 
 
-class TaxConfirmationPdfAdmin(PdfSandwichAdmin):
-    pass
-
-
-class TaxConfirmationFieldAdmin(PdfSandwichFieldAdmin):
-    pass
-
-
 @admin.register(AdministrativeUnit)
 class AdministrativeUnitAdmin(admin.ModelAdmin):
     list_display = (
@@ -1598,30 +1507,6 @@ class AdministrativeUnitAdmin(admin.ModelAdmin):
 class BaseProfileChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelAdmin):
     """ Base admin class for all Profile child models """
     merge_form = ProfileMergeForm
-
-    superuser_fieldsets = (
-        (_('Rights and permissions'), {
-            'classes': ('collapse',),
-            'fields': [
-                ('password',),
-                ('is_staff', 'is_superuser', 'is_active'),
-                'groups',
-                'administrated_units',
-            ],
-        }
-        ),
-    )
-
-    def get_fieldsets(self, request, obj=None):
-        if obj:
-            fieldsets = self.edit_fieldsets
-        else:
-            fieldsets = self.add_fieldsets
-        if request.user.is_superuser and self.superuser_fieldsets:
-            return fieldsets + self.superuser_fieldsets
-        else:
-            return fieldsets
-        super().get_fieldsets(request, obj)
 
     def save_formset(self, request, form, formset, change):
         formset.save()
@@ -1643,20 +1528,18 @@ class BaseProfileChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModel
         for inline in self.get_inline_instances(request, obj):
             inline.form.request = request
             yield inline.get_formset(request, obj), inline
+
     readonly_fields = (
         'userattendance_links', 'date_joined', 'last_login', 'get_main_telephone',
         'get_email', 'regular_amount', 'regular_payments_info', 'variable_symbol', 'registered_support_date',
     )
-
-    def get_form(self, request, obj=None, **kwargs):
-        if obj:
-            self.form = UserUpdateForm
-        else:
-            self.form = UserCreateForm
-        form = super().get_form(request, obj, **kwargs)
-        form.base_fields['language'].required = False
-        return form
-
+    '''
+    def get_inline_instances(self, request, obj=None):
+        inlines = super().get_inline_instances(request, obj)
+        if not obj:
+            inlines = []
+        return inlines
+    '''
     actions = (send_mass_communication_distinct_action,)
     inlines = [
         PreferenceInline, ProfileEmailInline, TelephoneInline,
@@ -1740,7 +1623,7 @@ class UserProfileAdmin(
             'classes': ('wide',),
             'fields': (
                 'username', ('first_name', 'last_name'), 'sex',
-                'is_active',
+                'email', 'is_active',
                 ('birth_day', 'birth_month', 'age_group'),
                 'administrative_units',
             ),
@@ -1771,39 +1654,46 @@ class UserProfileAdmin(
         }
          ),
     )
-    list_display = (
-        'person_name',
-        'get_email',
-        'get_administrative_units',
-        'addressment',
-        'get_addressment',
-        'get_last_name_vokativ',
-        'get_main_telephone',
-        'title_before',
-        'title_after',
-        'is_active',
-        'sex',
-        'is_staff',
-        'registered_support_date',
-        'get_event',
-        'variable_symbol',
-        'regular_payments_info',
-        'regular_amount',
-        'date_joined',
-        'last_login',
+    superuser_fieldsets = (
+        (_('Rights and permissions'), {
+            'classes': ('collapse',),
+            'fields': [
+                ('password',),
+                ('is_staff', 'is_superuser', 'is_active'),
+                'groups',
+                'administrated_units',
+            ],
+        }
+        ),
     )
-    list_filter = (
-        'is_staff',
-        'is_superuser',
-        'is_active',
-        'groups',
-        'language',
-        'userincampaign__campaign',
-        filters.RegularPaymentsFilter,
-        filters.EmailFilter,
-        filters.TelephoneFilter,
-        filters.NameFilter,
-    )
+
+    def get_form(self, request, obj=None, **kwargs):
+        if request.user.is_superuser:
+            if obj:
+                self.form = UserUpdateForm
+            else:
+                self.form = UserCreateForm
+        else:
+            if obj:
+                self.form = UnitUserProfileChangeForm
+            else:
+                self.form = UnitUserProfileAddForm
+
+        form = super().get_form(request, obj, **kwargs)
+        form.base_fields['language'].required = False
+        form.request = request
+        return form
+
+    def get_fieldsets(self, request, obj=None):
+        if obj:
+            fieldsets = self.edit_fieldsets
+        else:
+            fieldsets = self.add_fieldsets
+        if request.user.is_superuser and self.superuser_fieldsets:
+            return fieldsets + self.superuser_fieldsets
+        else:
+            return fieldsets
+        super().get_fieldsets(request, obj)
 
     def response_add(self, request, obj, post_url_continue=None):
         response = super(nested_admin.NestedModelAdmin, self).response_add(
@@ -1914,20 +1804,37 @@ class CompanyProfileAdmin(
         }
          ),
     )
-    list_display = (
-        'person_name',
-        'username',
-        'crn',
-        'tin',
+    superuser_fieldsets = (
+        (_('Rights and permissions'), {
+            'classes': ('collapse',),
+            'fields': [
+                ('is_active',),
+            ],
+        }
+        ),
     )
-    list_filter = (
-        'language',
-        'userincampaign__campaign',
-        filters.RegularPaymentsFilter,
-        filters.EmailFilter,
-        filters.TelephoneFilter,
-        filters.NameFilter,
-    )
+
+    def get_form(self, request, obj=None, **kwargs):
+        if obj:
+            self.form = CompanyProfileChangeForm
+        else:
+            self.form = CompanyProfileAddForm
+        form = super().get_form(request, obj, **kwargs)
+        form.base_fields['language'].required = False
+        form.request = request
+
+        return form
+
+    def get_fieldsets(self, request, obj=None):
+        if obj:
+            fieldsets = self.edit_fieldsets
+        else:
+            fieldsets = self.add_fieldsets
+        if request.user.is_superuser and self.superuser_fieldsets:
+            return fieldsets + self.superuser_fieldsets
+        else:
+            return fieldsets
+        super().get_fieldsets(request, obj)
 
     def response_add(self, request, obj, post_url_continue=None):
         response = super(nested_admin.NestedModelAdmin, self).response_add(
@@ -1958,8 +1865,6 @@ admin.site.register(Event, EventAdmin)
 admin.site.register(Result, ResultAdmin)
 admin.site.register(Recruiter, RecruiterAdmin)
 admin.site.register(TaxConfirmation, TaxConfirmationAdmin)
-admin.site.register(TaxConfirmationPdf, TaxConfirmationPdfAdmin)
-admin.site.register(TaxConfirmationField, TaxConfirmationFieldAdmin)
 admin.site.register(Source, SourceAdmin)
 admin.site.register(Profile, ProfileAdmin)
 admin.site.register(BankAccount, BankAccountAdmin)

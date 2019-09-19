@@ -18,7 +18,7 @@ django-chart-tools = "*"
 django-mass-edit = "*"
 python-memcached = "*"
 django-import-export = "*"
-django-import-export-celery = ">=0.0.2"
+django-import-export-celery = {git = "https://github.com/auto-mat/django-import-export-celery", editable = true}
 django-author = "*"
 django-qsstats-magic = "*"
 python-dateutil = "*"

@@ -639,94 +639,70 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
     def test_profile_export(self):
         """ Test ProfileAdmin admin model export """
         self.create_profiles()
-        user_profile = Profile.objects.get(email='test.{0}@{0}.test'.format('userprofile'))
-        company_profile = Profile.objects.get(email='test.{0}@{0}.test'.format('companyprofile'))
-
         address = reverse('admin:aklub_profile_export')
         post_data = {
             'file_format': 0,
         }
         response = self.client.post(address, post_data)
-        date_time_format = '%Y-%m-%d %H:%M:%S'
-        self.assertContains(
-            response,
-            ''.join(
-                [
-                    '0,test.userprofile@userprofile.test,,',
-                    '"VS:140147010\nevent:Klub přátel Auto*Matu\nbank_accout:\nuser_bank_account:\n\n"',
-                    ',,,,test.userprofile,1,2016-09-16 16:22:30,,,,,en,,Praha 4,Česká republika,,1,,,',
-                    'Česká republika,,,True,,,0,0,,,{created},{updated},True,True,True,'.format(
-                        created=user_profile.created.strftime(date_time_format),
-                        updated=user_profile.updated.strftime(date_time_format),
-                    ),
-                    'True,True,,,,male,Phdr.,Foo,Bar,Ing.,,,userprofile,',
-                ],
-            ),
-        )
-        self.assertContains(
-            response,
-            ''.join(
-                [
-                    '1,test.companyprofile@companyprofile.test,,',
-                    '"VS:150157010\nevent:Klub přátel Auto*Matu\nbank_accout:\nuser_bank_account:\n\n",'
-                    ',,,test.companyprofile,1,2016-09-16 16:22:30,,,,,en,,Praha 4,Česká republika,,1,,,',
-                    'Česká republika,,,True,,,0,0,,,{created},{updated},True,True,True,'.format(
-                        created=company_profile.created.strftime(date_time_format),
-                        updated=company_profile.updated.strftime(date_time_format),
-                    ),
-                    'True,True,Company,11223344,55667788,,,,,,,,companyprofile,',
-                ],
-            ),
-        )
-
-    def test_userprofile_export(self):
-        """ Test UserProfileAdmin admin model export """
-        self.create_profiles()
-        user_profile = Profile.objects.get(email='test.{0}@{0}.test'.format('userprofile'))
-        address = reverse('admin:aklub_userprofile_export')
-        post_data = {
-            'file_format': 0,
-        }
-        response = self.client.post(address, post_data)
-        date_time_format = '%Y-%m-%d %H:%M:%S'
         self.assertContains(
             response,
             ''.join(
                 [
                     '0,test.userprofile@userprofile.test,,',
                     '"VS:140147010\nevent:Klub přátel Auto*Matu\nbank_accout:\nuser_bank_account:\n\n",',
-                    ',,,test.userprofile,1,2016-09-16 16:22:30,,,,,en,,Praha 4,Česká republika,,1,,,',
-                    'Česká republika,,,True,,,0,0,,,{created},{updated},True,True,'.format(
-                        created=user_profile.created.strftime(date_time_format),
-                        updated=user_profile.updated.strftime(date_time_format),
-                    ),
-                    'True,True,True,Ing.,Foo,Bar,Phdr.,male,,,',
+                    'test.userprofile,2016-09-16 16:22:30,,,en,,Praha 4,Česká republika,,1,,,Česká republika,',
+                    ',,False,,False,True,True,True,True,,,,male,Phdr.,Foo,Bar,Ing.,,,userprofile,',
                 ],
             ),
         )
-
-    def test_companyprofile_export(self):
-        """ Test CompanyProfileAdmin admin model export """
-        self.create_profiles()
-        company_profile = Profile.objects.get(email='test.{0}@{0}.test'.format('companyprofile'))
-        address = reverse('admin:aklub_companyprofile_export')
-        post_data = {
-            'file_format': 0,
-        }
-        response = self.client.post(address, post_data)
-        date_time_format = '%Y-%m-%d %H:%M:%S'
         self.assertContains(
             response,
             ''.join(
                 [
                     '1,test.companyprofile@companyprofile.test,,',
-                    '"VS:150157010\nevent:Klub přátel Auto*Matu\nbank_accout:\nuser_bank_account:\n\n",'
-                    ',,,test.companyprofile,1,2016-09-16 16:22:30,,,,,en,,Praha 4,Česká republika,,1,,,',
-                    'Česká republika,,,True,,,0,0,,,{created},{updated},True,True,True,'.format(
-                        created=company_profile.created.strftime(date_time_format),
-                        updated=company_profile.updated.strftime(date_time_format),
-                    ),
-                    'True,True,Company,11223344,55667788',
+                    '"VS:150157010\nevent:Klub přátel Auto*Matu\nbank_accout:\nuser_bank_account:\n\n",',
+                    'test.companyprofile,2016-09-16 16:22:30,,,en,,Praha 4,Česká republika,,1,,,Česká republika,',
+                    ',,False,,False,True,True,True,True,Company,11223344,55667788,,,,,,,,companyprofile,',
+                ],
+            ),
+        )
+
+    def test_user_profile_export(self):
+        """ Test UserProfileAdmin admin model export """
+        self.create_profiles()
+        address = reverse('admin:aklub_userprofile_export')
+        post_data = {
+            'file_format': 0,
+        }
+        response = self.client.post(address, post_data)
+        self.assertContains(
+            response,
+            ''.join(
+                [
+                    '0,test.userprofile@userprofile.test,,',
+                    '"VS:140147010\nevent:Klub přátel Auto*Matu\nbank_accout:\nuser_bank_account:\n\n",',
+                    'test.userprofile,2016-09-16 16:22:30,,,en,,Praha 4,Česká republika,,1,,,Česká republika,',
+                    ',,False,,False,True,True,True,True,Ing.,Foo,Bar,Phdr.,male,,,',
+                ],
+            ),
+        )
+
+    def test_company_profile_export(self):
+        """ Test CompanyProfileAdmin admin model export """
+        self.create_profiles()
+        address = reverse('admin:aklub_companyprofile_export')
+        post_data = {
+            'file_format': 0,
+        }
+        response = self.client.post(address, post_data)
+        self.assertContains(
+            response,
+            ''.join(
+                [
+                    '1,test.companyprofile@companyprofile.test,,',
+                    '"VS:150157010\nevent:Klub přátel Auto*Matu\nbank_accout:\nuser_bank_account:\n\n",',
+                    'test.companyprofile,2016-09-16 16:22:30,,,en,,Praha 4,Česká republika,,1,,,Česká republika,',
+                    ',,False,,False,True,True,True,True,Company,11223344,55667788',
                 ],
             ),
         )
@@ -841,7 +817,7 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         # Update model
         p = pathlib.PurePath(__file__)
         csv_file_update_profiles = p.parents[1] / 'test_data' / 'update_profiles.csv'
-        address = '/aklub/profile/import/'
+        address = reverse('admin:aklub_profile_import')
         with open(csv_file_update_profiles) as fp:
             post_data = {
                 'import_file': fp,
@@ -1168,6 +1144,9 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
             }
             response = self.client.post(address, post_data)
         self.assertEqual(response.status_code, 200)
+        file = open('/tmp/ola.html', 'w')
+        file.write(response.rendered_content)
+        file.close()
         self.assertContains(
             response,
             'test.companyprofile@companyprofile.test',
