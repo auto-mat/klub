@@ -1,0 +1,27 @@
+MojeBanka, export transakcni historie;;;;;;;;;;;;;;;;;;
+Datum vytvoreni souboru;13.9.2019;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;
+Cislo uctu;115-2766120267 CZK;;;;;;;;;;;;;;;;;
+IBAN;CZ3701000001152766120267;;;;;;;;;;;;;;;;;
+Nazev uctu;DIAKONIE CCE - HOSPIC CITADELA;;;;;;;;;;;;;;;;;
+Vlastni nazev uctu;;;;;;;;;;;;;;;;;;
+Vypis za obdobi;1.7.2019;;;;;;;;;;;;;;;;;
+;31.7.2019;;;;;;;;;;;;;;;;;
+Cislo vypisu;7;;;;;;;;;;;;;;;;;
+Predchozi vypis ze dne;30.6.2019;;;;;;;;;;;;;;;;;
+Pocet polozek;10;;;;;;;;;;;;;;;;;
+Pocatecni zustatek;1 099 270,00;;;;;;;;;;;;;;;;;
+Celkem odepsano (-);0;;;;;;;;;;;;;;;;;
+Celkem pripsano (+);29 630,00;;;;;;;;;;;;;;;;;
+Konecny zustatek;1 128 900,00;;;;;;;;;;;;;;;;;
+Datum splatnosti;Datum odepsani z jine banky;Protiucet/Kod banky;Nazev protiuctu;Castka;Originalni castka;Originalni mena;Kurz;VS;KS;SS;Identifikace transakce;Systemovy popis;Popis prikazce;Popis pro prijemce;AV pole 1;AV pole 2;AV pole 3;AV pole 4
+1.7.2019;;670100-2202705155/6210;;3 000,00;;;;0;0;0;120-20190628 T02AR0GM7AILD;Prichozi uhrada;;CITADELA;;                                  ;                                  ;                                  
+3.7.2019;;1444717349/0800;;4 330,00;;;;1207;0;0;120-20190703 I190703NX4WNZ;Prichozi uhrada;;;;d Vel.                            ;                                  ;                                  
+4.7.2019;;94-2642080267/0100;;200;;;;0;0;0;000-04072019 005-005-001429281;Prichozi uhrada;HOSPIC;Z    CK-0000942642080267;                                  ;                                  ;                                  ;                                  
+10.7.2019;;43-2547700237/0100;;300;;;;1421;0;0;000-10072019 005-005-001345781;Prichozi uhrada;HOSPIC;Z    CK-0000432547700237;                                  ;                                  ;                                  ;                                  
+12.7.2019;;86-6224390287/0100;;15 000,00;;;;110719;0;0;001-12072019 1602 602027 772161;Prichozi uhrada;;;                                  ;                                  ;                                  ;                                  
+15.7.2019;;4792520001/5500;;500;;;;1421;0;0;120-20190616 206065260;Prichozi uhrada;;; dar Citadela         ;                                  ;                                  ;                                  
+15.7.2019;;8287923/0300;;1 000,00;;;;82019;0;0;120-20190715 PR00000240987;Prichozi uhrada;;;dar Citadela                      ;                                  ;                                  ;                                  
+15.7.2019;;2401035182/2010;;4 000,00;;;;0;0;0;120-20190714 0025043041079;Prichozi uhrada;;;;                                  ;                                  ;                                  
+18.7.2019;;100377956/0300;;1 000,00;;;;0;0;0;120-20190717 PR00000453902;Prichozi uhrada;;;prispevek ;                                  ;                                  ;                                  
+25.7.2019;;1208411073/0800;;300;;;;0;0;0;120-20190725 CST0000174221;Prichozi uhrada;;;;                                  ;                                  ;                                  
