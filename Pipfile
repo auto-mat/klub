@@ -68,6 +68,8 @@ email_reply_parser = "*"
 django-smmapdfs = "*"
 newrelic = "*"
 django_celery_monitor = "*"
+django-jsonfield = { markers="python_version < '2'" } # See https://stackoverflow.com/questions/57959565/how-can-i-ban-a-package-from-being-added-to-pipenv-lock-and-installed-by-pipenv/57982959#57982959
+jsonfield = "*"
 
 [dev-packages]
 django-silk = "*"
