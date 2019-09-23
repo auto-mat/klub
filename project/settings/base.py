@@ -208,7 +208,6 @@ INSTALLED_APPS = (
     'aklub',
     'helpdesk',
     'django_celery_beat',
-    'django_celery_monitor',
     'djcelery_email',
     'smmapdfs',
     'repolinks',
