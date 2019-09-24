@@ -365,10 +365,20 @@ def get_user_profile_resource():
     return UserProfileResource
 
 
+def get_company_profile_resource():
+    from aklub.admin import CompanyProfileResource
+    return CompanyProfileResource
+
+
 IMPORT_EXPORT_CELERY_MODELS = {
     "User profile": {
         'app_label': 'aklub',
         'model_name': 'UserProfile',
         'resource': get_user_profile_resource,
+    },
+    "Company profile": {
+        'app_label': 'aklub',
+        'model_name': 'CompanyProfile',
+        'resource': get_company_profile_resource,
     },
 }
