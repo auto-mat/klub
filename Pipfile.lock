@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "6fb308465877be8c58707e90d107d58603dbe1a6bcebe994ed5f86dfa5d34780"
+            "sha256": "e18bc6eb2dd89a56a1535134d306bca1142a29c57529811e59a3d46aac377a94"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -295,17 +295,14 @@
             "version": "==0.3.1"
         },
         "django-import-export": {
-            "hashes": [
-                "sha256:830824f79aae39e4212bb03aabdd83dc57931420557b757981cf6add8d07e611",
-                "sha256:99fae7d963af4ade97af9237a843f250312421fa4ee350a3b735fcc5684c3fb5"
-            ],
-            "index": "pypi",
-            "version": "==1.2.0"
+            "editable": true,
+            "git": "https://github.com/PetrDlouhy/django-import-export",
+            "ref": "b99f78b67b6e36c07f174992dbc1ec4a4b2ba4bf"
         },
         "django-import-export-celery": {
             "editable": true,
             "git": "https://github.com/PetrDlouhy/django-import-export-celery",
-            "ref": "status_report"
+            "ref": "8d682beec8f7adf9e732635c7b23e0f76e664672"
         },
         "django-jsonfield": {
             "hashes": [
@@ -718,9 +715,9 @@
         },
         "python-crontab": {
             "hashes": [
-                "sha256:11488bbac026bf77a659fee0bf8e20de9651753ad0fdf6649237e3b9e04b866a"
+                "sha256:ef1eef66c75fa95a934e203e18721987e7824f9b40cad698edbcfaf2ace11d6c"
             ],
-            "version": "==2.3.8"
+            "version": "==2.3.9"
         },
         "python-dateutil": {
             "hashes": [
