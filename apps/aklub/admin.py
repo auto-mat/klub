@@ -648,6 +648,11 @@ class ProfileAdminMixin:
     regular_amount.short_description = _("Regular amount")
     regular_amount.admin_order_field = 'regular_amount'
 
+    def email_anchor(self, obj):
+        return ''
+
+    email_anchor.short_description = _(mark_safe('<a href="#profileemail_set-group">Details</a>'))
+
 
 class ProfileAdmin(
     filters.AdministrativeUnitAdminMixin,
@@ -1531,6 +1536,7 @@ class BaseProfileChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModel
     readonly_fields = (
         'userattendance_links', 'date_joined', 'last_login', 'get_main_telephone',
         'get_email', 'regular_amount', 'regular_payments_info', 'variable_symbol', 'registered_support_date',
+        'email_anchor',
     )
     '''
     def get_inline_instances(self, request, obj=None):
@@ -1635,7 +1641,7 @@ class UserProfileAdmin(
                 'username', ('first_name', 'last_name'), ('title_before', 'title_after'), 'sex',
                 'is_active',
                 ('birth_day', 'birth_month', 'age_group'),
-                'get_email',
+                ('get_email', 'email_anchor'),
                 'get_main_telephone',
                 'note',
                 'administrative_units',
