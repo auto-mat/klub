@@ -620,33 +620,56 @@ class ProfileAdminMixin:
     def date_format(self, obj):
         return list(map(lambda o: o.strftime('%d. %m. %Y'), obj))
 
-    def get_details(self, obj, attr, *args):
-        return [f[attr] for f in list(obj.values(attr)) if f[attr] is not None]
+    def get_donor_details(self, obj, attr, *args):
+        if not self.request.user.has_perm('aklub.can_edit_all_units'):
+            result = obj.userchannels.filter(bank_account__administrative_unit__in=self.request.user.administrated_units.all()).values(attr)
+        else:
+            result = obj.userchannels.all().values(attr)
+        return [f[attr] if f[attr] is not None else '-' for f in result]
 
     def registered_support_date(self, obj):
-        result = self.get_details(obj.userchannels.all(), "registered_support")
-        return self.date_format(result)
+        result = self.get_donor_details(obj, "registered_support")
+        return ',\n'.join(d.strftime('%Y-%m-%d') for d in result)
 
     registered_support_date.short_description = _("Registration")
     registered_support_date.admin_order_field = 'registered_support'
 
     def variable_symbol(self, obj):
-        return self.get_details(obj.userchannels.all(), "VS")
+        return ',\n'.join(self.get_donor_details(obj, "VS"))
 
     variable_symbol.short_description = _("VS")
     variable_symbol.admin_order_field = 'variable_symbol'
 
     def regular_payments_info(self, obj):
-        return self.get_details(obj.userchannels.all(), "regular_payments")
+        return ',\n'.join(self.get_donor_details(obj, "regular_payments"))
 
     regular_payments_info.short_description = _("Regular payment info")
     regular_payments_info.admin_order_field = 'regular_payments_info'
 
     def regular_amount(self, obj):
-        return self.get_details(obj.userchannels.all(), "regular_amount")
+        result = self.get_donor_details(obj, "regular_amount")
+        return ',\n'.join(str(d) for d in result)
 
     regular_amount.short_description = _("Regular amount")
     regular_amount.admin_order_field = 'regular_amount'
+
+    def total_payment(self, obj):
+        if not self.request.user.has_perm('aklub.can_edit_all_units'):
+            administrative_units = self.request.user.administrated_units.all()
+        else:
+            administrative_units = obj.administrative_units.all()
+
+        results = []
+        for unit in administrative_units:
+            result = Payment.objects.filter(
+                        user_donor_payment_channel__user=obj,
+                        user_donor_payment_channel__bank_account__administrative_unit=unit,
+                        ).aggregate(Count('amount'), Sum('amount'))
+            results.append(f"{unit}: {result['amount__sum']} ({result['amount__count']})")
+        return ',\n'.join(results)
+
+    total_payment.short_description = _("Total payment")
+    total_payment.admin_order_field = 'Total payment'
 
 
 class ProfileAdmin(
@@ -1531,6 +1554,7 @@ class BaseProfileChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModel
     readonly_fields = (
         'userattendance_links', 'date_joined', 'last_login', 'get_main_telephone',
         'get_email', 'regular_amount', 'regular_payments_info', 'variable_symbol', 'registered_support_date',
+        'total_payment',
     )
     '''
     def get_inline_instances(self, request, obj=None):
@@ -1639,7 +1663,8 @@ class UserProfileAdmin(
                 'get_main_telephone',
                 'note',
                 'administrative_units',
-                ('regular_amount', 'regular_payments_info', 'variable_symbol', 'registered_support_date'),
+                'total_payment',
+                ('registered_support_date', 'regular_amount', 'regular_payments_info', 'variable_symbol'),
             ),
         }),
         (_('Contact data'), {
