@@ -1647,8 +1647,16 @@ class UserProfileAdmin(
             'fields': [
                 ('street', 'city',),
                 ('country', 'zip_code'),
-                'different_correspondence_address',
                 ('addressment', 'addressment_on_envelope'),
+                'different_correspondence_address',
+            ],
+        }
+         ),
+        (_('Correspondence address'), {
+            'classes': ('collapse', ),
+            'fields': [
+                ('correspondence_street', 'correspondence_city',),
+                ('correspondence_country', 'correspondence_zip_code'),
             ],
         }
          ),
@@ -1797,12 +1805,21 @@ class CompanyProfileAdmin(
             'fields': [
                 ('street', 'city',),
                 ('country', 'zip_code'),
-                'different_correspondence_address',
                 ('addressment', 'addressment_on_envelope'),
+                'different_correspondence_address',
             ],
         }
          ),
-    )
+
+        (_('Correspondence address'), {
+             'classes': ('collapse', ),
+             'fields': [
+                 ('correspondence_street', 'correspondence_city',),
+                 ('correspondence_country', 'correspondence_zip_code'),
+             ],
+         }
+         ),
+     )
     superuser_fieldsets = (
         (_('Rights and permissions'), {
             'classes': ('collapse',),
