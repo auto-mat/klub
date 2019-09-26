@@ -1490,7 +1490,7 @@ def check_incomming(amount):
 
 def register_payment(p_sort, self):
     p = Payment(**p_sort)
-    AccountStatements.pair_vs(self, p)
+    AccountStatements.payment_pair(self, p)
     p.type = 'bank-transfer'
     p.account_statement = self
     return p
@@ -1562,7 +1562,7 @@ class AccountStatements(models.Model):
             transaction.on_commit(lambda: parse_account_statement.delay(self.pk))
 
     def pair_vs(self, payment):
-        # Payments pairing'
+        # Variable symbols Payments pairing'
         if payment.VS == '':
             payment.VS = None
         else:
@@ -1572,6 +1572,29 @@ class AccountStatements(models.Model):
                 return True
             except DonorPaymentChannel.DoesNotExist:
                 return False
+
+    def payment_pair(self, payment):
+        # Variable symbols and user bank account Payments pairing
+        if payment.VS != '':
+            try:
+                donor_with_vs = DonorPaymentChannel.objects.get(
+                                    VS=payment.VS,
+                                    bank_account__administrative_unit=self.administrative_unit,
+                )
+                payment.user_donor_payment_channel = donor_with_vs
+                return True
+            except (DonorPaymentChannel.DoesNotExist, DonorPaymentChannel.MultipleObjectsReturned):
+                pass
+
+        try:
+            donor_with_bank_account = DonorPaymentChannel.objects.get(
+                                user_bank_account__bank_account_number=str(payment.account) + '/' + str(payment.bank_code),
+                                bank_account__administrative_unit=self.administrative_unit,
+            )
+            payment.user_donor_payment_channel = donor_with_bank_account
+            return True
+        except (DonorPaymentChannel.DoesNotExist, DonorPaymentChannel.MultipleObjectsReturned):
+            return False
 
     def parse_bank_csv_fio(self):
         # Read and parse the account statement
