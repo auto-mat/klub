@@ -1567,6 +1567,7 @@ class UserProfileAdmin(
     list_display = (
         'person_name',
         'get_email',
+        'username',
         'get_administrative_units',
         'addressment',
         'get_addressment',
