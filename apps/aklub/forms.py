@@ -183,9 +183,7 @@ class CompanyProfileAddForm(forms.ModelForm):
         fields = '__all__'
 
     def clean(self):
-        if self.cleaned_data.get('crn') is None and self.cleaned_data.get('tin') is None and self.cleaned_data.get('no_crn_check') is True:
-            pass
-        elif self.cleaned_data.get('crn') is None and self.cleaned_data.get('no_crn_check') is False:
+        if self.cleaned_data.get('crn') is None and self.cleaned_data.get('no_crn_check') is False:
             self.add_error('no_crn_check', 'Please confirm empty crn number')
         elif self.cleaned_data.get('crn') is not None and self.cleaned_data.get('no_crn_check') is True:
             self.add_error('no_crn_check', 'Crn is not empty, please uncheck')
@@ -201,8 +199,7 @@ class CompanyProfileAddForm(forms.ModelForm):
                     return super().clean()
 
                 if not self.request.user.has_perm('aklub.can_edit_all_units'):
-                    administrated_unit = AdministrativeUnit.objects.get(id=self.request.user.administrated_units.first().id)
-                    company.administrative_units.add(administrated_unit)
+                    company.administrative_units.add(self.request.user.administrated_units.first())
                     message = f'Company with this {field} already exist in database and is available now, click here to edit'
                 else:
                     message = f'Company with this {field} already exist click here to see'
