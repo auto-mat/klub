@@ -1931,9 +1931,12 @@ class DonorPaymentChannel(models.Model):
             return False
 
     def check_duplicate(self, *args, **kwargs):
-        qs = DonorPaymentChannel.objects.filter(VS=self.VS)
-        if self.pk is None and self.VS is not None:
-            if qs.filter(VS=self.VS).exists():
+        qs = DonorPaymentChannel.objects.filter(
+                                                VS=self.VS,
+                                                bank_account__administrative_unit=self.bank_account.administrative_unit,
+            )
+        if qs:
+            if qs.first().pk != self.pk:
                 raise ValidationError("Duplicate VS")
 
     @denormalized(models.IntegerField, null=True)
