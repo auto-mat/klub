@@ -61,6 +61,12 @@ def parse_account_statement(statement_id):
         elif statement.type == 'account_cs':
             statement.payments = statement.parse_bank_csv_cs()
 
+        elif statement.type == 'account_kb':
+            statement.payments = statement.parse_bank_csv_kb()
+
+        elif statement.type == 'account_csob':
+            statement.payments = statement.parse_bank_csv_csob()
+
         elif statement.type == 'darujme':
             statement.payments, statement.skipped_payments = parse_darujme(statement.csv_file)
     statement.save()

@@ -17,8 +17,8 @@ feedparser = "*"
 django-chart-tools = "*"
 django-mass-edit = "*"
 python-memcached = "*"
-django-import-export = "*"
-django-import-export-celery = ">=0.0.2"
+django-import-export = {ref = "row_numbers",git = "https://github.com/PetrDlouhy/django-import-export",editable = true}
+django-import-export-celery = {ref = "status_report",git = "https://github.com/PetrDlouhy/django-import-export-celery",editable = true}
 django-author = "*"
 django-qsstats-magic = "*"
 python-dateutil = "*"
@@ -30,11 +30,11 @@ django-related-admin = "*"
 django-denorm = "*"
 gunicorn = "*"
 django-betterforms = "*"
-django-adminactions = {git = "https://github.com/saxix/django-adminactions.git",editable = true,ref = "develop"}
-django-helpdesk = {git = "https://github.com/auto-mat/django-helpdesk.git",editable = true,ref = "abs-paths"}
+django-adminactions = {editable = true,git = "https://github.com/saxix/django-adminactions.git",ref = "develop"}
+django-helpdesk = {editable = true,git = "https://github.com/auto-mat/django-helpdesk.git",ref = "abs-paths"}
 django-admin-large-initial-data = "*"
 # https://github.com/areski/django-admin-tools-stats/pull/49
-django-admin-tools-stats = {git = "https://github.com/tmszi/django-admin-tools-stats.git", editable = true, ref = "fix_create_dict_obj_from_str"}
+django-admin-tools-stats = {editable = true,git = "https://github.com/tmszi/django-admin-tools-stats.git",ref = "fix_create_dict_obj_from_str"}
 django-bower = "*"
 djcacheutils = "*"
 django-adminfilters = "<1.1"
@@ -71,11 +71,11 @@ email_reply_parser = "*"
 django-smmapdfs = "*"
 newrelic = "*"
 django-nested-admin = "*"
-django_celery_monitor = {git = "https://github.com/peergradeio/django-celery-monitor",editable = true,ref = "django-2.2"}
+django_celery_monitor = {editable = true,git = "https://github.com/peergradeio/django-celery-monitor",ref = "django-2.2"}
 django_grapesjs = "*"
-django-stdnumfield = {git = "https://github.com/PetrDlouhy/django-stdnumfield.git",editable = true,ref = "mergeup"}
+django-stdnumfield = {editable = true,git = "https://github.com/PetrDlouhy/django-stdnumfield.git",ref = "mergeup"}
 # https://github.com/django-polymorphic/django-polymorphic/pull/400
-django-polymorphic = {git = "https://github.com/tmszi/django-polymorphic", editable = true, ref = "fix_django_advanced_filters"}
+django-polymorphic = {editable = true,git = "https://github.com/tmszi/django-polymorphic",ref = "fix_django_advanced_filters"}
 
 [dev-packages]
 coverage = "*"
@@ -90,7 +90,7 @@ pudb = "*"
 "flake8-tidy-imports" = "*"
 "flake8-builtins" = "*"
 coveralls = "*"
-django-admin-smoke-tests = {git = "https://github.com/PetrDlouhy/django-admin-smoke-tests",ref = "merge_all",editable = true}
+django-admin-smoke-tests = {ref = "merge_all",git = "https://github.com/PetrDlouhy/django-admin-smoke-tests",editable = true}
 model_mommy = "*"
 mock = "*"
 flower = "*"

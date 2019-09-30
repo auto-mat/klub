@@ -28,15 +28,19 @@ class Command(createsuperuser.Command):
             '--crn',
             dest='crn',
             type=str,
-            help='If profile type is the company, you must set company '
-            'registration number (crn)',
+            help='Company registration number (crn)',
         )
         parser.add_argument(
             '--tin',
             dest='tin',
             type=str,
-            help='If profile type is the company, you must set company '
-            'tax identification number (tin)',
+            help='Company Tax identification number (tin)',
+        )
+        parser.add_argument(
+            '--name',
+            dest='name',
+            type=str,
+            help='Company name',
         )
         # Remove default --polymorphic_ctype_id arg (REQUIRED_FIELDS var)
         # and replace with --profile arg
@@ -51,6 +55,7 @@ class Command(createsuperuser.Command):
         database = options.get('database')
         email = options.get('email')
         profile_type = options.get('polymorphic_ctype_id')
+        name = options.get('name')
         crn = options.get('crn')
         tin = options.get('tin')
 
@@ -58,10 +63,10 @@ class Command(createsuperuser.Command):
             profile_type_id = ContentType.objects.get(model=UserProfile._meta.model_name).id
         else:
             profile_type_id = ContentType.objects.get(model=CompanyProfile._meta.model_name).id
-            if not crn:
-                raise CommandError("--crn is required if specifying --profile company")
-            if not tin:
-                raise CommandError("--tin is required if specifying --profile company")
+            # if not crn:
+            #     raise CommandError("--crn is required if specifying --profile company")
+            # if not tin:
+            #     raise CommandError("--tin is required if specifying --profile company")
         options['polymorphic_ctype_id'] = profile_type_id
 
         model = ContentType.objects.get(id=profile_type_id).model_class()
@@ -77,6 +82,8 @@ class Command(createsuperuser.Command):
         user = model._default_manager.db_manager(database).get(username=username)
         if password:
             user.set_password(password)
+        if name:
+            user.name = name
         if crn:
             user.crn = crn
         if tin:

@@ -86,9 +86,6 @@ class CustomUserManager(PolymorphicManager, UserManager):
         if extra_fields.get('polymorphic_ctype_id', None):
             ctype_id = extra_fields.pop('polymorphic_ctype_id')
             model = ContentType.objects.get(id=ctype_id).model_class()
-            if model._meta.model_name == CompanyProfile._meta.model_name:
-                extra_fields['crn'] = '00000000'  # null constrain, random valid value
-                extra_fields['tin'] = '00000000'  # null constrain, random valid value
         if not email:
             raise ValueError(_('The Email must be set'))
         email = self.normalize_email(email)
@@ -1514,7 +1511,8 @@ def header_parse(payments_reader, date_from_name, date_to_name):
 
         if payment[payments_reader.fieldnames[0]] == date_to_name:
             date_to = payment[payments_reader.fieldnames[1]]
-            break
+            if date_to != "":
+                break
     return date_from, date_to
 
 
@@ -1533,6 +1531,8 @@ class AccountStatements(models.Model):
     TYPE_OF_STATEMENT = (
         ('account', 'Account statement - Fio Banka'),
         ('account_cs', 'Account statement - Česká spořitelna'),
+        ('account_kb', 'Account statement - Komerční Banka'),
+        ('account_csob', 'Account statement - ČSOB'),
         ('darujme', 'Darujme.cz'),
     )
 
@@ -1663,6 +1663,103 @@ class AccountStatements(models.Model):
                     continue
                 payments.append(register_payment(p_sort, self))
 
+        return payments
+
+    def parse_bank_csv_kb(self):
+        # Read and parse the account statement
+        # TODO: This should be separated into a dedicated module
+
+        payments_reader = csv.DictReader(
+            codecs.iterdecode(self.csv_file, 'cp1250'),
+            delimiter=';',
+            fieldnames=[
+                'Datum splatnosti', 'Datum odepsani z jine banky', 'Protiucet/Kod banky', 'Nazev protiuctu',
+                'Castka', 'Originalni castka', 'Originalni mena', 'Kurz',
+                'VS', 'KS', 'SS', 'Identifikace transakce', 'Systemovy popis',
+                'Popis prikazce', 'Popis pro prijemce', 'AV pole 1', 'AV pole 2', 'AV pole 3', 'AV pole 4',
+            ],
+
+        )
+        date_from, date_to = header_parse(payments_reader, 'Vypis za obdobi', '')
+
+        self.date_from = str_to_datetime(date_from)
+        self.date_to = str_to_datetime(date_to)
+
+        csv_head = True
+        payments = []
+        for payment in payments_reader:
+            if csv_head:
+                if payment[payments_reader.fieldnames[0]] == 'Datum splatnosti':
+                    csv_head = False
+            else:
+
+                p_sort = {
+                             'account': payment['Protiucet/Kod banky'].split('/')[0],
+                             'bank_code':  payment['Protiucet/Kod banky'].split('/')[1],
+                             'VS': payment['VS'],
+                             'KS': payment['KS'],
+                             'SS': payment['SS'],
+                             'amount': payment['Castka'],
+                             'account_name': payment['Nazev protiuctu'],
+                             'recipient_message': payment['Popis pro prijemce'],
+                             'transfer_note': payment['AV pole 1'].replace(' ', '') + ", " + payment['AV pole 2'].replace(' ', ''),
+                             'date': payment['Datum splatnosti'],
+                             }
+                p_sort['amount'] = amount_to_int(p_sort['amount'])
+                p_sort['date'] = str_to_datetime(p_sort['date'])
+
+                if check_incomming(p_sort['amount']):
+                    continue
+                payments.append(register_payment(p_sort, self))
+        return payments
+
+##################################################################################################################################
+    def parse_bank_csv_csob(self):
+        # Read and parse the account statement
+        # TODO: This should be separated into a dedicated module
+
+        payments_reader = csv.DictReader(
+            codecs.iterdecode(self.csv_file, 'cp1250'),
+            delimiter=';',
+            fieldnames=[
+                'cislo uctu', 'mena1', 'alias', 'nazev uctu', 'datum zauctovani', 'datum valuty',
+                'castka', 'mena2', 'zustatek', 'konstantni symbol', 'variabilni symbol', 'specificky symbol',
+                'popis', 'protistrana', 'ucet protistrany', 'zprava prijemci i platci', 'identifikace', 'castka platby',
+                'mena platby', 'poznamka', 'nazev 3. strany', 'identifikator 3. strany',
+            ],
+
+        )
+        csv_head = True
+        payments = []
+        for payment in payments_reader:
+            if csv_head:
+                line_parse = payment[payments_reader.fieldnames[0]].split(' ')
+                if payment[payments_reader.fieldnames[0]] == 'číslo účtu':
+                    csv_head = False
+                elif line_parse[0] == 'Datum':
+                    self.date_from = str_to_datetime(line_parse[4])
+                    self.date_to = str_to_datetime(line_parse[7].replace(';', ''))
+            else:
+                p_sort = {
+                            'account': payment['ucet protistrany'].split('/')[0],
+                            'bank_code':  payment['ucet protistrany'].split('/')[1],
+                            'VS': payment['variabilni symbol'],
+                            'KS': payment['konstantni symbol'],
+                            'SS': payment['specificky symbol'],
+                            'amount': payment['castka'],
+                            'currency': payment['mena2'],
+                            'account_name': payment['protistrana'],
+                            'recipient_message': payment['zprava prijemci i platci'],
+                            'transfer_note': payment['poznamka'],
+                            'date': payment['datum zauctovani'],
+                             }
+
+                p_sort['amount'] = amount_to_int(p_sort['amount'])
+                p_sort['date'] = str_to_datetime(p_sort['date'])
+
+                if check_incomming(p_sort['amount']):
+                    continue
+                payments.append(register_payment(p_sort, self))
         return payments
 
     def __str__(self):

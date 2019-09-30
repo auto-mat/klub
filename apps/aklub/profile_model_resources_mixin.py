@@ -40,7 +40,7 @@ def preference_model_dehydrate_decorator(field):
                     administrative_unit=profile.administrated_units.first(),
                 ).first()
                 if preference:
-                    return preference.newsletter_on
+                    return getattr(preference, field)
         return wrapped_f
     return wrap
 
@@ -112,7 +112,7 @@ def import_obj(self, obj, data, dry_run):  # noqa
             event=event,
             defaults={'VS': VS},
         )
-        if data.get('bank_account'):
+        if data.get('bank_account') and data.get("administrative_units"):
             bank_account, _ = BankAccount.objects.get_or_create(bank_account_number=data['bank_account'])
             bank_account.administrative_unit = obj.administrative_units.get(id=data["administrative_units"])
             bank_account.save()
