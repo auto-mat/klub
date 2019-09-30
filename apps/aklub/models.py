@@ -923,6 +923,7 @@ class CompanyProfile(Profile):
         blank=True,
         null=True,
     )
+
     tin = StdNumField(
         'eu.vat',
         default=None,
