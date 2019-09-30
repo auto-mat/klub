@@ -334,7 +334,7 @@ class TestPairVariableSymbol(TestCase):
         self.assertEqual(return_value, True)
 
     def test_pairing_false(self):
-        """ Test if user_in_campaign is not found """
+        """ Test if donor_payment_channel is not found """
         payment = mommy.make("aklub.Payment", VS=123)
         account_statement = mommy.make(
             "aklub.AccountStatements",
@@ -342,5 +342,92 @@ class TestPairVariableSymbol(TestCase):
         )
 
         return_value = account_statement.pair_vs(payment)
+        self.assertEqual(payment.user_donor_payment_channel, None)
+        self.assertEqual(return_value, False)
+
+
+class TestPairPayments(TestCase):
+    """ Test AccountStatement. payment_pair()"""
+    def setUp(self):
+        self.payment_vs = mommy.make("aklub.Payment", VS=123)
+        self.payment_no_vs = mommy.make("aklub.Payment", account=999999, bank_code=1111)
+
+        self.administrative_unit_1 = mommy.make("aklub.AdministrativeUnit", name='test1')
+        self.administrative_unit_2 = mommy.make("aklub.AdministrativeUnit", name='test2')
+
+        self.user_bank_acc = mommy.make('aklub.UserBankAccount', bank_account_number='999999/1111')
+
+        self.bank_account_1 = mommy.make('aklub.BankAccount', id=1, administrative_unit=self.administrative_unit_1)
+        self.bank_account_2 = mommy.make('aklub.BankAccount', id=2, administrative_unit=self.administrative_unit_2)
+
+        self.donor_payment_channel_1 = mommy.make(
+                                        'aklub.DonorPaymentChannel',
+                                        VS=123,
+                                        user_bank_account=self.user_bank_acc,
+                                        bank_account=self.bank_account_1,
+        )
+        self.donor_payment_channel_2 = mommy.make(
+                                        'aklub.DonorPaymentChannel',
+                                        VS=123,
+                                        user_bank_account=self.user_bank_acc,
+                                        bank_account=self.bank_account_2,
+        )
+
+    def test_pairing_vs(self):
+        """ Test if Variable symbol exist = pair with DPCH with same administrative unit and VS """
+        account_statement = mommy.make(
+            "aklub.AccountStatements",
+            administrative_unit=self.administrative_unit_1,
+            payment_set=[self.payment_vs],
+        )
+
+        return_value = account_statement.payment_pair(self.payment_vs)
+
+        self.assertEqual(self.payment_vs.user_donor_payment_channel, self.donor_payment_channel_1)
+        self.assertNotEqual(self.payment_vs.user_donor_payment_channel, self.donor_payment_channel_2)
+        self.assertEqual(return_value, True)
+
+    def test_pairing_user_bank_acc(self):
+        """ Test if Variable symbol not exist = pair with DPCH with unique user bank account in administrative unit """
+        account_statement = mommy.make(
+            "aklub.AccountStatements",
+            administrative_unit=self.administrative_unit_1,
+            payment_set=[self.payment_no_vs],
+        )
+
+        return_value = account_statement.payment_pair(self.payment_no_vs)
+
+        self.assertEqual(self.payment_no_vs.user_donor_payment_channel, self.donor_payment_channel_1)
+        self.assertNotEqual(self.payment_no_vs.user_donor_payment_channel, self.donor_payment_channel_2)
+
+        self.assertEqual(return_value, True)
+
+    def test_pairing_multiple_user_bank_acc_false(self):
+        """ Test if Variable symbol not exist = multiple user_bank_acc exist in one administrative unit """
+
+        account_statement = mommy.make(
+            "aklub.AccountStatements",
+            administrative_unit=self.administrative_unit_1,
+            payment_set=[self.payment_no_vs],
+        )
+
+        mommy.make('aklub.DonorPaymentChannel', VS=321, user_bank_account=self.user_bank_acc, bank_account=self.bank_account_1)
+
+        return_value = account_statement.payment_pair(self.payment_no_vs)
+
+        self.assertEqual(self.payment_no_vs.user_donor_payment_channel, None)
+        self.assertEqual(return_value, False)
+
+    def test_pairing_no_dpch_false(self):
+        """ Test if donor_payment_channel is not found """
+        payment = mommy.make("aklub.Payment", VS=12345)
+        account_statement = mommy.make(
+            "aklub.AccountStatements",
+            administrative_unit=self.administrative_unit_1,
+            payment_set=[payment],
+        )
+
+        return_value = account_statement.pair_vs(payment)
+
         self.assertEqual(payment.user_donor_payment_channel, None)
         self.assertEqual(return_value, False)
