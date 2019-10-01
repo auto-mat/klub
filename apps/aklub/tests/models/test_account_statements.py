@@ -195,6 +195,46 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
 
         self.assertEqual(donor_channel.payment_set.get(date=datetime.date(2019, 7, 19)), a1.payment_set.get(account='99999999'))
 
+    def test_bank_new_statement_sberbank(self):
+        with open("apps/aklub/test_data/pohyby_sberbank.txt", "rb") as f:
+            a = AccountStatements(csv_file=File(f), type="account_sberbank")
+            a.clean()
+            a.save()
+
+        donor_channel = DonorPaymentChannel.objects.get(VS=120127010)
+
+        self.run_commit_hooks()
+        a1 = AccountStatements.objects.get(pk=a.pk)
+        self.assertEqual(len(a1.payment_set.all()), 4)
+        self.assertEqual(a1.date_from, None)
+        self.assertEqual(a1.date_to, None)
+
+        p1 = Payment.objects.get(account='9999999999')
+        self.assertEqual(p1.date, datetime.date(day=13, month=8, year=2019))
+        self.assertEqual(p1.amount, 1000)
+        self.assertEqual(p1.account, '9999999999')
+        self.assertEqual(p1.bank_code, '9999')
+        self.assertEqual(p1.VS, '120127010')
+        self.assertEqual(p1.VS2, None)
+        self.assertEqual(p1.SS, '')
+        self.assertEqual(p1.KS, '999')
+        self.assertEqual(p1.user_identification, '')
+        self.assertEqual(p1.type, 'bank-transfer')
+        self.assertEqual(p1.done_by, "")
+        self.assertEqual(p1.account_name, "Tester TEST")
+        self.assertEqual(p1.bank_name, "")
+        self.assertEqual(p1.transfer_note, None)
+        self.assertEqual(p1.currency, 'CZK')
+        self.assertEqual(p1.recipient_message, "MESSAGE TEST ONE")
+        self.assertEqual(p1.operation_id, None)
+        self.assertEqual(p1.transfer_type, 'kreditní')
+        self.assertEqual(p1.specification, None)
+        self.assertEqual(p1.order_id, None)
+        self.assertEqual(p1.user_donor_payment_channel, donor_channel)
+
+        self.assertEqual(donor_channel.payment_set.get(date=datetime.date(2019, 8, 13)), a1.payment_set.get(account='9999999999'))
+
+
     def check_account_statement_data(self):
         self.run_commit_hooks()
 
