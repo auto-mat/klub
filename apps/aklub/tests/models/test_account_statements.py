@@ -234,7 +234,6 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
 
         self.assertEqual(donor_channel.payment_set.get(date=datetime.date(2019, 8, 13)), a1.payment_set.get(account='9999999999'))
 
-
     def check_account_statement_data(self):
         self.run_commit_hooks()
 
