@@ -1793,7 +1793,7 @@ class AccountStatements(models.Model):
 
             if payment['incomming_outcomming'] != 'Příchozí platba':
                 continue
-                
+
             payments.append(register_payment(p_sort, self))
         return payments
 
