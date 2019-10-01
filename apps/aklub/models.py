@@ -1508,6 +1508,13 @@ def header_parse(payments_reader, date_from_name, date_to_name):
     return date_from, date_to
 
 
+def delete_left_nulls(number):
+    number = int(number)
+    if number == 0:
+        return ''
+    return str(number)
+
+
 class AccountStatements(models.Model):
     """AccountStatemt entry and DB model
 
@@ -1525,6 +1532,7 @@ class AccountStatements(models.Model):
         ('account_cs', 'Account statement - Česká spořitelna'),
         ('account_kb', 'Account statement - Komerční Banka'),
         ('account_csob', 'Account statement - ČSOB'),
+        ('account_sberbank', 'Account statement - Sberbank'),
         ('darujme', 'Darujme.cz'),
     )
 
@@ -1705,7 +1713,6 @@ class AccountStatements(models.Model):
                 payments.append(register_payment(p_sort, self))
         return payments
 
-##################################################################################################################################
     def parse_bank_csv_csob(self):
         # Read and parse the account statement
         # TODO: This should be separated into a dedicated module
@@ -1752,6 +1759,42 @@ class AccountStatements(models.Model):
                 if check_incomming(p_sort['amount']):
                     continue
                 payments.append(register_payment(p_sort, self))
+        return payments
+
+    def parse_bank_csv_sberbank(self):
+        # Read and parse the account statement
+        # TODO: This should be separated into a dedicated module
+        payments_reader = csv.DictReader(
+            codecs.iterdecode(self.csv_file, 'cp1250'),
+            delimiter='	',
+            fieldnames=[
+                'owner_bank_number', 'currency1', 'transfer_type', 'date1', 'date2',
+                'incomming_outcomming', 'amount', 'currency2', 'bank_account', 'bank_code',
+                'account_name', 'symbols', 'message',
+            ],
+
+        )
+        payments = []
+        for payment in payments_reader:
+            VS, KS, SS = payment['symbols'].split(',')
+            p_sort = {
+                        'account': delete_left_nulls(payment['bank_account']),
+                        'bank_code':  payment['bank_code'],
+                        'VS': delete_left_nulls(VS),
+                        'KS': delete_left_nulls(KS),
+                        'SS': delete_left_nulls(SS),
+                        'amount': amount_to_int(payment['amount']),
+                        'currency': payment['currency2'],
+                        'account_name': payment['account_name'],
+                        'recipient_message': payment['message'],
+                        'date': str_to_datetime(payment['date1']),
+                        'transfer_type': payment['transfer_type'],
+                         }
+
+            if payment['incomming_outcomming'] != 'Příchozí platba':
+                continue
+                
+            payments.append(register_payment(p_sort, self))
         return payments
 
     def __str__(self):
