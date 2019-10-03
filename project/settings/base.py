@@ -177,6 +177,7 @@ INSTALLED_APPS = (
     'polymorphic',
     'django_grapesjs',
     'django.contrib.admindocs',
+    'admin_tools_stats',
     'admin_tools',
     'admin_tools.theming',
     'admin_tools.menu',
@@ -208,7 +209,6 @@ INSTALLED_APPS = (
     'related_admin',
     'adminactions',
     'djangobower',
-    'admin_tools_stats',
     'django_nvd3',
     'adminfilters',
     'advanced_filters',
@@ -224,10 +224,10 @@ INSTALLED_APPS = (
 )
 
 BOWER_INSTALLED_APPS = (
-    'jquery#2.0.3',
-    'jquery-ui#~1.10.3',
-    'd3#3.3.6',
-    'nvd3#1.1.12-beta',
+    'jquery#3.4.1',
+    'jquery-ui#~1.12.1',
+    'd3#3.3.13',
+    'nvd3#1.7.1',
 )
 
 EMAIL_BACKEND = 'post_office.EmailBackend'

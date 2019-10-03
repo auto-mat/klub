@@ -6,6 +6,7 @@ from django.conf.urls.i18n import i18n_patterns
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
+from django.urls import path
 from django.views.i18n import JavaScriptCatalog
 
 
@@ -32,6 +33,7 @@ urlpatterns = [
     url(r'^adminactions/', include('adminactions.urls')),
     url(r'^advanced_filters/', include('advanced_filters.urls')),
     url(r'^nested_admin/', include('nested_admin.urls')),
+    path('admin_tools_stats/', include('admin_tools_stats.urls')),
     url(r'', include("aklub.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

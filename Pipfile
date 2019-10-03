@@ -34,7 +34,7 @@ django-adminactions = {editable = true,git = "https://github.com/saxix/django-ad
 django-helpdesk = {editable = true,git = "https://github.com/auto-mat/django-helpdesk.git",ref = "abs-paths"}
 django-admin-large-initial-data = "*"
 # https://github.com/areski/django-admin-tools-stats/pull/49
-django-admin-tools-stats = {editable = true,git = "https://github.com/tmszi/django-admin-tools-stats.git",ref = "fix_create_dict_obj_from_str"}
+django-admin-tools-stats = {ref = "ajax_loading",git = "https://github.com/PetrDlouhy/django-admin-tools-stats",editable = true}
 django-bower = "*"
 djcacheutils = "*"
 django-adminfilters = "<1.1"
@@ -76,6 +76,7 @@ django_grapesjs = "*"
 django-stdnumfield = {editable = true,git = "https://github.com/PetrDlouhy/django-stdnumfield.git",ref = "mergeup"}
 # https://github.com/django-polymorphic/django-polymorphic/pull/400
 django-polymorphic = {editable = true,git = "https://github.com/tmszi/django-polymorphic",ref = "fix_django_advanced_filters"}
+jsonfield2 = "*"
 
 [dev-packages]
 coverage = "*"
