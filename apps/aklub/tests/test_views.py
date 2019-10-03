@@ -137,18 +137,6 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         self.assertContains(response, "<tr><td>2016</td><td>Bře</td><td>1</td><td>100 Kč</td><td>610 Kč</td></tr>", html=True)
         self.assertContains(response, "<h1>Statistiky plateb</h1>", html=True)
 
-    def test_change_dashboard_chart(self):
-        address = "/"
-        post_data = {
-            'select_box_payment_amount': 'regular',
-        }
-        response = self.client.post(address, post_data)
-        self.assertContains(
-            response,
-            '<option value="regular" selected=selected>Pravidelní</option>',
-            html=True,
-        )
-
     def test_donators(self):
         address = reverse('donators')
         response = self.client.get(address)
