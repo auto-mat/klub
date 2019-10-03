@@ -622,10 +622,23 @@ class ProfileAdminMixin:
 
     def get_donor_details(self, obj, attr, *args):
         if not self.request.user.has_perm('aklub.can_edit_all_units'):
-            result = obj.userchannels.filter(bank_account__administrative_unit__in=self.request.user.administrated_units.all()).values(attr)
+            result = obj.userchannels.filter(
+                            bank_account__administrative_unit__in=self.request.user.administrated_units.all(),
+                            regular_payments='regular',
+            ).values(attr)
         else:
-            result = obj.userchannels.all().values(attr)
+            result = obj.userchannels.filter(regular_payments='regular').values(attr)
         return [f[attr] if f[attr] is not None else '-' for f in result]
+
+    def get_donor(self, obj):
+        if not self.request.user.has_perm('aklub.can_edit_all_units'):
+            result = obj.userchannels.filter(
+                            bank_account__administrative_unit__in=self.request.user.administrated_units.all(),
+                            regular_payments='regular',
+            )
+        else:
+            result = obj.userchannels.filter(regular_payments='regular')
+        return result
 
     def registered_support_date(self, obj):
         result = self.get_donor_details(obj, "registered_support")
@@ -634,24 +647,39 @@ class ProfileAdminMixin:
     registered_support_date.short_description = _("Registration")
     registered_support_date.admin_order_field = 'registered_support'
 
-    def variable_symbol(self, obj):
-        return ',\n'.join(self.get_donor_details(obj, "VS"))
-
-    variable_symbol.short_description = _("VS")
-    variable_symbol.admin_order_field = 'variable_symbol'
-
-    def regular_payments_info(self, obj):
-        return ',\n'.join(self.get_donor_details(obj, "regular_payments"))
-
-    regular_payments_info.short_description = _("Regular payment info")
-    regular_payments_info.admin_order_field = 'regular_payments_info'
-
     def regular_amount(self, obj):
         result = self.get_donor_details(obj, "regular_amount")
         return ',\n'.join(str(d) for d in result)
 
     regular_amount.short_description = _("Regular amount")
     regular_amount.admin_order_field = 'regular_amount'
+
+    def donor_delay(self, obj):
+        donors = self.get_donor(obj)
+        result = []
+        for d in donors:
+            if isinstance(d.regular_payments_delay(), (bool,)):
+                result.append('ok')
+            else:
+                result.append(str(d.regular_payments_delay().days) + ' days')
+        return ',\n'.join(result)
+
+    donor_delay.short_description = _("Payment delay")
+    donor_delay.admin_order_field = 'donor_delay'
+
+    def donor_extra_money(self, obj):
+        result = self.get_donor_details(obj, "extra_money")
+        return ',\n'.join(str(d) for d in result)
+
+    donor_extra_money.short_description = _("Extra money")
+    donor_extra_money.admin_order_field = 'donor_extra_money'
+
+    def donor_frequency(self, obj):
+        result = self.get_donor_details(obj, "regular_frequency")
+        return ',\n'.join(str(d) for d in result)
+
+    donor_frequency.short_description = _("Donor frequency")
+    donor_frequency.admin_order_field = 'donor_frequency'
 
     def total_payment(self, obj):
         if not self.request.user.has_perm('aklub.can_edit_all_units'):
@@ -703,8 +731,6 @@ class ProfileAdmin(
         'is_staff',
         'registered_support_date',
         'get_event',
-        'variable_symbol',
-        'regular_payments_info',
         'regular_amount',
         'date_joined',
         'last_login',
@@ -1553,8 +1579,8 @@ class BaseProfileChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModel
 
     readonly_fields = (
         'userattendance_links', 'date_joined', 'last_login', 'get_main_telephone',
-        'get_email', 'regular_amount', 'regular_payments_info', 'variable_symbol', 'registered_support_date',
-        'total_payment',
+        'get_email', 'regular_amount', 'donor_delay', 'registered_support_date',
+        'donor_frequency', 'total_payment', 'donor_extra_money'
     )
     '''
     def get_inline_instances(self, request, obj=None):
@@ -1595,8 +1621,6 @@ class UserProfileAdmin(
         'is_staff',
         'registered_support_date',
         'get_event',
-        'variable_symbol',
-        'regular_payments_info',
         'regular_amount',
         'date_joined',
         'last_login',
@@ -1664,7 +1688,7 @@ class UserProfileAdmin(
                 'note',
                 'administrative_units',
                 'total_payment',
-                ('registered_support_date', 'regular_amount', 'regular_payments_info', 'variable_symbol'),
+                ('registered_support_date', 'regular_amount', 'donor_frequency', 'donor_delay', 'donor_extra_money'),
             ),
         }),
         (_('Contact data'), {
@@ -1753,7 +1777,6 @@ class CompanyProfileAdmin(
         'get_main_telephone',
         'get_event',
         'variable_symbol',
-        'regular_payments_info',
         'regular_amount',
         'is_staff',
         'date_joined',
