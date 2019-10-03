@@ -909,17 +909,25 @@ class CompanyProfile(Profile):
         blank=True,
         null=True,
     )
-    crn = models.CharField(
-        verbose_name=_(u"Company Registration Number"),
-        max_length=20,
-        null=True,
+
+    crn = StdNumField(
+        'cz.dic',
+        default=None,
+        verbose_name=_(u"IČO"),
+        validators=[RegexValidator(r'^[0-9]*$', _('IČO musí být číslo'))],
+        error_messages={'stdnum_format': ICO_ERROR_MESSAGE},
+        help_text=_("only for Czech companies"),
         blank=True,
+        null=True,
     )
-    tin = models.CharField(
-        verbose_name=_(u"Tax Identification Number"),
-        max_length=20,
-        null=True,
+
+    tin = StdNumField(
+        'eu.vat',
+        default=None,
+        verbose_name=_(u"DIČ"),
+        help_text=_("Czech and European companies, must be in valid formate"),
         blank=True,
+        null=True,
     )
 
 
