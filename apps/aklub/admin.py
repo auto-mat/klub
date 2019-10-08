@@ -1539,13 +1539,13 @@ class BaseProfileChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModel
         'get_email', 'regular_amount', 'regular_payments_info', 'variable_symbol', 'registered_support_date',
         'email_anchor',
     )
-    '''
+
     def get_inline_instances(self, request, obj=None):
         inlines = super().get_inline_instances(request, obj)
         if not obj:
             inlines = []
         return inlines
-    '''
+
     actions = (send_mass_communication_distinct_action,)
     inlines = [
         PreferenceInline, ProfileEmailInline, TelephoneInline,
@@ -1630,9 +1630,10 @@ class UserProfileAdmin(
             'classes': ('wide',),
             'fields': (
                 'username', ('first_name', 'last_name'), 'sex',
-                'email', 'is_active',
+                'email', 'telephone', 'is_active',
                 ('birth_day', 'birth_month', 'age_group'),
                 'administrative_units',
+                'hidden_lock_change'
             ),
         }),
     )
@@ -1788,10 +1789,13 @@ class CompanyProfileAdmin(
             'fields': (
                 'username', ('name'),
                 'is_active',
-                'administrative_units',
                 'no_crn_check',
+                'email',
+                'telephone',
                 'crn',
                 'tin',
+                'administrative_units',
+                'hidden_lock_change'
             ),
         }),
     )
