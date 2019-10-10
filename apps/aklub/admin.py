@@ -73,7 +73,7 @@ from .models import (
     CompanyProfile, Condition, DonorPaymentChannel, Event, Expense, Interaction,
     MassCommunication, NewUser, Payment, Preference, Profile, ProfileEmail, Recruiter,
     Result, Source, TaxConfirmation, Telephone,
-    TerminalCondition, UserBankAccount, UserProfile, UserYearPayments,
+    TerminalCondition, UserBankAccount, UserProfile, UserYearPayments, MoneyAccount, ApiAccount
 )
 from .profile_model_resources import (
     ProfileModelResource, get_polymorphic_parent_child_fields,
@@ -141,7 +141,7 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
         (None, {
             'classes': ('wide',),
             'fields': (
-                ('bank_account', 'user_bank_account_char'),
+                ('money_account', 'user_bank_account_char'),
                 ('regular_payments'),
                 ('event'),
                 (
@@ -587,20 +587,23 @@ class ProfileEmailInline(nested_admin.NestedTabularInline):
     form = ProfileEmailAdminForm
 
 
-class BankAccountAdmin(unit_admin_mixin_generator('administrative_unit'), admin.ModelAdmin):
-    model = BankAccount
+class MoneyAccountChildAdmin(PolymorphicChildModelAdmin):
+    """ Base admin class for all child models """
+    base_model = MoneyAccount
 
-    list_fields = (
-        'bank_account', 'bank_account_number', 'administrative_unit',
-    )
 
-    search_fields = (
-        'bank_account', 'bank_account_number',
-    )
+@admin.register(ApiAccount)
+class ApiAccountAdmin(unit_admin_mixin_generator('administrative_unit'), MoneyAccountChildAdmin):
+    """ Api account polymorphic admin model child class """
+    base_model = ApiAccount
+    show_in_index = True
 
-    list_filter = (
-        'bank_account', 'bank_account_number',
-    )
+
+@admin.register(BankAccount)
+class BankAccountAdmin(unit_admin_mixin_generator('administrative_unit'), MoneyAccountChildAdmin):
+    """ bank account polymorphic admin model child class """
+    base_model = BankAccount
+    show_in_index = True
 
 
 class UserBankAccountAdmin(admin.ModelAdmin):
@@ -1986,7 +1989,6 @@ admin.site.register(Recruiter, RecruiterAdmin)
 admin.site.register(TaxConfirmation, TaxConfirmationAdmin)
 admin.site.register(Source, SourceAdmin)
 admin.site.register(Profile, ProfileAdmin)
-admin.site.register(BankAccount, BankAccountAdmin)
 admin.site.register(UserBankAccount, UserBankAccountAdmin)
 # register all adminactions
 actions.add_to_site(site)
