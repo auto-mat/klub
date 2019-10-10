@@ -44,7 +44,7 @@ from .. import admin
 from .. models import (
     AccountStatements, AutomaticCommunication, BankAccount,
     CompanyProfile, DonorPaymentChannel, Event, Interaction, MassCommunication,
-    Preference, Profile, TaxConfirmation, UserBankAccount, UserProfile,
+    Preference, Profile, TaxConfirmation, Telephone, UserBankAccount, UserProfile,
     UserYearPayments,
 )
 
@@ -460,6 +460,7 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
                     index=index,
                     bank_account=bank_account,
                     test_str=test_str,
+                    action=action,
                 )
                 post_data = self.update_profile_post_data(
                     action=action,
@@ -468,13 +469,11 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
                 )
                 view_method = getattr(admin_model, view_method_name)
                 request = self.post_request(post_data=post_data)
-
                 if action == 'change':
                     user_id = str(Profile.objects.get(username='add.{}'.format(model_name)).id)
                     response = view_method(request, object_id=user_id)
                 else:
                     response = view_method(request)
-
                 self.assertEqual(response.status_code, 302)
 
                 profile = Profile.objects.get(username='{}'.format(test_str))
@@ -482,24 +481,15 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
                 self.compare_profile_personal_info(
                     action=action, post_data=post_data, profile=profile,
                 )
-                # Preference
-                self.compare_profile_preference(
-                    action=action, post_data=post_data, profile=profile,
-                )
-                # Donor
-                self.assertEqual(profile.userchannels.count(), 1)
-                donor = profile.userchannels.get()
-                self.assertEqual(donor.bank_account.bank_account, 'add.{}'.format(model_name))
-                self.assertEqual(int(donor.bank_account.bank_account_number), index)
-                self.assertEqual(donor.bank_account.note, 'test')
-                self.assertEqual(donor.regular_payments, 'regular')
-                self.assertEqual(profile.telephone_set.count(), 1)
+
                 # Telephone
-                self.assertEqual(
-                    profile.telephone_set.first().telephone,
-                    post_data['telephone_set-0-telephone'],
-                )
-                self.assertEqual(donor.event.slug, 'klub')
+                telephone = set(
+                        Telephone.objects.filter(user=profile).values_list('telephone', flat=True),
+                    )
+                if action == 'add':
+                    self.assertEqual(telephone, {post_data['telephone']})
+                else:
+                    self.assertEqual(telephone, {post_data['telephone_set-0-telephone']})
 
         new_profiles = Profile.objects.exclude(username=self.superuser.username)
         self.assertEqual(new_profiles.count(), len(child_models))
