@@ -1809,7 +1809,22 @@ class AccountStatements(models.Model):
         return "%s (%s)" % (self.pk, self.import_date)
 
 
-class BankAccount(models.Model):
+class MoneyAccount(PolymorphicModel):
+    note = models.TextField(
+        verbose_name=_("Bank account note"),
+        blank=True,
+        null=True,
+    )
+    administrative_unit = models.ForeignKey(
+        AdministrativeUnit,
+        verbose_name=_("administrative unit"),
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
+
+
+class BankAccount(MoneyAccount):
     class Meta:
         verbose_name = _("Bank account")
         verbose_name_plural = _("Bank accounts")
@@ -1825,21 +1840,50 @@ class BankAccount(models.Model):
         blank=False,
         null=False,
     )
-    note = models.TextField(
-        verbose_name=_("Bank account note"),
-        blank=True,
-        null=True,
-    )
-    administrative_unit = models.ForeignKey(
-        AdministrativeUnit,
-        verbose_name=_("administrative unit"),
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-    )
 
     def __str__(self):
         return u"%s - %s" % (self.bank_account, self.bank_account_number)
+
+
+class ApiAccount(MoneyAccount):
+    project_name = models.CharField(
+        verbose_name=_("Name"),
+        unique=True,
+        default=None,
+        max_length=100,
+        blank=True,
+        null=True,
+    )
+    project_id = models.IntegerField(
+        verbose_name=_("project ID"),
+        default=None,
+        blank=True,
+        null=True,
+    )
+    api_id = models.IntegerField(
+        verbose_name=_("API ID"),
+        default=None,
+        blank=True,
+        null=True,
+    )
+    api_secret = models.CharField(
+        verbose_name=_("API secret"),
+        default=None,
+        max_length=100,
+        blank=True,
+        null=True,
+    )
+    event = models.ForeignKey(
+        Event,
+        help_text=("Event"),
+        verbose_name=("Event"),
+        blank=True,
+        on_delete=models.SET_NULL,
+        null=True,
+    )
+
+    def __str__(self):
+        return f'{self.administrative_unit} -{self.event} - auto api'
 
 
 class UserBankAccount(models.Model):
@@ -1872,7 +1916,7 @@ class DonorPaymentChannel(models.Model):
     class Meta:
         verbose_name = _("Donor payment channel")
         verbose_name_plural = _("Donor payment channels")
-        unique_together = ('VS', 'bank_account')
+        unique_together = ('VS', 'money_account')
 
     VS = models.CharField(
         verbose_name=_("VS"),
@@ -1954,9 +1998,9 @@ class DonorPaymentChannel(models.Model):
         max_length=500,
         blank=True,
     )
-    bank_account = models.ForeignKey(
-        BankAccount,
-        related_name='bankaccounts',
+    money_account = models.ForeignKey(
+        MoneyAccount,
+        related_name='moneyaccounts',
         on_delete=models.CASCADE,
         default=None,
         null=True,
