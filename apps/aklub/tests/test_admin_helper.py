@@ -73,23 +73,32 @@ class TestProfilePostMixin:
 
         return managementform_data
 
-    def get_profile_post_data(self, event, index, bank_account, test_str):
-        profile_post_data = {
-            'username': '{}'.format(test_str),
-            'language': 'cs',
-            'is_staff': 'on',
-            'groups': Group.objects.get().id,
-            'preference_set-0-newsletter_on': True,
-            'preference_set-0-call_on': True,
-            'profileemail_set-0-email': '{0}@{0}.test'.format(test_str),
-            'profileemail_set-0-is_primary': True,
-            'profileemail_set-1-email': '{0}@{0}{1}.test'.format(test_str, index),
-            'telephone_set-0-telephone': '+421111222333',
-            'userchannels-0-bank_account': bank_account.id,
-            'userchannels-0-regular_payments': 'regular',
-            'userchannels-0-event': event.id,
-        }
-
+    def get_profile_post_data(self, event, index, bank_account, test_str, action):
+        if action == 'add':
+            profile_post_data = {
+                'username': '{}'.format(test_str),
+                'language': 'cs',
+                'is_staff': 'on',
+                'groups': Group.objects.get().id,
+                'email': '{0}@{0}{1}.test'.format(test_str, index),
+                'telephone': '+420123456789',
+                }
+        else:
+            profile_post_data = {
+                'username': '{}'.format(test_str),
+                'language': 'cs',
+                'is_staff': 'on',
+                'groups': Group.objects.get().id,
+                'preference_set-0-newsletter_on': True,
+                'preference_set-0-call_on': True,
+                'profileemail_set-0-email': '{0}@{0}.test'.format(test_str),
+                'profileemail_set-0-is_primary': True,
+                'profileemail_set-1-email': '{0}@{0}{1}.test'.format(test_str, index),
+                'telephone_set-0-telephone': '+420123456789',
+                'userchannels-0-bank_account': bank_account.id,
+                'userchannels-0-regular_payments': 'regular',
+                'userchannels-0-event': event.id,
+                }
         return profile_post_data
 
     def update_profile_post_data(self, action, post_data, child_model):
@@ -120,8 +129,7 @@ class TestProfilePostMixin:
 
     def compare_profile_personal_info(self, action, post_data, profile):
         group_id = profile.groups.all().values_list("id", flat=True)[0]
-        primary_email = ProfileEmail.objects.get(user=profile, is_primary=True).email
-        emails = set(
+        email = set(
             ProfileEmail.objects.filter(user=profile).values_list('email', flat=True),
         )
         self.assertEqual(profile.username, post_data['username'])
@@ -135,15 +143,8 @@ class TestProfilePostMixin:
                 self.assertEqual(profile.crn, post_data['crn'])
                 self.assertEqual(profile.tin, post_data['tin'])
 
-            self.assertEqual(profile.email, post_data['profileemail_set-0-email'])
-            self.assertEqual(profile.email, primary_email)
-            self.assertEqual(
-                emails,
-                {
-                    post_data['profileemail_set-0-email'],
-                    post_data['profileemail_set-1-email'],
-                },
-            )
+            self.assertEqual(profile.email, None)
+            self.assertEqual(email, {post_data['email']})
         else:
             if isinstance(profile, UserProfile):
                 self.assertEqual(profile.first_name, 'First name edit')
@@ -158,19 +159,6 @@ class TestProfilePostMixin:
         self.assertEqual(profile.is_staff, True)
         self.assertEqual(group_id, post_data['groups'])
         self.assertEqual(group_id, post_data['groups'])
-
-    def compare_profile_preference(self, action, profile, post_data):
-        preference = profile.preference_set.first()
-        self.assertEqual(profile.preference_set.count(), 1)
-        if action == 'add':
-            self.assertEqual(
-                preference.newsletter_on,
-                post_data['preference_set-0-newsletter_on'],
-            )
-            self.assertEqual(
-                preference.call_on,
-                post_data['preference_set-0-call_on'],
-            )
 
     def delete_profile(self, new_profiles):
         for profile in new_profiles:
