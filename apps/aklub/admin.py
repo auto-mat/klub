@@ -504,6 +504,7 @@ class ProfileMergeForm(merge.MergeForm):
 class PreferenceInline(nested_admin.NestedStackedInline):
     model = Preference
     extra = 0
+    max_number = 1
     can_delete = False
     fieldsets = (
         (None, {
@@ -698,6 +699,11 @@ class ProfileAdminMixin:
 
     total_payment.short_description = _("Total payment")
     total_payment.admin_order_field = 'Total payment'
+
+    def email_anchor(self, obj):
+        return ''
+
+    email_anchor.short_description = _(mark_safe('<a href="#profileemail_set-group">Details</a>'))
 
 
 class ProfileAdmin(
@@ -1580,7 +1586,7 @@ class BaseProfileChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModel
     readonly_fields = (
         'userattendance_links', 'date_joined', 'last_login', 'get_main_telephone',
         'get_email', 'regular_amount', 'donor_delay', 'registered_support_date',
-        'donor_frequency', 'total_payment', 'donor_extra_money'
+        'donor_frequency', 'total_payment', 'donor_extra_money', 'email_anchor',
     )
     '''
     def get_inline_instances(self, request, obj=None):
@@ -1610,6 +1616,7 @@ class UserProfileAdmin(
     list_display = (
         'person_name',
         'get_email',
+        'username',
         'get_administrative_units',
         'addressment',
         'get_addressment',
@@ -1683,7 +1690,7 @@ class UserProfileAdmin(
                 'username', ('first_name', 'last_name'), ('title_before', 'title_after'), 'sex',
                 'is_active',
                 ('birth_day', 'birth_month', 'age_group'),
-                'get_email',
+                ('get_email', 'email_anchor'),
                 'get_main_telephone',
                 'note',
                 'administrative_units',
@@ -1696,8 +1703,16 @@ class UserProfileAdmin(
             'fields': [
                 ('street', 'city',),
                 ('country', 'zip_code'),
-                'different_correspondence_address',
                 ('addressment', 'addressment_on_envelope'),
+                'different_correspondence_address',
+            ],
+        }
+         ),
+        (_('Correspondence address'), {
+            'classes': ('collapse', ),
+            'fields': [
+                ('correspondence_street', 'correspondence_city',),
+                ('correspondence_country', 'correspondence_zip_code'),
             ],
         }
          ),
@@ -1821,6 +1836,7 @@ class CompanyProfileAdmin(
                 'username', ('name'),
                 'is_active',
                 'administrative_units',
+                'no_crn_check',
                 'crn',
                 'tin',
             ),
@@ -1845,12 +1861,21 @@ class CompanyProfileAdmin(
             'fields': [
                 ('street', 'city',),
                 ('country', 'zip_code'),
-                'different_correspondence_address',
                 ('addressment', 'addressment_on_envelope'),
+                'different_correspondence_address',
             ],
         }
          ),
-    )
+
+        (_('Correspondence address'), {
+             'classes': ('collapse', ),
+             'fields': [
+                 ('correspondence_street', 'correspondence_city',),
+                 ('correspondence_country', 'correspondence_zip_code'),
+             ],
+         }
+         ),
+     )
     superuser_fieldsets = (
         (_('Rights and permissions'), {
             'classes': ('collapse',),

@@ -1,0 +1,9 @@
+"CEB Export dat z obrazovky Pohyby ze dne 2.8.2019 17:27:19; Vybrané úèty: 99999999/0300; CZK; FRIENDLY ";;;;;;;;;;;;;;;;;;;;;
+Zvolený filtr:;;;;;;;;;;;;;;;;;;;;;
+"Datum zaúètování: od  19.7.2019 do  2.8.2019; Druh:  Pøíjmy; ";;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;
+èíslo úètu;mìna;alias;název úètu;datum zaúètování;datum valuty;èástka;mìna;zùstatek;konstantní symbol/kód poplatku;variabilní symbol/reference;specifický symbol;popis;název protistrany/protistrana;úèet protistrany;zpráva pøíjemci i plátci;identifikace;èástka platby;mìna platby;poznámka;název 3. strany;identifikátor 3. strany
+99999999/0300;CZK;FRIENDLY ;TEST- FRIENDLY ;19.07.2019;;200;CZK;;1;120127010;9999;Pøíchozí úhrada ;TEST USER 1;99999999/0600;We must test;;;;;;
+99999999/0300;CZK;FRIENDLY ;TEST- FRIENDLY ;20.07.2019;;300;CZK;;2;33333333;1111;Došlá úhrada ;USER 1;88888888/0800;;;;;;;
+99999999/0300;CZK;FRIENDLY ;TEST- FRIENDLY ;01.08.2019;;1000;CZK;;;;0;Pøíchozí úhrada ;USER TESTER;99-77777777/0100;Test message;;;;;;
+99999999/0300;CZK;FRIENDLY ;TEST- FRIENDLY ;01.08.2019;;30000;CZK;;4;11111111;1511;Pøíchozí úhrada ;TESTER 3;66666666/0800;;;;;;;

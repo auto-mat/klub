@@ -33,18 +33,14 @@ import datetime
 from admin_tools.dashboard import AppIndexDashboard, Dashboard, modules
 from admin_tools.utils import get_admin_site_name
 
-from admin_tools_stats.modules import get_active_graph
+from admin_tools_stats.modules import DashboardChart, get_active_graph
 
 from django.core.cache import caches
-try:
-    from django.urls import reverse
-except ImportError:  # Django<2.0
-    from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
 from . import models
-from .dashboard_charts import YearDashboardCharts
 from .models import AccountStatements, Condition, DonorPaymentChannel, MassCommunication
 
 cache = caches['default']
@@ -205,7 +201,7 @@ class AklubIndexDashboard(Dashboard):
                 if key.startswith('select_box_'):
                     kwargs[key] = context['request'].POST[key]
 
-            self.children.append(YearDashboardCharts(**kwargs))
+            self.children.append(DashboardChart(**kwargs))
 
 
 class AklubAppIndexDashboard(AppIndexDashboard):

@@ -909,17 +909,25 @@ class CompanyProfile(Profile):
         blank=True,
         null=True,
     )
-    crn = models.CharField(
-        verbose_name=_(u"Company Registration Number"),
-        max_length=20,
-        null=True,
+
+    crn = StdNumField(
+        'cz.dic',
+        default=None,
+        verbose_name=_(u"IČO"),
+        validators=[RegexValidator(r'^[0-9]*$', _('IČO musí být číslo'))],
+        error_messages={'stdnum_format': ICO_ERROR_MESSAGE},
+        help_text=_("only for Czech companies"),
         blank=True,
+        null=True,
     )
-    tin = models.CharField(
-        verbose_name=_(u"Tax Identification Number"),
-        max_length=20,
-        null=True,
+
+    tin = StdNumField(
+        'eu.vat',
+        default=None,
+        verbose_name=_(u"DIČ"),
+        help_text=_("Czech and European companies, must be in valid formate"),
         blank=True,
+        null=True,
     )
 
 
@@ -1508,6 +1516,13 @@ def header_parse(payments_reader, date_from_name, date_to_name):
     return date_from, date_to
 
 
+def delete_left_nulls(number):
+    number = int(number)
+    if number == 0:
+        return ''
+    return str(number)
+
+
 class AccountStatements(models.Model):
     """AccountStatemt entry and DB model
 
@@ -1524,6 +1539,8 @@ class AccountStatements(models.Model):
         ('account', 'Account statement - Fio Banka'),
         ('account_cs', 'Account statement - Česká spořitelna'),
         ('account_kb', 'Account statement - Komerční Banka'),
+        ('account_csob', 'Account statement - ČSOB'),
+        ('account_sberbank', 'Account statement - Sberbank'),
         ('darujme', 'Darujme.cz'),
     )
 
@@ -1702,6 +1719,90 @@ class AccountStatements(models.Model):
                 if check_incomming(p_sort['amount']):
                     continue
                 payments.append(register_payment(p_sort, self))
+        return payments
+
+    def parse_bank_csv_csob(self):
+        # Read and parse the account statement
+        # TODO: This should be separated into a dedicated module
+
+        payments_reader = csv.DictReader(
+            codecs.iterdecode(self.csv_file, 'cp1250'),
+            delimiter=';',
+            fieldnames=[
+                'cislo uctu', 'mena1', 'alias', 'nazev uctu', 'datum zauctovani', 'datum valuty',
+                'castka', 'mena2', 'zustatek', 'konstantni symbol', 'variabilni symbol', 'specificky symbol',
+                'popis', 'protistrana', 'ucet protistrany', 'zprava prijemci i platci', 'identifikace', 'castka platby',
+                'mena platby', 'poznamka', 'nazev 3. strany', 'identifikator 3. strany',
+            ],
+
+        )
+        csv_head = True
+        payments = []
+        for payment in payments_reader:
+            if csv_head:
+                line_parse = payment[payments_reader.fieldnames[0]].split(' ')
+                if payment[payments_reader.fieldnames[0]] == 'číslo účtu':
+                    csv_head = False
+                elif line_parse[0] == 'Datum':
+                    self.date_from = str_to_datetime(line_parse[4])
+                    self.date_to = str_to_datetime(line_parse[7].replace(';', ''))
+            else:
+                p_sort = {
+                            'account': payment['ucet protistrany'].split('/')[0],
+                            'bank_code':  payment['ucet protistrany'].split('/')[1],
+                            'VS': payment['variabilni symbol'],
+                            'KS': payment['konstantni symbol'],
+                            'SS': payment['specificky symbol'],
+                            'amount': payment['castka'],
+                            'currency': payment['mena2'],
+                            'account_name': payment['protistrana'],
+                            'recipient_message': payment['zprava prijemci i platci'],
+                            'transfer_note': payment['poznamka'],
+                            'date': payment['datum zauctovani'],
+                             }
+
+                p_sort['amount'] = amount_to_int(p_sort['amount'])
+                p_sort['date'] = str_to_datetime(p_sort['date'])
+
+                if check_incomming(p_sort['amount']):
+                    continue
+                payments.append(register_payment(p_sort, self))
+        return payments
+
+    def parse_bank_csv_sberbank(self):
+        # Read and parse the account statement
+        # TODO: This should be separated into a dedicated module
+        payments_reader = csv.DictReader(
+            codecs.iterdecode(self.csv_file, 'cp1250'),
+            delimiter='	',
+            fieldnames=[
+                'owner_bank_number', 'currency1', 'transfer_type', 'date1', 'date2',
+                'incomming_outcomming', 'amount', 'currency2', 'bank_account', 'bank_code',
+                'account_name', 'symbols', 'message',
+            ],
+
+        )
+        payments = []
+        for payment in payments_reader:
+            VS, KS, SS = payment['symbols'].split(',')
+            p_sort = {
+                        'account': delete_left_nulls(payment['bank_account']),
+                        'bank_code':  payment['bank_code'],
+                        'VS': delete_left_nulls(VS),
+                        'KS': delete_left_nulls(KS),
+                        'SS': delete_left_nulls(SS),
+                        'amount': amount_to_int(payment['amount']),
+                        'currency': payment['currency2'],
+                        'account_name': payment['account_name'],
+                        'recipient_message': payment['message'],
+                        'date': str_to_datetime(payment['date1']),
+                        'transfer_type': payment['transfer_type'],
+                         }
+
+            if payment['incomming_outcomming'] != 'Příchozí platba':
+                continue
+
+            payments.append(register_payment(p_sort, self))
         return payments
 
     def __str__(self):
