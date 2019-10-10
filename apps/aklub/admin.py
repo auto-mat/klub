@@ -628,7 +628,7 @@ class ProfileAdminMixin:
             ).values(attr)
         else:
             result = obj.userchannels.filter(regular_payments='regular').values(attr)
-        return [f[attr] if f[attr] is not None else '-' for f in result]
+        return [f[attr] or '-' for f in result]
 
     def get_donor(self, obj):
         if not self.request.user.has_perm('aklub.can_edit_all_units'):
