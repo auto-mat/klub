@@ -116,6 +116,14 @@
             ],
             "version": "==0.0.4"
         },
+        "cssutils": {
+            "hashes": [
+                "sha256:a2fcf06467553038e98fea9cfe36af2bf14063eb147a70958cfcaa8f5786acaf",
+                "sha256:c74dbe19c92f5052774eadb15136263548dd013250f1ed1027988e7fef125c8d"
+            ],
+            "index": "pypi",
+            "version": "==1.0.2"
+        },
         "defusedxml": {
             "hashes": [
                 "sha256:6687150770438374ab581bb7a1b327a847dd9c5749e396102de3fad4e8a3ef93",

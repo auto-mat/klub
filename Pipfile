@@ -89,6 +89,7 @@ django-filter = "*"
 PyYAML = "*"
 mkdocs = "*"
 django-js-urls = "*"
+cssutils = "*"
 
 [dev-packages]
 coverage = "*"
