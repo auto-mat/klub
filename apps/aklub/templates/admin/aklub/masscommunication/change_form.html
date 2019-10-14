@@ -18,7 +18,7 @@
 	{{ block.super }}
 	
 	{% wysiwyg_setup %}
-	
+<script src="{% url 'js_urls' %}" type="text/javascript"></script>
 {% endblock %}
 
 {% block extrastyle %}
@@ -75,8 +75,10 @@
 	{{ block.super }}
 	
 	{# Replace XXXXXXXX with field name: #}
+	{% comment %}
 	{% wysiwyg_editor "id_template" %}
 	{% wysiwyg_editor "id_template_en" %}
+	{% comment %}
 	
 	{% comment %}
 		{# ckeditor custom config example #}
