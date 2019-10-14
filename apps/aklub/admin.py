@@ -76,6 +76,7 @@ from smmapdfs.actions import make_pdfsandwich
 
 
 from . import darujme, filters, mailing, tasks
+from .custom_form_widgets import HtmlTemplateWidget
 from .filters import ProfileTypeFilter, unit_admin_mixin_generator
 from .forms import (
     CompanyProfileAddForm, CompanyProfileChangeForm, EventForm, TaxConfirmationForm, UnitUserProfileAddForm,
@@ -92,8 +93,8 @@ from .profile_model_resources import (
     ProfileModelResource, get_polymorphic_parent_child_fields,
 )
 from .profile_model_resources_mixin import ProfileModelResourceMixin
+from .utils import get_email_templates_names
 from .utils import sweet_text
-
 
 def admin_links(args_generator):
     return format_html_join(
@@ -1569,9 +1570,55 @@ class AutomaticCommunicationAdmin(admin.ModelAdmin):
 
 
 class MassCommunicationForm(forms.ModelForm):
+    hidden_template = forms.CharField(widget=forms.HiddenInput(), required=False)
+    hidden_template_en = forms.CharField(widget=forms.HiddenInput(), required=False)
+    template_textarea = forms.CharField(widget=forms.Textarea(), required=False)
+    template_en_textarea = forms.CharField(widget=forms.Textarea(), required=False)
+
     class Meta:
         model = MassCommunication
         fields = '__all__'
+        widgets = {
+            'template': HtmlTemplateWidget(
+                attrs={
+                    'class': 'template',
+                },
+            ),
+            'template_en': HtmlTemplateWidget(
+                attrs={
+                    'class': 'template',
+                },
+            ),
+        }
+
+    class Media:
+        js = (
+            'jquery/dist/jquery.min.js',
+            'jquery-ui/jquery-ui.min.js',
+            'jquery.inlineStyler/jquery.inlineStyler.min.js',
+            'webui-popover/dist/jquery.webui-popover.min.js',
+            'aklub/js/csrf_token.js',
+            'aklub/js/html_template.js',
+            'aklub/js/masscommunication_init.js',
+        )
+        css = {
+            'all': (
+                'jquery-ui/themes/base/jquery-ui.min.css',
+                'webui-popover/dist/jquery.webui-popover.min.css',
+                'aklub/css/template.css',
+            )
+        }
+
+    def __init__(self, *args, **kwargs):
+        super(MassCommunicationForm, self).__init__(*args, **kwargs)
+        self.fields['template_name'] = forms.ChoiceField(
+            choices=get_email_templates_names(),
+            required=False
+        )
+        self.fields['template_en_name'] = forms.ChoiceField(
+            choices=get_email_templates_names(),
+            required=False
+        )
 
     def clean_send_to_users(self):
         v = EmailValidator()

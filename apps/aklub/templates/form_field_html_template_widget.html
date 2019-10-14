@@ -1,0 +1,3 @@
+<div name="{{ widget.name }}"{% include "form_field_html_template_widget_attrs.html" %}>
+  {% if widget.value %}{{ widget.value|safe }}{% endif %}
+</div>
