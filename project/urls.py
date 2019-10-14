@@ -6,11 +6,16 @@ from django.conf.urls.i18n import i18n_patterns
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
-from django.urls import path
+from django.urls import path, re_path
 from django.views.i18n import JavaScriptCatalog
 
+from rest_framework.authtoken.views import obtain_auth_token
+
+from rest_framework_swagger.views import get_swagger_view
 
 admin.autodiscover()
+schema_view = get_swagger_view(title='API')
+
 
 urlpatterns = [
     url(r'^desk/', include("helpdesk.urls")),
@@ -38,6 +43,15 @@ urlpatterns = [
     path('notifications/', include('django_nyt.urls')),
     path('help/', include('wiki.urls')),
     path('api/', include('api.urls')),
+    re_path(
+        r'^html_template_editor/',
+        include(
+            ('html_template_editor.urls', 'html_template_editor'),
+            namespace='html_template_editor')
+    ),
+    re_path(r'^docs/', schema_view),
+    re_path(r'^api-auth/', include('rest_framework.urls')),
+    re_path(r'^token-auth/', obtain_auth_token),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 urlpatterns += i18n_patterns(
