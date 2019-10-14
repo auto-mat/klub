@@ -98,6 +98,7 @@ PyYAML = "*"
 mkdocs = "*"
 django-js-urls = "*"
 cssutils = "*"
+cairosvg = "*"
 
 [dev-packages]
 coverage = "*"
