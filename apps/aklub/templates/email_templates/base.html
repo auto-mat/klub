@@ -1,0 +1,23 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <meta name="page-id" content="{{page.id}}"/>
+        <title>ContentTools sandbox</title>
+        <link rel="stylesheet" type="text/css" href={% static "ContentTools/sandbox/sandbox.css" %}>
+        <link rel="stylesheet" type="text/css" href={% static "ContentTools/build/content-tools.min.css" %}>
+	<link rel="stylesheet" type="text/css" href={% static "aklub/css/automat_newsletter.css" %}>
+    </head>
+    <body>
+      {% block content %}
+      {% endblock %}
+    </body>
+    <script src="{% url 'js_urls' %}" type="text/javascript"></script>
+    <script type="text/javascript" src={% static "aklub/js/csrf_token.js" %}></script>
+    <script type="text/javascript" src={% static "aklub/js/edit_html_template.js" %}></script>
+    <script type="text/javascript" src={% static "ContentTools/build/content-tools.js" %}></script>
+    <script type="text/javascript" src={% static "aklub/js/image_uploader.js" %}></script>
+    <script type="text/javascript" src={% static "aklub/js/editor.js" %}></script>
+</html>

@@ -1,0 +1,31 @@
+.newsletter-section {
+    width: 318px;
+    height: 980px;    
+}
+
+.green-newsletter-section .top-vertical-line {
+    height: 80px;
+}
+
+.newsletter-section p, h1 {
+    margin: 0px;
+}
+
+.newsletter-section h1 {
+    text-align: center;
+}
+.newsletter-section .sample-pic {
+    width: 250px;
+    height: 280px;
+}
+.newsletter-section .align-center {
+    text-align: center;
+}
+
+.purple-newsletter-section .top-vertical-line {
+    height: 100px;
+}
+
+.red-newsletter-section .top-vertical-line {
+    height: 100px;
+}
