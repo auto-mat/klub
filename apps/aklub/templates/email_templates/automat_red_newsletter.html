@@ -1,0 +1,21 @@
+{% extends 'email_templates/base.html' %}
+
+{% load static %}
+
+{% block content %}
+<article class="article">
+  <section class="[ article__content ]  [ editable ] red-newsletter-section newsletter-section"  data-name="article" style="background-image: url({% static 'aklub/images/automat_red_newsletter.svg'%});background-repeat: no-repeat;background-size: contain;">
+    {% if article %}
+    {{ article | safe }}
+    {% else %}
+    <div class="top-vertical-line"></div>
+    <h1>Title</h1>
+    <p>Text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text</p>
+    <p class="align-center"><b><i>Sample image</i></b></p>
+    <img class="sample-pic" src={% static "aklub/images/newsletter_template_sample_pic.png" %} title="Sample image">
+    <p class="align-center"><b><i>Sample video</i></b></p>
+    <iframe src="https://www.youtube.com/embed/Ja9n7GxMoKs" style="box-shadow:none;height:179px;width:239px;max-width:100%;min-width:0px;border-collapse:separate;border-spacing:0px 0px;caption-side:top;empty-cells:show;table-layout:auto;direction:ltr;font-family:helvetica, sans-serif;font-style:normal;font-variant:normal;font-size:16px;font-weight:400;letter-spacing:0;line-height:19px;text-align:start;text-decoration:none;text-indent:0px;text-overflow:clip;text-shadow:none;text-transform:none;white-space:normal;word-spacing:0px;word-wrap:normal;vertical-align:baseline;color:rgb(73, 73, 73);background-color:rgba(0, 0, 0, 0);background-image:none;background-position:0% 0%;background-repeat:repeat;Opacity:1;bottom:auto;clear:both;clip:auto;cursor:auto;display:block;float:none;left:auto;opacity:1;overflow:visible;position:static;right:auto;top:auto;visibility:visible;z-index:auto;list-style-image:none;list-style-position:outside;list-style-type:disc" width="239" height="179" frameborder="0"></iframe>
+    {% endif %}
+  </section>
+</article>
+{% endblock %}
