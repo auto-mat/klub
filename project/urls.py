@@ -9,6 +9,8 @@ from django.contrib.auth import views as auth_views
 from django.urls import path, re_path
 from django.views.i18n import JavaScriptCatalog
 
+from js_urls.views import JsUrlsView
+
 from rest_framework.authtoken.views import obtain_auth_token
 
 from rest_framework_swagger.views import get_swagger_view
@@ -52,6 +54,7 @@ urlpatterns = [
     re_path(r'^docs/', schema_view),
     re_path(r'^api-auth/', include('rest_framework.urls')),
     re_path(r'^token-auth/', obtain_auth_token),
+    re_path(r'^js-urls/$', JsUrlsView.as_view(), name='js_urls'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 urlpatterns += i18n_patterns(
