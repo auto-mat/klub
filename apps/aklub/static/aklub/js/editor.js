@@ -59,7 +59,7 @@
       }
       element = document.querySelector('meta[name="page-id"]')
       page_id = element.getAttribute('content')
-      editHtmlTemplate.call('post', window.reverse('api:add'), payload, true, onStateChange)
+      editHtmlTemplate.call('post', window.reverse('html_template_editor:add'), payload, true, onStateChange)
     })
   }
 }).call(this, editHtmlTemplate)
