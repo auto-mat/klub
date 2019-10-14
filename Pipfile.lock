@@ -585,12 +585,9 @@
             "version": "==3.0.2"
         },
         "django-wysiwyg": {
-            "hashes": [
-                "sha256:4de7214c0da50807cf1bef32d1ad16976048006d187a1b8daf0380ed326c424d",
-                "sha256:7c37c685379fa23402f415ba7f8f6bce3552d3836ed2cf99e37591e1cc0dffc3"
-            ],
-            "index": "pypi",
-            "version": "==0.8.0"
+            "editable": true,
+            "git": "https://github.com/tmszi/django-wysiwyg.git",
+            "ref": "def387340646697e49f17423a7534b4ba964bc24"
         },
         "djangorestframework": {
             "hashes": [
