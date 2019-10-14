@@ -133,6 +133,5 @@ def get_email_templates_names():
             if template not in ['base.html']
         ]
     ]
-    templates_names.insert(0, ("", "---------"))
 
     return templates_names
