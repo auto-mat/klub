@@ -76,7 +76,7 @@ var HtmlTemplateFormFieldWidget = (function ($) {
       editTemplateDialog: function (templateName) {
         var that = this; var btnNames = {}; var title
         btnNames[gettext('Ok')] = function () {that.confirmEditTemplateDialog($(this))}
-        title = gettext('Edit') + ' ' + templateName + ' ' + gettext('template')
+        title = gettext('Edit') + ' \'' + templateName + '\' ' + gettext('template')
         $(this.editDialogContainerHtmlString).dialog({
           modal: true,
           title: title,
