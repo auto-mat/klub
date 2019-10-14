@@ -10,7 +10,7 @@ django-stdimage = "*"
 reportlab = "*"
 django-extensions = "*"
 "psycopg2" = "*"
-django-wysiwyg = "*"
+django-wysiwyg = {editable = true,git = "https://github.com/tmszi/django-wysiwyg.git",ref = "enable_editor_for_more_fields"}
 django-tinymce = "*"
 django-admin-tools = "*"
 feedparser = "*"
