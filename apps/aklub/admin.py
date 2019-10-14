@@ -1581,13 +1581,14 @@ class MassCommunicationForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(MassCommunicationForm, self).__init__(*args, **kwargs)
+        self.fields['template_type'].empty_label = None
         self.fields['template_name'] = forms.ChoiceField(
             choices=get_email_templates_names(),
-            required=False
+            required=False,
         )
         self.fields['template_en_name'] = forms.ChoiceField(
             choices=get_email_templates_names(),
-            required=False
+            required=False,
         )
 
     def clean_send_to_users(self):
@@ -1608,11 +1609,13 @@ class MassCommunicationForm(forms.ModelForm):
         return self.cleaned_data['send_to_users']
 
     def clean(self):
+        super().clean()
         cleaned_data = self.cleaned_data
         if self.cleaned_data.get('hidden_template'):
             cleaned_data['template'] = self.cleaned_data.get('hidden_template')
         if self.cleaned_data.get('hidden_template_en'):
             cleaned_data['template_en'] = self.cleaned_data.get('hidden_template_en')
+
         return cleaned_data
 
 
@@ -1680,6 +1683,14 @@ class MassCommunicationAdmin(unit_admin_mixin_generator('administrative_unit'), 
             obj.date = datetime.datetime.now()
             obj.save()
         return obj
+
+    def add_view(self, request, form_url='', extra_context=None):
+        request.POST = request.POST.copy()
+        if request.POST.get('hidden_template'):
+            request.POST['template'] = request.POST.get('hidden_template')
+        if request.POST.get('hidden_template_en'):
+            request.POST['template_en'] = request.POST.get('hidden_template_en')
+        return super(MassCommunicationAdmin, self).add_view(request, form_url=form_url, extra_context=extra_context)
 
 
 def pair_payment_with_dpch(self, request, queryset):
