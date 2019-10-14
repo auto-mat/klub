@@ -1607,6 +1607,14 @@ class MassCommunicationForm(forms.ModelForm):
                     )
         return self.cleaned_data['send_to_users']
 
+    def clean(self):
+        cleaned_data = self.cleaned_data
+        if self.cleaned_data.get('hidden_template'):
+            cleaned_data['template'] = self.cleaned_data.get('hidden_template')
+        if self.cleaned_data.get('hidden_template_en'):
+            cleaned_data['template_en'] = self.cleaned_data.get('hidden_template_en')
+        return cleaned_data
+
 
 class MassCommunicationAdmin(unit_admin_mixin_generator('administrative_unit'), large_initial.LargeInitialMixin, admin.ModelAdmin):
     save_as = True
