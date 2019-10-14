@@ -1598,7 +1598,7 @@ class MassCommunicationForm(forms.ModelForm):
             'jquery.inlineStyler/jquery.inlineStyler.min.js',
             'webui-popover/dist/jquery.webui-popover.min.js',
             'aklub/js/csrf_token.js',
-            'aklub/js/html_template.js',
+            'aklub/js/form_field_html_template_widget.js',
             'aklub/js/form_field_widget_init.js',
         )
         css = {
