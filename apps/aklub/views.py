@@ -19,6 +19,7 @@
 
 # Create your views here.
 import json
+import pathlib
 from collections import OrderedDict
 
 from betterforms.multiform import MultiModelForm
@@ -32,8 +33,9 @@ from django.core.mail import mail_managers
 from django.core.validators import MinLengthValidator, RegexValidator, ValidationError
 from django.db.models import Case, CharField, Count, IntegerField, Q, Sum, Value, When
 from django.db.models.functions import TruncMonth
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render_to_response
+from django.template import loader
 from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext_lazy as _
@@ -49,6 +51,7 @@ from interactions.models import PetitionSignature  # TODO: Not sure if it works 
 from sesame.backends import ModelBackend
 
 from . import autocom
+from .html_template_editor.models import TemplateContent
 from .models import (
     BankAccount,
     DonorPaymentChannel, Event, Payment,
@@ -813,3 +816,27 @@ class ConfirmEmailView(SesameUserMixin, View):
         user_in_campaign.save()
         cache.clear()
         return redirect(user_in_campaign.campaign.email_confirmation_redirect, permanent=False)
+
+
+def get_email_template(request, template_name):
+    _template_name = template_name
+    template_name = '.'.join([template_name, 'html'])
+    template_dir = pathlib.PurePath('email_templates')
+    template_path = template_dir / template_name
+    template = loader.get_template(template_path.as_posix())
+    template_url = reverse_lazy(
+        'aklub:get_email_template',
+        kwargs={'template_name': _template_name}
+    )
+    template_obj = TemplateContent.objects.filter(page=template_url)
+    if (template_obj):
+        content = template_obj.latest('created')
+        context = {
+            'page': content
+        }
+        regions = json.loads(content.regions)
+        context.update(regions)
+    else:
+        context = {}
+
+    return HttpResponse(template.render(context))
