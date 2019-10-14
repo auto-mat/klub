@@ -35,4 +35,4 @@
     Object.assign(htmlTemplateEnFieldOpts, formOpts)
     var htmlTemplateEnFieldWidget = new HtmlTemplateFormFieldWidget(htmlTemplateEnFieldOpts)
   })
-}(jQuery, HtmlTemplateFormFieldWidget)
+}(jQuery, HtmlTemplateFormFieldWidget))
