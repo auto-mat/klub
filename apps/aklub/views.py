@@ -47,10 +47,11 @@ from django.views.generic.edit import FormView
 
 from extra_views import InlineFormSet, UpdateWithInlinesView
 
+from html_template_editor.models import TemplateContent
+
 from sesame.backends import ModelBackend
 
 from . import autocom
-from .html_template_editor.models import TemplateContent
 from .models import (
     BankAccount,
     DonorPaymentChannel, Event, Payment, PetitionSignature,
