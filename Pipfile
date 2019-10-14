@@ -84,7 +84,11 @@ django-dbbackup = "*"
 faker = "*"
 django-computedfields = "*"
 django-oauth-toolkit = "*"
-
+django-rest-swagger = "*"
+django-filter = "*"
+PyYAML = "*"
+mkdocs = "*"
+django-js-urls = "*"
 
 [dev-packages]
 coverage = "*"

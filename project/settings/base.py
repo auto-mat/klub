@@ -243,6 +243,9 @@ INSTALLED_APPS = (
     'flexible_filter_conditions.apps.FlexibleFilterConditionsConfig',
     'rest_framework',
     'oauth2_provider',
+    'rest_framework_swagger',
+    'rest_framework.authtoken',
+    'js_urls',
 )
 
 REST_FRAMEWORK = {
@@ -273,6 +276,8 @@ BOWER_INSTALLED_APPS = (
     'd3#3.3.13',
     'nvd3#1.7.1',
     'ContentTools#1.6.10',
+    'https://github.com/Karl33to/jquery.inlineStyler.git#1.0.1',
+    'webui-popover#2.1.15',
 )
 
 EMAIL_BACKEND = 'post_office.EmailBackend'
