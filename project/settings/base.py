@@ -246,6 +246,7 @@ INSTALLED_APPS = (
     'rest_framework_swagger',
     'rest_framework.authtoken',
     'js_urls',
+    'html_template_editor',
 )
 
 REST_FRAMEWORK = {
@@ -478,3 +479,26 @@ WIKI_ACCOUNT_SIGNUP_ALLOWED = False
 WIKI_ACCOUNT_HANDLING = False
 WIKI_ANONYMOUS = False
 WIKI_CAN_READ = lambda _, user: user.is_staff  # noqa
+
+REST_FRAMEWORK = {
+    # Use Django's standard `django.contrib.auth` permissions,
+    # or allow read-only access for unauthenticated users.
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAdminUser',
+    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+    ),
+    'DEFAULT_PARSER_CLASSES': (
+        'rest_framework.parsers.JSONParser',
+        'rest_framework.parsers.FormParser',
+        'rest_framework.parsers.MultiPartParser',
+    ),
+    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
+    }
+
+SWAGGER_SETTINGS = {
+    'is_authenticated': False,
+    'is_superuser': False,
+}
