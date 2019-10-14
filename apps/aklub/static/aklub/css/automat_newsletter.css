@@ -2,15 +2,9 @@
     width: 518px;
     height: 1598px;    
 }
-
-.green-newsletter-section .top-vertical-line {
-    height: 80px;
-}
-
 .newsletter-section p, h1 {
     margin: 0px;
 }
-
 .newsletter-section h1 {
     text-align: center;
 }
@@ -21,11 +15,15 @@
 .newsletter-section .align-center {
     text-align: center;
 }
-
-.purple-newsletter-section .top-vertical-line {
-    height: 100px;
+.vertical-line {
+    height: 50px;
 }
-
+.green-newsletter-section .top-vertical-line {
+    height: 180px;
+}
+.purple-newsletter-section .top-vertical-line {
+    height: 180px;
+}
 .red-newsletter-section .top-vertical-line {
-    height: 100px;
+    height: 160px;
 }
