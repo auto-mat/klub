@@ -3,16 +3,15 @@ import io
 
 from PIL import Image
 
+from aklub.tests.test_admin import CreateSuperUserMixin
+
 from django.core.files.base import ContentFile
 from django.urls import reverse
-
 
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 from rest_framework.test import APITestCase
-
-from aklub.tests.test_admin import CreateSuperUserMixin
 
 
 # Create your tests here.
@@ -28,7 +27,7 @@ class TemplateContentTests(CreateSuperUserMixin, APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION='Token {}'.format(self.token.key))
 
         # Create the add URL
-        url = reverse('api:add')
+        url = reverse('html_template_editor:add')
 
         data = {
             'images': ['{}'],
@@ -53,7 +52,7 @@ class TemplateContentTests(CreateSuperUserMixin, APITestCase):
         object_id = response.data['uuid']
 
         # Retrieve
-        url = reverse('api:retrieve', args=[object_id])
+        url = reverse('html_template_editor:retrieve', args=[object_id])
         response = self.client.get(url, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -70,7 +69,7 @@ class ImageUploadTests(CreateSuperUserMixin, APITestCase):
         """ Test if we can add, update image """
         self.client.credentials(HTTP_AUTHORIZATION='Token {}'.format(self.token.key))
 
-        url = reverse('api:images_add')
+        url = reverse('html_template_editor:images_add')
 
         file_obj = io.BytesIO()
         image = Image.new("RGBA", size=(50, 50), color=(256, 0, 0))
@@ -96,7 +95,7 @@ class ImageUploadTests(CreateSuperUserMixin, APITestCase):
         # Crop Image
         #
 
-        url = reverse('api:images_update', args=[image_id])
+        url = reverse('html_template_editor:images_update', args=[image_id])
 
         data = {
             'crop': ['0,0,10,10']
