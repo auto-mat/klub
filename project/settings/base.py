@@ -249,6 +249,9 @@ INSTALLED_APPS = (
     "pinax.invitations",
     "pinax.teams",
     "reversion",
+    'rest_framework_swagger',
+    'rest_framework.authtoken',
+    'js_urls',
 )
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [ # noqa
@@ -290,6 +293,8 @@ BOWER_INSTALLED_APPS = (
     'd3#3.3.13',
     'nvd3#1.7.1',
     'ContentTools#1.6.10',
+    'https://github.com/Karl33to/jquery.inlineStyler.git#1.0.1',
+    'webui-popover#2.1.15',
 )
 
 AUTH_PASSWORD_VALIDATORS = [

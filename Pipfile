@@ -92,7 +92,11 @@ faker = "*"
 # TODO: fix computedfields error in version 0.1.0 (syntax changed in models)
 django-computedfields = "==0.0.23"
 django-oauth-toolkit = "*"
-
+django-rest-swagger = "*"
+django-filter = "*"
+PyYAML = "*"
+mkdocs = "*"
+django-js-urls = "*"
 
 [dev-packages]
 coverage = "*"
