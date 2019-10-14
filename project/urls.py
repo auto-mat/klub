@@ -39,7 +39,7 @@ urlpatterns = [
     url(r'^advanced_filters/', include('advanced_filters.urls')),
     url(r'^nested_admin/', include('nested_admin.urls')),
     path('admin_tools_stats/', include('admin_tools_stats.urls')),
-    url(r'', include("aklub.urls")),
+    url(r'', include(('aklub.urls', 'aklub'), namespace='aklub')),
     path('notifications/', include('django_nyt.urls')),
     path('help/', include('wiki.urls')),
     re_path(
