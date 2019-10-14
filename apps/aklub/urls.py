@@ -1,6 +1,7 @@
 from aklub import views
 
 from django.conf.urls import url
+from django.urls import path
 
 from . import tasks # noqa
 
@@ -16,4 +17,5 @@ urlpatterns = [
     url(r'^profiles/', views.profiles, name="profiles"),
     url(r'^mailing/', views.MailingFormSetView.as_view(), name="mailing-configuration"),
     url(r'^email_confirmation/(?P<campaign_slug>[^&]+)/$', views.ConfirmEmailView.as_view(), name="email-confirmation"),
+    path('get_email_template/<template_name>/', views.get_email_template, name='get_email_template'),
 ]
