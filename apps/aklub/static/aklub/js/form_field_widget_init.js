@@ -6,7 +6,6 @@
 
 (function ($, HtmlTemplateFormFieldWidget) {
   $(document).ready(function () {
-    console.log(window.reverse)
     var formOpts = {
       editDialogPageContainer: 'template_page',
       popoverDelay: 3000
