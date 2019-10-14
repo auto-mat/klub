@@ -86,7 +86,7 @@ var imageUploader = function (dialog) {
     xhr = new XMLHttpRequest()
     xhr.upload.addEventListener('progress', xhrProgress)
     xhr.upload.addEventListener('readystatechange', xhrComplete)
-    editHtmlTemplate.call('post', window.reverse('api:images_add'), formData, true, xhrComplete)
+    editHtmlTemplate.call('post', window.reverse('html_template_editor:images_add'), formData, true, xhrComplete)
   })
 
   dialog.addEventListener(evtFuncsNames.save, function () {
@@ -140,7 +140,7 @@ var imageUploader = function (dialog) {
     // Make the request
     xhr = new XMLHttpRequest()
     xhr.upload.addEventListener('readystatechange', xhrComplete)
-    editHtmlTemplate.call('put', window.reverse('api:images_update', { id: image.id }), formData, true, xhrComplete)
+    editHtmlTemplate.call('put', window.reverse('html_template_editor:images_update', { id: image.id }), formData, true, xhrComplete)
   })
 
   function rotateImage (direction) {
@@ -184,7 +184,7 @@ var imageUploader = function (dialog) {
     // Make the request
     xhr = new XMLHttpRequest()
     xhr.upload.addEventListener('readystatechange', xhrComplete)
-    editHtmlTemplate.call('put', window.reverse('api:images_update', { id: image.id }), formData, true, xhrComplete)
+    editHtmlTemplate.call('put', window.reverse('html_template_editor:images_update', { id: image.id }), formData, true, xhrComplete)
   }
 
   dialog.addEventListener(evtFuncsNames.rotateccw, function () {
