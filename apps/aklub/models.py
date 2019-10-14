@@ -2565,7 +2565,7 @@ class MassCommunication(models.Model):
         help_text=_("Template can contain following variable substitutions: <br/>") + ("{mr|mrs} or {mr/mrs}, $" + ", $"
                                                                                        .join(autocom.KNOWN_VARIABLES)),
         max_length=50000,
-        blank=False,
+        blank=True,
         null=True,
         validators=[gender_strings_validator, variable_validator],
     )
