@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 
+from rest_framework import filters, generics
+from rest_framework.parsers import FormParser, MultiPartParser
 
 from .models import TemplateContent
 from .serializers import TemplateContentSerializer
-
-from rest_framework import filters, generics
-from rest_framework.parsers import FormParser, MultiPartParser
 
 #
 # Mixin for all company views.

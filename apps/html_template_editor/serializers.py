@@ -3,9 +3,9 @@
 import json
 import time
 
-from .models import TemplateContent, Images
-
 from rest_framework import serializers
+
+from .models import Images, TemplateContent
 
 
 class TemplateContentSerializer(serializers.ModelSerializer):
