@@ -502,3 +502,10 @@ SWAGGER_SETTINGS = {
     'is_authenticated': False,
     'is_superuser': False,
 }
+
+JS_URLS = (
+    'html_template_editor:add',
+    'html_template_editor:images_add',
+    'html_template_editor:images_update',
+    'aklub:get_email_template',
+)
