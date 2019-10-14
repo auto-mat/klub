@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import datetime
+import os
+import pathlib
 
 from django.contrib import messages
 from django.db import models
@@ -120,3 +122,16 @@ class WithAdminUrl:
             'admin:%s_%s_change' % (self._meta.app_label, self._meta.model_name),
             args=[self.id],
         )
+
+
+def get_email_templates_names():
+    """ Get email templates names """
+    template_type = [
+        (template, template) for template in [
+            template.split('.')[0] for template in os.listdir(
+                pathlib.PurePath(__file__).parents[0] / 'templates' / 'email_templates')
+            if template not in ['base.html']
+        ]
+    ]
+    template_type.insert(0, ("", "---------"))
+    return template_type
