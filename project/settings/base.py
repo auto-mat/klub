@@ -289,6 +289,7 @@ BOWER_INSTALLED_APPS = (
     'jquery-ui#~1.12.1',
     'd3#3.3.13',
     'nvd3#1.7.1',
+    'ContentTools#1.6.10',
 )
 
 AUTH_PASSWORD_VALIDATORS = [
