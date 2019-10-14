@@ -126,12 +126,13 @@ class WithAdminUrl:
 
 def get_email_templates_names():
     """ Get email templates names """
-    template_type = [
+    templates_names = [
         (template, template) for template in [
             template.split('.')[0] for template in os.listdir(
                 pathlib.PurePath(__file__).parents[0] / 'templates' / 'email_templates')
             if template not in ['base.html']
         ]
     ]
-    template_type.insert(0, ("", "---------"))
-    return template_type
+    templates_names.insert(0, ("", "---------"))
+
+    return templates_names
