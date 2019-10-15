@@ -598,6 +598,14 @@ class ApiAccountAdmin(unit_admin_mixin_generator('administrative_unit'), MoneyAc
     base_model = ApiAccount
     show_in_index = True
 
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "event":
+            if not request.user.has_perm('aklub.can_edit_all_units'):
+                kwargs["queryset"] = Event.objects.filter(administrative_units__in=request.user.administrated_units.all())
+            else:
+                kwargs["queryset"] = Event.objects.all()
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
 
 @admin.register(BankAccount)
 class BankAccountAdmin(unit_admin_mixin_generator('administrative_unit'), MoneyAccountChildAdmin):
