@@ -40,6 +40,7 @@ class UserCreateForm(UserCreationForm):
         self.fields['password2'].required = False
         self.fields['username'].required = False
         self.fields['password'].help_text = 'You can set password in the next step or anytime in user detail form'
+        self.fields['administrative_units'].required = True
 
         if self.request.method == 'GET':
             hidden_fields_switcher(self)
