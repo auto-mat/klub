@@ -2,13 +2,9 @@
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import ReadOnlyPasswordHashField, UserChangeForm, UserCreationForm, UsernameField
-from django.core.exceptions import ValidationError
-from django.shortcuts import reverse
 from django.urls import reverse_lazy
-from django.utils.safestring import mark_safe
-from django.utils.translation import ugettext_lazy as _
 
-from .models import CompanyProfile, ProfileEmail, Telephone
+from .models import ProfileEmail, Telephone
 from .views import get_unique_username
 
 Profile = get_user_model()
@@ -51,28 +47,14 @@ class UserCreateForm(UserCreationForm):
     def clean(self, *args, **kwargs):
         if self._errors:
             hidden_fields_switcher(self)
-            return super().clean()
+        return super().clean()
 
-        if self.cleaned_data.get('email') is not None:
-            try:
-                email = ProfileEmail.objects.get(email=self.cleaned_data['email'])
-                url = reverse('admin:aklub_userprofile_change', args=(email.user.pk,))
-                self.add_error(
-                    'email',
-                    mark_safe(
-                        _(f'<a href="{url}">User with this email already exist in database, click here to edit</a>'),
-                    ),
-                )
-                hidden_fields_switcher(self)
-                return super().clean()
-            except ProfileEmail.DoesNotExist:
-                pass
-        if self.cleaned_data['hidden_lock_change'] == 'locked':
+    def is_valid(self):
+        if self.data.get('hidden_lock_change') == 'locked' and super().is_valid():
             self.data = self.data.copy()
             self.data['hidden_lock_change'] = 'unlocked'
-            raise ValidationError('Email is not used in database')
-
-        return super().clean()
+            return False
+        return super().is_valid()
 
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -164,30 +146,14 @@ class UnitUserProfileAddForm(forms.ModelForm):
     def clean(self):
         if self._errors:
             hidden_fields_switcher(self)
-            return super().clean()
+        return super().clean()
 
-        if self.cleaned_data.get('email') is not None:
-            try:
-                email = ProfileEmail.objects.get(email=self.cleaned_data['email'])
-                user = email.user
-                user.administrative_units.add(self.request.user.administrated_units.first())
-                url = reverse('admin:aklub_userprofile_change', args=(user.pk,))
-                self.add_error(
-                    'email',
-                    mark_safe(
-                        _(f'<a href="{url}">User with this email already exist in database and is available now, click here to edit</a>'),
-                    ),
-                )
-                hidden_fields_switcher(self)
-                return super().clean()
-            except ProfileEmail.DoesNotExist:
-                pass
-        if self.cleaned_data['hidden_lock_change'] == 'locked':
+    def is_valid(self):
+        if self.data.get('hidden_lock_change') == 'locked' and super().is_valid():
             self.data = self.data.copy()
             self.data['hidden_lock_change'] = 'unlocked'
-            raise ValidationError('Email is not used in database')
-
-        return super().clean()
+            return False
+        return super().is_valid()
 
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -212,7 +178,10 @@ class UnitUserProfileChangeForm(UnitUserProfileAddForm):
         self.fields['administrative_units'].disabled = True
 
     def clean(self):
-        pass
+        return super(UnitUserProfileAddForm, self).clean()
+
+    def is_valid(self):
+        return super(UnitUserProfileAddForm, self).is_valid()
 
 
 class CompanyProfileAddForm(forms.ModelForm):
@@ -236,7 +205,7 @@ class CompanyProfileAddForm(forms.ModelForm):
         if self.request.method == 'GET':
             hidden_fields_switcher(self)
 
-    def clean(self): # noqa
+    def clean(self):
         if self._errors:
             hidden_fields_switcher(self)
             return super().clean()
@@ -244,43 +213,14 @@ class CompanyProfileAddForm(forms.ModelForm):
         if self.cleaned_data.get('crn') is None and self.cleaned_data.get('no_crn_check') is False:
             self.add_error('no_crn_check', 'Please confirm empty crn number')
             hidden_fields_switcher(self)
+        return super().clean()
 
-        elif self.cleaned_data.get('crn') is not None and self.cleaned_data.get('no_crn_check') is True:
-            self.add_error('no_crn_check', 'Crn is not empty, please uncheck')
-            hidden_fields_switcher(self)
-        else:
-            try:
-                if self.cleaned_data.get('crn') is not None:
-                    company = CompanyProfile.objects.get(crn=self.cleaned_data['crn'])
-                    field = 'crn'
-                elif self.cleaned_data.get('tin') is not None:
-                    company = CompanyProfile.objects.get(tin=self.cleaned_data['tin'])
-                    field = 'tin'
-                else:
-                    raise CompanyProfile.DoesNotExist
-
-                if not self.request.user.has_perm('aklub.can_edit_all_units'):
-                    company.administrative_units.add(self.request.user.administrated_units.first())
-                    message = f'Company with this {field} already exist in database and is available now, click here to edit'
-                else:
-                    message = f'Company with this {field} already exist click here to see'
-                url = reverse('admin:aklub_companyprofile_change', args=(company.pk,))
-                self.add_error(
-                    field,
-                    mark_safe(
-                        _(f'<a href="{url}">{message}</a>'),
-                    ),
-                )
-                hidden_fields_switcher(self)
-            except CompanyProfile.DoesNotExist:
-                pass
-
-            if self.cleaned_data['hidden_lock_change'] == 'locked':
-                self.data = self.data.copy()
-                self.data['hidden_lock_change'] = 'unlocked'
-                raise ValidationError('This company is not in database')
-
-            return super().clean()
+    def is_valid(self):
+        if self.data.get('hidden_lock_change') == 'locked' and super().is_valid():
+            self.data = self.data.copy()
+            self.data['hidden_lock_change'] = 'unlocked'
+            return False
+        return super().is_valid()
 
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -305,4 +245,7 @@ class CompanyProfileChangeForm(CompanyProfileAddForm):
             self.fields['administrative_units'].disabled = True
 
     def clean(self):
-        pass
+        return super(CompanyProfileAddForm, self).clean()
+
+    def is_valid(self):
+        return super(CompanyProfileAddForm, self).is_valid()

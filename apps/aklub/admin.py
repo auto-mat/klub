@@ -1759,6 +1759,25 @@ class UserProfileAdmin(
             return fieldsets
         super().get_fieldsets(request, obj)
 
+    def add_view(self, request, form_url='', extra_context=None):
+        """ email duplicity handler """
+        data = request.POST
+        if data.get('email') and data.get('administrative_units'):
+            try:
+                email = ProfileEmail.objects.get(email=data.get('email'))
+                unit = AdministrativeUnit.objects.get(id=data.get('administrative_units'))
+                user = email.user
+                user.administrative_units.add(unit)
+                user.save()
+                messages.warning(request, 'User With this email exist already')
+                url = reverse('admin:aklub_userprofile_change', args=(user.pk,))
+                return HttpResponseRedirect(url)
+
+            except ProfileEmail.DoesNotExist:
+                pass
+
+        return super().add_view(request)
+
     def response_add(self, request, obj, post_url_continue=None):
         response = super(nested_admin.NestedModelAdmin, self).response_add(
             request, obj, post_url_continue,)
@@ -1911,6 +1930,30 @@ class CompanyProfileAdmin(
         else:
             return fieldsets
         super().get_fieldsets(request, obj)
+
+    def add_view(self, request, form_url='', extra_context=None):
+        """ crn or tin duplicity handler """
+        data = request.POST
+        if data.get('administrative_units'):
+            try:
+                if data.get('crn'):
+                    company = CompanyProfile.objects.get(crn=data.get('crn'))
+                elif data.get('tin'):
+                    company = CompanyProfile.objects.get(tin=data.get('tin'))
+                else:
+                    raise CompanyProfile.DoesNotExist
+
+                unit = AdministrativeUnit.objects.get(id=data.get('administrative_units'))
+                company.administrative_units.add(unit)
+                company.save()
+                messages.warning(request, f'Company is in database already!')
+                url = reverse('admin:aklub_companyprofile_change', args=(company.pk,))
+                return HttpResponseRedirect(url)
+
+            except CompanyProfile.DoesNotExist:
+                pass
+
+        return super().add_view(request)
 
     def response_add(self, request, obj, post_url_continue=None):
         response = super(nested_admin.NestedModelAdmin, self).response_add(
