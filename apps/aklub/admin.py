@@ -69,11 +69,11 @@ from .forms import (
     UnitUserProfileChangeForm, UserCreateForm, UserUpdateForm,
 )
 from .models import (
-    AccountStatements, AdministrativeUnit, AutomaticCommunication, BankAccount,
+    AccountStatements, AdministrativeUnit, ApiAccount, AutomaticCommunication, BankAccount,
     CompanyProfile, Condition, DonorPaymentChannel, Event, Expense, Interaction,
-    MassCommunication, NewUser, Payment, Preference, Profile, ProfileEmail, Recruiter,
-    Result, Source, TaxConfirmation, Telephone,
-    TerminalCondition, UserBankAccount, UserProfile, UserYearPayments, MoneyAccount, ApiAccount
+    MassCommunication, MoneyAccount, NewUser, Payment, Preference, Profile, ProfileEmail, Recruiter,
+    Result, Source, TaxConfirmation, Telephone, TerminalCondition, UserBankAccount,
+    UserProfile, UserYearPayments,
 )
 from .profile_model_resources import (
     ProfileModelResource, get_polymorphic_parent_child_fields,
@@ -189,7 +189,7 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
 
     def get_queryset(self, request):
         if not request.user.has_perm('aklub.can_edit_all_units'):
-            queryset = DonorPaymentChannel.objects.filter(bank_account__administrative_unit__in=request.user.administrated_units.all())
+            queryset = DonorPaymentChannel.objects.filter(money_account__administrative_unit__in=request.user.administrated_units.all())
         else:
             queryset = super().get_queryset(request)
         return queryset.\
@@ -198,11 +198,11 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
             annotate(last_payment_date=Max('payment__date'))
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == "bank_account":
+        if db_field.name == "money_account":
             if not request.user.has_perm('aklub.can_edit_all_units'):
-                kwargs["queryset"] = BankAccount.objects.filter(administrative_unit__in=request.user.administrated_units.all())
+                kwargs["queryset"] = MoneyAccount.objects.filter(administrative_unit__in=request.user.administrated_units.all())
             else:
-                kwargs["queryset"] = BankAccount.objects.all()
+                kwargs["queryset"] = MoneyAccount.objects.all()
 
         if db_field.name == "event":
             if not request.user.has_perm('aklub.can_edit_all_units'):
