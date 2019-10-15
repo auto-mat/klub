@@ -235,6 +235,7 @@ class AdministrativeUnitAdminMixin(object):
     queryset_unit_param = 'administrative_units'
 
     def get_queryset(self, request):
+        self.request = request
         queryset = super(admin.ModelAdmin, self).get_queryset(request)
         if request.user.has_perm('aklub.can_edit_all_units'):
             return queryset
