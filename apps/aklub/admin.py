@@ -1576,7 +1576,7 @@ class MassCommunicationForm(forms.ModelForm):
                 'jquery-ui/themes/base/jquery-ui.min.css',
                 'webui-popover/dist/jquery.webui-popover.min.css',
                 'aklub/css/template.css',
-            )
+            ),
         }
 
     def __init__(self, *args, **kwargs):

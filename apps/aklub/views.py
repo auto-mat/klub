@@ -880,13 +880,13 @@ def get_email_template(request, template_name):
     template = loader.get_template(template_path.as_posix())
     template_url = reverse_lazy(
         'aklub:get_email_template',
-        kwargs={'template_name': _template_name}
+        kwargs={'template_name': _template_name},
     )
     template_obj = TemplateContent.objects.filter(page=template_url)
     if (template_obj):
         content = template_obj.latest('created')
         context = {
-            'page': content
+            'page': content,
         }
         regions = json.loads(content.regions)
         context.update(regions)

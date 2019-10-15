@@ -48,7 +48,8 @@ urlpatterns = [
         r'^html_template_editor/',
         include(
             ('html_template_editor.urls', 'html_template_editor'),
-            namespace='html_template_editor')
+            namespace='html_template_editor',
+        ),
     ),
     re_path(r'^docs/', schema_view),
     re_path(r'^api-auth/', include('rest_framework.urls')),
