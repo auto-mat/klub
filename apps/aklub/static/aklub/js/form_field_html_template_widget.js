@@ -26,6 +26,7 @@ var HtmlTemplateFormFieldWidget = (function ($) {
       templateDivFieldContainer: null,
       templateTextareaFieldContainer: null,
       templateTextareaFieldValue: '',
+      popoveBackdrop: opts.popoverBackdrop,
       get editDialogContainerHtmlString () {
         return "<div><object id='" + this.editDialogPageContainer + "' type='text/html' data=''></object></div>"
       },
@@ -115,7 +116,7 @@ var HtmlTemplateFormFieldWidget = (function ($) {
           content: content,
           offsetTop: 0,
           offsetLeft: 0,
-          backdrop: true,
+          backdrop: that.popoveBackdrop,
           onShow: function (element) {
             that.showPopover(element)
           }
