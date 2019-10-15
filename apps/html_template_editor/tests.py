@@ -42,9 +42,9 @@ class TemplateContentTests(CreateSuperUserMixin, APITestCase):
                     """company with a focus on web tech. He enjoys writing and talking""",
                     """about tech, especially code and the occasional""",
                     """Montecristo No.2s./p>"}""",
-                ])
+                ]),
                 ],
-            'page': ['/']
+            'page': ['/'],
         }
         response = self.client.post(url, data, format='multipart')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -81,7 +81,7 @@ class ImageUploadTests(CreateSuperUserMixin, APITestCase):
 
         data = {
             'width': ['600'],
-            'image': django_friendly_file
+            'image': django_friendly_file,
             }
 
         # Upload a file with an authenticated user
@@ -98,7 +98,7 @@ class ImageUploadTests(CreateSuperUserMixin, APITestCase):
         url = reverse('html_template_editor:images_update', args=[image_id])
 
         data = {
-            'crop': ['0,0,10,10']
+            'crop': ['0,0,10,10'],
             }
 
         response = self.client.post(url, data, format='multipart')

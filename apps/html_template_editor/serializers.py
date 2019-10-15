@@ -32,7 +32,7 @@ class ImagesSerializer(serializers.ModelSerializer):
 
     size = serializers.ListField(
         read_only=True,
-        child=serializers.IntegerField()
+        child=serializers.IntegerField(),
     )
 
     class Meta:

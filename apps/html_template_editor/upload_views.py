@@ -32,7 +32,8 @@ class ImagesAdd(ImagesMixin, generics.CreateAPIView):
         serializer.save(
             image=self.request.data['image'],
             name=self.request.data['image'].name,
-            edited_width=self.request.data['width'])
+            edited_width=self.request.data['width'],
+        )
 
 
 class ImagesList(ImagesMixin, generics.ListAPIView):
