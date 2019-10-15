@@ -10,8 +10,10 @@ from django.urls import path, re_path
 from django.views.i18n import JavaScriptCatalog
 
 from js_urls.views import JsUrlsView
-from rest_framework_swagger.views import get_swagger_view
+
 from rest_framework.authtoken.views import obtain_auth_token
+
+from rest_framework_swagger.views import get_swagger_view
 
 admin.autodiscover()
 schema_view = get_swagger_view(title='API')
