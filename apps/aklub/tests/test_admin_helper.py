@@ -73,7 +73,7 @@ class TestProfilePostMixin:
 
         return managementform_data
 
-    def get_profile_post_data(self, event, index, bank_account, test_str, action):
+    def get_profile_post_data(self, administrative_units, event, index, bank_account, test_str, action):
         if action == 'add':
             profile_post_data = {
                 'username': '{}'.format(test_str),
@@ -82,6 +82,7 @@ class TestProfilePostMixin:
                 'groups': Group.objects.get().id,
                 'email': '{0}@{0}{1}.test'.format(test_str, index),
                 'telephone': '+420123456789',
+                'administrative_units': administrative_units.id,
                 }
         else:
             profile_post_data = {

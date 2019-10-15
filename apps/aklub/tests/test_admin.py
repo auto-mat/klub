@@ -449,6 +449,10 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
                 model_name = child_model._meta.model_name
                 test_str = '{}.{}'.format(action, model_name)
 
+                administrative_unit = mommy.make(
+                    'aklub.AdministrativeUnit',
+                    name='test_AU',
+                )
                 bank_account = mommy.make(
                     'aklub.BankAccount',
                     bank_account=test_str,
@@ -456,6 +460,7 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
                     note='test',
                 )
                 profile_post_data = self.get_profile_post_data(
+                    administrative_units=administrative_unit,
                     event=event,
                     index=index,
                     bank_account=bank_account,
