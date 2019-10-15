@@ -1769,7 +1769,7 @@ class UserProfileAdmin(
                 user = email.user
                 user.administrative_units.add(unit)
                 user.save()
-                messages.warning(request, 'User With this email exist already')
+                messages.warning(request, 'User With this email is in database already. You can edit him now')
                 url = reverse('admin:aklub_userprofile_change', args=(user.pk,))
                 return HttpResponseRedirect(url)
 
@@ -1946,7 +1946,7 @@ class CompanyProfileAdmin(
                 unit = AdministrativeUnit.objects.get(id=data.get('administrative_units'))
                 company.administrative_units.add(unit)
                 company.save()
-                messages.warning(request, f'Company is in database already!')
+                messages.warning(request, f'Company is in database already. You are able to make changes now.')
                 url = reverse('admin:aklub_companyprofile_change', args=(company.pk,))
                 return HttpResponseRedirect(url)
 
