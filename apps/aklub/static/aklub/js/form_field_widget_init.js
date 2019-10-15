@@ -8,7 +8,8 @@
   $(document).ready(function () {
     var formOpts = {
       editDialogPageContainer: 'template_page',
-      popoverDelay: 3000
+      popoverDelay: 3000,
+      popoverBackdrop: true
     }
     var htmlTemplateFieldOpts = {
       templateNameFieldId: '#id_template_name',
