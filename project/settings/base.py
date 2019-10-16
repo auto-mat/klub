@@ -8,8 +8,6 @@ import raven
 def normpath(*args):
     return os.path.normpath(os.path.abspath(os.path.join(*args)))
 
-CELERY_TASK_ALWAYS_EAGER = True
-CELERY_ALWAYS_EAGER = True
 
 PROJECT_ROOT = normpath(__file__, "..", "..", "..")
 BASE_DIR = PROJECT_ROOT
@@ -189,7 +187,7 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.messages',
     'django.contrib.sessions',
-    # 'django.contrib.sites',
+    'django.contrib.sites',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'stdimage',
