@@ -1498,7 +1498,7 @@ def check_incomming(amount):
 
 def register_payment(p_sort, self):
     p = Payment(**p_sort)
-    AccountStatements.pair_vs(self, p)
+    AccountStatements.payment_pair(self, p)
     p.type = 'bank-transfer'
     p.account_statement = self
     return p
@@ -1579,7 +1579,7 @@ class AccountStatements(models.Model):
             transaction.on_commit(lambda: parse_account_statement.delay(self.pk))
 
     def pair_vs(self, payment):
-        # Payments pairing'
+        # Variable symbol pairing'
         if payment.VS == '':
             payment.VS = None
         else:
@@ -1589,6 +1589,28 @@ class AccountStatements(models.Model):
                 return True
             except DonorPaymentChannel.DoesNotExist:
                 return False
+
+    def payment_pair(self, payment):
+        # Variable symbols and user bank account Payments pairing
+        if payment.VS != '':
+            try:
+                donor_with_vs = DonorPaymentChannel.objects.get(
+                                    VS=payment.VS,
+                                    money_account__administrative_unit=self.administrative_unit,
+                )
+                payment.user_donor_payment_channel = donor_with_vs
+                return True
+            except (DonorPaymentChannel.DoesNotExist, DonorPaymentChannel.MultipleObjectsReturned):
+                pass
+        try:
+            donor_with_bank_account = DonorPaymentChannel.objects.get(
+                                user_bank_account__bank_account_number=str(payment.account) + '/' + str(payment.bank_code),
+                                money_account__administrative_unit=self.administrative_unit,
+            )
+            payment.user_donor_payment_channel = donor_with_bank_account
+            return True
+        except (DonorPaymentChannel.DoesNotExist, DonorPaymentChannel.MultipleObjectsReturned):
+            return False
 
     def parse_bank_csv_fio(self):
         # Read and parse the account statement
@@ -2053,9 +2075,12 @@ class DonorPaymentChannel(models.Model):
             return False
 
     def check_duplicate(self, *args, **kwargs):
-        qs = DonorPaymentChannel.objects.filter(VS=self.VS)
-        if self.pk is None and self.VS is not None:
-            if qs.filter(VS=self.VS).exists():
+        qs = DonorPaymentChannel.objects.filter(
+                            VS=self.VS,
+                            money_account__administrative_unit=self.money_account.administrative_unit,
+            )
+        if qs:
+            if qs.first().pk != self.pk:
                 raise ValidationError("Duplicate VS")
 
     @denormalized(models.IntegerField, null=True)
