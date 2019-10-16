@@ -232,33 +232,6 @@ class Event(models.Model):
         max_length=100,
 
     )
-    darujme_name = models.CharField(
-        verbose_name=_("Name in Darujme.cz"),
-        unique=True,
-        default=None,
-        max_length=100,
-        blank=True,
-        null=True,
-    )
-    darujme_project_id = models.IntegerField(
-        verbose_name=_("Darujme.cz project ID"),
-        default=None,
-        blank=True,
-        null=True,
-    )
-    darujme_api_id = models.IntegerField(
-        verbose_name=_("Darujme.cz API ID"),
-        default=None,
-        blank=True,
-        null=True,
-    )
-    darujme_api_secret = models.CharField(
-        verbose_name=_("Darujme.cz API secret"),
-        default=None,
-        max_length=100,
-        blank=True,
-        null=True,
-    )
     description = models.TextField(
         verbose_name=_("Description"),
         help_text=_("Description of this campaign"),
