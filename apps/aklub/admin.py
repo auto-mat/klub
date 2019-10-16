@@ -591,6 +591,12 @@ class MoneyAccountChildAdmin(PolymorphicChildModelAdmin):
     """ Base admin class for all child models """
     base_model = MoneyAccount
 
+    def response_add(self, request, obj, post_url_continue=None):
+        return redirect('admin:aklub_bankaccount_changelist')
+
+    def response_change(self, request, obj):
+        return redirect('admin:aklub_bankaccount_changelist')
+
 
 @admin.register(ApiAccount)
 class ApiAccountAdmin(unit_admin_mixin_generator('administrative_unit'), MoneyAccountChildAdmin):
@@ -605,6 +611,12 @@ class ApiAccountAdmin(unit_admin_mixin_generator('administrative_unit'), MoneyAc
             else:
                 kwargs["queryset"] = Event.objects.all()
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def response_add(self, request, obj, post_url_continue=None):
+        return redirect('admin:aklub_apiaccount_changelist')
+
+    def response_change(self, request, obj):
+        return redirect('admin:aklub_apiaccount_changelist')
 
 
 @admin.register(BankAccount)
