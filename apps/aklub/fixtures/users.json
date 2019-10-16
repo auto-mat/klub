@@ -10,6 +10,13 @@
     },
     {
         "fields": {
+            "name": "test"
+        },
+        "model": "aklub.administrativeunit",
+        "pk": 1
+    },
+    {
+        "fields": {
             "amount": 150,
             "date": "2016-2-9",
             "type": "cash",
@@ -50,12 +57,6 @@
         },
         "model": "aklub.payment",
         "pk": 3
-    },
-    {
-        "fields": {
-        },
-        "model": "aklub.bankaccount",
-        "pk": 1
     },
     {
         "fields": {
@@ -140,7 +141,7 @@
 	"model": "aklub.preference",
 	"pk": 2979,
 	"fields": {
-            "public": true,	    
+            "public": true,
             "send_mailing_lists": true,
             "newsletter_on": false,
             "call_on": false,
@@ -148,7 +149,7 @@
             "letter_on": false,
 	    "user": 2979
 	}
-    },    
+    },
     {
 	"model": "aklub.profileemail",
 	"pk": 2979,
@@ -158,7 +159,7 @@
 	    "note": "test",
 	    "user": 2979
 	}
-    },    
+    },
     {
 	"model": "aklub.userprofile",
 	"pk": 2979,
@@ -186,10 +187,42 @@
     },
     {
         "fields": {
+            "polymorphic_ctype": "34"
+        },
+        "model": "aklub.moneyaccount",
+        "pk": 1
+    },
+    {
+        "fields": {
+            "event": 2,
+            "project_id": "38571205",
+            "project_name": "Klub přátel Auto*Matu"
+        },
+        "model": "aklub.apiaccount",
+        "pk": 1
+    },
+    {
+        "fields": {
+            "polymorphic_ctype": "34"
+        },
+        "model": "aklub.moneyaccount",
+        "pk": 2
+    },
+    {
+        "fields": {
+            "event": 3,
+            "project_id": "13934713",
+            "project_name": "Zažít město jinak"
+        },
+        "model": "aklub.apiaccount",
+        "pk": 2
+    },
+    {
+        "fields": {
             "expected_date_of_first_payment": "2015-12-16",
             "no_upgrade": false,
             "registered_support": "2015-12-16T18:22:30.128",
-            "bank_account": 1,
+            "money_account": 1,
             "regular_amount": null,
             "regular_frequency": null,
             "regular_payments": "onetime",
@@ -245,7 +278,7 @@
 	"model": "aklub.preference",
 	"pk": 2978,
 	"fields": {
-            "public": true,	    
+            "public": true,
             "send_mailing_lists": true,
             "newsletter_on": false,
             "call_on": false,
@@ -253,7 +286,7 @@
             "letter_on": false,
 	    "user": 2978
 	}
-    },    
+    },
     {
 	"model": "aklub.profileemail",
 	"pk": 2978,
@@ -263,7 +296,7 @@
 	    "note": "test",
 	    "user": 2978
 	}
-    },    
+    },
     {
 	"model": "aklub.userprofile",
 	"pk": 2978,
@@ -286,7 +319,7 @@
         },
         "model": "aklub.interaction",
         "pk": 1
-    },    
+    },
     {
         "fields": {
             "import_date": "2016-08-01",
@@ -308,8 +341,7 @@
         "fields": {
             "name": "Prahou na kole",
             "created": "2015-12-16",
-            "slug": "pnk",
-            "darujme_name": "Prahounakole.cz"
+            "slug": "pnk"
         },
         "model": "aklub.event",
         "pk": 1
@@ -320,12 +352,9 @@
             "created": "2015-12-16",
             "slug": "klub",
             "allow_statistics": true,
-            "darujme_api_id": 38571205,
-            "darujme_project_id": 38571205,
             "acquisition_campaign": true,
             "enable_signing_petitions": true,
-            "enable_registration": true,
-            "darujme_name": "Klub přátel Auto*Matu"
+            "enable_registration": true
         },
         "model": "aklub.event",
         "pk": 2
@@ -336,10 +365,7 @@
             "created": "2015-12-16",
             "slug": "zmj",
             "allow_statistics": true,
-            "darujme_api_id": 13934713,
-            "darujme_project_id": 13934713,
-            "acquisition_campaign": true,
-            "darujme_name": "Zažít město jinak"
+            "acquisition_campaign": true
         },
         "model": "aklub.event",
         "pk": 3
@@ -360,6 +386,7 @@
             "no_upgrade": false,
             "registered_support": "2015-12-16T18:22:30.128",
             "regular_amount": 100,
+            "money_account" : 1,
             "regular_frequency": "monthly",
             "regular_payments": "regular",
             "event": 2,
