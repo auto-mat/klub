@@ -30,7 +30,7 @@ from model_mommy import mommy
 
 from ..utils import RunCommitHooksMixin
 from ... import admin, darujme
-from ...models import AccountStatements, DonorPaymentChannel, Event, Payment, Telephone
+from ...models import AccountStatements, ApiAccount, DonorPaymentChannel, Payment, ProfileEmail, Telephone
 
 
 @override_settings(
@@ -250,12 +250,14 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
                 ('User 1, Testing', datetime.date(2016, 1, 19), '22257'),
             ],
         )
+
         user = DonorPaymentChannel.objects.get(id=2978)
         self.assertEqual(user.payment_set.get(SS=17529), a1.payment_set.get(amount=200))
 
-        unknown_user = DonorPaymentChannel.objects.get(user__email="unknown@email.cz")
+        user_email = ProfileEmail.objects.get(email="unknown@email.cz")
+        unknown_user = DonorPaymentChannel.objects.get(user=user_email.user)
         payment = unknown_user.payment_set.get(SS=22257)
-        tel_unknown_user = Telephone.objects.filter(user__email="unknown@email.cz").first()
+        tel_unknown_user = Telephone.objects.filter(user=user_email.user).first()
         self.assertEqual(payment.amount, 150)
         self.assertEqual(payment.date, datetime.date(2016, 1, 19))
         self.assertEqual(tel_unknown_user.telephone, "656464222")
@@ -268,8 +270,9 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
         self.assertEqual(unknown_user.regular_amount, 150)
         self.assertEqual(unknown_user.regular_frequency, "annually")
 
-        unknown_user1 = DonorPaymentChannel.objects.get(user__email="unknown1@email.cz")
-        tel_unknown_user1 = Telephone.objects.filter(user__email="unknown1@email.cz").first()
+        user_email = ProfileEmail.objects.get(email="unknown1@email.cz")
+        unknown_user1 = DonorPaymentChannel.objects.get(user=user_email.user)
+        tel_unknown_user1 = Telephone.objects.filter(user=user_email.user).first()
         self.assertEqual(tel_unknown_user1, None)  # Telephone was submitted, but in bad format
         self.assertEqual(unknown_user1.user.zip_code, "123 21")
         self.assertEqual(unknown_user1.regular_amount, 150)
@@ -279,8 +282,9 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
 
         self.assertEqual(Payment.objects.filter(SS=22359).exists(), False)
 
-        unknown_user3 = DonorPaymentChannel.objects.get(user__email="unknown3@email.cz")
-        tel_unknown_user3 = Telephone.objects.filter(user__email="unknown3@email.cz").first()
+        user_email = ProfileEmail.objects.get(email="unknown3@email.cz")
+        unknown_user3 = DonorPaymentChannel.objects.get(user=user_email.user)
+        tel_unknown_user3 = Telephone.objects.filter(user=user_email.user).first()
         self.assertEqual(tel_unknown_user3, None)
         self.assertEqual(unknown_user3.user.zip_code, "")
         self.assertEqual(unknown_user3.regular_amount, 0)
@@ -288,8 +292,9 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
         self.assertEqual(unknown_user3.regular_frequency, 'monthly')
         self.assertEqual(unknown_user3.regular_payments, "promise")
 
-        test_user1 = DonorPaymentChannel.objects.get(user__email="test.user1@email.cz")
-        tel_user1 = Telephone.objects.filter(user__email="test.user1@email.cz").first()
+        user_email = ProfileEmail.objects.get(email="test.user1@email.cz")
+        test_user1 = DonorPaymentChannel.objects.get(user=user_email.user)
+        tel_user1 = Telephone.objects.filter(user=user_email.user).first()
         self.assertEqual(test_user1.user.zip_code, "")
         self.assertEqual(tel_user1, None)
         self.assertEqual(test_user1.regular_amount, 150)
@@ -297,9 +302,10 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
         self.assertEqual(test_user1.regular_frequency, "annually")
         self.assertEqual(test_user1.regular_payments, "regular")
 
-        blank_date_user = DonorPaymentChannel.objects.get(user__email="blank.date@seznam.cz")
+        user_email = ProfileEmail.objects.get(email="blank.date@seznam.cz")
+        blank_date_user = DonorPaymentChannel.objects.get(user=user_email.user)
         payment_blank = blank_date_user.payment_set.get(SS=12345)
-        tel_blank_date_user = Telephone.objects.filter(user__email="blank.date@email.cz").first()
+        tel_blank_date_user = Telephone.objects.filter(user=user_email.user).first()
         self.assertEqual(tel_blank_date_user, None)
         self.assertEqual(payment_blank.amount, 500)
         self.assertEqual(payment_blank.date, datetime.date(2016, 8, 9))
@@ -382,7 +388,9 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
         with open("apps/aklub/test_data/darujme.xml", "r", encoding="utf-8") as f:
             m = MagicMock()
             urllib_request.urlopen = MagicMock(return_value=f)
-            admin.download_darujme_statement(m, request, Event.objects.filter(slug="klub"))
+            print(ApiAccount.objects.all())
+            admin.download_darujme_statement(m, request, ApiAccount.objects.filter(event__slug='klub'))
+            print('one')
         a1 = self.check_account_statement_data()
         m.message_user.assert_called_once_with(
             request,
