@@ -188,7 +188,8 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
 
     @freeze_time("2015-5-1")
     def test_account_statement_changelist_post(self):
-        mommy.make("aklub.Event", darujme_name="Klub přátel Auto*Matu")
+        event = mommy.make("aklub.Event", name="Klub přátel Auto*Matu")
+        mommy.make("aklub.ApiAccount", project_name="Klub přátel Auto*Matu", event=event)
         mommy.make("aklub.Payment", SS=22258, type="darujme", operation_id="13954", date="2016-02-09")
         donor_payment_channel_recipe.make(id=2979, userprofile__email="bar@email.com", userprofile__language="cs")
         model_admin = django_admin.site._registry[AccountStatements]
