@@ -2034,10 +2034,6 @@ class DonorPaymentChannel(models.Model):
             from .views import generate_variable_symbol
             VS = generate_variable_symbol()
             self.VS = VS
-            self.save()
-        else:
-            self.VS = self.VS
-            self.save()
 
     def requires_action(self):
         """Return true if the user requires some action from
@@ -2278,11 +2274,11 @@ class DonorPaymentChannel(models.Model):
         return float(self.yearly_regular_amount()) / 12.0
 
     def clean(self, *args, **kwargs):
+        self.generate_VS()
         self.check_duplicate()
         super().clean(*args, **kwargs)
 
     def save(self, *args, **kwargs):
-        self.clean()
 
         if self.pk is None:
             insert = True
