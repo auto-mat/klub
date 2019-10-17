@@ -34,9 +34,20 @@ from ...models import Profile
 class TestNoUpgrade(TestCase):
     """ Test TerminalCondition.no_upgrade() """
 
+    def setUp(self):
+        self.administrative_unit = mommy.make(
+            "aklub.AdministrativeUnit",
+            name='test',
+        )
+        self.bank_account = mommy.make(
+            'aklub.BankAccount',
+            administrative_unit=self.administrative_unit,
+        )
+
     def test_not_regular(self):
         """ Test DonorPaymentChannel with regular_payments=False returns False """
         for model in Profile.__subclasses__():
+            print(model)
             model_name = model._meta.model_name
             profile = mommy.make(
                 model_name,
@@ -46,6 +57,7 @@ class TestNoUpgrade(TestCase):
                 "aklub.DonorPaymentChannel",
                 campaign__name="Foo campaign",
                 user=profile,
+                money_account=self.bank_account,
             )
             self.assertEqual(
                 donor_payment_channel.no_upgrade,
@@ -65,6 +77,7 @@ class TestNoUpgrade(TestCase):
                 campaign__name="Foo campaign",
                 regular_payments="regular",
                 user=profile,
+                money_account=self.bank_account,
             )
             self.assertEqual(
                 donor_payment_channel.no_upgrade,
@@ -87,6 +100,7 @@ class TestNoUpgrade(TestCase):
                     mommy.make("Payment", date=datetime.date(year=2010, month=4, day=1)),
                 ],
                 user=profile,
+                money_account=self.bank_account,
             )
             donor_payment_channel.save()
             self.assertEqual(
@@ -111,6 +125,7 @@ class TestNoUpgrade(TestCase):
                     mommy.make("Payment", date=datetime.date(year=2009, month=3, day=1), amount=200),
                 ],
                 user=profile,
+                money_account=self.bank_account,
             )
             donor_payment_channel.save()
             self.assertEqual(
@@ -135,6 +150,7 @@ class TestNoUpgrade(TestCase):
                     mommy.make("Payment", date=datetime.date(year=2009, month=3, day=1), amount=100),
                 ],
                 user=profile,
+                money_account=self.bank_account,
             )
             donor_payment_channel.save()
             self.assertEqual(
@@ -148,10 +164,19 @@ class TestExtraMoney(TestCase):
     """ Test TerminalCondition.extra_money() """
 
     def setUp(self):
+        administrative_unit = mommy.make(
+            "aklub.AdministrativeUnit",
+            name='test',
+        )
+        self.bank_account = mommy.make(
+            'aklub.BankAccount',
+            administrative_unit=administrative_unit,
+        )
         self.donor_payment_channel = Recipe(
             "aklub.DonorPaymentChannel",
             campaign__name="Foo campaign",
             user__first_name="Foo user",
+            money_account=self.bank_account,
         )
 
     def test_extra_payment(self):
@@ -170,6 +195,7 @@ class TestExtraMoney(TestCase):
                     mommy.make("Payment", date=datetime.date(year=2016, month=5, day=5), amount=250),
                 ],
                 user=profile,
+                money_account=self.bank_account,
             )
             donor_payment_channel.save()
             self.assertEqual(donor_payment_channel.extra_money, 150)
@@ -191,6 +217,7 @@ class TestExtraMoney(TestCase):
                     mommy.make("Payment", date=datetime.date(year=2016, month=5, day=4), amount=250),
                 ],
                 user=profile,
+                money_account=self.bank_account,
             )
             donor_payment_channel.save()
             self.assertEqual(donor_payment_channel.extra_money, None)
@@ -209,6 +236,7 @@ class TestExtraMoney(TestCase):
                 regular_payments="regular",
                 regular_frequency="monthly",
                 user=profile,
+                money_account=self.bank_account,
             )
             donor_payment_channel.save()
             self.assertEqual(donor_payment_channel.extra_money, None)
@@ -227,6 +255,7 @@ class TestExtraMoney(TestCase):
                 regular_payments="regular",
                 regular_frequency=None,
                 user=profile,
+                money_account=self.bank_account,
             )
             donor_payment_channel.save()
             self.assertEqual(donor_payment_channel.extra_money, None)
@@ -243,6 +272,7 @@ class TestExtraMoney(TestCase):
             donor_payment_channel = self.donor_payment_channel.make(
                 regular_payments="onetime",
                 user=profile,
+                money_account=self.bank_account,
             )
             self.assertEqual(donor_payment_channel.extra_money, None)
             self.assertEqual(donor_payment_channel.extra_payments(), ICON_FALSE)
@@ -265,17 +295,27 @@ class TestNameFunctions(TestCase):
             name="Company",
             email="test@test.com",
         )
+        administrative_unit = mommy.make(
+            "aklub.AdministrativeUnit",
+            name='test',
+        )
+        bank_account = mommy.make(
+            'aklub.BankAccount',
+            administrative_unit=administrative_unit,
+        )
         self.donor_payment_channel_user_profile = mommy.make(
             "aklub.DonorPaymentChannel",
             event__name="Foo campaign",
             user=user_profile,
             VS=1234,
+            money_account=bank_account,
         )
         self.donor_payment_channel_company_profile = mommy.make(
             "aklub.DonorPaymentChannel",
             event__name="Foo campaign",
             user=company_profile,
             VS=5678,
+            money_account=bank_account,
         )
 
     def test_user_person_name(self):
