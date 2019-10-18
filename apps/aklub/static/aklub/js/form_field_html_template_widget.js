@@ -62,7 +62,6 @@ var HtmlTemplateFormFieldWidget = (function ($) {
         this.$templateTextareaField = $(this.templateTextareaFieldId)
       },
       replaceImgSrc: function (element) {
-        console.log($(element).attr('class'))
         var imgs = element.find('img')
         imgs.each(function () {
           var imgSrc = window.origin + $(this).attr('src')
