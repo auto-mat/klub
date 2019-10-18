@@ -1567,6 +1567,7 @@ class MassCommunicationForm(forms.ModelForm):
             'jquery-ui/jquery-ui.min.js',
             'jquery.inlineStyler/jquery.inlineStyler.min.js',
             'webui-popover/dist/jquery.webui-popover.min.js',
+            'jquery-mdl/dist/mdl-min.js',
             'aklub/js/csrf_token.js',
             'aklub/js/form_field_html_template_widget.js',
             'aklub/js/form_field_widget_init.js',
@@ -1575,6 +1576,7 @@ class MassCommunicationForm(forms.ModelForm):
             'all': (
                 'jquery-ui/themes/base/jquery-ui.min.css',
                 'webui-popover/dist/jquery.webui-popover.min.css',
+                'jquery-mdl/dist/mdl.css',
                 'aklub/css/template.css',
             ),
         }

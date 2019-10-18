@@ -5,15 +5,14 @@
  */
 
 var HtmlTemplateFormFieldWidget = (function ($) {
-  
   var privateData = {}; var privateId = 0
-  
   function formFieldWidget (opts) {
     /*
     * Form field widget (load html template)
     */
     Object.defineProperty(this, '_id', { value: privateId++ })
     privateData[this._id] = {
+      editTemplateModalDialogId: opts.editTemplateModalDialogId,
       editDialogPageContainer: opts.editDialogPageContainer,
       popoverDelay: opts.popoverDelay,
       templateDivFieldId: opts.templateDivFieldId,
@@ -27,8 +26,21 @@ var HtmlTemplateFormFieldWidget = (function ($) {
       templateTextareaFieldContainer: null,
       templateTextareaFieldValue: '',
       popoveBackdrop: opts.popoverBackdrop,
-      get editDialogContainerHtmlString () {
-        return "<div><object id='" + this.editDialogPageContainer + "' type='text/html' data=''></object></div>"
+      editTemplateDialogPageContainerId: '#edit_template',
+      editTemplateModalDialogAttr: this.getEditTemplateModalDialogAttr,
+      get getEditTemplateModalDialogAttr () {
+        var data = {}
+        data['data-type'] = 'modal'
+        data['data-target'] = this.editTemplateModalDialogId
+        data['data-fullscreen'] = 'true'
+        data['data-overlayClick'] = 'true'
+        return data
+      },
+      get editTemplateHrefElement () {
+        var element = $('<a id="' + this.editTemplateDialogPageContainerId.slice(1) + '"></a>')
+        element.attr(this.getEditTemplateModalDialogAttr)
+        element.html('<b>' + gettext('Edit template') + '</b>')
+        return element
       },
       init: function () {
         this.cacheDom()
@@ -49,46 +61,51 @@ var HtmlTemplateFormFieldWidget = (function ($) {
         this.$templateTextAreaFormFieldContainer = $(this.templateTextAreaFormFieldContainer)
         this.$templateTextareaField = $(this.templateTextareaFieldId)
       },
-      openEditTemplateDialog: function (e, ui, $dialog, templateName) {
-        // Hide close X icon
-        $('.ui-dialog-titlebar-close').hide()
-        $dialog.find('#' + this.editDialogPageContainer).attr(
-          {
-            data: window.reverse('aklub:get_email_template', { template_name: templateName }),
-            width: $(window).width() - 40,
-            height: $(window).height() - 250
-          }
-        )
+      replaceImgSrc: function (element) {
+        console.log($(element).attr('class'))
+        var imgs = element.find('img')
+        imgs.each(function () {
+          var imgSrc = window.origin + $(this).attr('src')
+          $(this).attr('src', imgSrc)
+        })
       },
-      inlineStyler: function (element) {
-        element.inlineStyler()
-      },
-      confirmEditTemplateDialog: function ($dialog) {
+      convertCssToInlineStyle: function () {
         var templatePage, htmlDocument, article
         templatePage = document.querySelector('#' + this.editDialogPageContainer)
         htmlDocument = templatePage.contentDocument
         article = $(htmlDocument).find('article')
         // Convert email template external css into inline
         this.inlineStyler(article)
+        this.replaceImgSrc(article)
         this.$templateDivField.html(article)
         this.$hiddenTemplateField.val(article.html())
-        $dialog.dialog('destroy')
       },
-      editTemplateDialog: function (templateName) {
-        var that = this; var btnNames = {}; var title
-        btnNames[gettext('Ok')] = function () {that.confirmEditTemplateDialog($(this))}
-        title = gettext('Edit') + ' \'' + templateName + '\' ' + gettext('template')
-        $(this.editDialogContainerHtmlString).dialog({
-          modal: true,
-          title: title,
-          width: $(window).width() - 20,
-          heigth: $(window).height() - 115,
-          position: { my: 'top', at: 'top+112' },
-          open: function (e, ui) {
-            that.openEditTemplateDialog(e, ui, $(this), templateName)
-          },
-          buttons: btnNames
-        })
+      closeEditTemplateDialog: function (e) {
+        this.convertCssToInlineStyle()
+      },
+      openEditTemplateDialog: function (templateName) {
+        if (arguments.length > 1) {
+          $('body').append(this.editTemplateHrefElement)
+        }
+        // Initialize jQuery modal dialog
+        $('#edit_template').mdl()
+        $('#' + this.editDialogPageContainer).attr(
+          {
+            data: window.reverse('aklub:get_email_template', { template_name: templateName }),
+            width: $(window).width(),
+            height: $(window).height()
+          }
+        )
+        // Open jQuery modal dialog
+        mdl_open(this.editTemplateModalDialogId)
+        $(this.editTemplateModalDialogId + ' ' + '.mdl-close').unbind('click')
+        $(this.editTemplateModalDialogId + ' ' + '.mdl-close').bind('click', this.closeEditTemplateDialog.bind(this))
+        if (arguments.length > 1) {
+          $(this.editTemplateDialogPageContainerId).remove()
+        }
+      },
+      inlineStyler: function (element) {
+        element.inlineStyler()
       },
       destroyPopover: function () {
         this.$templateDivField.webuiPopover('hide')
@@ -99,7 +116,7 @@ var HtmlTemplateFormFieldWidget = (function ($) {
         element.click(function (e) {
           e.preventDefault()
           var templateName = that.$templateNameField.find('option:selected').text()
-          that.editTemplateDialog(templateName)
+          that.openEditTemplateDialog(templateName)
           that.destroyPopover()
         })
         setTimeout(function () {
@@ -108,7 +125,7 @@ var HtmlTemplateFormFieldWidget = (function ($) {
       },
       getPopoverOpts: function () {
         var that = this; var content
-        content = '<a id="edit_template" href=""><b>' + gettext('Edit template') + '</b></a>'
+        content = this.editTemplateHrefElement
         return {
           placement: 'top-right',
           trigger: 'manual',
@@ -131,13 +148,15 @@ var HtmlTemplateFormFieldWidget = (function ($) {
           var relY = e.pageY - offset.top
           opts.offsetTop = relY
           opts.offsetLeft = relX
-          WebuiPopovers.show('#' + that.$templateDivField.attr('id'), opts)
+          setTimeout(function () {
+            WebuiPopovers.show('#' + that.$templateDivField.attr('id'), opts)
+          }, 750)
         })
       },
       showEditTemplateDialog: function (e) {
         var templateName = $(e.target).val()
         if (templateName !== '') {
-          this.editTemplateDialog(templateName)
+          this.openEditTemplateDialog(templateName, 'openViaSelectBox')
         }
       },
       getTemplateFieldContainer: function () {
@@ -151,6 +170,12 @@ var HtmlTemplateFormFieldWidget = (function ($) {
         var templateTextareaFieldContainerChildren = this.templateTextareaFieldContainer.children()
         this.templateDivFieldContainer.html(templateTextareaFieldContainerChildren)
         this.templateTextareaFieldContainer.html(templateDivFieldContainerChildren)
+      },
+      enableFormFieldWysiwygEditor: function () {
+        django_wysiwyg.enable(this.templateDivFieldId.slice(4))
+      },
+      disableFormFieldWysiwygEditor: function () {
+        django_wysiwyg.disable(this.templateDivFieldId.slice(4))
       },
       exchangeFormFieldContainerContent: function () {
         /* Replace 'template' div form field widget container
@@ -183,7 +208,7 @@ var HtmlTemplateFormFieldWidget = (function ($) {
           }
         )
         // Enable tinymce form field widget editor
-        django_wysiwyg.enable(this.templateDivFieldId.slice(4))
+        this.enableFormFieldWysiwygEditor()
 
         this.$templateTextAreaFormFieldContainer.addClass('hidden')
         // Erase hidden template form field
@@ -196,7 +221,7 @@ var HtmlTemplateFormFieldWidget = (function ($) {
          */
 
         // Disable tinymce form field widget editor
-        django_wysiwyg.disable(this.templateDivFieldId.slice(4))
+        this.disableFormFieldWysiwygEditor()
 
         this.$templateNameField.attr('disabled', false)
 
@@ -261,4 +286,3 @@ var HtmlTemplateFormFieldWidget = (function ($) {
   }
   return formFieldWidget
 }(jQuery))
-

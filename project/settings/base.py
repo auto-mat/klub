@@ -296,6 +296,7 @@ BOWER_INSTALLED_APPS = (
     'ContentTools#1.6.10',
     'https://github.com/Karl33to/jquery.inlineStyler.git#1.0.1',
     'webui-popover#2.1.15',
+    'jquery-mdl',
 )
 
 AUTH_PASSWORD_VALIDATORS = [

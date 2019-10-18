@@ -150,7 +150,7 @@ var imageUploader = function (dialog) {
     // Define a function to handle the request completion
     xhrComplete = function (ev) {
     // Check the request is complete
-      if (ev.target.readyState != 4) {
+      if (ev.target.readyState !== 4) {
         return
       }
 
@@ -162,7 +162,7 @@ var imageUploader = function (dialog) {
       dialog.busy(false)
 
       // Handle the result of the rotation
-      if (parseInt(ev.target.status) == 200) {
+      if (parseInt(ev.target.status) === 200) {
       // Unpack the response (from JSON)
         var response = JSON.parse(ev.target.responseText)
 
@@ -196,4 +196,3 @@ var imageUploader = function (dialog) {
   })
 }
 ContentTools.IMAGE_UPLOADER = imageUploader
-
