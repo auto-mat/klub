@@ -7,6 +7,7 @@
 (function ($, HtmlTemplateFormFieldWidget) {
   $(document).ready(function () {
     var formOpts = {
+      editTemplateModalDialogId: '#edit_template_dialog',
       editDialogPageContainer: 'template_page',
       popoverDelay: 3000,
       popoverBackdrop: true
@@ -18,7 +19,7 @@
       hiddenTemplateFieldId: '#id_hidden_template',
       templateTextareaFieldId: '#id_template_textarea',
       templateDivFormFieldContainer: '.field-template',
-      templateTextAreaFormFieldContainer: '.field-template_textarea',
+      templateTextAreaFormFieldContainer: '.field-template_textarea'
     }
     Object.assign(htmlTemplateFieldOpts, formOpts)
     var htmlTemplateFieldWidget = new HtmlTemplateFormFieldWidget(htmlTemplateFieldOpts)
@@ -30,7 +31,7 @@
       hiddenTemplateFieldId: '#id_hidden_template_en',
       templateTextareaFieldId: '#id_template_en_textarea',
       templateDivFormFieldContainer: '.field-template_en',
-      templateTextAreaFormFieldContainer: '.field-template_en_textarea',
+      templateTextAreaFormFieldContainer: '.field-template_en_textarea'
     }
     Object.assign(htmlTemplateEnFieldOpts, formOpts)
     var htmlTemplateEnFieldWidget = new HtmlTemplateFormFieldWidget(htmlTemplateEnFieldOpts)
