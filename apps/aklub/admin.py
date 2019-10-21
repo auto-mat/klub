@@ -979,7 +979,7 @@ class DonorPaymethChannelAdmin(
     fieldsets = [
         (_('Basic personal'), {
             'fields': [
-                ('event', 'user'),
+                ('event', 'user', 'money_account',),
                 ('user_telephone_url',),
                 ('user_note',),
             ],
@@ -1559,13 +1559,13 @@ class BaseProfileChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModel
         'get_email', 'regular_amount', 'regular_payments_info', 'variable_symbol', 'registered_support_date',
         'email_anchor',
     )
-    '''
+
     def get_inline_instances(self, request, obj=None):
         inlines = super().get_inline_instances(request, obj)
         if not obj:
             inlines = []
         return inlines
-    '''
+
     actions = (send_mass_communication_distinct_action,)
     inlines = [
         PreferenceInline, ProfileEmailInline, TelephoneInline,
@@ -1650,9 +1650,10 @@ class UserProfileAdmin(
             'classes': ('wide',),
             'fields': (
                 'username', ('first_name', 'last_name'), 'sex',
-                'email', 'is_active',
+                'email', 'telephone', 'is_active',
                 ('birth_day', 'birth_month', 'age_group'),
                 'administrative_units',
+                'hidden_lock_change'
             ),
         }),
     )
@@ -1729,6 +1730,25 @@ class UserProfileAdmin(
         else:
             return fieldsets
         super().get_fieldsets(request, obj)
+
+    def add_view(self, request, form_url='', extra_context=None):
+        """ email duplicity handler """
+        data = request.POST
+        if data.get('email') and data.get('administrative_units'):
+            try:
+                email = ProfileEmail.objects.get(email=data.get('email'))
+                unit = AdministrativeUnit.objects.get(id=data.get('administrative_units'))
+                user = email.user
+                user.administrative_units.add(unit)
+                user.save()
+                messages.warning(request, 'User With this email is in database already. You can edit him now')
+                url = reverse('admin:aklub_userprofile_change', args=(user.pk,))
+                return HttpResponseRedirect(url)
+
+            except ProfileEmail.DoesNotExist:
+                pass
+
+        return super().add_view(request)
 
     def response_add(self, request, obj, post_url_continue=None):
         response = super(nested_admin.NestedModelAdmin, self).response_add(
@@ -1808,10 +1828,13 @@ class CompanyProfileAdmin(
             'fields': (
                 'username', ('name'),
                 'is_active',
-                'administrative_units',
                 'no_crn_check',
+                'email',
+                'telephone',
                 'crn',
                 'tin',
+                'administrative_units',
+                'hidden_lock_change'
             ),
         }),
     )
@@ -1880,6 +1903,30 @@ class CompanyProfileAdmin(
         else:
             return fieldsets
         super().get_fieldsets(request, obj)
+
+    def add_view(self, request, form_url='', extra_context=None):
+        """ crn or tin duplicity handler """
+        data = request.POST
+        if data.get('administrative_units'):
+            try:
+                if data.get('crn'):
+                    company = CompanyProfile.objects.get(crn=data.get('crn'))
+                elif data.get('tin'):
+                    company = CompanyProfile.objects.get(tin=data.get('tin'))
+                else:
+                    raise CompanyProfile.DoesNotExist
+
+                unit = AdministrativeUnit.objects.get(id=data.get('administrative_units'))
+                company.administrative_units.add(unit)
+                company.save()
+                messages.warning(request, f'Company is in database already. You are able to make changes now.')
+                url = reverse('admin:aklub_companyprofile_change', args=(company.pk,))
+                return HttpResponseRedirect(url)
+
+            except CompanyProfile.DoesNotExist:
+                pass
+
+        return super().add_view(request)
 
     def response_add(self, request, obj, post_url_continue=None):
         response = super(nested_admin.NestedModelAdmin, self).response_add(
