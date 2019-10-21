@@ -1028,7 +1028,7 @@ class DonorPaymethChannelAdmin(
     fieldsets = [
         (_('Basic personal'), {
             'fields': [
-                ('event', 'user'),
+                ('event', 'user', 'money_account',),
                 ('user_telephone_url',),
                 ('user_note',),
             ],

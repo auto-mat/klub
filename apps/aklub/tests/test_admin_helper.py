@@ -37,12 +37,9 @@ class TestProfilePostMixin:
             created='2015-12-16',
             slug='klub',
             allow_statistics=True,
-            darujme_api_id=38571205,
-            darujme_project_id=38571205,
             acquisition_campaign=True,
             enable_signing_petitions=True,
             enable_registration=True,
-            darujme_name='Klub přátel Auto*Matu',
         )
 
         return event

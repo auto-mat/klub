@@ -388,13 +388,15 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
     def test_user_in_campaign_changelist_post(self):
         mommy.make("aklub.Event", id=1)
         mommy.make("aklub.Userprofile", id=2978)
+        au = mommy.make("aklub.AdministrativeUnit", name="test")
+        mommy.make("aklub.BankAccount", administrative_unit=au, id=1)
         model_admin = django_admin.site._registry[DonorPaymentChannel]
         request = self.get_request()
         response = model_admin.add_view(request)
         self.assertEqual(response.status_code, 200)
-
         post_data = {
             '_continue': 'Save',
+            'money_account': 1,
             'user': 2978,
             'VS': 1234,
             'activity_points': 13,
