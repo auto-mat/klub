@@ -136,6 +136,7 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
         'get_payment_count',
         'get_last_payment_date',
         'get_payment_details',
+        'get_payment_list_link',
     )
     fieldsets = (
         (None, {
@@ -149,6 +150,7 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
                     'get_payment_count',
                     'get_last_payment_date',
                     'get_payment_details',
+                    'get_payment_list_link',
                 ),
             ),
         }),
@@ -163,6 +165,17 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
         }
          )
     )
+
+    def get_payment_list_link(self, obj):
+        url = reverse('admin:aklub_payment_changelist')
+        if obj.pk:
+            redirect_button = mark_safe(
+                f"<a href='{url}?user_donor_payment_channel={obj.pk}'><input type='button' value='All payments'></a>"
+            )
+        else:
+            redirect_button = None
+        return redirect_button
+    get_payment_list_link.short_description = _('All payments')
 
     def get_sum_amount(self, obj):
         return obj.sum_amount
