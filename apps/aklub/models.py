@@ -1881,6 +1881,13 @@ class DonorPaymentChannel(models.Model):
         blank=True,
         null=True,
     )
+    SS = models.CharField(
+        verbose_name=_("SS"),
+        help_text=_("Specific symbol"),
+        max_length=30,
+        blank=True,
+        null=True,
+    )
     user = models.ForeignKey(
         Profile,
         verbose_name=_("User"),

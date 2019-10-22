@@ -157,7 +157,7 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
         (_('Details'), {
             'classes': ('collapse',),
             'fields': [
-                ('VS'),
+                ('VS', 'SS'),
                 ('registered_support', 'regular_amount', 'regular_frequency'),
                 ('expected_date_of_first_payment', 'exceptional_membership'),
                 ('other_support'),
@@ -888,6 +888,7 @@ class DonorPaymentChannelResource(ModelResource):
             'user__city',
             'user__zip_code',
             'VS',
+            'SS',
             'user__club_card_available',
             # 'wished_information',
             'regular_payments',
@@ -943,6 +944,7 @@ class DonorPaymethChannelAdmin(
         # 'source',
         'event',
         'VS',
+        'SS',
         # 'registered_support_date',
         # 'regular_payments_info',
         # 'payment_delay',
@@ -964,6 +966,7 @@ class DonorPaymethChannelAdmin(
         # 'source',
         ('campaign__name', _("Campaign name")),
         'VS',
+        'SS',
         'registered_support',
         'regular_payments',
         'extra_money',
@@ -992,6 +995,7 @@ class DonorPaymethChannelAdmin(
         'user__userprofile__first_name',
         'user__userprofile__last_name',
         'VS',
+        'SS',
         'user__email',
         # 'user__telephone',
     ]
@@ -1026,6 +1030,7 @@ class DonorPaymethChannelAdmin(
         (_('Support'), {
             'fields': [
                 'VS',
+                'SS',
                 'registered_support',
                 (
                     'regular_payments', 'regular_frequency',
@@ -1050,6 +1055,7 @@ class UserYearPaymentsAdmin(DonorPaymethChannelAdmin):
         'user__email',
         # 'source',
         'VS',
+        'SS',
         # 'registered_support_date',
         'payment_total_by_year',
         'user__is_active',
