@@ -1107,6 +1107,11 @@ class PaymentAdmin(
         'created',
         'updated',
     )
+    list_select_related = (
+        'user_donor_payment_channel__user',
+        'user_donor_payment_channel__event',
+        'account_statement',
+    )
     fieldsets = [
         (_("Basic"), {
             'fields': [
