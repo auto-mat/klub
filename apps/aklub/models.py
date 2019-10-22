@@ -910,6 +910,18 @@ class CompanyProfile(Profile):
         null=True,
     )
 
+    contact_first_name = models.CharField(
+        verbose_name=_("Contact first name"),
+        max_length=256,
+        blank=True,
+        null=True,
+    )
+    contact_last_name = models.CharField(
+        verbose_name=_("Contact last name"),
+        max_length=256,
+        blank=True,
+        null=True,
+    )
     crn = StdNumField(
         'cz.dic',
         default=None,
