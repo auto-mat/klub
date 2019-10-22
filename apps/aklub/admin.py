@@ -444,6 +444,7 @@ class CompanyProfileResource(ProfileModelResourceMixin):
             get_profile_admin_export_base_order_fields() +
             [
                 'name', 'crn', 'tin',
+                'contact_first_name', 'contact_last_name',
             ]
         )
 
@@ -1840,6 +1841,8 @@ class CompanyProfileAdmin(
         'is_staff',
         'date_joined',
         'last_login',
+        'contact_first_name',
+        'contact_last_name',
     )
     advanced_filter_fields = (
         'email',
@@ -1879,6 +1882,7 @@ class CompanyProfileAdmin(
             'fields': (
                 'username', ('name'),
                 'is_active',
+                ('contact_first_name', 'contact_last_name',),
                 'no_crn_check',
                 'email',
                 'telephone',
@@ -1895,6 +1899,7 @@ class CompanyProfileAdmin(
             'fields': (
                 'username', ('name'),
                 'is_active',
+                ('contact_first_name', 'contact_last_name',),
                 'get_email',
                 'get_main_telephone',
                 'note',
