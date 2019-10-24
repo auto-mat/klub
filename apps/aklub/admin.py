@@ -1608,6 +1608,7 @@ class MassCommunicationForm(forms.ModelForm):
                 'webui-popover/dist/jquery.webui-popover.min.css',
                 'jquery-mdl/dist/mdl.css',
                 'aklub/css/template.css',
+                'aklub/css/template_name_dialog.css',
             ),
         }
 

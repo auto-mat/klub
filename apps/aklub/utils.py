@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+from operator import itemgetter
 import pathlib
 
 from django.db import models
@@ -20,6 +21,8 @@ def sweet_text(generator):
     3000
     """
     return format_html_join(mark_safe(',<br/>'), "<nobr>{}</nobr>", generator)
+
+from html_template_editor.models import TemplateContent
 
 
 def create_model(
@@ -58,14 +61,28 @@ def get_email_templates_names():
     """ Get email templates names """
 
     def get_templates_files():
-        path = pathlib.PurePath(__file__).parents[0] / 'templates' / 'email_templates'
+        path = pathlib.Path(__file__).parents[0] / 'templates' / 'email_templates'
         return os.listdir(path)
 
-    templates_names = [
+    # File template
+    file_templates_names = [
         (template, template) for template in [
             template.split('.')[0] for template in get_templates_files()
-            if template not in ['base.html']
+            if template not in ['base.html', 'new_empty_template.html']
         ]
     ]
+    # Db templates
+    db_templates_obj = TemplateContent.objects.filter(page__contains='new_empty_template')
+    db_templates = set(db_templates_obj.values_list('page', flat=True))
 
-    return templates_names
+    value = 'new_empty_template:{}'
+    db_templates_names = [
+        (value.format(pathlib.Path(t).name), pathlib.Path(t).name) for t in db_templates
+    ]
+    file_templates_names.extend(db_templates_names)
+
+    sorted_templates = sorted(file_templates_names, key=itemgetter(1))
+    sorted_templates.insert(0, ('new_empty_template', 'new_empty_template'))
+    sorted_templates.insert(0, ('', '---------'))
+
+    return sorted_templates

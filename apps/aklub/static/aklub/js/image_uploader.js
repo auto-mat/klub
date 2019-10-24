@@ -90,7 +90,7 @@ var imageUploader = function (dialog) {
   })
 
   dialog.addEventListener(evtFuncsNames.save, function () {
-    var crop, cropRegion, formData
+    var crop, cropRegion, formData, failRequestFlash
 
     // Define a function to handle the request completion
     xhrComplete = function (ev) {
@@ -121,8 +121,8 @@ var imageUploader = function (dialog) {
             'data-ce-max-width': image.size[0]
           })
       } else {
-      // The request failed, notify the user
-        new ContentTools.FlashUI('no')
+        // The request failed, notify the user
+        failRequestFlash = new ContentTools.FlashUI('no')
       }
     }
 

@@ -509,4 +509,5 @@ JS_URLS = (
     'html_template_editor:images_add',
     'html_template_editor:images_update',
     'aklub:get_email_template',
+    'aklub:get_email_template_from_db',
 )
