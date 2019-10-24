@@ -1,5 +1,6 @@
 from aklub import views
 
+from django.contrib.auth.decorators import login_required
 from django.conf.urls import url
 from django.urls import path
 
@@ -17,5 +18,14 @@ urlpatterns = [
     url(r'^profiles/', views.profiles, name="profiles"),
     url(r'^mailing/', views.MailingFormSetView.as_view(), name="mailing-configuration"),
     url(r'^email_confirmation/(?P<campaign_slug>[^&]+)/$', views.ConfirmEmailView.as_view(), name="email-confirmation"),
-    path('get_email_template/<template_name>/', views.get_email_template, name='get_email_template'),
+    path(
+        'get_email_template/<template_name>/',
+        login_required(views.get_email_template),
+        name='get_email_template',
+    ),
+    path(
+        'get_email_template/new_empty_template/<template_name>/',
+        login_required(views.get_email_template_from_db),
+        name='get_email_template_from_db',
+    ),
 ]

@@ -1,0 +1,14 @@
+{% extends 'email_templates/base.html' %}
+
+{% load static %}
+
+{% block content %}
+<article class="article">
+  <section class="[ article__content ]  [ editable ]"  data-name="article">
+    {% if article %}
+    {{ article | safe }}
+    {% else %}
+    {% endif %}
+  </section>
+</article>
+{% endblock %}
