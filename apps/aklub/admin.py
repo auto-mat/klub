@@ -587,15 +587,14 @@ class ProfileEmailInline(nested_admin.NestedTabularInline):
     form = ProfileEmailAdminForm
 
 
-class MoneyAccountChildAdmin(PolymorphicChildModelAdmin):
+@admin.register(MoneyAccount)
+class MoneyAccountChildAdmin(
+                    unit_admin_mixin_generator('administrative_unit'),
+                    nested_admin.NestedModelAdmin,
+                    PolymorphicChildModelAdmin,
+                    ):
     """ Base admin class for all child models """
     base_model = MoneyAccount
-
-    def response_add(self, request, obj, post_url_continue=None):
-        return redirect('admin:aklub_bankaccount_changelist')
-
-    def response_change(self, request, obj):
-        return redirect('admin:aklub_bankaccount_changelist')
 
 
 @admin.register(ApiAccount)
@@ -613,9 +612,17 @@ class ApiAccountAdmin(unit_admin_mixin_generator('administrative_unit'), MoneyAc
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def response_add(self, request, obj, post_url_continue=None):
+        response = super(nested_admin.NestedModelAdmin, self).response_add(
+            request, obj, post_url_continue,)
+        if 'add' in response.url or 'change' in response.url:
+            return response
         return redirect('admin:aklub_apiaccount_changelist')
 
     def response_change(self, request, obj):
+        response = super(nested_admin.NestedModelAdmin, self).response_add(
+            request, obj,)
+        if 'change' in response.url:
+            return response
         return redirect('admin:aklub_apiaccount_changelist')
 
 
@@ -624,6 +631,20 @@ class BankAccountAdmin(unit_admin_mixin_generator('administrative_unit'), MoneyA
     """ bank account polymorphic admin model child class """
     base_model = BankAccount
     show_in_index = True
+
+    def response_add(self, request, obj, post_url_continue=None):
+        response = super(nested_admin.NestedModelAdmin, self).response_add(
+            request, obj, post_url_continue,)
+        if 'add' in response.url or 'change' in response.url:
+            return response
+        return redirect('admin:aklub_bankaccount_changelist')
+
+    def response_change(self, request, obj):
+        response = super(nested_admin.NestedModelAdmin, self).response_add(
+            request, obj,)
+        if 'change' in response.url:
+            return response
+        return redirect('admin:aklub_bankaccount_changelist')
 
 
 class UserBankAccountAdmin(admin.ModelAdmin):
