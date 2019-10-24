@@ -49,6 +49,7 @@ from sesame.backends import ModelBackend
 
 from . import autocom
 from .models import (
+    BankAccount,
     DonorPaymentChannel, Event, Payment, PetitionSignature,
     Profile, ProfileEmail, Source, Telephone, UserInCampaign,
     UserProfile,
@@ -71,8 +72,8 @@ class RegularUserForm_UserProfile(forms.ModelForm):
     def clean(self):
         if not self.errors:
             self.cleaned_data['username'] = get_unique_username(self.cleaned_data['email'])
-        emails = ProfileEmail.objects.all().values_list('email', flat=True)
-        if self.cleaned_data['email'] in list(emails):
+        emails = ProfileEmail.objects.filter(email=self.cleaned_data['email'])
+        if emails:
             self._errors['email'] = self.error_class(['This e-mail is already used.'])
         super().clean()
         return self.cleaned_data
@@ -81,6 +82,7 @@ class RegularUserForm_UserProfile(forms.ModelForm):
         ret_val = super().save(commit, *args, **kwargs)
         if commit:
             Telephone.objects.create(telephone=self.cleaned_data['telephone'], user=self.instance)
+            ProfileEmail.objects.create(email=self.cleaned_data['email'], user=self.instance)
         return ret_val
 
     def _post_clean(self):
@@ -119,7 +121,14 @@ class CampaignMixin(forms.ModelForm):
     )
 
 
-class RegularUserForm_DonorPaymentChannel(CampaignMixin, forms.ModelForm):
+class BankAccountMixin(forms.ModelForm):
+    money_account = forms.ModelChoiceField(
+            queryset=BankAccount.objects.filter(slug__isnull=False).exclude(slug=""),
+            to_field_name="slug",
+    )
+
+
+class RegularUserForm_DonorPaymentChannel(BankAccountMixin, CampaignMixin, forms.ModelForm):
     required_css_class = 'required'
 
     regular_payments = forms.CharField(
@@ -139,12 +148,23 @@ class RegularUserForm_DonorPaymentChannel(CampaignMixin, forms.ModelForm):
         min_value=1,
     )
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['event'].required = False
+        self.fields['event'].widget = forms.HiddenInput()
+
     def clean_regular_payments(self):
         return 'regular'
 
+    def clean(self):
+        if self.cleaned_data.get('campaign'):
+            self.cleaned_data['event'] = self.cleaned_data['campaign']
+        print('!hello')
+        return self.cleaned_data
+
     class Meta:
         model = DonorPaymentChannel
-        fields = ('regular_frequency', 'regular_amount', 'regular_payments', 'campaign')
+        fields = ('regular_frequency', 'regular_amount', 'regular_payments', 'campaign', 'event', 'money_account')
 
 
 class RegularUserForm(MultiModelForm):
@@ -235,7 +255,7 @@ class RegularDarujmeUserForm_DonorPaymentChannel(FieldNameMappingMixin, RegularU
 
     class Meta:
         model = DonorPaymentChannel
-        fields = ('regular_frequency', 'regular_payments', 'regular_amount', 'campaign')
+        fields = ('regular_frequency', 'regular_payments', 'regular_amount', 'campaign', 'money_account', 'event')
 
 
 class RegularUserForm_DonorPaymentChannelDPNK(RegularUserForm_DonorPaymentChannel):
@@ -341,6 +361,7 @@ def create_new_user_profile(form, regular):
     else:
         new_user_profile.save()
     Telephone.objects.create(telephone=form.forms['userprofile'].cleaned_data['telephone'], user=new_user_profile)
+    ProfileEmail.objects.create(email=form.forms['userprofile'].cleaned_data['email'], user=new_user_profile)
 
     cache.clear()
     return new_user_profile
@@ -453,7 +474,6 @@ class RegularView(FormView):
                     user_data['frequency'],
                     True,
                 )
-
         return super().post(request, *args, **kwargs)
 
     def get_initial(self):
