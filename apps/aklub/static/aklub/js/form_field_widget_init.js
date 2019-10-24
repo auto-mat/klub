@@ -9,7 +9,9 @@
     var formOpts = {
       editTemplateModalDialogId: '#edit_template_dialog',
       editDialogPageContainer: 'template_page',
-      popoverDelay: 3000,
+      showPopoverDelay: 750,
+      destroyPopoverDelay: 3000,
+      setTemplateNameDialogDelay: 500,
       popoverBackdrop: true
     }
     var htmlTemplateFieldOpts = {
