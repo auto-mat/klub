@@ -33,7 +33,7 @@ from model_mommy import mommy
 from .test_admin import CreateSuperUserMixin
 from .utils import print_response  # noqa
 from .. import views
-from ..models import DonorPaymentChannel, PetitionSignature, UserProfile, ProfileEmail
+from ..models import DonorPaymentChannel, PetitionSignature, ProfileEmail, UserProfile
 
 
 class ClearCacheMixin(object):
@@ -347,8 +347,6 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         self.assertEqual(new_channel.regular_payments, 'regular')
         self.assertEqual(new_channel.event.slug, 'klub')
         self.assertEqual(new_channel.money_account.administrative_unit.name, 'test')
-
-
 
     def test_regular_darujme_ajax(self):
         address = reverse('regular-darujme')
