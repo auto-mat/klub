@@ -14,7 +14,8 @@ var HtmlTemplateFormFieldWidget = (function ($) {
     privateData[this._id] = {
       editTemplateModalDialogId: opts.editTemplateModalDialogId,
       editDialogPageContainer: opts.editDialogPageContainer,
-      popoverDelay: opts.popoverDelay,
+      showPopoverDelay: opts.showPopoverDelay,
+      destroyPopoverDelay: opts.destroyPopoverDelay,
       templateDivFieldId: opts.templateDivFieldId,
       hiddenTemplateFieldId: opts.hiddenTemplateFieldId,
       templateNameFieldId: opts.templateNameFieldId,
@@ -22,6 +23,7 @@ var HtmlTemplateFormFieldWidget = (function ($) {
       templateTextareaFieldId: opts.templateTextareaFieldId,
       templateDivFormFieldContainer: opts.templateDivFormFieldContainer,
       templateTextAreaFormFieldContainer: opts.templateTextAreaFormFieldContainer,
+      setTemplateNameDialogDelay: opts.setTemplateNameDialogDelay,
       templateDivFieldContainer: null,
       templateTextareaFieldContainer: null,
       templateTextareaFieldValue: '',
@@ -31,6 +33,7 @@ var HtmlTemplateFormFieldWidget = (function ($) {
       newEmptyTemplateName: null,
       setTemplateNameDialogId: 'set_template_name',
       setTemplateNameDialogConfirmBtnId: 'confirm_btn',
+      errorListClassName: 'errorlist',
       editTemplateModalDialogAttr: this.getEditTemplateModalDialogAttr,
       get getEditTemplateModalDialogAttr () {
         var data = {}
@@ -50,7 +53,7 @@ var HtmlTemplateFormFieldWidget = (function ($) {
         var divContainer = $('<div id="' + this.setTemplateNameDialogId + '"></div>')
         var form = $('<form id="template_name_form"></fom>')
         var formContentContainer = $('<div></div>')
-        var formErrorListContainer = $('<ul class="errorlist"></ul>')
+        var formErrorListContainer = $('<ul class="' + this.errorListClassName + '"></ul>')
         var formContentLabel = $('<label for="' + this.templateNameInputId + '">' + gettext('Template name') + ':</label>')
         var formContentInput = $('<input name="' + this.templateNameInputId + '" id="' + this.templateNameInputId + '">')
         formContentContainer.append(formContentLabel)
@@ -187,7 +190,7 @@ var HtmlTemplateFormFieldWidget = (function ($) {
         })
         setTimeout(function () {
           that.destroyPopover()
-        }, that.popoverDelay)
+        }, that.destroyPopoverDelay)
       },
       getPopoverOpts: function () {
         var that = this; var content
@@ -216,7 +219,7 @@ var HtmlTemplateFormFieldWidget = (function ($) {
           opts.offsetLeft = relX
           setTimeout(function () {
             WebuiPopovers.show('#' + that.$templateDivField.attr('id'), opts)
-          }, 750)
+          }, that.showPopoverDelay)
         })
       },
       checkTemplateName: function (o, name, m) {
@@ -225,7 +228,7 @@ var HtmlTemplateFormFieldWidget = (function ($) {
           opts.push($(this).text())
         })
         if (opts.indexOf(name) > -1) {
-          var errorlist = o.closest('form').find('.errorlist')
+          var errorlist = o.closest('form').find('.' + this.errorListClassName)
           errorlist.append('<li>' + m + '</li>')
           return false
         } else {
@@ -235,7 +238,7 @@ var HtmlTemplateFormFieldWidget = (function ($) {
       setTemplateNameDialogValidation: function () {
         var valid = true
         var templateName = $('#' + this.templateNameInputId)
-        $('.errorlist').html('')
+        $('.' + this.errorListClassName).html('')
         var message = gettext('Template name may consist of a-z, 0-9, ' +
                               'underscores, not spaces and must begin with a letter,' +
                               'and be lowercase.')
@@ -265,7 +268,7 @@ var HtmlTemplateFormFieldWidget = (function ($) {
       },
       checkRegexp: function (o, regexp, m) {
         if (!(regexp.test(o.val()))) {
-          var errorlist = o.closest('form').find('.errorlist')
+          var errorlist = o.closest('form').find('.' + this.errorListClassName)
           errorlist.append('<li>' + m + '</li>')
           return false
         } else {
@@ -293,14 +296,17 @@ var HtmlTemplateFormFieldWidget = (function ($) {
           title: title,
           show: {
             effect: 'fade',
-            delay: 500
+            delay: this.setTemplateNameDialogDelay
           },
           resizable: false,
           open: function (e, ui) {
             that.triggerConfirmBtn()
             that.openSetTemplateNameDialog(e, ui, $(this))
           },
-          beforeClose: function (e, ui) { $(this).dialog('destroy') },
+          beforeClose: function (e, ui) {
+            $(this).dialog('destroy')
+            that.$templateDivField.html('')
+          },
           buttons: btnNames
         })
       },
