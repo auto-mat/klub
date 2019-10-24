@@ -300,6 +300,7 @@ var HtmlTemplateFormFieldWidget = (function ($) {
             that.triggerConfirmBtn()
             that.openSetTemplateNameDialog(e, ui, $(this))
           },
+          beforeClose: function (e, ui) { $(this).dialog('destroy') },
           buttons: btnNames
         })
       },
