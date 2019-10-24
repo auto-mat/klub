@@ -1817,6 +1817,15 @@ class MoneyAccount(PolymorphicModel):
         null=True,
         blank=True,
     )
+    slug = models.SlugField(
+        verbose_name=_("Slug"),
+        help_text=_("Identifier of the Account"),
+        default=None,
+        max_length=100,
+        unique=True,
+        blank=True,
+        null=True,
+        )
 
 
 class BankAccount(MoneyAccount):
