@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import os
-from operator import itemgetter
 import pathlib
+from operator import itemgetter
 
 from django.db import models
 from django.urls import reverse
