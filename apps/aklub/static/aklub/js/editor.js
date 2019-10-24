@@ -30,9 +30,14 @@
 
       return images
     }
-
+    function getTemplatePageUrl () {
+      var newEmptyTemplateName = sessionStorage.getItem('newEmptyTemplateName')
+      var url = newEmptyTemplateName ? window.location.pathname + newEmptyTemplateName + '/' : window.location.pathname
+      var dbTemplateNameUrl = sessionStorage.getItem('dbTemplateName')
+      return dbTemplateNameUrl ? dbTemplateNameUrl : url
+    }
     editor.addEventListener('saved', function (ev) {
-      var onStateChange, payload, xhr
+      var onStateChange, payload, regions, element, pageId, successSaveFlash, failSaveFlash
       // Collect the contents of each region into a FormData instance
       payload = new FormData()
       // Check that something changed
@@ -40,7 +45,7 @@
       if (Object.keys(regions).length == 0) {
         return
       }
-      payload.append('page', window.location.pathname)
+      payload.append('page', getTemplatePageUrl())
       payload.append('images', JSON.stringify(getImages()))
       payload.append('regions', JSON.stringify(regions))
       // Send the updated content to the server to be saved
@@ -50,15 +55,15 @@
           editor.busy(false)
           if (ev.target.status == '201') {
             // Save was successful, notify the user with a flash
-            new ContentTools.FlashUI('ok')
+            successSaveFlash = new ContentTools.FlashUI('ok')
           } else {
             // Save failed, notify the user with a flash
-            new ContentTools.FlashUI('no')
+            failSaveFlash = new ContentTools.FlashUI('no')
           }
         }
       }
       element = document.querySelector('meta[name="page-id"]')
-      page_id = element.getAttribute('content')
+      pageId = element.getAttribute('content')
       editHtmlTemplate.call('post', window.reverse('html_template_editor:add'), payload, true, onStateChange)
     })
   }

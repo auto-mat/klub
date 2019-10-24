@@ -1,5 +1,6 @@
 from aklub import views
 
+from django.contrib.auth.decorators import login_required
 from django.conf.urls import url
 from django.contrib.auth import views as auth_views
 from django.urls import path
@@ -37,4 +38,14 @@ urlpatterns = [
         name='password_reset_complete',
     ),
     path('get_email_template/<template_name>/', views.get_email_template, name='get_email_template'),
+    path(
+        'get_email_template/<template_name>/',
+        login_required(views.get_email_template),
+        name='get_email_template',
+    ),
+    path(
+        'get_email_template/new_empty_template/<template_name>/',
+        login_required(views.get_email_template_from_db),
+        name='get_email_template_from_db',
+    ),
 ]

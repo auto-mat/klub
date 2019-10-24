@@ -1,3 +1,4 @@
+
 # -*- coding: utf-8 -*-
 # Author: Petr Dlouhý <petr.dlouhy@email.cz>
 #
@@ -39,7 +40,7 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render, render_to_response
 from django.template import loader
 from django.template.loader import render_to_string
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
@@ -874,14 +875,42 @@ class PasswordResetView(View):
 
 def get_email_template(request, template_name):
     _template_name = template_name
+
     template_name = '.'.join([template_name, 'html'])
-    template_dir = pathlib.PurePath('email_templates')
+    template_dir = pathlib.Path('email_templates')
     template_path = template_dir / template_name
-    template = loader.get_template(template_path.as_posix())
-    template_url = reverse_lazy(
+
+    template_url = reverse(
         'aklub:get_email_template',
         kwargs={'template_name': _template_name},
     )
+
+    template = loader.get_template(str(template_path))
+    template_obj = TemplateContent.objects.filter(page=template_url)
+    if (template_obj):
+        content = template_obj.latest('created')
+        context = {
+            'page': content,
+        }
+        regions = json.loads(content.regions)
+        context.update(regions)
+    else:
+        context = {}
+
+    return HttpResponse(template.render(context))
+
+
+def get_email_template_from_db(request, template_name):
+    new_empty_template = 'new_empty_template'
+
+    template_dir = pathlib.Path('email_templates')
+    template_path = template_dir / '.'.join([new_empty_template, 'html'])
+    template_url = reverse(
+        'aklub:get_email_template_from_db',
+        kwargs={'template_name': template_name},
+    )
+
+    template = loader.get_template(str(template_path))
     template_obj = TemplateContent.objects.filter(page=template_url)
     if (template_obj):
         content = template_obj.latest('created')
