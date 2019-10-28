@@ -9,8 +9,6 @@ class HtmlTemplateWidget(Widget):
     template_name = "form_field_html_template_widget.html"
 
     def __init__(self, *args, **kwargs):
-        if kwargs.get('urls'):
-            self.urls = kwargs.pop('urls')
         super().__init__(*args, **kwargs)
 
     def render(self, name, value, attrs=None, renderer=None, **kwargs):
