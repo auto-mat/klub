@@ -159,7 +159,6 @@ class RegularUserForm_DonorPaymentChannel(BankAccountMixin, CampaignMixin, forms
     def clean(self):
         if self.cleaned_data.get('campaign'):
             self.cleaned_data['event'] = self.cleaned_data['campaign']
-        print('!hello')
         return self.cleaned_data
 
     class Meta:

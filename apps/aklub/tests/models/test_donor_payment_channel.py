@@ -47,7 +47,6 @@ class TestNoUpgrade(TestCase):
     def test_not_regular(self):
         """ Test DonorPaymentChannel with regular_payments=False returns False """
         for model in Profile.__subclasses__():
-            print(model)
             model_name = model._meta.model_name
             profile = mommy.make(
                 model_name,

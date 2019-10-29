@@ -388,9 +388,7 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
         with open("apps/aklub/test_data/darujme.xml", "r", encoding="utf-8") as f:
             m = MagicMock()
             urllib_request.urlopen = MagicMock(return_value=f)
-            print(ApiAccount.objects.all())
             admin.download_darujme_statement(m, request, ApiAccount.objects.filter(event__slug='klub'))
-            print('one')
         a1 = self.check_account_statement_data()
         m.message_user.assert_called_once_with(
             request,
