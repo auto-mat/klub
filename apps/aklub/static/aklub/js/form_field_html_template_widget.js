@@ -377,6 +377,7 @@ var HtmlTemplateFormFieldWidget = (function ($) {
           content: content,
           offsetTop: 0,
           offsetLeft: 0,
+          animation: 'fade',
           backdrop: that.popoveBackdrop,
           onShow: function (element) {
             that.showPopover(element)
