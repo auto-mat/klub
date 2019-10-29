@@ -735,6 +735,7 @@ class ProfileAdmin(
     ProfileAdminMixin,
     UserAdmin, nested_admin.NestedModelAdmin, PolymorphicParentModelAdmin,
 ):
+    polymorphic_list = True
     resource_class = ProfileResource
     import_template_name = "admin/import_export/userprofile_import.html"
     # merge_form = UserMergeForm
