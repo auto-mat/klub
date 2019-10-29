@@ -3136,7 +3136,6 @@ class MassCommunication(models.Model):
     )
     date = models.DateField(
         verbose_name=_("Date"),
-        default=None,
         blank=False,
         null=False,
     )
@@ -3246,7 +3245,6 @@ class TaxConfirmationPdf(PdfSandwichABC):
         'TaxConfirmation',
         null=False,
         blank=False,
-        default='',
         on_delete=models.CASCADE,
     )
 
