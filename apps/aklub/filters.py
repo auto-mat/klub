@@ -4,7 +4,6 @@ import operator
 from datetime import date, timedelta
 from functools import reduce
 
-from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
 from django.contrib.admin.filters import RelatedFieldListFilter
 from django.db.models import Count, Q
@@ -236,7 +235,7 @@ class AdministrativeUnitAdminMixin(object):
 
     def get_queryset(self, request):
         self.request = request
-        queryset = super(admin.ModelAdmin, self).get_queryset(request)
+        queryset = super().get_queryset(request)
         if request.user.has_perm('aklub.can_edit_all_units'):
             return queryset
         kwargs = {self.queryset_unit_param + '__in': request.user.administrated_units.all()}
