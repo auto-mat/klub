@@ -204,7 +204,6 @@ def create_payment(data, payments, skipped_payments):  # noqa
         p.amount = amount
         p.account_name = u'%s, %s' % (data['prijmeni'], data['jmeno'])
         p.user_identification = data['email']
-        
     campaign = get_campaign(data)
     username = get_unique_username(data['email'])
     email, email_created = ProfileEmail.objects.get_or_create(
