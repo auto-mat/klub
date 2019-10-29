@@ -878,6 +878,9 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
         event = ', '.join(str(donor.event.id) + ') ' + donor.event.name for donor in self.userchannels.all() if donor.event is not None)
         return event
 
+    variable_symbol.short_description = _("event")
+    get_event.admin_order_field = 'userchannels__event'
+
     def get_email(self):
         emails = self.profileemail_set.all()
         result = list(

@@ -660,14 +660,14 @@ class ProfileAdminMixin:
         return ',\n'.join(d.strftime('%Y-%m-%d') for d in result)
 
     registered_support_date.short_description = _("Registration")
-    registered_support_date.admin_order_field = 'registered_support'
+    registered_support_date.admin_order_field = 'userchannels__registered_support'
 
     def regular_amount(self, obj):
         result = self.get_donor_details(obj, "regular_amount")
         return ',\n'.join(str(d) for d in result)
 
     regular_amount.short_description = _("Regular amount")
-    regular_amount.admin_order_field = 'regular_amount'
+    regular_amount.admin_order_field = 'userchannels__regular_amount'
 
     def donor_delay(self, obj):
         donors = self.get_donor(obj)
