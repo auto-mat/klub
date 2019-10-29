@@ -879,7 +879,7 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
         return event
 
     def get_email(self):
-        emails = ProfileEmail.objects.filter(user=self)
+        emails = self.profileemail_set.all()
         result = list(
             map(
                 lambda email:
