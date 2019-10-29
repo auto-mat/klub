@@ -136,6 +136,7 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
         'get_payment_count',
         'get_last_payment_date',
         'get_payment_details',
+        'get_payment_list_link',
     )
     fieldsets = (
         (None, {
@@ -149,13 +150,14 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
                     'get_payment_count',
                     'get_last_payment_date',
                     'get_payment_details',
+                    'get_payment_list_link',
                 ),
             ),
         }),
         (_('Details'), {
             'classes': ('collapse',),
             'fields': [
-                ('VS'),
+                ('VS', 'SS'),
                 ('registered_support', 'regular_amount', 'regular_frequency'),
                 ('expected_date_of_first_payment', 'exceptional_membership'),
                 ('other_support'),
@@ -163,6 +165,17 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
         }
          )
     )
+
+    def get_payment_list_link(self, obj):
+        url = reverse('admin:aklub_payment_changelist')
+        if obj.pk:
+            redirect_button = mark_safe(
+                f"<a href='{url}?user_donor_payment_channel={obj.pk}'><input type='button' value='All payments'></a>"
+            )
+        else:
+            redirect_button = None
+        return redirect_button
+    get_payment_list_link.short_description = _('All payments')
 
     def get_sum_amount(self, obj):
         return obj.sum_amount
@@ -431,6 +444,7 @@ class CompanyProfileResource(ProfileModelResourceMixin):
             get_profile_admin_export_base_order_fields() +
             [
                 'name', 'crn', 'tin',
+                'contact_first_name', 'contact_last_name',
             ]
         )
 
@@ -919,6 +933,7 @@ class DonorPaymentChannelResource(ModelResource):
             'user__city',
             'user__zip_code',
             'VS',
+            'SS',
             'user__club_card_available',
             # 'wished_information',
             'regular_payments',
@@ -974,6 +989,7 @@ class DonorPaymethChannelAdmin(
         # 'source',
         'event',
         'VS',
+        'SS',
         # 'registered_support_date',
         # 'regular_payments_info',
         # 'payment_delay',
@@ -995,6 +1011,7 @@ class DonorPaymethChannelAdmin(
         # 'source',
         ('campaign__name', _("Campaign name")),
         'VS',
+        'SS',
         'registered_support',
         'regular_payments',
         'extra_money',
@@ -1023,6 +1040,7 @@ class DonorPaymethChannelAdmin(
         'user__userprofile__first_name',
         'user__userprofile__last_name',
         'VS',
+        'SS',
         'user__email',
         # 'user__telephone',
     ]
@@ -1057,6 +1075,7 @@ class DonorPaymethChannelAdmin(
         (_('Support'), {
             'fields': [
                 'VS',
+                'SS',
                 'registered_support',
                 (
                     'regular_payments', 'regular_frequency',
@@ -1081,6 +1100,7 @@ class UserYearPaymentsAdmin(DonorPaymethChannelAdmin):
         'user__email',
         # 'source',
         'VS',
+        'SS',
         # 'registered_support_date',
         'payment_total_by_year',
         'user__is_active',
@@ -1137,6 +1157,11 @@ class PaymentAdmin(
         'paired_with_expected',
         'created',
         'updated',
+    )
+    list_select_related = (
+        'user_donor_payment_channel__user',
+        'user_donor_payment_channel__event',
+        'account_statement',
     )
     fieldsets = [
         (_("Basic"), {
@@ -1857,6 +1882,8 @@ class CompanyProfileAdmin(
         'is_staff',
         'date_joined',
         'last_login',
+        'contact_first_name',
+        'contact_last_name',
     )
     advanced_filter_fields = (
         'email',
@@ -1896,6 +1923,7 @@ class CompanyProfileAdmin(
             'fields': (
                 'username', ('name'),
                 'is_active',
+                ('contact_first_name', 'contact_last_name',),
                 'no_crn_check',
                 'email',
                 'telephone',
@@ -1912,6 +1940,7 @@ class CompanyProfileAdmin(
             'fields': (
                 'username', ('name'),
                 'is_active',
+                ('contact_first_name', 'contact_last_name',),
                 'get_email',
                 'get_main_telephone',
                 'note',

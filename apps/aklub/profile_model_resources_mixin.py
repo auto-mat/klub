@@ -100,6 +100,7 @@ def import_obj(self, obj, data, dry_run):  # noqa
         preference.save()
 
     if data.get('event') and data.get('donor') == 'x':
+        SS = data.get('SS', None)
         if data.get('VS') != "":
             VS = data['VS']
         else:
@@ -109,7 +110,7 @@ def import_obj(self, obj, data, dry_run):  # noqa
         donors, _ = DonorPaymentChannel.objects.get_or_create(
             user=obj,
             event=event,
-            defaults={'VS': VS},
+            defaults={'VS': VS, 'SS': SS},
         )
         if data.get('bank_account') and data.get("administrative_units"):
             bank_account, _ = BankAccount.objects.get_or_create(bank_account_number=data['bank_account'])
