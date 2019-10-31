@@ -30,7 +30,7 @@ class Query(__Query__):
                             },
                         }
                         events.append(event)
-                    for payment in Payment.objects.filter(user_donor_payment_channel__user=profile.pk):
+                    for payment in Payment.objects.gate(self.huser.user).filter(user_donor_payment_channel__user=profile.pk):
                         event = {
                             'group': _('Payment'),
                             'start_date': self.mk_timeline_date(
