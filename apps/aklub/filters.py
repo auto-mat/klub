@@ -96,21 +96,26 @@ class EmailFilter(SimpleListFilter):
         )
 
     def queryset(self, request, queryset):
-        if self.value() == 'duplicate':
-            duplicates = Profile.objects.filter(email__isnull=False).\
-                exclude(email__exact='').\
-                annotate(email_lower=Lower('email')).\
-                values('email_lower').\
-                annotate(Count('id')).\
-                values('email_lower').\
-                order_by().\
-                filter(id__count__gt=1).\
-                values_list('email_lower', flat=True)
-            return queryset.annotate(email_lower=Lower('email')).filter(email_lower__in=duplicates)
-        if self.value() == 'blank':
-            return queryset.filter(Q(email__exact='') | Q(email__isnull=True))
-        if self.value() == 'email-format':
-            return queryset.exclude(email__iregex=r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9.-]+$)")
+        if self.value():
+            blank_filter = Q(email__exact='') | Q(email__isnull=True)
+            if self.value() == 'blank':
+                return queryset.filter(blank_filter)
+            else:
+                queryset = queryset.exclude(blank_filter)
+
+            if self.value() == 'duplicate':
+                duplicates = Profile.objects.filter(email__isnull=False).\
+                    exclude(email__exact='').\
+                    annotate(email_lower=Lower('email')).\
+                    values('email_lower').\
+                    annotate(Count('id')).\
+                    values('email_lower').\
+                    order_by().\
+                    filter(id__count__gt=1).\
+                    values_list('email_lower', flat=True)
+                return queryset.annotate(email_lower=Lower('email')).filter(email_lower__in=duplicates)
+            if self.value() == 'email-format':
+                return queryset.exclude(email__iregex=r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9.-]+$)")
         return queryset
 
 
@@ -148,24 +153,23 @@ class TelephoneFilter(SimpleListFilter):
         )
 
     def queryset(self, request, queryset):
-        if self.value() == 'duplicate':
-            duplicates = Telephone.objects.filter(telephone__isnull=False).\
-                exclude(telephone__exact='').\
-                values('telephone').\
-                annotate(Count('id')).\
-                values('telephone').\
-                order_by().\
-                filter(id__count__gt=1).\
-                values_list('telephone', flat=True)
-            return queryset.filter(telephone__telephone__in=duplicates)
-        if self.value() == 'blank':
-            return queryset.filter(Q(telephone__telephone__exact='') | Q(telephone__telephone__isnull=True) | Q(telephone__isnull=True))
-        if self.value() == 'bad-format':
-            return queryset.exclude(
-                telephone__telephone__iregex=r'^\+?([0-9] *){9,}$',
-                telephone__telephone__exact='',
-                telephone__telephone__isnull=True,
-            )
+        if self.value():
+            blank_filter = Q(telephone__telephone__exact='') | Q(telephone__telephone__isnull=True) | Q(telephone__isnull=True)
+            if self.value() == 'blank':
+                return queryset.filter(blank_filter)
+            else:
+                queryset = queryset.exclude(blank_filter)
+            if self.value() == 'duplicate':
+                duplicates = Telephone.objects.\
+                    values('telephone').\
+                    annotate(Count('id')).\
+                    values('telephone').\
+                    order_by().\
+                    filter(id__count__gt=1).\
+                    values_list('telephone', flat=True)
+                return queryset.filter(telephone__telephone__in=duplicates)
+            if self.value() == 'bad-format':
+                return queryset.exclude(telephone__telephone__iregex=r'^\+?([0-9] *){9,}$')
         return queryset
 
 
