@@ -2306,6 +2306,13 @@ class NewUser(DonorPaymentChannel):
         verbose_name_plural = _("new users")
 
 
+class GatedPaymentManager(models.Manager):
+    def gate(self, user):
+        if user.has_perm('aklub.can_edit_all_units'):
+            return self
+        return self.filter(user_donor_payment_channel__bank_account__administrative_unit__in=user.administrated_units.all())
+
+
 class Payment(WithAdminUrl, models.Model):
     """Payment model and DB table
 
@@ -2484,6 +2491,8 @@ class Payment(WithAdminUrl, models.Model):
         auto_now=True,
         null=True,
     )
+
+    objects = GatedPaymentManager()
 
     def person_name(self):
         """Return name of the payer"""
