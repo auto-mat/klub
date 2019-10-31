@@ -1695,6 +1695,12 @@ class UserProfileAdmin(
         'profileemail__email',
     )
     list_filter = (
+        'administrative_units',
+        'userchannels__registered_support',
+        'preference__send_mailing_lists',
+        'userchannels__extra_money',
+        'userchannels__regular_amount',
+        'userchannels__regular_frequency',
         'is_staff',
         'is_superuser',
         'is_active',
