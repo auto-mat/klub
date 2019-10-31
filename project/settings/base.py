@@ -343,6 +343,15 @@ HELPDESK_KB_ENABLED = True
 # Instead of showing the public web portal first,
 # we can instead redirect users straight to the login page.
 HELPDESK_REDIRECT_TO_LOGIN_BY_DEFAULT = False
+
+
+def get_helpdesk_query_class():
+    from aklub.timeline import Query
+    return Query
+
+
+HELPDESK_QUERY_CLASS = get_helpdesk_query_class
+
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/login/'
 

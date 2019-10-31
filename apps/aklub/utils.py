@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from django.db import models
+from django.urls import reverse
 
 
 def create_model(
@@ -25,3 +26,11 @@ def create_model(
     model = type(name, parent_class, attrs)
 
     return model
+
+
+class WithAdminUrl:
+    def get_admin_url(self):
+        return reverse(
+            'admin:%s_%s_change' % (self._meta.app_label, self._meta.model_name),
+            args=[self.id],
+        )
