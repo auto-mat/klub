@@ -1668,7 +1668,7 @@ class UserProfileAdmin(
         'last_login',
     )
     advanced_filter_fields = (
-        'email',
+        'profileemail__email',
         'addressment',
         'telephone__telephone',
         'title_before',
@@ -1691,6 +1691,7 @@ class UserProfileAdmin(
         'last_name',
         'title_after',
         'telephone__telephone',
+        'profileemail__email',
     )
     list_filter = (
         'is_staff',
