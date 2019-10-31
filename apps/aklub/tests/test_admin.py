@@ -77,9 +77,7 @@ class AdminSmokeTest(CreateSuperUserMixin, tests.AdminSiteSmokeTest):
             pass
 
     def post_request(self, post_data={}, params=None):
-        request = self.factory.post(path='/', data=post_data)
-        request.user = self.superuser
-        request._dont_enforce_csrf_checks = True
+        request = super().post_request(post_data, params)
         request.session = 'session'
         request._messages = FallbackStorage(request)
         return request

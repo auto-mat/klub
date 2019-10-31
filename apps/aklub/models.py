@@ -851,8 +851,11 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
         event = ', '.join(str(donor.event.id) + ') ' + donor.event.name for donor in self.userchannels.all() if donor.event is not None)
         return event
 
+    variable_symbol.short_description = _("event")
+    get_event.admin_order_field = 'userchannels__event'
+
     def get_email(self):
-        emails = ProfileEmail.objects.filter(user=self)
+        emails = self.profileemail_set.all()
         result = list(
             map(
                 lambda email:
@@ -3180,7 +3183,6 @@ class MassCommunication(models.Model):
     )
     date = models.DateField(
         verbose_name=_("Date"),
-        default=None,
         blank=False,
         null=False,
     )
@@ -3290,7 +3292,6 @@ class TaxConfirmationPdf(PdfSandwichABC):
         'TaxConfirmation',
         null=False,
         blank=False,
-        default='',
         on_delete=models.CASCADE,
     )
 
