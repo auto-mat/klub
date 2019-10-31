@@ -1648,6 +1648,7 @@ class UserProfileAdmin(
     show_in_index = True
     resource_class = UserProfileResource
     import_template_name = "admin/import_export/userprofile_import.html"
+    change_form_template = "admin/aklub/userprofile_changeform.html"
     list_display = (
         'person_name',
         'get_email',
@@ -1814,19 +1815,18 @@ class UserProfileAdmin(
 
         return super().add_view(request)
 
-    def response_add(self, request, obj, post_url_continue=None):
-        response = super(nested_admin.NestedModelAdmin, self).response_add(
-            request, obj, post_url_continue,)
-        if 'add' in response.url or 'change' in response.url:
-            return response
-        return redirect('admin:aklub_userprofile_changelist')
-
-    def response_change(self, request, obj):
-        response = super(nested_admin.NestedModelAdmin, self).response_add(
-            request, obj,)
-        if 'change' in response.url:
-            return response
-        return redirect('admin:aklub_userprofile_changelist')
+    def change_view(self, request, object_id, extra_context=None, **kwargs):
+        from helpdesk.query import query_to_base64
+        extra_context = extra_context or {}
+        extra_context['urlsafe_query'] = query_to_base64({
+            'search_string': UserProfile.objects.get(pk=object_id).email,
+        })
+        return super().change_view(
+            request,
+            object_id,
+            extra_context=extra_context,
+            **kwargs,
+        )
 
 
 @admin.register(CompanyProfile)

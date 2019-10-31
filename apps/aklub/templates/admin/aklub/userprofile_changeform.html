@@ -1,17 +1,45 @@
 {% extends "admin/change_form.html" %}
-{% load i18n admin_urls static admin_modify %}
-{% block field_sets %}
-    {% for fieldset in adminform %}
-        {#  Custom fieldsets template #}
-        {% include "admin/aklub/fieldset.html" with inline_admin_formsets=inline_admin_formsets %}
-    {% endfor %}
+{% load i18n %}
+{% block extrahead %}
+<!-- 1 -->
+<link title="timeline-styles" rel="stylesheet" href="https://cdn.knightlab.com/libs/timeline3/latest/css/timeline.css">
+
+<!-- 2 -->
+<script src="https://cdn.knightlab.com/libs/timeline3/latest/js/timeline.js"></script>
+
+<script>
+ var timeline_loaded = false;
+ $(function (){
+     $("#timeline-embed").hide();
+ });
+ function show_hide_timeline() {
+     if($("#timeline-embed").is(":visible")) {
+         $("#timeline-embed").hide();
+         $("#timeline-toggler").text("{% trans 'Show timeline' %}");
+     } else {
+         $("#timeline-embed").show();
+         $("#timeline-toggler").text("{% trans 'Hide timeline' %}");
+
+     }
+     if(!timeline_loaded) {
+         timeline = new TL.Timeline(
+             'timeline-embed',
+             '{% url 'helpdesk:timeline_ticket_list' urlsafe_query %}'
+         );
+         timeline_loaded=true;
+     }
+ }
+</script>
+{{block.super}}
+{% endblock %}
+{% block object-tools-items %}
+<li>
+<a href="#" onclick="show_hide_timeline()" id="timeline-toggler">{% trans 'Show timeline' %}</a>
+</li>
+{{block.super}}
 {% endblock %}
 
-{# Filter inlines that where already rendered to avoid duplication #}
-{% block inline_field_sets %}
-    {% for inline_admin_formset in inline_admin_formsets %}
-        {% if not inline_admin_formset.opts.insert_after %}
-            {% include inline_admin_formset.opts.template %}
-        {% endif %}
-    {% endfor %}
+{% block field_sets %}
+<div id="timeline-embed" style="width: 100%; height: 80vh"></div>
+{{block.super}}
 {% endblock %}
