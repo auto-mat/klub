@@ -601,6 +601,28 @@ class ProfileEmailInline(nested_admin.NestedTabularInline):
     form = ProfileEmailAdminForm
 
 
+class RedirectMixin(object):
+    def response_add(self, request, obj, post_url_continue=None):
+        response = super(nested_admin.NestedModelAdmin, self).response_add(
+            request, obj, post_url_continue,)
+        if 'add' in response.url or 'change' in response.url:
+            return response
+        return redirect('admin:aklub_' + redirect + '_changelist')
+
+    def response_change(self, request, obj):
+        response = super(nested_admin.NestedModelAdmin, self).response_change(
+            request, obj,)
+        if 'change' in response.url:
+            return response
+        return redirect('admin:aklub_' + redirect + '_changelist')
+
+
+def child_redirect_mixin(redirect):
+    class RedMixin(RedirectMixin):
+        redirect_page = redirect
+    return RedMixin
+
+
 @admin.register(MoneyAccount)
 class MoneyAccountChildAdmin(
                     unit_admin_mixin_generator('administrative_unit'),
@@ -612,7 +634,11 @@ class MoneyAccountChildAdmin(
 
 
 @admin.register(ApiAccount)
-class ApiAccountAdmin(unit_admin_mixin_generator('administrative_unit'), MoneyAccountChildAdmin):
+class ApiAccountAdmin(
+                unit_admin_mixin_generator('administrative_unit'),
+                MoneyAccountChildAdmin,
+                child_redirect_mixin('apiaccount'),
+                ):
     """ Api account polymorphic admin model child class """
     base_model = ApiAccount
     show_in_index = True
@@ -625,40 +651,16 @@ class ApiAccountAdmin(unit_admin_mixin_generator('administrative_unit'), MoneyAc
                 kwargs["queryset"] = Event.objects.all()
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
-    def response_add(self, request, obj, post_url_continue=None):
-        response = super(nested_admin.NestedModelAdmin, self).response_add(
-            request, obj, post_url_continue,)
-        if 'add' in response.url or 'change' in response.url:
-            return response
-        return redirect('admin:aklub_apiaccount_changelist')
-
-    def response_change(self, request, obj):
-        response = super(nested_admin.NestedModelAdmin, self).response_add(
-            request, obj,)
-        if 'change' in response.url:
-            return response
-        return redirect('admin:aklub_apiaccount_changelist')
-
 
 @admin.register(BankAccount)
-class BankAccountAdmin(unit_admin_mixin_generator('administrative_unit'), MoneyAccountChildAdmin):
+class BankAccountAdmin(
+                unit_admin_mixin_generator('administrative_unit'),
+                MoneyAccountChildAdmin,
+                child_redirect_mixin('bankaccount'),
+                ):
     """ bank account polymorphic admin model child class """
     base_model = BankAccount
     show_in_index = True
-
-    def response_add(self, request, obj, post_url_continue=None):
-        response = super(nested_admin.NestedModelAdmin, self).response_add(
-            request, obj, post_url_continue,)
-        if 'add' in response.url or 'change' in response.url:
-            return response
-        return redirect('admin:aklub_bankaccount_changelist')
-
-    def response_change(self, request, obj):
-        response = super(nested_admin.NestedModelAdmin, self).response_add(
-            request, obj,)
-        if 'change' in response.url:
-            return response
-        return redirect('admin:aklub_bankaccount_changelist')
 
 
 class UserBankAccountAdmin(admin.ModelAdmin):
@@ -1672,7 +1674,7 @@ class BaseProfileChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModel
 class UserProfileAdmin(
         filters.AdministrativeUnitAdminMixin,
         ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFiltersMixin,
-        BaseProfileChildAdmin, ProfileAdminMixin,
+        BaseProfileChildAdmin, ProfileAdminMixin, child_redirect_mixin('userprofile')
 ):
     """ User profile polymorphic admin model child class """
     base_model = UserProfile
@@ -1844,26 +1846,12 @@ class UserProfileAdmin(
 
         return super().add_view(request)
 
-    def response_add(self, request, obj, post_url_continue=None):
-        response = super(nested_admin.NestedModelAdmin, self).response_add(
-            request, obj, post_url_continue,)
-        if 'add' in response.url or 'change' in response.url:
-            return response
-        return redirect('admin:aklub_userprofile_changelist')
-
-    def response_change(self, request, obj):
-        response = super(nested_admin.NestedModelAdmin, self).response_add(
-            request, obj,)
-        if 'change' in response.url:
-            return response
-        return redirect('admin:aklub_userprofile_changelist')
-
 
 @admin.register(CompanyProfile)
 class CompanyProfileAdmin(
         filters.AdministrativeUnitAdminMixin,
         ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFiltersMixin,
-        BaseProfileChildAdmin, ProfileAdminMixin,
+        BaseProfileChildAdmin, ProfileAdminMixin, child_redirect_mixin('companyprofile'),
 ):
     """ Company profile polymorphic admin model child class """
     base_model = CompanyProfile
@@ -2024,20 +2012,6 @@ class CompanyProfileAdmin(
                 pass
 
         return super().add_view(request)
-
-    def response_add(self, request, obj, post_url_continue=None):
-        response = super(nested_admin.NestedModelAdmin, self).response_add(
-            request, obj, post_url_continue,)
-        if 'add' in response.url or 'change' in response.url:
-            return response
-        return redirect('admin:aklub_companyprofile_changelist')
-
-    def response_change(self, request, obj):
-        response = super(nested_admin.NestedModelAdmin, self).response_add(
-            request, obj,)
-        if 'change' in response.url:
-            return response
-        return redirect('admin:aklub_companyprofile_changelist')
 
 
 admin.site.register(DonorPaymentChannel, DonorPaymethChannelAdmin)
