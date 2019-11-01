@@ -1825,7 +1825,8 @@ class UserProfileAdmin(
         from helpdesk.query import query_to_base64
         extra_context = extra_context or {}
         extra_context['urlsafe_query'] = query_to_base64({
-            'search_string': UserProfile.objects.get(pk=object_id).email,
+            'search_string': "OR".join([pe.email for pe in ProfileEmail.objects.filter(user__pk=object_id)]),
+            'search_profile_pks': [object_id],
         })
         return super().change_view(
             request,
