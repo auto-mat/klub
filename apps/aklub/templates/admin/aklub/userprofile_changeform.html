@@ -1,6 +1,7 @@
 {% extends "admin/change_form.html" %}
 {% load i18n %}
 {% block extrahead %}
+{% if urlsafe_query %}
 <!-- 1 -->
 <link title="timeline-styles" rel="stylesheet" href="https://cdn.knightlab.com/libs/timeline3/latest/css/timeline.css">
 
@@ -30,16 +31,22 @@
      }
  }
 </script>
+{% endif %}
 {{block.super}}
 {% endblock %}
+
 {% block object-tools-items %}
+{% if urlsafe_query %}
 <li>
 <a href="#" onclick="show_hide_timeline()" id="timeline-toggler">{% trans 'Show timeline' %}</a>
 </li>
+{% endif %}
 {{block.super}}
 {% endblock %}
 
 {% block field_sets %}
+{% if urlsafe_query %}
 <div id="timeline-embed" style="width: 100%; height: 80vh"></div>
+{% endif %}
 {{block.super}}
 {% endblock %}
