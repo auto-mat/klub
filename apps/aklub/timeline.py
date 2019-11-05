@@ -16,7 +16,7 @@ class Query(__Query__):
         for subsearch in search.split("OR"):
             if "@" in subsearch:
                 for profileemail in ProfileEmail.objects.filter(email=subsearch.strip()):
-                    profiles.add(profileemail.user())
+                    profiles.add(profileemail.user)
                 for profile in UserProfile.objects.filter(email=subsearch.strip()):
                     profiles.add(profile)
         for profile_pk in self.params.get('search_profile_pks', []):
