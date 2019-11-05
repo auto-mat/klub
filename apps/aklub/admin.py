@@ -784,6 +784,21 @@ class ProfileAdminMixin:
 
     email_anchor.short_description = _(mark_safe('<a href="#profileemail_set-group">Details</a>'))
 
+    def get_sum_amount(self, obj):
+        return obj.sum_amount
+    get_sum_amount.admin_order_field = 'sum_amount'
+    get_sum_amount.short_description = _("Sum of all payments")
+
+    def get_payment_count(self, obj):
+        return obj.payment_count
+    get_payment_count.admin_order_field = 'payment_count'
+    get_payment_count.short_description = _("Payments count")
+
+    def get_last_payment_date(self, obj):
+        return obj.last_payment_date
+    get_last_payment_date.admin_order_field = 'last_payment_date'
+    get_last_payment_date.short_description = _("Date of last payment")
+
     def get_queryset(self, *args, **kwargs):
         return super().get_queryset(*args, **kwargs).prefetch_related(
             'telephone_set',
@@ -791,6 +806,10 @@ class ProfileAdminMixin:
             'administrative_units',
             'userchannels',
             'userchannels__event',
+        ).annotate(
+            sum_amount=Sum('userchannels__payment__amount'),
+            payment_count=Count('userchannels__payment'),
+            last_payment_date=Max('userchannels__payment__date'),
         )
 
 
@@ -1713,22 +1732,18 @@ class UserProfileAdmin(
     change_form_template = "admin/aklub/userprofile_changeform.html"
     list_display = (
         'person_name',
-        'get_email',
         'username',
-        'get_administrative_units',
-        'addressment',
-        'get_addressment',
-        'get_last_name_vokativ',
+        'get_email',
         'get_main_telephone',
-        'title_before',
-        'title_after',
-        'sex',
-        'is_staff',
-        'registered_support_date',
+        'get_administrative_units',
         'get_event',
-        'regular_amount',
         'date_joined',
-        'last_login',
+        'get_sum_amount',
+        'get_payment_count',
+        'get_last_payment_date',
+        'regular_amount',
+        'donor_delay',
+        'donor_extra_money',
     )
     advanced_filter_fields = (
         'profileemail__email',
@@ -1743,9 +1758,6 @@ class UserProfileAdmin(
         'date_joined',
         'last_login',
         ('userincampaign__campaign__name', _("Jméno kampaně")),
-    )
-    list_editable = (
-        'addressment',
     )
     search_fields = (
         'email',
