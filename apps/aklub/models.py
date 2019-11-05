@@ -38,14 +38,11 @@ from django.contrib.humanize.templatetags.humanize import intcomma
 from django.core.exceptions import ValidationError
 from django.core.files.storage import FileSystemStorage
 from django.core.mail import EmailMultiAlternatives
-try:
-    from django.urls import reverse
-except ImportError:  # Django<2.0
-    from django.core.urlresolvers import reverse
 from django.core.validators import RegexValidator
 from django.db import models, transaction
 from django.db.models import Count, Q, Sum, signals
 from django.dispatch import receiver
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html, format_html_join, mark_safe
 from django.utils.text import format_lazy
@@ -67,7 +64,7 @@ from stdnumfield.models import StdNumField
 from vokativ import vokativ
 
 from . import autocom
-from .utils import create_model
+from .utils import WithAdminUrl, create_model
 
 logger = logging.getLogger(__name__)
 
@@ -851,8 +848,21 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
         event = ', '.join(str(donor.event.id) + ') ' + donor.event.name for donor in self.userchannels.all() if donor.event is not None)
         return event
 
+    def can_administer_profile(self, profile):
+        if self.has_perm('aklub.can_edit_all_units'):
+            return True
+        administrated_unit_pks = {unit.pk for unit in self.administrated_units.all()}
+        administrative_unit_pks = {unit.pk for unit in profile.administrative_units.all()}
+        if administrated_unit_pks.intersection(administrative_unit_pks):
+            return True
+        else:
+            return False
+
+    variable_symbol.short_description = _("event")
+    get_event.admin_order_field = 'userchannels__event'
+
     def get_email(self):
-        emails = ProfileEmail.objects.filter(user=self)
+        emails = self.profileemail_set.all()
         result = list(
             map(
                 lambda email:
@@ -2343,7 +2353,14 @@ class NewUser(DonorPaymentChannel):
         verbose_name_plural = _("new users")
 
 
-class Payment(models.Model):
+class GatedPaymentManager(models.Manager):
+    def gate(self, user):
+        if user.has_perm('aklub.can_edit_all_units'):
+            return self
+        return self.filter(user_donor_payment_channel__bank_account__administrative_unit__in=user.administrated_units.all())
+
+
+class Payment(WithAdminUrl, models.Model):
     """Payment model and DB table
 
     There are three kinds of payments:
@@ -2522,6 +2539,8 @@ class Payment(models.Model):
         null=True,
     )
 
+    objects = GatedPaymentManager()
+
     def person_name(self):
         """Return name of the payer"""
         if self.user_donor_payment_channel:
@@ -2610,7 +2629,7 @@ COMMUNICATION_TYPE = (
 )
 
 
-class Interaction(BaseInteraction):
+class Interaction(WithAdminUrl, BaseInteraction):
     """Interaction entry and DB Model
 
     A communication is one action in the dialog between the club
@@ -3180,7 +3199,6 @@ class MassCommunication(models.Model):
     )
     date = models.DateField(
         verbose_name=_("Date"),
-        default=None,
         blank=False,
         null=False,
     )
@@ -3290,7 +3308,6 @@ class TaxConfirmationPdf(PdfSandwichABC):
         'TaxConfirmation',
         null=False,
         blank=False,
-        default='',
         on_delete=models.CASCADE,
     )
 

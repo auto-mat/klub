@@ -121,23 +121,31 @@ class FilterTests(FilterTestCase):
         self.assertQuerysetEqual(q, ["<CompanyProfile: Company>"])
 
     def test_telephone_filter_format(self):
-        mommy.make("UserProfile", telephone='1111', first_name="Foo", last_name="")
+        user_profile = mommy.make("UserProfile", first_name="Foo", last_name="")
+        mommy.make("Telephone", telephone='1111', user=user_profile)
+        user_profile1 = mommy.make("UserProfile", first_name="Bar", last_name="")
+        mommy.make("Telephone", telephone='111111111', user=user_profile1)
+        mommy.make("UserProfile", first_name="Baz", last_name="")
+        user_profile.refresh_from_db()
         f = filters.TelephoneFilter(self.request, {"telephone": "bad-format"}, UserProfile, None)
         q = f.queryset(self.request, UserProfile.objects.all())
         self.assertQuerysetEqual(q, ["<UserProfile: Foo>"])
 
-        mommy.make("CompanyProfile", telephone='1111', name="Company")
+        company = mommy.make("CompanyProfile", telephone__telephone='1111', name="Company")
+        mommy.make("Telephone", telephone='1111', user=company)
         f = filters.TelephoneFilter(self.request, {"telephone": "bad-format"}, CompanyProfile, None)
         q = f.queryset(self.request, CompanyProfile.objects.all())
         self.assertQuerysetEqual(q, ["<CompanyProfile: Company>"])
 
     def test_telephone_filter_without_query(self):
-        mommy.make("UserProfile", telephone='1111', first_name="Foo", last_name="")
+        user_profile = mommy.make("UserProfile", first_name="Foo", last_name="")
+        mommy.make("Telephone", telephone='1111', user=user_profile)
         f = filters.TelephoneFilter(self.request, {}, UserProfile, None)
         q = f.queryset(self.request, UserProfile.objects.all())
         self.assertQuerysetEqual(q, ["<UserProfile: Foo>"])
 
-        mommy.make("CompanyProfile", telephone='1111', name="Company")
+        company = mommy.make("CompanyProfile", name="Company")
+        mommy.make("Telephone", telephone='1111', user=company)
         f = filters.TelephoneFilter(self.request, {}, CompanyProfile, None)
         q = f.queryset(self.request, CompanyProfile.objects.all())
         self.assertQuerysetEqual(q, ["<CompanyProfile: Company>"])

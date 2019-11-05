@@ -11,7 +11,7 @@ def picke_settings(data):
         import pickle
     except ImportError:
         import cPickle as pickle
-    from helpdesk.lib import b64encode
+    from helpdesk.query import b64encode
     return b64encode(pickle.dumps(data))
 
 

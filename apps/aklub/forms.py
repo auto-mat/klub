@@ -202,7 +202,7 @@ class CompanyProfileAddForm(forms.ModelForm):
         self.non_hidden_fields = ('crn', 'tin', 'no_crn_check', 'administrative_units')
         if not self.request.user.has_perm('aklub.can_edit_all_units'):
             self.fields['administrative_units'].queryset = self.request.user.administrated_units.all()
-            self.fields['administrative_units'].required = True
+        self.fields['administrative_units'].required = True
         if self.request.method == 'GET':
             hidden_fields_switcher(self)
 

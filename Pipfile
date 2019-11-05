@@ -31,7 +31,7 @@ django-denorm = "*"
 gunicorn = "*"
 django-betterforms = "*"
 django-adminactions = {editable = true,git = "https://github.com/saxix/django-adminactions.git",ref = "develop"}
-django-helpdesk = {editable = true,git = "https://github.com/auto-mat/django-helpdesk.git",ref = "abs-paths"}
+django-helpdesk = {editable = true,git = "https://github.com/auto-mat/django-helpdesk.git",ref = "timeline"}
 django-admin-large-initial-data = "*"
 # https://github.com/areski/django-admin-tools-stats/pull/49
 django-admin-tools-stats = {ref = "ajax_loading",git = "https://github.com/PetrDlouhy/django-admin-tools-stats",editable = true}

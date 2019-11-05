@@ -682,14 +682,14 @@ class ProfileAdminMixin:
         return list(map(lambda o: o.strftime('%d. %m. %Y'), obj))
 
     def get_donor_details(self, obj, attr, *args):
-        if not self.request.user.has_perm('aklub.can_edit_all_units'):
-            result = obj.userchannels.filter(
-                            bank_account__administrative_unit__in=self.request.user.administrated_units.all(),
-                            regular_payments='regular',
-            ).values(attr)
-        else:
-            result = obj.userchannels.filter(regular_payments='regular').values(attr)
-        return [f[attr] or '-' for f in result]
+        channels = obj.userchannels.all()
+        results = []
+        for channel in channels:
+            if channel.regular_payments == 'regular':
+                if self.request.user.has_perm('aklub.can_edit_all_units') or \
+                        (channel.bank_account and channel.bank_account.administrative_unit in self.request.user.administrated_units.all()):
+                    results.append(getattr(channel, attr, '-') or '-')
+        return results
 
     def get_donor(self, obj):
         if not self.request.user.has_perm('aklub.can_edit_all_units'):
@@ -706,14 +706,14 @@ class ProfileAdminMixin:
         return ',\n'.join(d.strftime('%Y-%m-%d') for d in result)
 
     registered_support_date.short_description = _("Registration")
-    registered_support_date.admin_order_field = 'registered_support'
+    registered_support_date.admin_order_field = 'userchannels__registered_support'
 
     def regular_amount(self, obj):
         result = self.get_donor_details(obj, "regular_amount")
         return ',\n'.join(str(d) for d in result)
 
     regular_amount.short_description = _("Regular amount")
-    regular_amount.admin_order_field = 'regular_amount'
+    regular_amount.admin_order_field = 'userchannels__regular_amount'
 
     def donor_delay(self, obj):
         donors = self.get_donor(obj)
@@ -765,13 +765,23 @@ class ProfileAdminMixin:
 
     email_anchor.short_description = _(mark_safe('<a href="#profileemail_set-group">Details</a>'))
 
+    def get_queryset(self, *args, **kwargs):
+        return super().get_queryset(*args, **kwargs).prefetch_related(
+            'telephone_set',
+            'profileemail_set',
+            'administrative_units',
+            'userchannels',
+            'userchannels__event',
+        )
+
 
 class ProfileAdmin(
     filters.AdministrativeUnitAdminMixin,
     ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFiltersMixin,
-    UserAdmin, nested_admin.NestedModelAdmin, PolymorphicParentModelAdmin,
     ProfileAdminMixin,
+    UserAdmin, nested_admin.NestedModelAdmin, PolymorphicParentModelAdmin,
 ):
+    polymorphic_list = True
     resource_class = ProfileResource
     import_template_name = "admin/import_export/userprofile_import.html"
     # merge_form = UserMergeForm
@@ -1681,6 +1691,7 @@ class UserProfileAdmin(
     show_in_index = True
     resource_class = UserProfileResource
     import_template_name = "admin/import_export/userprofile_import.html"
+    change_form_template = "admin/aklub/userprofile_changeform.html"
     list_display = (
         'person_name',
         'get_email',
@@ -1701,7 +1712,7 @@ class UserProfileAdmin(
         'last_login',
     )
     advanced_filter_fields = (
-        'email',
+        'profileemail__email',
         'addressment',
         'telephone__telephone',
         'title_before',
@@ -1724,8 +1735,15 @@ class UserProfileAdmin(
         'last_name',
         'title_after',
         'telephone__telephone',
+        'profileemail__email',
     )
     list_filter = (
+        'administrative_units',
+        'userchannels__registered_support',
+        'preference__send_mailing_lists',
+        'userchannels__extra_money',
+        'userchannels__regular_amount',
+        'userchannels__regular_frequency',
         'is_staff',
         'is_superuser',
         'is_active',
@@ -1845,6 +1863,19 @@ class UserProfileAdmin(
                 pass
 
         return super().add_view(request)
+
+    def change_view(self, request, object_id, extra_context=None, **kwargs):
+        from helpdesk.query import query_to_base64
+        extra_context = extra_context or {}
+        extra_context['urlsafe_query'] = query_to_base64({
+            'search_string': UserProfile.objects.get(pk=object_id).email,
+        })
+        return super().change_view(
+            request,
+            object_id,
+            extra_context=extra_context,
+            **kwargs,
+        )
 
 
 @admin.register(CompanyProfile)

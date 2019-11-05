@@ -4,7 +4,6 @@ import operator
 from datetime import date, timedelta
 from functools import reduce
 
-from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
 from django.contrib.admin.filters import RelatedFieldListFilter
 from django.db.models import Count, Q
@@ -97,21 +96,26 @@ class EmailFilter(SimpleListFilter):
         )
 
     def queryset(self, request, queryset):
-        if self.value() == 'duplicate':
-            duplicates = Profile.objects.filter(email__isnull=False).\
-                exclude(email__exact='').\
-                annotate(email_lower=Lower('email')).\
-                values('email_lower').\
-                annotate(Count('id')).\
-                values('email_lower').\
-                order_by().\
-                filter(id__count__gt=1).\
-                values_list('email_lower', flat=True)
-            return queryset.annotate(email_lower=Lower('email')).filter(email_lower__in=duplicates)
-        if self.value() == 'blank':
-            return queryset.filter(Q(email__exact='') | Q(email__isnull=True))
-        if self.value() == 'email-format':
-            return queryset.exclude(email__iregex=r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9.-]+$)")
+        if self.value():
+            blank_filter = Q(email__exact='') | Q(email__isnull=True)
+            if self.value() == 'blank':
+                return queryset.filter(blank_filter)
+            else:
+                queryset = queryset.exclude(blank_filter)
+
+            if self.value() == 'duplicate':
+                duplicates = Profile.objects.filter(email__isnull=False).\
+                    exclude(email__exact='').\
+                    annotate(email_lower=Lower('email')).\
+                    values('email_lower').\
+                    annotate(Count('id')).\
+                    values('email_lower').\
+                    order_by().\
+                    filter(id__count__gt=1).\
+                    values_list('email_lower', flat=True)
+                return queryset.annotate(email_lower=Lower('email')).filter(email_lower__in=duplicates)
+            if self.value() == 'email-format':
+                return queryset.exclude(email__iregex=r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9.-]+$)")
         return queryset
 
 
@@ -149,24 +153,23 @@ class TelephoneFilter(SimpleListFilter):
         )
 
     def queryset(self, request, queryset):
-        if self.value() == 'duplicate':
-            duplicates = Telephone.objects.filter(telephone__isnull=False).\
-                exclude(telephone__exact='').\
-                values('telephone').\
-                annotate(Count('id')).\
-                values('telephone').\
-                order_by().\
-                filter(id__count__gt=1).\
-                values_list('telephone', flat=True)
-            return queryset.filter(telephone__telephone__in=duplicates)
-        if self.value() == 'blank':
-            return queryset.filter(Q(telephone__telephone__exact='') | Q(telephone__telephone__isnull=True) | Q(telephone__isnull=True))
-        if self.value() == 'bad-format':
-            return queryset.exclude(
-                telephone__telephone__iregex=r'^\+?([0-9] *){9,}$',
-                telephone__telephone__exact='',
-                telephone__telephone__isnull=True,
-            )
+        if self.value():
+            blank_filter = Q(telephone__telephone__exact='') | Q(telephone__telephone__isnull=True) | Q(telephone__isnull=True)
+            if self.value() == 'blank':
+                return queryset.filter(blank_filter)
+            else:
+                queryset = queryset.exclude(blank_filter)
+            if self.value() == 'duplicate':
+                duplicates = Telephone.objects.\
+                    values('telephone').\
+                    annotate(Count('id')).\
+                    values('telephone').\
+                    order_by().\
+                    filter(id__count__gt=1).\
+                    values_list('telephone', flat=True)
+                return queryset.filter(telephone__telephone__in=duplicates)
+            if self.value() == 'bad-format':
+                return queryset.exclude(telephone__telephone__iregex=r'^\+?([0-9] *){9,}$')
         return queryset
 
 
@@ -236,7 +239,7 @@ class AdministrativeUnitAdminMixin(object):
 
     def get_queryset(self, request):
         self.request = request
-        queryset = super(admin.ModelAdmin, self).get_queryset(request)
+        queryset = super().get_queryset(request)
         if request.user.has_perm('aklub.can_edit_all_units'):
             return queryset
         kwargs = {self.queryset_unit_param + '__in': request.user.administrated_units.all()}
@@ -252,7 +255,7 @@ class AdministrativeUnitAdminMixin(object):
             return True
         return super().lookup_allowed(key, value)
 
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+    def gate_admined_units(self, db_field, request, **kwargs):
         if not request.user.has_perm('aklub.can_edit_all_units'):
             administrated_units = request.user.administrated_units.all()
             if db_field.name == self.queryset_unit_param:
@@ -260,16 +263,14 @@ class AdministrativeUnitAdminMixin(object):
                 kwargs["required"] = True
                 if administrated_units.count() == 1:
                     kwargs["initial"] = administrated_units
+        return kwargs
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        kwargs = self.gate_admined_units(db_field, request, **kwargs)
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
-        if not request.user.has_perm('aklub.can_edit_all_units'):
-            administrated_units = request.user.administrated_units.all()
-            if db_field.name == self.queryset_unit_param:
-                kwargs["queryset"] = administrated_units
-                kwargs["required"] = True
-                if administrated_units.count() == 1:
-                    kwargs["initial"] = administrated_units
+        kwargs = self.gate_admined_units(db_field, request, **kwargs)
         return super().formfield_for_manytomany(db_field, request, **kwargs)
 
     def get_list_filter(self, request):
