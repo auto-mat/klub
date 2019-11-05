@@ -229,33 +229,6 @@ class Event(models.Model):
         max_length=100,
 
     )
-    darujme_name = models.CharField(
-        verbose_name=_("Name in Darujme.cz"),
-        unique=True,
-        default=None,
-        max_length=100,
-        blank=True,
-        null=True,
-    )
-    darujme_project_id = models.IntegerField(
-        verbose_name=_("Darujme.cz project ID"),
-        default=None,
-        blank=True,
-        null=True,
-    )
-    darujme_api_id = models.IntegerField(
-        verbose_name=_("Darujme.cz API ID"),
-        default=None,
-        blank=True,
-        null=True,
-    )
-    darujme_api_secret = models.CharField(
-        verbose_name=_("Darujme.cz API secret"),
-        default=None,
-        max_length=100,
-        blank=True,
-        null=True,
-    )
     description = models.TextField(
         verbose_name=_("Description"),
         help_text=_("Description of this campaign"),
@@ -1520,7 +1493,7 @@ def check_incomming(amount):
 
 def register_payment(p_sort, self):
     p = Payment(**p_sort)
-    AccountStatements.pair_vs(self, p)
+    AccountStatements.payment_pair(self, p)
     p.type = 'bank-transfer'
     p.account_statement = self
     return p
@@ -1601,7 +1574,7 @@ class AccountStatements(models.Model):
             transaction.on_commit(lambda: parse_account_statement.delay(self.pk))
 
     def pair_vs(self, payment):
-        # Payments pairing'
+        # Variable symbol pairing'
         if payment.VS == '':
             payment.VS = None
         else:
@@ -1611,6 +1584,28 @@ class AccountStatements(models.Model):
                 return True
             except DonorPaymentChannel.DoesNotExist:
                 return False
+
+    def payment_pair(self, payment):
+        # Variable symbols and user bank account Payments pairing
+        if payment.VS != '':
+            try:
+                donor_with_vs = DonorPaymentChannel.objects.get(
+                                    VS=payment.VS,
+                                    money_account__administrative_unit=self.administrative_unit,
+                )
+                payment.user_donor_payment_channel = donor_with_vs
+                return True
+            except (DonorPaymentChannel.DoesNotExist, DonorPaymentChannel.MultipleObjectsReturned):
+                pass
+        try:
+            donor_with_bank_account = DonorPaymentChannel.objects.get(
+                                user_bank_account__bank_account_number=str(payment.account) + '/' + str(payment.bank_code),
+                                money_account__administrative_unit=self.administrative_unit,
+            )
+            payment.user_donor_payment_channel = donor_with_bank_account
+            return True
+        except (DonorPaymentChannel.DoesNotExist, DonorPaymentChannel.MultipleObjectsReturned):
+            return False
 
     def parse_bank_csv_fio(self):
         # Read and parse the account statement
@@ -1831,7 +1826,31 @@ class AccountStatements(models.Model):
         return "%s (%s)" % (self.pk, self.import_date)
 
 
-class BankAccount(models.Model):
+class MoneyAccount(PolymorphicModel):
+    note = models.TextField(
+        verbose_name=_("Bank account note"),
+        blank=True,
+        null=True,
+    )
+    administrative_unit = models.ForeignKey(
+        AdministrativeUnit,
+        verbose_name=_("administrative unit"),
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
+    slug = models.SlugField(
+        verbose_name=_("Slug"),
+        help_text=_("Identifier of the Account"),
+        default=None,
+        max_length=100,
+        unique=True,
+        blank=True,
+        null=True,
+        )
+
+
+class BankAccount(MoneyAccount):
     class Meta:
         verbose_name = _("Bank account")
         verbose_name_plural = _("Bank accounts")
@@ -1847,21 +1866,50 @@ class BankAccount(models.Model):
         blank=False,
         null=False,
     )
-    note = models.TextField(
-        verbose_name=_("Bank account note"),
-        blank=True,
-        null=True,
-    )
-    administrative_unit = models.ForeignKey(
-        AdministrativeUnit,
-        verbose_name=_("administrative unit"),
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-    )
 
     def __str__(self):
         return u"%s - %s" % (self.bank_account, self.bank_account_number)
+
+
+class ApiAccount(MoneyAccount):
+    project_name = models.CharField(
+        verbose_name=_("Name"),
+        unique=True,
+        default=None,
+        max_length=100,
+        blank=True,
+        null=True,
+    )
+    project_id = models.IntegerField(
+        verbose_name=_("project ID"),
+        default=None,
+        blank=True,
+        null=True,
+    )
+    api_id = models.IntegerField(
+        verbose_name=_("API ID"),
+        default=None,
+        blank=True,
+        null=True,
+    )
+    api_secret = models.CharField(
+        verbose_name=_("API secret"),
+        default=None,
+        max_length=100,
+        blank=True,
+        null=True,
+    )
+    event = models.ForeignKey(
+        Event,
+        help_text=("Event"),
+        verbose_name=("Event"),
+        blank=True,
+        on_delete=models.SET_NULL,
+        null=True,
+    )
+
+    def __str__(self):
+        return f'{self.administrative_unit} -{self.event} - auto api'
 
 
 class UserBankAccount(models.Model):
@@ -1894,7 +1942,7 @@ class DonorPaymentChannel(models.Model):
     class Meta:
         verbose_name = _("Donor payment channel")
         verbose_name_plural = _("Donor payment channels")
-        unique_together = ('VS', 'bank_account')
+        unique_together = ('VS', 'money_account')
 
     VS = models.CharField(
         verbose_name=_("VS"),
@@ -1983,9 +2031,9 @@ class DonorPaymentChannel(models.Model):
         max_length=500,
         blank=True,
     )
-    bank_account = models.ForeignKey(
-        BankAccount,
-        related_name='bankaccounts',
+    money_account = models.ForeignKey(
+        MoneyAccount,
+        related_name='moneyaccounts',
         on_delete=models.CASCADE,
         default=None,
         null=True,
@@ -2024,10 +2072,6 @@ class DonorPaymentChannel(models.Model):
             from .views import generate_variable_symbol
             VS = generate_variable_symbol()
             self.VS = VS
-            self.save()
-        else:
-            self.VS = self.VS
-            self.save()
 
     def requires_action(self):
         """Return true if the user requires some action from
@@ -2038,9 +2082,12 @@ class DonorPaymentChannel(models.Model):
             return False
 
     def check_duplicate(self, *args, **kwargs):
-        qs = DonorPaymentChannel.objects.filter(VS=self.VS)
-        if self.pk is None and self.VS is not None:
-            if qs.filter(VS=self.VS).exists():
+        qs = DonorPaymentChannel.objects.filter(
+                            VS=self.VS,
+                            money_account__administrative_unit=self.money_account.administrative_unit,
+            )
+        if qs:
+            if qs.first().pk != self.pk:
                 raise ValidationError("Duplicate VS")
 
     @denormalized(models.IntegerField, null=True)
@@ -2265,11 +2312,11 @@ class DonorPaymentChannel(models.Model):
         return float(self.yearly_regular_amount()) / 12.0
 
     def clean(self, *args, **kwargs):
+        self.generate_VS()
         self.check_duplicate()
         super().clean(*args, **kwargs)
 
     def save(self, *args, **kwargs):
-        self.clean()
 
         if self.pk is None:
             insert = True

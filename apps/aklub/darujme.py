@@ -8,7 +8,7 @@ from collections import OrderedDict
 from xml.dom import minidom
 
 from aklub.models import (
-    AccountStatements, DonorPaymentChannel, Event, Payment, Telephone, UserProfile, str_to_datetime,
+    AccountStatements, ApiAccount, DonorPaymentChannel, Payment, ProfileEmail, Telephone, UserProfile, str_to_datetime,
     str_to_datetime_xml,
 )
 from aklub.views import generate_variable_symbol, get_unique_username
@@ -112,8 +112,8 @@ def create_statement_from_file(xmlfile):
 
 def create_statement_from_API(campaign):
     url = 'https://www.darujme.cz/dar/api/darujme_api.php?api_id=%s&api_secret=%s&typ_dotazu=1' % (
-        campaign.darujme_api_id,
-        campaign.darujme_api_secret,
+        campaign.api_id,
+        campaign.api_secret,
     )
     response = urllib.request.urlopen(url)
     try:
@@ -125,9 +125,9 @@ def create_statement_from_API(campaign):
 
 def get_campaign(data):
     if 'cislo_projektu' in data:
-        return Event.objects.get(darujme_project_id=data['cislo_projektu'])
+        return ApiAccount.objects.get(project_id=data['cislo_projektu'])
     else:
-        return Event.objects.get(darujme_name=data['projekt'])
+        return ApiAccount.objects.get(project_name=data['projekt'])
 
 
 def get_cetnost_konec(data):
@@ -204,26 +204,25 @@ def create_payment(data, payments, skipped_payments):  # noqa
         p.amount = amount
         p.account_name = u'%s, %s' % (data['prijmeni'], data['jmeno'])
         p.user_identification = data['email']
-
     campaign = get_campaign(data)
     username = get_unique_username(data['email'])
-    try:
-        userprofile, userprofile_created = UserProfile.objects.get_or_create(
-            email__iexact=data['email'],
-            defaults={
-                'first_name': data['jmeno'],
-                'last_name': data['prijmeni'],
-                'username': username,
-                'telephone': data['telefon'],
-                'street': data.get('ulice', ""),
-                'city': data.get('mesto', ""),
-                'zip_code': data.get('psc', ""),
-                'email': data['email'],
-            },
+    email, email_created = ProfileEmail.objects.get_or_create(
+                email=data['email'],
+            )
+    if email_created:
+        userprofile = UserProfile.objects.create(
+                first_name=data['jmeno'],
+                last_name=data['prijmeni'],
+                username=username,
+                street=data.get('ulice', ""),
+                city=data.get('mesto', ""),
+                zip_code=data.get('psc', ""),
         )
-    except UserProfile.MultipleObjectsReturned:
-        raise Exception("Duplicate email %s" % data['email'])
-
+        email.user = userprofile
+        email.save()
+    else:
+        log.info("Duplicate email %s" % email.email)
+        userprofile = email.user
     try:
         data['telefon'] = int(str(data['telefon']).replace(" ", ""))
         if 100000000 <= data['telefon'] <= 999999999:
@@ -233,10 +232,10 @@ def create_payment(data, payments, skipped_payments):  # noqa
             )
     except ValueError:
         log.info('%s is not valid phone number ' % data['telefon'])
-
     donorpaymentchannel, donorpaymentchannel_created = DonorPaymentChannel.objects.get_or_create(
         user=userprofile,
-        event=campaign,
+        event=campaign.event,
+        money_account=campaign,
         defaults={
             'VS': generate_variable_symbol(),
             'regular_frequency': cetnost,
@@ -314,7 +313,7 @@ def parse_darujme(xlsfile):
 def check_for_new_payments(log_function=None):
     if log_function is None:
         log_function = lambda _: None # noqa
-    for campaign in Event.objects.filter(darujme_api_secret__isnull=False).exclude(darujme_api_secret=""):
+    for campaign in ApiAccount.objects.filter(api_secret__isnull=False).exclude(api_secret=""):
         log_function(campaign)
         payment, skipped = create_statement_from_API(campaign)
         log_function(payment)

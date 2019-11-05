@@ -69,11 +69,11 @@ from .forms import (
     UnitUserProfileChangeForm, UserCreateForm, UserUpdateForm,
 )
 from .models import (
-    AccountStatements, AdministrativeUnit, AutomaticCommunication, BankAccount,
+    AccountStatements, AdministrativeUnit, ApiAccount, AutomaticCommunication, BankAccount,
     CompanyProfile, Condition, DonorPaymentChannel, Event, Expense, Interaction,
-    MassCommunication, NewUser, Payment, Preference, Profile, ProfileEmail, Recruiter,
-    Result, Source, TaxConfirmation, Telephone,
-    TerminalCondition, UserBankAccount, UserProfile, UserYearPayments,
+    MassCommunication, MoneyAccount, NewUser, Payment, Preference, Profile, ProfileEmail, Recruiter,
+    Result, Source, TaxConfirmation, Telephone, TerminalCondition, UserBankAccount,
+    UserProfile, UserYearPayments,
 )
 from .profile_model_resources import (
     ProfileModelResource, get_polymorphic_parent_child_fields,
@@ -142,7 +142,7 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
         (None, {
             'classes': ('wide',),
             'fields': (
-                ('bank_account', 'user_bank_account_char'),
+                ('money_account', 'user_bank_account_char'),
                 ('regular_payments'),
                 ('event'),
                 (
@@ -202,7 +202,7 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
 
     def get_queryset(self, request):
         if not request.user.has_perm('aklub.can_edit_all_units'):
-            queryset = DonorPaymentChannel.objects.filter(bank_account__administrative_unit__in=request.user.administrated_units.all())
+            queryset = DonorPaymentChannel.objects.filter(money_account__administrative_unit__in=request.user.administrated_units.all())
         else:
             queryset = super().get_queryset(request)
         return queryset.\
@@ -211,11 +211,11 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
             annotate(last_payment_date=Max('payment__date'))
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == "bank_account":
+        if db_field.name == "money_account":
             if not request.user.has_perm('aklub.can_edit_all_units'):
-                kwargs["queryset"] = BankAccount.objects.filter(administrative_unit__in=request.user.administrated_units.all())
+                kwargs["queryset"] = MoneyAccount.objects.filter(administrative_unit__in=request.user.administrated_units.all())
             else:
-                kwargs["queryset"] = BankAccount.objects.all()
+                kwargs["queryset"] = MoneyAccount.objects.all()
 
         if db_field.name == "event":
             if not request.user.has_perm('aklub.can_edit_all_units'):
@@ -601,20 +601,66 @@ class ProfileEmailInline(nested_admin.NestedTabularInline):
     form = ProfileEmailAdminForm
 
 
-class BankAccountAdmin(unit_admin_mixin_generator('administrative_unit'), admin.ModelAdmin):
-    model = BankAccount
+class RedirectMixin(object):
+    def response_add(self, request, obj, post_url_continue=None):
+        response = super(nested_admin.NestedModelAdmin, self).response_add(
+            request, obj, post_url_continue,)
+        if 'add' in response.url or 'change' in response.url:
+            return response
+        return redirect('admin:aklub_' + redirect + '_changelist')
 
-    list_fields = (
-        'bank_account', 'bank_account_number', 'administrative_unit',
-    )
+    def response_change(self, request, obj):
+        response = super(nested_admin.NestedModelAdmin, self).response_change(
+            request, obj,)
+        if 'change' in response.url:
+            return response
+        return redirect('admin:aklub_' + redirect + '_changelist')
 
-    search_fields = (
-        'bank_account', 'bank_account_number',
-    )
 
-    list_filter = (
-        'bank_account', 'bank_account_number',
-    )
+def child_redirect_mixin(redirect):
+    class RedMixin(RedirectMixin):
+        redirect_page = redirect
+    return RedMixin
+
+
+@admin.register(MoneyAccount)
+class MoneyAccountChildAdmin(
+                    unit_admin_mixin_generator('administrative_unit'),
+                    nested_admin.NestedModelAdmin,
+                    PolymorphicChildModelAdmin,
+                    ):
+    """ Base admin class for all child models """
+    base_model = MoneyAccount
+
+
+@admin.register(ApiAccount)
+class ApiAccountAdmin(
+                unit_admin_mixin_generator('administrative_unit'),
+                MoneyAccountChildAdmin,
+                child_redirect_mixin('apiaccount'),
+                ):
+    """ Api account polymorphic admin model child class """
+    base_model = ApiAccount
+    show_in_index = True
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "event":
+            if not request.user.has_perm('aklub.can_edit_all_units'):
+                kwargs["queryset"] = Event.objects.filter(administrative_units__in=request.user.administrated_units.all())
+            else:
+                kwargs["queryset"] = Event.objects.all()
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+
+@admin.register(BankAccount)
+class BankAccountAdmin(
+                unit_admin_mixin_generator('administrative_unit'),
+                MoneyAccountChildAdmin,
+                child_redirect_mixin('bankaccount'),
+                ):
+    """ bank account polymorphic admin model child class """
+    base_model = BankAccount
+    show_in_index = True
 
 
 class UserBankAccountAdmin(admin.ModelAdmin):
@@ -1033,7 +1079,7 @@ class DonorPaymethChannelAdmin(
     fieldsets = [
         (_('Basic personal'), {
             'fields': [
-                ('event', 'user'),
+                ('event', 'user', 'money_account',),
                 ('user_telephone_url',),
                 ('user_note',),
             ],
@@ -1503,9 +1549,6 @@ class EventAdmin(unit_admin_mixin_generator('administrative_units'), admin.Model
         'name',
         'id',
         'slug',
-        'darujme_name',
-        'darujme_api_id',
-        'darujme_project_id',
         'created',
         'terminated',
         'number_of_members',
@@ -1640,8 +1683,8 @@ class BaseProfileChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModel
 @admin.register(UserProfile)
 class UserProfileAdmin(
         filters.AdministrativeUnitAdminMixin,
-        ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFiltersMixin, ProfileAdminMixin,
-        BaseProfileChildAdmin,
+        ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFiltersMixin,
+        BaseProfileChildAdmin, ProfileAdminMixin, child_redirect_mixin('userprofile'),
 ):
     """ User profile polymorphic admin model child class """
     base_model = UserProfile
@@ -1839,8 +1882,8 @@ class UserProfileAdmin(
 @admin.register(CompanyProfile)
 class CompanyProfileAdmin(
         filters.AdministrativeUnitAdminMixin,
-        ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFiltersMixin, ProfileAdminMixin,
-        BaseProfileChildAdmin,
+        ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFiltersMixin,
+        BaseProfileChildAdmin, ProfileAdminMixin, child_redirect_mixin('companyprofile'),
 ):
     """ Company profile polymorphic admin model child class """
     base_model = CompanyProfile
@@ -2002,20 +2045,6 @@ class CompanyProfileAdmin(
 
         return super().add_view(request)
 
-    def response_add(self, request, obj, post_url_continue=None):
-        response = super(nested_admin.NestedModelAdmin, self).response_add(
-            request, obj, post_url_continue,)
-        if 'add' in response.url or 'change' in response.url:
-            return response
-        return redirect('admin:aklub_companyprofile_changelist')
-
-    def response_change(self, request, obj):
-        response = super(nested_admin.NestedModelAdmin, self).response_add(
-            request, obj,)
-        if 'change' in response.url:
-            return response
-        return redirect('admin:aklub_companyprofile_changelist')
-
 
 admin.site.register(DonorPaymentChannel, DonorPaymethChannelAdmin)
 admin.site.register(UserYearPayments, UserYearPaymentsAdmin)
@@ -2033,7 +2062,6 @@ admin.site.register(Recruiter, RecruiterAdmin)
 admin.site.register(TaxConfirmation, TaxConfirmationAdmin)
 admin.site.register(Source, SourceAdmin)
 admin.site.register(Profile, ProfileAdmin)
-admin.site.register(BankAccount, BankAccountAdmin)
 admin.site.register(UserBankAccount, UserBankAccountAdmin)
 # register all adminactions
 actions.add_to_site(site)

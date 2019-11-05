@@ -186,7 +186,8 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
 
     @freeze_time("2015-5-1")
     def test_account_statement_changelist_post(self):
-        mommy.make("aklub.Event", darujme_name="Klub přátel Auto*Matu")
+        event = mommy.make("aklub.Event", name="Klub přátel Auto*Matu")
+        mommy.make("aklub.ApiAccount", project_name="Klub přátel Auto*Matu", event=event)
         mommy.make("aklub.Payment", SS=22258, type="darujme", operation_id="13954", date="2016-02-09")
         donor_payment_channel_recipe.make(id=2979, userprofile__email="bar@email.com", userprofile__language="cs")
         model_admin = django_admin.site._registry[AccountStatements]
@@ -385,13 +386,15 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
     def test_user_in_campaign_changelist_post(self):
         mommy.make("aklub.Event", id=1)
         mommy.make("aklub.Userprofile", id=2978)
+        au = mommy.make("aklub.AdministrativeUnit", name="test")
+        mommy.make("aklub.BankAccount", administrative_unit=au, id=1)
         model_admin = django_admin.site._registry[DonorPaymentChannel]
         request = self.get_request()
         response = model_admin.add_view(request)
         self.assertEqual(response.status_code, 200)
-
         post_data = {
             '_continue': 'Save',
+            'money_account': 1,
             'user': 2978,
             'VS': 1234,
             'activity_points': 13,
@@ -770,7 +773,7 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         self.assertEqual(donor[0].event.name, 'Zažít město jinak')
         bank_account = BankAccount.objects.filter(bank_account_number='2233445566/0100')
         self.assertEqual(bank_account.count(), 1)
-        self.assertEqual(donor[0].bank_account, bank_account[0])
+        self.assertEqual(donor[0].money_account, bank_account[0])
         user_bank_account = UserBankAccount.objects.filter(bank_account_number='9988776655/0100')
         self.assertEqual(user_bank_account.count(), 1)
         self.assertEqual(donor[0].user_bank_account, user_bank_account[0])
@@ -796,7 +799,7 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         self.assertEqual(donor[0].event.name, 'Zažít město jinak')
         bank_account = BankAccount.objects.filter(bank_account_number='1234567890/0200')
         self.assertEqual(bank_account.count(), 1)
-        self.assertEqual(donor[0].bank_account, bank_account[0])
+        self.assertEqual(donor[0].money_account, bank_account[0])
         user_bank_account = UserBankAccount.objects.filter(bank_account_number='5554443331/0900')
         self.assertEqual(user_bank_account.count(), 1)
         self.assertEqual(donor[0].user_bank_account, user_bank_account[0])
@@ -841,7 +844,7 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         self.assertEqual(donor[0].event.name, 'Zažít město jinak')
         bank_account = BankAccount.objects.filter(bank_account_number='2233445566/0100')
         self.assertEqual(bank_account.count(), 1)
-        self.assertEqual(donor[0].bank_account, bank_account[0])
+        self.assertEqual(donor[0].money_account, bank_account[0])
         user_bank_account = UserBankAccount.objects.filter(bank_account_number='1111111111/0100')
         self.assertEqual(user_bank_account.count(), 1)
         self.assertEqual(user_profile[0].polymorphic_ctype, ContentType.objects.get(model='userprofile'))
@@ -862,7 +865,7 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         self.assertEqual(donor[0].event.name, 'Zažít město jinak')
         bank_account = BankAccount.objects.filter(bank_account_number='3333333333/0300')
         self.assertEqual(bank_account.count(), 1)
-        self.assertEqual(donor[0].bank_account, bank_account[0])
+        self.assertEqual(donor[0].money_account, bank_account[0])
         user_bank_account = UserBankAccount.objects.filter(bank_account_number='5554443331/0900')
         self.assertEqual(user_bank_account.count(), 1)
         self.assertEqual(donor[0].user_bank_account, user_bank_account[0])
@@ -971,7 +974,7 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         self.assertEqual(donor[0].event.name, 'Zažít město jinak')
         bank_account = BankAccount.objects.filter(bank_account_number='2233445566/0100')
         self.assertEqual(bank_account.count(), 1)
-        self.assertEqual(donor[0].bank_account, bank_account[0])
+        self.assertEqual(donor[0].money_account, bank_account[0])
         user_bank_account = UserBankAccount.objects.filter(bank_account_number='9988776655/0100')
         self.assertEqual(user_bank_account.count(), 1)
         self.assertEqual(donor[0].user_bank_account, user_bank_account[0])
@@ -1021,7 +1024,7 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         self.assertEqual(donor[0].event.name, 'Zažít město jinak')
         bank_account = BankAccount.objects.filter(bank_account_number='2233445566/0100')
         self.assertEqual(bank_account.count(), 1)
-        self.assertEqual(donor[0].bank_account, bank_account[0])
+        self.assertEqual(donor[0].money_account, bank_account[0])
         user_bank_account = UserBankAccount.objects.filter(bank_account_number='1111111111/0100')
         self.assertEqual(user_bank_account.count(), 1)
         self.assertEqual(user_profile[0].polymorphic_ctype, ContentType.objects.get(model='userprofile'))
@@ -1137,9 +1140,6 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
             }
             response = self.client.post(address, post_data)
         self.assertEqual(response.status_code, 200)
-        file = open('/tmp/ola.html', 'w')
-        file.write(response.rendered_content)
-        file.close()
         self.assertContains(
             response,
             'test.companyprofile@companyprofile.test',
@@ -1182,7 +1182,7 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         self.assertEqual(donor[0].event.name, 'Zažít město jinak')
         bank_account = BankAccount.objects.filter(bank_account_number='1234567890/0200')
         self.assertEqual(bank_account.count(), 1)
-        self.assertEqual(donor[0].bank_account, bank_account[0])
+        self.assertEqual(donor[0].money_account, bank_account[0])
         user_bank_account = UserBankAccount.objects.filter(bank_account_number='5554443331/0900')
         self.assertEqual(user_bank_account.count(), 1)
         self.assertEqual(donor[0].user_bank_account, user_bank_account[0])
@@ -1229,7 +1229,7 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         self.assertEqual(donor[0].event.name, 'Zažít město jinak')
         bank_account = BankAccount.objects.filter(bank_account_number='3333333333/0300')
         self.assertEqual(bank_account.count(), 1)
-        self.assertEqual(donor[0].bank_account, bank_account[0])
+        self.assertEqual(donor[0].money_account, bank_account[0])
         user_bank_account = UserBankAccount.objects.filter(bank_account_number='5554443331/0900')
         self.assertEqual(user_bank_account.count(), 1)
         self.assertEqual(donor[0].user_bank_account, user_bank_account[0])

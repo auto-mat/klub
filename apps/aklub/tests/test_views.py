@@ -33,7 +33,7 @@ from model_mommy import mommy
 from .test_admin import CreateSuperUserMixin
 from .utils import print_response  # noqa
 from .. import views
-from ..models import DonorPaymentChannel, PetitionSignature, UserProfile
+from ..models import DonorPaymentChannel, PetitionSignature, ProfileEmail, UserProfile
 
 
 class ClearCacheMixin(object):
@@ -52,6 +52,19 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         super().setUp()
         self.client.force_login(self.superuser)
 
+        au = mommy.make(
+            "aklub.AdministrativeUnit",
+            name='test',
+        )
+        mommy.make(
+            'aklub.BankAccount',
+            administrative_unit=au,
+            bank_account_number='12345/123',
+            bank_account='test',
+            slug='12345123',
+
+        )
+
     regular_post_data = {
         'userprofile-email': 'test@test.cz',
         'userprofile-first_name': 'Testing',
@@ -60,6 +73,7 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         'userincampaign-regular_frequency': 'monthly',
         'userincampaign-regular_amount': '321',
         'userincampaign-campaign': 'klub',
+        'userincampaign-money_account': '12345123',
     }
 
     def test_campaign_statistics(self):
@@ -205,9 +219,18 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
             email='test@email.cz',
             user=foo_user,
         )
+        au = mommy.make(
+            'aklub.AdministrativeUnit',
+            name='test',
+        )
+        bc = mommy.make(
+            'aklub.BankAccount',
+            bank_account="0000",
+            administrative_unit=au,
+        )
         donor_payment_channel = mommy.make(
             "aklub.DonorPaymentChannel",
-            bank_account__bank_account="0000",
+            money_account=bc,
             event__id=1,
             user=foo_user,
         )
@@ -285,16 +308,17 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
             '<input id="id_userprofile-first_name" maxlength="30" name="userprofile-first_name" type="text" required />',
             html=True,
         )
-
         response = self.client.post(address, self.regular_post_data, follow=True)
         self.assertContains(response, '<h1>Děkujeme!</h1>', html=True)
-
-        self.assertEqual(UserProfile.objects.get(email="test@test.cz").get_full_name(), "Testing User")
-        self.assertEqual(UserProfile.objects.get(email="test@test.cz").username, "test4")
-        self.assertEqual(UserProfile.objects.get(email="test@test.cz").telephone_set.get().telephone, '111222333')
-        new_channel = DonorPaymentChannel.objects.get(user__email="test@test.cz")
+        email = ProfileEmail.objects.get(email="test@test.cz")
+        self.assertEqual(email.user.get_full_name(), "Testing User")
+        self.assertEqual(email.user.username, "test4")
+        self.assertEqual(email.user.telephone_set.get().telephone, '111222333')
+        new_channel = DonorPaymentChannel.objects.get(user=email.user)
         self.assertEqual(new_channel.regular_amount, 321)
         self.assertEqual(new_channel.regular_payments, 'regular')
+        self.assertEqual(new_channel.event.slug, 'klub')
+        self.assertEqual(new_channel.money_account.administrative_unit.name, 'test')
 
     post_data_darujme = {
         "recurringfrequency": "28",
@@ -305,6 +329,7 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         "payment_data____telefon": "123456789",
         "transaction_type": "2",
         "userincampaign-campaign": 'klub',
+        "userincampaign-money_account": '12345123',
     }
 
     def test_regular_darujme(self):
@@ -316,9 +341,12 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         self.assertContains(response, '<tr><th>Částka: </th><td>200 Kč</td></tr>', html=True)
         self.assertContains(response, '<tr><th>Frekvence: </th><td>Měsíčně</td></tr>', html=True)
         self.assertContains(response, '<tr><th>Pravidelné platby: </th><td>Pravidelné platby</td></tr>', html=True)
-        new_channel = DonorPaymentChannel.objects.get(user__email="test@email.cz")
+        email = ProfileEmail.objects.get(email="test@email.cz")
+        new_channel = DonorPaymentChannel.objects.get(user=email.user)
         self.assertEqual(new_channel.regular_amount, 200)
         self.assertEqual(new_channel.regular_payments, 'regular')
+        self.assertEqual(new_channel.event.slug, 'klub')
+        self.assertEqual(new_channel.money_account.administrative_unit.name, 'test')
 
     def test_regular_darujme_ajax(self):
         address = reverse('regular-darujme')
