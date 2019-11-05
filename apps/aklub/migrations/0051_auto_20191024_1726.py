@@ -3,14 +3,12 @@
 from django.db import migrations, models
 import django.db.models.deletion
 
-
 class Migration(migrations.Migration):
 
     dependencies = [
         ('contenttypes', '0002_remove_content_type_name'),
-        ('aklub', '0049_auto_20191022_1547'),
+        ('aklub', '0050_auto_20191023_154700'),
     ]
-
     operations = [
         migrations.CreateModel(
             name='MoneyAccount',
@@ -45,7 +43,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='bankaccount',
             name='moneyaccount_ptr',
-            field=models.OneToOneField(auto_created=True, default=0, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='aklub.MoneyAccount'),
+            field=models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='aklub.MoneyAccount'),
             preserve_default=False,
         ),
         migrations.AddField(
