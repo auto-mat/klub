@@ -1674,7 +1674,7 @@ class BaseProfileChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModel
 class UserProfileAdmin(
         filters.AdministrativeUnitAdminMixin,
         ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFiltersMixin,
-        BaseProfileChildAdmin, ProfileAdminMixin, child_redirect_mixin('userprofile')
+        BaseProfileChildAdmin, ProfileAdminMixin, child_redirect_mixin('userprofile'),
 ):
     """ User profile polymorphic admin model child class """
     base_model = UserProfile
