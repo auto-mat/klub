@@ -605,16 +605,21 @@ class RedirectMixin(object):
     def response_add(self, request, obj, post_url_continue=None):
         response = super(nested_admin.NestedModelAdmin, self).response_add(
             request, obj, post_url_continue,)
-        if 'add' in response.url or 'change' in response.url:
+        if not hasattr(response, 'url'):
             return response
-        return redirect('admin:aklub_' + redirect + '_changelist')
+        elif 'add' in response.url or 'change' in response.url:
+            return response
+        else:
+            return redirect('admin:aklub_' + self.redirect_page + '_changelist')
 
     def response_change(self, request, obj):
         response = super(nested_admin.NestedModelAdmin, self).response_change(
             request, obj,)
-        if 'change' in response.url:
+        if not hasattr(response, 'url'):
             return response
-        return redirect('admin:aklub_' + redirect + '_changelist')
+        elif 'change' in response.url:
+            return response
+        return redirect('admin:aklub_' + self.redirect_page + '_changelist')
 
 
 def child_redirect_mixin(redirect):
@@ -623,7 +628,6 @@ def child_redirect_mixin(redirect):
     return RedMixin
 
 
-@admin.register(MoneyAccount)
 class MoneyAccountChildAdmin(
                     unit_admin_mixin_generator('administrative_unit'),
                     nested_admin.NestedModelAdmin,
@@ -661,6 +665,19 @@ class BankAccountAdmin(
     """ bank account polymorphic admin model child class """
     base_model = BankAccount
     show_in_index = True
+
+
+@admin.register(MoneyAccount)
+class MoneyAccountParentAdmin(PolymorphicParentModelAdmin):
+    """ The parent model admin """
+    base_model = MoneyAccount
+    child_models = (ApiAccount, BankAccount)
+
+    def get_model_perms(self, request):
+        """
+        Return empty perms dict thus hiding the model from admin index.
+        """
+        return {}
 
 
 class UserBankAccountAdmin(admin.ModelAdmin):
