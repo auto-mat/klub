@@ -607,14 +607,14 @@ class RedirectMixin(object):
             request, obj, post_url_continue,)
         if 'add' in response.url or 'change' in response.url:
             return response
-        return redirect('admin:aklub_' + redirect + '_changelist')
+        return redirect('admin:aklub_' + self.redirect_page + '_changelist')
 
     def response_change(self, request, obj):
         response = super(nested_admin.NestedModelAdmin, self).response_change(
             request, obj,)
         if 'change' in response.url:
             return response
-        return redirect('admin:aklub_' + redirect + '_changelist')
+        return redirect('admin:aklub_' + self.redirect_page + '_changelist')
 
 
 def child_redirect_mixin(redirect):
@@ -635,9 +635,9 @@ class MoneyAccountChildAdmin(
 
 @admin.register(ApiAccount)
 class ApiAccountAdmin(
+                child_redirect_mixin('apiaccount'),
                 unit_admin_mixin_generator('administrative_unit'),
                 MoneyAccountChildAdmin,
-                child_redirect_mixin('apiaccount'),
                 ):
     """ Api account polymorphic admin model child class """
     base_model = ApiAccount
@@ -654,9 +654,9 @@ class ApiAccountAdmin(
 
 @admin.register(BankAccount)
 class BankAccountAdmin(
+                child_redirect_mixin('bankaccount'),
                 unit_admin_mixin_generator('administrative_unit'),
                 MoneyAccountChildAdmin,
-                child_redirect_mixin('bankaccount'),
                 ):
     """ bank account polymorphic admin model child class """
     base_model = BankAccount
@@ -1682,9 +1682,9 @@ class BaseProfileChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModel
 
 @admin.register(UserProfile)
 class UserProfileAdmin(
-        filters.AdministrativeUnitAdminMixin,
+        child_redirect_mixin('userprofile'), filters.AdministrativeUnitAdminMixin,
         ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFiltersMixin, ProfileAdminMixin,
-        BaseProfileChildAdmin, child_redirect_mixin('userprofile'),
+        BaseProfileChildAdmin,
 ):
     """ User profile polymorphic admin model child class """
     base_model = UserProfile
@@ -1881,9 +1881,9 @@ class UserProfileAdmin(
 
 @admin.register(CompanyProfile)
 class CompanyProfileAdmin(
-        filters.AdministrativeUnitAdminMixin,
+        child_redirect_mixin('companyprofile'), filters.AdministrativeUnitAdminMixin,
         ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFiltersMixin,
-        BaseProfileChildAdmin, ProfileAdminMixin, child_redirect_mixin('companyprofile'),
+        BaseProfileChildAdmin, ProfileAdminMixin,
 ):
     """ Company profile polymorphic admin model child class """
     base_model = CompanyProfile
