@@ -24,14 +24,19 @@ from django.core.exceptions import ValidationError
 from django.test import TestCase
 
 from .. import autocom
-from ..models import AutomaticCommunication, Condition, DonorPaymentChannel, Event, Interaction, TerminalCondition, UserProfile
+from ..models import (
+                    AdministrativeUnit, AutomaticCommunication, BankAccount, Condition, DonorPaymentChannel,
+                    Event, Interaction, TerminalCondition, UserProfile,
+)
 
 
 class AutocomTest(TestCase):
     def setUp(self):
         self.userprofile = UserProfile.objects.create(sex='male')
         self.event = Event.objects.create(created=datetime.date(2010, 10, 10))
-        self.payment_channel = DonorPaymentChannel.objects.create(user=self.userprofile, event=self.event)
+        self.au = AdministrativeUnit.objects.create(name='test')
+        self.BankAccount = BankAccount.objects.create(bank_account_number=11111, administrative_unit=self.au)
+        self.payment_channel = DonorPaymentChannel.objects.create(user=self.userprofile, event=self.event, money_account=self.BankAccount)
         c = Condition.objects.create(operation="nor")
         TerminalCondition.objects.create(
             variable="action",
