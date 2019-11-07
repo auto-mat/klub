@@ -106,19 +106,21 @@ def import_obj(self, obj, data, dry_run):  # noqa
         else:
             from .views import generate_variable_symbol
             VS = generate_variable_symbol()
-        event, _ = Event.objects.get_or_create(id=data['event'])
-        donors, _ = DonorPaymentChannel.objects.get_or_create(
-            user=obj,
-            event=event,
-            defaults={'VS': VS, 'SS': SS},
-        )
+
         if data.get('bank_account') and data.get("administrative_units"):
             bank_account, _ = BankAccount.objects.get_or_create(bank_account_number=data['bank_account'])
             bank_account.administrative_unit = obj.administrative_units.get(id=data["administrative_units"])
             bank_account.save()
 
-            donors.money_account = bank_account
-            donors.save()
+        event, _ = Event.objects.get_or_create(id=data['event'])
+        donors, _ = DonorPaymentChannel.objects.get_or_create(
+            user=obj,
+            event=event,
+            defaults={'VS': VS, 'SS': SS, 'money_account': bank_account},
+        )
+        donors.money_account = bank_account
+        donors.save()
+
         if data.get('user_bank_account'):
             user_bank_account, _ = UserBankAccount.objects.get_or_create(bank_account_number=data['user_bank_account'])
             donors.user_bank_account = user_bank_account
@@ -140,7 +142,7 @@ def dehydrate_donor(self, profile):
             except AttributeError:
                 donor_list.append('event:\n')
             try:
-                donor_list.append(f"bank_accout:{donor.bank_account.bank_account_number}\n")
+                donor_list.append(f"bank_accout:{donor.money_account.bank_account_number}\n")
             except AttributeError:
                 donor_list.append('bank_accout:\n')
             try:
