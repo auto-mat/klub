@@ -33,7 +33,7 @@ from model_mommy import mommy
 from .test_admin import CreateSuperUserMixin
 from .utils import print_response  # noqa
 from .. import views
-from ..models import DonorPaymentChannel, PetitionSignature, ProfileEmail, UserProfile
+from ..models import AdministrativeUnit, BankAccount, DonorPaymentChannel, PetitionSignature, ProfileEmail, UserProfile
 
 
 class ClearCacheMixin(object):
@@ -519,6 +519,7 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         post_data = {
             'userprofile-email': 'test@email.cz',
             "userincampaign-campaign": "klub",
+            "userincampaign-money_account": '12345123',
             "gdpr": False,
         }
         response = self.client.post(address, post_data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
@@ -534,6 +535,7 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         post_data = {
             'userprofile-email': 'test@email.cz',
             "userincampaign-campaign": "klub",
+            "userincampaign-money_account": '12345123',
             "gdpr": True,
         }
         response = self.client.post(address, post_data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
@@ -564,6 +566,7 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
             'userprofile-last_name': 'User',
             'userprofile-telephone': 111222333,
             "userincampaign-campaign": "klub",
+            "userincampaign-money_account": '12345123',
             "gdpr": True,
         }
         response = self.client.post(address, post_data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
@@ -601,6 +604,7 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
             'userprofile-country': 'Some country',
             'userprofile-zip_code': 11333,
             "userincampaign-campaign": "klub",
+            "userincampaign-money_account": '12345123',
             "gdpr": True,
         }
         response = self.client.post(address, post_data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
@@ -621,6 +625,8 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         new_user = DonorPaymentChannel.objects.get(user__email="test@email.cz")
         self.assertEqual(new_user.regular_amount, None)
         self.assertEqual(new_user.regular_payments, '')
+        self.assertEqual(new_user.event.slug, 'klub')
+        self.assertEqual(new_user.money_account.slug, '12345123')
         self.assertTrue(PetitionSignature.objects.get(user__email="test@email.cz").gdpr_consent)
 
 
@@ -628,8 +634,10 @@ class VariableSymbolTests(TestCase):
     fixtures = ['users']
 
     def test_out_of_vs(self):
+        au = AdministrativeUnit.objects.create(name='test')
+        bank_acc = BankAccount.objects.create(bank_account_number=1111, administrative_unit=au)
         with self.assertRaises(AssertionError):
             for i in range(1, 400):
                 vs = views.generate_variable_symbol(99)
                 userprofile = UserProfile.objects.create(username=vs, email="test%s@test.cz" % i)
-                DonorPaymentChannel.objects.create(VS=vs, event_id=1, user=userprofile)
+                DonorPaymentChannel.objects.create(VS=vs, event_id=1, user=userprofile, money_account=bank_acc)

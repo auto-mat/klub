@@ -2035,9 +2035,8 @@ class DonorPaymentChannel(models.Model):
         MoneyAccount,
         related_name='moneyaccounts',
         on_delete=models.CASCADE,
-        default=None,
-        null=True,
-        blank=True,
+        null=False,
+        blank=False,
     )
     user_bank_account = models.ForeignKey(
         UserBankAccount,
@@ -2082,13 +2081,16 @@ class DonorPaymentChannel(models.Model):
             return False
 
     def check_duplicate(self, *args, **kwargs):
-        qs = DonorPaymentChannel.objects.filter(
-                            VS=self.VS,
-                            money_account__administrative_unit=self.money_account.administrative_unit,
-            )
-        if qs:
-            if qs.first().pk != self.pk:
-                raise ValidationError("Duplicate VS")
+        try:
+            qs = DonorPaymentChannel.objects.filter(
+                                VS=self.VS,
+                                money_account__administrative_unit=self.money_account.administrative_unit,
+                )
+            if qs:
+                if qs.first().pk != self.pk:
+                    raise ValidationError("Duplicate VS")
+        except MoneyAccount.DoesNotExist:
+            pass
 
     @denormalized(models.IntegerField, null=True)
     @depend_on_related('Payment', foreign_key="user_donor_payment_channel")
@@ -2314,10 +2316,9 @@ class DonorPaymentChannel(models.Model):
     def clean(self, *args, **kwargs):
         self.generate_VS()
         self.check_duplicate()
-        super().clean(*args, **kwargs)
+        return super().clean(*args, **kwargs)
 
     def save(self, *args, **kwargs):
-
         if self.pk is None:
             insert = True
         else:

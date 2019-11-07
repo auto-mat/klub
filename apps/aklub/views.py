@@ -81,7 +81,9 @@ class RegularUserForm_UserProfile(forms.ModelForm):
     def save(self, commit, *args, **kwargs):
         ret_val = super().save(commit, *args, **kwargs)
         if commit:
-            Telephone.objects.create(telephone=self.cleaned_data['telephone'], user=self.instance)
+            if self.cleaned_data['telephone']:
+                Telephone.objects.create(telephone=self.cleaned_data['telephone'], user=self.instance)
+
             ProfileEmail.objects.create(email=self.cleaned_data['email'], user=self.instance)
         return ret_val
 
@@ -279,7 +281,7 @@ class RegularUserForm_DonorPaymentChannelDPNK(RegularUserForm_DonorPaymentChanne
         return 'monthly'
 
 
-class PetitionUserForm_PetitionSignature(FieldNameMappingMixin, CampaignMixin, forms.ModelForm):
+class PetitionUserForm_PetitionSignature(FieldNameMappingMixin, CampaignMixin, BankAccountMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['event'].queryset = Event.objects.filter(slug__isnull=False, enable_signing_petitions=True).exclude(slug="")
@@ -287,7 +289,7 @@ class PetitionUserForm_PetitionSignature(FieldNameMappingMixin, CampaignMixin, f
 
     class Meta:
         model = PetitionSignature
-        fields = ('event', 'public', 'gdpr_consent')
+        fields = ('event', 'public', 'gdpr_consent', 'money_account')
 
     FIELD_NAME_MAPPING = {
         'gdpr_consent': 'gdpr',
@@ -359,20 +361,29 @@ def create_new_user_profile(form, regular):
         new_user_profile = Profile.objects.get(email=form.forms['userprofile'].email_used)
     else:
         new_user_profile.save()
-    Telephone.objects.create(telephone=form.forms['userprofile'].cleaned_data['telephone'], user=new_user_profile)
+    if form.forms['userprofile'].cleaned_data['telephone']:
+        Telephone.objects.create(telephone=form.forms['userprofile'].cleaned_data['telephone'], user=new_user_profile)
+
     ProfileEmail.objects.create(email=form.forms['userprofile'].cleaned_data['email'], user=new_user_profile)
 
     cache.clear()
     return new_user_profile
 
 
-def create_new_payment_channel(form, new_user_profile, regular, source_slug='web'):
+def create_new_payment_channel(form, source_type, new_user_profile, regular, source_slug='web'):
     variable_symbol = generate_variable_symbol()
-    if form:
+    if source_type == 'regular':
         new_user_objects = form.save(commit=False)
         payment_channel = new_user_objects['userincampaign']
     else:
-        payment_channel, _ = DonorPaymentChannel.objects.get_or_create(user=new_user_profile, VS=variable_symbol, regular_payments='')
+        data = form.clean()
+        payment_channel, _ = DonorPaymentChannel.objects.get_or_create(
+                                                    user=new_user_profile,
+                                                    VS=variable_symbol,
+                                                    regular_payments='',
+                                                    money_account=data['userincampaign'].get('money_account'),
+                                                    event=data['userincampaign'].get('campaign'),
+        )
     assert isinstance(payment_channel, DonorPaymentChannel), \
         "payment_channel shoud be DonnorPaymentChannel, but is %s" % type(payment_channel)
     if regular:
@@ -491,7 +502,7 @@ class RegularView(FormView):
 
     def form_valid(self, form):
         new_user_profile = create_new_user_profile(form, regular=None)
-        payment_channel = create_new_payment_channel(form, new_user_profile, regular=None, source_slug=self.source_slug)
+        payment_channel = create_new_payment_channel(form, 'regular', new_user_profile, regular=None, source_slug=self.source_slug)
         return self.success_page(payment_channel)
 
     def form_invalid(self, form):
@@ -538,7 +549,7 @@ class PetitionView(RegularView):
     def form_valid(self, form):
         new_user_profile = create_new_user_profile(form, regular=None)
         create_new_petition_signature(form, new_user_profile, regular=None)
-        payment_channel = create_new_payment_channel(None, new_user_profile, regular=None, source_slug=self.source_slug)
+        payment_channel = create_new_payment_channel(form, 'petition', new_user_profile, regular=None, source_slug=self.source_slug)
         return self.success_page(payment_channel)
 
 
