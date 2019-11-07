@@ -2092,7 +2092,6 @@ class DonorPaymentChannel(models.Model):
         except MoneyAccount.DoesNotExist:
             pass
 
-
     @denormalized(models.IntegerField, null=True)
     @depend_on_related('Payment', foreign_key="user_donor_payment_channel")
     def number_of_payments(self):
