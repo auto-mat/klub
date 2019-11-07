@@ -226,6 +226,7 @@
             "regular_amount": null,
             "regular_frequency": null,
             "regular_payments": "onetime",
+            "money_account": 1,
             "VS": "130430001",
             "user": "2979",
             "event": 2
@@ -389,6 +390,7 @@
             "money_account" : 1,
             "regular_frequency": "monthly",
             "regular_payments": "regular",
+            "money_account": 1,
             "event": 2,
             "VS": "120127010"
         },
@@ -513,6 +515,7 @@
             "regular_amount": 100,
             "regular_frequency": null,
             "regular_payments": "regular",
+            "money_account": 1,
             "event": 2,
             "VS": ""
         },
@@ -528,6 +531,7 @@
             "regular_amount": 100,
             "regular_frequency": null,
             "regular_payments": "promise",
+            "money_account": 2,
             "event": 1,
             "VS": "121212"
         },
