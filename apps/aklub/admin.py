@@ -50,7 +50,9 @@ except ImportError:  # Django<2.0
 
 from import_export import fields, widgets
 from import_export.admin import ImportExportMixin
+from import_export.instance_loaders import BaseInstanceLoader
 from import_export.resources import ModelResource
+
 
 import large_initial
 
@@ -420,6 +422,17 @@ def get_profile_admin_model_import_export_exclude_fields():
     ]
 
 
+class ProfileLoaderClass(BaseInstanceLoader):
+    def get_instance(self, row):
+        obj = None
+        if row.get('email'):
+            try:
+                obj = ProfileEmail.objects.get(email=row['email']).user
+            except ProfileEmail.DoesNotExist:
+                pass
+        return obj
+
+
 class UserProfileResource(ProfileModelResourceMixin):
     class Meta:
         model = UserProfile
@@ -433,6 +446,7 @@ class UserProfileResource(ProfileModelResourceMixin):
                 'birth_day',
             ]
         )
+        instance_loader_class = ProfileLoaderClass
 
 
 class CompanyProfileResource(ProfileModelResourceMixin):
