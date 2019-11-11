@@ -48,9 +48,11 @@ try:
 except ImportError:  # Django<2.0
     from django.core.urlresolvers import reverse
 
-from import_export import fields, widgets
+from import_export import fields
 from import_export.admin import ImportExportMixin
+from import_export.instance_loaders import BaseInstanceLoader
 from import_export.resources import ModelResource
+from import_export.widgets import ForeignKeyWidget
 
 import large_initial
 
@@ -936,71 +938,75 @@ class ProfileAdmin(
         return {}
 
 
+class DonorPaymentChannelLoaderClass(BaseInstanceLoader):
+    def get_instance(self, row):
+        user = ProfileEmail.objects.get(email=row['email']).user
+        try:
+            event = Event.objects.get(name=row.get('event'))
+            money_account = BankAccount.objects.get(bank_account_number=row.get('money_account'))
+            obj = DonorPaymentChannel.objects.get(
+                                            user=user,
+                                            event=event,
+                                            money_account=money_account,
+            )
+        except DonorPaymentChannel.DoesNotExist:
+            return None
+
+        return obj
+
+
 class DonorPaymentChannelResource(ModelResource):
-    user_email = fields.Field(
-        column_name='user_email',
-        attribute='user',
-        widget=widgets.ForeignKeyWidget(Profile, 'email'),
-    )
-    title_before = fields.Field()
-    title_after = fields.Field()
+    email = fields.Field()
+    user_bank_account = fields.Field()
+    event = fields.Field(column_name='event',
+                         attribute='event',
+                         widget=ForeignKeyWidget(Event, 'name'))
+
+    money_account = fields.Field(column_name='money_account',
+                                 attribute='money_account',
+                                 widget=ForeignKeyWidget(MoneyAccount, 'bankaccount__bank_account_number'))
 
     class Meta:
         model = DonorPaymentChannel
         fields = (
-            'id',
-            'event',
-            'user',
-            'user__userprofile__title_before',
-            'user__userprofile__first_name',
-            'user__userprofile__last_name',
-            'user__userprofile__title_after',
-            'user__userprofile__sex',
-            # 'userprofile__telephone',
-            'user__email',
-            'user__street',
-            'user__city',
-            'user__zip_code',
-            'VS',
-            'SS',
-            'user__club_card_available',
-            # 'wished_information',
-            'regular_payments',
-            'regular_frequency',
-            'registered_support',
-            # 'note',
-            # 'additional_information',
-            'user__is_active',
-            'user__language',
-            # 'expected_regular_payment_date',
-            # 'expected_regular_payment_date',
-            'extra_money',
-            'number_of_payments',
-            'payment_total',
-            'regular_amount',
-            'last_payment_date',
+                'email', 'user', 'money_account', 'event', 'VS', 'SS', 'regular_frequency', 'expected_date_of_first_payment',
+                'regular_amount', 'regular_payments', 'user_bank_account', 'end_of_regular_payments',
         )
-        export_order = fields
-        import_id_fields = ('user_email', 'campaign')
+        import_id_fields = ('email', )
+        instance_loader_class = DonorPaymentChannelLoaderClass
 
-    last_payment_date = fields.Field()
+    def before_import_row(self, row, **kwargs):
+        row['email'] = row['email'].lower()
+        row['user'] = ProfileEmail.objects.get(email=row['email']).user.id
 
-    def dehydrate_last_payment_date(self, user_in_campaign):
-        return user_in_campaign.last_payment_date()
+    def import_obj(self, obj, data, dry_run):
+        super(ModelResource, self).import_obj(obj, data, dry_run)
+        if data.get('user_bank_account'):
+            user_bank_acc, _ = UserBankAccount.objects.get_or_create(bank_account_number=data.get('user_bank_account'))
+            obj.user_bank_account = user_bank_acc
+        obj.user = ProfileEmail.objects.get(email=data['email']).user
+        obj.save()
+        return obj
 
-    def dehydrate_title_before(self, donor_payment_channel):
-        profile_model = Profile.objects.get(username=donor_payment_channel.user.username)
-        if hasattr(profile_model, 'title_before'):
-            return profile_model.title_before
+    def dehydrate_user_bank_account(self, donor):
+        if donor.user_bank_account:
+            obj = donor.user_bank_account.bank_account_number
         else:
-            return None
+            obj = ''
+        return obj
 
-    def dehydrate_title_after(self, donor_payment_channel):
-        profile_model = Profile.objects.get(username=donor_payment_channel.user.username)
-        if hasattr(profile_model, 'title_after'):
-            return profile_model.title_after
-        else:
-            return None
+    def dehydrate_email(self, donor):
+        if hasattr(donor, 'user'):
+            try:
+                email = ProfileEmail.objects.get(user=donor.user, is_primary=True)
+            except ProfileEmail.DoesNotExist:
+                email = ProfileEmail.objects.filter(user=donor.user).first()
+            return email.email
+        return ''
+
+    def dehydrate_user(self, donor):
+        if hasattr(donor, 'user'):
+            return donor.user.username
 
 
 # -- ADMIN FORMS --
