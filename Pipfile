@@ -77,6 +77,8 @@ django-stdnumfield = {editable = true,git = "https://github.com/PetrDlouhy/djang
 # https://github.com/django-polymorphic/django-polymorphic/pull/400
 django-polymorphic = {editable = true,git = "https://github.com/tmszi/django-polymorphic",ref = "fix_django_advanced_filters"}
 jsonfield2 = "*"
+django-isnull-list-filter = "*"
+docutils = "*"
 
 [dev-packages]
 coverage = "*"
