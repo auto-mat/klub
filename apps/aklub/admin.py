@@ -52,6 +52,8 @@ from import_export import fields, widgets
 from import_export.admin import ImportExportMixin
 from import_export.resources import ModelResource
 
+from isnull_filter import isnull_filter
+
 import large_initial
 
 import nested_admin
@@ -1758,6 +1760,7 @@ class UserProfileAdmin(
         'administrative_units',
         'userchannels__registered_support',
         'preference__send_mailing_lists',
+        isnull_filter('userchannels__payment', _('Has any payment'), negate=True),
         'userchannels__extra_money',
         'userchannels__regular_amount',
         'userchannels__regular_frequency',
