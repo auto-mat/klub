@@ -559,6 +559,8 @@ class ProfileEmailAdminForm(forms.ModelForm):
             user=cleaned_data['user'],
         )
         msg = _('Duplicate email address for this user')
+        if cleaned_data.get('email'):
+            cleaned_data['email'] = cleaned_data['email'].lower()
         if not cleaned_data.get('id'):
             if qs.filter(email=cleaned_data['email'], user=cleaned_data['user']).exists():
                 self.add_error('email', msg)
@@ -576,6 +578,8 @@ class ProfileEmailAdminForm(forms.ModelForm):
             user__polymorphic_ctype=ContentType.objects.get(model=model),
         )
         msg = _('Email address exist')
+        if cleaned_data.get('email'):
+            cleaned_data['email'] = cleaned_data['email'].lower()
         if not cleaned_data.get('id'):
             if qs.filter(email=cleaned_data['email']).exists():
                 self.add_error('email', msg)
@@ -584,8 +588,6 @@ class ProfileEmailAdminForm(forms.ModelForm):
             if (qs.filter(email=cleaned_data['email']).exclude(user=cleaned_data['user']).exists()):
                 self.add_error('email', msg)
                 return True
-        if cleaned_data.get('email'):
-            cleaned_data['email'] = cleaned_data['email'].lower()
 
     def clean(self):
         cleaned_data = super().clean()
