@@ -358,13 +358,12 @@ def create_new_user_profile(form, regular):
     new_user_profile = new_user_objects['userprofile']
     # Save new user instance
     if hasattr(form.forms['userprofile'], 'email_used') and form.forms['userprofile'].email_used:
-        new_user_profile = Profile.objects.get(email=form.forms['userprofile'].email_used)
+        new_user_profile = Profile.objects.get(profileemail__email=form.forms['userprofile'].email_used)
     else:
         new_user_profile.save()
+        ProfileEmail.objects.create(email=form.forms['userprofile'].cleaned_data['email'], user=new_user_profile, is_primary=True)
     if form.forms['userprofile'].cleaned_data['telephone']:
         Telephone.objects.create(telephone=form.forms['userprofile'].cleaned_data['telephone'], user=new_user_profile)
-
-    ProfileEmail.objects.create(email=form.forms['userprofile'].cleaned_data['email'], user=new_user_profile)
 
     cache.clear()
     return new_user_profile
@@ -456,7 +455,7 @@ class RegularView(FormView):
         email = self.get_post_param(request, 'userprofile-email', 'payment_data____email')
         event = self.get_post_param(request, 'userincampaign-campaign', 'campaign')
         if email:
-            payment_channels = DonorPaymentChannel.objects.filter(user__email=email, event__slug=event)
+            payment_channels = DonorPaymentChannel.objects.filter(user__profileemail__email=email, event__slug=event)
             if payment_channels.exists():
                 autocom.check(payment_channels=payment_channels, action='resend-data')
                 user_data = {}

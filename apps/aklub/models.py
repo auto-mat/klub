@@ -1012,6 +1012,7 @@ class ProfileEmail(models.Model):
             profile = Profile.objects.get(username=self.user.username)
             profile.email = self.email
             profile.save()
+        self.email = self.email.strip()
         super().save(*args, **kwargs)
 
 

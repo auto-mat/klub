@@ -170,15 +170,15 @@ class TestStr(TestCase):
         """ Test, that get_email_str strips the email """
         t = mommy.make(
             "aklub.UserProfile",
-            email='  test@test.cz',
         )
+        mommy.make("ProfileEmail", user=t, email="  test@test.cz", is_primary=True)
         self.assertEqual(t.get_email_str(), "test@test.cz")
 
-        t = mommy.make(
+        c = mommy.make(
             "aklub.CompanyProfile",
-            email='  test@test.cz',
         )
-        self.assertEqual(t.get_email_str(), "test@test.cz")
+        mommy.make("ProfileEmail", user=c, email="  test@test.cz", is_primary=True)
+        self.assertEqual(c.get_email_str(), "test@test.cz")
 
     def test_clean_email(self):
         """ Test, that clean function cleanes the email """

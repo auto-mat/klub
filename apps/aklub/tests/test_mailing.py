@@ -25,6 +25,8 @@ from django.test.utils import override_settings
 
 from freezegun import freeze_time
 
+from model_mommy import mommy
+
 from .. import mailing, models
 
 
@@ -46,8 +48,8 @@ class MailingTest(TestCase):
         sending_user = models.UserProfile.objects.create(
             first_name="Testing",
             last_name="UserInCampaign",
-            email="test@test.com",
         )
+        mommy.make("ProfileEmail", user=sending_user, email="test@test.com", is_primary=True)
         c = models.AutomaticCommunication.objects.create(
             condition=models.Condition.objects.create(),
             template="Testing template",
@@ -66,8 +68,8 @@ class MailingTest(TestCase):
         sending_user = models.UserProfile.objects.create(
             first_name="Testing",
             last_name="UserInCampaign",
-            email="test@test.com",
         )
+        mommy.make("ProfileEmail", user=sending_user, email="test@test.com", is_primary=True)
         c = models.AutomaticCommunication.objects.create(
             condition=models.Condition.objects.create(),
             template="Testing template",
@@ -85,8 +87,8 @@ class MailingTest(TestCase):
         sending_user = models.UserProfile.objects.create(
             first_name="Testing",
             last_name="UserInCampaign",
-            email="test@test.com",
         )
+        mommy.make("ProfileEmail", user=sending_user, email="test@test.com", is_primary=True)
         c = models.MassCommunication.objects.create(
             template="Testing template",
             template_en="Testing template en",
