@@ -27,12 +27,12 @@ class DonorImportExportTests(CreateSuperUserMixin, TestCase):
 
         au = mommy.make(
                     'aklub.AdministrativeUnit',
-                    name='test_unit'
+                    name='test_unit',
         )
         self.bank_acc = mommy.make(
                     'aklub.BankAccount',
                     administrative_unit=au,
-                    bank_account_number='1111/111'
+                    bank_account_number='1111/111',
         )
         self.event1 = mommy.make(
                     'aklub.Event',
@@ -63,7 +63,7 @@ class DonorImportExportTests(CreateSuperUserMixin, TestCase):
                     regular_payments='regular',
                     money_account=self.bank_acc,
                     event=self.event2,
-                    end_of_regular_payments=datetime.date(2011, 2, 11)
+                    end_of_regular_payments=datetime.date(2011, 2, 11),
         )
 
     def test_profile_import(self):
