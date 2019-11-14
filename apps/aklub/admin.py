@@ -984,6 +984,11 @@ class DonorPaymentChannelLoaderClass(BaseInstanceLoader):
                                             event=event,
                                             money_account=money_account,
             )
+        except Event.DoesNotExist:
+            raise ValidationError('Event with this name doesnt exist')
+        except MoneyAccount.DoesNotExist:
+            raise ValidationError('MoneyAccount with this bank_number doesnt exist')
+
         except DonorPaymentChannel.DoesNotExist:
             return None
 
@@ -1012,11 +1017,15 @@ class DonorPaymentChannelResource(ModelResource):
                 'regular_amount', 'regular_payments', 'user_bank_account', 'end_of_regular_payments',
         )
         import_id_fields = ('email', )
+        clean_model_instances = True
         instance_loader_class = DonorPaymentChannelLoaderClass
 
     def before_import_row(self, row, **kwargs):
-        row['email'] = row['email'].lower()
-        row['user'] = ProfileEmail.objects.get(email=row['email']).user.id
+        try:
+            row['email'] = row['email'].lower()
+            row['user'] = ProfileEmail.objects.get(email=row['email']).user.id
+        except ProfileEmail.DoesNotExist:
+            raise ValidationError("User with this email doesn't exist")
 
     def import_obj(self, obj, data, dry_run):
         super(ModelResource, self).import_obj(obj, data, dry_run)
@@ -1024,7 +1033,6 @@ class DonorPaymentChannelResource(ModelResource):
             user_bank_acc, _ = UserBankAccount.objects.get_or_create(bank_account_number=data.get('user_bank_account'))
             obj.user_bank_account = user_bank_acc
         obj.user = ProfileEmail.objects.get(email=data['email']).user
-        obj.save()
         return obj
 
     def dehydrate_user_bank_account(self, donor):
