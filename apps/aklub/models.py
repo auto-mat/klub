@@ -713,9 +713,9 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
     get_addressment.admin_order_field = 'addressment'
 
     def get_email_str(self):
-        if self.email:
-            return self.email.strip()
-        else:
+        try:
+            return self.profileemail_set.get(is_primary=True).email
+        except ProfileEmail.DoesNotExist:
             return ""
 
     def mail_communications_count(self):
