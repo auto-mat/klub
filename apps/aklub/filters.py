@@ -12,7 +12,7 @@ from django.utils.translation import ugettext as _
 
 from . import models
 from .models import (
-    CompanyProfile, Condition, Profile, Telephone,
+    CompanyProfile, Condition, Profile, ProfileEmail, Telephone,
     UserProfile,
 )
 
@@ -97,14 +97,14 @@ class EmailFilter(SimpleListFilter):
 
     def queryset(self, request, queryset):
         if self.value():
-            blank_filter = Q(email__exact='') | Q(email__isnull=True)
+            blank_filter = Q(profileemail__email__exact='') | Q(profileemail__email__isnull=True)
             if self.value() == 'blank':
                 return queryset.filter(blank_filter)
             else:
                 queryset = queryset.exclude(blank_filter)
 
             if self.value() == 'duplicate':
-                duplicates = Profile.objects.filter(email__isnull=False).\
+                duplicates = ProfileEmail.objects.filter(email__isnull=False).\
                     exclude(email__exact='').\
                     annotate(email_lower=Lower('email')).\
                     values('email_lower').\
@@ -113,7 +113,8 @@ class EmailFilter(SimpleListFilter):
                     order_by().\
                     filter(id__count__gt=1).\
                     values_list('email_lower', flat=True)
-                return queryset.annotate(email_lower=Lower('email')).filter(email_lower__in=duplicates)
+                duplicates = ProfileEmail.objects.annotate(email_lower=Lower('email')).filter(email_lower__in=duplicates)
+                return queryset.filter(profileemail__in=duplicates)
             if self.value() == 'email-format':
                 return queryset.exclude(email__iregex=r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9.-]+$)")
         return queryset
@@ -154,7 +155,7 @@ class TelephoneFilter(SimpleListFilter):
 
     def queryset(self, request, queryset):
         if self.value():
-            blank_filter = Q(telephone__telephone__exact='') | Q(telephone__telephone__isnull=True) | Q(telephone__isnull=True)
+            blank_filter = Q(telephone__telephone__exact='') | Q(telephone__telephone__isnull=True)
             if self.value() == 'blank':
                 return queryset.filter(blank_filter)
             else:
