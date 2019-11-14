@@ -50,15 +50,48 @@ class FilterTests(FilterTestCase):
         self.assertQuerysetEqual(q, ["<CompanyProfile: Company>"])
 
     def test_email_filter_format(self):
-        mommy.make("UserProfile", email='foo', first_name="Foo", last_name="")
+        profile = mommy.make("UserProfile", first_name="Foo", last_name="")
+        mommy.make("ProfileEmail", email='foo', user=profile)
         f = filters.EmailFilter(self.request, {"email": "email-format"}, UserProfile, None)
         q = f.queryset(self.request, UserProfile.objects.all())
         self.assertQuerysetEqual(q, ["<UserProfile: Foo>"])
 
-        mommy.make("CompanyProfile", email='foo', name="Company")
+        company_profile = mommy.make("CompanyProfile", email='foo', name="Company")
+        mommy.make("ProfileEmail", email='foo', user=company_profile)
         f = filters.EmailFilter(self.request, {"email": "email-format"}, CompanyProfile, None)
         q = f.queryset(self.request, CompanyProfile.objects.all())
         self.assertQuerysetEqual(q, ["<CompanyProfile: Company>"])
+
+    def test_email_filter_duplicate(self):
+        user_profile1 = mommy.make('UserProfile', first_name="Foo", last_name="")
+        mommy.make('ProfileEmail', email='f@b.cz', user=user_profile1)
+        user_profile2 = mommy.make('UserProfile', first_name="Bar", last_name="")
+        mommy.make('ProfileEmail', email='f@b.cz', user=user_profile2)
+        f = filters.EmailFilter(self.request, {"email": "duplicate"}, UserProfile, None)
+        q = f.queryset(self.request, UserProfile.objects.all())
+        self.assertQuerysetEqual(
+            q,
+            [
+                "<UserProfile: Foo>",
+                "<UserProfile: Bar>",
+            ],
+            ordered=False,
+        )
+
+        company_profile1 = mommy.make('CompanyProfile', name="Company1")
+        mommy.make('ProfileEmail', email='g@b.cz', user=company_profile1)
+        company_profile2 = mommy.make('CompanyProfile', name="Company2")
+        mommy.make('ProfileEmail', email='g@b.cz', user=company_profile2)
+        f = filters.EmailFilter(self.request, {"email": "duplicate"}, CompanyProfile, None)
+        q = f.queryset(self.request, CompanyProfile.objects.all())
+        self.assertQuerysetEqual(
+            q,
+            [
+                "<CompanyProfile: Company1>",
+                "<CompanyProfile: Company2>",
+            ],
+            ordered=False,
+        )
 
     def test_telephone_filter_duplicate_blank(self):
         f = filters.TelephoneFilter(self.request, {"telephone": "duplicate"}, Profile, None)
