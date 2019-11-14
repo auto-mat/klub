@@ -521,11 +521,6 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
         blank=True,
         null=True,
     )
-    email = models.EmailField(
-        _('email address'),
-        blank=True,
-        null=True,
-    )
     campaigns = models.ManyToManyField(
         Event,
         help_text=_("Associated campaigns"),
@@ -712,11 +707,14 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
     get_addressment.short_description = _("Addressment")
     get_addressment.admin_order_field = 'addressment'
 
-    def get_email_str(self):
+    def get_primary_email(self):
         try:
             return self.profileemail_set.get(is_primary=True).email
         except ProfileEmail.DoesNotExist:
-            return ""
+            return None
+
+    def get_email_str(self):
+        return self.get_primary_email() or ""
 
     def mail_communications_count(self):
         return self.interaction_set.filter(method="mail").count()
@@ -774,21 +772,6 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
 
     def __str__(self):
         return str(self.person_name())
-
-    def clean(self):
-        if self.email:
-            self.email = self.email.lower()
-        if self.email == "":
-            self.email = None
-
-    def save(self, *args, **kwargs):
-        self.clean()
-        if not self.username and not self.id:
-            from .views import get_unique_username
-            self.username = get_unique_username(self.email)
-        if self.email:
-            self.email = self.email.lower()
-        super().save(*args, **kwargs)
 
     def get_telephone(self):
         numbers = ','.join(number.telephone for number in self.telephone_set.all())
@@ -1012,7 +995,7 @@ class ProfileEmail(models.Model):
             profile = Profile.objects.get(username=self.user.username)
             profile.email = self.email
             profile.save()
-        self.email = self.email.strip()
+        self.email = self.email.strip().lower()
         super().save(*args, **kwargs)
 
 

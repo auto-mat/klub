@@ -20,7 +20,7 @@ class ProfileEmailTest(TestCase):
                 model,
                 username=username,
             )
-            self.assertEqual(profile.email, None)
+            self.assertEqual(profile.get_primary_email(), None)
 
             user_profile_email1 = '{0}1@{0}1.test'.format(username)
             mommy.make(
@@ -29,7 +29,7 @@ class ProfileEmailTest(TestCase):
                 is_primary=True,
                 user=profile,
             )
-            self.assertEqual(Profile.objects.get(username=username).email, user_profile_email1)
+            self.assertEqual(Profile.objects.get(username=username).get_primary_email(), user_profile_email1)
             emails = ProfileEmail.objects.filter(user=profile)
             self.assertEqual(emails.count(), 1)
 

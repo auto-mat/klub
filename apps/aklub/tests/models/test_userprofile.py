@@ -142,29 +142,21 @@ class TestStr(TestCase):
 
     def test_email_lowercase(self):
         """ Test, that email is stored in lowercase """
-        t = mommy.make(
-            "aklub.UserProfile",
-            email='tEsT@TeSt.cz',
-        )
-        self.assertEqual(t.email, "test@test.cz")
+        t = mommy.make("aklub.UserProfile")
+        mommy.make("ProfileEmail", email='tEsT@TeSt.cz', user=t, is_primary=True)
+        self.assertEqual(t.get_primary_email(), "test@test.cz")
 
-        t = mommy.make(
-            "aklub.CompanyProfile",
-            email='tEsT@TeSt.cz',
-        )
-        self.assertEqual(t.email, "test@test.cz")
+        c = mommy.make("aklub.CompanyProfile")
+        mommy.make("ProfileEmail", email='tEsT@TeSt.cz', user=c, is_primary=True)
+        self.assertEqual(c.get_primary_email(), "test@test.cz")
 
     def test_get_email_str_blank(self):
         """ Test, that get_email_str works when no email is set """
-        t = mommy.make(
-            "aklub.UserProfile",
-        )
+        t = mommy.make("aklub.UserProfile")
         self.assertEqual(t.get_email_str(), "")
 
-        t = mommy.make(
-            "aklub.CompanyProfile",
-        )
-        self.assertEqual(t.get_email_str(), "")
+        c = mommy.make("aklub.CompanyProfile")
+        self.assertEqual(c.get_email_str(), "")
 
     def test_get_email_str(self):
         """ Test, that get_email_str strips the email """
@@ -172,29 +164,27 @@ class TestStr(TestCase):
             "aklub.UserProfile",
         )
         mommy.make("ProfileEmail", user=t, email="  test@test.cz", is_primary=True)
-        self.assertEqual(t.get_email_str(), "test@test.cz")
+        self.assertEqual(t.get_primary_email(), "test@test.cz")
 
         c = mommy.make(
             "aklub.CompanyProfile",
         )
         mommy.make("ProfileEmail", user=c, email="  test@test.cz", is_primary=True)
-        self.assertEqual(c.get_email_str(), "test@test.cz")
+        self.assertEqual(c.get_primary_email(), "test@test.cz")
 
     def test_clean_email(self):
         """ Test, that clean function cleanes the email """
         t = mommy.make(
             "aklub.UserProfile",
-            email='',
         )
         t.clean()
-        self.assertEqual(t.email, None)
+        self.assertEqual(t.get_primary_email(), None)
 
         t = mommy.make(
             "aklub.CompanyProfile",
-            email='',
         )
         t.clean()
-        self.assertEqual(t.email, None)
+        self.assertEqual(t.get_primary_email(), None)
 
     def test_make_tax_confirmation_no_payment(self):
         """ Test, that make_tax_confirmation function without any payment """
@@ -215,7 +205,7 @@ class TestStr(TestCase):
         uc = mommy.make("aklub.DonorPaymentChannel", user=t, event=mommy.make("Event"))
         mommy.make("aklub.Payment", amount=350, date="2016-01-01", type='regular', user_donor_payment_channel=uc)
         tax_confirmation, created = t.make_tax_confirmation(2016)
-        self.assertEqual(t.email, None)
+        self.assertEqual(t.get_primary_email(), None)
         self.assertEqual(tax_confirmation.year, 2016)
         self.assertEqual(tax_confirmation.amount, 350)
 
@@ -223,6 +213,6 @@ class TestStr(TestCase):
         uc = mommy.make("aklub.DonorPaymentChannel", user=t, event=mommy.make("Event"))
         mommy.make("aklub.Payment", amount=350, date="2016-01-01", type='regular', user_donor_payment_channel=uc)
         tax_confirmation, created = t.make_tax_confirmation(2016)
-        self.assertEqual(t.email, None)
+        self.assertEqual(t.get_primary_email(), None)
         self.assertEqual(tax_confirmation.year, 2016)
         self.assertEqual(tax_confirmation.amount, 350)
