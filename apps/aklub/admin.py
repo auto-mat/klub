@@ -958,13 +958,17 @@ class DonorPaymentChannelLoaderClass(BaseInstanceLoader):
 class DonorPaymentChannelResource(ModelResource):
     email = fields.Field()
     user_bank_account = fields.Field()
-    event = fields.Field(column_name='event',
-                         attribute='event',
-                         widget=ForeignKeyWidget(Event, 'name'))
+    event = fields.Field(
+                    column_name='event',
+                    attribute='event',
+                    widget=ForeignKeyWidget(Event, 'name'),
+    )
 
-    money_account = fields.Field(column_name='money_account',
-                                 attribute='money_account',
-                                 widget=ForeignKeyWidget(MoneyAccount, 'bankaccount__bank_account_number'))
+    money_account = fields.Field(
+                    column_name='money_account',
+                    attribute='money_account',
+                    widget=ForeignKeyWidget(MoneyAccount, 'bankaccount__bank_account_number'),
+    )
 
     class Meta:
         model = DonorPaymentChannel
