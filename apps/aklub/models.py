@@ -985,7 +985,7 @@ class ProfileEmail(models.Model):
     )
     email = models.EmailField(
         _('email address'),
-        blank=True,
+        blank=False,
         null=True,
     )
     is_primary = models.NullBooleanField(
