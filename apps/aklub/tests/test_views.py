@@ -212,12 +212,12 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
             'aklub.UserProfile',
             first_name="Foo",
             last_name='Duplabar',
-            email='test@email.cz',
         )
         mommy.make(
             'aklub.ProfileEmail',
             email='test@email.cz',
             user=foo_user,
+            is_primary=True,
         )
         au = mommy.make(
             'aklub.AdministrativeUnit',
