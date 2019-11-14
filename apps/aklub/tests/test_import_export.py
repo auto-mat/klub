@@ -128,6 +128,17 @@ class DonorImportExportTests(CreateSuperUserMixin, TestCase):
         self.assertEqual(dpch_update.user_bank_account.bank_account_number, '9999/999')
         self.assertEqual(dpch_update.end_of_regular_payments, datetime.date(2017, 1, 11))
 
+    def test_dpch_export(self):
+        address = "/aklub/donorpaymentchannel/export/"
+        post_data = {
+            'file_format': 0,
+        }
+        response = self.client.post(address, post_data)
+        self.assertContains(
+            response,
+            'test1@test.com,,test_old,1111/111,9999,111,test1,quaterly,2010-02-11,1000,regular,2011-02-11',
+        )
+
 
 class AdminImportExportTests(CreateSuperUserMixin, TestCase):
     fixtures = ['conditions', 'users', 'communications']
@@ -149,21 +160,6 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         request.session = 'session'
         request._messages = FallbackStorage(request)
         return request
-
-    def test_paymetnchannel_export(self):
-        address = "/aklub/donorpaymentchannel/export/"
-        post_data = {
-            'file_format': 0,
-        }
-        response = self.client.post(address, post_data)
-        self.assertContains(
-            response,
-            '2978,2,2978,,Test,User,,male,test.user@email.cz,,Praha 4,,120127010,,0,regular,monthly,2015-12-16 17:22:30,1,cs,,,,100,',
-            # TODO: check transforming following data into another models
-            # ',Test,User,,male,,test.user@email.cz,,Praha 4,,120127010,0,1,regular,monthly,2015-12-16 17:22:30,'
-            # '"Domníváte se, že má město po zprovoznění tunelu Blanka omezit tranzit historickým centrem? '
-            # 'Ano, hned se zprovozněním tunelu",editor,1,cs,,,,0,0.0,100',
-        )
 
     def create_profiles(self):
         profiles_data = [
