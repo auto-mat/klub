@@ -1,0 +1,14 @@
+/**
+ * The custom toolbox widget displays a set of tools the user can use to edit the
+ * content of the page.
+ */
+
+.ct-widget {
+    .ct-tool {
+        &--button:before { content: "\ea1e"; }
+    }
+}
+// Color picker dialog
+.cp-app {
+	z-index: 10010;
+}
