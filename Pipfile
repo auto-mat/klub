@@ -85,7 +85,6 @@ django-rest-swagger = "*"
 django-filter = "*"
 django-js-urls = "*"
 mkdocs = "*"
-cssutils = "*"
 cairosvg = "*"
 
 [dev-packages]
