@@ -1,12 +1,11 @@
 import os
 import pathlib
-import subprocess
 import shutil
-
-from django.contrib.staticfiles import finders
-from django.core.management import BaseCommand, CommandError
+import subprocess
 
 from django.conf import settings
+from django.contrib.staticfiles import finders
+from django.core.management import BaseCommand, CommandError
 
 
 class Command(BaseCommand):
