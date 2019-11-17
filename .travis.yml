@@ -30,7 +30,7 @@ before_script:
   - npm install -g bower sass
   - pipenv run flake8
   - pipenv run python manage.py bower install
-  - pipenv run python manage.py build_contenttools
+  - pipenv run python manage.py build_contenttools --npm $(which npm)
   - pipenv run python manage.py collectstatic -v0 --noinput
   - cd apps/aklub/
   - DJANGO_SETTINGS_MODULE="" pipenv run django-admin compilemessages
