@@ -280,6 +280,7 @@ BOWER_INSTALLED_APPS = (
     'https://github.com/Karl33to/jquery.inlineStyler.git#1.0.1',
     'webui-popover#2.1.15',
     'jquery-mdl',
+    'https://github.com/PitPik/colorPicker.git'
 )
 
 EMAIL_BACKEND = 'post_office.EmailBackend'
