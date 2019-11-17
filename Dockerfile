@@ -24,7 +24,7 @@ WORKDIR "/home/aplikace"
 
 run pip3 install pipenv
 
-RUN npm install -g less bower
+RUN npm install -g less bower sass
 RUN pip3 install pipenv==2018.11.14
 RUN useradd test
 RUN chsh test -s /bin/bash
