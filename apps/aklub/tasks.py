@@ -54,7 +54,7 @@ def create_mass_communication_tasks(communication_id, sending_user_id):
 @task()
 def parse_account_statement(statement_id):
     statement = models.AccountStatements.objects.get(id=statement_id)
-    if statement.csv_file:  # new Account statement
+    if statement.csv_file and statement.payment_set.count() == 0:  # new Account statement
         if statement.type == 'account':
             statement.payments = statement.parse_bank_csv_fio()
 
