@@ -880,7 +880,7 @@ class ProfileAdmin(
         'is_staff',
         'date_joined',
         'last_login',
-        ('userincampaign__campaign__name', _("Jméno kampaně")),
+        ('userchannels__event__name', _("Jméno kampaně")),
     )
     list_editable = (
         'addressment',
@@ -900,7 +900,7 @@ class ProfileAdmin(
         'is_active',
         'groups',
         'language',
-        'userincampaign__campaign',
+        'userchannels__event',
         filters.RegularPaymentsFilter,
         filters.EmailFilter,
         filters.TelephoneFilter,
@@ -1654,7 +1654,7 @@ class TaxConfirmationAdmin(unit_admin_mixin_generator('user_profile__administrat
         'user_profile__userprofile__last_name',
         'user_profile__userprofile__first_name',
         'user_profile__companyprofile__name',
-        'user_profile__userincampaign__variable_symbol',
+        'user_profile__userchannels__VS',
     )
     raw_id_fields = ('user_profile',)
     actions = (make_pdfsandwich,)
@@ -1772,7 +1772,7 @@ class UserProfileAdmin(
         'is_staff',
         'date_joined',
         'last_login',
-        ('userincampaign__campaign__name', _("Jméno kampaně")),
+        ('userchannels__event__name', _("Jméno kampaně")),
     )
     search_fields = (
         'email',
@@ -1796,7 +1796,7 @@ class UserProfileAdmin(
         'is_active',
         'groups',
         'language',
-        'userincampaign__campaign',
+        'userchannels__event',
         filters.RegularPaymentsFilter,
         filters.EmailFilter,
         filters.TelephoneFilter,
@@ -1961,7 +1961,7 @@ class CompanyProfileAdmin(
         'is_staff',
         'date_joined',
         'last_login',
-        ('userincampaign__campaign__name', _("Jméno kampaně")),
+        ('userchannels__event__name', _("Jméno kampaně")),
     )
     search_fields = (
         'email',
@@ -1974,7 +1974,7 @@ class CompanyProfileAdmin(
         'is_active',
         'groups',
         'language',
-        'userincampaign__campaign',
+        'userchannels__event',
         filters.RegularPaymentsFilter,
         filters.EmailFilter,
         filters.TelephoneFilter,
