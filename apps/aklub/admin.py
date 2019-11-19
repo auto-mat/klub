@@ -1669,6 +1669,10 @@ class TaxConfirmationAdmin(unit_admin_mixin_generator('user_profile__administrat
     raw_id_fields = ('user_profile',)
     actions = (make_pdfsandwich,)
     list_max_show_all = 10000
+    list_select_related = (
+        'user_profile__userprofile',
+        'user_profile__companyprofile',
+    )
 
     readonly_fields = ['get_pdf', ]
     fields = ['user_profile', 'year', 'amount', 'get_pdf', ]
