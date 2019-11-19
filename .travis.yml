@@ -13,7 +13,7 @@ env:
 
   matrix:
     - DJANGO_VERSION="Django>=2.2,<2.3"
-    - DJANGO_VERSION='https://github.com/django/django/archive/master.tar.gz'
+    - DJANGO_VERSION='https://github.com/tmszi/django/archive/ticket_31000_stable_2.2.x.tar.gz'
 python:
   - "3.6"
 before_install:
@@ -42,4 +42,4 @@ addons:
   postgresql: "9.6"
 matrix:
    allow_failures:
-      - env: DJANGO_VERSION='https://github.com/django/django/archive/master.tar.gz'
+      - env: DJANGO_VERSION='https://github.com/tmszi/django/archive/ticket_31000_stable_2.2.x.tar.gz'
