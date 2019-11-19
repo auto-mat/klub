@@ -1354,6 +1354,7 @@ class InteractionAdmin(
         'result',
         'created_by',
         'handled_by',
+        'administrative_unit',
         # 'user__regular_payments_info',
         # 'user__payment_delay',
         # 'user__extra_payments',
@@ -1369,6 +1370,7 @@ class InteractionAdmin(
         'user__userprofile__last_name',
         'user__companyprofile__name',
         'user__email',
+        'administrative_unit',
     )
     date_hierarchy = 'date'
     ordering = ('-date',)
@@ -1377,6 +1379,7 @@ class InteractionAdmin(
             'fields': [
                 ('user', 'event', 'method'),
                 'date',
+                'administrative_unit',
             ],
         }),
         (_("Content"), {
