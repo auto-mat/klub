@@ -1523,15 +1523,15 @@ class ConditionAdmin(ImportExportMixin, admin.ModelAdmin):
     ordering = ('name',)
 
 
-def pair_variable_symbols(self, request, queryset):
+def pair_payment_with_dpch(self, request, queryset):
     for account_statement in queryset:
         for payment in account_statement.payment_set.all():
-            account_statement.pair_vs(payment)
+            account_statement.payment_pair(payment)
             payment.save()
-    messages.info(request, _('Variable symbols succesfully paired.'))
+    messages.info(request, _('Payments succesfully paired.'))
 
 
-pair_variable_symbols.short_description = _("Pair payments with users based on variable symboles")
+pair_payment_with_dpch.short_description = _("Pair payments with users based on variable symboles or user bank account")
 
 
 def parse_statement(self, request, queryset):
@@ -1540,7 +1540,7 @@ def parse_statement(self, request, queryset):
         parse_account_statement.delay(statement.pk)
 
 
-parse_statement.short_description = _("Reparse account statement")
+parse_statement.short_description = _("Reparse CSV file")
 
 
 class AccountStatementsAdmin(unit_admin_mixin_generator('administrative_unit'), nested_admin.NestedModelAdmin):
@@ -1550,7 +1550,7 @@ class AccountStatementsAdmin(unit_admin_mixin_generator('administrative_unit'), 
     readonly_fields = ('import_date', 'payments_count')
     fields = copy.copy(list_display)
     actions = (
-        pair_variable_symbols,
+        pair_payment_with_dpch,
         parse_statement,
     )
 
