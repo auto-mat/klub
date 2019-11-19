@@ -200,12 +200,13 @@ class AdministrativeUnit(models.Model):
         null=True,
     )
     from_email_address = models.EmailField(
+        verbose_name=_("E-mail from address"),
         default="kp@auto-mat.cz",
         blank=False,
         null=False,
     )
     from_email_str = models.CharField(
-        verbose_name=_("Name"),
+        verbose_name=_("E-mail from identifier"),
         default='Klub pratel Auto*Matu <kp@auto-mat.cz>',
         max_length=255,
         blank=False,
@@ -2128,8 +2129,20 @@ class DonorPaymentChannel(models.Model):
         else:
             return None
 
-    last_payment_date.short_description = _("Last payment")
+    last_payment_date.short_description = _("Last payment date")
     last_payment_date.admin_order_field = 'last_payment__date'
+
+    def last_payment_amount(self):
+        """Return amount of last payment or None
+        """
+        last_payment = self.last_payment
+        if last_payment:
+            return last_payment.amount
+        else:
+            return None
+
+    last_payment_amount.short_description = _("Last payment amount")
+    last_payment_amount.admin_order_field = 'last_payment__amount'
 
     def registered_support_date(self):
         return self.registered_support.strftime('%d. %m. %Y')
