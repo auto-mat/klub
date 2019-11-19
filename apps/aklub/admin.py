@@ -1544,10 +1544,10 @@ parse_statement.short_description = _("Reparse CSV file")
 
 
 class AccountStatementsAdmin(unit_admin_mixin_generator('administrative_unit'), nested_admin.NestedModelAdmin):
-    list_display = ('type', 'import_date', 'payments_count', 'csv_file', 'administrative_unit', 'date_from', 'date_to')
+    list_display = ('type', 'import_date', 'payments_count', 'paired_payments', 'csv_file', 'administrative_unit', 'date_from', 'date_to')
     list_filter = ('type',)
     inlines = [PaymentsInlineNoExtra]
-    readonly_fields = ('import_date', 'payments_count')
+    readonly_fields = ('import_date', 'payments_count', 'paired_payments')
     fields = copy.copy(list_display)
     actions = (
         pair_payment_with_dpch,
@@ -1556,6 +1556,9 @@ class AccountStatementsAdmin(unit_admin_mixin_generator('administrative_unit'), 
 
     def payments_count(self, obj):
         return obj.payment_set.count()
+
+    def paired_payments(self, obj):
+        return obj.payment_set.filter(user_donor_payment_channel__isnull=False).count()
 
     # TODO: add reporting of skipped payments to Celery task
     # def save_model(self, request, obj, form, change):
