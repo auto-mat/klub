@@ -42,7 +42,6 @@ django-extra-views = "*"
 django-sesame = "==1.4"
 django-ses = "*"
 vokativ = "*"
-Django = ">=2,<3"
 "PyPDF2" = "*"
 django-post_office = {ref = "jsonfield2",git = "https://github.com/Mogost/django-post_office",editable = true}  # for django-jsonfield2 transition
 raven = "*"
@@ -89,6 +88,7 @@ django-filter = "*"
 django-js-urls = "*"
 mkdocs = "*"
 cairosvg = "*"
+django = {editable = true,git = "https://github.com/tmszi/django.git",ref = "ticket_31000_stable_2.2.x"}
 
 [dev-packages]
 coverage = "*"
