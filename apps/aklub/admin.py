@@ -339,7 +339,7 @@ def show_payments_by_year(self, request, queryset):
 show_payments_by_year.short_description = _("Show payments by year")
 
 
-def send_mass_communication_action(self, request, queryset, distinct=False):
+def send_mass_communication_action(self, request, queryset):
     """Mass communication action
 
     Determine the list of user ids from the associated
@@ -348,8 +348,6 @@ def send_mass_communication_action(self, request, queryset, distinct=False):
     users."""
     if queryset.model in Profile.__subclasses__():
         queryset = DonorPaymentChannel.objects.filter(user__in=queryset)
-    if distinct:
-        queryset = queryset.order_by('user__id').distinct('user')
     redirect_url = large_initial.build_redirect_url(
         request,
         "admin:aklub_masscommunication_add",
@@ -360,13 +358,6 @@ def send_mass_communication_action(self, request, queryset, distinct=False):
 
 
 send_mass_communication_action.short_description = _("Send mass communication")
-
-
-def send_mass_communication_distinct_action(self, req, queryset, distinct=False):
-    return send_mass_communication_action(self, req, queryset, True)
-
-
-send_mass_communication_distinct_action.short_description = _("Send mass communication withoud duplicities")
 
 
 def get_profile_admin_export_base_order_fields():
@@ -1129,7 +1120,6 @@ class DonorPaymethChannelAdmin(
     ordering = ('user__userprofile__last_name', 'user__companyprofile__name')
     actions = (
         send_mass_communication_action,
-        send_mass_communication_distinct_action,
         show_payments_by_year,
     )
     resource_class = DonorPaymentChannelResource
@@ -1746,7 +1736,6 @@ class BaseProfileChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModel
             inlines = []
         return inlines
 
-    actions = (send_mass_communication_distinct_action,)
     inlines = [
         PreferenceInline, ProfileEmailInline, TelephoneInline,
         DonorPaymentChannelInline, InteractionInline,
