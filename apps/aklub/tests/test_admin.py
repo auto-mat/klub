@@ -422,8 +422,8 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
         # self.assertEqual(donorpaymentchannel.activity_points, 13)
         # self.assertEqual(donorpaymentchannel.verified_by.username, 'testuser')
 
-    def test_pair_variable_symbols(self):
-        """ Test pair_variable_symbols action """
+    def test_pair_payments_with_dpch(self):
+        """ Test pair_payment_with_dpch action """
         payment_channel = donor_payment_channel_recipe.make(VS=123)
         payment = mommy.make("aklub.Payment", VS=123)
         account_statement = mommy.make(
@@ -431,10 +431,9 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
             payment_set=[payment],
         )
         request = self.post_request()
-        admin.pair_variable_symbols(None, request, [account_statement])
+        admin.pair_payment_with_dpch(None, request, [account_statement])
         payment.refresh_from_db()
         self.assertEqual(payment.user_donor_payment_channel, payment_channel)
-        self.assertEqual('Variabilní symboly úspěšně spárovány.', request._messages._queued_messages[0].message)
 
     def test_profile_post(self):
         """ Test Profile admin model add/change view """
