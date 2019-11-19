@@ -117,25 +117,6 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/aklub/masscommunication/add/?send_to_users=3%2C4%2C2978%2C2979")
 
-    def test_send_mass_communication_userprofile(self):
-        """
-        Test, that sending mass communication works for ProfileAdmin.
-        Communication shoul be send only once for every userprofile.
-        """
-        mutual_userprofile = mommy.make("aklub.UserProfile")
-        foo = mommy.make("aklub.UserProfile")
-        bar = mommy.make("aklub.UserProfile")
-        donor_payment_channel_recipe.make(id=3, user=mutual_userprofile)
-        donor_payment_channel_recipe.make(id=4, user=mutual_userprofile)
-        donor_payment_channel_recipe.make(id=2978, user=foo)
-        donor_payment_channel_recipe.make(id=2979, user=bar)
-        model_admin = django_admin.site._registry[DonorPaymentChannel]
-        request = self.post_request({})
-        queryset = UserProfile.objects.exclude(username=self.superuser.username)
-        response = admin.send_mass_communication_distinct_action(model_admin, request, queryset)
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, "/aklub/masscommunication/add/?send_to_users=3%2C2978%2C2979")
-
     @freeze_time("2017-5-1")
     def test_tax_confirmation_generate(self):
         _foo_user = user_profile_recipe.make(id=2978, first_name="Foo")
