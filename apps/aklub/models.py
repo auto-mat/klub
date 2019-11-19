@@ -199,6 +199,18 @@ class AdministrativeUnit(models.Model):
         blank=True,
         null=True,
     )
+    from_email_address = models.EmailField(
+        default="kp@auto-mat.cz",
+        blank=False,
+        null=False,
+    )
+    from_email_str = models.CharField(
+        verbose_name=_("Name"),
+        default='Klub pratel Auto*Matu <kp@auto-mat.cz>',
+        max_length=255,
+        blank=False,
+        null=False,
+    )
 
     def __str__(self):
         return str(self.name)
@@ -2729,14 +2741,17 @@ class Interaction(WithAdminUrl, BaseInteraction):
         typeseted and the admin presented with a 'print' button. Address for
         filling on the envelope should be displayed to the admin.
         """
+
+        administrative_unit = getattr(self, 'administrative_unit', None)
+
         if self.method == 'email':
-            bcc = [] if self.type == 'mass' else ['kp@auto-mat.cz']
+            bcc = [] if self.type == 'mass' else [administrative_unit.from_email_address if administrative_unit else 'kp@auto-mat.cz']
 
             if self.user.get_email_str() != "":
                 email = EmailMultiAlternatives(
                     subject=self.subject,
                     body=self.summary_txt(),
-                    from_email='Klub pratel Auto*Matu <kp@auto-mat.cz>',
+                    from_email=administrative_unit.from_email_str if administrative_unit else 'Klub pratel Auto*Matu <kp@auto-mat.cz>',
                     to=[self.user.get_email_str()],
                     bcc=bcc,
                 )
