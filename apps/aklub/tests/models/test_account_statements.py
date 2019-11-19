@@ -487,7 +487,7 @@ class TestPairPayments(TestCase):
             payment_set=[payment],
         )
 
-        return_value = account_statement.pair_vs(payment)
+        return_value = account_statement.payment_pair(payment)
 
         self.assertEqual(payment.user_donor_payment_channel, None)
         self.assertEqual(return_value, False)
