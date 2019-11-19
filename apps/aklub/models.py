@@ -1574,18 +1574,6 @@ class AccountStatements(models.Model):
             from .tasks import parse_account_statement
             transaction.on_commit(lambda: parse_account_statement.delay(self.pk))
 
-    def pair_vs(self, payment):
-        # Variable symbol pairing'
-        if payment.VS == '':
-            payment.VS = None
-        else:
-            try:
-                donor_with_vs = DonorPaymentChannel.objects.get(VS=payment.VS)
-                payment.user_donor_payment_channel = donor_with_vs
-                return True
-            except DonorPaymentChannel.DoesNotExist:
-                return False
-
     def payment_pair(self, payment):
         # Variable symbols and user bank account Payments pairing
         if payment.VS != '':
