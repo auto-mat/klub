@@ -440,6 +440,7 @@ class UserProfileResource(ProfileModelResourceMixin):
             ]
         )
         instance_loader_class = ProfileLoaderClass
+        clean_model_instances = True
 
 
 class CompanyProfileResource(ProfileModelResourceMixin):
@@ -454,6 +455,7 @@ class CompanyProfileResource(ProfileModelResourceMixin):
                 'contact_first_name', 'contact_last_name',
             ]
         )
+        clean_model_instances = True
 
 
 class ProfileResource(ProfileModelResource):
@@ -469,6 +471,7 @@ class ProfileResource(ProfileModelResource):
                 'birth_month', 'birth_day', 'profile_type',
             ]
         )
+        clean_model_instances = True
 
     profile_type = fields.Field()
 
