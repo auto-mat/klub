@@ -148,6 +148,21 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         self.factory = RequestFactory()
         self.client.force_login(self.superuser)
 
+        au = mommy.make(
+            'aklub.AdministrativeUnit',
+            name='test',
+        )
+        mommy.make(
+            'aklub.BankAccount',
+            administrative_unit=au,
+            bank_account_number='2233445566/0100',
+        )
+        mommy.make(
+            'aklub.BankAccount',
+            administrative_unit=au,
+            bank_account_number='3333333333/0300',
+        )
+
     def get_request(self, params=None):
         request = self.factory.get('/', params)
         request.user = self.superuser
@@ -252,6 +267,11 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
                 public=False,
             )
             user.administrative_units.add(administrative_unit)
+            mommy.make(
+                'aklub.BankAccount',
+                administrative_unit=administrative_unit,
+                bank_account_number='2233445566/0100',
+            )
 
     def test_profile_export(self):
         """ Test ProfileAdmin admin model export """
@@ -361,7 +381,7 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         )
         self.assertContains(
             response,
-            '11223344',
+            '22670319',
             html=True,
         )
         self.assertContains(
@@ -411,14 +431,14 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
 
         company_profile = Profile.objects.filter(email='test.companyprofile@companyprofile.test')
         self.assertEqual(company_profile.count(), 1)
-        self.assertEqual(company_profile[0].crn, '11223344')
-        self.assertEqual(company_profile[0].tin, '55667788')
+        self.assertEqual(company_profile[0].crn, '22670319')
+        self.assertEqual(company_profile[0].tin, 'CZ22670319')
         self.assertEqual(company_profile[0].name, 'Company')
         donor = DonorPaymentChannel.objects.filter(user=company_profile[0])
         self.assertEqual(donor.count(), 1)
         self.assertEqual(donor[0].VS, '1960243939')
         self.assertEqual(donor[0].event.name, 'Zažít město jinak')
-        bank_account = BankAccount.objects.filter(bank_account_number='1234567890/0200')
+        bank_account = BankAccount.objects.filter(bank_account_number='2233445566/0100')
         self.assertEqual(bank_account.count(), 1)
         self.assertEqual(donor[0].money_account, bank_account[0])
         user_bank_account = UserBankAccount.objects.filter(bank_account_number='5554443331/0900')
@@ -478,8 +498,8 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
 
         company_profile = Profile.objects.filter(email='test.companyprofile@companyprofile.test')
         self.assertEqual(company_profile.count(), 1)
-        self.assertEqual(company_profile[0].crn, '22334455')
-        self.assertEqual(company_profile[0].tin, '99887766')
+        self.assertEqual(company_profile[0].crn, '22670319')
+        self.assertEqual(company_profile[0].tin, 'CZ22670319')
         self.assertEqual(company_profile[0].name, 'Update Company')
         donor = DonorPaymentChannel.objects.filter(user=company_profile[0])
         self.assertEqual(donor.count(), 1)
@@ -512,7 +532,7 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(
             response,
-            '11223344',
+            '22670319',
             html=True,
         )
         self.assertContains(
@@ -713,12 +733,12 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(
             response,
-            '11223344',
+            '22670319',
             html=True,
         )
         self.assertContains(
             response,
-            '55667788',
+            '45772428',
             html=True,
         )
 
@@ -768,7 +788,7 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         )
         self.assertContains(
             response,
-            '11223344',
+            '22670319',
             html=True,
         )
         self.assertContains(
@@ -794,14 +814,14 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
 
         company_profile = Profile.objects.filter(email='test.companyprofile@companyprofile.test')
         self.assertEqual(company_profile.count(), 1)
-        self.assertEqual(company_profile[0].crn, '11223344')
-        self.assertEqual(company_profile[0].tin, '55667788')
+        self.assertEqual(company_profile[0].crn, '22670319')
+        self.assertEqual(company_profile[0].tin, 'CZ22670319')
         self.assertEqual(company_profile[0].name, 'Company')
         donor = DonorPaymentChannel.objects.filter(user=company_profile[0])
         self.assertEqual(donor.count(), 1)
         self.assertEqual(donor[0].VS, '1960243939')
         self.assertEqual(donor[0].event.name, 'Zažít město jinak')
-        bank_account = BankAccount.objects.filter(bank_account_number='1234567890/0200')
+        bank_account = BankAccount.objects.filter(bank_account_number='2233445566/0100')
         self.assertEqual(bank_account.count(), 1)
         self.assertEqual(donor[0].money_account, bank_account[0])
         user_bank_account = UserBankAccount.objects.filter(bank_account_number='5554443331/0900')
@@ -838,12 +858,13 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         }
         address = reverse('admin:aklub_companyprofile_process_import')
         response = self.client.post(address, post_data)
+
         self.assertRedirects(response, expected_url=reverse('admin:aklub_companyprofile_changelist'))
 
         company_profile = Profile.objects.filter(email='test.companyprofile@companyprofile.test')
         self.assertEqual(company_profile.count(), 1)
-        self.assertEqual(company_profile[0].crn, '22334455')
-        self.assertEqual(company_profile[0].tin, '99887766')
+        self.assertEqual(company_profile[0].crn, '22670319')
+        self.assertEqual(company_profile[0].tin, 'CZ22670319')
         self.assertEqual(company_profile[0].name, 'Update Company')
         donor = DonorPaymentChannel.objects.filter(user=company_profile[0])
         self.assertEqual(donor.count(), 1)
