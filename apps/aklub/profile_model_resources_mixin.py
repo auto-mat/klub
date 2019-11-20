@@ -114,11 +114,6 @@ def import_obj(self, obj, data, dry_run):  # noqa
 
     if data.get('event') and data.get('bank_account') and data.get('donor') == 'x':
         SS = data.get('SS', None)
-        if data.get('VS') != "":
-            VS = data['VS']
-        else:
-            from .views import generate_variable_symbol
-            VS = generate_variable_symbol()
         try:
             check['bank_account'] = BankAccount.objects.get(bank_account_number=data['bank_account'])
             check['event'] = Event.objects.get(id=data['event'])
@@ -128,10 +123,13 @@ def import_obj(self, obj, data, dry_run):  # noqa
         check['donors'], _ = DonorPaymentChannel.objects.get_or_create(
                 user=obj,
                 event=check['event'],
-                defaults={'VS': VS, 'SS': SS, 'money_account': check['bank_account']},
+                defaults={'SS': SS, 'money_account': check['bank_account']},
             )
-        print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+        if data.get('VS') != "" and _:
+            check['donors'].VS = data.get('VS')
+
         check['donors'].money_account = check['bank_account']
+        check['donors'].full_clean()
         check['donors'].save()
 
         if data.get('user_bank_account'):
