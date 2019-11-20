@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from django.core.exceptions import ValidationError
 
 from import_export import fields
 from import_export.resources import ModelResource
@@ -54,23 +55,35 @@ def get_preference_model_custom_field_dehydrate_func():
 
     return funcs
 
+
+def new_objects_validations(check):
+    errors = {}
+    for key in check.keys():
+        try:
+            check[key].full_clean()
+        except Exception as e:
+            e.update_error_dict(errors)
+    if errors:
+        raise ValidationError(errors)
+
+
 def import_obj(self, obj, data, dry_run):  # noqa
+    check = {}
     # Call this method only in the ProfileResource model resource subclass
     if hasattr(self, '_set_child_model_field_value'):
         self._set_child_model_field_value(obj=obj, data=data)
     obj.save()
     if data.get('username') == "":
         data["username"] = None
+
     if data.get('telephone'):
-        telephone, _ = Telephone.objects.get_or_create(
+        check['telephone'], _ = Telephone.objects.get_or_create(
             telephone=data['telephone'],
             user=obj,
             defaults={'is_primary': None},
         )
-    if data.get("email") == "":
-        data["email"] = None
     if data.get("email"):
-        ProfileEmail.objects.get_or_create(
+        check['email'], _ = ProfileEmail.objects.get_or_create(
             email=data["email"],
             user=obj,
             defaults={'is_primary': True},
@@ -80,24 +93,24 @@ def import_obj(self, obj, data, dry_run):  # noqa
         if not obj.administrative_units.filter(id=data["administrative_units"]):
             obj.administrative_units.add(data["administrative_units"])
             obj.save()
-        preference, _ = Preference.objects.get_or_create(
+        check['preference'], _ = Preference.objects.get_or_create(
             user=obj,
             administrative_unit=obj.administrative_units.get(id=data["administrative_units"]),
         )
         if data.get("newsletter_on") is not None:
-            preference.newsletter_on = data['newsletter_on']
+            check['preference'].newsletter_on = data['newsletter_on']
         if data.get("call_on") is not None:
-            preference.call_on = data['call_on']
+            check['preference'].call_on = data['call_on']
         if data.get("challenge_on") is not None:
-            preference.challenge_on = data['challenge_on']
+            check['preference'].challenge_on = data['challenge_on']
         if data.get("letter_on") is not None:
-            preference.letter_on = data['letter_on']
+            check['preference'].letter_on = data['letter_on']
         if data.get("send_mailing_lists") is not None:
-            preference.send_mailing_lists = data['send_mailing_lists']
+            check['preference'].send_mailing_lists = data['send_mailing_lists']
         if data.get("public") is not None:
-            preference.public = data['public']
+            check['preference'].public = data['public']
 
-        preference.save()
+        check['preference'].save()
 
     if data.get('event') and data.get('donor') == 'x':
         SS = data.get('SS', None)
@@ -108,23 +121,26 @@ def import_obj(self, obj, data, dry_run):  # noqa
             VS = generate_variable_symbol()
 
         if data.get('bank_account') and data.get("administrative_units"):
-            bank_account, _ = BankAccount.objects.get_or_create(bank_account_number=data['bank_account'])
-            bank_account.administrative_unit = obj.administrative_units.get(id=data["administrative_units"])
-            bank_account.save()
+            check['bank_account'], _ = BankAccount.objects.get_or_create(bank_account_number=data['bank_account'])
+            check['bank_account'].administrative_unit = obj.administrative_units.get(id=data["administrative_units"])
+            check['bank_account'].save()
 
-        event, _ = Event.objects.get_or_create(id=data['event'])
-        donors, _ = DonorPaymentChannel.objects.get_or_create(
-            user=obj,
-            event=event,
-            defaults={'VS': VS, 'SS': SS, 'money_account': bank_account},
-        )
-        donors.money_account = bank_account
-        donors.save()
+        check['event'], _ = Event.objects.get_or_create(id=data['event'])
+        check['donors'], _ = DonorPaymentChannel.objects.get_or_create(
+                user=obj,
+                event=check['event'],
+                defaults={'VS': VS, 'SS': SS, 'money_account': check['bank_account']},
+            )
+        check['donors'].money_account = check['bank_account']
+        check['donors'].save()
 
         if data.get('user_bank_account'):
-            user_bank_account, _ = UserBankAccount.objects.get_or_create(bank_account_number=data['user_bank_account'])
-            donors.user_bank_account = user_bank_account
-            donors.save()
+            check['user_bank_account'], _ = UserBankAccount.objects.get_or_create(bank_account_number=data['user_bank_account'])
+            check['donors'].user_bank_account = check['user_bank_account']
+            check['donors'].save()
+
+    new_objects_validations(check)
+
     return super(ModelResource, self).import_obj(obj, data, dry_run)
 
 
