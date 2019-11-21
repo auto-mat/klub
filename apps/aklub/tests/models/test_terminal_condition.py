@@ -117,8 +117,8 @@ class BaseTestCase(TestCase):
         def pk(o):  # pragma: no cover
             return o.pk  # pragma: no cover
         return self.assertEqual(  # pragma: no cover
-            list(sorted(qs1, key=pk)),
-            list(sorted(qs2, key=pk)),
+            sorted(qs1, key=pk),
+            sorted(qs2, key=pk),
         )
 
     def assertQueryEquals(self, q1, q2):
