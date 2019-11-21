@@ -379,6 +379,11 @@ def get_company_profile_resource():
     return CompanyProfileResource
 
 
+def get_donor_payment_channel_resource():
+    from aklub.admin import DonorPaymentChannelResource
+    return DonorPaymentChannelResource
+
+
 IMPORT_EXPORT_CELERY_MODELS = {
     "User profile": {
         'app_label': 'aklub',
@@ -389,5 +394,10 @@ IMPORT_EXPORT_CELERY_MODELS = {
         'app_label': 'aklub',
         'model_name': 'CompanyProfile',
         'resource': get_company_profile_resource,
+    },
+    "Donor Payment Channel": {
+        'app_label': 'aklub',
+        'model_name': 'DonorPaymentChannel',
+        'resource': get_donor_payment_channel_resource,
     },
 }
