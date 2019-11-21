@@ -976,9 +976,9 @@ class DonorPaymentChannelLoaderClass(BaseInstanceLoader):
                                             money_account=money_account,
             )
         except Event.DoesNotExist:
-            raise ValidationError('Event with this name doesnt exist')
+            raise ValidationError({'event': 'Event with this name doesnt exist'})
         except MoneyAccount.DoesNotExist:
-            raise ValidationError('MoneyAccount with this bank_number doesnt exist')
+            raise ValidationError({'moneyaccount': 'MoneyAccount with this bank_number doesnt exist'})
 
         except DonorPaymentChannel.DoesNotExist:
             return None
@@ -1016,7 +1016,7 @@ class DonorPaymentChannelResource(ModelResource):
             row['email'] = row['email'].lower()
             row['user'] = ProfileEmail.objects.get(email=row['email']).user.id
         except ProfileEmail.DoesNotExist:
-            raise ValidationError("User with this email doesn't exist")
+            raise ValidationError({"email": "User with this email doesn't exist"})
 
     def import_obj(self, obj, data, dry_run):
         super(ModelResource, self).import_obj(obj, data, dry_run)
