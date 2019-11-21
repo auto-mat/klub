@@ -34,7 +34,7 @@ django-adminactions = {editable = true,git = "https://github.com/saxix/django-ad
 django-helpdesk = {editable = true,git = "https://github.com/auto-mat/django-helpdesk.git",ref = "timeline"}
 django-admin-large-initial-data = "*"
 # https://github.com/areski/django-admin-tools-stats/pull/49
-django-admin-tools-stats = {ref = "ajax_loading",git = "https://github.com/PetrDlouhy/django-admin-tools-stats",editable = true}
+django-admin-charts = ">=0.11.0"
 django-bower = "*"
 djcacheutils = "*"
 django-adminfilters = "<1.1"
