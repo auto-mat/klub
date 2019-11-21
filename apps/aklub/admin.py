@@ -1362,7 +1362,15 @@ class InteractionAdmin(
     )
     autocomplete_fields = ('user', 'event')
     readonly_fields = ('type', 'created_by', 'handled_by', )
-    list_filter = ['dispatched', 'send', 'date', 'method', 'type', 'event']
+    list_filter = [
+        'dispatched',
+        'send',
+        'date',
+        'method',
+        'type',
+        'event',
+        'administrative_unit',
+    ]
     search_fields = (
         'subject',
         # 'user__userprofile__telephone',
@@ -1370,7 +1378,6 @@ class InteractionAdmin(
         'user__userprofile__last_name',
         'user__companyprofile__name',
         'user__email',
-        'administrative_unit',
     )
     date_hierarchy = 'date'
     ordering = ('-date',)
