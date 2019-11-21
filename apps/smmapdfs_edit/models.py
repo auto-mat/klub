@@ -11,7 +11,7 @@ class PdfSandwichTypeConnector(models.Model):
                      on_delete=models.CASCADE,
     )
 
-    administrative_unit = models.ForeignKey(
+    administrative_unit = models.OneToOneField(
         AdministrativeUnit,
         on_delete=models.CASCADE,
         null=True,
@@ -25,7 +25,7 @@ class PdfSandwichEmailConnector(models.Model):
                      on_delete=models.CASCADE,
     )
 
-    administrative_unit = models.ForeignKey(
+    administrative_unit = models.OneToOneField(
         AdministrativeUnit,
         on_delete=models.CASCADE,
         null=True,
@@ -39,7 +39,7 @@ class PdfSandwichFontConnector(models.Model):
                      on_delete=models.CASCADE,
     )
 
-    administrative_unit = models.ForeignKey(
+    administrative_unit = models.OneToOneField(
         AdministrativeUnit,
         on_delete=models.CASCADE,
         null=True,
