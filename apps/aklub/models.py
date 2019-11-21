@@ -55,7 +55,6 @@ from polymorphic.managers import PolymorphicManager
 from polymorphic.models import PolymorphicModel
 
 from smmapdfs.model_abcs import PdfSandwichABC, PdfSandwichFieldABC
-from smmapdfs.models import PdfSandwichType
 
 import stdimage
 
@@ -3346,12 +3345,12 @@ class TaxConfirmation(models.Model):
 
     def get_pdf(self):
         try:
-            url = self.taxconfirmationpdf_set.get().pdf.url
-        except TaxConfirmationPdf.DoesNotExist:
             try:
+                url = self.taxconfirmationpdf_set.get().pdf.url
+            except TaxConfirmationPdf.DoesNotExist:
                 url = self.file.url
-            except ValueError:
-                url = None
+        except ValueError:
+            url = None
         if url:
             return format_html("<a href='{}'>{}</a>", url, _('PDF file'))
         else:
@@ -3371,7 +3370,7 @@ class TaxConfirmation(models.Model):
     sandwich_model = TaxConfirmationPdf
 
     def get_sandwich_type(self):
-        return PdfSandwichType.objects.get(name="Tax confirmation")
+        return self.user_profile.administrative_units.first().pdfsandwichtypeconnector.pdfsandwichtype
 
     def get_payment_set(self):
         return Payment.objects.filter(user_profile=self.user_profile).exclude(type='expected').filter(date__year=self.year)
