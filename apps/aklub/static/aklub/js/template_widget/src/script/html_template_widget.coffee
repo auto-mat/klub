@@ -306,10 +306,15 @@ class HtmlTemplateFormFieldWidget
     @_newEmptyTemplateName = null
 
   _addNewSelectOpt: (text, element) ->
+    options = $("#{ @getIdFormat @_templateNameFieldId } option")
+    values = $.map options, (option) -> option.value
+
     value = "new_empty_template:#{ text }"
-    opt = new Option(text, value)
-    element.append(opt)
-    element.val(value)
+
+    if values.indexOf(value) == -1
+      opt = new Option(text, value)
+      element.append(opt)
+      element.val(value)
 
   getIdFormat: (id) ->
     "##{ id }"
