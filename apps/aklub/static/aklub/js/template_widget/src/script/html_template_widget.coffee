@@ -300,7 +300,7 @@ class HtmlTemplateFormFieldWidget
       @_addNewSelectOpt(@_newEmptyTemplateName, @_$templateNameField)
 
       # Erase template name
-      @__eraseNewTemplateName()
+      @_eraseNewTemplateName()
 
   _eraseNewTemplateName: () ->
     @_newEmptyTemplateName = null
