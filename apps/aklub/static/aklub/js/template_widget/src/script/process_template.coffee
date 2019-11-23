@@ -22,9 +22,17 @@ class PostProcessHtmlTemplate
   convertVideoIframeToImgThumbnail: (htmlDoc) ->
 
     youtubeRegex = new RegExp 'youtube.com.*(v=|/embed/)(.{11})'
-    vimeoRegex = new RegExp 'vimeo.com.*(.{8})'
+    vimeoRegex = new RegExp 'vimeo.com.*(.{7})'
 
-    $(htmlDoc).find('iframe').each (i, element) ->
+    addThumbnail = ($videoThumbnail, $clickableVideoThumbnail, element, iframeCssFloatProperty) ->
+      $videoThumbnail.css 'float', iframeCssFloatProperty
+      # Add video thumbnail
+      $clickableVideoThumbnail.append $videoThumbnail
+      $(element).after $clickableVideoThumbnail
+      # Remove video iframe
+      $(element).remove()
+      
+    $(htmlDoc).find('iframe').each (i, element) =>
       iframeSrc = $(element).attr 'src'
       iframeCssFloatProperty = $(element).css 'float'
       iframeWidth = $(element).attr 'width'
@@ -48,32 +56,57 @@ class PostProcessHtmlTemplate
         videoThumbnailSrc = "//img.youtube.com/vi/#{ videoId }/0.jpg"
         $videoThumbnail.attr 'src', videoThumbnailSrc
 
+        addThumbnail(
+          $videoThumbnail, 
+          $clickableVideoThumbnail, 
+          element, iframeCssFloatProperty
+        )
+
       else if iframeSrc.match(vimeoRegex)
 
         videoId = iframeSrc.match(vimeoRegex).pop()
+
         $clickableVideoThumbnail.attr 'id', videoId
         $clickableVideoThumbnail.addClass 'vimeo'
 
-        success = (data) =>
-          videoThumbnailSrc = data[0].thumbnail_large
-          $(element).videoThumbnail.attr 'src', videoThumbnailSrc
+        success = (data) ->
+          # videoThumbnailSrc = data[0].thumbnail_large
+          # attr = 
+          #  'src': videoThumbnailSrc
 
+          attr =
+            src: data['thumbnail_url'],
+            width: data['thumbnail_width'],
+            height: data['thumbnail_height']
+
+          $videoThumbnail.attr attr
+
+          addThumbnail(
+            $videoThumbnail, 
+            $clickableVideoThumbnail, 
+            element, iframeCssFloatProperty
+          )
+
+        # Get embed player info
+        # Player video thumbnail size != iFrame size
+        # Use embed player video thumbnail size
+        # https://developer.vimeo.com/api/oembed/videos
+        url = "https%3A//vimeo.com/#{ videoId }&width=#{ iframeWidth }&height=#{ iframeHeight }"
         ajaxData = 
           type: 'GET',
-          url: "http://vimeo.com/api/v2/video/#{ videoId }.json"
+          # url: "http://vimeo.com/api/v2/video/#{ videoId }.json"
+          url: "https://vimeo.com/api/oembed.json?url=#{ url }"
           jsonp: 'callback',
           dataType: 'jsonp',
-          context: {videoThumbnail: $videoThumbnail}
+          context: {
+            $videoThumbnail: $videoThumbnail,
+            $clickableVideoThumbnail: $clickableVideoThumbnail,
+            element: element,
+            iframeCssFloatProperty: iframeCssFloatProperty
+            }
           success: success
 
         $.ajax ajaxData 
-
-      $videoThumbnail.css 'float', iframeCssFloatProperty
-      # Add video thumbnail
-      $clickableVideoThumbnail.append $videoThumbnail
-      $(element).after $clickableVideoThumbnail
-      # Remove video iframe
-      $(element).remove()
 
   convertCssToInlineStyle: (htmlDoc, $editTemplatePageContainer) ->
     @inlineStyler $(htmlDoc)
@@ -205,7 +238,7 @@ class PostProcessHtmlTemplate
       $videoIframe.remove() 
     else
       $img.remove()
-    console.log($tableWrapper)
+
     return
 
   convertImgFloatCssPositionToTable: ($img, $editContainer, position) ->
@@ -266,6 +299,9 @@ class PostProcessHtmlTemplate
         margin: '10px'
         padding: '15px'
         })
+
+  getIdFormat: (id) ->
+    "##{ id }"
 
   getClassFormat: (className) ->
     ".#{ className }"
