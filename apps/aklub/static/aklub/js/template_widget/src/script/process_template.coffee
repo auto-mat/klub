@@ -15,9 +15,12 @@ class PostProcessHtmlTemplate
     @_textContainerTags = ['p', 'ul', 'ol', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6']
 
     # Methods
+
     @convertVideoIframeToImgThumbnail @_htmlDoc
 
-    @convertCssToInlineStyle @_htmlDoc, @_$editTemplatePageContainer
+    # Wait for an ajax requests are done
+    $(document).ajaxStop () =>
+      @convertCssToInlineStyle @_htmlDoc, @_$editTemplatePageContainer
 
   convertVideoIframeToImgThumbnail: (htmlDoc) ->
 
@@ -55,11 +58,11 @@ class PostProcessHtmlTemplate
 
         videoThumbnailSrc = "//img.youtube.com/vi/#{ videoId }/0.jpg"
         $videoThumbnail.attr 'src', videoThumbnailSrc
-
         addThumbnail(
           $videoThumbnail, 
           $clickableVideoThumbnail, 
-          element, iframeCssFloatProperty
+          element, 
+          iframeCssFloatProperty
         )
 
       else if iframeSrc.match(vimeoRegex)
@@ -84,7 +87,8 @@ class PostProcessHtmlTemplate
           addThumbnail(
             $videoThumbnail, 
             $clickableVideoThumbnail, 
-            element, iframeCssFloatProperty
+            element, 
+            iframeCssFloatProperty
           )
 
         # Get embed player info
@@ -106,7 +110,7 @@ class PostProcessHtmlTemplate
             }
           success: success
 
-        $.ajax ajaxData 
+        $.ajax ajaxData
 
   convertCssToInlineStyle: (htmlDoc, $editTemplatePageContainer) ->
     @inlineStyler $(htmlDoc)
@@ -173,7 +177,6 @@ class PostProcessHtmlTemplate
     $img.css 'display', ''
 
     if (marginLeft is marginRight) and (floatPosition is 'none')
-
       $tableWrapper = @getElementPosition('center', '', '')
 
     else if marginLeft > marginRight
