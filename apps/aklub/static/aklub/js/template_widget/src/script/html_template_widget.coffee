@@ -1,4 +1,8 @@
-class HtmlTemplateFormFieldWidget
+###
+  HtmlTemplateFormFieldWidget class
+###
+
+class HtmlTemplateFormFieldWidget extends FormatSelectorMixin
 
   constructor: (
     editTemplateModalDialogId,
@@ -171,6 +175,7 @@ class HtmlTemplateFormFieldWidget
     @_popoverDialogOpts.mount(offsetTop, offsetLeft)
 
   _bindPopoverDialogMouseMoveEvt: () ->
+
     @_popoverDialogOpts = new PopoverModalDialog(
       gettext('Edit template'), 
       @_popoverModalDialogBackDrop,
@@ -316,8 +321,3 @@ class HtmlTemplateFormFieldWidget
       element.append(opt)
       element.val(value)
 
-  getIdFormat: (id) ->
-    "##{ id }"
-
-  getClassFormat: (className) ->
-    ".#{ className }"

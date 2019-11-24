@@ -1,4 +1,8 @@
-class EditTemplateModalDialog  
+###
+  EditTemplateModalDialog class
+###
+
+class EditTemplateModalDialog extends FormatSelectorMixin
 
   constructor: (
     dialogId,
@@ -91,10 +95,4 @@ class EditTemplateModalDialog
 
   show: (elementId) ->
     mdl_open(elementId)
-
-  getIdFormat: (id) ->
-    "##{ id }"
-
-  getClassFormat: (className) ->
-    ".#{ className }"
 

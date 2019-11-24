@@ -1,5 +1,9 @@
-class PostProcessHtmlTemplate
-  
+###
+  PostProcessHtmlTemplate class
+###
+
+class PostProcessHtmlTemplate extends FormatSelectorMixin
+
   constructor: (htmlDoc, $editTemplatePageContainer, $templateDivField, $hiddenTemplateField) ->
 
     @_htmlDoc = htmlDoc
@@ -25,6 +29,7 @@ class PostProcessHtmlTemplate
   convertVideoIframeToImgThumbnail: (htmlDoc) ->
 
     youtubeRegex = new RegExp 'youtube.com.*(v=|/embed/)(.{11})'
+    
     vimeoRegex = new RegExp 'vimeo.com.*(.{7})'
 
     addThumbnail = ($videoThumbnail, $clickableVideoThumbnail, element, iframeCssFloatProperty) ->
@@ -91,10 +96,13 @@ class PostProcessHtmlTemplate
             iframeCssFloatProperty
           )
 
-        # Get embed player info
-        # Player video thumbnail size != iFrame size
-        # Use embed player video thumbnail size
-        # https://developer.vimeo.com/api/oembed/videos
+        ###
+          Get embed player info
+          Player video thumbnail size != iFrame size
+          Use embed player video thumbnail size
+          https://developer.vimeo.com/api/oembed/videos
+        ###
+
         url = "https%3A//vimeo.com/#{ videoId }&width=#{ iframeWidth }&height=#{ iframeHeight }"
         ajaxData = 
           type: 'GET',
@@ -113,9 +121,13 @@ class PostProcessHtmlTemplate
         $.ajax ajaxData
 
   convertCssToInlineStyle: (htmlDoc, $editTemplatePageContainer) ->
+
     @inlineStyler $(htmlDoc)
+
     @replaceImgSrc $editTemplatePageContainer
+
     @convertTextCssPositionToTable $editTemplatePageContainer
+
     @_$templateDivField.html $editTemplatePageContainer
     @_$hiddenTemplateField.val $editTemplatePageContainer.html()
 
@@ -303,8 +315,3 @@ class PostProcessHtmlTemplate
         padding: '15px'
         })
 
-  getIdFormat: (id) ->
-    "##{ id }"
-
-  getClassFormat: (className) ->
-    ".#{ className }"

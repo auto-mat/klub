@@ -1,4 +1,8 @@
-class PopoverModalDialog
+###
+  PopoverModalDialog class
+###
+
+class PopoverModalDialog extends FormatSelectorMixin
 
   @editTemplateLinkText = gettext('Edit template')
   @dialogId = 'edit_template'
@@ -64,6 +68,7 @@ class PopoverModalDialog
     @delay @_destroyDelay, => @unmount()
 
   mount: (offsetTop, offsetLeft) ->
+
     opts = @_getOpt()
     opts.offsetTop = offsetTop
     opts.offsetLeft = offsetLeft
@@ -71,15 +76,14 @@ class PopoverModalDialog
     WebuiPopovers.show(@_$mountElement, opts)
 
   unmount: () ->
+
     @_$mountElement.webuiPopover('hide')
     @_$mountElement.webuiPopover('destroy')
 
   delay: (ms, func) -> setTimeout func, ms
 
-  getIdFormat: (id) ->
-    return "##{ id }"
-
   @getContent: (popoverModalDialogEditTemplateLinkElementId, editTemplateModalDialogId) ->
+
     $element = $ '<a></a>'
     $element.attr({id: @dialogId, href: ''})
 

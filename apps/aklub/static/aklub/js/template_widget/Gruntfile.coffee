@@ -16,12 +16,14 @@ module.exports = (grunt) ->
                 #    sourceMap: true
                 files:
                     'src/tmp/template_widget.js': [
+                         'src/script/mixins.coffee',
                         'src/script/app_init.coffee',
                         'src/script/popover_dialog.coffee',
                         'src/script/get_template_name_dialog.coffee',
                         'src/script/edit_template_dialog.coffee',
                         'src/script/html_template_widget.coffee',
-                        'src/script/process_template.coffee',
+                        'src/script/process_template.coffee'
+
                     ]
 
         uglify:
