@@ -1,4 +1,8 @@
-class GetTemplateNameDialog
+###
+  GetTemplateNameDialog class
+###
+
+class GetTemplateNameDialog extends FormatSelectorMixin
 
   constructor: (
     showDelay,
@@ -69,6 +73,7 @@ class GetTemplateNameDialog
     $formContentContainer.append($formErrorListContainer)
 
     divContainer.append(form.append($formContentContainer))
+
     return divContainer
 
   getNeEmptyTemplateName: () ->
@@ -183,9 +188,3 @@ class GetTemplateNameDialog
       buttons: @_getBtns()
 
     return opt
-
-  getIdFormat: (id) ->
-    "##{ id }"
-
-  getClassFormat: (className) ->
-    ".#{ className }"
