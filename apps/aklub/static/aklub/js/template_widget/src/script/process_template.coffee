@@ -19,18 +19,16 @@ class PostProcessHtmlTemplate extends FormatSelectorMixin
     @_textContainerTags = ['p', 'ul', 'ol', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6']
 
     # Methods
+    @convertVideoIframeToImgThumbnail()
 
-    @convertVideoIframeToImgThumbnail @_htmlDoc
+  convertVideoIframeToImgThumbnail: () ->
 
-    # Wait for an ajax requests are done
-    $(document).ajaxStop () =>
-      @convertCssToInlineStyle @_htmlDoc, @_$editTemplatePageContainer
-
-  convertVideoIframeToImgThumbnail: (htmlDoc) ->
+    promises = []
+    hasVideo = false
 
     youtubeRegex = new RegExp 'youtube.com.*(v=|/embed/)(.{11})'
-    
-    vimeoRegex = new RegExp 'vimeo.com.*(.{7})'
+
+    vimeoRegex = new RegExp 'vimeo.com.*./(.*)'
 
     addThumbnail = ($videoThumbnail, $clickableVideoThumbnail, $videoCaption, element, iframeCssFloatProperty) ->
 
@@ -71,7 +69,8 @@ class PostProcessHtmlTemplate extends FormatSelectorMixin
         @iframeCssFloatProperty
       )
 
-    $(htmlDoc).find('iframe').each (i, element) =>
+    $(@_htmlDoc).find('iframe').each (i, element) =>
+
       iframeSrc = $(element).attr 'src'
       iframeCssFloatProperty = $(element).css 'float'
       iframeWidth = $(element).attr 'width'
@@ -85,6 +84,7 @@ class PostProcessHtmlTemplate extends FormatSelectorMixin
         width: iframeWidth,
         height: iframeHeight
         })
+
       $videoCaption = $ '<figcaption></figcaption>'
       css =
         'text-align': 'center',
@@ -92,6 +92,8 @@ class PostProcessHtmlTemplate extends FormatSelectorMixin
       $videoCaption.css css
 
       if iframeSrc.match(youtubeRegex)
+
+        hasVideo = true
 
         videoId = iframeSrc.match(youtubeRegex).pop()
         $clickableVideoThumbnail.attr 'id', videoId
@@ -111,9 +113,11 @@ class PostProcessHtmlTemplate extends FormatSelectorMixin
           iframeCssFloatProperty: iframeCssFloatProperty,
           videoType: 'youtube'
 
-        $.ajax @getAjaxData context, url, success, type='GET', dataType='jsonp'
+        promises.push $.ajax @getAjaxData context, url, success, type='GET', dataType='jsonp'
 
       else if iframeSrc.match(vimeoRegex)
+
+        hasVideo = true
 
         videoId = iframeSrc.match(vimeoRegex).pop()
 
@@ -138,7 +142,11 @@ class PostProcessHtmlTemplate extends FormatSelectorMixin
           iframeCssFloatProperty: iframeCssFloatProperty,
           videoType: 'vimeo'
 
-        $.ajax @getAjaxData context, url, success, type='GET', dataType='jsonp'
+        promises.push $.ajax @getAjaxData context, url, success, type='GET', dataType='jsonp'
+
+    # Wait for an all ajax request done
+    $.when.apply(null, promises).done () =>
+      @convertCssToInlineStyle()
 
   getAjaxData: (context, url, success, type='GET', dataType='json') ->
     ajaxData =
@@ -149,16 +157,13 @@ class PostProcessHtmlTemplate extends FormatSelectorMixin
       context: context,
       success: success
 
-  convertCssToInlineStyle: (htmlDoc, $editTemplatePageContainer) ->
+  convertCssToInlineStyle: () ->
 
-    @inlineStyler $(htmlDoc)
-
-    @replaceImgSrc $editTemplatePageContainer
-
-    @convertTextCssPositionToTable $editTemplatePageContainer
-
-    @_$templateDivField.html $editTemplatePageContainer
-    @_$hiddenTemplateField.val $editTemplatePageContainer.html()
+    @inlineStyler $(@_htmlDoc)
+    @replaceImgSrc()
+    @convertTextCssPositionToTable()
+    @_$templateDivField.html @_$editTemplatePageContainer
+    @_$hiddenTemplateField.val @_$editTemplatePageContainer.html()
 
   inlineStyler: ($element) ->
     $element.inlineStyler()
@@ -192,10 +197,12 @@ class PostProcessHtmlTemplate extends FormatSelectorMixin
 
     $table.append $tableBody.append $tableRow.append $tableCell
 
-  replaceImgSrc: ($editTemplatePageContainer) ->
+  replaceImgSrc: () ->
 
-    $imgs = $editTemplatePageContainer.find 'img'
+    $imgs = @_$editTemplatePageContainer.find 'img'
+
     $imgs.each (i, element) =>
+
       $clickableVideoThumbnail = $(element).closest @getClassFormat @_videoClass
       $img = if $clickableVideoThumbnail.length > 0 then $clickableVideoThumbnail else $(element)
 
@@ -208,10 +215,12 @@ class PostProcessHtmlTemplate extends FormatSelectorMixin
           imgSrc = "#{ window.origin }#{ $(element).attr('src') }"
           $(element).attr('src', imgSrc)
 
-      @convertImageCssPositionToTable $img, $editTemplatePageContainer
+      @convertImageCssPositionToTable $img
 
-  convertImageCssPositionToTable: ($img, $editTemplatePageContainer) ->
+  convertImageCssPositionToTable: ($img) ->
+
     $img =  if $img.find('img').length > 0 then $img.find 'img' else $img
+
     marginLeft = parseInt($img.css('margin-left').split('.')[0].replace('px', ''))
     marginRight = parseInt($img.css('margin-right').split('.')[0].replace('px', ''))
     floatPosition = $img.css 'float'
@@ -229,7 +238,7 @@ class PostProcessHtmlTemplate extends FormatSelectorMixin
           )
         $tableCell = @convertImgFloatCssPositionToTable(
           $img, 
-          $editTemplatePageContainer, 
+          @_$editTemplatePageContainer, 
           floatPosition
           )
 
@@ -242,7 +251,7 @@ class PostProcessHtmlTemplate extends FormatSelectorMixin
           )
         $tableCell = @convertImgFloatCssPositionToTable(
           $img, 
-          $editTemplatePageContainer, 
+          @_$editTemplatePageContainer, 
           floatPosition
           )
 
@@ -255,7 +264,7 @@ class PostProcessHtmlTemplate extends FormatSelectorMixin
           )
         $tableCell = @convertImgFloatCssPositionToTable(
           $img, 
-          $editTemplatePageContainer, 
+          @_$editTemplatePageContainer, 
           floatPosition
           ) 
 
@@ -316,9 +325,9 @@ class PostProcessHtmlTemplate extends FormatSelectorMixin
 
     return $tableCell
 
-  convertTextCssPositionToTable: ($editPageContainer) ->
+  convertTextCssPositionToTable: () ->
 
-    $editPageContainer.find(@_textContainerTags.join(', ')).each (i, element) =>
+    @_$editTemplatePageContainer.find(@_textContainerTags.join(', ')).each (i, element) =>
       elementCssClass = if $(element).attr('class') then $(element).attr('class').split(' ') else []
 
       switch elementCssClass
