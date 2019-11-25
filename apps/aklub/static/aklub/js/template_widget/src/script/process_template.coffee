@@ -32,14 +32,45 @@ class PostProcessHtmlTemplate extends FormatSelectorMixin
     
     vimeoRegex = new RegExp 'vimeo.com.*(.{7})'
 
-    addThumbnail = ($videoThumbnail, $clickableVideoThumbnail, element, iframeCssFloatProperty) ->
+    addThumbnail = ($videoThumbnail, $clickableVideoThumbnail, $videoCaption, element, iframeCssFloatProperty) ->
+
       $videoThumbnail.css 'float', iframeCssFloatProperty
+
       # Add video thumbnail
       $clickableVideoThumbnail.append $videoThumbnail
+
+      # Add video thumbnail figcaption
+      $clickableVideoThumbnail.append $videoCaption
+
       $(element).after $clickableVideoThumbnail
+
       # Remove video iframe
       $(element).remove()
-      
+
+    success = (data) ->
+      # videoThumbnailSrc = data[0].thumbnail_large
+      # attr = 
+      #  'src': videoThumbnailSrc
+
+      if @videoType is 'vimeo'
+
+        attr =
+          src: data['thumbnail_url'],
+          width: data['thumbnail_width'],
+          height: data['thumbnail_height']
+
+        @$videoThumbnail.attr attr
+
+      @$videoCaption.text data['title']
+
+      addThumbnail(
+        @$videoThumbnail,
+        @$clickableVideoThumbnail,
+        @$videoCaption,
+        @element,
+        @iframeCssFloatProperty
+      )
+
     $(htmlDoc).find('iframe').each (i, element) =>
       iframeSrc = $(element).attr 'src'
       iframeCssFloatProperty = $(element).css 'float'
@@ -54,6 +85,11 @@ class PostProcessHtmlTemplate extends FormatSelectorMixin
         width: iframeWidth,
         height: iframeHeight
         })
+      $videoCaption = $ '<figcaption></figcaption>'
+      css =
+        'text-align': 'center',
+        'font-size': '12px'
+      $videoCaption.css css
 
       if iframeSrc.match(youtubeRegex)
 
@@ -63,12 +99,19 @@ class PostProcessHtmlTemplate extends FormatSelectorMixin
 
         videoThumbnailSrc = "//img.youtube.com/vi/#{ videoId }/0.jpg"
         $videoThumbnail.attr 'src', videoThumbnailSrc
-        addThumbnail(
-          $videoThumbnail, 
-          $clickableVideoThumbnail, 
-          element, 
-          iframeCssFloatProperty
-        )
+
+        subUrl = "http://www.youtube.com/watch?v=#{ videoId }&"
+        url = "https://noembed.com/embed?url=#{ subUrl }"
+
+        context = 
+          $videoThumbnail: $videoThumbnail,
+          $clickableVideoThumbnail: $clickableVideoThumbnail,
+          $videoCaption: $videoCaption,
+          element: element,
+          iframeCssFloatProperty: iframeCssFloatProperty,
+          videoType: 'youtube'
+
+        $.ajax @getAjaxData context, url, success, type='GET', dataType='jsonp'
 
       else if iframeSrc.match(vimeoRegex)
 
@@ -77,25 +120,6 @@ class PostProcessHtmlTemplate extends FormatSelectorMixin
         $clickableVideoThumbnail.attr 'id', videoId
         $clickableVideoThumbnail.addClass 'vimeo'
 
-        success = (data) ->
-          # videoThumbnailSrc = data[0].thumbnail_large
-          # attr = 
-          #  'src': videoThumbnailSrc
-
-          attr =
-            src: data['thumbnail_url'],
-            width: data['thumbnail_width'],
-            height: data['thumbnail_height']
-
-          $videoThumbnail.attr attr
-
-          addThumbnail(
-            $videoThumbnail, 
-            $clickableVideoThumbnail, 
-            element, 
-            iframeCssFloatProperty
-          )
-
         ###
           Get embed player info
           Player video thumbnail size != iFrame size
@@ -103,22 +127,27 @@ class PostProcessHtmlTemplate extends FormatSelectorMixin
           https://developer.vimeo.com/api/oembed/videos
         ###
 
-        url = "https%3A//vimeo.com/#{ videoId }&width=#{ iframeWidth }&height=#{ iframeHeight }"
-        ajaxData = 
-          type: 'GET',
-          # url: "http://vimeo.com/api/v2/video/#{ videoId }.json"
-          url: "https://vimeo.com/api/oembed.json?url=#{ url }"
-          jsonp: 'callback',
-          dataType: 'jsonp',
-          context: {
-            $videoThumbnail: $videoThumbnail,
-            $clickableVideoThumbnail: $clickableVideoThumbnail,
-            element: element,
-            iframeCssFloatProperty: iframeCssFloatProperty
-            }
-          success: success
+        subUrl = "https://vimeo.com/#{ videoId }&width=#{ iframeWidth }&height=#{ iframeHeight }"
+        url = "https://vimeo.com/api/oembed.json?url=#{ subUrl }"
 
-        $.ajax ajaxData
+        context = 
+          $videoThumbnail: $videoThumbnail,
+          $clickableVideoThumbnail: $clickableVideoThumbnail,
+          $videoCaption: $videoCaption,
+          element: element,
+          iframeCssFloatProperty: iframeCssFloatProperty,
+          videoType: 'vimeo'
+
+        $.ajax @getAjaxData context, url, success, type='GET', dataType='jsonp'
+
+  getAjaxData: (context, url, success, type='GET', dataType='json') ->
+    ajaxData =
+      type: type,
+      url: url
+      jsonp: 'callback',
+      dataType: dataType,
+      context: context,
+      success: success
 
   convertCssToInlineStyle: (htmlDoc, $editTemplatePageContainer) ->
 
