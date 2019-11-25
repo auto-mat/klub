@@ -65,7 +65,9 @@ class EditTemplateModalDialog extends FormatSelectorMixin
       $(@getIdFormat @_popoverEditTemplateLinkElementId).remove()
 
   _closeEditTemplateModalDialog: (evt) =>
+
     templatePageHtlmDoc = @_getIframeTemplateContent()
+
     processHtmlTemplate = new PostProcessHtmlTemplate(
       templatePageHtlmDoc,
       $(templatePageHtlmDoc).find('article'),
