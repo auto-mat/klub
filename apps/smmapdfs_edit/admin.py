@@ -6,6 +6,8 @@ from django.contrib import admin
 
 import nested_admin
 
+from related_admin import RelatedFieldAdmin
+
 from smmapdfs.admin import PdfSandwichAdmin as PdfSandwichFontAdmin, PdfSandwichEmailAdmin, PdfSandwichTypeAdmin
 from smmapdfs.admin_abcs import PdfSandwichAdmin, PdfSandwichFieldAdmin
 from smmapdfs.models import PdfSandwichEmail, PdfSandwichFont, PdfSandwichType
@@ -41,10 +43,14 @@ admin.site.unregister(PdfSandwichEmail)
 @admin.register(PdfSandwichEmail)
 class _PdfSandwichEmailAdmin(
     unit_admin_mixin_generator('pdfsandwichemailconnector__administrative_unit'),
-    PdfSandwichEmailAdmin,
+    RelatedFieldAdmin, PdfSandwichTypeAdmin,
 ):
 
     inlines = (PdfEmailAdminInline,)
+
+    list_display = PdfSandwichEmailAdmin.list_display + (
+        'pdfsandwichemailconnector__administrative_unit',
+    )
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "pdfsandwich_type":
@@ -58,14 +64,28 @@ class _PdfSandwichEmailAdmin(
 
 admin.site.unregister(PdfSandwichFont)
 @admin.register(PdfSandwichFont)
-class _PdfSandwichFontAdmin(unit_admin_mixin_generator('pdfsandwichfontconnector__administrative_unit'), PdfSandwichFontAdmin):
+class _PdfSandwichFontAdmin(
+    unit_admin_mixin_generator('pdfsandwichfontconnector__administrative_unit'),
+    RelatedFieldAdmin, PdfSandwichTypeAdmin,
+):
     inlines = (PdfFontAdminInline,)
+
+    list_display = PdfSandwichFontAdmin.list_display + (
+        'pdfsandwichfontconnector__administrative_unit',
+    )
 
 
 admin.site.unregister(PdfSandwichType)
 @admin.register(PdfSandwichType)
-class _PdfSandwichTypeAdmin(unit_admin_mixin_generator('pdfsandwichtypeconnector__administrative_unit'), PdfSandwichTypeAdmin):
+class _PdfSandwichTypeAdmin(
+    unit_admin_mixin_generator('pdfsandwichtypeconnector__administrative_unit'),
+    RelatedFieldAdmin, PdfSandwichTypeAdmin,
+):
     inlines = (PdfTypeAdminInline,)
+
+    list_display = PdfSandwichTypeAdmin.list_display + (
+        'pdfsandwichtypeconnector__administrative_unit',
+    )
 
 
 class TaxConfirmationPdfAdmin(
