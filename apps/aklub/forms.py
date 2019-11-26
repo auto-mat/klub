@@ -5,16 +5,8 @@ from django.contrib.auth.forms import ReadOnlyPasswordHashField, UserChangeForm,
 from django.urls import reverse_lazy
 
 from .models import ProfileEmail, Telephone
-from .views import get_unique_username
 
 Profile = get_user_model()
-
-
-def username_validation(user, fields):
-    if user.username == '':
-        user.username = get_unique_username(fields['email'])
-    else:
-        user.username = fields['username']
 
 
 def hidden_fields_switcher(self):
@@ -59,9 +51,7 @@ class UserCreateForm(UserCreationForm):
 
     def save(self, commit=True):
         user = super().save(commit=False)
-
         user.username = self.cleaned_data['username']
-        username_validation(user=user, fields=self.cleaned_data)
         email = user.email
         user.email = None
         user.save()
@@ -94,7 +84,6 @@ class UserUpdateForm(UserChangeForm):
     def save(self, commit=True):
         user = super(UserChangeForm, self).save(commit=False)
         user.username = self.cleaned_data['username']
-        username_validation(user=user, fields=self.cleaned_data)
 
         if commit:
             user.save()
