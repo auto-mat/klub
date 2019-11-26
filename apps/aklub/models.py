@@ -1588,6 +1588,17 @@ class AccountStatements(models.Model):
 
     def payment_pair(self, payment):
         # Variable symbols and user bank account Payments pairing
+        try:
+            donor_with_bank_account = DonorPaymentChannel.objects.get(
+                                user_bank_account__bank_account_number=str(payment.account) + '/' + str(payment.bank_code),
+                                money_account__administrative_unit=self.administrative_unit,
+            )
+            payment.user_donor_payment_channel = donor_with_bank_account
+            payment.save()
+            return True
+        except (DonorPaymentChannel.DoesNotExist, DonorPaymentChannel.MultipleObjectsReturned):
+            pass
+
         if payment.VS != '':
             try:
                 donor_with_vs = DonorPaymentChannel.objects.get(
@@ -1595,18 +1606,11 @@ class AccountStatements(models.Model):
                                     money_account__administrative_unit=self.administrative_unit,
                 )
                 payment.user_donor_payment_channel = donor_with_vs
+                payment.save()
                 return True
             except (DonorPaymentChannel.DoesNotExist, DonorPaymentChannel.MultipleObjectsReturned):
                 pass
-        try:
-            donor_with_bank_account = DonorPaymentChannel.objects.get(
-                                user_bank_account__bank_account_number=str(payment.account) + '/' + str(payment.bank_code),
-                                money_account__administrative_unit=self.administrative_unit,
-            )
-            payment.user_donor_payment_channel = donor_with_bank_account
-            return True
-        except (DonorPaymentChannel.DoesNotExist, DonorPaymentChannel.MultipleObjectsReturned):
-            return False
+        return False
 
     def parse_bank_csv_fio(self):
         # Read and parse the account statement
