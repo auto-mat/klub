@@ -415,7 +415,7 @@ def get_profile_admin_model_import_export_exclude_fields():
     ]
 
 
-class ProfileLoaderClass(BaseInstanceLoader):
+class UserProfileLoaderClass(BaseInstanceLoader):
     def get_instance(self, row):
         obj = None
         if row.get('email'):
@@ -439,15 +439,31 @@ class UserProfileResource(ProfileModelResourceMixin):
                 'birth_day',
             ]
         )
-        instance_loader_class = ProfileLoaderClass
+        instance_loader_class = UserProfileLoaderClass
         clean_model_instances = True
+
+
+class CompanyProfileLoaderClass(BaseInstanceLoader):
+    def get_instance(self, row):
+        obj = None
+        if row.get('crn'):
+            try:
+                obj = CompanyProfile.objects.get(crn=row['crn'])
+            except CompanyProfile.DoesNotExist:
+                pass
+        if row.get('tin'):
+            try:
+                obj = CompanyProfile.objects.get(crn=row['tin'])
+            except CompanyProfile.DoesNotExist:
+                pass
+        return obj
 
 
 class CompanyProfileResource(ProfileModelResourceMixin):
     class Meta:
         model = CompanyProfile
         exclude = get_profile_admin_model_import_export_exclude_fields()
-        import_id_fields = ('email', )
+        import_id_fields = ('crn',)
         export_order = (
             get_profile_admin_export_base_order_fields() +
             [
@@ -455,7 +471,12 @@ class CompanyProfileResource(ProfileModelResourceMixin):
                 'contact_first_name', 'contact_last_name',
             ]
         )
+        instance_loader_class = CompanyProfileLoaderClass
         clean_model_instances = True
+
+    def dehydrate_email(self, profile):
+        emails = ProfileEmail.objects.filter(user=profile)
+        return ',\n'.join(email.email for email in emails)
 
 
 class ProfileResource(ProfileModelResource):
