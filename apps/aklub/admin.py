@@ -478,6 +478,25 @@ class CompanyProfileResource(ProfileModelResourceMixin):
         emails = ProfileEmail.objects.filter(user=profile)
         return ',\n'.join(email.email for email in emails)
 
+    def export_dehydrate_email(self, profile):
+        try:
+            email = ProfileEmail.objects.get(user=profile, is_primary=True)
+        except ProfileEmail.DoesNotExist:
+            email = ProfileEmail.objects.filter(user=profile).first()
+        if email:
+            return email.email
+        return None
+
+    def export_field(self, field, obj):
+        field_name = self.get_field_name(field)
+        method = getattr(self, 'dehydrate_%s' % field_name, None)
+        if method is not None:
+            if method.__name__ == 'dehydrate_email':
+                return self.export_dehydrate_email(obj)
+            else:
+                return method(obj)
+        return field.export(obj)
+
 
 class ProfileResource(ProfileModelResource):
     class Meta:
