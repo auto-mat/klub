@@ -73,9 +73,6 @@ def import_obj(self, obj, data, dry_run):  # noqa
     if hasattr(self, '_set_child_model_field_value'):
         self._set_child_model_field_value(obj=obj, data=data)
     obj.save()
-    if data.get('username') == "":
-        data["username"] = None
-
     if data.get('telephone'):
         check['telephone'], _ = Telephone.objects.get_or_create(
             telephone=data['telephone'],
@@ -138,8 +135,16 @@ def import_obj(self, obj, data, dry_run):  # noqa
             check['donors'].save()
 
     new_objects_validations(check)
+    super(ModelResource, self).import_obj(obj, data, dry_run)
 
-    return super(ModelResource, self).import_obj(obj, data, dry_run)
+
+def save_m2m(self, *args, **kwargs):
+    """
+    overriding the original save_m2m, because we don't want to
+    update original objects, we want to keep them and add more of them.
+    TODO: if more fields with m2m will be imported for model Profile, this must be edited.
+    """
+    pass
 
 
 def dehydrate_telephone(self, profile):
@@ -172,11 +177,8 @@ def before_import_row(self, row, **kwargs):
     row['is_superuser'] = 0
     row['is_staff'] = 0
     row['email'] = row['email'].lower() if row.get('email') else ''
-
-
-def import_field(self, field, obj, data, is_m2m=False):
-    if field.attribute and field.column_name in data:  # and not getattr(obj, field.column_name):
-        field.save(obj, data, is_m2m)
+    if row.get('username') == "":
+        row["username"] = None
 
 
 def get_profile_model_resource_mixin_class_body():
@@ -185,8 +187,7 @@ def get_profile_model_resource_mixin_class_body():
     body['dehydrate_telephone'] = dehydrate_telephone
     body['dehydrate_donor'] = dehydrate_donor
     body['before_import_row'] = before_import_row
-    body['import_field'] = import_field
-
+    body['save_m2m'] = save_m2m
     # Custom fields (dehydrate funcs)
     body.update(get_profile_model_resource_custom_fields())
     # Preference model dehydrate funcs
