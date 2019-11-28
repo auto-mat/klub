@@ -629,6 +629,7 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         self.assertEqual(preference.count(), 1)
         self.assertEqual(preference[0].send_mailing_lists, True)
         self.assertEqual(preference[0].letter_on, True)
+        self.assertEqual(user_profile[0].administrative_units.all().values_list('name')[0], ('AU2',))
 
         # Update model
         p = pathlib.PurePath(__file__)
@@ -671,10 +672,12 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         self.assertEqual(user_profile[0].polymorphic_ctype, ContentType.objects.get(model='userprofile'))
         self.assertEqual(user_profile[0].username, 'test.userprofile')
         self.assertEqual(user_profile[0].title_before, 'Mgr.')
-        preference = Preference.objects.filter(user=user_profile[0])
-        self.assertEqual(preference.count(), 1)
+        preference_count = Preference.objects.filter(user=user_profile[0]).count()
+        self.assertEqual(preference_count, 2)
+        preference = Preference.objects.filter(user=user_profile[0], administrative_unit=1)
         self.assertEqual(preference[0].send_mailing_lists, False)
         self.assertEqual(preference[0].letter_on, False)
+        self.assertEqual(list(user_profile[0].administrative_units.all().values_list('name')), [('AU1',), ('AU2',)])
 
     def test_userprofile_minimal_fields_import(self):
         """ Test UserProfile admin model minimal fields import """
@@ -833,7 +836,7 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         self.assertEqual(preference.count(), 1)
         self.assertEqual(preference[0].send_mailing_lists, True)
         self.assertEqual(preference[0].letter_on, True)
-
+        self.assertEqual(company_profile[0].administrative_units.all().values_list('name')[0], ('AU2',))
         # Update model
         p = pathlib.PurePath(__file__)
         csv_file = 'update_company_profiles.csv'
@@ -877,7 +880,9 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         self.assertEqual(donor[0].user_bank_account, user_bank_account[0])
         self.assertEqual(company_profile[0].polymorphic_ctype, ContentType.objects.get(model='companyprofile'))
         self.assertEqual(company_profile[0].username, 'test.companyprofile')
-        preference = Preference.objects.filter(user=company_profile[0])
-        self.assertEqual(preference.count(), 1)
+        preference_count = Preference.objects.filter(user=company_profile[0]).count()
+        self.assertEqual(preference_count, 2)
+        preference = Preference.objects.filter(user=company_profile[0], administrative_unit=1)
         self.assertEqual(preference[0].send_mailing_lists, False)
         self.assertEqual(preference[0].letter_on, False)
+        self.assertEqual(list(company_profile[0].administrative_units.all().values_list('name')), [('AU1',), ('AU2',)])
