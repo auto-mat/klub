@@ -18,7 +18,7 @@ django-chart-tools = "*"
 django-mass-edit = "*"
 python-memcached = "*"
 django-import-export = {ref = "row_numbers",git = "https://github.com/PetrDlouhy/django-import-export",editable = true}
-django-import-export-celery = {ref = "status_report",git = "https://github.com/PetrDlouhy/django-import-export-celery",editable = true}
+django-import-export-celery = "*"
 django-author = "*"
 django-qsstats-magic = "*"
 python-dateutil = "*"
