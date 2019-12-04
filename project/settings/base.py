@@ -106,6 +106,12 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.template.context_processors.media',
                 'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.debug',
+                'django.template.context_processors.i18n',
+                'django.template.context_processors.static',
+                'django.template.context_processors.tz',
+                'django.contrib.messages.context_processors.messages',
+                "sekizai.context_processors.sekizai",
             ),
             'loaders': (
                 "admin_tools.template_loaders.Loader",
@@ -190,6 +196,7 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
+    'django_nyt.apps.DjangoNytConfig',
     'stdimage',
     'bootstrapform',
     'bootstrap4form',
@@ -221,6 +228,14 @@ INSTALLED_APPS = (
     'smmapdfs',
     'smmapdfs_edit',
     'repolinks',
+    'mptt',
+    'sekizai',
+    'sorl.thumbnail',
+    'wiki.apps.WikiConfig',
+    'wiki.plugins.attachments.apps.AttachmentsConfig',
+    'wiki.plugins.notifications.apps.NotificationsConfig',
+    'wiki.plugins.images.apps.ImagesConfig',
+    'wiki.plugins.macros.apps.MacrosConfig',
 )
 
 BOWER_INSTALLED_APPS = (
@@ -401,3 +416,8 @@ IMPORT_EXPORT_CELERY_MODELS = {
         'resource': get_donor_payment_channel_resource,
     },
 }
+
+# Django - wiki settings
+SITE_ID = 1
+WIKI_ACCOUNT_SIGNUP_ALLOWED = False
+WIKI_ACCOUNT_HANDLING = False
