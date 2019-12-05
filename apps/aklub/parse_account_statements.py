@@ -48,6 +48,10 @@ def delete_left_nulls(number):
     return str(number)
 
 
+def get_four_digit(code):
+    return '%0*d' % (4, int(code))
+
+
 class ParseAccountStatement(object):
     def parse_bank_csv_fio(self):
         payments_reader = csv.DictReader(
@@ -74,7 +78,7 @@ class ParseAccountStatement(object):
 
                 payment['date'] = models.str_to_datetime(payment['date'])
                 payment['amount'] = amount_to_int(payment['amount'])
-
+                payment['bank_code'] = get_four_digit(payment['bank_code'])
                 if check_incomming(payment['amount']):
                     continue
                 payments.append(register_payment(payment, self))
@@ -110,7 +114,7 @@ class ParseAccountStatement(object):
                     account = payment['predcisli_uctu'] + '-' + payment['cislo_uctu']
                 p_sort = {
                              'account': account,
-                             'bank_code': payment['kod_banky'],
+                             'bank_code': get_four_digit(payment['kod_banky']),
                              'KS': payment['KS'],
                              'SS': payment['SS'],
                              'amount': payment['castka'],
@@ -157,7 +161,7 @@ class ParseAccountStatement(object):
 
                 p_sort = {
                              'account': payment['Protiucet/Kod banky'].split('/')[0],
-                             'bank_code':  payment['Protiucet/Kod banky'].split('/')[1],
+                             'bank_code': get_four_digit(payment['Protiucet/Kod banky'].split('/')[1]),
                              'VS': payment['VS'],
                              'KS': payment['KS'],
                              'SS': payment['SS'],
@@ -200,7 +204,7 @@ class ParseAccountStatement(object):
             else:
                 p_sort = {
                             'account': payment['ucet protistrany'].split('/')[0],
-                            'bank_code':  payment['ucet protistrany'].split('/')[1],
+                            'bank_code': get_four_digit(payment['ucet protistrany'].split('/')[1]),
                             'VS': payment['variabilni symbol'],
                             'KS': payment['konstantni symbol'],
                             'SS': payment['specificky symbol'],
@@ -236,7 +240,7 @@ class ParseAccountStatement(object):
             VS, KS, SS = payment['symbols'].split(',')
             p_sort = {
                         'account': delete_left_nulls(payment['bank_account']),
-                        'bank_code':  payment['bank_code'],
+                        'bank_code': get_four_digit(payment['bank_code']),
                         'VS': delete_left_nulls(VS),
                         'KS': delete_left_nulls(KS),
                         'SS': delete_left_nulls(SS),
