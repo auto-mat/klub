@@ -54,6 +54,8 @@ from import_export.instance_loaders import BaseInstanceLoader
 from import_export.resources import ModelResource
 from import_export.widgets import ForeignKeyWidget
 
+from import_export_celery.admin_actions import create_export_job_action
+
 from isnull_filter import isnull_filter
 
 import large_initial
@@ -1827,6 +1829,10 @@ class UserProfileAdmin(
         'regular_amount',
         'donor_delay',
         'donor_extra_money',
+    )
+
+    actions = (
+        create_export_job_action,
     )
     advanced_filter_fields = (
         'profileemail__email',

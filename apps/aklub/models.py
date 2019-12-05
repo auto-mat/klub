@@ -983,6 +983,13 @@ class UserProfile(Profile, AbstractUserProfile):
         default='unknown',
     )
 
+    @classmethod
+    def export_resource_classes(cls):
+        from .admin import UserProfileResource
+        return {
+            'users': ('Users resource', UserProfileResource),
+        }
+
 
 class ProfileEmail(models.Model):
     class Meta:
