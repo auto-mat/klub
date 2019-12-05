@@ -102,7 +102,6 @@
                 "sha256:fa98ec9cc9bf5d72a08ebf3654a9452e761fbb8566e3f80de199cbc15477e891"
             ],
             "index": "pypi",
-            "markers": "python_version >= '3.0'",
             "version": "==2.2.8"
         },
         "django-admin-charts": {
@@ -130,7 +129,7 @@
         "django-adminactions": {
             "editable": true,
             "git": "https://github.com/saxix/django-adminactions.git",
-            "ref": "5237c7432f96166dafbf07ebd479e77a4f0ec8bc"
+            "ref": "dedc9f0e0040d058c2e508c84d180e682e7dae1d"
         },
         "django-adminfilters": {
             "hashes": [
@@ -531,10 +530,10 @@
         },
         "importlib-metadata": {
             "hashes": [
-                "sha256:b044f07694ef14a6683b097ba56bd081dbc7cdc7c7fe46011e499dfecc082f21",
-                "sha256:e6ac600a142cf2db707b1998382cc7fc3b02befb7273876e01b8ad10b9652742"
+                "sha256:3a8b2dfd0a2c6a3636e7c016a7e54ae04b997d30e69d5eacdca7a6c2221a1402",
+                "sha256:41e688146d000891f32b1669e8573c57e39e5060e7f5f647aa617cd9a9568278"
             ],
-            "version": "==1.1.0"
+            "version": "==1.2.0"
         },
         "jdcal": {
             "hashes": [
@@ -1133,11 +1132,11 @@
         },
         "coveralls": {
             "hashes": [
-                "sha256:74b6d09546ab6f2821c45e8d56e845562b2514127c57ce067decf5e647b7854e",
-                "sha256:c4d6a79b96600eb385ecf2c5cb76c9a7d8eef47ea7209f2a90f933da6f07a37c"
+                "sha256:25522a50cdf720d956601ca6ef480786e655ae2f0c94270c77e1a23d742de558",
+                "sha256:8e3315e8620bb6b3c6f3179a75f498e7179c93b3ddc440352404f941b1f70524"
             ],
             "index": "pypi",
-            "version": "==1.9.0"
+            "version": "==1.9.2"
         },
         "decorator": {
             "hashes": [
@@ -1152,7 +1151,6 @@
                 "sha256:fa98ec9cc9bf5d72a08ebf3654a9452e761fbb8566e3f80de199cbc15477e891"
             ],
             "index": "pypi",
-            "markers": "python_version >= '3.0'",
             "version": "==2.2.8"
         },
         "django-admin-smoke-tests": {
@@ -1259,10 +1257,10 @@
         },
         "importlib-metadata": {
             "hashes": [
-                "sha256:b044f07694ef14a6683b097ba56bd081dbc7cdc7c7fe46011e499dfecc082f21",
-                "sha256:e6ac600a142cf2db707b1998382cc7fc3b02befb7273876e01b8ad10b9652742"
+                "sha256:3a8b2dfd0a2c6a3636e7c016a7e54ae04b997d30e69d5eacdca7a6c2221a1402",
+                "sha256:41e688146d000891f32b1669e8573c57e39e5060e7f5f647aa617cd9a9568278"
             ],
-            "version": "==1.1.0"
+            "version": "==1.2.0"
         },
         "ipython": {
             "hashes": [
