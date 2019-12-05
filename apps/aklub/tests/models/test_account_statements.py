@@ -91,12 +91,11 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
         self.assertEqual(len(a1.payment_set.all()), 3)
         self.assertEqual(a1.date_from, datetime.date(day=10, month=2, year=2019))
         self.assertEqual(a1.date_to, datetime.date(day=11, month=3, year=2019))
-
-        p1 = Payment.objects.get(account='20000 92392323')
+        p1 = Payment.objects.get(account="20000-92392323")
         self.assertEqual(p1.date, datetime.date(day=11, month=3, year=2019))
         self.assertEqual(p1.amount, 1000)
-        self.assertEqual(p1.account, '20000 92392323')
-        self.assertEqual(p1.bank_code, '800')
+        self.assertEqual(p1.account, '20000-92392323')
+        self.assertEqual(p1.bank_code, '0800')
         self.assertEqual(p1.VS, '120127010')
         self.assertEqual(p1.VS2, '120127010')
         self.assertEqual(p1.SS, "5")
@@ -115,7 +114,7 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
         self.assertEqual(p1.order_id, None)
         self.assertEqual(p1.user_donor_payment_channel, donor_channel)
 
-        self.assertEqual(donor_channel.payment_set.get(date=datetime.date(2019, 3, 11)), a1.payment_set.get(account='20000 92392323'))
+        self.assertEqual(donor_channel.payment_set.get(date=datetime.date(2019, 3, 11)), a1.payment_set.get(account='20000-92392323'))
 
     def test_bank_new_statement_kb(self):
         with open("apps/aklub/test_data/pohyby_kb.csv", "rb") as f:
