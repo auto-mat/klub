@@ -104,9 +104,12 @@ class ParseAccountStatement(object):
                 if payment[payments_reader.fieldnames[0]] == 'Předčíslí účtu plátce/příjemce':
                     csv_head = False
             else:
-
+                if not payment['predcisli_uctu']:
+                    account = payment['cislo_uctu']
+                else:
+                    account = payment['predcisli_uctu'] + '-' + payment['cislo_uctu']
                 p_sort = {
-                             'account': payment['predcisli_uctu'] + ' ' + payment['cislo_uctu'],
+                             'account': account,
                              'bank_code': payment['kod_banky'],
                              'KS': payment['KS'],
                              'SS': payment['SS'],
