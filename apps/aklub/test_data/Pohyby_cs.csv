@@ -9,7 +9,7 @@
 
 
 "Pøedèíslí úètu plátce/pøíjemce";"Èíslo úètu plátce/pøíjemce";"Kód banky plátce/pøíjemce";"Èástka (transakce)";"Pøíchozí/odchozí(kreditní-debetní poloka)";"Úèetní/neúèetní poloka";"Konstantní symbol";"Specifickı symbol";"Popis transakce";"Název protiúètu";"Bankovní reference";"Zpráva pro pøíjemce";"Zpráva pro plátce";"Datum valuty";"Datum zpracování";"Variabilní symbol 1";"Variabilní symbol 2";"Reference platby";"Dùvod neprovedení";
-"20000";"92392323";"0800";"1000,00";"Pøíchozí";"Úèetní";"0";5;"Pøíchozí úhrada";"Test Name";"201903110000301585001001";"Message for recepien 1";"Message for sender 1";"2019/03/11";"2019/03/11";"120127010";"120127010";;;
-"1000";"23322323";"0800";"300,00";"Pøíchozí";"Úèetní";"0000";;"Pøíchozí úhrada";"Company Name";"201903090000148298001001";;Message for sender 2;"2019/03/09";"2019/03/09";;;;;
+"20000";"92392323";"800";"1000,00";"Pøíchozí";"Úèetní";"0";5;"Pøíchozí úhrada";"Test Name";"201903110000301585001001";"Message for recepien 1";"Message for sender 1";"2019/03/11";"2019/03/11";"120127010";"120127010";;;
+"1000";"23322323";"800";"300,00";"Pøíchozí";"Úèetní";"0000";;"Pøíchozí úhrada";"Company Name";"201903090000148298001001";;Message for sender 2;"2019/03/09";"2019/03/09";;;;;
 ;"323223232";"5500";"1000,00";"Pøíchozí";"Úèetní";"0";;"Pøíchozí úhrada";"Test Name 2";"201903080000220861001001";;;"2019/03/08";"2019/03/08";;;;;
 ;"424224";"300";"-1000";"Odchozí";"Úèetní";"0308";;"Tuzemská odchozí úhrada";"Test Name 3";"201903080000157085001001";;;"2019/03/08";"2019/03/08";"300";"300";;;
