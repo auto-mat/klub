@@ -49,7 +49,10 @@ def delete_left_nulls(number):
 
 
 def get_four_digit(code):
-    return '%0*d' % (4, int(code))
+    if code:
+        return '%0*d' % (4, int(code))
+    else:
+        return code
 
 
 class ParseAccountStatement(object):
