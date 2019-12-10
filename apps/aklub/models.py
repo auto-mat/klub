@@ -2574,7 +2574,6 @@ class ConditionValues(object):
             model = {
                 'User': User,
                 'Profile': Profile,
-                'UserInCampaign': UserInCampaign,
                 'Payment': Payment,
                 'User.source': Source,
                 'User.last_payment': Payment,
@@ -2747,7 +2746,7 @@ class TerminalCondition(models.Model):
 
     variable = models.CharField(
         verbose_name=_("Variable"),
-        choices=ConditionValues(('User', 'Profile', 'UserInCampaign', 'User.source', 'User.last_payment')),
+        choices=ConditionValues(('User', 'Profile', 'User.source', 'User.last_payment')),
         help_text=_("Value or variable on left-hand side"),
         max_length=50,
         blank=True,
@@ -2818,7 +2817,7 @@ class TerminalCondition(models.Model):
 
     def get_querystring(self, spec, operation):
         spec_ = spec.split('.')
-        if spec_[0] != 'DonorPaymentChannel':
+        if spec_[0] not in ('Profile', 'DonorPaymentChannel'):
             raise NotImplementedError("Unknown spec %s" % spec_[0])
 
         join_querystring = "__".join(spec_[1:])
