@@ -1383,11 +1383,71 @@ class NewUserAdmin(DonorPaymethChannelAdmin):
     )
 
 
+class InteractionWidget(ForeignKeyWidget):
+    """ Handle ForeignKey no exist error """
+    def get_queryset(self, value, row):
+        values = self.model.objects.filter(id=value)
+        if values:
+            return values
+        else:
+            raise ValueError("Item with this id doesn't exist")
+
+
+class InteractionResource(ModelResource):
+    email = fields.Field()
+    event = fields.Field(attribute='event', widget=InteractionWidget(Event))
+    created_by = fields.Field(attribute='created_by', widget=InteractionWidget(Profile))
+    handled_by = fields.Field(attribute='handled_by', widget=InteractionWidget(Profile))
+    result = fields.Field(attribute='result', widget=InteractionWidget(Result))
+    administrative_unit = fields.Field(attribute='administrative_unit', widget=InteractionWidget(AdministrativeUnit))
+
+    class Meta:
+        model = Interaction
+        fields = ('email', 'user', 'event', 'date', 'method',
+                  'type', 'subject', 'summary', 'note', 'created_by',
+                  'handled_by', 'result', 'send', 'dispatched', 'administrative_unit',
+                  )
+        clean_model_instances = True
+
+    def before_import_row(self, row, **kwargs):
+        user = None
+        if row.get('email'):
+            try:
+                user = ProfileEmail.objects.get(email=row['email']).user
+            except ProfileEmail.DoesNotExist:
+                pass
+        if row.get('user') and not user:
+            try:
+                user = Profile.objects.get(username=row['user'])
+            except Profile.DoesNotExist:
+                pass
+        if user:
+            row['user'] = user.id
+            return row
+        else:
+            raise ValidationError({'user': 'User with this username or email doesnt exist'})
+
+    def dehydrate_user(self, interaction):
+        if hasattr(interaction, 'user'):
+            return interaction.user
+
+    def dehydrate_event(self, interaction):
+        if hasattr(interaction, 'event'):
+            return interaction.event
+
+    def dehydrate_email(self, interaction):
+        if hasattr(interaction, 'user'):
+            return interaction.user.get_email_str()
+
+
 class InteractionAdmin(
+    ImportExportMixin,
     unit_admin_mixin_generator('user__administrative_units'),
     RelatedFieldAdmin,
     admin.ModelAdmin,
 ):
+    resource_class = InteractionResource
+
     list_display = (
         'subject',
         'dispatched',
