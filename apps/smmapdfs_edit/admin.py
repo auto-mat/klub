@@ -8,7 +8,7 @@ import nested_admin
 
 from related_admin import RelatedFieldAdmin
 
-from smmapdfs.admin import PdfSandwichAdmin as PdfSandwichFontAdmin, PdfSandwichEmailAdmin, PdfSandwichTypeAdmin
+from smmapdfs.admin import PdfSandwichEmailAdmin, PdfSandwichFontAdmin, PdfSandwichTypeAdmin
 from smmapdfs.admin_abcs import PdfSandwichAdmin, PdfSandwichFieldAdmin
 from smmapdfs.models import PdfSandwichEmail, PdfSandwichFont, PdfSandwichType
 

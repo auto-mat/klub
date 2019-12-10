@@ -100,7 +100,7 @@
 	"model": "aklub.profile",
 	"pk": 2979,
 	"fields": {
-            "polymorphic_ctype": 26,
+            "polymorphic_ctype": ["aklub", "userprofile"],
             "last_login": null,
             "is_superuser": false,
             "username": "test.user3",
@@ -187,7 +187,7 @@
     },
     {
         "fields": {
-            "polymorphic_ctype": "34"
+            "polymorphic_ctype": ["aklub", "apiaccount"]
         },
         "model": "aklub.moneyaccount",
         "pk": 1
@@ -203,7 +203,7 @@
     },
     {
         "fields": {
-            "polymorphic_ctype": "34"
+            "polymorphic_ctype": ["aklub", "apiaccount"]
         },
         "model": "aklub.moneyaccount",
         "pk": 2
@@ -238,7 +238,7 @@
 	"model": "aklub.profile",
 	"pk": 2978,
 	"fields": {
-            "polymorphic_ctype": 26,
+            "polymorphic_ctype": ["aklub", "userprofile"],
             "last_login": null,
             "is_superuser": false,
             "username": "testuser0",
@@ -432,7 +432,7 @@
 	"model": "aklub.profile",
 	"pk": 3,
 	"fields": {
-            "polymorphic_ctype": 26,
+            "polymorphic_ctype": ["aklub", "userprofile"],
             "last_login": null,
             "is_superuser": false,
             "username": "without_payments",

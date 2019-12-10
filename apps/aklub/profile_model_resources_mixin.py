@@ -56,6 +56,19 @@ def get_preference_model_custom_field_dehydrate_func():
     return funcs
 
 
+def save_email(email, obj):
+    # needs to be done, because company profile can't have multiple primary emails
+    email, _ = ProfileEmail.objects.get_or_create(
+        email=email,
+        user=obj,
+        defaults={'is_primary': None},
+    )
+    if not ProfileEmail.objects.filter(user=obj, is_primary=True):
+        email.is_primary = True
+        email.save()
+    return email
+
+
 def new_objects_validations(check):
     errors = {}
     for key in check.keys():
@@ -80,11 +93,7 @@ def import_obj(self, obj, data, dry_run):  # noqa
             defaults={'is_primary': None},
         )
     if data.get("email"):
-        check['email'], _ = ProfileEmail.objects.get_or_create(
-            email=data["email"],
-            user=obj,
-            defaults={'is_primary': True},
-        )
+        check['email'] = save_email(data['email'], obj)
 
     if data.get("administrative_units"):
         if not obj.administrative_units.filter(id=data["administrative_units"]):

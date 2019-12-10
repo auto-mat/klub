@@ -54,6 +54,8 @@ from import_export.instance_loaders import BaseInstanceLoader
 from import_export.resources import ModelResource
 from import_export.widgets import ForeignKeyWidget
 
+from import_export_celery.admin_actions import create_export_job_action
+
 from isnull_filter import isnull_filter
 
 import large_initial
@@ -415,7 +417,7 @@ def get_profile_admin_model_import_export_exclude_fields():
     ]
 
 
-class ProfileLoaderClass(BaseInstanceLoader):
+class UserProfileLoaderClass(BaseInstanceLoader):
     def get_instance(self, row):
         obj = None
         if row.get('email'):
@@ -439,15 +441,31 @@ class UserProfileResource(ProfileModelResourceMixin):
                 'birth_day',
             ]
         )
-        instance_loader_class = ProfileLoaderClass
+        instance_loader_class = UserProfileLoaderClass
         clean_model_instances = True
+
+
+class CompanyProfileLoaderClass(BaseInstanceLoader):
+    def get_instance(self, row):
+        obj = None
+        if row.get('crn'):
+            try:
+                obj = CompanyProfile.objects.get(crn=row['crn'])
+            except CompanyProfile.DoesNotExist:
+                pass
+        if row.get('tin'):
+            try:
+                obj = CompanyProfile.objects.get(crn=row['tin'])
+            except CompanyProfile.DoesNotExist:
+                pass
+        return obj
 
 
 class CompanyProfileResource(ProfileModelResourceMixin):
     class Meta:
         model = CompanyProfile
         exclude = get_profile_admin_model_import_export_exclude_fields()
-        import_id_fields = ('email', )
+        import_id_fields = ('crn',)
         export_order = (
             get_profile_admin_export_base_order_fields() +
             [
@@ -455,7 +473,31 @@ class CompanyProfileResource(ProfileModelResourceMixin):
                 'contact_first_name', 'contact_last_name',
             ]
         )
+        instance_loader_class = CompanyProfileLoaderClass
         clean_model_instances = True
+
+    def dehydrate_email(self, profile):
+        emails = ProfileEmail.objects.filter(user=profile)
+        return ',\n'.join(email.email for email in emails)
+
+    def export_dehydrate_email(self, profile):
+        try:
+            email = ProfileEmail.objects.get(user=profile, is_primary=True)
+        except ProfileEmail.DoesNotExist:
+            email = ProfileEmail.objects.filter(user=profile).first()
+        if email:
+            return email.email
+        return None
+
+    def export_field(self, field, obj):
+        field_name = self.get_field_name(field)
+        method = getattr(self, 'dehydrate_%s' % field_name, None)
+        if method is not None:
+            if method.__name__ == 'dehydrate_email':
+                return self.export_dehydrate_email(obj)
+            else:
+                return method(obj)
+        return field.export(obj)
 
 
 class ProfileResource(ProfileModelResource):
@@ -1787,6 +1829,10 @@ class UserProfileAdmin(
         'regular_amount',
         'donor_delay',
         'donor_extra_money',
+    )
+
+    actions = (
+        create_export_job_action,
     )
     advanced_filter_fields = (
         'profileemail__email',
