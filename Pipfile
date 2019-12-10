@@ -79,6 +79,7 @@ django-polymorphic = {editable = true,git = "https://github.com/tmszi/django-pol
 jsonfield2 = "*"
 django-isnull-list-filter = "*"
 docutils = "*"
+wiki = "*"
 
 [dev-packages]
 coverage = "*"
