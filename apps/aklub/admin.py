@@ -1876,6 +1876,7 @@ class UserProfileAdmin(
         filters.EmailFilter,
         filters.TelephoneFilter,
         filters.NameFilter,
+        filters.UserConditionFilter, filters.UserConditionFilter1,
     )
     ordering = ('email',)
     filter_horizontal = ('groups', 'user_permissions',)
