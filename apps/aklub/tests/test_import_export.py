@@ -15,8 +15,100 @@ from .test_admin import CreateSuperUserMixin
 
 from ..models import ( # noqa
             BankAccount, CompanyProfile, ContentType, DonorPaymentChannel,
-            Event, Preference, Profile, ProfileEmail, UserBankAccount, UserProfile,
+            Event, Interaction, Preference, Profile, ProfileEmail, UserBankAccount, UserProfile,
 )
+
+
+class InteractionsImportExportTests(CreateSuperUserMixin, TestCase):
+    def setUp(self):
+        super().setUp()
+        self.factory = RequestFactory()
+        self.client.force_login(self.superuser)
+
+        self.user = mommy.make(
+                    'aklub.UserProfile',
+                    id=1,
+                    username='test_user',
+
+        )
+        mommy.make(
+                'aklub.ProfileEmail',
+                email='test_user@test.com',
+                user=self.user,
+                is_primary=True,
+
+        )
+        self.au = mommy.make(
+                'aklub.AdministrativeUnit',
+                id=1,
+                name='test_unit',
+        )
+        self.event = mommy.make(
+                'aklub.Event',
+                id=1,
+                name='test_event',
+        )
+
+    def test_interaction_import(self):
+        "test donor payment channel import"
+        address = reverse('admin:aklub_interaction_import')
+        response_address = self.client.get(address)
+        self.assertEqual(response_address.status_code, 200)
+
+        p = pathlib.PurePath(__file__)
+        csv_file_create_interactions = os.path.join(p.parents[1], 'test_data', 'create_interactions.csv')
+
+        with open(csv_file_create_interactions, "rb") as f:
+            data = {
+                'input_format': 0,
+                'import_file': f,
+            }
+            response = self.client.post(address, data)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'test_user', html=True)
+        self.assertContains(response, 'test_user@test.com', html=True)
+
+        result = re.search(
+            r'<input type="hidden" name="import_file_name".*?>',
+            response.rendered_content,
+        )
+
+        file_name = [val.split('=')[-1].replace('"', '') for val in result.group(0).split(' ') if 'value' in val][0]
+        post_data = {
+            'import_file_name': file_name,
+            'original_file_name': 'create_interactions.csv',
+            'input_format': 0,
+        }
+
+        address = reverse('admin:aklub_interaction_process_import')
+        response = self.client.post(address, post_data)
+        self.assertRedirects(response, expected_url=reverse('admin:aklub_interaction_changelist'))
+
+        # check new interactions
+        int1 = Interaction.objects.get(subject='sub1')
+        self.assertEqual(int1.created_by, self.user)
+        self.assertEqual(int1.handled_by, self.user)
+        self.assertEqual(int1.administrative_unit, self.au)
+        self.assertEqual(int1.date.isoformat(), '2019-12-10T08:59:22+00:00')
+        self.assertEqual(int1.method, 'email')
+        self.assertEqual(int1.type, 'individual')
+        self.assertEqual(int1.summary, 'text1')
+        self.assertEqual(int1.note, 'Note1')
+        self.assertEqual(int1.send, 0)
+        self.assertEqual(int1.dispatched, 0)
+
+        int2 = Interaction.objects.get(subject='sub2')
+        self.assertEqual(int2.created_by, self.user)
+        self.assertEqual(int2.handled_by, self.user)
+        self.assertEqual(int2.administrative_unit, self.au)
+        self.assertEqual(int2.date.isoformat(), '2017-12-10T08:59:22+00:00')
+        self.assertEqual(int2.method, 'phonecall')
+        self.assertEqual(int2.type, 'mass')
+        self.assertEqual(int2.summary, 'text2')
+        self.assertEqual(int2.note, 'Note2')
+        self.assertEqual(int2.send, 0)
+        self.assertEqual(int2.dispatched, 0)
+
 
 
 class DonorImportExportTests(CreateSuperUserMixin, TestCase):
