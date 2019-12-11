@@ -1,0 +1,3 @@
+email,event,created_by,handled_by,result,administrative_unit,user,date,method,type,subject,summary,note,send,dispatched
+test_user@test.com,1,1,1,,1,,2019-12-10 09:59:22,email,individual,sub1,text1,Note1,0,0
+,1,1,1,,1,test_user,2017-12-10 09:59:22,phonecall,mass,sub2,text2,Note2,0,0
