@@ -400,6 +400,11 @@ def get_donor_payment_channel_resource():
     return DonorPaymentChannelResource
 
 
+def get_interaction_channel_resource():
+    from aklub.admin import InteractionResource
+    return InteractionResource
+
+
 IMPORT_EXPORT_CELERY_MODELS = {
     "User profile": {
         'app_label': 'aklub',
@@ -415,6 +420,11 @@ IMPORT_EXPORT_CELERY_MODELS = {
         'app_label': 'aklub',
         'model_name': 'DonorPaymentChannel',
         'resource': get_donor_payment_channel_resource,
+    },
+    "Interactions": {
+        'app_label': 'aklub',
+        'model_name': 'Interaction',
+        'resource': get_interaction_channel_resource,
     },
 }
 
