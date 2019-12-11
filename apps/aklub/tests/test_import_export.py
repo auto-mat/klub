@@ -110,7 +110,6 @@ class InteractionsImportExportTests(CreateSuperUserMixin, TestCase):
         self.assertEqual(int2.dispatched, 0)
 
 
-
 class DonorImportExportTests(CreateSuperUserMixin, TestCase):
     def setUp(self):
         super().setUp()
