@@ -8,11 +8,11 @@ import nested_admin
 
 from related_admin import RelatedFieldAdmin
 
-from smmapdfs.admin import PdfSandwichEmailAdmin, PdfSandwichFontAdmin, PdfSandwichTypeAdmin
+from smmapdfs.admin import PdfSandwichEmailAdmin, PdfSandwichTypeAdmin
 from smmapdfs.admin_abcs import PdfSandwichAdmin, PdfSandwichFieldAdmin
 from smmapdfs.models import PdfSandwichEmail, PdfSandwichFont, PdfSandwichType
 
-from .models import PdfSandwichEmailConnector, PdfSandwichFontConnector, PdfSandwichTypeConnector
+from .models import PdfSandwichEmailConnector, PdfSandwichTypeConnector
 
 
 class PdfInlineMixin(object):
@@ -29,10 +29,6 @@ class PdfInlineMixin(object):
 
 class PdfEmailAdminInline(PdfInlineMixin, nested_admin.NestedStackedInline):
     model = PdfSandwichEmailConnector
-
-
-class PdfFontAdminInline(PdfInlineMixin, nested_admin.NestedStackedInline):
-    model = PdfSandwichFontConnector
 
 
 class PdfTypeAdminInline(PdfInlineMixin, nested_admin.NestedStackedInline):
@@ -60,19 +56,6 @@ class _PdfSandwichEmailAdmin(
                 )
             else:
                 return super().formfield_for_foreignkey(db_field, request, **kwargs)
-
-
-admin.site.unregister(PdfSandwichFont)
-@admin.register(PdfSandwichFont)
-class _PdfSandwichFontAdmin(
-    unit_admin_mixin_generator('pdfsandwichfontconnector__administrative_unit'),
-    RelatedFieldAdmin, PdfSandwichTypeAdmin,
-):
-    inlines = (PdfFontAdminInline,)
-
-    list_display = PdfSandwichFontAdmin.list_display + (
-        'pdfsandwichfontconnector__administrative_unit',
-    )
 
 
 admin.site.unregister(PdfSandwichType)
