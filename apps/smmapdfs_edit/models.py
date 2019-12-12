@@ -2,7 +2,7 @@ from aklub.models import AdministrativeUnit
 
 from django.db import models
 
-from smmapdfs.models import PdfSandwichEmail, PdfSandwichFont, PdfSandwichType
+from smmapdfs.models import PdfSandwichEmail, PdfSandwichType
 
 
 class PdfSandwichTypeConnector(models.Model):
