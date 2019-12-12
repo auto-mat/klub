@@ -58,13 +58,19 @@ class _PdfSandwichEmailAdmin(
                 return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
+class PdfFieldsInline(admin.TabularInline):
+    model = TaxConfirmationField
+    can_delete = True
+    extra = 0
+
+
 admin.site.unregister(PdfSandwichType)
 @admin.register(PdfSandwichType)
 class _PdfSandwichTypeAdmin(
     unit_admin_mixin_generator('pdfsandwichtypeconnector__administrative_unit'),
     RelatedFieldAdmin, PdfSandwichTypeAdmin,
 ):
-    inlines = (PdfTypeAdminInline,)
+    inlines = (PdfTypeAdminInline, PdfFieldsInline)
 
     list_display = PdfSandwichTypeAdmin.list_display + (
         'pdfsandwichtypeconnector__administrative_unit',
