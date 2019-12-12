@@ -31,17 +31,3 @@ class PdfSandwichEmailConnector(models.Model):
         null=True,
         blank=True,
     )
-
-
-class PdfSandwichFontConnector(models.Model):
-    pdfsandwichfont = models.OneToOneField(
-                     PdfSandwichFont,
-                     on_delete=models.CASCADE,
-    )
-
-    administrative_unit = models.OneToOneField(
-        AdministrativeUnit,
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-    )
