@@ -56,7 +56,7 @@ class CreateSuperUserMixin:
 
 class AdminSmokeTest(CreateSuperUserMixin, tests.AdminSiteSmokeTest):
     fixtures = ['conditions', 'users']
-    exclude_apps = ['helpdesk', 'postoffice', 'advanced_filters', 'celery_monitor', 'import_export_celery']
+    exclude_apps = ['helpdesk', 'postoffice', 'advanced_filters', 'celery_monitor', 'import_export_celery', 'wiki_attachments']
 
     def setUp(self):
         super().setUp()
