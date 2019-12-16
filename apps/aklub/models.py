@@ -3069,6 +3069,8 @@ class TaxConfirmationField(PdfSandwichFieldABC):
         "name": (lambda tc: tc.get_name()),
         "street": (lambda tc: tc.get_street()),
         "addr_city": (lambda tc: tc.get_addr_city()),
+        "zip_code": (lambda tc: tc.get_zip_code()),
+        "country": (lambda tc: tc.get_country()),
         "date": (lambda tc: datetime.date.today().strftime("%d.%m.%Y")),
     }
 
@@ -3116,10 +3118,16 @@ class TaxConfirmation(models.Model):
         return "%s %s" % (self.user_profile.first_name, self.user_profile.last_name)
 
     def get_street(self):
-        return self.user_profile.street
+        return"%s" % (self.user_profile.street)
 
     def get_addr_city(self):
-        return "%s %s" % (self.user_profile.zip_code, self.user_profile.city)
+        return "%s" % (self.user_profile.city)
+
+    def get_zip_code(self):
+        return "%s" % (self.user_profile.zip_code,)
+
+    def get_get_country(self):
+        return "%s" % (self.user_profile.country,)
 
     sandwich_model = TaxConfirmationPdf
 
