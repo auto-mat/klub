@@ -1,9 +1,10 @@
 {% extends "admin/change_list_object_tools.html" %}
 {% block object-tools-items %}
   {{ block.super }}
+
   <li>
     <a style="background-color:black;
-    "href="/help/{{cl.opts.verbose_name_plural | cut:' '}}" target="_blank">Help
+    "href="{% url 'wiki:get' cl.opts.verbose_name_plural|cut:' '|add:'/' %}" target="_blank">Help
   </a>
   </li>
 {% endblock %}
