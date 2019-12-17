@@ -40,8 +40,9 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
-from . import models
-from .models import AccountStatements, Condition, DonorPaymentChannel, MassCommunication
+from flexible_filter_conditions.models import NamedCondition, filter_by_condition
+
+from .models import AccountStatements, MassCommunication, UserProfile
 
 cache = caches['default']
 
@@ -49,7 +50,7 @@ cache = caches['default']
 def get_users_by_condition_cached(cond):
     items = cache.get('condition_filter_%i' % cond.pk, None)
     if not items:
-        items = models.filter_by_condition(DonorPaymentChannel.objects, cond)
+        items = filter_by_condition(UserProfile.objects, cond)
         now = timezone.now()
         td = now.replace(hour=23, minute=59, second=59, microsecond=999) - now
         seconds_till_midnight = td.seconds + (td.days * 24 * 3600)
@@ -142,7 +143,7 @@ class AklubIndexDashboard(Dashboard):
                     'external': False,
                 }
             )
-        for cond in Condition.objects.filter(on_dashboard=True):
+        for cond in NamedCondition.objects.filter(on_dashboard=True):
             children.append(
                 {
                     'title': _(u"%(name)s: %(items)s items") % {
@@ -160,7 +161,7 @@ class AklubIndexDashboard(Dashboard):
             ),
         )
 
-        for cond in Condition.objects.filter(on_dashboard=True):
+        for cond in NamedCondition.objects.filter(on_dashboard=True):
             children = []
             members = get_users_by_condition_cached(cond)
             for member in members[:10]:
