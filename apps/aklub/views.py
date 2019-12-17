@@ -71,10 +71,11 @@ class RegularUserForm_UserProfile(forms.ModelForm):
         return self.cleaned_data
 
     def _post_clean(self):
+        email = self.cleaned_data.get('email', None)
         r = super()._post_clean()
         if self._errors.get('email') == ['This e-mail is already used.']:
             del self._errors['email']
-            self.email_used = self.cleaned_data['email']
+            self.email_used = email
         return r
 
     def __init__(self, *args, **kwargs):
