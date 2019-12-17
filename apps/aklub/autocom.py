@@ -125,10 +125,10 @@ def process_template(template_string, user, payment_channel):
     return gendrify_text(text, user.sex if hasattr(user, 'sex') else '')
 
 
-def check(payment_channels=None, action=None):
-    from .models import AutomaticCommunication, DonorPaymentChannel, Interaction
-    if not payment_channels:
-        payment_channels = DonorPaymentChannel.objects.all()
+def check(event, user_profiles=None, action=None):  # noqa
+    from .models import AutomaticCommunication, DonorPaymentChannel, UserProfile, Interaction
+    if not user_profiles:
+        user_profiles = UserProfile.objects.all()
     for auto_comm in AutomaticCommunication.objects.all():
         logger.info(
             u"Processin condition \"%s\" for autocom \"%s\", method: \"%s\", action: \"%s\"" % (
@@ -139,9 +139,12 @@ def check(payment_channels=None, action=None):
             ),
         )
 
-        filtered_payment_channels = payment_channels.filter(auto_comm.condition.get_query(action))
-        for payment_channel in filtered_payment_channels:
-            user = payment_channel.user
+        filtered_user_profiles = user_profiles.filter(auto_comm.condition.condition.get_query(action))
+        for user in filtered_user_profiles:
+            try:
+                payment_channel = user.userchannels.get(event=event)
+            except DonorPaymentChannel.DoesNotExist:
+                payment_channel = None
             if auto_comm.only_once and auto_comm.sent_to_users.filter(pk=user.pk).exists():
                 continue
             if user.language == 'cs':
@@ -158,5 +161,6 @@ def check(payment_channels=None, action=None):
                     note="Prepared by auto*mated mailer at %s" % datetime.datetime.now(),
                     send=auto_comm.dispatch_auto, type='auto',
                 )
-                auto_comm.sent_to_users.add(payment_channel)
+                if payment_channel:
+                    auto_comm.sent_to_users.add(payment_channel)
                 c.save()

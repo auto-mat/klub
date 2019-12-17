@@ -455,34 +455,36 @@ class RegularView(FormView):
         email = self.get_post_param(request, 'userprofile-email', 'payment_data____email')
         event = self.get_post_param(request, 'userincampaign-campaign', 'campaign')
         if email:
-            payment_channels = DonorPaymentChannel.objects.filter(user__profileemail__email=email, event__slug=event)
-            if payment_channels.exists():
-                autocom.check(payment_channels=payment_channels, action='resend-data')
-                user_data = {}
-                if 'recurringfrequency' in request.POST:
-                    user_data['frequency'] = REGULAR_FREQUENCY_MAP[request.POST.get('recurringfrequency')]
-                else:
-                    user_data['frequency'] = request.POST.get('userincampaign-regular_frequency')
-                user_data['name'] = self.get_post_param(request, 'userprofile-first_name', 'payment_data____jmeno')
-                user_data['surname'] = self.get_post_param(request, 'userprofile-last_name', 'payment_data____prijmeni')
-                user_data['amount'] = self.get_post_param(request, 'userincampaign-regular_amount', 'ammount')
-                user_data['telephone'] = self.get_post_param(request, 'userprofile-telephone', 'payment_data____telefon')
-                user_data['email'] = email
-                mail_managers(
-                    _("Repeated registration"),
-                    "Repeated registration for email %(email)s\n"
-                    "name: %(name)s\n"
-                    "surname: %(surname)s\n"
-                    "frequency: %(frequency)s\n"
-                    "telephone: %(telephone)s\n"
-                    "amount: %(amount)s" % user_data,
-                )
-                return self.success_page(
-                    payment_channels.get(),
-                    user_data['amount'],
-                    user_data['frequency'],
-                    True,
-                )
+            user_profiles = UserProfile.objects.filter(profileemail__email=email)
+            if user_profiles.exists():
+                payment_channels = user_profiles.get().userchannels.filter(event__slug=event)
+                if user_profiles.exists() and payment_channels.exists():
+                    autocom.check(user_profiles=user_profiles, event=Event.objects.get(slug=event), action='resend-data')
+                    user_data = {}
+                    if 'recurringfrequency' in request.POST:
+                        user_data['frequency'] = REGULAR_FREQUENCY_MAP[request.POST.get('recurringfrequency')]
+                    else:
+                        user_data['frequency'] = request.POST.get('userincampaign-regular_frequency')
+                    user_data['name'] = self.get_post_param(request, 'userprofile-first_name', 'payment_data____jmeno')
+                    user_data['surname'] = self.get_post_param(request, 'userprofile-last_name', 'payment_data____prijmeni')
+                    user_data['amount'] = self.get_post_param(request, 'userincampaign-regular_amount', 'ammount')
+                    user_data['telephone'] = self.get_post_param(request, 'userprofile-telephone', 'payment_data____telefon')
+                    user_data['email'] = email
+                    mail_managers(
+                        _("Repeated registration"),
+                        "Repeated registration for email %(email)s\n"
+                        "name: %(name)s\n"
+                        "surname: %(surname)s\n"
+                        "frequency: %(frequency)s\n"
+                        "telephone: %(telephone)s\n"
+                        "amount: %(amount)s" % user_data,
+                    )
+                    return self.success_page(
+                        payment_channels.get(),
+                        user_data['amount'],
+                        user_data['frequency'],
+                        True,
+                    )
         return super().post(request, *args, **kwargs)
 
     def get_initial(self):

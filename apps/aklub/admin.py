@@ -48,6 +48,8 @@ try:
 except ImportError:  # Django<2.0
     from django.core.urlresolvers import reverse
 
+from flexible_filter_conditions.admin_filters import UserConditionFilter, UserConditionFilter1
+
 from import_export import fields
 from import_export.admin import ImportExportMixin
 from import_export.instance_loaders import BaseInstanceLoader
@@ -76,9 +78,9 @@ from .forms import (
 )
 from .models import (
     AccountStatements, AdministrativeUnit, ApiAccount, AutomaticCommunication, BankAccount,
-    CompanyProfile, Condition, DonorPaymentChannel, Event, Expense, Interaction,
+    CompanyProfile, DonorPaymentChannel, Event, Expense, Interaction,
     MassCommunication, MoneyAccount, NewUser, Payment, Preference, Profile, ProfileEmail, Recruiter,
-    Result, Source, TaxConfirmation, Telephone, TerminalCondition, UserBankAccount,
+    Result, Source, TaxConfirmation, Telephone, UserBankAccount,
     UserProfile, UserYearPayments,
 )
 from .profile_model_resources import (
@@ -1154,7 +1156,7 @@ class DonorPaymethChannelAdmin(
         # 'source',
         ('event', RelatedFieldCheckBoxFilter),
         ('registered_support', DateRangeFilter),
-        filters.UserConditionFilter, filters.UserConditionFilter1,
+        UserConditionFilter, UserConditionFilter1,
     ]
     search_fields = [
         'user__userprofile__first_name',
@@ -1230,7 +1232,7 @@ class UserYearPaymentsAdmin(DonorPaymethChannelAdmin):
         # 'wished_information',
         'old_account',
         # 'source',
-        ('registered_support', DateRangeFilter), filters.UserConditionFilter, filters.UserConditionFilter1,
+        ('registered_support', DateRangeFilter), UserConditionFilter, UserConditionFilter1,
     ]
 
     def payment_total_by_year(self, obj):
@@ -1614,39 +1616,6 @@ class MassCommunicationAdmin(large_initial.LargeInitialMixin, admin.ModelAdmin):
         return obj
 
 
-class TerminalConditionInline(admin.TabularInline):
-    model = TerminalCondition
-    readonly_fields = ("variable_description",)
-    extra = 0
-
-
-class TerminalConditionAdmin(ImportExportMixin, admin.ModelAdmin):
-    list_display = ('variable', 'operation', 'value', 'condition')
-
-
-class ConditionAdmin(ImportExportMixin, admin.ModelAdmin):
-    save_as = True
-    list_display = ('name', 'as_filter', 'on_dashboard', 'operation', 'condition_string')
-    filter_horizontal = ('conds',)
-    inlines = [TerminalConditionInline, ]
-    fieldsets = [
-        (_("Description"), {
-            'fields': ['name'],
-        }),
-        (_("Operator"), {
-            'fields': ['operation'],
-        }),
-        (_("Logical conditions operands"), {
-            'fields': ['conds'],
-        }),
-        (_("Usage"), {
-            'fields': ['as_filter', 'on_dashboard'],
-        }),
-    ]
-
-    ordering = ('name',)
-
-
 def pair_payment_with_dpch(self, request, queryset):
     for account_statement in queryset:
         for payment in account_statement.payment_set.all():
@@ -1954,7 +1923,7 @@ class UserProfileAdmin(
         filters.EmailFilter,
         filters.TelephoneFilter,
         filters.NameFilter,
-        filters.UserConditionFilter, filters.UserConditionFilter1,
+        UserConditionFilter, UserConditionFilter1,
     )
     ordering = ('email',)
     filter_horizontal = ('groups', 'user_permissions',)
@@ -2255,8 +2224,6 @@ admin.site.register(Payment, PaymentAdmin)
 admin.site.register(AccountStatements, AccountStatementsAdmin)
 admin.site.register(AutomaticCommunication, AutomaticCommunicationAdmin)
 admin.site.register(MassCommunication, MassCommunicationAdmin)
-admin.site.register(Condition, ConditionAdmin)
-admin.site.register(TerminalCondition, TerminalConditionAdmin)
 admin.site.register(Event, EventAdmin)
 admin.site.register(Result, ResultAdmin)
 admin.site.register(Recruiter, RecruiterAdmin)

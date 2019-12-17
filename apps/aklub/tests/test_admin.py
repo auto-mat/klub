@@ -319,7 +319,7 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
         self.assertEqual(response.url, "/aklub/masscommunication/%s/change/" % obj.id)
 
     def test_automatic_communication_changelist_post(self):
-        mommy.make("aklub.Condition", id=1)
+        mommy.make("flexible_filter_conditions.NamedCondition", id=1)
         model_admin = django_admin.site._registry[AutomaticCommunication]
         request = self.get_request()
         response = model_admin.add_view(request)

@@ -10,9 +10,8 @@ from django.db.models import Count, Q
 from django.db.models.functions import Lower
 from django.utils.translation import ugettext as _
 
-from . import models
 from .models import (
-    CompanyProfile, Condition, Profile, ProfileEmail, Telephone,
+    CompanyProfile, Profile, ProfileEmail, Telephone,
     UserProfile,
 )
 
@@ -61,28 +60,6 @@ class PaymentsAssignmentsFilter(NullFieldFilter):
     field = 'user_donor_payment_channel'
     title = _("User assignment")
     parameter_name = 'user_assignment'
-
-
-class UserConditionFilter(SimpleListFilter):
-    """Filters using computed dynamic conditions from DB"""
-
-    title = _("Condition")
-    parameter_name = 'user_condition'
-
-    def lookups(self, request, model_admin):
-        return [(cond.id, cond.name) for cond in Condition.objects.filter(as_filter=True)]
-
-    def queryset(self, request, queryset):
-        if not self.value():
-            return queryset
-        cond = Condition.objects.filter(id=self.value())[0]
-
-        return models.filter_by_condition(queryset, cond)
-
-
-class UserConditionFilter1(UserConditionFilter):
-    """Filters using computed dynamic conditions from DB"""
-    parameter_name = 'user_condition1'
 
 
 class ActiveCampaignFilter(SimpleListFilter):

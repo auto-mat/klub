@@ -23,6 +23,8 @@ from django.core import mail
 from django.test import RequestFactory, TestCase
 from django.test.utils import override_settings
 
+from flexible_filter_conditions.models import NamedCondition
+
 from freezegun import freeze_time
 
 from model_mommy import mommy
@@ -51,7 +53,7 @@ class MailingTest(TestCase):
         )
         mommy.make("ProfileEmail", user=sending_user, email="test@test.com", is_primary=True)
         c = models.AutomaticCommunication.objects.create(
-            condition=models.Condition.objects.create(),
+            condition=NamedCondition.objects.create(),
             template="Testing template",
             subject="Testing email",
             method="email",
@@ -71,7 +73,7 @@ class MailingTest(TestCase):
         )
         mommy.make("ProfileEmail", user=sending_user, email="test@test.com", is_primary=True)
         c = models.AutomaticCommunication.objects.create(
-            condition=models.Condition.objects.create(),
+            condition=NamedCondition.objects.create(),
             template="Testing template",
             subject="Testing email",
             subject_en="Testing email",

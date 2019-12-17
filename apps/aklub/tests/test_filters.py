@@ -246,16 +246,6 @@ class FixtureFilterTests(FilterTestCase):
         q = f.queryset(self.request, Payment.objects.all())
         self.assertEqual(q.count(), 6)
 
-    def test_user_condition_filter(self):
-        f = filters.UserConditionFilter(self.request, {"user_condition": 2}, Profile, None)
-        q = f.queryset(self.request, DonorPaymentChannel.objects.all())
-        self.assertEqual(q.count(), 4)
-
-    def test_user_condition_filter_without_query(self):
-        f = filters.UserConditionFilter(self.request, {}, Profile, None)
-        q = f.queryset(self.request, DonorPaymentChannel.objects.all())
-        self.assertEqual(q.count(), 4)
-
     def test_active_camaign_filter_no(self):
         f = filters.ActiveCampaignFilter(self.request, {"active": "no"}, Profile, None)
         q = f.queryset(self.request, Event.objects.all())

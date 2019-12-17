@@ -40,7 +40,7 @@ from django.core.files.storage import FileSystemStorage
 from django.core.mail import EmailMultiAlternatives
 from django.core.validators import RegexValidator
 from django.db import models, transaction
-from django.db.models import Count, Q, Sum, signals
+from django.db.models import Count, Sum, signals
 from django.dispatch import receiver
 from django.urls import reverse
 from django.utils import timezone
@@ -1477,11 +1477,11 @@ class UserInCampaign(models.Model):
         """
         super().save(*args, **kwargs)
         from .autocom import check as autocom_check
-        autocom_check(users=UserInCampaign.objects.filter(pk=self.pk), action=(insert and 'new-user' or None))
+        autocom_check(users=UserProfile.objects.filter(userchannels__pk=self.pk, event=self.event), action=(insert and 'new-user' or None))
 
 
 def filter_by_condition(queryset, cond):
-    return queryset.filter(cond.get_query())
+    return queryset.filter(cond.condition.get_query()).distinct()
 
 
 def str_to_datetime_xml(date):
@@ -1709,7 +1709,10 @@ class DonorPaymentChannel(models.Model):
     class Meta:
         verbose_name = _("Donor payment channel")
         verbose_name_plural = _("Donor payment channels")
-        unique_together = ('VS', 'money_account')
+        unique_together = (
+            ('VS', 'money_account'),
+            ('user', 'event'),
+        )
 
     VS = models.CharField(
         verbose_name=_("VS"),
@@ -2109,7 +2112,11 @@ class DonorPaymentChannel(models.Model):
             # time-consuming (relying on Cron performing it in regular
             # intervals anyway)
             from .autocom import check as autocom_check
-            autocom_check(payment_channels=DonorPaymentChannel.objects.filter(pk=self.pk), action=(insert and 'new-user' or None))
+            autocom_check(
+                user_profiles=UserProfile.objects.filter(userchannels__pk=self.pk),
+                event=self.event,
+                action=(insert and 'new-user' or None),
+            )
 
 
 class UserYearPayments(DonorPaymentChannel):
@@ -2355,7 +2362,8 @@ class Payment(WithAdminUrl, models.Model):
             # intervals anyway)
             from .autocom import check as autocom_check
             autocom_check(
-                payment_channels=DonorPaymentChannel.objects.filter(pk=self.user_donor_payment_channel.pk),
+                event=self.user_donor_payment_channel.event,
+                user_profiles=UserProfile.objects.filter(userchannels__pk=self.user_donor_payment_channel.pk),
                 action=(insert and 'new-payment' or None),
                 )
 
@@ -2571,306 +2579,6 @@ class PetitionSignature(BaseInteraction):
     )
 
 
-class ConditionValues(object):
-    """Iterator that returns values available for Klub Conditions
-
-    Returns tuples (val, val) where val is a string of the form
-    model.cid where model is the name of the model in lower case
-    and cid is the database column id (name).
-
-    This class is needed to be able to dynamically generate
-    a list of values selectable in the Condition forms by
-    dynamically introspecting the User and Payment models.
-    """
-
-    def __init__(self, model_names):
-        self._columns = []
-        # Special attributes
-        self._columns += [('action', None, _(u"Action"), 'CharField', ('daily', 'new-user', 'new-payment'))]
-        # Models attributes
-        for name in model_names:
-            model = {
-                'User': User,
-                'Profile': Profile,
-                'Payment': Payment,
-                'User.source': Source,
-                'User.last_payment': Payment,
-            }[name]
-            # DB fields
-            self._columns += [
-                (
-                    name,
-                    field.name,
-                    format_lazy('{} {}', name, field.verbose_name),
-                    field.get_internal_type(),
-                    list(zip(*field.choices))[0] if field.choices else "",
-                )
-                for field in model._meta.fields]
-        self._columns.sort()
-        self._index = 0
-
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        try:
-            name, secondary_name, verbose_name, condition_type, choices = self._columns[self._index]
-            if secondary_name:
-                val = name + "." + secondary_name
-            else:
-                val = name
-            name = u"%s: %s %s" % (verbose_name, condition_type, choices)
-            self._index = self._index + 1
-            return (val, name)
-        except IndexError:
-            raise StopIteration
-
-
-class Condition(models.Model):
-    """A condition entry and DB model
-
-    Conditions are composed of the left hand side, an operator
-    and the right hand side.
-
-    Possible values for either side are:
-    1) a value (string, integer...)
-    2) a symbolic value -- variable, special value or reference to DB
-    (e.g. u.regular)
-    3) another condition
-
-    Only one type of left and one type of right hand side value is permitted.
-    Not all operators will work with all types of values (e.g. logic operators
-    only work on other conditions on both sides)
-    """
-
-    class Meta:
-        verbose_name = _("Condition")
-        verbose_name_plural = _("Conditions")
-        ordering = ('name',)
-
-    OPERATORS = (
-        ('and', _(u'and')),
-        ('or', _(u'or')),
-        ('nor', _(u'nor')),
-    )
-
-    name = models.CharField(
-        verbose_name=_("Name of condition"),
-        max_length=200,
-        blank=False,
-        null=True,
-    )
-    # One of variable or conds must be non-null
-    operation = models.CharField(
-        verbose_name=_("Operation"),
-        choices=OPERATORS,
-        max_length=30,
-    )
-    conds = models.ManyToManyField(
-        'self',
-        related_name='conds_rel',
-        symmetrical=False,
-        verbose_name=_("Conditions"),
-        blank=True,
-    )
-    as_filter = models.BooleanField(
-        verbose_name=_("Display as filter?"),
-        help_text=_("Determines whether this condition is available as a filter"
-                    "in the table of Users"),
-        default=False,
-    )
-    on_dashboard = models.BooleanField(
-        verbose_name=_("Display on dashboard?"),
-        help_text=_("Determines whether this condition is available on dashboard"),
-        default=False,
-    )
-
-    def __str__(self):
-        return str(self.name)
-
-    def get_query(self, action=None):
-        operation_dict = {
-            'and': lambda x, y: x & y,
-            'or': lambda x, y: x | y,
-            'nor': lambda x, y: x | y,
-        }
-        ret_cond = None
-        for cond in self.conds.all():
-            if ret_cond:
-                ret_cond = operation_dict[self.operation](ret_cond, cond.get_query(action))
-            else:
-                ret_cond = cond.get_query(action)
-        for tcond in self.terminalcondition_set.all():
-            if ret_cond:
-                ret_cond = operation_dict[self.operation](ret_cond, tcond.get_query(action))
-            else:
-                ret_cond = tcond.get_query(action)
-
-        if self.operation == 'nor':
-            return ~(ret_cond)
-        else:
-            return ret_cond
-
-    def condition_string(self):
-        prefix = ""
-        sufix = ""
-        if self.operation == 'nor':
-            prefix = "not("
-            sufix = ")"
-            op_string = " or "
-        else:
-            op_string = " %s " % self.operation
-
-        condition_list = [condition.condition_string() for condition in self.conds.all()]
-        terminalcondition_list = [str(condition) for condition in self.terminalcondition_set.all()]
-        return "%s%s(%s)%s" % (
-            prefix,
-            self.name,
-            op_string.join(condition_list + terminalcondition_list),
-            sufix
-        )
-
-
-class TerminalCondition(models.Model):
-    """A terminal condition entry and DB model
-
-    Terminal conditions are composed of the left hand side, an operator
-    and the right hand side.
-
-    Possible values for either side are:
-    1) a value (string, integer...)
-    2) a symbolic value -- variable, special value or reference to DB
-    (e.g. u.regular)
-
-    Only one type of left and one type of right hand side value is permitted.
-    Not all operators will work with all types of values (e.g. logic operators
-    only work on other conditions on both sides)
-    """
-
-    class Meta:
-        verbose_name = _("Terminal condition")
-        verbose_name_plural = _("Terminal conditions")
-
-    OPERATORS = (
-        ('=', u'='),
-        ('!=', u'≠'),
-        ('>', '>'),
-        ('<', '<'),
-        ('>=', u'≤'),
-        ('<=', u'≤'),
-        ('containts', _(u'contains')),
-        ('icontaints', _(u'contains (case insensitive)')),
-    )
-
-    variable = models.CharField(
-        verbose_name=_("Variable"),
-        choices=ConditionValues(('User', 'Profile', 'User.source', 'User.last_payment')),
-        help_text=_("Value or variable on left-hand side"),
-        max_length=50,
-        blank=True,
-        null=True,
-    )
-    operation = models.CharField(
-        verbose_name=_("Operation"),
-        choices=OPERATORS,
-        max_length=30,
-    )
-    # One of value or conds must be non-null
-    value = models.CharField(
-        verbose_name=_("Value"),
-        help_text=_(
-            "Value or variable on right-hand side. <br/>"
-            "\naction: daily, new-user<br/>"
-            "\nDateField: month_ago, one_day, one_week, two_weeks, one_month<br/>"
-            "\nBooleanField: True, False"),
-        max_length=50,
-        blank=True,
-        null=True,
-    )
-    condition = models.ForeignKey(
-        Condition,
-        on_delete=models.CASCADE,
-    )
-
-    def variable_description(self):
-        if self.variable:
-            try:
-                return unicode(UserInCampaign._meta.get_field(self.variable.split(".")[1]).help_text)
-            except NameError:
-                try:
-                    return eval(self.variable).__doc__
-                except NameError:
-                    return "action"
-
-    def get_val(self, spec):
-        if '.' in spec:
-            variable, value = spec.split('.')
-        else:
-            variable = spec
-
-        spec_dict = {
-            'month_ago': datetime.datetime.now() - datetime.timedelta(days=30),
-            'one_day': datetime.timedelta(days=1),
-            'one_week': datetime.timedelta(days=7),
-            'two_weeks': datetime.timedelta(days=14),
-            'one_month': datetime.timedelta(days=31),
-            'datetime': lambda value: datetime.datetime.strptime(value, '%Y-%m-%d %H:%M'),
-            'timedelta': lambda value: datetime.timedelta(days=int(value)),
-            'days_ago': lambda value: datetime.datetime.now() - datetime.timedelta(days=int(value)),
-            'true': True,
-            'false': False,
-            'None': None,
-        }
-        if variable in spec_dict:
-            expression = spec_dict[variable]
-            if hasattr(expression, "__call__"):  # is function
-                return spec_dict[variable](value)
-            else:
-                return spec_dict[variable]
-        else:
-            try:
-                return int(spec)
-            except (TypeError, ValueError):
-                return spec
-
-    def get_querystring(self, spec, operation):
-        spec_ = spec.split('.')
-        if spec_[0] not in ('Profile', 'DonorPaymentChannel'):
-            raise NotImplementedError("Unknown spec %s" % spec_[0])
-
-        join_querystring = "__".join(spec_[1:])
-
-        operation_map = {
-            '=': "",
-            '!=': "",
-            '<': "__lt",
-            '>': "__gt",
-            'contains': "__contains",
-            'icontains': "__icontains",
-            '<=': "__lte",
-            '>=': "__gte",
-        }
-        return join_querystring + operation_map[operation]
-
-    def get_query(self, action=None):
-        if self.variable == 'action':
-            if self.value == action:
-                return Q()
-            else:
-                return Q(pk__in=[])  # empty set
-
-        # Elementary conditions
-        left = self.get_querystring(self.variable, self.operation)
-        right = self.get_val(self.value)
-        if self.operation == '!=':
-            return ~Q(**{left: right})
-        else:
-            return Q(**{left: right})
-
-    def __str__(self):
-        return "%s %s %s" % (self.variable, self.operation, self.value)
-
-
 class AutomaticCommunication(models.Model):
     """AutomaticCommunication entry and DB model
 
@@ -2891,7 +2599,7 @@ class AutomaticCommunication(models.Model):
         null=True,
     )
     condition = models.ForeignKey(
-        Condition,
+        'flexible_filter_conditions.NamedCondition',
         null=True,
         on_delete=models.SET_NULL,
     )
@@ -2908,6 +2616,14 @@ class AutomaticCommunication(models.Model):
         verbose_name=_("English subject"),
         max_length=130,
         blank=True,
+        null=True,
+    )
+    event = models.ForeignKey(
+        Event,
+        help_text=("Event"),
+        verbose_name=("Event from which are DonorPaymentChannel data selected"),
+        blank=True,
+        on_delete=models.SET_NULL,
         null=True,
     )
     template = models.TextField(

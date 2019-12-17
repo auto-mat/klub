@@ -81,6 +81,7 @@ jsonfield2 = "*"
 django-isnull-list-filter = "*"
 docutils = "*"
 wiki = "*"
+django-flexible-filter-conditions = {git = "https://github.com/PetrDlouhy/django-flexible-filter-conditions",editable = true}
 
 [dev-packages]
 coverage = "*"
