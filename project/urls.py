@@ -14,7 +14,7 @@ admin.autodiscover()
 
 urlpatterns = [
     url(r'^desk/', include("helpdesk.urls")),
-    url(r'^admin/passreset/$', auth_views.PasswordResetView.as_view(), name='password_reset'),
+    url(r'^admin/passreset/$', auth_views.PasswordResetView.as_view(), name='admin_password_reset'),
     url(r'^admin/passresetdone/$', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
     url(
         r'^admin/passresetconfirm/(?P<uidb64>[-\w]+)/(?P<token>[-\w]+)/$',
