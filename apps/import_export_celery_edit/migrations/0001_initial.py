@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('import_export_celery', '0006_auto_20191219_0913'),
-        ('aklub', '0058_auto_20191219_0913'),
+        ('aklub', '0057_auto_20191212_0956'),
     ]
 
     operations = [
