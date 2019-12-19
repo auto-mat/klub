@@ -210,6 +210,7 @@ INSTALLED_APPS = (
     'raven.contrib.django.raven_compat',
     'import_export',
     'import_export_celery',
+    'import_export_celery_edit',
     'corsheaders',
     'daterange_filter',
     'denorm',
