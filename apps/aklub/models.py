@@ -3100,6 +3100,14 @@ class TaxConfirmation(models.Model):
     amount = models.PositiveIntegerField(default=0)
     file = models.FileField(storage=OverwriteStorage())  # DEPRICATED!
 
+    administrative_unit = models.ForeignKey(
+        AdministrativeUnit,
+        verbose_name=_("administrative unit"),
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
+
     def get_pdf(self):
         try:
             try:
