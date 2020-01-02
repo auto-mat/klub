@@ -53,7 +53,6 @@ from polymorphic.managers import PolymorphicManager
 from polymorphic.models import PolymorphicModel
 
 from smmapdfs.model_abcs import PdfSandwichABC, PdfSandwichFieldABC
-from smmapdfs.models import PdfSandwichType
 
 import stdimage
 
@@ -3146,7 +3145,7 @@ class TaxConfirmation(models.Model):
     sandwich_model = TaxConfirmationPdf
 
     def get_sandwich_type(self):
-        return PdfSandwichType.objects.get(pdfsandwichtypeconnector__administrative_unit=self.administrative_unit)
+        return self.administrative_unit.pdfsandwichtypeconnector.pdfsandwichtype
 
     def get_payment_set(self):
         return Payment.objects.filter(user_profile=self.user_profile).exclude(type='expected').filter(date__year=self.year)
