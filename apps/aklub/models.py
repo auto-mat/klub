@@ -3072,6 +3072,7 @@ class TaxConfirmationField(PdfSandwichFieldABC):
         "zip_code": (lambda tc: tc.get_zip_code()),
         "country": (lambda tc: tc.get_country()),
         "date": (lambda tc: datetime.date.today().strftime("%d.%m.%Y")),
+        "administrative_unit": (lambda tc: tc.get_administrative_unit()),
     }
 
 
@@ -3136,6 +3137,9 @@ class TaxConfirmation(models.Model):
 
     def get_payment_set(self):
         return Payment.objects.filter(user_profile=self.user_profile).exclude(type='expected').filter(date__year=self.year)
+
+    def get_administrative_unit(self):
+        return self.taxconfirmationpdf_set.get().pdfsandwich_type.pdfsandwichtypeconnector.administrative_unit.name
 
     class Meta:
         verbose_name = _("Tax confirmation")
