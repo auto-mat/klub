@@ -3151,7 +3151,7 @@ class TaxConfirmation(models.Model):
         return Payment.objects.filter(user_profile=self.user_profile).exclude(type='expected').filter(date__year=self.year)
 
     def get_administrative_unit(self):
-        return self.taxconfirmationpdf_set.get().pdfsandwich_type.pdfsandwichtypeconnector.administrative_unit.name
+        return self.administrative_unit.name
 
     class Meta:
         verbose_name = _("Tax confirmation")
