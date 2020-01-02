@@ -199,12 +199,13 @@ class TestStr(TestCase):
     def test_make_tax_confirmation_no_payment(self):
         """ Test, that make_tax_confirmation function without any payment """
         t = mommy.make("aklub.UserProfile")
-        tax_confirmation, created = t.make_tax_confirmation(2016)
+        unit = mommy.make("aklub.AdministrativeUnit")
+        tax_confirmation, created = t.make_tax_confirmation(2016, unit)
         self.assertEqual(tax_confirmation, None)
         self.assertEqual(created, False)
 
         t = mommy.make("aklub.CompanyProfile")
-        tax_confirmation, created = t.make_tax_confirmation(2016)
+        tax_confirmation, created = t.make_tax_confirmation(2016, unit)
         self.assertEqual(tax_confirmation, None)
         self.assertEqual(created, False)
 
@@ -212,17 +213,19 @@ class TestStr(TestCase):
     def test_make_tax_confirmation(self):
         """ Test, that make_tax_confirmation function """
         t = mommy.make("aklub.UserProfile", sex='male')
-        uc = mommy.make("aklub.DonorPaymentChannel", user=t, event=mommy.make("Event"))
+        unit = mommy.make("aklub.AdministrativeUnit", name='test1')
+        bank_acc = mommy.make("aklub.BankAccount",  bank_account_number='1111', administrative_unit=unit)
+        uc = mommy.make("aklub.DonorPaymentChannel", user=t, event=mommy.make("Event"), money_account=bank_acc)
         mommy.make("aklub.Payment", amount=350, date="2016-01-01", type='regular', user_donor_payment_channel=uc)
-        tax_confirmation, created = t.make_tax_confirmation(2016)
+        tax_confirmation, created = t.make_tax_confirmation(2016, unit)
         self.assertEqual(t.email, None)
         self.assertEqual(tax_confirmation.year, 2016)
         self.assertEqual(tax_confirmation.amount, 350)
 
         t = mommy.make("aklub.CompanyProfile")
-        uc = mommy.make("aklub.DonorPaymentChannel", user=t, event=mommy.make("Event"))
+        uc = mommy.make("aklub.DonorPaymentChannel", user=t, event=mommy.make("Event"), money_account=bank_acc)
         mommy.make("aklub.Payment", amount=350, date="2016-01-01", type='regular', user_donor_payment_channel=uc)
-        tax_confirmation, created = t.make_tax_confirmation(2016)
+        tax_confirmation, created = t.make_tax_confirmation(2016, unit)
         self.assertEqual(t.email, None)
         self.assertEqual(tax_confirmation.year, 2016)
         self.assertEqual(tax_confirmation.amount, 350)
