@@ -1770,13 +1770,13 @@ class SourceAdmin(admin.ModelAdmin):
 
 class TaxConfirmationAdmin(unit_admin_mixin_generator('user_profile__administrative_units'), ImportExportMixin, admin.ModelAdmin):
     change_list_template = "admin/aklub/taxconfirmation/change_list.html"
-    list_display = ('user_profile', 'year', 'amount', 'get_pdf', )
+    list_display = ('user_profile', 'year', 'amount', 'get_pdf', 'administrative_unit', )
     ordering = (
         'user_profile__userprofile__last_name',
         'user_profile__userprofile__first_name',
         'user_profile__companyprofile__name',
     )
-    list_filter = ['year', 'user_profile__administrative_units__name']
+    list_filter = ['year', 'administrative_unit', ]
     search_fields = (
         'user_profile__userprofile__last_name',
         'user_profile__userprofile__first_name',
@@ -1792,7 +1792,7 @@ class TaxConfirmationAdmin(unit_admin_mixin_generator('user_profile__administrat
     )
 
     readonly_fields = ['get_pdf', ]
-    fields = ['user_profile', 'year', 'amount', 'get_pdf', ]
+    fields = ['user_profile', 'year', 'amount', 'get_pdf', 'administrative_unit', ]
 
     def generate(self, request):
         tasks.generate_tax_confirmations.apply_async()

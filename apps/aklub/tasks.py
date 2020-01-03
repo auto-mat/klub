@@ -32,11 +32,14 @@ def post_office_send_mail():
 def generate_tax_confirmations():
     year = datetime.datetime.now().year - 1
     payed = models.Payment.objects.filter(date__year=year).exclude(type='expected')
-    donors = models.UserProfile.objects.filter(userchannels__payment__in=payed).order_by('last_name')
+    users = models.UserProfile.objects.filter(userchannels__payment__in=payed).order_by('last_name').distinct()
     confirmations = []
-    for d in donors:
-        confirmation, created = d.make_tax_confirmation(year)
-        confirmations.append(confirmation)
+    for user in users:
+        donors_channels = user.userchannels.filter(payment__in=payed)
+        administrative_units = models.AdministrativeUnit.objects.filter(moneyaccount__moneyaccounts__in=donors_channels)
+        for unit in administrative_units:
+            confirmation, created = user.make_tax_confirmation(year, unit)
+            confirmations.append(confirmation)
     smmapdfs.actions.make_pdfsandwich(None, None, confirmations)
 
 

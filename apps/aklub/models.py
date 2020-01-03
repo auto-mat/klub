@@ -769,14 +769,18 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
 
     userattendance_links.short_description = _('Users in campaign')
 
-    def make_tax_confirmation(self, year):
-        payment_set = Payment.objects.filter(user_donor_payment_channel__user=self)
+    def make_tax_confirmation(self, year, unit):
+        payment_set = Payment.objects.filter(
+                            user_donor_payment_channel__user=self,
+                            user_donor_payment_channel__money_account__administrative_unit=unit,
+                            )
         amount = payment_set.exclude(type='expected').filter(date__year=year).aggregate(Sum('amount'))['amount__sum']
         if not amount:
             return None, False
         confirm, created = TaxConfirmation.objects.update_or_create(
             user_profile=self,
             year=year,
+            administrative_unit=unit,
             defaults={
                 'amount': amount,
             },
@@ -3072,6 +3076,7 @@ class TaxConfirmationField(PdfSandwichFieldABC):
         "zip_code": (lambda tc: tc.get_zip_code()),
         "country": (lambda tc: tc.get_country()),
         "date": (lambda tc: datetime.date.today().strftime("%d.%m.%Y")),
+        "administrative_unit": (lambda tc: tc.get_administrative_unit()),
     }
 
 
@@ -3098,6 +3103,14 @@ class TaxConfirmation(models.Model):
     year = models.PositiveIntegerField()
     amount = models.PositiveIntegerField(default=0)
     file = models.FileField(storage=OverwriteStorage())  # DEPRICATED!
+
+    administrative_unit = models.ForeignKey(
+        AdministrativeUnit,
+        verbose_name=_("administrative unit"),
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
 
     def get_pdf(self):
         try:
@@ -3132,15 +3145,17 @@ class TaxConfirmation(models.Model):
     sandwich_model = TaxConfirmationPdf
 
     def get_sandwich_type(self):
-        return self.user_profile.administrative_units.first().pdfsandwichtypeconnector.pdfsandwichtype
+        return self.administrative_unit.pdfsandwichtypeconnector.pdfsandwichtype
 
     def get_payment_set(self):
         return Payment.objects.filter(user_profile=self.user_profile).exclude(type='expected').filter(date__year=self.year)
 
+    def get_administrative_unit(self):
+        return self.administrative_unit.name
+
     class Meta:
         verbose_name = _("Tax confirmation")
         verbose_name_plural = _("Tax confirmations")
-        unique_together = ('user_profile', 'year',)
 
 
 User._meta.get_field('email').__dict__['_unique'] = True
