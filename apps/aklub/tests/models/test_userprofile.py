@@ -17,8 +17,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+import PyPDF2
 
+from aklub.models import TaxConfirmation
+from aklub.tasks import generate_tax_confirmations
+
+from django.core.files import File
 from django.test import TestCase
+from django.test.utils import override_settings
+
 
 from freezegun import freeze_time
 
@@ -196,6 +203,8 @@ class TestStr(TestCase):
         t.clean()
         self.assertEqual(t.email, None)
 
+
+class TestTaxConfirmation(TestCase):
     def test_make_tax_confirmation_no_payment(self):
         """ Test, that make_tax_confirmation function without any payment """
         t = mommy.make("aklub.UserProfile")
@@ -229,3 +238,82 @@ class TestStr(TestCase):
         self.assertEqual(t.email, None)
         self.assertEqual(tax_confirmation.year, 2016)
         self.assertEqual(tax_confirmation.amount, 350)
+
+    @override_settings(
+        CELERY_ALWAYS_EAGER=True,
+    )
+    @freeze_time("2017-5-1")
+    def test_generate_pdf(self):
+        """ Test, that test tax_configurate task which create TaxConfiguration and generate pdf"""
+        unit = mommy.make("aklub.AdministrativeUnit", name='unit_test1')
+        t = mommy.make(
+                "aklub.UserProfile",
+                sex='male',
+                first_name='first_test_user_name',
+                last_name='last_name',
+                street='street_address',
+                city='city_name',
+                zip_code='192 00',
+                country="Test_country",
+                administrative_units=[unit],
+        )
+
+        bank_acc = mommy.make(
+            "aklub.BankAccount",
+            bank_account_number='1111',
+            administrative_unit=unit,
+        )
+
+        uc = mommy.make(
+            "aklub.DonorPaymentChannel",
+            user=t,
+            event=mommy.make("Event"),
+            money_account=bank_acc,
+        )
+        mommy.make("aklub.Payment", amount=350, date="2016-01-01", type='regular', user_donor_payment_channel=uc)
+
+        font = mommy.make(
+                "smmapdfs.PdfSandwichFont",
+                name="test_font",
+                ttf=File(open("apps/aklub/test_data/TestFont.ttf", "rb")),
+        )
+        pdf_type = mommy.make(
+                "smmapdfs.PdfSandwichType",
+                name="sandwitch_type",
+                template_pdf=File(open("apps/aklub/test_data/empty_pdf.pdf", "rb")),
+        )
+        mommy.make(
+            "smmapdfs_edit.PdfSandwichTypeConnector",
+            pdfsandwichtype=pdf_type,
+            administrative_unit=unit,
+        )
+        mommy.make("aklub.TaxConfirmationField", pdfsandwich_type=pdf_type, field="year", font=font)
+        mommy.make("aklub.TaxConfirmationField", pdfsandwich_type=pdf_type, field="amount", font=font)
+        mommy.make("aklub.TaxConfirmationField", pdfsandwich_type=pdf_type, field="name", font=font)
+        mommy.make("aklub.TaxConfirmationField", pdfsandwich_type=pdf_type, field="street", font=font)
+        mommy.make("aklub.TaxConfirmationField", pdfsandwich_type=pdf_type, field="addr_city", font=font)
+        mommy.make("aklub.TaxConfirmationField", pdfsandwich_type=pdf_type, field="zip_code", font=font)
+        mommy.make("aklub.TaxConfirmationField", pdfsandwich_type=pdf_type, field="country", font=font)
+        mommy.make("aklub.TaxConfirmationField", pdfsandwich_type=pdf_type, field="date", font=font)
+        mommy.make("aklub.TaxConfirmationField", pdfsandwich_type=pdf_type, field="administrative_unit", font=font)
+
+        generate_tax_confirmations()
+
+        tax_confirmation = TaxConfirmation.objects.get(year=2016)
+        self.assertEqual(t.email, None)
+        self.assertEqual(tax_confirmation.year, 2016)
+        self.assertEqual(tax_confirmation.amount, 350)
+
+        pdf = tax_confirmation.taxconfirmationpdf_set.get().pdf
+        read_pdf = PyPDF2.PdfFileReader(pdf)
+        page = read_pdf.getPage(0)
+        page_content = page.extractText()
+        self.assertTrue("2016" in page_content)
+        self.assertTrue("350 K" in page_content)
+        self.assertTrue("first_test_user_name last_name" in page_content)
+        self.assertTrue("street_address" in page_content)
+        self.assertTrue("city_name" in page_content)
+        self.assertTrue("192 00" in page_content)
+        self.assertTrue("Test_country" in page_content)
+        self.assertTrue("01.05.2017" in page_content)
+        self.assertTrue("unit_test1" in page_content)
