@@ -3139,7 +3139,7 @@ class TaxConfirmation(models.Model):
     def get_zip_code(self):
         return "%s" % (self.user_profile.zip_code,)
 
-    def get_get_country(self):
+    def get_country(self):
         return "%s" % (self.user_profile.country,)
 
     sandwich_model = TaxConfirmationPdf
