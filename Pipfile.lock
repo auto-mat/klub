@@ -266,7 +266,7 @@
         "django-helpdesk": {
             "editable": true,
             "git": "https://github.com/auto-mat/django-helpdesk.git",
-            "ref": "99531a8033e374f8d71ebcdf6d5a08a9c040e198"
+            "ref": "8386e38d50a4b1c664d384f6e9324f746b3f0bcf"
         },
         "django-heroku": {
             "hashes": [
@@ -369,10 +369,10 @@
         },
         "django-smmapdfs": {
             "hashes": [
-                "sha256:347740da12cdad6e44a5e6d97e525edcbc905b94751482e8e0fe2cc8c933a279"
+                "sha256:63aa7429f347f198d665f17c81e82ed03aa547a10394b800a18970ccc9b63cc1"
             ],
             "index": "pypi",
-            "version": "==1.0.7"
+            "version": "==1.0.8"
         },
         "django-stdimage": {
             "hashes": [
