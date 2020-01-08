@@ -23,6 +23,8 @@ import datetime
 import logging
 import os.path
 
+from colorfield.fields import ColorField
+
 from denorm import denormalized, depend_on_related
 
 from django.conf import settings
@@ -209,6 +211,11 @@ class AdministrativeUnit(models.Model, ParseAccountStatement):
         max_length=255,
         blank=False,
         null=False,
+    )
+
+    color = ColorField(
+        default='#000000',
+        help_text=_("Choose color to help discern Administrative unit in app"),
     )
 
     def __str__(self):
