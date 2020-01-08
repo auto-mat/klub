@@ -7,6 +7,10 @@ from django.utils.translation import ugettext as _
 from helpdesk.query import __Query__
 
 
+def get_unit_color(text, unit):
+    return f'<p style="color:{unit.color};">{text}</p>'
+
+
 class Query(__Query__):
     def get_timeline_context(self):  # noqa
         context = super().get_timeline_context()
@@ -40,7 +44,10 @@ class Query(__Query__):
                         'group': _('Interaction') + " - " + interaction.method,
                         'start_date': self.mk_timeline_date(interaction.date),
                         'text': {
-                            'headline': interaction.subject,
+                            'headline': get_unit_color(
+                                                interaction.subject,
+                                                interaction.administrative_unit,
+                                        ),
                             'text': "{summary}<br/><a href='{url}''/> {link_text} </a>".format(
                                 summary=interaction.summary,
                                 url=interaction.get_admin_url(),
@@ -55,7 +62,10 @@ class Query(__Query__):
                             datetime.datetime.combine(payment.date, datetime.time(0, 0)),
                         ),
                         'text': {
-                            'headline': "%s Kč" % payment.amount,
+                            'headline': get_unit_color(
+                                                f'{payment.amount} Kč',
+                                                payment.user_donor_payment_channel.money_account.administrative_unit,
+                                        ),
                             'text': "{name} <br/><a href='{url}'/> {link_text} </a>".format(
                                 name=payment.user_donor_payment_channel.event.name,
                                 url=payment.get_admin_url(),
