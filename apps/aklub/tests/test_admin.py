@@ -399,7 +399,7 @@ class AdminImportExportTests(TestCase):
         response = self.client.post(address, post_data)
         self.assertContains(
             response,
-            ',Test,User,,male,,test.user@email.cz,,Praha 4,,120127010,0,1,regular,monthly,2015-12-16 17:22:30,'
+            ',Test,User,,male,,test.user@email.cz,,Praha 4,,120127010,0,1,regular,monthly,2015-12-16 18:22:30,'
             '"Domníváte se, že má město po zprovoznění tunelu Blanka omezit tranzit historickým centrem? '
             'Ano, hned se zprovozněním tunelu",editor,1,cs,,,,0,0.0,100',
         )
