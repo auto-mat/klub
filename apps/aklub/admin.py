@@ -38,7 +38,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator
 from django.db.models import CharField, Count, Max, Sum
-from django.http import HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect
 from django.utils.html import format_html, format_html_join, mark_safe
 from django.utils.translation import ugettext as _
@@ -1769,14 +1769,25 @@ class SourceAdmin(admin.ModelAdmin):
 
 
 class TaxConfirmationAdmin(unit_admin_mixin_generator('user_profile__administrative_units'), ImportExportMixin, admin.ModelAdmin):
+
+    def batch_download(self, request, queryset):
+        links = []
+        for q in queryset:
+            file_field = q.taxconfirmationpdf_set.get().pdf
+            if file_field:
+                links.append(file_field.url)
+        return HttpResponse("\n".join(links), content_type='text/plain')
+
+    batch_download.short_description = _("generate download links for pdf files")
+
     change_list_template = "admin/aklub/taxconfirmation/change_list.html"
-    list_display = ('user_profile', 'year', 'amount', 'get_pdf', 'administrative_unit', )
+    list_display = ('user_profile', 'get_email', 'year', 'amount', 'get_pdf', 'administrative_unit', )
     ordering = (
         'user_profile__userprofile__last_name',
         'user_profile__userprofile__first_name',
         'user_profile__companyprofile__name',
     )
-    list_filter = ['year', 'administrative_unit', ]
+    list_filter = ['year', 'administrative_unit', filters.ProfileHasEmail]
     search_fields = (
         'user_profile__userprofile__last_name',
         'user_profile__userprofile__first_name',
@@ -1784,14 +1795,14 @@ class TaxConfirmationAdmin(unit_admin_mixin_generator('user_profile__administrat
         'user_profile__userchannels__VS',
     )
     raw_id_fields = ('user_profile',)
-    actions = (make_pdfsandwich,)
+    actions = (make_pdfsandwich, batch_download)
     list_max_show_all = 10000
     list_select_related = (
         'user_profile__userprofile',
         'user_profile__companyprofile',
     )
 
-    readonly_fields = ['get_pdf', ]
+    readonly_fields = ['get_pdf', 'get_email']
     fields = ['user_profile', 'year', 'amount', 'get_pdf', 'administrative_unit', ]
 
     def generate(self, request):
@@ -1809,6 +1820,13 @@ class TaxConfirmationAdmin(unit_admin_mixin_generator('user_profile__administrat
             ),
         ]
         return my_urls + urls
+
+    def get_email(self, obj):
+        try:
+            email = obj.user_profile.profileemail_set.get(is_primary=True)
+        except ProfileEmail.DoesNotExist:
+            email = None
+        return email
 
 
 @admin.register(AdministrativeUnit)
