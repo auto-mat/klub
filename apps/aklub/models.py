@@ -1628,7 +1628,7 @@ class BankAccount(MoneyAccount):
     )
 
     def __str__(self):
-        return u"%s - %s" % (self.bank_account, self.bank_account_number)
+        return f'{self.administrative_unit} -{self.bank_account_number}'
 
 
 class ApiAccount(MoneyAccount):
