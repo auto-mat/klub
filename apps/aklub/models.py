@@ -3105,7 +3105,8 @@ class TaxConfirmation(models.Model):
     user_profile = models.ForeignKey(
         Profile,
         on_delete=models.CASCADE,
-        null=True,
+        null=False,
+        blank=False,
     )
     year = models.PositiveIntegerField()
     amount = models.PositiveIntegerField(default=0)
