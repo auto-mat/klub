@@ -7,7 +7,7 @@ from aklub.models import AdministrativeUnit, MoneyAccount, AccountStatements, In
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aklub', '0060_auto_20200108_0907'),
+        ('aklub', '0061_auto_20200114_1130'),
     ]
 
     def default_values_money_acccount(apps, schema_editor):
