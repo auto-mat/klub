@@ -342,6 +342,7 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
 
     def test_communication_changelist_post(self):
         user_profile = mommy.make('aklub.UserProfile')
+        unit = mommy.make('aklub.AdministrativeUnit')
         model_admin = django_admin.site._registry[Interaction]
         request = self.get_request()
         response = model_admin.add_view(request)
@@ -355,6 +356,7 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
             "method": "email",
             "subject": "Subject 123",
             "summary": "Test template",
+            "administrative_unit": unit.id,
         }
         request = self.post_request(post_data=post_data)
         response = model_admin.add_view(request)
@@ -405,11 +407,14 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
 
     def test_pair_payments_with_dpch(self):
         """ Test pair_payment_with_dpch action """
-        payment_channel = donor_payment_channel_recipe.make(VS=123)
+        unit = mommy.make('aklub.AdministrativeUnit', name='test')
+        money_acc = mommy.make('aklub.MoneyAccount', administrative_unit=unit)
+        payment_channel = donor_payment_channel_recipe.make(VS=123, money_account=money_acc)
         payment = mommy.make("aklub.Payment", VS=123)
         account_statement = mommy.make(
             "aklub.AccountStatements",
             payment_set=[payment],
+            administrative_unit=unit,
         )
         request = self.post_request()
         admin.pair_payment_with_dpch(None, request, [account_statement])

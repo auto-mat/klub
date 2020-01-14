@@ -1104,8 +1104,8 @@ class Preference(models.Model):
         AdministrativeUnit,
         verbose_name=_("administrative unit"),
         on_delete=models.CASCADE,
-        null=True,
-        blank=True,
+        null=False,
+        blank=False,
     )
 
     def __str__(self):
@@ -1603,8 +1603,8 @@ class MoneyAccount(PolymorphicModel):
         AdministrativeUnit,
         verbose_name=_("administrative unit"),
         on_delete=models.CASCADE,
-        null=True,
-        blank=True,
+        null=False,
+        blank=False,
     )
     slug = models.SlugField(
         verbose_name=_("Slug"),
@@ -1635,7 +1635,7 @@ class BankAccount(MoneyAccount):
     )
 
     def __str__(self):
-        return u"%s - %s" % (self.bank_account, self.bank_account_number)
+        return f'{self.administrative_unit} {self.bank_account_number}'
 
 
 class ApiAccount(MoneyAccount):
@@ -3116,8 +3116,8 @@ class TaxConfirmation(models.Model):
         AdministrativeUnit,
         verbose_name=_("administrative unit"),
         on_delete=models.CASCADE,
-        null=True,
-        blank=True,
+        null=False,
+        blank=False,
     )
 
     def get_pdf(self):
