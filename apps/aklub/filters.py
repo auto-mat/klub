@@ -17,6 +17,25 @@ from .models import (
 )
 
 
+class ProfileHasEmail(SimpleListFilter):
+    title = _("Has primary email")
+    parameter_name = 'profile_email'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('Yes', _('Yes')),
+            ('No', _('No')),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == 'Yes':
+            return queryset.filter(user_profile__profileemail__is_primary__isnull=False).distinct()
+        elif self.value() == 'No':
+            return queryset.filter(~Q(user_profile__profileemail__is_primary__isnull=False)).distinct()
+        else:
+            return queryset
+
+
 class NullFieldFilter(SimpleListFilter):
     """This fiters nullable fields by
            'All' (no filter),
