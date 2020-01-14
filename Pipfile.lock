@@ -290,6 +290,11 @@
             "index": "pypi",
             "version": "==0.13.0"
         },
+        "django-flexible-filter-conditions": {
+            "editable": true,
+            "git": "https://github.com/PetrDlouhy/django-flexible-filter-conditions",
+            "ref": "98d009fa7948d992356b5e6cc7c5536251e56992"
+        },
         "django-grapesjs": {
             "hashes": [
                 "sha256:a54b1fb95e6516fa33bf94db268360158f8a5edeb2fee202cc24ca71f343b757"
