@@ -82,6 +82,7 @@ django-isnull-list-filter = "*"
 docutils = "*"
 wiki = "*"
 django-flexible-filter-conditions = {git = "https://github.com/PetrDlouhy/django-flexible-filter-conditions",editable = true}
+tablib = "==0.14"
 
 [dev-packages]
 coverage = "*"
