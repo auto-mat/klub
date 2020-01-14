@@ -1,4 +1,4 @@
 #!/bin/bash
 npm install bower && python manage.py bower install
 python manage.py collectstatic --noinput
-python3 manage.py compilemessages
+cd apps/aklub/ && pipenv run env DJANGO_SETTINGS_MODULE="" django-admin compilemessages
