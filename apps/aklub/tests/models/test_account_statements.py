@@ -30,7 +30,7 @@ from model_mommy import mommy
 
 from ..utils import RunCommitHooksMixin
 from ... import admin, darujme
-from ...models import AccountStatements, ApiAccount, DonorPaymentChannel, Payment, ProfileEmail, Telephone
+from ...models import AccountStatements, AdministrativeUnit, ApiAccount, DonorPaymentChannel, Payment, ProfileEmail, Telephone
 
 
 @override_settings(
@@ -39,9 +39,12 @@ from ...models import AccountStatements, ApiAccount, DonorPaymentChannel, Paymen
 class AccountStatementTests(RunCommitHooksMixin, TestCase):
     fixtures = ['conditions', 'users']
 
+    def setUp(self):
+        self.unit = AdministrativeUnit.objects.get(pk=1)
+
     def test_bank_new_statement_fio(self):
         with open("apps/aklub/test_data/Pohyby_5_2016.csv", "rb") as f:
-            a = AccountStatements(csv_file=File(f), type="account")
+            a = AccountStatements(csv_file=File(f), type="account", administrative_unit=self.unit)
             a.clean()
             a.save()
 
@@ -80,7 +83,7 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
 
     def test_bank_new_statement_cs(self):
         with open("apps/aklub/test_data/Pohyby_cs.csv", "rb") as f:
-            a = AccountStatements(csv_file=File(f), type="account_cs")
+            a = AccountStatements(csv_file=File(f), type="account_cs", administrative_unit=self.unit)
             a.clean()
             a.save()
 
@@ -118,7 +121,7 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
 
     def test_bank_new_statement_kb(self):
         with open("apps/aklub/test_data/pohyby_kb.csv", "rb") as f:
-            a = AccountStatements(csv_file=File(f), type="account_kb")
+            a = AccountStatements(csv_file=File(f), type="account_kb", administrative_unit=self.unit)
             a.clean()
             a.save()
 
@@ -157,7 +160,7 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
 
     def test_bank_new_statement_csob(self):
         with open("apps/aklub/test_data/pohyby_csob.csv", "rb") as f:
-            a = AccountStatements(csv_file=File(f), type="account_csob")
+            a = AccountStatements(csv_file=File(f), type="account_csob", administrative_unit=self.unit)
             a.clean()
             a.save()
 
@@ -196,7 +199,7 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
 
     def test_bank_new_statement_sberbank(self):
         with open("apps/aklub/test_data/pohyby_sberbank.txt", "rb") as f:
-            a = AccountStatements(csv_file=File(f), type="account_sberbank")
+            a = AccountStatements(csv_file=File(f), type="account_sberbank", administrative_unit=self.unit)
             a.clean()
             a.save()
 
