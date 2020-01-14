@@ -147,7 +147,8 @@
             "call_on": false,
             "challenge_on": false,
             "letter_on": false,
-	    "user": 2979
+            "administrative_unit": 1,
+	          "user": 2979
 	}
     },
     {
@@ -187,7 +188,8 @@
     },
     {
         "fields": {
-            "polymorphic_ctype": ["aklub", "apiaccount"]
+            "polymorphic_ctype": ["aklub", "apiaccount"],
+            "administrative_unit": 1
         },
         "model": "aklub.moneyaccount",
         "pk": 1
@@ -203,7 +205,8 @@
     },
     {
         "fields": {
-            "polymorphic_ctype": ["aklub", "apiaccount"]
+            "polymorphic_ctype": ["aklub", "apiaccount"],
+            "administrative_unit": 1
         },
         "model": "aklub.moneyaccount",
         "pk": 2
@@ -285,7 +288,8 @@
             "call_on": false,
             "challenge_on": false,
             "letter_on": false,
-	    "user": 2978
+            "administrative_unit": 1,
+	          "user": 2978
 	}
     },
     {
@@ -316,7 +320,8 @@
         "fields": {
             "dispatched": "False",
             "date": "2016-2-9",
-            "user": "2978"
+            "user": "2978",
+            "administrative_unit": 1
         },
         "model": "aklub.interaction",
         "pk": 1
@@ -333,7 +338,8 @@
         "fields": {
             "user_profile": 2978,
             "year": "2014",
-            "amount": "2014"
+            "amount": "2014",
+            "administrative_unit": 1
         },
         "model": "aklub.taxconfirmation",
         "pk": 1
@@ -503,7 +509,8 @@
             "call_on": false,
             "challenge_on": false,
             "letter_on": false,
-	    "user": 3
+            "administrative_unit": 1,
+	          "user": 3
 	}
     },
     {
