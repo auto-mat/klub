@@ -1,10 +1,11 @@
 import os
+import posixpath
 import re
-from django.contrib.staticfiles import storage
 from collections import namedtuple
 from urllib.parse import unquote, urldefrag
+
 from django.conf import settings
-import posixpath
+from django.contrib.staticfiles import storage
 
 
 class CustomStaticFilesStorage(storage.StaticFilesStorage):
@@ -55,9 +56,11 @@ class CustomStaticFilesStorage(storage.StaticFilesStorage):
             if url.startswith('/') and not url.startswith(settings.STATIC_URL):
                 return matched
 
+            # Jump over comment
             comment = self.__handle_comments(matchobj, matched)
             if comment:
                 return comment
+
             # Strip off the fragment so a path-like fragment won't interfere.
             url_path, fragment = urldefrag(url)
 
