@@ -88,8 +88,7 @@ django-filter = "*"
 django-js-urls = "*"
 mkdocs = "*"
 cairosvg = "*"
-# https://github.com/django/django/pull/12107
-django = "*"
+django = "<3,>=2"
 
 [dev-packages]
 coverage = "*"
