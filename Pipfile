@@ -89,7 +89,7 @@ django-js-urls = "*"
 mkdocs = "*"
 cairosvg = "*"
 # https://github.com/django/django/pull/12107
-django = {editable = true,git = "https://github.com/tmszi/django.git",ref = "ticket_31000_stable_2.2.x"}
+django = "*"
 
 [dev-packages]
 coverage = "*"
