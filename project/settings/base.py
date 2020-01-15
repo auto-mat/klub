@@ -512,3 +512,5 @@ JS_URLS = (
     'aklub:get_email_template',
     'aklub:get_email_template_from_db',
 )
+
+STATICFILES_STORAGE = 'project.settings.custom_storage.CustomStaticFilesStorage'
