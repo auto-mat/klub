@@ -160,6 +160,7 @@ class PostProcessHtmlTemplate extends FormatSelectorMixin
   convertCssToInlineStyle: () ->
 
     @inlineStyler $(@_htmlDoc)
+    @_fixMargin()
     @replaceImgSrc()
     @convertTextCssPositionToTable()
     @_$templateDivField.html @_$editTemplatePageContainer
@@ -353,3 +354,6 @@ class PostProcessHtmlTemplate extends FormatSelectorMixin
         padding: '15px'
         })
 
+  _fixMargin: () ->
+    # Fix render margin (chromium render margin wrong) 
+    $(@_htmlDoc).find('article').css('margin', '')
