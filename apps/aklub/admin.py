@@ -816,18 +816,18 @@ class ProfileAdminMixin:
     donor_frequency.admin_order_field = 'donor_frequency'
 
     def total_payment(self, obj):
-        if not self.request.user.has_perm('aklub.can_edit_all_units'):
-            administrative_units = self.request.user.administrated_units.all()
-        else:
+        if self.request.user.has_perm('aklub.can_edit_all_units'):
             administrative_units = obj.administrative_units.all()
+        else:
+            administrative_units = self.request.user.administrated_units.all()
 
         results = []
         for unit in administrative_units:
             result = Payment.objects.filter(
                         user_donor_payment_channel__user=obj,
-                        user_donor_payment_channel__bank_account__administrative_unit=unit,
+                        user_donor_payment_channel__money_account__administrative_unit=unit,
                         ).aggregate(Count('amount'), Sum('amount'))
-            results.append(f"{unit}: {result['amount__sum']} ({result['amount__count']})")
+            results.append(f"{unit}: {result['amount__sum']} Kč ({result['amount__count']})")
         return ',\n'.join(results)
 
     total_payment.short_description = _("Total payment")
