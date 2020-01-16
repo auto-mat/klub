@@ -16,6 +16,35 @@ from .models import (
 )
 
 
+class ProfileHasFullAdress(SimpleListFilter):
+    title = _("Full adress")
+    parameter_name = 'full_adress'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('full_address', _('Complete address')),
+            ('not_full_address', _('Not complete address')),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == 'full_address':
+            return queryset.filter(
+                            ~Q(user_profile__street=""),
+                            ~Q(user_profile__city=""),
+                            ~Q(user_profile__zip_code=""),
+                            ~Q(user_profile__country=""),
+                            )
+        elif self.value() == 'not_full_address':
+            return queryset.filter(
+                            Q(user_profile__street="") |
+                            Q(user_profile__city="") |
+                            Q(user_profile__zip_code="") |
+                            Q(user_profile__country=""),
+                            )
+        else:
+            return queryset
+
+
 class ProfileHasEmail(SimpleListFilter):
     title = _("Has primary email")
     parameter_name = 'profile_email'
