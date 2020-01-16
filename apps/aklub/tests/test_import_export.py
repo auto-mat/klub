@@ -773,7 +773,7 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         preference = Preference.objects.filter(user=user_profile[0], administrative_unit=1)
         self.assertEqual(preference[0].send_mailing_lists, False)
         self.assertEqual(preference[0].letter_on, False)
-        self.assertEqual(tuple(user_profile[0].administrative_units.all().values_list('name')), (('AU1',), ('AU2',)))
+        self.assertEqual(set(user_profile[0].administrative_units.all().values_list('name')), {('AU1',), ('AU2',)})
 
     def test_userprofile_minimal_fields_import(self):
         """ Test UserProfile admin model minimal fields import """
