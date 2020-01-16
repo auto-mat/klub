@@ -1787,7 +1787,12 @@ class TaxConfirmationAdmin(unit_admin_mixin_generator('user_profile__administrat
         'user_profile__userprofile__first_name',
         'user_profile__companyprofile__name',
     )
-    list_filter = ['year', 'administrative_unit', filters.ProfileHasEmail]
+    list_filter = [
+        'year',
+        'administrative_unit',
+        filters.ProfileHasEmail,
+        filters.ProfileHasFullAdress,
+    ]
     search_fields = (
         'user_profile__userprofile__last_name',
         'user_profile__userprofile__first_name',
