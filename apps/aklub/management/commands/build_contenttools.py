@@ -49,6 +49,9 @@ class Command(BaseCommand):
         self.cttools_src_fonts_dir = (
             pathlib.Path(self.fonts_src_dir) / 'contenttools'
         )
+        self.cttools_src_sandbox_styles_dir = (
+            pathlib.Path(self.styles_src_dir) / 'contenttools' / 'src' / 'sandbox' / 'styles'
+        )
 
         # Target dirs
         self.cttools_target_dir = (
@@ -58,6 +61,7 @@ class Command(BaseCommand):
         self.cttools_target_scripts_dir = self.cttools_target_dir / 'src' / 'scripts'
         self.cttools_target_styles_dir = self.cttools_target_dir / 'src' / 'styles' / 'ui'
         self.cttools_target_fonts_dir = self.cttools_target_dir / 'build' / 'images'
+        self.cttools_target_sandbox_dir = self.cttools_target_dir / 'src' / 'sandbox'
 
         self.__copy_coffee_scripts()
         self.__copy_sass_styles()
@@ -68,7 +72,8 @@ class Command(BaseCommand):
 
         self.__install_npm_packages()
         self.__install_grunt_cli()
-        self.__run_grunt_build_cmd()
+        self.__run_grunt_build_cmd('build')
+        self.__run_grunt_build_cmd('sandbox')
 
         shutil.rmtree('node_modules/')
 
@@ -90,6 +95,13 @@ class Command(BaseCommand):
             content = f.read()
             if '@import "custom-toolbox";' not in content:
                 f.write('\n@import "custom-toolbox";')
+
+        _src_sandbox_scss_file = self.cttools_src_sandbox_styles_dir / 'sandbox.scss'
+        _target_sandbox_scss_file = self.cttools_target_sandbox_dir / 'sandbox.scss'
+        with open(_src_sandbox_scss_file, 'r') as f_read, open(_target_sandbox_scss_file, 'r+') as f_write:
+            content = f_write.read().replace('$max-width: 920px;', f_read.read())
+            f_write.seek(0)
+            f_write.write(content)
 
     def __copy_fonts(self):
         # Copy font icons
@@ -153,11 +165,11 @@ class Command(BaseCommand):
                     ),
                 )
 
-    def __run_grunt_build_cmd(self):
+    def __run_grunt_build_cmd(self, task):
         # Run grunt build
         command = self.cttools_target_dir / 'node_modules' / 'grunt-cli' / 'bin' / 'grunt'
         p = subprocess.Popen(
-            [command, 'build'],
+            [command, task],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
@@ -166,15 +178,17 @@ class Command(BaseCommand):
         if p.returncode != 0:
             if stderr:
                 raise CommandError(
-                    'Error executing command {} build\n{}'.format(
+                    'Error executing command {} {}\n{}'.format(
                         command,
+                        task,
                         stderr.decode('utf-8'),
                     ),
                 )
             if stdout:
                 raise CommandError(
-                    'Error executing command {} build\n{}'.format(
+                    'Error executing command {} {}\n{}'.format(
                         command,
+                        task,
                         stdout.decode('utf-8'),
                     ),
                 )
