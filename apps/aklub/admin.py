@@ -1781,7 +1781,7 @@ class TaxConfirmationAdmin(unit_admin_mixin_generator('user_profile__administrat
     batch_download.short_description = _("generate download links for pdf files")
 
     change_list_template = "admin/aklub/taxconfirmation/change_list.html"
-    list_display = ('user_profile', 'get_email', 'year', 'amount', 'get_pdf', 'administrative_unit', )
+    list_display = ('user_profile', 'get_email', 'year', 'amount', 'get_pdf', 'administrative_unit', 'get_status', 'get_send_time', )
     ordering = (
         'user_profile__userprofile__last_name',
         'user_profile__userprofile__first_name',
@@ -1807,7 +1807,7 @@ class TaxConfirmationAdmin(unit_admin_mixin_generator('user_profile__administrat
         'user_profile__companyprofile',
     )
 
-    readonly_fields = ['get_pdf', 'get_email']
+    readonly_fields = ['get_pdf', 'get_email', 'get_status', 'get_send_time']
     fields = ['user_profile', 'year', 'amount', 'get_pdf', 'administrative_unit', ]
 
     def generate(self, request):
@@ -1832,6 +1832,12 @@ class TaxConfirmationAdmin(unit_admin_mixin_generator('user_profile__administrat
         except ProfileEmail.DoesNotExist:
             email = None
         return email
+
+    def get_status(self, obj):
+        return obj.taxconfirmationpdf_set.get().status
+
+    def get_send_time(self, obj):
+        return obj.taxconfirmationpdf_set.get().sent_time
 
 
 @admin.register(AdministrativeUnit)
