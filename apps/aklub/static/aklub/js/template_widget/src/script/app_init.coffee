@@ -19,7 +19,8 @@ $(document).ready ->
     'id_template',
     showPopoverDialog,
     popoverDialogBackdrop,
-    showPopoverDialogDelay
+    showPopoverDialogDelay,
+    'edit_template_btn'
   )
 
   htmlTemplateEnFieldWidget = new HtmlTemplateFormFieldWidget(
@@ -36,5 +37,6 @@ $(document).ready ->
     'id_template_en',
     showPopoverDialog,
     popoverDialogBackdrop,
-    showPopoverDialogDelay
+    showPopoverDialogDelay,
+    'edit_template_en_btn'
   )

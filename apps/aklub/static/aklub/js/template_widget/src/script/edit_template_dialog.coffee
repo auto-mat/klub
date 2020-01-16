@@ -75,6 +75,8 @@ class EditTemplateModalDialog extends FormatSelectorMixin
       @_$hiddenTemplateField
     )
 
+    mdl_close(@getIdFormat @_dialogId)
+
   _getIframeTemplateContent: () ->
     templatePage = document.querySelector @getIdFormat @_$editTemplateModalDialogPageContainer.attr 'id'
     templatePage?.contentDocument
