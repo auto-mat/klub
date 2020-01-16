@@ -9,3 +9,6 @@ class FormatSelectorMixin
 
   getClassFormat: (className) ->
     ".#{ className }"
+
+  getNameFormat: (element, name) ->
+    "#{ element }[name='#{ name }']"
