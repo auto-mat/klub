@@ -64,6 +64,8 @@ class HtmlTemplateFormFieldWidget extends FormatSelectorMixin
 
     @_editTemplateBtnName = editTemplateBtnName
 
+    @_editTemplateModalDialog = null
+
     # Methods
     @_cacheDom()
 
@@ -88,7 +90,7 @@ class HtmlTemplateFormFieldWidget extends FormatSelectorMixin
     @_$templateNameField.bind 'change', @_showEditTemplateModalDialog
     @_$templateTypeField.bind 'change', @_replaceTemplateFieldContent
     @_$editTemplateModalDialogPageContainer.bind 'load', @_loadTemplateContent
-    @_$editTemplateBtn.bind 'click', @_bindEditTemplateClickEvt
+    @_$editTemplateBtn.bind 'click', @_editTemplateBtnClickEvt
 
   _templateFormFieldWidgetInit: () ->
 
@@ -108,6 +110,9 @@ class HtmlTemplateFormFieldWidget extends FormatSelectorMixin
     else if @_$templateTypeField.val() is 'existed'
       # Copy value from template form field div widget into hidden field after form page loaded
       @_$hiddenTemplateField.val @_$templateDivField.html()
+
+    # Init edit template modal dialog
+    @_initEditTemplateModalDialog()
 
   _getTemplateFieldContainer: () ->
     @_$templateDivFieldContainer = @_$templateDivFormFieldContainer
@@ -163,6 +168,9 @@ class HtmlTemplateFormFieldWidget extends FormatSelectorMixin
 
     # @_bindPopoverDialogMouseMoveEvt()
 
+    @_$editTemplateBtn.off 'click', @_editTemplateBtnClickEvt
+    @_$editTemplateBtn.on 'click', @_editTemplateBtnClickEvt
+
   delay: (ms, func) -> setTimeout func, ms
 
   _mouseMoveOverTemplateEvt: (evt) =>
@@ -195,24 +203,26 @@ class HtmlTemplateFormFieldWidget extends FormatSelectorMixin
 
     @_$templateDivField.mousemove(@_mouseMoveOverTemplateEvt)
 
-  _bindEditTemplateClickEvt: (evt) =>
+  _initEditTemplateModalDialog: () ->
 
-    evt.preventDefault()
-
-    templateNameSelectedOpt = @_$templateNameField.find('option:selected')
-    templateName = templateNameSelectedOpt.text()
-    templateType = templateNameSelectedOpt.val().split(':')
-
-    # Show edit template modal dialog
-    dialog = new EditTemplateModalDialog(
+    @_editTemplateModalDialog = new EditTemplateModalDialog(
       @_editTemplateModalDialogId, 
       @_popoverModalDialogEditTemplateLinkElementId,
       @_$editTemplateModalDialogPageContainer,
       @_$hiddenTemplateField,
-      @_$templateDivField
+      @_$templateDivField,
     )
+  
+  _editTemplateBtnClickEvt: (evt) =>
+
+    evt.preventDefault()
     
-    dialog.mount templateName, 'openViaBtn', templateType
+    templateNameSelectedOpt = @_$templateNameField.find('option:selected')
+    templateName = templateNameSelectedOpt.text()
+    templateType = templateNameSelectedOpt.val().split(':')
+    
+    # Show edit template modal dialog
+    @_editTemplateModalDialog.mount templateName, 'openViaBtn', templateType
 
   _exchangeFormFieldContainerContent: () ->
     # Replace 'template' div form field widget container

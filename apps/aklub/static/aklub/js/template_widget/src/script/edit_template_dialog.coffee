@@ -9,12 +9,10 @@ class EditTemplateModalDialog extends FormatSelectorMixin
     popoverEditTemplateLinkElementId,
     $editTemplateModalDialogPageContainer,
     $hiddenTemplateField,
-    $templateDivField
+    $templateDivField,
   ) ->
 
     @_dialogId = dialogId
-
-    @_pageObjectContainerId = 'template_page'
 
     @_sessionStorageKey = 'dbTemplateName'
 
@@ -28,23 +26,26 @@ class EditTemplateModalDialog extends FormatSelectorMixin
 
     @_$templateDivField = $templateDivField
 
+    @_popoverDialog = null
+
   mount: (templateName, openType, templateType) ->
 
     sessionStorage.removeItem @_sessionStorageKey
 
-    if openType is 'openViaSelectBox'
+    # if openType is 'openViaSelectBox'
 
+    if !@_popoverDialog
       # Append popover edit dialog content
       # needed for correct dialog initialization
-      element = PopoverModalDialog.getContent(
+      @_popoverDialog = PopoverModalDialog.getContent(
         @_popoverEditTemplateLinkElementId,
         @getIdFormat @_dialogId
         )
 
-      $('body').append element
+      $('body').append @_popoverDialog 
 
     # Initialize dialog
-    @init @getIdFormat PopoverModalDialog.dialogId
+    @init @getIdFormat @_popoverEditTemplateLinkElementId
 
     # Set html template page container attr
     if templateType.length > 1
@@ -57,8 +58,9 @@ class EditTemplateModalDialog extends FormatSelectorMixin
     @show @getIdFormat @_dialogId
 
     # Bind close modal template dialog event
-    $(@getClassFormat @_closeBtnClass).off 'click', @_closeEditTemplateModalDialog
-    $(@getClassFormat @_closeBtnClass).on 'click', @_closeEditTemplateModalDialog
+    $closeBtn = $ "#{ @getIdFormat @_dialogId } #{ @getClassFormat @_closeBtnClass }"
+    $closeBtn.off 'click', @_closeEditTemplateModalDialog
+    $closeBtn.on 'click', @_closeEditTemplateModalDialog
 
     # Remove popover edit dialog content
     if openType is 'openViaSelectBox'
@@ -75,8 +77,6 @@ class EditTemplateModalDialog extends FormatSelectorMixin
       @_$hiddenTemplateField
     )
 
-    mdl_close(@getIdFormat @_dialogId)
-
   _getIframeTemplateContent: () ->
     templatePage = document.querySelector @getIdFormat @_$editTemplateModalDialogPageContainer.attr 'id'
     templatePage?.contentDocument
@@ -90,7 +90,7 @@ class EditTemplateModalDialog extends FormatSelectorMixin
       width: $(window).width(),
       height: $(window).height()
 
-    $(@getIdFormat @_pageObjectContainerId).attr attr
+    @_$editTemplateModalDialogPageContainer.attr attr
 
     return url
 
