@@ -5,7 +5,6 @@
 class PopoverModalDialog extends FormatSelectorMixin
 
   @editTemplateLinkText = gettext('Edit template')
-  @dialogId = 'edit_template'
   
   constructor: (
     title,
@@ -85,7 +84,9 @@ class PopoverModalDialog extends FormatSelectorMixin
   @getContent: (popoverModalDialogEditTemplateLinkElementId, editTemplateModalDialogId) ->
 
     $element = $ '<a></a>'
-    $element.attr({id: @dialogId, href: ''})
+    $element.attr
+      id: @dialogId, 
+      href: ''
 
     editTemplateModalDialogAttr =
       id: popoverModalDialogEditTemplateLinkElementId,

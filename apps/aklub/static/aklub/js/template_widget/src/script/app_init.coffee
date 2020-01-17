@@ -24,8 +24,8 @@ $(document).ready ->
   )
 
   htmlTemplateEnFieldWidget = new HtmlTemplateFormFieldWidget(
-    'edit_template_dialog',
-    'edit_template',
+    'edit_template_en_dialog',
+    'edit_template_en',
      getTemplateNameDialogShowDelay,
     'id_template_en_name',
     'id_template_en_type',
@@ -33,7 +33,7 @@ $(document).ready ->
     'field-template_en',
     'field-template_en_textarea',
     'id_template_en_textarea',
-    'template_page',
+    'template_en_page',
     'id_template_en',
     showPopoverDialog,
     popoverDialogBackdrop,
