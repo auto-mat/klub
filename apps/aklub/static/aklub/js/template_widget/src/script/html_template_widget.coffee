@@ -114,6 +114,20 @@ class HtmlTemplateFormFieldWidget extends FormatSelectorMixin
     # Init edit template modal dialog
     @_initEditTemplateModalDialog()
 
+    # Disable edit btn if empty template name
+    @_enableDisableEditBtn(true)
+
+  _enableDisableEditBtn: (state, checkValue=true) ->
+
+    if checkValue
+      value = @_$templateNameField.find('option:selected').val()
+
+      if value.length == 0
+        @_$editTemplateBtn.prop('disabled', state)
+
+    else
+        @_$editTemplateBtn.prop('disabled', state)
+
   _getTemplateFieldContainer: () ->
     @_$templateDivFieldContainer = @_$templateDivFormFieldContainer
     @_$templateTextareaFieldContainer = @_$templateTextAreaFormFieldContainer
@@ -305,6 +319,10 @@ class HtmlTemplateFormFieldWidget extends FormatSelectorMixin
         @_getTemplateNameDialog.mount()
 
       else
+
+        # Enable edit btn if empty template name
+        @_enableDisableEditBtn(false, false)
+
         templateType = @_$templateNameField.find('option:selected').val().split ':'
 
         dialog = new EditTemplateModalDialog(
