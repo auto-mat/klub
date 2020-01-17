@@ -19,7 +19,7 @@ class HtmlTemplateFormFieldWidget extends FormatSelectorMixin
     showPopoverModalDialogDelay,
     popoverModalDialogBackDrop,
     popoverModalDialogDestroyDelay,
-    editTemplateBtnId
+    editTemplateBtnName
   ) ->
 
     @_templateDivFieldId = templateDivFieldId
@@ -62,7 +62,7 @@ class HtmlTemplateFormFieldWidget extends FormatSelectorMixin
     
     @_popoverDialogOpts = null
 
-    @_editTemplateBtnId = editTemplateBtnId
+    @_editTemplateBtnName = editTemplateBtnName
 
     # Methods
     @_cacheDom()
@@ -82,7 +82,7 @@ class HtmlTemplateFormFieldWidget extends FormatSelectorMixin
     @_$templateTextAreaFormFieldContainer = $ @getClassFormat @_templateTextAreaFormFieldContainerCSSClass
     @_$templateTextareaField = $ @getIdFormat @_templateTextareaFieldId
     @_$editTemplateModalDialogPageContainer = $ @getIdFormat @_editTemplateModalDialogPageContainerId
-    @_$editTemplateBtn = $ @getNameFormat 'input', @_editTemplateBtnId
+    @_$editTemplateBtn = $ @getNameFormat 'input', @_editTemplateBtnName
 
   _bindEvents: () ->
     @_$templateNameField.bind 'change', @_showEditTemplateModalDialog
@@ -161,7 +161,7 @@ class HtmlTemplateFormFieldWidget extends FormatSelectorMixin
 
     @_$templateTextareaField.attr attr
 
-    @_bindPopoverDialogMouseMoveEvt()
+    # @_bindPopoverDialogMouseMoveEvt()
 
   delay: (ms, func) -> setTimeout func, ms
 

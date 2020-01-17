@@ -5,7 +5,7 @@ $(document).ready ->
   showPopoverDialogDelay = 3000
   popoverDialogBackdrop = true
   
-  htmlTemplateFieldOpts = new HtmlTemplateFormFieldWidget(
+  htmlTemplateFieldWidget = new HtmlTemplateFormFieldWidget(
     'edit_template_dialog',
     'edit_template',
     getTemplateNameDialogShowDelay,
