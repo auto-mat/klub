@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "7d4c7b4e2dc8437bb7856aa1cc2370b25cf44d9057d884dfe29257e45012bcdc"
+            "sha256": "ec3626a0586a4902ad076c5a4ae9e586b1fc33515d643fcd7d082efc641890a1"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -134,9 +134,11 @@
             "version": "==0.9.0"
         },
         "django-adminactions": {
-            "editable": true,
-            "git": "https://github.com/saxix/django-adminactions.git",
-            "ref": "d88deed5b652342f38491d6f225345538d7022ea"
+            "hashes": [
+                "sha256:bd147e7ccdad4042f7c8c411da29428f829b81305a4568dd5cc6d63447682b9c"
+            ],
+            "index": "pypi",
+            "version": "==1.8.1"
         },
         "django-adminfilters": {
             "hashes": [
@@ -290,9 +292,11 @@
             "version": "==0.13.0"
         },
         "django-flexible-filter-conditions": {
-            "editable": true,
-            "git": "https://github.com/PetrDlouhy/django-flexible-filter-conditions",
-            "ref": "98d009fa7948d992356b5e6cc7c5536251e56992"
+            "hashes": [
+                "sha256:945f6dd34b1226e83c0cc3575e9d4db7fc3f71448901a4ffbb850a0f6d8d3664"
+            ],
+            "index": "pypi",
+            "version": "==0.1.0"
         },
         "django-grapesjs": {
             "hashes": [
@@ -470,9 +474,11 @@
             "version": "==5.0.2"
         },
         "django-stdnumfield": {
-            "editable": true,
-            "git": "https://github.com/PetrDlouhy/django-stdnumfield.git",
-            "ref": "65fe751779ab222c396bbd31fd9f64d42aac8c3e"
+            "hashes": [
+                "sha256:ff878aa93ff0360c52e50fafe9307c66c550d11c92ba10784ed2dda6aa608767"
+            ],
+            "index": "pypi",
+            "version": "==0.2.0"
         },
         "django-storages": {
             "hashes": [
@@ -850,9 +856,10 @@
         },
         "python-stdnum": {
             "hashes": [
-                "sha256:10fe3db303aec532057484668ca9a4f421c2e5b3b1caee670b26b047bcbc737e"
+                "sha256:d5f0af1bee9ddd9a20b398b46ce062dbd4d41fcc9646940f2667256a44df3854",
+                "sha256:f445ec32bf5246c90389204cabba465f494545371c29a83fa2d30e6c872a6763"
             ],
-            "version": "==1.5"
+            "version": "==1.11"
         },
         "python-utils": {
             "hashes": [
