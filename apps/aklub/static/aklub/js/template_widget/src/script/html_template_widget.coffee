@@ -220,21 +220,21 @@ class HtmlTemplateFormFieldWidget extends FormatSelectorMixin
   _initEditTemplateModalDialog: () ->
 
     @_editTemplateModalDialog = new EditTemplateModalDialog(
-      @_editTemplateModalDialogId, 
+      @_editTemplateModalDialogId,
       @_popoverModalDialogEditTemplateLinkElementId,
       @_$editTemplateModalDialogPageContainer,
       @_$hiddenTemplateField,
       @_$templateDivField,
     )
-  
+
   _editTemplateBtnClickEvt: (evt) =>
 
     evt.preventDefault()
-    
+
     templateNameSelectedOpt = @_$templateNameField.find('option:selected')
     templateName = templateNameSelectedOpt.text()
     templateType = templateNameSelectedOpt.val().split(':')
-    
+
     # Show edit template modal dialog
     @_editTemplateModalDialog.mount templateName, 'openViaBtn', templateType
 
