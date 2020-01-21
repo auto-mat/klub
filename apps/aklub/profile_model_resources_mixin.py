@@ -189,6 +189,23 @@ def before_import_row(self, row, **kwargs):
     if row.get('username') == "":
         row["username"] = None
 
+def import_field(self, field, obj, data, is_m2m=False):
+    """
+    rewrite original method to avoid data rewriting
+    """
+    if field.attribute and field.column_name in data:
+        if getattr(obj, field.column_name) in ("", None, 'unknown'):
+            field.save(obj, data, is_m2m)
+        elif field.column_name == "note":
+            if data['note'] not in obj.note:
+                data['note'] = obj.note + '\n' + data.get('note')
+                field.save(obj, data, is_m2m)
+        elif field.column_name == "username" and data.get('username'):
+            field.save(obj, data, is_m2m)
+
+
+
+
 
 def get_profile_model_resource_mixin_class_body():
     body = {}
@@ -197,6 +214,7 @@ def get_profile_model_resource_mixin_class_body():
     body['dehydrate_donor'] = dehydrate_donor
     body['before_import_row'] = before_import_row
     body['save_m2m'] = save_m2m
+    body['import_field'] = import_field
     # Custom fields (dehydrate funcs)
     body.update(get_profile_model_resource_custom_fields())
     # Preference model dehydrate funcs
