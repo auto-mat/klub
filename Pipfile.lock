@@ -113,10 +113,10 @@
         },
         "django-admin-charts": {
             "hashes": [
-                "sha256:2c83b1028906fbc5f52814637aa8f95b12fe64edd19cdcf76386dcd6d1252748"
+                "sha256:e2a92e1f3c7bf1a66be3363c94e9e09c57b2d68f9d943ecd4b19b067f3c55cdd"
             ],
             "index": "pypi",
-            "version": "==0.12.0"
+            "version": "==0.13.0"
         },
         "django-admin-large-initial-data": {
             "hashes": [
