@@ -189,6 +189,7 @@ def before_import_row(self, row, **kwargs):
     if row.get('username') == "":
         row["username"] = None
 
+
 def import_field(self, field, obj, data, is_m2m=False):
     """
     rewrite original method to avoid data rewriting
@@ -202,9 +203,6 @@ def import_field(self, field, obj, data, is_m2m=False):
                 field.save(obj, data, is_m2m)
         elif field.column_name == "username" and data.get('username'):
             field.save(obj, data, is_m2m)
-
-
-
 
 
 def get_profile_model_resource_mixin_class_body():
