@@ -348,12 +348,12 @@ class PostProcessHtmlTemplate extends FormatSelectorMixin
 
   adjustListCssProperties: ($element) ->
 
-    if $element.is('ul') or $element.is('ol') 
+    if $element.is('ul') or $element.is('ol')
       $element.css({
         margin: '10px'
         padding: '15px'
         })
 
   _fixMargin: () ->
-    # Fix render margin (chromium render margin wrong) 
+    # Fix render margin (chromium render margin wrong)
     $(@_htmlDoc).find('article').css('margin', '')

@@ -139,7 +139,7 @@ class GetTemplateNameDialog extends FormatSelectorMixin
 
       # Show edit template modal dialog
       dialog = new EditTemplateModalDialog(
-        @_editTemplateModalDialogId, 
+        @_editTemplateModalDialogId,
         @_popoverModalDialogEditTemplateLinkElementId,
         @_$editTemplateModalDialogPageContainer,
         @_$hiddenTemplateField,

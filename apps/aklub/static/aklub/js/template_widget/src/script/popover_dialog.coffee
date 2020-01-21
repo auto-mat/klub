@@ -85,7 +85,7 @@ class PopoverModalDialog extends FormatSelectorMixin
 
     $element = $ '<a></a>'
     $element.attr
-      id: @dialogId, 
+      id: @dialogId,
       href: ''
 
     editTemplateModalDialogAttr =
