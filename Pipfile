@@ -30,10 +30,9 @@ django-related-admin = "*"
 django-denorm = "*"
 gunicorn = "*"
 django-betterforms = "*"
-django-adminactions = {editable = true,git = "https://github.com/saxix/django-adminactions.git",ref = "develop"}
+django-adminactions = "*"
 django-helpdesk = {editable = true,git = "https://github.com/auto-mat/django-helpdesk.git",ref = "timeline"}
 django-admin-large-initial-data = "*"
-# https://github.com/areski/django-admin-tools-stats/pull/49
 django-admin-charts = ">=0.12.0"
 django-bower = "*"
 djcacheutils = "*"
@@ -74,14 +73,14 @@ newrelic = "*"
 django-nested-admin = "*"
 django_celery_monitor = {editable = true,git = "https://github.com/peergradeio/django-celery-monitor",ref = "django-2.2"}
 django_grapesjs = "*"
-django-stdnumfield = {editable = true,git = "https://github.com/PetrDlouhy/django-stdnumfield.git",ref = "mergeup"}
+django-stdnumfield = "*"
 # https://github.com/django-polymorphic/django-polymorphic/pull/400
 django-polymorphic = {editable = true,git = "https://github.com/tmszi/django-polymorphic",ref = "fix_django_advanced_filters"}
 jsonfield2 = "*"
 django-isnull-list-filter = "*"
 docutils = "*"
 wiki = "*"
-django-flexible-filter-conditions = {git = "https://github.com/PetrDlouhy/django-flexible-filter-conditions",editable = true}
+django-flexible-filter-conditions = "*"
 tablib = "==0.14"
 
 [dev-packages]
