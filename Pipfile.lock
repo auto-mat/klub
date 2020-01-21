@@ -293,10 +293,10 @@
         },
         "django-flexible-filter-conditions": {
             "hashes": [
-                "sha256:945f6dd34b1226e83c0cc3575e9d4db7fc3f71448901a4ffbb850a0f6d8d3664"
+                "sha256:619e09f8c335abc4295960c7b503ea773a4a29349fcd9a067bff95f98c937aab"
             ],
             "index": "pypi",
-            "version": "==0.1.0"
+            "version": "==0.2.0"
         },
         "django-grapesjs": {
             "hashes": [
