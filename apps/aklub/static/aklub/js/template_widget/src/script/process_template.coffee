@@ -160,6 +160,7 @@ class PostProcessHtmlTemplate extends FormatSelectorMixin
   convertCssToInlineStyle: () ->
 
     @inlineStyler $(@_htmlDoc)
+    @_fixContentWidth()
     @_fixMargin()
     @replaceImgSrc()
     @convertTextCssPositionToTable()
@@ -169,7 +170,7 @@ class PostProcessHtmlTemplate extends FormatSelectorMixin
   inlineStyler: ($element) ->
     $element.inlineStyler()
 
-  getElementPosition: (align, width = '', heigth = '') ->
+  getElementPosition: (align, width='', heigth='') ->
 
     $table = $('<table></table>')
 
@@ -357,3 +358,29 @@ class PostProcessHtmlTemplate extends FormatSelectorMixin
   _fixMargin: () ->
     # Fix render margin (chromium render margin wrong)
     $(@_htmlDoc).find('article').css('margin', '')
+
+  _getNumberValue: (value, unitPosition=-2) ->
+    parseInt(value.slice(0, value.length - unitPosition))
+
+  _getPaddingValue: (horizontalValue=true) ->
+
+    if horizontalValue is true
+      position = 'padding--left'
+    else
+      position = 'padding--top'
+
+    paddingValue = $(@_htmlDoc).find('.article__content p').first().css(position)
+
+    @_getNumberValue(paddingValue)
+
+  _fixContentWidth: () ->
+
+    paddingValue = @_getPaddingValue()
+
+    $(@_htmlDoc).find('article').find(@_textContainerTags.join(', ')).each (index, value) =>
+      origWidth = @_getNumberValue($(value).css('width'))
+      
+      # Set correct width (orig width - 2 * padding value)
+      $(value).css
+        width: origWidth - paddingValue * 2
+ 
