@@ -1,58 +1,124 @@
-{% extends 'email_templates/base.html' %}
-
-{% load static %}
-
-{% block content %}
+{% extends 'email_templates/base.html' %} {% load static %} {% block content %}
 <article class="article">
-    <table id="background_table" cellspacing="0" cellpadding="0" border="0" bgcolor="ffffff" style="padding:0" align="center">
-      <tbody>
-	<tr>
-	  <td>
-	    <table id="content_table" cellspacing="0" cellpadding="0" border="0" bgcolor="ffffff" align="center" style="background-image: url({% static 'aklub/images/automat_green_newsletter.jpeg'%})" height="1598" width="518">
-	      <tbody>
-		<tr>
-		  <td style="padding:0" valign="top">
-		    <section class="[ article__content ]  [ editable ] newsletter-section" data-name="article">
-		      {% if article %}
-		      {{ article | safe }}
-		      {% else %}
-		      <!-- Vertical space -->
-		      <table class="top-vertical-space" cellspacing="0" cellpadding="0" border="0">
-		      	<tr>
-		      	  <td height="150" style="border:none;padding:0">
-		      	  </td>
-		      	</tr>
-		      </table>
-		      <h1 class="text-center">Title</h1>
-		      <p>Text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text</p>
-		      <p class="align-center text-center"><b><i>Sample image</i></b></p>
-		      <img src="{% static 'aklub/images/newsletter_template_sample_pic.png' %}" title="Sample image">
-		      <!-- Vertical space -->
-		      <table class="vertical-space" cellspacing="0" cellpadding="0" border="0">
-		      	<tr>
-		      	  <td height="50" style="border:none;padding:0">
-		      	  </td>
-		      	</tr>
-		      </table>
-		      <p>Text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text</p>
-		      <!-- Vertical space -->
-		      <table class="vertical-space" cellspacing="0" cellpadding="0" border="0">
-		      	<tr border="0">
-		      	  <td height="50" style="border:none;padding:0">
-		      	  </td>
-		      	</tr>
-		      </table>
-		      <p class="align-center text-center"><b><i>Sample video</i></b></p>
-		      <iframe src="https://www.youtube.com/embed/Ja9n7GxMoKs" width="400" height="300" frameborder="0"></iframe>
-		      {% endif %}
-		    </section>
-		  </td>
-		</tr>
-	      </tbody>
-	    </table>
-	  </td>
-	</tr>
-      </tbody>
-    </table>
+  <table
+    id="background_table"
+    cellspacing="0"
+    cellpadding="0"
+    border="0"
+    bgcolor="ffffff"
+    style="padding:0"
+    align="center"
+  >
+    <tbody>
+      <tr>
+        <td>
+          <table
+            class="content-table"
+            cellspacing="0"
+            cellpadding="0"
+            border="0"
+            bgcolor="ffffff"
+            align="center"
+            style="background-image: url({% static 'aklub/images/automat_green_newsletter.jpeg'%})"
+            height="1598"
+            width="600"
+          >
+            <tbody>
+              <tr>
+                <td style="padding:0" valign="top">
+                  <section
+                    class="[ article__content ]  [ editable ]"
+                    data-name="article"
+                  >
+                    {% if article %} {{ article | safe }} {% else %}
+                    <!-- Vertical space -->
+                    <table
+                      class="top-vertical-space"
+                      cellspacing="0"
+                      cellpadding="0"
+                      border="0"
+                    >
+                      <tr>
+                        <td height="150" style="border:none;padding:0"></td>
+                      </tr>
+                    </table>
+
+                    <h1 class="text-center">Title</h1>
+                    <p>
+                      Text text text text text text text text text text text
+                      text text text text text text text text text text text
+                      text text text text text text text text text text text
+                      text text text text text text text text text text text
+                      text text text text text text text text text text text
+                      text text text text text text text text text text text
+                      text text text text text text text text text text text
+                      text text text text text text text text text text text
+                      text text text text text text text text text text text
+                      text text text text text text text text text text text
+                      text text text text text text text text
+                    </p>
+                    <p class="align-center text-center">
+                      <b><i>Sample image</i></b>
+                    </p>
+                    <img
+                      src="{% static 'aklub/images/newsletter_template_sample_pic.png' %}"
+                      title="Sample image"
+                    />
+                    <!-- Vertical space -->
+                    <table
+                      class="vertical-space"
+                      cellspacing="0"
+                      cellpadding="0"
+                      border="0"
+                    >
+                      <tr>
+                        <td height="50" style="border:none;padding:0"></td>
+                      </tr>
+                    </table>
+
+                    <p>
+                      Text text text text text text text text text text text
+                      text text text text text text text text text text text
+                      text text text text text text text text text text text
+                      text text text text text text text text text text text
+                      text text text text text text text text text text text
+                      text text text text text text text text text text text
+                      text text text text text text text text text text text
+                      text text text text text text text text text text text
+                      text text text text text text text text text text text
+                      text text text text text text text text text text text
+                      text text text text text text text text
+                    </p>
+                    <!-- Vertical space -->
+                    <table
+                      class="vertical-space"
+                      cellspacing="0"
+                      cellpadding="0"
+                      border="0"
+                    >
+                      <tr border="0">
+                        <td height="50" style="border:none;padding:0"></td>
+                      </tr>
+                    </table>
+
+                    <p class="align-center text-center">
+                      <b><i>Sample video</i></b>
+                    </p>
+                    <iframe
+                      src="https://www.youtube.com/embed/Ja9n7GxMoKs"
+                      width="400"
+                      height="300"
+                      frameborder="0"
+                    ></iframe>
+                    {% endif %}
+                  </section>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </td>
+      </tr>
+    </tbody>
+  </table>
 </article>
 {% endblock %}
