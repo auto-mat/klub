@@ -16,7 +16,7 @@ module.exports = (grunt) ->
                 #    sourceMap: true
                 files:
                     'src/tmp/template_widget.js': [
-                         'src/script/mixins.coffee',
+                        'src/script/mixins.coffee',
                         'src/script/app_init.coffee',
                         'src/script/popover_dialog.coffee',
                         'src/script/get_template_name_dialog.coffee',
