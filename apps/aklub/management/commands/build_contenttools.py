@@ -99,7 +99,15 @@ class Command(BaseCommand):
         _src_sandbox_scss_file = self.cttools_src_sandbox_styles_dir / 'sandbox.scss'
         _target_sandbox_scss_file = self.cttools_target_sandbox_dir / 'sandbox.scss'
         with open(_src_sandbox_scss_file, 'r') as f_read, open(_target_sandbox_scss_file, 'r+') as f_write:
-            content = f_write.read().replace('$max-width: 920px;', f_read.read())
+            text = f_read.readlines()
+            append_text = []
+            for line in text:
+                if '$max-width:' in line:
+                    replace_text = line
+                else:
+                    append_text.append(line)
+            content = f_write.read().replace('$max-width: 920px;', replace_text)
+            content += ''.join(append_text)
             f_write.seek(0)
             f_write.write(content)
 

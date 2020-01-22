@@ -1,1 +1,13 @@
 $max-width: 600px;
+
+.text-justify {
+  text-align: justify;
+}
+
+.article {
+  &__content {
+    p {
+      padding: 0px 35px;
+    }
+  }
+}
