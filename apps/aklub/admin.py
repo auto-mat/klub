@@ -79,7 +79,7 @@ from .forms import (
 )
 from .models import (
     AccountStatements, AdministrativeUnit, ApiAccount, AutomaticCommunication, BankAccount,
-    CompanyProfile, Condition, DonorPaymentChannel, Event, Expense, Interaction,
+    CompanyProfile, Condition, DonorPaymentChannel, Event, Expense,
     MassCommunication, MoneyAccount, NewUser, Payment, Preference, Profile, ProfileEmail, Recruiter,
     Result, Source, TaxConfirmation, Telephone, TerminalCondition, UserBankAccount,
     UserProfile, UserYearPayments,
@@ -266,65 +266,6 @@ class PaymentsInlineNoExtra(PaymentsInline):
 
     def user__campaign(self, obj):
         return obj.user.campaign
-
-
-class InteractionInlineForm(forms.ModelForm):
-    class Meta:
-        model = Interaction
-        fields = (
-            'event',
-            'administrative_unit',
-            'date',
-            'method',
-            'type',
-            'subject',
-            'summary',
-            'attachment',
-            'note',
-            'created_by',
-            'handled_by',
-            'result',
-            'send',
-            'dispatched',
-        )
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if not self.request.user.has_perm('aklub.can_edit_all_units'):
-            if not self.instance.pk:
-                self.fields['administrative_unit'].queryset = self.request.user.administrated_units
-                self.fields['administrative_unit'].empty_label = None
-            else:
-                if self.request.user.administrated_units.first() != self.instance.administrative_unit:
-                    for field_name in self.fields:
-                        self.fields[field_name].disabled = True
-                else:
-                    self.fields['administrative_unit'].queryset = self.request.user.administrated_units
-                    self.fields['administrative_unit'].empty_label = None
-
-
-class InteractionInline(nested_admin.NestedTabularInline):
-    model = Interaction
-    form = InteractionInlineForm
-    extra = 0
-    can_delete = True
-    show_change_link = True
-    readonly_fields = ('type', 'created_by', 'handled_by',)
-    fk_name = 'user'
-
-    def get_queryset(self, request):
-        qs = super(InteractionInline, self).get_queryset(request)
-        qs = qs.filter(type__in=('individual', 'auto')).order_by('-date')
-        qs = qs.select_related('created_by', 'handled_by')
-        return qs
-
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == "event":
-            if not request.user.has_perm('aklub.can_edit_all_units'):
-                kwargs["queryset"] = Event.objects.filter(administrative_units__in=request.user.administrated_units.all())
-            else:
-                kwargs["queryset"] = Event.objects.all()
-        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 class ExpenseInline(admin.TabularInline):
@@ -1388,148 +1329,6 @@ class NewUserAdmin(DonorPaymethChannelAdmin):
     )
 
 
-class InteractionWidget(ForeignKeyWidget):
-    """ Handle ForeignKey no exist error """
-    def get_queryset(self, value, row):
-        values = self.model.objects.filter(id=value)
-        if values:
-            return values
-        else:
-            raise ValueError("Item with this id doesn't exist")
-
-
-class InteractionResource(ModelResource):
-    email = fields.Field()
-    event = fields.Field(attribute='event', widget=InteractionWidget(Event))
-    created_by = fields.Field(attribute='created_by', widget=InteractionWidget(Profile))
-    handled_by = fields.Field(attribute='handled_by', widget=InteractionWidget(Profile))
-    result = fields.Field(attribute='result', widget=InteractionWidget(Result))
-    administrative_unit = fields.Field(attribute='administrative_unit', widget=InteractionWidget(AdministrativeUnit))
-
-    class Meta:
-        model = Interaction
-        fields = ('email', 'user', 'event', 'date', 'method',
-                  'type', 'subject', 'summary', 'note', 'created_by',
-                  'handled_by', 'result', 'send', 'dispatched', 'administrative_unit',
-                  )
-        clean_model_instances = True
-
-    def before_import_row(self, row, **kwargs):
-        user = None
-        if row.get('email'):
-            try:
-                user = ProfileEmail.objects.get(email=row['email']).user
-            except ProfileEmail.DoesNotExist:
-                pass
-        if row.get('user') and not user:
-            try:
-                user = Profile.objects.get(username=row['user'])
-            except Profile.DoesNotExist:
-                pass
-        if user:
-            row['user'] = user.id
-            return row
-        else:
-            raise ValidationError({'user': 'User with this username or email doesnt exist'})
-
-    def dehydrate_user(self, interaction):
-        if hasattr(interaction, 'user'):
-            return interaction.user
-
-    def dehydrate_event(self, interaction):
-        if hasattr(interaction, 'event'):
-            return interaction.event
-
-    def dehydrate_email(self, interaction):
-        if hasattr(interaction, 'user'):
-            return interaction.user.get_email_str()
-
-
-class InteractionAdmin(
-    ImportExportMixin,
-    unit_admin_mixin_generator('user__administrative_units'),
-    RelatedFieldAdmin,
-    admin.ModelAdmin,
-):
-    resource_class = InteractionResource
-
-    list_display = (
-        'subject',
-        'dispatched',
-        'user',
-        'event',
-        # 'user__telephone__telephone',
-        # 'user__next_communication_date',
-        'method',
-        'result',
-        'created_by',
-        'handled_by',
-        'administrative_unit',
-        # 'user__regular_payments_info',
-        # 'user__payment_delay',
-        # 'user__extra_payments',
-        'date', 'type',
-    )
-    autocomplete_fields = ('user', 'event')
-    readonly_fields = ('type', 'created_by', 'handled_by', )
-    list_filter = [
-        'dispatched',
-        'send',
-        'date',
-        'method',
-        'type',
-        'event',
-        'administrative_unit',
-    ]
-    search_fields = (
-        'subject',
-        # 'user__userprofile__telephone',
-        'user__userprofile__first_name',
-        'user__userprofile__last_name',
-        'user__companyprofile__name',
-        'user__email',
-    )
-    date_hierarchy = 'date'
-    ordering = ('-date',)
-    fieldsets = [
-        (_("Header"), {
-            'fields': [
-                ('user', 'event', 'method'),
-                'date',
-                'administrative_unit',
-            ],
-        }),
-        (_("Content"), {
-            'fields': [
-                'subject',
-                ('summary', 'attachment'),
-                'note',
-                'result',
-            ],
-        }
-        ),
-        (_("Sending"), {
-            'fields': [('created_by', 'handled_by', 'send', 'dispatched')],
-        }
-        ),
-    ]
-
-    def save_model(self, request, obj, form, change):
-        if not obj.pk:
-            obj.created_by = request.user
-        obj.handled_by = request.user
-        obj.save()
-
-    def get_queryset(self, request):
-        # Filter out mass communications which are already dispatched
-        # There is no use in displaying the many repetitive rows that
-        # arrise from mass communications once they are dispatched. If
-        # however not dispatched yet, these communications
-        # still require admin action and should be visible.
-        qs = super(InteractionAdmin, self).get_queryset(request)
-        return qs.exclude(type='mass', dispatched=True)
-
-
 class AutomaticCommunicationAdmin(admin.ModelAdmin):
     list_display = ('name', 'method', 'subject', 'condition', 'only_once', 'dispatch_auto')
     ordering = ('name',)
@@ -1854,7 +1653,7 @@ class BaseProfileChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModel
                 obj = f.instance
                 obj.generate_VS()
 
-        if issubclass(formset.model, Interaction):
+        if issubclass(formset.model, Interaction2):
             for f in formset.forms:
                 obj = f.instance
                 if not obj.created_by:
@@ -2261,7 +2060,6 @@ class CompanyProfileAdmin(
 admin.site.register(DonorPaymentChannel, DonorPaymethChannelAdmin)
 admin.site.register(UserYearPayments, UserYearPaymentsAdmin)
 admin.site.register(NewUser, NewUserAdmin)
-admin.site.register(Interaction, InteractionAdmin)
 admin.site.register(Payment, PaymentAdmin)
 admin.site.register(AccountStatements, AccountStatementsAdmin)
 admin.site.register(AutomaticCommunication, AutomaticCommunicationAdmin)
