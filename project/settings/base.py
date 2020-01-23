@@ -98,6 +98,7 @@ TEMPLATES = [
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
             normpath(PROJECT_ROOT, 'apps/aklub/templates'),
+            normpath(PROJECT_ROOT, 'apps/interactions/templates'),
         ],
         'APP_DIRS': False,
         'OPTIONS': {
@@ -221,6 +222,7 @@ INSTALLED_APPS = (
     'adminfilters',
     'advanced_filters',
     'aklub',
+    'interactions',
     'helpdesk',
     'django_celery_beat',
     'django_celery_monitor',
