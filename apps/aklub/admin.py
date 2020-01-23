@@ -1158,7 +1158,6 @@ class DonorPaymethChannelAdmin(
         # 'source',
         ('event', RelatedFieldCheckBoxFilter),
         ('registered_support', DateRangeFilter),
-        UserConditionFilter, UserConditionFilter1,
     ]
     search_fields = [
         'user__userprofile__first_name',
