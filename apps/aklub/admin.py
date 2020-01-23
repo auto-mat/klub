@@ -35,6 +35,7 @@ from django.contrib import admin, messages
 from django.contrib.admin import site
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.contenttypes.models import ContentType
+from django.core import serializers
 from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator
 from django.db.models import CharField, Count, Max, Sum
@@ -87,6 +88,8 @@ from .profile_model_resources import (
     ProfileModelResource, get_polymorphic_parent_child_fields,
 )
 from .profile_model_resources_mixin import ProfileModelResourceMixin
+
+from interactions.models import Interaction2, InteractionType
 
 
 def admin_links(args_generator):
@@ -2074,6 +2077,12 @@ class UserProfileAdmin(
             'search_string': "OR".join([pe.email for pe in ProfileEmail.objects.filter(user__pk=object_id)]),
             'search_profile_pks': [object_id],
         })
+        extra_context['display_fields'] = serializers.serialize('json', InteractionType.objects.all())
+        ignore_required = ['id', 'user']
+        extra_context['required_fields'] = [
+                    field.name for field in Interaction2._meta.get_fields()
+                    if not field.null and field.name not in ignore_required
+        ]
         return super().change_view(
             request,
             object_id,
