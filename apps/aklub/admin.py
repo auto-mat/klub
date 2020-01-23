@@ -258,6 +258,7 @@ class PaymentsInlineNoExtra(PaymentsInline):
         'done_by',
         'specification',
         'order_id',
+        'operation_id'
     )
     extra = 0
 
@@ -1248,11 +1249,27 @@ class UserYearPaymentsAdmin(DonorPaymethChannelAdmin):
         return super(UserYearPaymentsAdmin, self).changelist_view(request, extra_context=extra_context)
 
 
+def add_user_bank_acc_to_dpch(self, request, queryset):
+    for payment in queryset:
+        if payment.user_donor_payment_channel and payment.account and payment.bank_code:
+            user_bank_acc, created = UserBankAccount.objects.get_or_create(
+                                        bank_account_number=str(payment.account) + '/' + str(payment.bank_code),
+            )
+            donor = payment.user_donor_payment_channel
+            donor.user_bank_account = user_bank_acc
+            donor.save()
+    messages.info(request, _('User bank accounts were updated.'))
+
+
+add_user_bank_acc_to_dpch.short_description = _("add user bank account  to current donor payment channel (rewrite)")
+
+
 class PaymentAdmin(
     unit_admin_mixin_generator('user_donor_payment_channel__user__administrative_units'),
     ImportExportMixin,
     RelatedFieldAdmin,
 ):
+    actions = (add_user_bank_acc_to_dpch,)
     list_display = (
         'id',
         'date',
