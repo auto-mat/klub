@@ -1274,12 +1274,27 @@ def payment_pair_action(self, request, queryset):
 payment_pair_action.short_description = _("pair payments from account statement with donor payment channels")
 
 
+def payment_request_pair_action(self, request, queryset):
+    if request.user.administrated_units.count() == 1:
+        # Create imagine AccountStatement to use payment_pair method with user's administrated_units
+        statement = AccountStatements()
+        statement.administrative_unit = request.user.administrated_units.first()
+        for payment in queryset:
+            statement.payment_pair(payment)
+        messages.info(request, _('Payments succesfully paired with donor payment channels which are under your administrative unit.'))
+    else:
+        messages.error(request, _('Your administrated unit have to be set to pair payments.'))
+
+
+payment_request_pair_action.short_description = _("pair payments without account statement (need to be admin of administrative unit)")
+
+
 class PaymentAdmin(
     unit_admin_mixin_generator('user_donor_payment_channel__user__administrative_units'),
     ImportExportMixin,
     RelatedFieldAdmin,
 ):
-    actions = (add_user_bank_acc_to_dpch, payment_pair_action)
+    actions = (add_user_bank_acc_to_dpch, payment_pair_action, payment_request_pair_action)
     list_display = (
         'id',
         'date',
