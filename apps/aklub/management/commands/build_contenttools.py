@@ -14,7 +14,9 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         super(Command, self).add_arguments(parser)
         parser.add_argument(
-            '--npm', dest='npm', default='/usr/bin/npm',
+            '--npm', 
+            dest='npm', 
+            default='/usr/bin/npm',
             help='Npm js package manager path',
         )
 
@@ -70,10 +72,30 @@ class Command(BaseCommand):
 
         os.chdir(self.cttools_target_dir)
 
-        self.__install_npm_packages()
-        self.__install_grunt_cli()
-        self.__run_grunt_build_cmd('build')
-        self.__run_grunt_build_cmd('sandbox')
+        # Install npm packages
+        self.__install(
+            [self.npm_path, 'install'],
+            self.npm_path,
+            )
+        # Install grunt-cli
+        self.__install(
+            [self.npm_path, 'install', 'grunt-cli'],
+            self.npm_path,
+            'install grunt-cli',
+            )
+        # Build ContentTools
+        program = self.cttools_target_dir / 'node_modules' / 'grunt-cli' / 'bin' / 'grunt'
+        self.__install(
+            [program, 'build'],
+            program,
+            'build',
+            )
+        # Build ContentTools sandbox
+        self.__install(
+            [program, 'sandbox'],
+            program,
+            'sandbox',
+            )
 
         shutil.rmtree('node_modules/')
 
@@ -121,37 +143,16 @@ class Command(BaseCommand):
         grunt_file = pathlib.Path(self.js_src_dir) / 'contenttools' / 'Gruntfile.coffee'
         shutil.copy(grunt_file, self.cttools_target_dir / grunt_file.name)
 
-    def __install_npm_packages(self):
-        # Install npm packages
+    def __install(self, command, program, package='install'):
+        def raise_command_error(stream):
+            raise CommandError(
+                f'Error executing command {program} '
+                f'{package}\n{stream}'
+            )
+
+        # Install package
         p = subprocess.Popen(
-            [self.npm_path, 'install'],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-        stdout, stderr = p.communicate()
-
-        if p.returncode != 0:
-            self.stdout.write('Error executing command {} install'.format(self.npm_path))
-            if stderr:
-                raise CommandError(
-                    'Error executing command {} install\n{}'.format(
-                        self.npm_path,
-                        stderr.decode('utf-8'),
-                    ),
-                )
-            if stdout:
-                raise CommandError(
-                    'Error executing command {} install\n{}'.format(
-                        self.npm_path,
-                        stdout.decode('utf-8'),
-                    ),
-                )
-
-    def __install_grunt_cli(self):
-        # Install grunt-cli package
-
-        p = subprocess.Popen(
-            [self.npm_path, 'install', 'grunt-cli'],
+            command,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
@@ -159,44 +160,6 @@ class Command(BaseCommand):
 
         if p.returncode != 0:
             if stderr:
-                raise CommandError(
-                    'Error executing command {} install grunt-cli\n{}'.format(
-                        self.npm_path,
-                        stderr.decode('utf-8'),
-                    ),
-                )
+                raise_command_error(stderr.decode('utf-8'))
             if stdout:
-                raise CommandError(
-                    'Error executing command {} install grunt-cli\n{}'.format(
-                        self.npm_path,
-                        stdout.decode('utf-8'),
-                    ),
-                )
-
-    def __run_grunt_build_cmd(self, task):
-        # Run grunt build
-        command = self.cttools_target_dir / 'node_modules' / 'grunt-cli' / 'bin' / 'grunt'
-        p = subprocess.Popen(
-            [command, task],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-        stdout, stderr = p.communicate()
-
-        if p.returncode != 0:
-            if stderr:
-                raise CommandError(
-                    'Error executing command {} {}\n{}'.format(
-                        command,
-                        task,
-                        stderr.decode('utf-8'),
-                    ),
-                )
-            if stdout:
-                raise CommandError(
-                    'Error executing command {} {}\n{}'.format(
-                        command,
-                        task,
-                        stdout.decode('utf-8'),
-                    ),
-                )
+                raise_command_error(stdout.decode('utf-8'))
