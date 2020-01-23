@@ -48,6 +48,8 @@ try:
 except ImportError:  # Django<2.0
     from django.core.urlresolvers import reverse
 
+from interactions.admin import InteractionInline
+
 from import_export import fields
 from import_export.admin import ImportExportMixin
 from import_export.instance_loaders import BaseInstanceLoader
