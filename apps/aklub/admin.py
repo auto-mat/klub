@@ -1264,12 +1264,22 @@ def add_user_bank_acc_to_dpch(self, request, queryset):
 add_user_bank_acc_to_dpch.short_description = _("add user bank account  to current donor payment channel (rewrite)")
 
 
+def payment_pair_action(self, request, queryset):
+    for payment in queryset:
+        if payment.account_statement:
+            payment.account_statement.payment_pair(payment)
+    messages.info(request, _('Payments succesfully paired with donor payment channels.'))
+
+
+payment_pair_action.short_description = _("pair payments from account statement with donor payment channels")
+
+
 class PaymentAdmin(
     unit_admin_mixin_generator('user_donor_payment_channel__user__administrative_units'),
     ImportExportMixin,
     RelatedFieldAdmin,
 ):
-    actions = (add_user_bank_acc_to_dpch,)
+    actions = (add_user_bank_acc_to_dpch, payment_pair_action)
     list_display = (
         'id',
         'date',
