@@ -14,8 +14,8 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         super(Command, self).add_arguments(parser)
         parser.add_argument(
-            '--npm', 
-            dest='npm', 
+            '--npm',
+            dest='npm',
             default='/usr/bin/npm',
             help='Npm js package manager path',
         )
