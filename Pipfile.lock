@@ -266,7 +266,7 @@
         "django-helpdesk": {
             "editable": true,
             "git": "https://github.com/auto-mat/django-helpdesk.git",
-            "ref": "4c595a6175279a8b1ae18d0ec94dd8bf20e1bc4e"
+            "ref": "9963a3fe5d51c20b8e8e4540bcd060f7fb1af95d"
         },
         "django-heroku": {
             "hashes": [
