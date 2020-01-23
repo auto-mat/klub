@@ -350,8 +350,10 @@ def send_mass_communication_action(self, request, queryset):
     queryset and redirect us to insert form for mass communications
     with the send_to_users M2M field prefilled with these
     users."""
-    if queryset.model in Profile.__subclasses__():
-        queryset = DonorPaymentChannel.objects.filter(user__in=queryset)
+    if queryset.model == Profile:
+        queryset = Profile.objects.filter(id__in=queryset)
+    elif queryset.model == DonorPaymentChannel:
+        queryset = Profile.objects.filter(userchannels__in=queryset)
     redirect_url = large_initial.build_redirect_url(
         request,
         "admin:aklub_masscommunication_add",
@@ -1598,6 +1600,11 @@ class MassCommunicationAdmin(large_initial.LargeInitialMixin, admin.ModelAdmin):
     ]
     """
 
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        if db_field.name == "send_to_users":
+            kwargs["queryset"] = Profile.objects.filter(is_active=True, preference__send_mailing_lists=True).distinct()
+        return super().formfield_for_manytomany(db_field, request, **kwargs)
+
     def save_form(self, request, form, change):
         super(MassCommunicationAdmin, self).save_form(request, form, change)
         obj = form.save()
@@ -1891,6 +1898,7 @@ class UserProfileAdmin(
 
     actions = (
         create_export_job_action,
+        send_mass_communication_action,
     )
     advanced_filter_fields = (
         'profileemail__email',
