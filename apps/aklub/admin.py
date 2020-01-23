@@ -258,6 +258,7 @@ class PaymentsInlineNoExtra(PaymentsInline):
         'done_by',
         'specification',
         'order_id',
+        'operation_id'
     )
     extra = 0
 

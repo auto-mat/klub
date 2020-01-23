@@ -127,6 +127,7 @@ class ParseAccountStatement(object):
                              'date': payment['datum_valuta'],
                              'VS': payment['VS1'],
                              'VS2': payment['VS2'],
+                             'operation_id': payment['reference_platby'],
                              }
                 p_sort['date'] = date_format(p_sort['date'])
                 p_sort['amount'] = amount_to_int(p_sort['amount'])
