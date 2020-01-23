@@ -31,6 +31,7 @@ from django_admin_smoke_tests import tests
 from freezegun import freeze_time
 
 from model_mommy import mommy
+from model_mommy.recipe import seq
 
 from .recipes import donor_payment_channel_recipe, user_profile_recipe
 from .test_admin_helper import TestProfilePostMixin
@@ -100,16 +101,25 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
         return request
 
     def test_send_mass_communication(self):
-        donor_payment_channel_recipe.make(id=3)
-        donor_payment_channel_recipe.make(id=4)
-        donor_payment_channel_recipe.make(id=2978)
-        donor_payment_channel_recipe.make(id=2979)
+        users = user_profile_recipe.make(username=seq("Foo "), _quantity=5)
+        for u in users:
+            donor_payment_channel_recipe.make(user=u)
+            mommy.make('Preference', send_mailing_lists=True, user=u)
         model_admin = django_admin.site._registry[DonorPaymentChannel]
         request = self.post_request({})
-        queryset = DonorPaymentChannel.objects.all()
-        response = admin.send_mass_communication_action(model_admin, request, queryset)
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, "/aklub/masscommunication/add/?send_to_users=3%2C4%2C2978%2C2979")
+        for queryset in (UserProfile.objects.filter(id__in=(u.id for u in users)), DonorPaymentChannel.objects.all()):
+            response = admin.send_mass_communication_action(model_admin, request, queryset)
+            self.assertEqual(response.status_code, 302)
+            self.assertEqual(
+                response.url,
+                "/aklub/masscommunication/add/?send_to_users=%s" % "%2C".join(str(getattr(u, 'user', u).id) for u in queryset),
+            )
+            self.client.force_login(self.superuser)
+            response = self.client.get(response.url, follow=True)
+            print_response(response)
+            for u in queryset:
+                user = getattr(u, 'user', u)
+                self.assertContains(response, '<option value="%s" selected>%s</option>' % (user.id, str(user)), html=True)
 
     @freeze_time("2017-5-1")
     def test_tax_confirmation_generate(self):
