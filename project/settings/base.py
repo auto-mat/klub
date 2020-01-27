@@ -212,6 +212,10 @@ INSTALLED_APPS = (
     'smmapdfs',
     'colorfield',
     'repolinks',
+    'account',
+    'pinax.invitations',
+    'pinax.teams',
+    'reversion'
 )
 
 BOWER_INSTALLED_APPS = (
