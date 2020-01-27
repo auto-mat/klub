@@ -70,6 +70,7 @@ newrelic = "*"
 django-jsonfield = { markers="python_version < '2'" } # See https://stackoverflow.com/questions/57959565/how-can-i-ban-a-package-from-being-added-to-pipenv-lock-and-installed-by-pipenv/57982959#57982959
 jsonfield = "*"
 tablib = "==0.14"
+unicode-slugify = { markers="python_version < '2'" } # See https://stackoverflow.com/questions/57959565/how-can-i-ban-a-package-from-being-added-to-pipenv-lock-and-installed-by-pipenv/57982959#57982959
 
 [dev-packages]
 django-silk = "*"

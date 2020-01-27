@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "6b25acb5f4366946e5e2c473f5c72a34a20ec1a46e2a32b97a4bf1f6fff50396"
+            "sha256": "9720919455df6cfe3e6bef80f91e45e56a8b613eabe7e077b5345a0f516c55bd"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -266,7 +266,7 @@
         "django-helpdesk": {
             "editable": true,
             "git": "https://github.com/auto-mat/django-helpdesk.git",
-            "ref": "5b0d44ec3a2c404fed61e6ccde4524e4fc38b9c9"
+            "ref": "cd0af7e0f5efa433b07f9fc80f8bb470ca770997"
         },
         "django-heroku": {
             "hashes": [
@@ -924,6 +924,8 @@
             "hashes": [
                 "sha256:34cf3afefa6480efe705a4fc0eaeeaf7f49754aec322ba3e8b2f27dc1cbcf650"
             ],
+            "index": "pypi",
+            "markers": "python_version < '2'",
             "version": "==0.1.3"
         },
         "unicodecsv": {
