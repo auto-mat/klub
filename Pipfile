@@ -45,7 +45,7 @@ django-ses = "*"
 vokativ = "*"
 Django = ">=2,<3"
 "PyPDF2" = "*"
-django-post_office = "*"
+django-post_office = {ref = "jsonfield2",git = "https://github.com/Mogost/django-post_office",editable = true}  # for django-jsonfield2 transition
 raven = "*"
 python-dotenv = "*"
 django-heroku = "*"
