@@ -258,6 +258,7 @@ class PaymentsInlineNoExtra(PaymentsInline):
         'done_by',
         'specification',
         'order_id',
+        'operation_id'
     )
     extra = 0
 
@@ -1249,11 +1250,52 @@ class UserYearPaymentsAdmin(DonorPaymethChannelAdmin):
         return super(UserYearPaymentsAdmin, self).changelist_view(request, extra_context=extra_context)
 
 
+def add_user_bank_acc_to_dpch(self, request, queryset):
+    for payment in queryset:
+        if payment.user_donor_payment_channel and payment.account and payment.bank_code:
+            user_bank_acc, created = UserBankAccount.objects.get_or_create(
+                                        bank_account_number=str(payment.account) + '/' + str(payment.bank_code),
+            )
+            donor = payment.user_donor_payment_channel
+            donor.user_bank_account = user_bank_acc
+            donor.save()
+    messages.info(request, _('User bank accounts were updated.'))
+
+
+add_user_bank_acc_to_dpch.short_description = _("add user bank account  to current donor payment channel (rewrite)")
+
+
+def payment_pair_action(self, request, queryset):
+    for payment in queryset:
+        if payment.account_statement:
+            payment.account_statement.payment_pair(payment)
+    messages.info(request, _('Payments succesfully paired with donor payment channels.'))
+
+
+payment_pair_action.short_description = _("pair payments from account statement with donor payment channels")
+
+
+def payment_request_pair_action(self, request, queryset):
+    if request.user.administrated_units.count() == 1:
+        # Create imagine AccountStatement to use payment_pair method with user's administrated_units
+        statement = AccountStatements()
+        statement.administrative_unit = request.user.administrated_units.first()
+        for payment in queryset:
+            statement.payment_pair(payment)
+        messages.info(request, _('Payments succesfully paired with donor payment channels which are under your administrative unit.'))
+    else:
+        messages.error(request, _('Your administrated unit have to be set to pair payments.'))
+
+
+payment_request_pair_action.short_description = _("pair payments without account statement (need to be admin of administrative unit)")
+
+
 class PaymentAdmin(
     unit_admin_mixin_generator('user_donor_payment_channel__user__administrative_units'),
     ImportExportMixin,
     RelatedFieldAdmin,
 ):
+    actions = (add_user_bank_acc_to_dpch, payment_pair_action, payment_request_pair_action)
     list_display = (
         'id',
         'date',
