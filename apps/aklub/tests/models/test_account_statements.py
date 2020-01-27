@@ -111,7 +111,7 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
         self.assertEqual(p1.transfer_note, "Message for sender 1")
         self.assertEqual(p1.currency, None)
         self.assertEqual(p1.recipient_message, "Message for recepien 1")
-        self.assertEqual(p1.operation_id, None)
+        self.assertEqual(p1.operation_id, "112")
         self.assertEqual(p1.transfer_type, None)
         self.assertEqual(p1.specification, None)
         self.assertEqual(p1.order_id, None)
