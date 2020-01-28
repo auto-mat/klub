@@ -2772,6 +2772,13 @@ class MassCommunication(models.Model):
         blank=True,
         null=True,
     )
+    administrative_unit = models.ForeignKey(
+        AdministrativeUnit,
+        verbose_name=_("administrative unit"),
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
 
     def __str__(self):
         return str(self.name)
