@@ -2679,7 +2679,7 @@ class AutomaticCommunication(models.Model):
         verbose_name=_("administrative unit"),
         on_delete=models.CASCADE,
         null=True,
-        blank=True,
+        blank=False,
     )
 
     def __str__(self):
@@ -2784,7 +2784,7 @@ class MassCommunication(models.Model):
         verbose_name=_("administrative unit"),
         on_delete=models.CASCADE,
         null=True,
-        blank=True,
+        blank=False,
     )
 
     def __str__(self):
