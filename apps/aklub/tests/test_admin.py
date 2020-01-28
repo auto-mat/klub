@@ -250,6 +250,7 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
         LANGUAGE_CODE='en',
     )
     def test_mass_communication_changelist_post_send_mails(self):
+        unit = mommy.make("aklub.AdministrativeUnit", name="test1")
         company_profile1 = mommy.make(
             "CompanyProfile",
             id=2978,
@@ -285,6 +286,7 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
             'date': "2010-03-03",
             "subject": "Subject",
             "send_to_users": [2978, 2979, 3],
+            "administrative_unit": unit.id,
             "template": "Test template",
         }
         request = self.post_request(post_data=post_data)
@@ -305,6 +307,7 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
         )
 
     def test_mass_communication_changelist_post(self):
+        unit = mommy.make("aklub.AdministrativeUnit", name="test1")
         model_admin = django_admin.site._registry[MassCommunication]
         request = self.get_request()
         response = model_admin.add_view(request)
@@ -319,6 +322,7 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
             "subject": "Subject",
             "attach_tax_confirmation": False,
             "attachment": attachment,
+            "administrative_unit": unit.id,
             "template": "Test template",
         }
         request = self.post_request(post_data=post_data)
@@ -329,6 +333,7 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
         self.assertEqual(response.url, "/aklub/masscommunication/%s/change/" % obj.id)
 
     def test_automatic_communication_changelist_post(self):
+        unit = mommy.make("aklub.AdministrativeUnit", name="test1")
         mommy.make("flexible_filter_conditions.NamedCondition", id=1)
         model_admin = django_admin.site._registry[AutomaticCommunication]
         request = self.get_request()
@@ -341,6 +346,7 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
             'condition': 1,
             "method": "email",
             "subject": "Subject",
+            "administrative_unit": unit.id,
             "template": "Test template",
         }
         request = self.post_request(post_data=post_data)
