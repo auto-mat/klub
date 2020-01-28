@@ -1863,6 +1863,9 @@ class AdministrativeUnitAdmin(admin.ModelAdmin):
         'name',
         'id',
         'ico',
+        'from_email_address',
+        'from_email_str',
+        'color',
     )
 
 

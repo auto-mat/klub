@@ -201,6 +201,7 @@ class AdministrativeUnit(models.Model, ParseAccountStatement):
     )
     from_email_address = models.EmailField(
         verbose_name=_("E-mail from address"),
+        help_text=_("Every new address has to be set up by system administrator"),
         default="kp@auto-mat.cz",
         blank=False,
         null=False,
