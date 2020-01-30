@@ -136,7 +136,7 @@ class DonorPaymentChannelInlineForm(forms.ModelForm):
         return super().save()
 
 
-class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
+class DonorPaymentChannelInline(admin.StackedInline):
     model = DonorPaymentChannel
     form = DonorPaymentChannelInlineForm
     extra = 0
@@ -513,7 +513,7 @@ class ProfileMergeForm(merge.MergeForm):
         fields = '__all__'
 
 
-class PreferenceInline(nested_admin.NestedStackedInline):
+class PreferenceInline(admin.StackedInline):
     model = Preference
     extra = 0
     max_number = 1
@@ -536,7 +536,7 @@ class PreferenceInline(nested_admin.NestedStackedInline):
             return super().get_queryset(request)
 
 
-class TelephoneInline(nested_admin.NestedTabularInline):
+class TelephoneInline(admin.TabularInline):
     model = Telephone
     extra = 0
     can_delete = True
@@ -593,7 +593,7 @@ class ProfileEmailAdminForm(forms.ModelForm):
             return cleaned_data
 
 
-class ProfileEmailInline(nested_admin.NestedTabularInline):
+class ProfileEmailInline(admin.TabularInline):
     model = ProfileEmail
     extra = 0
     can_delete = True
