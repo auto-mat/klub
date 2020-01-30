@@ -4,8 +4,6 @@ from django.core import serializers
 from .models import InteractionType, Interaction2, InteractionCategory, Results
 from aklub.models import Event
 
-import nested_admin
-
 
 @admin.register(InteractionType)
 class InteractionTypeAdmin(admin.ModelAdmin):
@@ -37,13 +35,23 @@ class ResultsAdmin(admin.ModelAdmin):
     pass
 
 
-class InteractionInline(nested_admin.NestedTabularInline):
+class InteractionInline(admin.StackedInline):
     model = Interaction2
-    extra = 0
     can_delete = True
-    show_change_link = True
-    #readonly_fields = ('type', 'created_by', 'handled_by',)
+    extra = 0
+    readonly_fields = ('created_by', 'handled_by', 'created', 'updated')
     fk_name = 'user'
+
+    fieldsets = (
+        (None, {
+            'fields': (
+                ('type', 'administrative_unit', 'event',
+                 'settlement', 'note', 'text', 'attachment', 'subject', 'summary', 'status',
+                 'result', 'rating', 'next_step', 'next_communication_date', 'created_by', 'handled_by',
+                 'date_from', 'date_to', 'created', 'updated'),
+            ),
+        }),
+    )
     """
     def get_queryset(self, request):
         qs = super(InteractionInline, self).get_queryset(request)
