@@ -815,7 +815,7 @@ class ProfileAdmin(
     filters.AdministrativeUnitAdminMixin,
     ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFiltersMixin,
     ProfileAdminMixin,
-    UserAdmin, nested_admin.NestedModelAdmin, PolymorphicParentModelAdmin,
+    UserAdmin, PolymorphicParentModelAdmin,
 ):
     polymorphic_list = True
     resource_class = ProfileResource
@@ -1642,7 +1642,7 @@ class AdministrativeUnitAdmin(admin.ModelAdmin):
     )
 
 
-class BaseProfileChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelAdmin):
+class BaseProfileChildAdmin(PolymorphicChildModelAdmin,):
     """ Base admin class for all Profile child models """
     merge_form = ProfileMergeForm
 
