@@ -1877,7 +1877,8 @@ class UserProfileAdmin(
             'search_profile_pks': [object_id],
         })
         extra_context['display_fields'] = serializers.serialize('json', InteractionType.objects.all())
-        ignore_required = ['id', 'user']
+        
+        ignore_required = ['id', 'user', 'baseinteraction2_ptr']
         extra_context['required_fields'] = [
                     field.name for field in Interaction2._meta.get_fields()
                     if not field.null and field.name not in ignore_required
