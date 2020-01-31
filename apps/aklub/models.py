@@ -2372,45 +2372,6 @@ class Payment(WithAdminUrl, models.Model):
         return str(self.amount)
 
 
-class BaseInteraction(models.Model):
-    user = models.ForeignKey(
-        Profile,
-        verbose_name=_("User"),
-        on_delete=models.CASCADE,
-        # related_name="communications",
-    )
-    event = models.ForeignKey(
-        Event,
-        verbose_name=_("Event"),
-        on_delete=models.SET_NULL,
-        # related_name="events",
-        null=True,
-        blank=True,
-    )
-    date = models.DateTimeField(
-        verbose_name=_("Date and time of the communication"),
-        null=True,
-    )
-    created = models.DateTimeField(
-        verbose_name=_("Date of creation"),
-        auto_now_add=True,
-        null=True,
-    )
-    updated = models.DateTimeField(
-        verbose_name=_("Date of last change"),
-        auto_now=True,
-        null=True,
-    )
-
-    def save(self, *args, **kwargs):
-        if not self.date:
-            self.date = datetime.datetime.now()
-        super().save(*args, **kwargs)
-
-    class Meta:
-        abstract = True
-
-
 COMMUNICATION_TYPE = (
     ('mass', _("Mass")),
     ('auto', _("Automatic")),
