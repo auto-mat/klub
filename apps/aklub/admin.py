@@ -607,7 +607,7 @@ class ProfileEmailInline(admin.TabularInline):
 
 class RedirectMixin(object):
     def response_add(self, request, obj, post_url_continue=None):
-        response = super(nested_admin.NestedModelAdmin, self).response_add(
+        response = super(PolymorphicChildModelAdmin, self).response_add(
             request, obj, post_url_continue,)
         if not hasattr(response, 'url'):
             return response
@@ -617,7 +617,7 @@ class RedirectMixin(object):
             return redirect('admin:aklub_' + self.redirect_page + '_changelist')
 
     def response_change(self, request, obj):
-        response = super(nested_admin.NestedModelAdmin, self).response_change(
+        response = super(PolymorphicChildModelAdmin, self).response_change(
             request, obj,)
         if not hasattr(response, 'url'):
             return response
@@ -634,7 +634,6 @@ def child_redirect_mixin(redirect):
 
 class MoneyAccountChildAdmin(
                     unit_admin_mixin_generator('administrative_unit'),
-                    nested_admin.NestedModelAdmin,
                     PolymorphicChildModelAdmin,
                     ):
     """ Base admin class for all child models """
