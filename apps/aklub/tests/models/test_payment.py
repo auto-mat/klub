@@ -17,8 +17,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+from aklub.admin import add_user_bank_acc_to_dpch
+from aklub.models import DonorPaymentChannel
 
+from django.contrib.messages.storage.fallback import FallbackStorage
 from django.test import TestCase
+from django.test.client import RequestFactory
 
 from model_mommy import mommy
 
@@ -47,3 +51,85 @@ class TestPersonName(TestCase):
             campaign__name="Foo campaign",
         )
         self.assertEqual(result.person_name(), None)
+
+
+class TestUserBankAccountRewrite(TestCase):
+    def setUp(self):
+        au = mommy.make(
+            "aklub.AdministrativeUnit",
+            name="test",
+        )
+        self.user_profile = mommy.make(
+            "aklub.UserProfile",
+            first_name="Foo",
+            last_name="Name",
+            administrative_units=(au,),
+        )
+
+        money_acc = mommy.make(
+            "aklub.MoneyAccount",
+            administrative_unit=au,
+        )
+        user_bank_acc = mommy.make(
+            "aklub.UserBankAccount",
+            bank_account_number="2332222/2222",
+        )
+        self.donor_payment_channel = mommy.make(
+            "aklub.DonorPaymentChannel",
+            user=self.user_profile,
+            user_bank_account=user_bank_acc,
+            money_account=money_acc,
+        )
+
+        self.request = RequestFactory().post("/aklub/payments")
+        self.request.session = 'session'
+        self.request._messages = FallbackStorage(self.request)
+
+    def test_dpch_user_bank_acc_rewrite(self):
+        """
+        test if user_bank_account_number is changed by action add_user_bank_acc_to_dpch
+        """
+        payment = mommy.make(
+            "aklub.Payment",
+            amount="111",
+            date="2010-11-11",
+            account="111111",
+            bank_code="1111",
+            user_donor_payment_channel=self.donor_payment_channel,
+        )
+        add_user_bank_acc_to_dpch(None, self.request, [payment, ])
+
+        dpch = DonorPaymentChannel.objects.get(user=self.user_profile)
+        self.assertEqual(dpch.user_bank_account.bank_account_number, "111111/1111")
+
+    def test_dpch_user_bank_acc_not_rewrite(self):
+        """
+        test that user_bank_account_do not rewrite because there is bank_code missing
+        """
+        payment = mommy.make(
+            "aklub.Payment",
+            amount="111",
+            date="2010-11-11",
+            account="111111",
+            user_donor_payment_channel=self.donor_payment_channel,
+        )
+        add_user_bank_acc_to_dpch(None, self.request, [payment, ])
+
+        dpch = DonorPaymentChannel.objects.get(user=self.user_profile)
+        self.assertEqual(dpch.user_bank_account.bank_account_number, "2332222/2222")
+
+    def test_no_dpch_user_bank_acc_not_rewrite(self):
+        """
+        test that user_bank_account_do not rewrite because there is not donor_payment_channel
+        """
+        payment = mommy.make(
+            "aklub.Payment",
+            amount="111",
+            date="2010-11-11",
+            account="111111",
+            bank_code="1111",
+        )
+        add_user_bank_acc_to_dpch(None, self.request, [payment, ])
+
+        dpch = DonorPaymentChannel.objects.get(user=self.user_profile)
+        self.assertEqual(dpch.user_bank_account.bank_account_number, "2332222/2222")

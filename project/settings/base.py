@@ -240,7 +240,18 @@ INSTALLED_APPS = (
     'wiki.plugins.images.apps.ImagesConfig',
     'wiki.plugins.macros.apps.MacrosConfig',
     'colorfield',
+    'flexible_filter_conditions.apps.FlexibleFilterConditionsConfig',
 )
+
+
+FLEXIBLE_FILTER_CONDITIONS_FIELD_MAP = {
+    'User': ('aklub.models', 'User'),
+    'Profile': ('aklub.models', 'Profile'),
+    'User.userchannels.payment': ('aklub.models', 'Payment'),
+    'User.userchannels.last_payment': ('aklub.models', 'Payment'),
+    'User.userchannels': ('aklub.models', 'DonorPaymentChannel'),
+}
+
 
 BOWER_INSTALLED_APPS = (
     'jquery#3.4.1',

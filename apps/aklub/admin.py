@@ -50,6 +50,7 @@ except ImportError:  # Django<2.0
     from django.core.urlresolvers import reverse
 
 from interactions.admin import InteractionInline
+from flexible_filter_conditions.admin_filters import UserConditionFilter, UserConditionFilter1
 
 from import_export import fields
 from import_export.admin import ImportExportMixin
@@ -79,9 +80,9 @@ from .forms import (
 )
 from .models import (
     AccountStatements, AdministrativeUnit, ApiAccount, AutomaticCommunication, BankAccount,
-    CompanyProfile, Condition, DonorPaymentChannel, Event, Expense,
+    CompanyProfile, DonorPaymentChannel, Event, Expense,
     MassCommunication, MoneyAccount, NewUser, Payment, Preference, Profile, ProfileEmail, Recruiter,
-    Result, Source, TaxConfirmation, Telephone, TerminalCondition, UserBankAccount,
+    Result, Source, TaxConfirmation, Telephone, UserBankAccount,
     UserProfile, UserYearPayments,
 )
 from .profile_model_resources import (
@@ -261,6 +262,7 @@ class PaymentsInlineNoExtra(PaymentsInline):
         'done_by',
         'specification',
         'order_id',
+        'operation_id'
     )
     extra = 0
 
@@ -294,8 +296,10 @@ def send_mass_communication_action(self, request, queryset):
     queryset and redirect us to insert form for mass communications
     with the send_to_users M2M field prefilled with these
     users."""
-    if queryset.model in Profile.__subclasses__():
-        queryset = DonorPaymentChannel.objects.filter(user__in=queryset)
+    if queryset.model == Profile:
+        queryset = Profile.objects.filter(id__in=queryset)
+    elif queryset.model == DonorPaymentChannel:
+        queryset = Profile.objects.filter(userchannels__in=queryset)
     redirect_url = large_initial.build_redirect_url(
         request,
         "admin:aklub_masscommunication_add",
@@ -760,18 +764,18 @@ class ProfileAdminMixin:
     donor_frequency.admin_order_field = 'donor_frequency'
 
     def total_payment(self, obj):
-        if not self.request.user.has_perm('aklub.can_edit_all_units'):
-            administrative_units = self.request.user.administrated_units.all()
-        else:
+        if self.request.user.has_perm('aklub.can_edit_all_units'):
             administrative_units = obj.administrative_units.all()
+        else:
+            administrative_units = self.request.user.administrated_units.all()
 
         results = []
         for unit in administrative_units:
             result = Payment.objects.filter(
                         user_donor_payment_channel__user=obj,
-                        user_donor_payment_channel__bank_account__administrative_unit=unit,
+                        user_donor_payment_channel__money_account__administrative_unit=unit,
                         ).aggregate(Count('amount'), Sum('amount'))
-            results.append(f"{unit}: {result['amount__sum']} ({result['amount__count']})")
+            results.append(f"{unit}: {result['amount__sum']} Kč ({result['amount__count']})")
         return ',\n'.join(results)
 
     total_payment.short_description = _("Total payment")
@@ -1100,7 +1104,6 @@ class DonorPaymethChannelAdmin(
         # 'source',
         ('event', RelatedFieldCheckBoxFilter),
         ('registered_support', DateRangeFilter),
-        filters.UserConditionFilter, filters.UserConditionFilter1,
     ]
     search_fields = [
         'user__userprofile__first_name',
@@ -1176,7 +1179,7 @@ class UserYearPaymentsAdmin(DonorPaymethChannelAdmin):
         # 'wished_information',
         'old_account',
         # 'source',
-        ('registered_support', DateRangeFilter), filters.UserConditionFilter, filters.UserConditionFilter1,
+        ('registered_support', DateRangeFilter), UserConditionFilter, UserConditionFilter1,
     ]
 
     def payment_total_by_year(self, obj):
@@ -1192,11 +1195,52 @@ class UserYearPaymentsAdmin(DonorPaymethChannelAdmin):
         return super(UserYearPaymentsAdmin, self).changelist_view(request, extra_context=extra_context)
 
 
+def add_user_bank_acc_to_dpch(self, request, queryset):
+    for payment in queryset:
+        if payment.user_donor_payment_channel and payment.account and payment.bank_code:
+            user_bank_acc, created = UserBankAccount.objects.get_or_create(
+                                        bank_account_number=str(payment.account) + '/' + str(payment.bank_code),
+            )
+            donor = payment.user_donor_payment_channel
+            donor.user_bank_account = user_bank_acc
+            donor.save()
+    messages.info(request, _('User bank accounts were updated.'))
+
+
+add_user_bank_acc_to_dpch.short_description = _("add user bank account  to current donor payment channel (rewrite)")
+
+
+def payment_pair_action(self, request, queryset):
+    for payment in queryset:
+        if payment.account_statement:
+            payment.account_statement.payment_pair(payment)
+    messages.info(request, _('Payments succesfully paired with donor payment channels.'))
+
+
+payment_pair_action.short_description = _("pair payments from account statement with donor payment channels")
+
+
+def payment_request_pair_action(self, request, queryset):
+    if request.user.administrated_units.count() == 1:
+        # Create imagine AccountStatement to use payment_pair method with user's administrated_units
+        statement = AccountStatements()
+        statement.administrative_unit = request.user.administrated_units.first()
+        for payment in queryset:
+            statement.payment_pair(payment)
+        messages.info(request, _('Payments succesfully paired with donor payment channels which are under your administrative unit.'))
+    else:
+        messages.error(request, _('Your administrated unit have to be set to pair payments.'))
+
+
+payment_request_pair_action.short_description = _("pair payments without account statement (need to be admin of administrative unit)")
+
+
 class PaymentAdmin(
     unit_admin_mixin_generator('user_donor_payment_channel__user__administrative_units'),
     ImportExportMixin,
     RelatedFieldAdmin,
 ):
+    actions = (add_user_bank_acc_to_dpch, payment_pair_action, payment_request_pair_action)
     list_display = (
         'id',
         'date',
@@ -1375,6 +1419,7 @@ class MassCommunicationAdmin(large_initial.LargeInitialMixin, admin.ModelAdmin):
     ordering = ('-date',)
 
     filter_horizontal = ('send_to_users',)
+    autocomplete_fields = ('send_to_users',)
 
     form = MassCommunicationForm
 
@@ -1400,6 +1445,11 @@ class MassCommunicationAdmin(large_initial.LargeInitialMixin, admin.ModelAdmin):
     ]
     """
 
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        if db_field.name == "send_to_users":
+            kwargs["queryset"] = Profile.objects.filter(is_active=True, preference__send_mailing_lists=True).distinct()
+        return super().formfield_for_manytomany(db_field, request, **kwargs)
+
     def save_form(self, request, form, change):
         super(MassCommunicationAdmin, self).save_form(request, form, change)
         obj = form.save()
@@ -1416,39 +1466,6 @@ class MassCommunicationAdmin(large_initial.LargeInitialMixin, admin.ModelAdmin):
             obj.date = datetime.datetime.now()
             obj.save()
         return obj
-
-
-class TerminalConditionInline(admin.TabularInline):
-    model = TerminalCondition
-    readonly_fields = ("variable_description",)
-    extra = 0
-
-
-class TerminalConditionAdmin(ImportExportMixin, admin.ModelAdmin):
-    list_display = ('variable', 'operation', 'value', 'condition')
-
-
-class ConditionAdmin(ImportExportMixin, admin.ModelAdmin):
-    save_as = True
-    list_display = ('name', 'as_filter', 'on_dashboard', 'operation', 'condition_string')
-    filter_horizontal = ('conds',)
-    inlines = [TerminalConditionInline, ]
-    fieldsets = [
-        (_("Description"), {
-            'fields': ['name'],
-        }),
-        (_("Operator"), {
-            'fields': ['operation'],
-        }),
-        (_("Logical conditions operands"), {
-            'fields': ['conds'],
-        }),
-        (_("Usage"), {
-            'fields': ['as_filter', 'on_dashboard'],
-        }),
-    ]
-
-    ordering = ('name',)
 
 
 def pair_payment_with_dpch(self, request, queryset):
@@ -1585,13 +1602,18 @@ class TaxConfirmationAdmin(unit_admin_mixin_generator('user_profile__administrat
     batch_download.short_description = _("generate download links for pdf files")
 
     change_list_template = "admin/aklub/taxconfirmation/change_list.html"
-    list_display = ('user_profile', 'get_email', 'year', 'amount', 'get_pdf', 'administrative_unit', )
+    list_display = ('user_profile', 'get_email', 'year', 'amount', 'get_pdf', 'administrative_unit', 'get_status', 'get_send_time', )
     ordering = (
         'user_profile__userprofile__last_name',
         'user_profile__userprofile__first_name',
         'user_profile__companyprofile__name',
     )
-    list_filter = ['year', 'administrative_unit', filters.ProfileHasEmail]
+    list_filter = [
+        'year',
+        'administrative_unit',
+        filters.ProfileHasEmail,
+        filters.ProfileHasFullAdress,
+    ]
     search_fields = (
         'user_profile__userprofile__last_name',
         'user_profile__userprofile__first_name',
@@ -1606,7 +1628,7 @@ class TaxConfirmationAdmin(unit_admin_mixin_generator('user_profile__administrat
         'user_profile__companyprofile',
     )
 
-    readonly_fields = ['get_pdf', 'get_email']
+    readonly_fields = ['get_pdf', 'get_email', 'get_status', 'get_send_time']
     fields = ['user_profile', 'year', 'amount', 'get_pdf', 'administrative_unit', ]
 
     def generate(self, request):
@@ -1632,6 +1654,12 @@ class TaxConfirmationAdmin(unit_admin_mixin_generator('user_profile__administrat
             email = None
         return email
 
+    def get_status(self, obj):
+        return obj.taxconfirmationpdf_set.get().status
+
+    def get_send_time(self, obj):
+        return obj.taxconfirmationpdf_set.get().sent_time
+
 
 @admin.register(AdministrativeUnit)
 class AdministrativeUnitAdmin(admin.ModelAdmin):
@@ -1639,6 +1667,9 @@ class AdministrativeUnitAdmin(admin.ModelAdmin):
         'name',
         'id',
         'ico',
+        'from_email_address',
+        'from_email_str',
+        'color',
     )
 
 
@@ -1715,6 +1746,7 @@ class UserProfileAdmin(
 
     actions = (
         create_export_job_action,
+        send_mass_communication_action,
     )
     advanced_filter_fields = (
         'profileemail__email',
@@ -1758,7 +1790,7 @@ class UserProfileAdmin(
         filters.EmailFilter,
         filters.TelephoneFilter,
         filters.NameFilter,
-        filters.UserConditionFilter, filters.UserConditionFilter1,
+        UserConditionFilter, UserConditionFilter1,
     )
     ordering = ('email',)
     filter_horizontal = ('groups', 'user_permissions',)
@@ -1877,7 +1909,7 @@ class UserProfileAdmin(
             'search_profile_pks': [object_id],
         })
         extra_context['display_fields'] = serializers.serialize('json', InteractionType.objects.all())
-        
+
         ignore_required = ['id', 'user', 'baseinteraction2_ptr']
         extra_context['required_fields'] = [
                     field.name for field in Interaction2._meta.get_fields()
@@ -2065,8 +2097,6 @@ admin.site.register(Payment, PaymentAdmin)
 admin.site.register(AccountStatements, AccountStatementsAdmin)
 admin.site.register(AutomaticCommunication, AutomaticCommunicationAdmin)
 admin.site.register(MassCommunication, MassCommunicationAdmin)
-admin.site.register(Condition, ConditionAdmin)
-admin.site.register(TerminalCondition, TerminalConditionAdmin)
 admin.site.register(Event, EventAdmin)
 admin.site.register(Result, ResultAdmin)
 admin.site.register(Recruiter, RecruiterAdmin)

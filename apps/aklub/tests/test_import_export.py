@@ -408,6 +408,9 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
             'file_format': 0,
         }
         response = self.client.post(address, post_data)
+        with open("response.html", "w") as f:
+            f.write(response.content.decode())
+
         self.assertContains(
             response,
             ''.join(
@@ -727,7 +730,7 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         self.assertEqual(preference[0].letter_on, True)
         self.assertEqual(user_profile[0].administrative_units.all().values_list('name')[0], ('AU2',))
 
-        # Update model
+        # Update model (should not update)
         p = pathlib.PurePath(__file__)
         csv_file = 'update_user_profiles.csv'
         csv_file_update_user_profiles = p.parents[1] / 'test_data' / csv_file
@@ -755,7 +758,7 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
 
         user_profile = Profile.objects.filter(email='test.userprofile@userprofile.test')
         self.assertEqual(user_profile.count(), 1)
-        self.assertEqual(user_profile[0].sex, 'female')
+        self.assertEqual(user_profile[0].sex, 'male')
         donor = DonorPaymentChannel.objects.filter(user=user_profile[0])
         self.assertEqual(donor.count(), 1)
         self.assertEqual(donor[0].VS, '150157010')
@@ -767,13 +770,13 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         self.assertEqual(user_bank_account.count(), 1)
         self.assertEqual(user_profile[0].polymorphic_ctype, ContentType.objects.get(model='userprofile'))
         self.assertEqual(user_profile[0].username, 'test.userprofile')
-        self.assertEqual(user_profile[0].title_before, 'Mgr.')
+        self.assertEqual(user_profile[0].title_before, 'Ing.')
         preference_count = Preference.objects.filter(user=user_profile[0]).count()
         self.assertEqual(preference_count, 2)
         preference = Preference.objects.filter(user=user_profile[0], administrative_unit=1)
         self.assertEqual(preference[0].send_mailing_lists, False)
         self.assertEqual(preference[0].letter_on, False)
-        self.assertEqual(list(user_profile[0].administrative_units.all().values_list('name')), [('AU1',), ('AU2',)])
+        self.assertEqual(set(user_profile[0].administrative_units.all().values_list('name')), {('AU1',), ('AU2',)})
 
     def test_userprofile_minimal_fields_import(self):
         """ Test UserProfile admin model minimal fields import """
@@ -933,7 +936,7 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         self.assertEqual(preference[0].send_mailing_lists, True)
         self.assertEqual(preference[0].letter_on, True)
         self.assertEqual(company_profile[0].administrative_units.all().values_list('name')[0], ('AU2',))
-        # Update model
+        # Update model (shoud not update)
         p = pathlib.PurePath(__file__)
         csv_file = 'update_company_profiles.csv'
         csv_file_update_company_profiles = p.parents[1] / 'test_data' / csv_file
@@ -964,7 +967,7 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         self.assertEqual(company_profile.count(), 1)
         self.assertEqual(company_profile[0].crn, '22670319')
         self.assertEqual(company_profile[0].tin, 'CZ22670319')
-        self.assertEqual(company_profile[0].name, 'Update Company')
+        self.assertEqual(company_profile[0].name, 'Company')
         donor = DonorPaymentChannel.objects.filter(user=company_profile[0])
         self.assertEqual(donor.count(), 1)
         self.assertEqual(donor[0].event.name, 'Zažít město jinak')

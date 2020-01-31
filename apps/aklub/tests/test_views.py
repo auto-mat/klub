@@ -124,12 +124,12 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
     def test_main_admin_page(self):
         address = "/"
         response = self.client.get(address)
-        self.assertContains(response, "Nestará registrace: 4 položek")
+        self.assertContains(response, "Nestará registrace: 3 položek")
         self.assertContains(
             response,
             '<div class="dashboard-module-content"> <p>Celkový počet položek: 2</p><ul class="stacked">'
-            '<li class="odd"><a href="/aklub/donorpaymentchannel/2978/change/">User Test</a></li>'
-            '<li class="even"><a href="/aklub/donorpaymentchannel/3/change/">Payments Without</a></li>'
+            '<li class="odd"><a href="/aklub/donorpaymentchannel/3/change/">Payments Without</a></li>'
+            '<li class="even"><a href="/aklub/donorpaymentchannel/2978/change/">User Test</a></li>'
             '</ul> </div>',
             html=True,
         )

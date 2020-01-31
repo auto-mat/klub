@@ -31,6 +31,7 @@ from django_admin_smoke_tests import tests
 from freezegun import freeze_time
 
 from model_mommy import mommy
+from model_mommy.recipe import seq
 
 from .recipes import donor_payment_channel_recipe, user_profile_recipe
 from .test_admin_helper import TestProfilePostMixin
@@ -100,16 +101,25 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
         return request
 
     def test_send_mass_communication(self):
-        donor_payment_channel_recipe.make(id=3)
-        donor_payment_channel_recipe.make(id=4)
-        donor_payment_channel_recipe.make(id=2978)
-        donor_payment_channel_recipe.make(id=2979)
+        users = user_profile_recipe.make(username=seq("Foo "), _quantity=5)
+        for u in users:
+            donor_payment_channel_recipe.make(user=u)
+            mommy.make('Preference', send_mailing_lists=True, user=u)
         model_admin = django_admin.site._registry[DonorPaymentChannel]
         request = self.post_request({})
-        queryset = DonorPaymentChannel.objects.all()
-        response = admin.send_mass_communication_action(model_admin, request, queryset)
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, "/aklub/masscommunication/add/?send_to_users=3%2C4%2C2978%2C2979")
+        for queryset in (UserProfile.objects.filter(id__in=(u.id for u in users)), DonorPaymentChannel.objects.all()):
+            response = admin.send_mass_communication_action(model_admin, request, queryset)
+            self.assertEqual(response.status_code, 302)
+            self.assertEqual(
+                response.url,
+                "/aklub/masscommunication/add/?send_to_users=%s" % "%2C".join(str(getattr(u, 'user', u).id) for u in queryset),
+            )
+            self.client.force_login(self.superuser)
+            response = self.client.get(response.url, follow=True)
+            print_response(response)
+            for u in queryset:
+                user = getattr(u, 'user', u)
+                self.assertContains(response, '<option value="%s" selected>%s</option>' % (user.id, str(user)), html=True)
 
     @freeze_time("2017-5-1")
     def test_tax_confirmation_generate(self):
@@ -240,6 +250,7 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
         LANGUAGE_CODE='en',
     )
     def test_mass_communication_changelist_post_send_mails(self):
+        unit = mommy.make("aklub.AdministrativeUnit", name="test1")
         company_profile1 = mommy.make(
             "CompanyProfile",
             id=2978,
@@ -275,6 +286,7 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
             'date': "2010-03-03",
             "subject": "Subject",
             "send_to_users": [2978, 2979, 3],
+            "administrative_unit": unit.id,
             "template": "Test template",
         }
         request = self.post_request(post_data=post_data)
@@ -295,6 +307,7 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
         )
 
     def test_mass_communication_changelist_post(self):
+        unit = mommy.make("aklub.AdministrativeUnit", name="test1")
         model_admin = django_admin.site._registry[MassCommunication]
         request = self.get_request()
         response = model_admin.add_view(request)
@@ -309,6 +322,7 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
             "subject": "Subject",
             "attach_tax_confirmation": False,
             "attachment": attachment,
+            "administrative_unit": unit.id,
             "template": "Test template",
         }
         request = self.post_request(post_data=post_data)
@@ -319,7 +333,8 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
         self.assertEqual(response.url, "/aklub/masscommunication/%s/change/" % obj.id)
 
     def test_automatic_communication_changelist_post(self):
-        mommy.make("aklub.Condition", id=1)
+        unit = mommy.make("aklub.AdministrativeUnit", name="test1")
+        mommy.make("flexible_filter_conditions.NamedCondition", id=1)
         model_admin = django_admin.site._registry[AutomaticCommunication]
         request = self.get_request()
         response = model_admin.add_view(request)
@@ -331,6 +346,7 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
             'condition': 1,
             "method": "email",
             "subject": "Subject",
+            "administrative_unit": unit.id,
             "template": "Test template",
         }
         request = self.post_request(post_data=post_data)

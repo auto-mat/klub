@@ -113,6 +113,7 @@ def send_communication_sync(communication_id, communication_type, userincampaign
                     attachment = None
         c = Interaction(
             user=userprofile, method=mass_communication.method, date=datetime.datetime.now(),
+            administrative_unit=mass_communication.administrative_unit,
             subject=autocom.process_template(subject, userprofile, payment_channel),
             summary=autocom.process_template(template, userprofile, payment_channel),
             attachment=attachment,
