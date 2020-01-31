@@ -53,10 +53,6 @@ class BaseInteraction2(models.Model):
         null=True,
         blank=True,
     )
-    date = models.DateTimeField(
-        verbose_name=_("Date and time of the communication"),
-        null=True,
-    )
     created = models.DateTimeField(
         verbose_name=_("Date of creation"),
         auto_now_add=True,
@@ -101,13 +97,11 @@ class Interaction2(BaseInteraction2):
 
     date_from = models.DateTimeField(
         verbose_name=("Date and time of the communication"),
-        auto_now_add=True,
         null=True,
         blank=True,
     )
     date_to = models.DateTimeField(
         verbose_name=("Date of creation"),
-        auto_now_add=True,
         null=True,
         blank=True,
     )
@@ -185,7 +179,6 @@ class Interaction2(BaseInteraction2):
     )
     next_communication_date = models.DateTimeField(
         verbose_name=("Date of creation"),
-        auto_now_add=True,
         blank=True,
         null=True,
     )
