@@ -66,6 +66,11 @@ class BaseInteraction2(models.Model):
 
 
 class Interaction2(BaseInteraction2):
+    """
+    Every field must have  blank=True, null=True to auto create bool (display field)
+    if we want to have it False, we must handle it in admin context with ignored fields
+    also must be added to field_set in admin inline
+    """
     SETTLEMENT_CHOICES = [
         ('a', _('Automatic')),
         ('m', _('Manual'))
@@ -198,6 +203,16 @@ class Interaction2(BaseInteraction2):
         blank=True,
         on_delete=models.SET_NULL,
     )
+    send = models.BooleanField(
+        verbose_name=_("Send / Handle"),
+        help_text=_("Request sending or resolving this communication. For emails, this means that "
+                    "the email will be immediatelly sent to the user. In other types of "
+                    "communications, someone must handle this manually."),
+        default=False,
+        blank=True,
+        null=True,
+    )
+
     def __str__(self):
         return f'{self.user.username} - {self.type}'
 
@@ -216,6 +231,7 @@ class PetitionSignature(BaseInteraction2):
         default=False,
     )
 
+
 class InteractionType(models.Model):
     name = models.CharField(
         max_length=130,
@@ -229,6 +245,13 @@ class InteractionType(models.Model):
         blank=False,
         null=False,
         on_delete=models.CASCADE,
+    )
+    slug = models.SlugField(
+        verbose_name=_("Slug"),
+        help_text=_("Identifier of the Interaction Type"),
+        max_length=100,
+        blank=True,
+        null=True,
     )
 
     def __str__(self):
