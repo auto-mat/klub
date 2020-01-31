@@ -25,10 +25,10 @@ from django.utils.translation import ugettext as _
 
 from . import autocom
 from .models import (
-    AutomaticCommunication, DonorPaymentChannel, Interaction,
-    MassCommunication, Payment, Profile, TaxConfirmation,
-    TaxConfirmationPdf,
+    AutomaticCommunication, DonorPaymentChannel,
+    MassCommunication, Payment, Profile, TaxConfirmation, TaxConfirmationPdf,
 )
+from interactions.models import Interaction2, InteractionType
 """Mailing"""
 
 
@@ -111,14 +111,20 @@ def send_communication_sync(communication_id, communication_type, userincampaign
                     attachment = copy.copy(tax_confirmations[0].file)
                 else:
                     attachment = None
-        c = Interaction(
-            user=userprofile, method=mass_communication.method, date=datetime.datetime.now(),
+        type = InteractionType.objects.get(slug='email-mass')
+        c = Interaction2(
+            user=userprofile,
+            type=type,
+            date_from=datetime.datetime.now(),
             administrative_unit=mass_communication.administrative_unit,
             subject=autocom.process_template(subject, userprofile, payment_channel),
             summary=autocom.process_template(template, userprofile, payment_channel),
             attachment=attachment,
             note=_("Prepared by auto*mated mass communications at %s") % datetime.datetime.now(),
-            send=True, created_by=sending_user, handled_by=sending_user,
-            type='mass',
+            send=True,
+            created_by=sending_user,
+            handled_by=sending_user,
+            settlement='a',
+            communication_type='mass',
         )
         c.dispatch(save=save)

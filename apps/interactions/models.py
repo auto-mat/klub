@@ -1,8 +1,8 @@
 from django.db import models
 from aklub.models import Profile, Event, AdministrativeUnit
 from django.utils.translation import ugettext_lazy as _
-
-
+from django.core.mail import EmailMultiAlternatives
+import html2text
 class Results(models.Model):
     RESULT_SORT = (
         ('promise', _("Promise")),
@@ -73,7 +73,7 @@ class Interaction2(BaseInteraction2):
     """
     SETTLEMENT_CHOICES = [
         ('a', _('Automatic')),
-        ('m', _('Manual'))
+        ('m', _('Manual')),
     ]
 
     RATING_CHOICES = [
@@ -83,7 +83,11 @@ class Interaction2(BaseInteraction2):
         ('4', '4'),
         ('5', '5'),
     ]
-
+    COMMUNICATION_TYPE = (
+        ('mass', _("Mass")),
+        ('auto', _("Automatic")),
+        ('individual', _("Individual")),
+    )
     type = models.ForeignKey(
         'InteractionType',
         help_text=("Type of interaction"),
@@ -212,9 +216,76 @@ class Interaction2(BaseInteraction2):
         blank=True,
         null=True,
     )
+    communication_type = models.CharField(  # noqa
+        verbose_name=_("Type of communication"),
+        max_length=30, choices=COMMUNICATION_TYPE,
+        default='individual',
+        blank=True,
+        null=True,
+    )
+    dispatched = models.BooleanField(
+        verbose_name=_("Dispatched / Done"),
+        help_text=_("Was this message already sent, communicated and/or resolved?"),
+        default=False,
+        blank=True,
+        null=True,
+    )
 
     def __str__(self):
         return f'{self.user.username} - {self.type}'
+
+    def save(self, *args, **kwargs):
+        """Record save hook
+
+        If state of the dispatched field changes to True, call
+        the automated dispatch() method.
+        """
+        if self.send:
+            self.dispatch(save=False)  # then try to dispatch this email automatically
+        super().save(*args, **kwargs)
+
+    def dispatch(self, save=True):
+        """Dispatch the communication
+
+        Currently only method 'email' is implemented, all other methods will be only saved. For these messages, the
+        email is sent via the service configured in application settings.
+
+        TODO: Implement 'mail': the form with the requested text should be
+        typeseted and the admin presented with a 'print' button. Address for
+        filling on the envelope should be displayed to the admin.
+        """
+        administrative_unit = getattr(self, 'administrative_unit', None)
+        if self.type.name == 'email-mass':
+            bcc = [] if self.communication_type == 'mass' else [administrative_unit.from_email_address if administrative_unit else 'kp@auto-mat.cz']
+            if self.user.get_email_str() != "":
+                email = EmailMultiAlternatives(
+                    subject=self.subject,
+                    body=self.summary_txt(),
+                    from_email=administrative_unit.from_email_str if administrative_unit else 'Klub pratel Auto*Matu <kp@auto-mat.cz>',
+                    to=[self.user.get_email_str()],
+                    bcc=bcc,
+                )
+                if self.communication_type != 'individual':
+                    email.attach_alternative(self.summary, "text/html")
+                if self.attachment:
+                    att = self.attachment
+                    email.attach(os.path.basename(att.name), att.read())
+                email.send(fail_silently=False)
+                self.dispatched = True
+                self.send = True
+            if save:
+                self.save()
+        else:
+            self.dispatched = True
+            self.send = False
+            if save:
+                self.save()
+
+    def summary_txt(self):
+        if self.communication_type == 'individual':
+            return self.summary
+        else:
+            return html2text.html2text(self.summary)
 
 
 class PetitionSignature(BaseInteraction2):

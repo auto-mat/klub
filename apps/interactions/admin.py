@@ -48,7 +48,7 @@ class InteractionInline(admin.StackedInline):
                 ('type', 'administrative_unit', 'event',
                  'settlement', 'note', 'text', 'attachment', 'subject', 'summary', 'status',
                  'result', 'rating', 'next_step', 'next_communication_date', 'created_by', 'handled_by',
-                 'date_from', 'date_to', 'created', 'updated', 'send'),
+                 'date_from', 'date_to', 'created', 'updated', 'send', 'communication_type', 'dispatched'),
             ),
         }),
     )
