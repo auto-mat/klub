@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "6d37141d29313cde478bf217d799cef15507050842f059dfaf46f775b65341ec"
+            "sha256": "790f23f500c6dfdff3d9225ebbf7d62333ffa5ead28c82f91974702c26bda088"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -127,6 +127,7 @@
             "version": "==0.9.0"
         },
         "django-adminactions": {
+            "editable": true,
             "git": "https://github.com/saxix/django-adminactions.git",
             "ref": "d88deed5b652342f38491d6f225345538d7022ea"
         },
@@ -925,6 +926,12 @@
             "editable": true,
             "git": "https://github.com/un33k/python-slugify.git",
             "ref": "e785874f0ea053cea393d396b615235e7c0ad179"
+        },
+        "unicodecsv": {
+            "hashes": [
+                "sha256:018c08037d48649a0412063ff4eda26eaa81eff1546dbffa51fa5293276ff7fc"
+            ],
+            "version": "==0.14.1"
         },
         "unidecode": {
             "hashes": [
