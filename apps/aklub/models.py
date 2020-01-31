@@ -2565,19 +2565,6 @@ class Interaction(WithAdminUrl, BaseInteraction):
             return html2text.html2text(self.summary)
 
 
-class PetitionSignature(BaseInteraction):
-    email_confirmed = models.BooleanField(
-        verbose_name=_("Is confirmed via e-mail"),
-        default=False,
-    )
-    gdpr_consent = models.BooleanField(
-        _("GDPR consent"),
-        default=False,
-    )
-    public = models.BooleanField(
-        verbose_name=_("Publish my name in the list of supporters/petitents of this campaign"),
-        default=False,
-    )
 
 
 class AutomaticCommunication(models.Model):

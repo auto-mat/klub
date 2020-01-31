@@ -50,10 +50,11 @@ from sesame.backends import ModelBackend
 from . import autocom
 from .models import (
     BankAccount,
-    DonorPaymentChannel, Event, Payment, PetitionSignature,
+    DonorPaymentChannel, Event, Payment,
     Profile, ProfileEmail, Source, Telephone, UserInCampaign,
     UserProfile,
 )
+from interactions.models import PetitionSignature # TODO: Not sure if it works (model moved from aklub to interaction app)
 
 
 class RegularUserForm_UserProfile(forms.ModelForm):
