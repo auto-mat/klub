@@ -82,7 +82,7 @@ from .models import (
     AccountStatements, AdministrativeUnit, ApiAccount, AutomaticCommunication, BankAccount,
     CompanyProfile, DonorPaymentChannel, Event, Expense,
     MassCommunication, MoneyAccount, NewUser, Payment, Preference, Profile, ProfileEmail, Recruiter,
-    Result, Source, TaxConfirmation, Telephone, UserBankAccount,
+    Source, TaxConfirmation, Telephone, UserBankAccount,
     UserProfile, UserYearPayments,
 )
 from .profile_model_resources import (
@@ -1536,14 +1536,6 @@ def download_darujme_statement(self, request, queryset):
 download_darujme_statement.short_description = _("Download darujme statements")
 
 
-class ResultAdmin(admin.ModelAdmin):
-    list_display = (
-        'name',
-        'sort',
-    )
-    save_as = True
-
-
 class EventAdmin(unit_admin_mixin_generator('administrative_units'), admin.ModelAdmin):
     list_display = (
         'name',
@@ -2097,7 +2089,6 @@ admin.site.register(AccountStatements, AccountStatementsAdmin)
 admin.site.register(AutomaticCommunication, AutomaticCommunicationAdmin)
 admin.site.register(MassCommunication, MassCommunicationAdmin)
 admin.site.register(Event, EventAdmin)
-admin.site.register(Result, ResultAdmin)
 admin.site.register(Recruiter, RecruiterAdmin)
 admin.site.register(TaxConfirmation, TaxConfirmationAdmin)
 admin.site.register(Source, SourceAdmin)

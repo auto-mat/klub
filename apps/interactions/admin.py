@@ -32,7 +32,11 @@ class InteractionCategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Results)
 class ResultsAdmin(admin.ModelAdmin):
-    pass
+    list_display = (
+        'name',
+        'sort',
+    )
+    save_as = True
 
 
 class InteractionInline(admin.StackedInline):

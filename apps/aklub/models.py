@@ -156,30 +156,6 @@ AbstractUserProfile = create_model(
 )
 
 
-class Result(models.Model):
-    RESULT_SORT = (
-        ('promise', _("Promise")),
-        ('ongoing', _("Ongoing communication")),
-        ('dont_contact', _("Don't contact again")),
-    )
-
-    name = models.CharField(
-        verbose_name=_("Name of result"),
-        max_length=200,
-        blank=False,
-        null=False,
-    )
-    sort = models.CharField(
-        verbose_name=_("Sort of result"),
-        max_length=30,
-        choices=RESULT_SORT,
-        default='individual',
-    )
-
-    def __str__(self):
-        return str(self.name)
-
-
 ICO_ERROR_MESSAGE = _("IČO není zadáno ve správném formátu. Zkontrolujte že číslo má osm číslic a případně ho doplňte nulami zleva.")
 
 
@@ -265,7 +241,7 @@ class Event(models.Model):
         null=True,
     )
     result = models.ManyToManyField(
-        Result,
+        'interactions.results',
         verbose_name=_("Acceptable results of communication"),
         blank=True,
     )
