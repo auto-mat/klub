@@ -1,14 +1,19 @@
 # -*- coding: utf-8 -*-
+
 import datetime
+import json
 import os
 import pathlib
 from operator import itemgetter
 
 from django.contrib import messages
 from django.db import models
+from django.template import loader
 from django.urls import reverse
 from django.utils.html import format_html_join, mark_safe
 from django.utils.translation import ugettext_lazy as _
+
+from html_template_editor.models import Images, TemplateContent
 
 from . import models as aklub_models
 
@@ -25,8 +30,6 @@ def sweet_text(generator):
     3000
     """
     return format_html_join(mark_safe(',<br/>'), "<nobr>{}</nobr>", generator)
-
-from html_template_editor.models import TemplateContent
 
 
 def create_model(
@@ -156,3 +159,30 @@ def get_email_templates_names():
     sorted_templates.insert(0, ('', '---------'))
 
     return sorted_templates
+
+
+def get_email_template_context(template_path, template_url):
+    """ Get email template context """
+
+    template = loader.get_template(str(template_path))
+    template_obj = TemplateContent.objects.filter(page=template_url)
+    if (template_obj):
+        content = template_obj.latest('created')
+        context = {
+            'page': content,
+        }
+        regions = json.loads(content.regions)
+        context.update(regions)
+    else:
+        context = {}
+
+    background_image = Images.objects.filter(
+            template_url=template_url,
+            edited_crop__isnull=False,
+        ).order_by('-modified').first()
+    if background_image:
+        context['bg_img'] = background_image.image.url
+        context['bg_img_width'] = background_image.image.width
+        context['bg_img_height'] = background_image.image.height
+
+    return template, context

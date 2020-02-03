@@ -29,6 +29,7 @@ class ImagesMixin(object):
 class ImagesAdd(ImagesMixin, generics.CreateAPIView):
 
     def perform_create(self, serializer):
+        print(self.request.data)
         serializer.save(
             image=self.request.data['image'],
             name=self.request.data['image'].name,

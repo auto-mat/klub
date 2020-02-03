@@ -43,11 +43,13 @@ module.exports = (grunt) ->
                         'src/scripts/tools.coffee'
 
                         # Custom tools
+                        'src/scripts/superclass.coffee'
                         'src/scripts/custom-align-left-tool.coffee'
                         'src/scripts/custom-align-right-tool.coffee'
                         'src/scripts/custom-align-center-tool.coffee'
                         'src/scripts/align-justify-tool.coffee'
                         'src/scripts/button-tool.coffee'
+                        'src/scripts/background-image-tool.coffee'
                     ]
 
             sandbox:

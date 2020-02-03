@@ -30,12 +30,6 @@
 
       return images
     }
-    function getTemplatePageUrl () {
-      var newEmptyTemplateName = sessionStorage.getItem('newEmptyTemplateName')
-      var url = newEmptyTemplateName ? window.location.pathname + newEmptyTemplateName + '/' : window.location.pathname
-      var dbTemplateNameUrl = sessionStorage.getItem('dbTemplateName')
-      return dbTemplateNameUrl ? dbTemplateNameUrl : url
-    }
     editor.addEventListener('saved', function (ev) {
       var onStateChange, payload, regions, element, pageId, successSaveFlash, failSaveFlash
       // Collect the contents of each region into a FormData instance

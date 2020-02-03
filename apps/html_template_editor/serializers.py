@@ -45,6 +45,8 @@ class ImagesSerializer(serializers.ModelSerializer):
                   'edited_width',
                   'edited_crop',
                   'edited_direction',
+                  'background_image',
+                  'template_url',
                   )
 
     def to_representation(self, instance):
@@ -52,5 +54,5 @@ class ImagesSerializer(serializers.ModelSerializer):
         if ret['image']:
             # Modify the image URL by adding an _ignore param
             # This will force the browser to reload the image
-            ret['image'] = "%s?_ignore=%s" % (ret['image'], time.time())
+            ret['image'] = "{}?_ignore={}".format(ret['image'], time.time())
         return ret

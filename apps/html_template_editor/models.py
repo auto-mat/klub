@@ -72,6 +72,14 @@ class Images(models.Model):
         blank=True,
         null=True,
     )
+    background_image = models.BooleanField(
+        default=False,
+    )
+    template_url = models.CharField(
+        max_length=350,
+        blank=True,
+        null=True,
+    )
 
     def size(self):
         return [self.image.width, self.image.height]

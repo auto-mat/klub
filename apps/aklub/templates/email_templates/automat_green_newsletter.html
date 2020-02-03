@@ -19,9 +19,9 @@
             border="0"
             bgcolor="ffffff"
             align="center"
-            style="background-image: url({% static 'aklub/images/automat_green_newsletter.jpeg'%})"
-            height="1598"
-            width="600"
+            style="background-image: url('{% if bg_img %} {{ bg_img }} {% else %} {% static 'aklub/images/automat_green_newsletter.jpeg'%} {% endif %}')"
+            height="{% if bg_img %} {{ bg_img_height }} {% else %} 1598 {% endif %}"
+            width="{% if bg_img %} {{ bg_img_width }} {% else %} 600 {% endif %}"
           >
             <tbody>
               <tr>
