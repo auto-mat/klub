@@ -1,3 +1,12 @@
+function getTemplatePageUrl () {
+  var newEmptyTemplateName = sessionStorage.getItem('newEmptyTemplateName')
+  var url = newEmptyTemplateName ? window.location.pathname + newEmptyTemplateName + '/' : window.location.pathname
+  var dbTemplateNameUrl = sessionStorage.getItem('dbTemplateName')
+
+  return dbTemplateNameUrl ? dbTemplateNameUrl : url
+}
+
+
 var imageUploader = function (dialog) {
   var image, xhr, xhrComplete, xhrProgress, evtFuncsNames
   evtFuncsNames = {
@@ -34,6 +43,9 @@ var imageUploader = function (dialog) {
     // Upload a file to the server
     var formData
     var file = ev.detail().file
+    // Image type: email temmplate content image or background image
+    var backgroundImage = ev.detail().backgroundImage
+    var maxImageWidth = 600
 
     // Define functions to handle upload progress and completion
     xhrProgress = function (ev) {
@@ -62,7 +74,13 @@ var imageUploader = function (dialog) {
           name: response.name,
           size: response.size,
           width: response.edited_width,
-          url: response.image
+          url: response.image,
+        }
+        if (parseInt(image.size[0]) > maxImageWidth) {
+          alert(django.gettext('Max allowed image width is 600 px.'))
+          // Set the dialog to empty
+          dialog.state('empty')
+          return
         }
         // Populate the dialog
         dialog.populate(image.url, image.size)
@@ -79,6 +97,9 @@ var imageUploader = function (dialog) {
     // Build the form data to post to the server
     formData = new FormData()
     formData.append('image', file)
+    // Check if image is background image
+    typeof backgroundImage !== 'undefined' ? formData.append('background_image', backgroundImage) : null
+    formData.append('template_url', getTemplatePageUrl())
     // Set the width of the image when it's inserted, this is a default
     // the user will be able to resize the image afterwards.
     formData.append('width', 600)
@@ -94,7 +115,7 @@ var imageUploader = function (dialog) {
 
     // Define a function to handle the request completion
     xhrComplete = function (ev) {
-    // Check the request is complete
+      // Check the request is complete
       if (ev.target.readyState !== 4) {
         return
       }
@@ -118,7 +139,7 @@ var imageUploader = function (dialog) {
           response.size,
           {
             alt: response.name,
-            'data-ce-max-width': image.size[0]
+            'data-ce-max-width': image.size[0],
           })
       } else {
         // The request failed, notify the user
@@ -163,13 +184,13 @@ var imageUploader = function (dialog) {
 
       // Handle the result of the rotation
       if (parseInt(ev.target.status) === 200) {
-      // Unpack the response (from JSON)
+        // Unpack the response (from JSON)
         var response = JSON.parse(ev.target.responseText)
 
         // Populate the dialog
         dialog.populate(response.image, response.size)
       } else {
-      // The request failed, notify the user
+        // The request failed, notify the user
         new ContentTools.FlashUI('no')
       }
     }

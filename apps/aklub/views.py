@@ -36,7 +36,6 @@ from django.db.models import Case, CharField, Count, IntegerField, Q, Sum, Value
 from django.db.models.functions import TruncMonth
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render_to_response
-from django.template import loader
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext_lazy as _
@@ -60,6 +59,7 @@ from .models import (
     Profile, ProfileEmail, Source, Telephone, UserInCampaign,
     UserProfile,
 )
+from .utils import get_email_template_context
 
 
 class RegularUserForm_UserProfile(forms.ModelForm):
@@ -821,6 +821,8 @@ class ConfirmEmailView(SesameUserMixin, View):
 
 
 def get_email_template(request, template_name):
+    """ Get email template """
+
     _template_name = template_name
 
     template_name = '.'.join([template_name, 'html'])
@@ -832,22 +834,14 @@ def get_email_template(request, template_name):
         kwargs={'template_name': _template_name},
     )
 
-    template = loader.get_template(str(template_path))
-    template_obj = TemplateContent.objects.filter(page=template_url)
-    if (template_obj):
-        content = template_obj.latest('created')
-        context = {
-            'page': content,
-        }
-        regions = json.loads(content.regions)
-        context.update(regions)
-    else:
-        context = {}
+    template, context = get_email_template_context(template_path, template_url)
 
     return HttpResponse(template.render(context))
 
 
 def get_email_template_from_db(request, template_name):
+    """ Get email template from db """
+
     new_empty_template = 'new_empty_template'
 
     template_dir = pathlib.Path('email_templates')
@@ -857,16 +851,6 @@ def get_email_template_from_db(request, template_name):
         kwargs={'template_name': template_name},
     )
 
-    template = loader.get_template(str(template_path))
-    template_obj = TemplateContent.objects.filter(page=template_url)
-    if (template_obj):
-        content = template_obj.latest('created')
-        context = {
-            'page': content,
-        }
-        regions = json.loads(content.regions)
-        context.update(regions)
-    else:
-        context = {}
+    template, context = get_email_template_context(template_path, template_url)
 
     return HttpResponse(template.render(context))
