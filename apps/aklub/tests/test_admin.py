@@ -19,6 +19,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 from django.contrib import admin as django_admin, auth
+from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -116,7 +117,6 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
             )
             self.client.force_login(self.superuser)
             response = self.client.get(response.url, follow=True)
-            print_response(response)
             for u in queryset:
                 user = getattr(u, 'user', u)
                 self.assertContains(response, '<option value="%s" selected>%s</option>' % (user.id, str(user)), html=True)
@@ -503,6 +503,29 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
         # Delete profiles
         self.delete_profile(new_profiles)
         self.assertEqual(Profile.objects.exclude(username=self.superuser.username).count(), 0)
+
+
+class UserProfileAdminTests(TestCase):
+    def test_unit_admin(self):
+        au1 = mommy.make("aklub.AdministrativeUnit", name="test1")
+        au2 = mommy.make("aklub.AdministrativeUnit", name="test2")
+
+        user = mommy.make('UserProfile', is_staff=True, administrated_units=[au1])
+        self.client.force_login(user)
+
+        u1 = mommy.make('UserProfile', administrative_units=[au1], first_name="Foo")
+        mommy.make('UserProfile', administrative_units=[au2], first_name="Bar")
+        channel = mommy.make(
+            'DonorPaymentChannel', user=u1, money_account__administrative_unit=au1,
+            regular_payments="regular", regular_amount=120,
+        )
+        mommy.make('Payment', user_donor_payment_channel=channel, amount=100)
+        user.user_permissions.add(Permission.objects.get(codename='view_userprofile'))
+        response = self.client.get(reverse('admin:aklub_userprofile_changelist'), follow=True)
+        self.assertContains(response, '<td class="field-get_administrative_units">test1</td>', html=True)
+        self.assertContains(response, '<td class="field-get_sum_amount">100</td>', html=True)
+        self.assertContains(response, '<td class="field-regular_amount">120</td>', html=True)
+        self.assertNotContains(response, '<td class="field-get_administrative_units">test2</td>', html=True)
 
 
 class AdminActionsTests(CreateSuperUserMixin, RunCommitHooksMixin, TestCase):
