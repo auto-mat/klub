@@ -13,6 +13,7 @@ env:
 
   matrix:
     - DJANGO_VERSION="Django>=2.2,<2.3"
+    - DJANGO_VERSION="Django>=3.0,<3.1"
     - DJANGO_VERSION='https://github.com/django/django/archive/master.tar.gz'
 python:
   - "3.6"
@@ -42,3 +43,4 @@ addons:
 matrix:
    allow_failures:
       - env: DJANGO_VERSION='https://github.com/django/django/archive/master.tar.gz'
+      - env: DJANGO_VERSION="Django>=3.0,<3.1"
