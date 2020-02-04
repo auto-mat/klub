@@ -762,15 +762,17 @@ class ProfileAdminMixin:
         results = []
         for channel in channels:
             if channel.regular_payments == 'regular':
-                if self.request.user.has_perm('aklub.can_edit_all_units') or \
-                        (channel.bank_account and channel.bank_account.administrative_unit in self.request.user.administrated_units.all()):
+                if (
+                    self.request.user.has_perm('aklub.can_edit_all_units') or
+                    channel.money_account and channel.money_account.administrative_unit in self.request.user.administrated_units.all()
+                ):
                     results.append(getattr(channel, attr, '-') or '-')
         return results
 
     def get_donor(self, obj):
         if not self.request.user.has_perm('aklub.can_edit_all_units'):
             result = obj.userchannels.filter(
-                            bank_account__administrative_unit__in=self.request.user.administrated_units.all(),
+                            money_account__administrative_unit__in=self.request.user.administrated_units.all(),
                             regular_payments='regular',
             )
         else:
