@@ -113,10 +113,10 @@ def send_communication_sync(communication_id, communication_type, userincampaign
                     attachment = copy.copy(tax_confirmations[0].file)
                 else:
                     attachment = None
-        type = InteractionType.objects.get(slug='email-mass')
+        interaction_type = InteractionType.objects.get(slug='email-mass')
         c = Interaction(
             user=userprofile,
-            type=type,
+            type=interaction_type,
             date_from=datetime.datetime.now(),
             administrative_unit=mass_communication.administrative_unit,
             subject=autocom.process_template(subject, userprofile, payment_channel),

@@ -94,7 +94,7 @@ class Interaction(BaseInteraction2):
         ('auto', _("Automatic")),
         ('individual', _("Individual")),
     )
-    type = models.ForeignKey(
+    type = models.ForeignKey( # noqa
         'InteractionType',
         help_text=("Type of interaction"),
         blank=False,
