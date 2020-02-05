@@ -23,12 +23,14 @@ import datetime
 from django.contrib import messages
 from django.utils.translation import ugettext as _
 
+from interactions.models import Interaction2, InteractionType
+
 from . import autocom
 from .models import (
     AutomaticCommunication, DonorPaymentChannel,
     MassCommunication, Payment, Profile, TaxConfirmation, TaxConfirmationPdf,
 )
-from interactions.models import Interaction2, InteractionType
+
 """Mailing"""
 
 

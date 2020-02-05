@@ -45,6 +45,8 @@ from django.views.generic.edit import FormView
 
 from extra_views import InlineFormSet, UpdateWithInlinesView
 
+from interactions.models import PetitionSignature  # TODO: Not sure if it works (model moved from aklub to interaction app)
+
 from sesame.backends import ModelBackend
 
 from . import autocom
@@ -54,7 +56,6 @@ from .models import (
     Profile, ProfileEmail, Source, Telephone, UserInCampaign,
     UserProfile,
 )
-from interactions.models import PetitionSignature # TODO: Not sure if it works (model moved from aklub to interaction app)
 
 
 class RegularUserForm_UserProfile(forms.ModelForm):

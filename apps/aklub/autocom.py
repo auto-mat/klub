@@ -166,7 +166,7 @@ def check(event, user_profiles=None, action=None):  # noqa
                     note="Prepared by automated mailer at %s" % datetime.datetime.now(),
                     send=auto_comm.dispatch_auto,
                     settlement='a',
-                    administrative_unit= auto_comm.administrative_unit,
+                    administrative_unit=auto_comm.administrative_unit,
                 )
                 if payment_channel:
                     auto_comm.sent_to_users.add(payment_channel)

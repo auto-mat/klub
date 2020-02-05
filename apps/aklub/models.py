@@ -21,7 +21,6 @@
 """Database models for the club management application"""
 import datetime
 import logging
-import os.path
 
 from colorfield.fields import ColorField
 
@@ -37,7 +36,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.humanize.templatetags.humanize import intcomma
 from django.core.exceptions import ValidationError
 from django.core.files.storage import FileSystemStorage
-from django.core.mail import EmailMultiAlternatives
 from django.core.validators import RegexValidator
 from django.db import models, transaction
 from django.db.models import Count, Sum, signals
@@ -48,8 +46,6 @@ from django.utils.html import format_html, format_html_join, mark_safe
 from django.utils.text import format_lazy
 from django.utils.timesince import timesince
 from django.utils.translation import ugettext_lazy as _
-
-import html2text
 
 from polymorphic.managers import PolymorphicManager
 from polymorphic.models import PolymorphicModel
@@ -1417,7 +1413,7 @@ class UserInCampaign(models.Model):
             return "No Profile"
 
     person_name.short_description = _("Full name")
-
+    '''
     def requires_action(self):
         """Return true if the user requires some action from
         the club manager, otherwise return False"""
@@ -1425,7 +1421,7 @@ class UserInCampaign(models.Model):
             return True
         else:
             return False
-
+    '''
     def is_direct_dialogue(self):
         if self.source:
             return self.source.direct_dialogue
@@ -1818,7 +1814,8 @@ class DonorPaymentChannel(models.Model):
             from .views import generate_variable_symbol
             VS = generate_variable_symbol()
             self.VS = VS
-
+    '''
+    # commented during Interaction move to diff application
     def requires_action(self):
         """Return true if the user requires some action from
         the club manager, otherwise return False"""
@@ -1826,7 +1823,7 @@ class DonorPaymentChannel(models.Model):
             return True
         else:
             return False
-
+    '''
     def check_duplicate(self, *args, **kwargs):
         try:
             qs = DonorPaymentChannel.objects.filter(

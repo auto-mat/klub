@@ -1,8 +1,14 @@
-from django.db import models
-from aklub.models import Profile, Event, AdministrativeUnit
-from django.utils.translation import ugettext_lazy as _
+import os.path
+
+from aklub.models import AdministrativeUnit, Event, Profile
+
 from django.core.mail import EmailMultiAlternatives
+from django.db import models
+from django.utils.translation import ugettext_lazy as _
+
 import html2text
+
+
 class Results(models.Model):
     RESULT_SORT = (
         ('promise', _("Promise")),
@@ -256,7 +262,9 @@ class Interaction2(BaseInteraction2):
         """
         administrative_unit = getattr(self, 'administrative_unit', None)
         if self.type.name == 'email-mass':
-            bcc = [] if self.communication_type == 'mass' else [administrative_unit.from_email_address if administrative_unit else 'kp@auto-mat.cz']
+            bcc = [] if self.communication_type == 'mass' else [
+                                                    administrative_unit.from_email_address if administrative_unit else 'kp@auto-mat.cz',
+                                                    ]
             if self.user.get_email_str() != "":
                 email = EmailMultiAlternatives(
                     subject=self.subject,
@@ -339,5 +347,5 @@ for field in Interaction2._meta.fields:
                                 default=False,
                                 blank=False,
                                 null=False,
-                                )
+                                ),
                 )

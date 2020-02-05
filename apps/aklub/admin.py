@@ -49,7 +49,6 @@ try:
 except ImportError:  # Django<2.0
     from django.core.urlresolvers import reverse
 
-from interactions.admin import InteractionInline
 from flexible_filter_conditions.admin_filters import UserConditionFilter, UserConditionFilter1
 
 from import_export import fields
@@ -59,6 +58,9 @@ from import_export.resources import ModelResource
 from import_export.widgets import ForeignKeyWidget
 
 from import_export_celery.admin_actions import create_export_job_action
+
+from interactions.admin import InteractionInline
+from interactions.models import Interaction2, InteractionType
 
 from isnull_filter import isnull_filter
 
@@ -71,6 +73,7 @@ from polymorphic.admin import PolymorphicChildModelAdmin, PolymorphicParentModel
 from related_admin import RelatedFieldAdmin
 
 from smmapdfs.actions import make_pdfsandwich
+
 
 from . import darujme, filters, mailing, tasks
 from .filters import unit_admin_mixin_generator
@@ -89,8 +92,6 @@ from .profile_model_resources import (
     ProfileModelResource, get_polymorphic_parent_child_fields,
 )
 from .profile_model_resources_mixin import ProfileModelResourceMixin
-
-from interactions.models import Interaction2, InteractionType
 
 
 def admin_links(args_generator):

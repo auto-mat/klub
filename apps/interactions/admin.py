@@ -1,8 +1,9 @@
+from aklub.models import Event
+
 from django.contrib import admin
 from django.core import serializers
 
-from .models import InteractionType, Interaction2, InteractionCategory, Results
-from aklub.models import Event
+from .models import Interaction2, InteractionCategory, InteractionType, Results
 
 
 @admin.register(InteractionType)
