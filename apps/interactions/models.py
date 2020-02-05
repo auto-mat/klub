@@ -309,6 +309,10 @@ class PetitionSignature(BaseInteraction2):
         verbose_name=_("Publish my name in the list of supporters/petitents of this campaign"),
         default=False,
     )
+    date = models.DateTimeField(
+        verbose_name=_("Date of signature"),
+        null=True,
+    )
 
 
 class InteractionType(models.Model):
