@@ -50,6 +50,7 @@ module.exports = (grunt) ->
                         'src/scripts/align-justify-tool.coffee'
                         'src/scripts/button-tool.coffee'
                         'src/scripts/background-image-tool.coffee'
+                        'src/scripts/vertical-space-tool.coffee'
                     ]
 
             sandbox:

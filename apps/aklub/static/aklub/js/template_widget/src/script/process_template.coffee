@@ -16,6 +16,8 @@ class PostProcessHtmlTemplate extends FormatSelectorMixin
     
     @_videoClass = 'video'
 
+    @_verticalSpaceClassName = 'vertical-space'
+
     @_textContainerTags = ['p', 'ul', 'ol', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6']
 
     # Methods
@@ -162,8 +164,9 @@ class PostProcessHtmlTemplate extends FormatSelectorMixin
     @inlineStyler $(@_htmlDoc)
     @_fixContentWidth()
     @_fixMargin()
-    @replaceImgSrc()
-    @convertTextCssPositionToTable()
+    @_replaceImgSrc()
+    @_convertTextCssPositionToTable()
+    @_eraseVerticalSpaceContent()
     @_$templateDivField.html @_$editTemplatePageContainer
     @_$hiddenTemplateField.val @_$editTemplatePageContainer.html()
 
@@ -199,7 +202,7 @@ class PostProcessHtmlTemplate extends FormatSelectorMixin
 
     $table.append $tableBody.append $tableRow.append $tableCell
 
-  replaceImgSrc: () ->
+  _replaceImgSrc: () ->
 
     $imgs = @_$editTemplatePageContainer.find 'img'
 
@@ -327,7 +330,7 @@ class PostProcessHtmlTemplate extends FormatSelectorMixin
 
     return $tableCell
 
-  convertTextCssPositionToTable: () ->
+  _convertTextCssPositionToTable: () ->
 
     @_$editTemplatePageContainer.find(@_textContainerTags.join(', ')).each (i, element) =>
       elementCssClass = if $(element).attr('class') then $(element).attr('class').split(' ') else []
@@ -383,4 +386,9 @@ class PostProcessHtmlTemplate extends FormatSelectorMixin
       # Set correct width (orig width - 2 * padding value)
       $(value).css
         width: origWidth - paddingValue * 2
+
+  _eraseVerticalSpaceContent: () ->
+    # Erase vertical space content
+    @_$editTemplatePageContainer.find(@getClassFormat @_verticalSpaceClassName).each (i, element) =>
+      $(element).find('center').remove()
  
