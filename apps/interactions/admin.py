@@ -3,7 +3,7 @@ from aklub.models import Event
 from django.contrib import admin
 from django.core import serializers
 
-from .models import Interaction2, InteractionCategory, InteractionType, Results
+from .models import Interaction, InteractionCategory, InteractionType, Result
 
 
 @admin.register(InteractionType)
@@ -11,18 +11,18 @@ class InteractionTypeAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(Interaction2)
-class InteractionsAdmin(admin.ModelAdmin):
+@admin.register(Interaction)
+class InteractionAdmin(admin.ModelAdmin):
     def change_view(self, request, object_id, form_url='', extra_context=None):
         data = {}
         data['display_fields'] = serializers.serialize('json', InteractionType.objects.all())
-        data['required_fields'] = [field.name for field in Interaction2._meta.get_fields() if not field.null]
+        data['required_fields'] = [field.name for field in Interaction._meta.get_fields() if not field.null]
         return super().change_view(request, object_id, form_url, extra_context=data,)
 
     def add_view(self, request, form_url='', extra_context=None):
         data = {}
         data['display_fields'] = serializers.serialize('json', InteractionType.objects.all())
-        data['required_fields'] = [field.name for field in Interaction2._meta.get_fields() if not field.null]
+        data['required_fields'] = [field.name for field in Interaction._meta.get_fields() if not field.null]
         return super().add_view(request, form_url, extra_context=data,)
 
 
@@ -31,8 +31,8 @@ class InteractionCategoryAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(Results)
-class ResultsAdmin(admin.ModelAdmin):
+@admin.register(Result)
+class ResultAdmin(admin.ModelAdmin):
     list_display = (
         'name',
         'sort',
@@ -41,7 +41,7 @@ class ResultsAdmin(admin.ModelAdmin):
 
 
 class InteractionInline(admin.StackedInline):
-    model = Interaction2
+    model = Interaction
     can_delete = True
     extra = 0
     readonly_fields = ('created_by', 'handled_by', 'created', 'updated')

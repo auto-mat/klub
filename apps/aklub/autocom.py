@@ -127,7 +127,7 @@ def process_template(template_string, user, payment_channel):
 
 def check(event, user_profiles=None, action=None):  # noqa
     from .models import AutomaticCommunication, DonorPaymentChannel, UserProfile
-    from interactions.models import Interaction2, InteractionType
+    from interactions.models import Interaction, InteractionType
     if not user_profiles:
         user_profiles = UserProfile.objects.all()
     for auto_comm in AutomaticCommunication.objects.all():
@@ -157,7 +157,7 @@ def check(event, user_profiles=None, action=None):  # noqa
             if template and template != '':
                 logger.info(u"Added new automatic communication \"%s\" for user \"%s\", action \"%s\"" % (auto_comm, user, action))
                 method = InteractionType.objects.get(slug=auto_comm.method)
-                c = Interaction2(
+                c = Interaction(
                     user=user,
                     type=method,
                     date_from=datetime.datetime.now(),

@@ -30,7 +30,7 @@
      }
  }
 
-
+//////////////////// Interaction inlines ///////////////////////////
  $(document).ready(function() {
    // loading template run
    display_fields({{display_fields|safe}},{{required_fields|safe}});
@@ -40,14 +40,14 @@
    $(".field-type select").live("change",(function(){
      var inline_id  = $(this).attr("id").match("set-(.*)-type")[1]; // get id of changed inline
      var type_id  = $(this).val();
-     $("#interaction2_set-"+inline_id + " .fieldBox").hide();
+     $("#interaction_set-"+inline_id + " .fieldBox").hide();
      show_required({{required_fields|safe}}, inline_id)
      show_fields({{display_fields|safe}}, type_id, inline_id)
    }));
 
    // if add next interaction is clicked
-    $(" #interaction2_set-group .add-row a ").live("click",function(){
-      var last_inline_id = $('#interaction2_set-group .inline-related').length - 2
+    $(" #interaction_set-group .add-row a ").live("click",function(){
+      var last_inline_id = $('#interaction_set-group .inline-related').length - 2
       console.log(last_inline_id);
       show_required({{required_fields|safe}}, last_inline_id)
 
@@ -55,10 +55,10 @@
     )
     // hide and show fields manager
     function display_fields(interactions_json, required_fields){
-    $("#interaction2_set-group  .fieldBox").hide();
-      var inline_items = $('#interaction2_set-group .inline-related').length - 1
+    $("#interaction_set-group  .fieldBox").hide();
+      var inline_items = $('#interaction_set-group .inline-related').length - 1
         for(var i = 0; i < inline_items ; i++){
-          type_selected_id = $("#id_interaction2_set-"+ i +"-type").val()
+          type_selected_id = $("#id_interaction_set-"+ i +"-type").val()
             show_required(required_fields, i)
             show_fields(interactions_json, type_selected_id, i)
 
@@ -73,7 +73,7 @@
               for(var field_name in interactions_json[j].fields){ // get throught field names
                   if (interactions_json[j].fields[field_name] && field_name.includes("_bool")){
                         var name =  field_name.replace("_bool","")
-                      $("#interaction2_set-"+inline_id + " .field-"+ name).show()
+                      $("#interaction_set-"+inline_id + " .field-"+ name).show()
                   };
               };
           };
@@ -83,14 +83,15 @@
     // shows fields where cant be null value
     function show_required(required_fields, inline_id){
       for(req_field in required_fields){
-        $("#interaction2_set-"+inline_id + " .field-"+ required_fields[req_field]).show()
+        $("#interaction_set-"+inline_id + " .field-"+ required_fields[req_field]).show()
       };
     };
+  /////////////////////////////////////////////////////////////////////////////////////////////
 </script>
 
 <style>
 /*changing interaction inline label to be over field*/
-#interaction2_set-group .aligned label{
+#interaction_set-group .aligned label{
     float:none;
   }
 </style>

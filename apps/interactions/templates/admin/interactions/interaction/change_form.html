@@ -11,7 +11,6 @@
 
       function show_fields(interactions_json, required_fields){
           $(".form-row").hide();
-
           for(req_field in required_fields){
             $(".field-"+required_fields[req_field]).show()
           }

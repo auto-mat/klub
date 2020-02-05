@@ -60,7 +60,7 @@ from import_export.widgets import ForeignKeyWidget
 from import_export_celery.admin_actions import create_export_job_action
 
 from interactions.admin import InteractionInline
-from interactions.models import Interaction2, InteractionType
+from interactions.models import Interaction, InteractionType
 
 from isnull_filter import isnull_filter
 
@@ -1676,7 +1676,7 @@ class BaseProfileChildAdmin(PolymorphicChildModelAdmin,):
                 obj = f.instance
                 obj.generate_VS()
 
-        if issubclass(formset.model, Interaction2):
+        if issubclass(formset.model, Interaction):
             for f in formset.forms:
                 obj = f.instance
                 if not obj.created_by:
@@ -1904,7 +1904,7 @@ class UserProfileAdmin(
 
         ignore_required = ['id', 'user', 'baseinteraction2_ptr']
         extra_context['required_fields'] = [
-                    field.name for field in Interaction2._meta.get_fields()
+                    field.name for field in Interaction._meta.get_fields()
                     if not field.null and field.name not in ignore_required
         ]
         return super().change_view(

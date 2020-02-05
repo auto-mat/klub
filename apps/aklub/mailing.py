@@ -23,7 +23,7 @@ import datetime
 from django.contrib import messages
 from django.utils.translation import ugettext as _
 
-from interactions.models import Interaction2, InteractionType
+from interactions.models import Interaction, InteractionType
 
 from . import autocom
 from .models import (
@@ -114,7 +114,7 @@ def send_communication_sync(communication_id, communication_type, userincampaign
                 else:
                     attachment = None
         type = InteractionType.objects.get(slug='email-mass')
-        c = Interaction2(
+        c = Interaction(
             user=userprofile,
             type=type,
             date_from=datetime.datetime.now(),

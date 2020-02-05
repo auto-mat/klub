@@ -237,7 +237,7 @@ class Event(models.Model):
         null=True,
     )
     result = models.ManyToManyField(
-        'interactions.results',
+        'interactions.result',
         verbose_name=_("Acceptable results of communication"),
         blank=True,
     )

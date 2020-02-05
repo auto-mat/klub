@@ -9,7 +9,7 @@ from django.utils.translation import ugettext_lazy as _
 import html2text
 
 
-class Results(models.Model):
+class Result(models.Model):
     RESULT_SORT = (
         ('promise', _("Promise")),
         ('ongoing', _("Ongoing communication")),
@@ -71,7 +71,7 @@ class BaseInteraction2(models.Model):
     )
 
 
-class Interaction2(BaseInteraction2):
+class Interaction(BaseInteraction2):
     """
     Every field must have  blank=True, null=True to auto create bool (display field)
     if we want to have it False, we must handle it in admin context with ignored fields
@@ -170,7 +170,7 @@ class Interaction2(BaseInteraction2):
         null=True,
     )
     result = models.ForeignKey(
-        Results,
+        Result,
         verbose_name=_("Result of communication"),
         null=True,
         blank=True,
@@ -338,8 +338,8 @@ class InteractionType(models.Model):
 
 
 # make bool field in InteractionType to every not required Interaction model field
-for field in Interaction2._meta.fields:
-    if Interaction2._meta.get_field(field.name).null:
+for field in Interaction._meta.fields:
+    if Interaction._meta.get_field(field.name).null:
         InteractionType.add_to_class(
                 field.name + '_bool',
                 models.BooleanField(
