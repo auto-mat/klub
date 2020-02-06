@@ -984,4 +984,4 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         preference = Preference.objects.filter(user=company_profile[0], administrative_unit=1)
         self.assertEqual(preference[0].send_mailing_lists, False)
         self.assertEqual(preference[0].letter_on, False)
-        self.assertEqual(list(company_profile[0].administrative_units.all().values_list('name')), [('AU1',), ('AU2',)])
+        self.assertEqual(list(company_profile[0].administrative_units.all().values_list('name').order_by('name')), [('AU1',), ('AU2',)])
