@@ -25,10 +25,12 @@ from django.test import TestCase
 
 from flexible_filter_conditions.models import Condition, NamedCondition, TerminalCondition
 
+from interactions.models import Interaction
+
 from .. import autocom
 from ..models import (
                     AdministrativeUnit, AutomaticCommunication, BankAccount, DonorPaymentChannel,
-                    Event, Interaction, UserProfile,
+                    Event, UserProfile,
 )
 
 
