@@ -1618,7 +1618,6 @@ class MassCommunicationAdmin(large_initial.LargeInitialMixin, admin.ModelAdmin):
     ordering = ('-date',)
 
     filter_horizontal = ('send_to_users',)
-    autocomplete_fields = ('send_to_users',)
 
     form = MassCommunicationForm
 
