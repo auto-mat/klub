@@ -1374,7 +1374,7 @@ class NewUserAdmin(DonorPaymethChannelAdmin):
 
 
 class AutomaticCommunicationAdmin(admin.ModelAdmin):
-    list_display = ('name', 'method', 'subject', 'condition', 'only_once', 'dispatch_auto')
+    list_display = ('name', 'method_type', 'subject', 'condition', 'only_once', 'dispatch_auto')
     ordering = ('name',)
     readonly_fields = ('sent_to_users_count',)
     exclude = ('sent_to_users',)
@@ -1415,7 +1415,7 @@ class MassCommunicationForm(forms.ModelForm):
 
 class MassCommunicationAdmin(large_initial.LargeInitialMixin, admin.ModelAdmin):
     save_as = True
-    list_display = ('name', 'date', 'method', 'subject')
+    list_display = ('name', 'date', 'method_type', 'subject')
     ordering = ('-date',)
 
     filter_horizontal = ('send_to_users',)

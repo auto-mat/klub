@@ -215,15 +215,6 @@ class Interaction(BaseInteraction2):
         blank=True,
         on_delete=models.SET_NULL,
     )
-    send = models.BooleanField(
-        verbose_name=_("Send / Handle"),
-        help_text=_("Request sending or resolving this communication. For emails, this means that "
-                    "the email will be immediatelly sent to the user. In other types of "
-                    "communications, someone must handle this manually."),
-        default=False,
-        blank=True,
-        null=True,
-    )
     communication_type = models.CharField(  # noqa
         verbose_name=_("Type of communication"),
         max_length=30, choices=COMMUNICATION_TYPE,
@@ -248,13 +239,12 @@ class Interaction(BaseInteraction2):
         If state of the dispatched field changes to True, call
         the automated dispatch() method.
         """
-        if self.send:
+        if self.type.send_email or self.type.send_sms:
             self.dispatch(save=False)  # then try to dispatch this email automatically
         super().save(*args, **kwargs)
 
     def dispatch(self, save=True):
         """Dispatch the communication
-
         Currently only method 'email' is implemented, all other methods will be only saved. For these messages, the
         email is sent via the service configured in application settings.
 
@@ -263,7 +253,12 @@ class Interaction(BaseInteraction2):
         filling on the envelope should be displayed to the admin.
         """
         administrative_unit = getattr(self, 'administrative_unit', None)
-        if self.type.name == 'email-mass':
+        if self.type.send_sms:  # TODO: implement SMS method
+            self.dispatched = False
+            if save:
+                self.save()
+
+        if self.type.send_email:
             bcc = [] if self.communication_type == 'mass' else [
                                                     administrative_unit.from_email_address if administrative_unit else 'kp@auto-mat.cz',
                                                     ]
@@ -282,12 +277,10 @@ class Interaction(BaseInteraction2):
                     email.attach(os.path.basename(att.name), att.read())
                 email.send(fail_silently=False)
                 self.dispatched = True
-                self.send = False
             if save:
                 self.save()
         else:
             self.dispatched = True
-            self.send = False
             if save:
                 self.save()
 
@@ -335,6 +328,19 @@ class InteractionType(models.Model):
         verbose_name=_("Slug"),
         help_text=_("Identifier of the Interaction Type"),
         max_length=100,
+        blank=True,
+        null=True,
+    )
+
+    send_email = models.BooleanField(
+        help_text=_("the email will be immediatelly sent to the user"),
+        default=False,
+        blank=True,
+        null=True,
+    )
+    send_sms = models.BooleanField(
+        help_text=_("the sms will be immediatelly send to the use"),
+        default=False,
         blank=True,
         null=True,
     )

@@ -123,7 +123,6 @@ def send_communication_sync(communication_id, communication_type, userincampaign
             summary=autocom.process_template(template, userprofile, payment_channel),
             attachment=attachment,
             note=_("Prepared by auto*mated mass communications at %s") % datetime.datetime.now(),
-            send=True,
             created_by=sending_user,
             handled_by=sending_user,
             settlement='a',

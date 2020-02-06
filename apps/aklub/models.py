@@ -38,7 +38,7 @@ from django.core.exceptions import ValidationError
 from django.core.files.storage import FileSystemStorage
 from django.core.validators import RegexValidator
 from django.db import models, transaction
-from django.db.models import Count, Sum, signals
+from django.db.models import Count, Q, Sum, signals
 from django.dispatch import receiver
 from django.urls import reverse
 from django.utils import timezone
@@ -2376,10 +2376,10 @@ class AutomaticCommunication(models.Model):
         null=True,
         on_delete=models.SET_NULL,
     )
-    method = models.CharField(
-        verbose_name=_("Method"),
-        max_length=30,
-        choices=COMMUNICATION_METHOD,
+    method_type = models.ForeignKey(
+        "interactions.interactiontype",
+        on_delete=models.CASCADE,
+        limit_choices_to=Q(send_sms=True) | Q(send_email=True),
     )
     subject = models.CharField(
         verbose_name=_("Subject"),
@@ -2480,10 +2480,10 @@ class MassCommunication(models.Model):
         blank=False,
         null=False,
     )
-    method = models.CharField(
-        verbose_name=_("Method"),
-        max_length=30,
-        choices=COMMUNICATION_METHOD,
+    method_type = models.ForeignKey(
+        "interactions.interactiontype",
+        on_delete=models.CASCADE,
+        limit_choices_to=Q(send_sms=True) | Q(send_email=True),
     )
     subject = models.CharField(
         verbose_name=_("Subject"),

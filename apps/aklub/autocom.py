@@ -164,7 +164,6 @@ def check(event, user_profiles=None, action=None):  # noqa
                     subject=subject,
                     summary=process_template(template, user, payment_channel),
                     note="Prepared by automated mailer at %s" % datetime.datetime.now(),
-                    send=auto_comm.dispatch_auto,
                     settlement='a',
                     administrative_unit=auto_comm.administrative_unit,
                 )
