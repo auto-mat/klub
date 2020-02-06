@@ -38,6 +38,13 @@ if AWS_ACCESS_KEY_ID:
         'bucket_name': 'klub-dbbackup',
     }
 
+    DBBACKUP_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+    DBBACKUP_STORAGE_OPTIONS = {
+        'access_key': os.environ.get('AWS_ACCESS_KEY_ID'),
+        'secret_key': os.environ.get('AWS_SECRET_ACCESS_KEY'),
+        'bucket_name': os.environ.get('AWS_BACKUP_BUCKET', 'dbbackups-aklub'),
+    }
+
 LOGGING['handlers']['logfile']['filename'] = "aklub.log" # noqa
 
 CORS_ORIGIN_REGEX_WHITELIST = (

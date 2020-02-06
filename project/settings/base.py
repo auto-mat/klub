@@ -198,6 +198,7 @@ INSTALLED_APPS = (
     'django.contrib.humanize',
     'django_nyt.apps.DjangoNytConfig',
     'stdimage',
+    'dbbackup',
     'bootstrapform',
     'bootstrap4form',
     'django_extensions',
