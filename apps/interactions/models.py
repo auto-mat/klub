@@ -45,6 +45,8 @@ class InteractionCategory(models.Model):
 
 
 class BaseInteraction2(models.Model):
+    class Meta:
+        abstract = True
     user = models.ForeignKey(
         Profile,
         verbose_name=("User"),
@@ -280,7 +282,7 @@ class Interaction(BaseInteraction2):
                     email.attach(os.path.basename(att.name), att.read())
                 email.send(fail_silently=False)
                 self.dispatched = True
-                self.send = True
+                self.send = False
             if save:
                 self.save()
         else:

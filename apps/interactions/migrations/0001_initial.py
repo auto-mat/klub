@@ -16,16 +16,6 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='BaseInteraction2',
-            fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created', models.DateTimeField(auto_now_add=True, null=True, verbose_name='Date of creation')),
-                ('updated', models.DateTimeField(auto_now=True, null=True, verbose_name='Date of last change')),
-                ('event', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='aklub.Event', verbose_name='Event')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL, verbose_name='User')),
-            ],
-        ),
-        migrations.CreateModel(
             name='InteractionCategory',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
@@ -43,12 +33,18 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='PetitionSignature',
             fields=[
-                ('baseinteraction2_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='interactions.BaseInteraction2')),
                 ('email_confirmed', models.BooleanField(default=False, verbose_name='Is confirmed via e-mail')),
                 ('gdpr_consent', models.BooleanField(default=False, verbose_name='GDPR consent')),
                 ('public', models.BooleanField(default=False, verbose_name='Publish my name in the list of supporters/petitents of this campaign')),
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('created', models.DateTimeField(auto_now_add=True, null=True, verbose_name='Date of creation')),
+                ('updated', models.DateTimeField(auto_now=True, null=True, verbose_name='Date of last change')),
+                ('event', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='aklub.Event', verbose_name='Event')),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL, verbose_name='User')),
             ],
-            bases=('interactions.baseinteraction2',),
+            options={
+                'abstract': False,
+            },
         ),
         migrations.CreateModel(
             name='InteractionType',
@@ -83,7 +79,6 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Interaction2',
             fields=[
-                ('baseinteraction2_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='interactions.BaseInteraction2')),
                 ('date_from', models.DateTimeField(blank=True, null=True, verbose_name='Date and time of the communication')),
                 ('date_to', models.DateTimeField(blank=True, null=True, verbose_name='Date of creation')),
                 ('settlement', models.CharField(blank=True, choices=[('a', 'Automatic'), ('m', 'Manual')], help_text='Handled by automatic or manual communication', max_length=30, null=True, verbose_name='Settlements')),
@@ -104,7 +99,14 @@ class Migration(migrations.Migration):
                 ('handled_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='handled_by_communications', to=settings.AUTH_USER_MODEL, verbose_name='Last handled by')),
                 ('result', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='interactions.Results', verbose_name='Result of communication')),
                 ('type', models.ForeignKey(help_text='Type of interaction', on_delete=django.db.models.deletion.CASCADE, to='interactions.InteractionType')),
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('created', models.DateTimeField(auto_now_add=True, null=True, verbose_name='Date of creation')),
+                ('updated', models.DateTimeField(auto_now=True, null=True, verbose_name='Date of last change')),
+                ('event', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='aklub.Event', verbose_name='Event')),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL, verbose_name='User')),
             ],
-            bases=('interactions.baseinteraction2',),
+            options={
+                'abstract': False,
+            },
         ),
     ]
