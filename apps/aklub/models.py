@@ -710,7 +710,7 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
             return ""
 
     def mail_communications_count(self):
-        return self.interaction_set.filter(method="mail").count()
+        return self.interaction_set.filter(type__send_email=True, dispatched=True).count()
 
     def person_name(self):
         if hasattr(self, 'title_before'):
@@ -1814,16 +1814,16 @@ class DonorPaymentChannel(models.Model):
             from .views import generate_variable_symbol
             VS = generate_variable_symbol()
             self.VS = VS
-    '''
-    # commented during Interaction move to diff application
+
     def requires_action(self):
         """Return true if the user requires some action from
         the club manager, otherwise return False"""
+        from interactions.models import Interaction
         if len(Interaction.objects.filter(user=self.user, dispatched=False)) > 0:
             return True
         else:
             return False
-    '''
+
     def check_duplicate(self, *args, **kwargs):
         try:
             qs = DonorPaymentChannel.objects.filter(

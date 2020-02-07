@@ -326,7 +326,8 @@
     {
         "fields": {
           "name": "testtype",
-          "category": 1
+          "category": 1,
+          "send_email": true
         },
         "model": "interactions.interactiontype",
         "pk": 1
