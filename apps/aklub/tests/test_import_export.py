@@ -1,4 +1,3 @@
-
 import datetime
 import os
 import pathlib
@@ -8,6 +7,7 @@ from django.contrib.messages.storage.fallback import FallbackStorage
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
+# from interactions.models import Interaction
 from model_mommy import mommy
 
 from .recipes import generic_profile_recipe
@@ -15,10 +15,10 @@ from .test_admin import CreateSuperUserMixin
 
 from ..models import ( # noqa
             BankAccount, CompanyProfile, ContentType, DonorPaymentChannel,
-            Event, Interaction, Preference, Profile, ProfileEmail, UserBankAccount, UserProfile,
+            Event, Preference, Profile, ProfileEmail, UserBankAccount, UserProfile,
 )
 
-
+"""
 class InteractionsImportExportTests(CreateSuperUserMixin, TestCase):
     def setUp(self):
         super().setUp()
@@ -108,6 +108,7 @@ class InteractionsImportExportTests(CreateSuperUserMixin, TestCase):
         self.assertEqual(int2.note, 'Note2')
         self.assertEqual(int2.send, 0)
         self.assertEqual(int2.dispatched, 0)
+"""
 
 
 class DonorImportExportTests(CreateSuperUserMixin, TestCase):
@@ -322,11 +323,15 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
                 name=administrative_units[index],
             )
             user.administrated_units.add(administrative_unit)
+            inter_category = mommy.make('interactions.interactioncategory', category='testcategory')
+            inter_type = mommy.make('interactions.interactiontype', category=inter_category, name='test2type')
             mommy.make(
-                'aklub.Interaction',
+                'interactions.Interaction',
                 dispatched=False,
-                date='2016-2-9',
+                date_from='2016-2-9',
                 user=user,
+                type=inter_type,
+                administrative_unit=administrative_unit,
             )
             mommy.make(
                 'aklub.TaxConfirmation',
@@ -373,10 +378,12 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         """ Test ProfileAdmin admin model export """
         self.create_profiles()
         address = reverse('admin:aklub_profile_export')
+
         post_data = {
             'file_format': 0,
         }
         response = self.client.post(address, post_data)
+
         self.assertContains(
             response,
             ''.join(

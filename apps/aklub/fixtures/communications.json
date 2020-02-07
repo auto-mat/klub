@@ -1,6 +1,13 @@
 [
     {
         "fields": {
+          "name": "test_unit"
+        },
+        "model": "aklub.administrativeunit",
+        "pk": 2
+    },
+    {
+        "fields": {
           "category": "testcategory"
         },
         "model": "interactions.interactioncategory",
@@ -21,7 +28,8 @@
             "dispatch_auto": true,
             "subject": "New user",
             "template": "New user has been created Jméno: $name Příjmení: $surname Ulice: $street Město: $city PSC: $zipcode E-mail: $email Telefon: $telephone",
-            "method_type": 2
+            "method_type": 2,
+            "administrative_unit": 2
         },
         "model": "aklub.automaticcommunication",
         "pk": 1
@@ -33,7 +41,8 @@
             "dispatch_auto": true,
             "subject": "Resending data",
             "template": "Resending data to Jméno: $name Příjmení: $surname Ulice: $street Město: $city PSC: $zipcode E-mail: $email Telefon: $telephone",
-            "method_type": 2
+            "method_type": 2,
+            "administrative_unit": 2
         },
         "model": "aklub.automaticcommunication",
         "pk": 2
@@ -42,7 +51,8 @@
         "fields": {
             "date": "2016-03-12",
             "name": "Mass communication",
-            "method_type": 2
+            "method_type": 2,
+            "administrative_unit": 2
         },
         "model": "aklub.masscommunication",
         "pk": 1
