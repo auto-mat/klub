@@ -240,7 +240,8 @@ class Interaction(BaseInteraction2):
         the automated dispatch() method.
         """
         if self.type.send_email or self.type.send_sms:
-            self.dispatch(save=False)  # then try to dispatch this email automatically
+            if not self.dispatched:  # take ride of duplicity email send if mass communictaion is used
+                self.dispatch(save=False)  # then try to dispatch this email automatically
         super().save(*args, **kwargs)
 
     def dispatch(self, save=True):
@@ -254,9 +255,7 @@ class Interaction(BaseInteraction2):
         """
         administrative_unit = getattr(self, 'administrative_unit', None)
         if self.type.send_sms:  # TODO: implement SMS method
-            self.dispatched = False
-            if save:
-                self.save()
+            pass
 
         if self.type.send_email:
             bcc = [] if self.communication_type == 'mass' else [
