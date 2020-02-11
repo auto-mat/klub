@@ -123,15 +123,18 @@ class Command(BaseCommand):
         with open(_src_sandbox_scss_file, 'r') as f_read, open(_target_sandbox_scss_file, 'r+') as f_write:
             text = f_read.readlines()
             append_text = []
+            base_text = '$max-width: 920px;'
             for line in text:
                 if '$max-width:' in line:
                     replace_text = line
                 else:
                     append_text.append(line)
-            content = f_write.read().replace('$max-width: 920px;', replace_text)
-            content += ''.join(append_text)
-            f_write.seek(0)
-            f_write.write(content)
+            target_content = f_write.read()
+            if base_text in target_content:
+                content = target_content.replace(base_text, replace_text)
+                content += ''.join(append_text)
+                f_write.seek(0)
+                f_write.write(content)
 
     def __copy_fonts(self):
         # Copy font icons
