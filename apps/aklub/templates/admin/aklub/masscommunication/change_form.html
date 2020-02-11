@@ -22,7 +22,10 @@
 {% endblock %}
 
 {% block extrastyle %}
-	
+
+{% load automat_fonts %}
+{% get_automat_fonts %}
+
 	{{ block.super }}
 	
 	<style type="text/css">
@@ -67,6 +70,8 @@
 			
 		-->
 	</style>
+
+	{% include "email_templates/automat_fonts.html" %}
 	
 {% endblock %}
 
