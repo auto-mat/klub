@@ -1,0 +1,19 @@
+{% load static %}
+
+<style>
+  {% for font in automat_fonts %}
+    {% if 'ttf' in font.1 %}
+      @font-face {
+        font-family: {{ font.0 }};
+        src: url('{% get_static_prefix %}aklub/fonts/automat/{{ font.1 }}') format("truetype");
+        src: local('{% get_static_prefix %}aklub/fonts/automat/{{ font.1 }}') format("truetype");
+      }
+    {% elif 'otf' in font.1 %}
+      @font-face {
+        font-family: {{ font.0 }};
+        src: url('{% get_static_prefix %}aklub/fonts/automat/{{ font.1 }}') format("opentype");
+        src: local('{% get_static_prefix %}aklub/fonts/automat/{{ font.1 }}') format("opentype");
+      }
+    {% endif %}
+  {% endfor %}
+</style>
