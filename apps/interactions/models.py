@@ -111,14 +111,16 @@ class Interaction(WithAdminUrl, BaseInteraction2):
         null=False,
         blank=False,
         )
-
+    subject = models.CharField(
+        verbose_name=("Subject"),
+        help_text=("The topic of this communication"),
+        max_length=130,
+    )
     date_from = models.DateTimeField(
-        verbose_name=("Date and time of the communication"),
-        null=True,
-        blank=True,
+        verbose_name=("Date of interaction"),
     )
     date_to = models.DateTimeField(
-        verbose_name=("Date of creation"),
+        verbose_name=("End of period date"),
         null=True,
         blank=True,
     )
@@ -150,13 +152,7 @@ class Interaction(WithAdminUrl, BaseInteraction2):
         blank=True,
         null=True,
     )
-    subject = models.CharField(
-        verbose_name=("Subject"),
-        help_text=("The topic of this communication"),
-        max_length=130,
-        blank=True,
-        null=True,
-    )
+
     summary = models.TextField(
         verbose_name=("Text"),
         help_text=("Text or summary of this communication"),

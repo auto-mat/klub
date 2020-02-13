@@ -50,10 +50,10 @@ class InteractionInline(admin.StackedInline):
     fieldsets = (
         (None, {
             'fields': (
-                ('type', 'administrative_unit', 'event',
-                 'settlement', 'note', 'text', 'attachment', 'subject', 'summary', 'status',
+                ('type', 'administrative_unit', 'subject', 'event','date_from', 'date_to',
+                 'settlement', 'note', 'text', 'attachment', 'summary', 'status',
                  'result', 'rating', 'next_step', 'next_communication_date', 'created_by', 'handled_by',
-                 'date_from', 'date_to', 'created', 'updated', 'communication_type', 'dispatched'),
+                 'created', 'updated', 'communication_type', 'dispatched'),
             ),
         }),
     )
