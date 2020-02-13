@@ -57,13 +57,13 @@ class InteractionInline(admin.StackedInline):
             ),
         }),
     )
-    """
+
     def get_queryset(self, request):
         qs = super(InteractionInline, self).get_queryset(request)
-        qs = qs.filter(type__in=('individual', 'auto')).order_by('-date')
+        qs = qs.filter(communication_type__in=('individual', 'auto')).order_by('-date_from')
         qs = qs.select_related('created_by', 'handled_by')
         return qs
-    """
+
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "event":
             if not request.user.has_perm('aklub.can_edit_all_units'):
