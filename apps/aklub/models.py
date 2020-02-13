@@ -52,7 +52,7 @@ from django.utils.translation import ugettext_lazy as _
 import html2text
 
 from polymorphic.managers import PolymorphicManager
-from polymorphic.models import PolymorphicModel
+from polymorphic.models import PolymorphicModel, PolymorphicTypeUndefined
 
 from smmapdfs.model_abcs import PdfSandwichABC, PdfSandwichFieldABC
 
@@ -741,26 +741,25 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
         return self.interaction_set.filter(method="mail").count()
 
     def person_name(self):
-        if hasattr(self, 'title_before'):
-            if self.first_name or self.last_name:
+        try:
+            profile = self.get_real_instance()
+        except PolymorphicTypeUndefined:
+            profile = self
+        if hasattr(profile, 'title_before'):
+            if profile.first_name or profile.last_name:
                 return " ".join(
                     filter(
                         None,
                         [
-                            self.title_before,
-                            self.last_name,
-                            self.first_name,
+                            profile.title_before,
+                            profile.last_name,
+                            profile.first_name,
                         ],
                     ),
-                ) + (", %s" % self.title_after if self.title_after else "")
-            return self.username
-        else:
-            if hasattr(self, 'name'):
-                if self.name:
-                    return self.name
-                else:
-                    return self.username
-            return self.username
+                ) + (", %s" % profile.title_after if profile.title_after else "")
+        elif hasattr(profile, 'name') and profile.name:
+            return profile.name
+        return profile.username
 
     person_name.short_description = _("Full name")
     person_name.admin_order_field = 'last_name'
