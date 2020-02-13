@@ -199,6 +199,22 @@ class TelephoneFilter(SimpleListFilter):
         return queryset
 
 
+class ProfileTypeFilter(SimpleListFilter):
+    title = _("Profile type")
+    parameter_name = 'user__polymorphic_ctype__model'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('companyprofile', _('Company')),
+            ('userprofile', _('User')),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(user__polymorphic_ctype__model=self.value())
+        return queryset
+
+
 class NameFilter(SimpleListFilter):
     title = _("Name")
     parameter_name = 'name'

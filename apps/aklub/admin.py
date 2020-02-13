@@ -71,7 +71,7 @@ from related_admin import RelatedFieldAdmin
 from smmapdfs.actions import make_pdfsandwich
 
 from . import darujme, filters, mailing, tasks
-from .filters import unit_admin_mixin_generator
+from .filters import ProfileTypeFilter, unit_admin_mixin_generator
 from .forms import (
     CompanyProfileAddForm, CompanyProfileChangeForm, UnitUserProfileAddForm,
     UnitUserProfileChangeForm, UserCreateForm, UserUpdateForm,
@@ -1100,7 +1100,7 @@ class DonorPaymentChannelResource(ModelResource):
 
 
 # -- ADMIN FORMS --
-class DonorPaymethChannelAdmin(
+class DonorPaymetChannelAdmin(
     unit_admin_mixin_generator('user__administrative_units'),
     ImportExportMixin,
     AdminAdvancedFiltersMixin,
@@ -1152,6 +1152,7 @@ class DonorPaymethChannelAdmin(
     )
     date_hierarchy = 'registered_support'
     list_filter = [
+        ProfileTypeFilter,
         'regular_payments',
         'user__language',
         'user__is_active',
@@ -1219,7 +1220,7 @@ class DonorPaymethChannelAdmin(
         return obj.user.telephone_url()
 
 
-class UserYearPaymentsAdmin(DonorPaymethChannelAdmin):
+class UserYearPaymentsAdmin(DonorPaymetChannelAdmin):
     list_display = (
         'person_name',
         'user__email',
@@ -1418,7 +1419,7 @@ class PaymentAdmin(
     list_max_show_all = 10000
 
 
-class NewUserAdmin(DonorPaymethChannelAdmin):
+class NewUserAdmin(DonorPaymetChannelAdmin):
     list_display = (
         'person_name',
         # 'is_direct_dialogue',
@@ -2281,7 +2282,7 @@ class CompanyProfileAdmin(
         return super().add_view(request)
 
 
-admin.site.register(DonorPaymentChannel, DonorPaymethChannelAdmin)
+admin.site.register(DonorPaymentChannel, DonorPaymetChannelAdmin)
 admin.site.register(UserYearPayments, UserYearPaymentsAdmin)
 admin.site.register(NewUser, NewUserAdmin)
 admin.site.register(Interaction, InteractionAdmin)
