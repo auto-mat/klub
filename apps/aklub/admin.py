@@ -1164,6 +1164,9 @@ class DonorPaymetChannelAdmin(
         ('registered_support', DateRangeFilter),
     ]
     search_fields = [
+        'user__companyprofile__name',
+        'user__companyprofile__crn',
+        'user__companyprofile__tin',
         'user__userprofile__first_name',
         'user__userprofile__last_name',
         'VS',
