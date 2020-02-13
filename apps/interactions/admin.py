@@ -2,6 +2,7 @@ from aklub.models import Event
 
 from django.contrib import admin
 from django.core import serializers
+from django.forms import BaseInlineFormSet
 
 from .models import Interaction, InteractionCategory, InteractionType, Result
 
@@ -40,8 +41,18 @@ class ResultAdmin(admin.ModelAdmin):
     save_as = True
 
 
+class InteractionInlineFormset(BaseInlineFormSet):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        user = kwargs["instance"]
+        qs = Interaction.objects.filter(user=user, communication_type__in=('individual', 'auto')).order_by('-date_from')[:10]
+        qs = qs.select_related('created_by', 'handled_by')
+        self.queryset = qs
+
+
 class InteractionInline(admin.StackedInline):
     model = Interaction
+    formset = InteractionInlineFormset
     can_delete = True
     extra = 0
     readonly_fields = ('created_by', 'handled_by', 'created', 'updated')
@@ -57,12 +68,6 @@ class InteractionInline(admin.StackedInline):
             ),
         }),
     )
-
-    def get_queryset(self, request):
-        qs = super(InteractionInline, self).get_queryset(request)
-        qs = qs.filter(communication_type__in=('individual', 'auto')).order_by('-date_from')
-        qs = qs.select_related('created_by', 'handled_by')
-        return qs
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "event":
