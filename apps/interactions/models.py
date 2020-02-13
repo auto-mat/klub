@@ -2,6 +2,7 @@ import os.path
 
 from aklub.models import AdministrativeUnit, Event, Profile
 from aklub.utils import WithAdminUrl
+
 from django.core.mail import EmailMultiAlternatives
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
