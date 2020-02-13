@@ -1,7 +1,7 @@
 import os.path
 
 from aklub.models import AdministrativeUnit, Event, Profile
-
+from aklub.utils import WithAdminUrl
 from django.core.mail import EmailMultiAlternatives
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
@@ -73,7 +73,7 @@ class BaseInteraction2(models.Model):
     )
 
 
-class Interaction(BaseInteraction2):
+class Interaction(WithAdminUrl, BaseInteraction2):
     """
     Every field must have  blank=True, null=True to auto create bool (display field)
     if we want to have it False, we must handle it in admin context with ignored fields
