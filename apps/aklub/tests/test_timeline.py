@@ -1,3 +1,5 @@
+import datetime
+
 from django.test import TestCase
 from django.urls import reverse
 
@@ -23,7 +25,17 @@ class TimelineTest(CreateSuperUserMixin, TestCase):
         bank_acc = mommy.make('aklub.BankAccount', administrative_unit=unit)
         foo_user_pc = donor_payment_channel_recipe.make(user=foo_user, money_account=bank_acc)
         mommy.make("aklub.Payment", amount=350, date="2016-01-02", user_donor_payment_channel=foo_user_pc, type="cash")
-        mommy.make("aklub.Interaction", user=foo_user, subject="interaction subject", administrative_unit=unit)
+        category = mommy.make("interactions.InteractionCategory", category='testcategory')
+        int_type = mommy.make("interactions.InteractionType", name='testtype', category=category)
+        mommy.make(
+                "interactions.Interaction",
+                type=int_type,
+                user=foo_user,
+                subject="interaction subject",
+                date_from=datetime.datetime(2005, 7, 14, 12, 30),
+                administrative_unit=unit,
+        )
+
         # Search by email
         urlsafe_query = query_to_base64({
             'search_string': 'foo@bar.cz',
