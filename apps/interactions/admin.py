@@ -2,8 +2,8 @@ from aklub.models import Event
 
 from django.contrib import admin
 from django.core import serializers
-from django.forms import BaseInlineFormSet
 
+from .forms import InteractionInlineForm, InteractionInlineFormset
 from .models import Interaction, InteractionCategory, InteractionType, Result
 
 
@@ -41,18 +41,10 @@ class ResultAdmin(admin.ModelAdmin):
     save_as = True
 
 
-class InteractionInlineFormset(BaseInlineFormSet):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        user = kwargs["instance"]
-        qs = Interaction.objects.filter(user=user, communication_type__in=('individual', 'auto')).order_by('-date_from')[:10]
-        qs = qs.select_related('created_by', 'handled_by')
-        self.queryset = qs
-
-
 class InteractionInline(admin.StackedInline):
     model = Interaction
     formset = InteractionInlineFormset
+    form = InteractionInlineForm
     can_delete = True
     extra = 0
     readonly_fields = ('created_by', 'handled_by', 'created', 'updated')
