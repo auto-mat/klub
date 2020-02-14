@@ -1,4 +1,4 @@
-from aklub.models import Event
+from aklub.models import AdministrativeUnit, Event, Profile
 
 from django.contrib import admin
 from django.core import serializers
@@ -24,6 +24,25 @@ class InteractionAdmin(RelatedFieldAdmin, admin.ModelAdmin):
                 'administrative_unit',
             )
     ordering = ('-date_from',)
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "event":
+            if not request.user.has_perm('aklub.can_edit_all_units'):
+                kwargs["queryset"] = Event.objects.filter(administrative_units__in=request.user.administrated_units.all())
+            else:
+                kwargs["queryset"] = Event.objects.all()
+        if db_field.name == "administrative_unit":
+            if not request.user.has_perm('aklub.can_edit_all_units'):
+                kwargs["queryset"] = request.user.administrated_units.all()
+            else:
+                kwargs["queryset"] = AdministrativeUnit.objects.all()
+        if db_field.name == "user":
+            if not request.user.has_perm('aklub.can_edit_all_units'):
+                kwargs["queryset"] = Profile.objects.filter(administrative_units__in=request.user.administrated_units.all())
+            else:
+                kwargs["queryset"] = Profile.objects.all()
+
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def get_readonly_fields(self, request, obj=None):
         if obj:
