@@ -25,6 +25,12 @@ class InteractionAdmin(RelatedFieldAdmin, admin.ModelAdmin):
             )
     ordering = ('-date_from',)
 
+    list_filter = (
+                'type__name',
+                'date_from',
+                'administrative_unit',
+    )
+
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "event":
             if not request.user.has_perm('aklub.can_edit_all_units'):
