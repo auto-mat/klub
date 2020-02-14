@@ -51,7 +51,6 @@
    // if add next interaction is clicked
     $(" #interaction_set-group .add-row a ").live("click",function(){
       var last_inline_id = $('#interaction_set-group .inline-related').length - 2
-      console.log(last_inline_id);
       show_required({{required_fields|safe}}, last_inline_id)
 
     }
