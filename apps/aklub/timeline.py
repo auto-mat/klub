@@ -71,8 +71,10 @@ class Query(__Query__):
                     }
 
                     )
+                for payment in Payment.objects.select_related(
+                                                'user_donor_payment_channel__money_account__administrative_unit',
+                                ).filter(user_donor_payment_channel__user=profile.pk):
 
-                for payment in Payment.objects.gate(self.huser.user).filter(user_donor_payment_channel__user=profile.pk):
                     events.append({
                         'group': _('Events'),
                         'start_date': self.mk_timeline_date(
