@@ -89,6 +89,8 @@ django-js-urls = "*"
 mkdocs = "*"
 cairosvg = "*"
 django = "<3,>=2"
+django-phonenumber-field = "*"
+phonenumbers = "*"
 
 [dev-packages]
 coverage = "*"
