@@ -1907,6 +1907,7 @@ class UserProfileAdmin(
                     field.name for field in Interaction._meta.get_fields()
                     if not field.null and field.name not in ignore_required
         ]
+        extra_context['object_id'] = object_id
         return super().change_view(
             request,
             object_id,

@@ -32,9 +32,12 @@
 
 //////////////////// Interaction inlines ///////////////////////////
  $(document).ready(function() {
-   // loading template run
+   // loading template run and add button to redirect -> interactions
    display_fields({{display_fields|safe}},{{required_fields|safe}});
 
+  $("#interaction_set-group").append(
+  "<a href='{% url 'admin:interactions_interaction_changelist' %}?user={{object_id}}'><input type='button' value='View older interactions'></a>"
+  );
 
    // if interaction type is changed
    $(".field-type select").live("change",(function(){
