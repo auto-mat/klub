@@ -3,6 +3,8 @@ from aklub.models import Event
 from django.contrib import admin
 from django.core import serializers
 
+from related_admin import RelatedFieldAdmin
+
 from .forms import InteractionInlineForm, InteractionInlineFormset
 from .models import Interaction, InteractionCategory, InteractionType, Result
 
@@ -13,7 +15,29 @@ class InteractionTypeAdmin(admin.ModelAdmin):
 
 
 @admin.register(Interaction)
-class InteractionAdmin(admin.ModelAdmin):
+class InteractionAdmin(RelatedFieldAdmin, admin.ModelAdmin):
+    list_display = (
+                'user',
+                'type__name',
+                'date_from',
+                'subject',
+                'administrative_unit',
+            )
+    ordering = ('-date_from',)
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj:
+            if request.user.has_perm('aklub.can_edit_all_units'):
+                fields = []
+            else:
+                if request.user.administrated_units.all().first() == obj.administrative_unit:
+                    fields = []
+                else:
+                    fields = [f.name for f in self.model._meta.fields]
+        else:
+            fields = []
+        return fields
+
     def change_view(self, request, object_id, form_url='', extra_context=None):
         data = {}
         data['display_fields'] = serializers.serialize('json', InteractionType.objects.all())
