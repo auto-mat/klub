@@ -138,7 +138,8 @@ def get_email_templates_names():
     templates_blacklist = [
         'base.html',
         'new_empty_template.html',
-        'footer',
+        'footer.html',
+        'automat_fonts.html',
     ]
 
     def get_templates_files():
