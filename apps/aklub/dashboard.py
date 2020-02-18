@@ -40,7 +40,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
-from flexible_filter_conditions.models import NamedCondition, filter_by_condition
+from flexible_filter_conditions.models import NamedCondition
 
 from .models import AccountStatements, MassCommunication, UserProfile
 
@@ -50,7 +50,7 @@ cache = caches['default']
 def get_users_by_condition_cached(cond):
     items = cache.get('condition_filter_%i' % cond.pk, None)
     if not items:
-        items = filter_by_condition(UserProfile.objects, cond)
+        items = cond.filter_queryset(UserProfile.objects.all())
         now = timezone.now()
         td = now.replace(hour=23, minute=59, second=59, microsecond=999) - now
         seconds_till_midnight = td.seconds + (td.days * 24 * 3600)

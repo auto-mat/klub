@@ -1480,10 +1480,6 @@ class UserInCampaign(models.Model):
         autocom_check(users=UserProfile.objects.filter(userchannels__pk=self.pk, event=self.event), action=(insert and 'new-user' or None))
 
 
-def filter_by_condition(queryset, cond):
-    return queryset.filter(cond.condition.get_query()).distinct()
-
-
 def str_to_datetime_xml(date):
     return datetime.date(
         **dict(
