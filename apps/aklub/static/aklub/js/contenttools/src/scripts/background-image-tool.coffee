@@ -117,6 +117,20 @@ class BackgroundImageDialog extends SuperClass
 
     @dispatchEvent(@createEvent('imageuploader.mount'))
 
+  save: (imageURL, imageSize, imageAttrs) ->
+    # Save and insert the current image
+    # Set correct container height according uploaded image
+    document.getElementsByClassName('content-table')[0].setAttribute('height', "#{ imageSize[1] }")
+    @dispatchEvent(
+      @createEvent(
+        'save',
+          {
+            'imageURL': imageURL,
+            'imageSize': imageSize,
+            'imageAttrs': imageAttrs
+          })
+    )
+
   _addDOMEventListeners: () ->
     # Add event listeners for the widget
 
