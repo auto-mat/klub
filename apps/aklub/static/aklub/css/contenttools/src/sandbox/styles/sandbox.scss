@@ -35,3 +35,19 @@ $max-width: 600px;
     font-family: AutoMat-Poppins-Medium;
   }
 }
+
+.article {
+  &__footer {
+    &__info {
+      font-size: 10px;
+      border-spacing: 5px;
+      border-collapse: separate;
+      & a:link {
+        text-decoration: none;
+        color: white;
+        background-color: red;
+        font-weight: bolder;
+      }
+    }
+  }
+}

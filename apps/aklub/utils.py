@@ -24,7 +24,9 @@ def sweet_text(generator):
     """
     return format_html_join(mark_safe(',<br/>'), "<nobr>{}</nobr>", generator)
 
-from html_template_editor.models import Images, TemplateContent
+from html_template_editor.models import (
+    Images, TemplateContent, TemplateFooter,
+)
 
 
 def create_model(
@@ -62,6 +64,12 @@ class WithAdminUrl:
 def get_email_templates_names():
     """ Get email templates names """
 
+    templates_blacklist = [
+        'base.html',
+        'new_empty_template.html',
+        'footer',
+    ]
+
     def get_templates_files():
         path = pathlib.Path(__file__).parents[0] / 'templates' / 'email_templates'
         return os.listdir(path)
@@ -70,7 +78,7 @@ def get_email_templates_names():
     file_templates_names = [
         (template, template) for template in [
             template.split('.')[0] for template in get_templates_files()
-            if template not in ['base.html', 'new_empty_template.html']
+            if template not in templates_blacklist
         ]
     ]
     # Db templates
@@ -104,6 +112,10 @@ def get_email_template_context(template_path, template_url):
         context.update(regions)
     else:
         context = {}
+
+    footer = TemplateFooter.objects.filter(show=True).first()
+    if footer:
+        context['footer'] = footer
 
     background_image = Images.objects.filter(
             template_url=template_url,
