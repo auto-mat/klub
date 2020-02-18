@@ -40,7 +40,7 @@ class AutocomTest(TestCase):
         self.BankAccount = BankAccount.objects.create(bank_account_number=11111, administrative_unit=self.au)
         self.payment_channel = DonorPaymentChannel.objects.create(user=self.userprofile, event=self.event, money_account=self.BankAccount)
         nc = NamedCondition.objects.create()
-        c = Condition.objects.create(operation="nor", named_condition=nc)
+        c = Condition.objects.create(operation="or", negate=True, named_condition=nc)
         TerminalCondition.objects.create(
             variable="action",
             value="test-autocomm",
