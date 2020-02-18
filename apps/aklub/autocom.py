@@ -139,7 +139,7 @@ def check(event, user_profiles=None, action=None):  # noqa
             ),
         )
 
-        filtered_user_profiles = auto_comm.condition.filter_queryset(user_profiles)
+        filtered_user_profiles = auto_comm.condition.filter_queryset(user_profiles, action)
         for user in filtered_user_profiles:
             try:
                 payment_channel = user.userchannels.get(event=event)
