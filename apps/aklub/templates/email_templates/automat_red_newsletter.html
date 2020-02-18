@@ -11,7 +11,7 @@
   >
     <tbody>
       <tr>
-        <td>
+        <td style="border:none;">
           <table
             class="content-table"
             cellspacing="0"
@@ -25,7 +25,7 @@
           >
             <tbody>
               <tr>
-                <td style="padding:0" valign="top">
+                <td style="border:none;padding:0" valign="top">
                   <section
                     class="[ article__content ]  [ editable ]"
                     data-name="article"
@@ -39,7 +39,7 @@
                       border="0"
                     >
                       <tr>
-                        <td height="180" style="border:none;padding:0"></td>
+                        <td height="150" style="border:none;padding:0"></td>
                       </tr>
                     </table>
 
@@ -60,9 +60,10 @@
                     <p class="align-center text-center">
                       <b><i>Sample image</i></b>
                     </p>
-                    <img src={% static
-                    "aklub/images/newsletter_template_sample_pic.png" %}
-                    title="Sample image">
+                    <img
+                      src="{% static 'aklub/images/newsletter_template_sample_pic.png' %}"
+                      title="Sample image"
+                    />
                     <!-- Vertical space -->
                     <table
                       class="vertical-space"
