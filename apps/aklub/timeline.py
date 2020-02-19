@@ -53,24 +53,25 @@ class Query(__Query__):
                 })
 
                 for interaction in profile.interaction_set.select_related('type__category').all():
-                    events.append({
-                        'group': _(interaction.type.category.category),
-                        'start_date': self.mk_timeline_date(interaction.date_from),
-                        'end_date': self.mk_timeline_date(is_period(interaction)),
-                        'text': {
-                            'headline': get_unit_color(
-                                                interaction.subject,
-                                                interaction.administrative_unit,
-                                        ),
-                            'text': "{summary}<br/><a href='{url}''/> {link_text} </a>".format(
-                                summary=interaction.summary,
-                                url=interaction.get_admin_url(),
-                                link_text=_('View interaction '),
-                            ),
-                        },
-                    }
+                    if interaction.type.category.display:
+                        events.append({
+                            'group': _(interaction.type.category.category),
+                            'start_date': self.mk_timeline_date(interaction.date_from),
+                            'end_date': self.mk_timeline_date(is_period(interaction)),
+                            'text': {
+                                'headline': get_unit_color(
+                                                    interaction.subject,
+                                                    interaction.administrative_unit,
+                                            ),
+                                'text': "{summary}<br/><a href='{url}''/> {link_text} </a>".format(
+                                    summary=interaction.summary,
+                                    url=interaction.get_admin_url(),
+                                    link_text=_('View interaction '),
+                                ),
+                            },
+                        }
 
-                    )
+                        )
                 for payment in Payment.objects.select_related(
                                                 'user_donor_payment_channel__money_account__administrative_unit',
                                 ).filter(user_donor_payment_channel__user=profile.pk):
