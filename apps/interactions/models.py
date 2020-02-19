@@ -40,6 +40,12 @@ class InteractionCategory(models.Model):
         blank=False,
         null=False,
     )
+    display = models.BooleanField(
+        max_length=130,
+        verbose_name=_("Show on timeline"),
+        default=True,
+        help_text=_("Interactions under this category will show on timeline"),
+    )
 
     def __str__(self):
         return self.category
@@ -140,13 +146,7 @@ class Interaction(WithAdminUrl, BaseInteraction2):
         blank=True,
         null=True,
     )
-    text = models.TextField(
-        verbose_name=("Notes"),
-        help_text=("Internal notes about this communication"),
-        max_length=3000,
-        blank=True,
-        null=True,
-    )
+
     attachment = models.FileField(
         verbose_name=("Attachment"),
         upload_to='communication-attachments',
@@ -162,8 +162,8 @@ class Interaction(WithAdminUrl, BaseInteraction2):
         null=True,
     )
     status = models.CharField(
-        verbose_name=("Subject"),
-        help_text=("The topic of this communication"),
+        verbose_name=("Status"),
+        help_text=("Status/progress of this communication"),
         max_length=130,
         blank=True,
         null=True,
@@ -192,7 +192,7 @@ class Interaction(WithAdminUrl, BaseInteraction2):
         null=True,
     )
     next_communication_date = models.DateTimeField(
-        verbose_name=("Date of creation"),
+        verbose_name=("Date of next communication"),
         blank=True,
         null=True,
     )
