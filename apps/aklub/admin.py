@@ -1905,7 +1905,7 @@ class UserProfileAdmin(
         ignore_required = ['id', 'user', 'baseinteraction2_ptr']
         extra_context['required_fields'] = [
                     field.name for field in Interaction._meta.get_fields()
-                    if not field.null and field.name not in ignore_required
+                    if not field.blank and field.name not in ignore_required
         ]
         extra_context['object_id'] = object_id
         return super().change_view(

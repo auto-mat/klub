@@ -20,8 +20,6 @@ class Result(models.Model):
     name = models.CharField(
         verbose_name=_("Name of result"),
         max_length=200,
-        blank=False,
-        null=False,
     )
     sort = models.CharField(
         verbose_name=_("Sort of result"),
@@ -37,8 +35,6 @@ class Result(models.Model):
 class InteractionCategory(models.Model):
     category = models.CharField(
         max_length=130,
-        blank=False,
-        null=False,
     )
     display = models.BooleanField(
         max_length=130,
@@ -58,8 +54,6 @@ class BaseInteraction2(models.Model):
         Profile,
         verbose_name=("User"),
         on_delete=models.CASCADE,
-        null=False,
-        blank=False,
     )
     event = models.ForeignKey(
         Event,
@@ -82,7 +76,7 @@ class BaseInteraction2(models.Model):
 
 class Interaction(WithAdminUrl, BaseInteraction2):
     """
-    Every field must have  blank=True, null=True to auto create bool (display field)
+    Every field must have  blank=True to auto create bool (display field)
     if we want to have it False, we must handle it in admin context with ignored fields
     also must be added to field_set in admin inline and import_export fields.
     """
@@ -106,8 +100,6 @@ class Interaction(WithAdminUrl, BaseInteraction2):
     type = models.ForeignKey( # noqa
         'InteractionType',
         help_text=("Type of interaction"),
-        blank=False,
-        null=False,
         on_delete=models.CASCADE,
     )
 
@@ -115,8 +107,6 @@ class Interaction(WithAdminUrl, BaseInteraction2):
         AdministrativeUnit,
         verbose_name=("administrative units"),
         on_delete=models.CASCADE,
-        null=False,
-        blank=False,
         )
     subject = models.CharField(
         verbose_name=("Subject"),
@@ -159,14 +149,14 @@ class Interaction(WithAdminUrl, BaseInteraction2):
         help_text=("Text or summary of this communication"),
         max_length=50000,
         blank=True,
-        null=True,
+        default='',
     )
     status = models.CharField(
         verbose_name=("Status"),
         help_text=("Status/progress of this communication"),
         max_length=130,
         blank=True,
-        null=True,
+        default='',
     )
     result = models.ForeignKey(
         Result,
@@ -189,7 +179,7 @@ class Interaction(WithAdminUrl, BaseInteraction2):
         help_text=("What happens next"),
         max_length=3000,
         blank=True,
-        null=True,
+        default='',
     )
     next_communication_date = models.DateTimeField(
         verbose_name=("Date of next communication"),
@@ -214,10 +204,10 @@ class Interaction(WithAdminUrl, BaseInteraction2):
     )
     communication_type = models.CharField(  # noqa
         verbose_name=_("Type of communication"),
-        max_length=30, choices=COMMUNICATION_TYPE,
+        max_length=30,
+        choices=COMMUNICATION_TYPE,
         default='individual',
         blank=True,
-        null=True,
     )
     dispatched = models.BooleanField(
         verbose_name=_("Dispatched / Done"),
@@ -309,15 +299,11 @@ class PetitionSignature(BaseInteraction2):
 class InteractionType(models.Model):
     name = models.CharField(
         max_length=130,
-        blank=False,
-        null=False,
     )
 
     category = models.ForeignKey(
         InteractionCategory,
         help_text=("Timeline display category"),
-        blank=False,
-        null=False,
         on_delete=models.CASCADE,
     )
     slug = models.SlugField(
@@ -347,7 +333,7 @@ class InteractionType(models.Model):
 
 # make bool field in InteractionType to every not required Interaction model field
 for field in Interaction._meta.fields:
-    if Interaction._meta.get_field(field.name).null:
+    if Interaction._meta.get_field(field.name).blank and field.name != "id":
         InteractionType.add_to_class(
                 field.name + '_bool',
                 models.BooleanField(
