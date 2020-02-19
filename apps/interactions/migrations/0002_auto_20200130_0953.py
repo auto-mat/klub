@@ -14,43 +14,217 @@ class Migration(migrations.Migration):
         InteractionType = apps.get_model("interactions", "InteractionType")
         category, _ = InteractionCategory.objects.using(db_alias).get_or_create(category='emails')
 
-        type = InteractionType.objects.using(db_alias).create(
-                                    name='email',
-                                    category=category,
-                                    slug='email',
-                                    date_from_bool=True,
-                                    subject_bool=True,
-                                    summary_bool=True,
-                                    note_bool=True,
-                                    send_bool=True,
-                                    settlement_bool=True,
-                                    )
+        type, _ = InteractionType.objects.using(db_alias).get_or_create(
+                                    slug='email-auto',
+                                    defaults={
+                                        'name':'email-auto',
+                                        'category':category,
+                                        'date_from_bool':True,
+                                        'subject_bool':True,
+                                        'summary_bool':True,
+                                        'note_bool':True,
+                                        'text_bool':True,
+                                        'send_bool':True,
+                                        'settlement_bool':True,
+                                        'attachment_bool':True
+                                        }
+                    )
 
     def interactions_mailing_create(apps, schema_editor):
         db_alias = schema_editor.connection.alias
         InteractionCategory = apps.get_model("interactions", "InteractionCategory")
         InteractionType = apps.get_model("interactions", "InteractionType")
-
         category, _ = InteractionCategory.objects.using(db_alias).get_or_create(category='emails')
-
-        type = InteractionType.objects.using(db_alias).create(
-                                    name='email-mass',
-                                    category=category,
+        type, _ = InteractionType.objects.using(db_alias).get_or_create(
                                     slug='email-mass',
-                                    date_from_bool=True,
-                                    subject_bool=True,
-                                    summary_bool=True,
-                                    attachment_bool=True,
-                                    note_bool=True,
-                                    send_bool=True,
-                                    created_by_bool=True,
-                                    handled_by_bool=True,
-                                    settlement_bool=True,
-                                    dispatched_bool=True,
-                                    communication_type_bool=True,
-                                    )
+                                    defaults={
+                                        'name':'email-mass',
+                                        'category':category,
+                                        'slug':'email-mass',
+                                        'date_from_bool':True,
+                                        'subject_bool':True,
+                                        'summary_bool':True,
+                                        'attachment_bool':True,
+                                        'note_bool':True,
+                                        'send_bool':True,
+                                        'created_by_bool':True,
+                                        'handled_by_bool':True,
+                                        'settlement_bool':True,
+                                        'dispatched_bool':True,
+                                        'communication_type_bool':True,
+                                        }
+                    )
+ # data migrations
+    def old_interactions_migrate(apps, schema_editor):
+        db_alias = schema_editor.connection.alias
+
+        Interaction_old = apps.get_model("aklub", "Interaction")
+
+        InteractionCategory = apps.get_model("interactions", "InteractionCategory")
+        InteractionType = apps.get_model("interactions", "InteractionType")
+        Interaction_new = apps.get_model("interactions",'Interaction2')
+        Result = apps.get_model("interactions", "Results")
+        new_interactions = []
+
+        category, _ = InteractionCategory.objects.using(db_alias).get_or_create(category='old_interactions')
+
+        for obj in Interaction_old.objects.all():
+            if obj.method =='email':
+                i_type, _ = InteractionType.objects.using(db_alias).get_or_create(
+                                            slug='email',
+                                            defaults={
+                                                'name':'email',
+                                                'category':category,
+                                                'date_from_bool':True,
+                                                'subject_bool':True,
+                                                'summary_bool':True,
+                                                'note_bool':True,
+                                                'text_bool':True,
+                                                'send_bool':True,
+                                                'settlement_bool':True,
+                                                'attachment_bool':True,
+                                                'communication_type_bool':True,
+                                                'dispatched_bool':True,
+                                                'created_by_bool':True,
+                                                'event_bool':True,
+                                                'handled_by_bool':True,
+                                                'updated_bool':True,
+                                                'result_bool':True,
+                                                }
+
+                                            )
+            elif obj.method == 'phonecall':
+                 i_type, _ = InteractionType.objects.using(db_alias).get_or_create(
+                                             slug='phonecall',
+                                             defaults={
+                                                 'name':'phonecall',
+                                                 'category':category,
+                                                 'date_from_bool':True,
+                                                 'subject_bool':True,
+                                                 'summary_bool':True,
+                                                 'note_bool':True,
+                                                 'text_bool':True,
+                                                 'send_bool':True,
+                                                 'settlement_bool':True,
+                                                 'attachment_bool':True,
+                                                 'communication_type_bool':True,
+                                                 'dispatched_bool':True,
+                                                 'created_by_bool':True,
+                                                 'event_bool':True,
+                                                 'handled_by_bool':True,
+                                                 'updated_bool':True,
+                                                 'result_bool':True,
+                                                 }
+                            )
+
+            elif obj.method == 'mail':
+                 i_type, _ = InteractionType.objects.using(db_alias).get_or_create(
+                                             slug='mail',
+                                             defaults={
+                                                 'name':'mail',
+                                                 'category':category,
+                                                 'date_from_bool':True,
+                                                 'subject_bool':True,
+                                                 'summary_bool':True,
+                                                 'note_bool':True,
+                                                 'text_bool':True,
+                                                 'send_bool':True,
+                                                 'settlement_bool':True,
+                                                 'attachment_bool':True,
+                                                 'communication_type_bool':True,
+                                                 'dispatched_bool':True,
+                                                 'created_by_bool':True,
+                                                 'event_bool':True,
+                                                 'handled_by_bool':True,
+                                                 'updated_bool':True,
+                                                 'result_bool':True,
+                                                 }
+                            )
+
+            elif obj.method == 'personal':
+                 i_type, _ = InteractionType.objects.using(db_alias).get_or_create(
+                                             slug='personal',
+                                             defaults={
+                                                 'name':'personal',
+                                                 'category':category,
+                                                 'date_from_bool':True,
+                                                 'subject_bool':True,
+                                                 'summary_bool':True,
+                                                 'note_bool':True,
+                                                 'text_bool':True,
+                                                 'send_bool':True,
+                                                 'settlement_bool':True,
+                                                 'attachment_bool':True,
+                                                 'communication_type_bool':True,
+                                                 'dispatched_bool':True,
+                                                 'created_by_bool':True,
+                                                 'event_bool':True,
+                                                 'handled_by_bool':True,
+                                                 'updated_bool':True,
+                                                 'result_bool':True,
+                                                 }
+                            )
+
+            elif obj.method == 'internal':
+                 i_type, _ = InteractionType.objects.using(db_alias).get_or_create(
+                                             slug='internal',
+                                             defaults={
+                                                 'name':'internal',
+                                                 'category':category,
+                                                 'date_from_bool':True,
+                                                 'subject_bool':True,
+                                                 'summary_bool':True,
+                                                 'note_bool':True,
+                                                 'text_bool':True,
+                                                 'send_bool':True,
+                                                 'settlement_bool':True,
+                                                 'attachment_bool':True,
+                                                 'communication_type_bool':True,
+                                                 'dispatched_bool':True,
+                                                 'created_by_bool':True,
+                                                 'event_bool':True,
+                                                 'handled_by_bool':True,
+                                                 'updated_bool':True,
+                                                 'result_bool':True,
+                                                 }
+                            )
+            if obj.result:
+                result, _ = Result.objects.using(db_alias).get_or_create(
+                                                name=obj.result.name,
+                                                defaults={
+                                                    'sort':obj.result.sort
+                                                }
+                )
+            else:
+                result = None
+
+            new = Interaction_new(
+                    user=obj.user,
+                    type= i_type,
+                    communication_type=obj.type,
+                    date_from=obj.date,
+                    subject=obj.subject,
+                    summary=obj.summary,
+                    attachment=obj.attachment,
+                    note=obj.note,
+                    send=obj.send,
+                    dispatched=obj.dispatched,
+                    created_by=obj.created_by,
+                    event= obj.event,
+                    handled_by= obj.handled_by,
+                    created=obj.created,
+                    updated=obj.updated,
+                    administrative_unit=obj.administrative_unit,
+                    result=result
+            )
+
+            new_interactions.append(new)
+
+        Interaction_new.objects.using(db_alias).bulk_create(new_interactions)
 
     operations = [
+        migrations.RunPython(old_interactions_migrate, reverse_code=migrations.RunPython.noop), # pak na konec
         migrations.RunPython(interactions_mailing_create, reverse_code=migrations.RunPython.noop),
         migrations.RunPython(interactions_autocom_create, reverse_code=migrations.RunPython.noop),
+
     ]
