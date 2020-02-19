@@ -1,7 +1,13 @@
-from aklub.models import AdministrativeUnit, Event, Profile
+from aklub.models import AdministrativeUnit, Event, Profile, ProfileEmail
 
 from django.contrib import admin
 from django.core import serializers
+from django.core.exceptions import ValidationError
+
+from import_export import fields
+from import_export.admin import ImportExportMixin
+from import_export.resources import ModelResource
+from import_export.widgets import ForeignKeyWidget
 
 from related_admin import RelatedFieldAdmin
 
@@ -14,8 +20,74 @@ class InteractionTypeAdmin(admin.ModelAdmin):
     pass
 
 
+class InteractionWidget(ForeignKeyWidget):
+    """ Handle ForeignKey no exist error """
+    def get_queryset(self, value, row):
+        values = self.model.objects.filter(id=value)
+        if values:
+            return values
+        else:
+            raise ValueError(" This id doesn't exist")
+
+
+class InteractionResource(ModelResource):
+    email = fields.Field()
+    type = fields.Field(attribute='type', widget=InteractionWidget(InteractionType)) # noqa
+    event = fields.Field(attribute='event', widget=InteractionWidget(Event))
+    created_by = fields.Field(attribute='created_by', widget=InteractionWidget(Profile))
+    handled_by = fields.Field(attribute='handled_by', widget=InteractionWidget(Profile))
+    result = fields.Field(attribute='result', widget=InteractionWidget(Result))
+    administrative_unit = fields.Field(attribute='administrative_unit', widget=InteractionWidget(AdministrativeUnit))
+
+    class Meta:
+        model = Interaction
+
+        fields = (
+            'email', 'user', 'type', 'administrative_unit', 'subject', 'date_from',  # required fields
+            'dispatched',  # It shoud be true or email are send (if type.send_email == True).
+            'event',  'date_to', 'next_communication_date',
+            'settlement', 'note', 'summary', 'status', 'result', 'rating',
+            'next_step', 'communication_type',
+            'created_by', 'handled_by', 'created', 'updated',  # readonly fields
+
+
+
+
+         )
+        clean_model_instances = True
+
+    def before_import_row(self, row, **kwargs):
+        user = None
+        if row.get('email'):
+            try:
+                user = ProfileEmail.objects.get(email=row['email']).user
+            except ProfileEmail.DoesNotExist:
+                pass
+        if row.get('user') and not user:
+            try:
+                user = Profile.objects.get(username=row['user'])
+            except Profile.DoesNotExist:
+                pass
+        if user:
+            row['user'] = user.id
+            return row
+        else:
+            raise ValidationError({'user': 'User with this username or email doesnt exist'})
+
+    def dehydrate_user(self, interaction):
+        if hasattr(interaction, 'user'):
+            return interaction.user
+
+    def dehydrate_email(self, interaction):
+        if hasattr(interaction, 'user'):
+            return interaction.user.get_email_str()
+
+
 @admin.register(Interaction)
-class InteractionAdmin(RelatedFieldAdmin, admin.ModelAdmin):
+class InteractionAdmin(ImportExportMixin, RelatedFieldAdmin, admin.ModelAdmin):
+
+    resource_class = InteractionResource
+
     list_display = (
                 'user',
                 'type__name',
