@@ -7,7 +7,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('aklub', '0066_auto_20200128_1502'),
-        ('interactions','0001_initial'),
+        ('interactions', '0002_auto_20200130_0953'),
     ]
 
     operations = [
