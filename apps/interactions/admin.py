@@ -33,6 +33,7 @@ class InteractionAdmin(RelatedFieldAdmin, admin.ModelAdmin):
 
     search_fields = ['user__username', ]
 
+    autocomplete_fields = ('user', 'event',)
     list_filter = (
                 'type__name',
                 'date_from',
@@ -104,6 +105,7 @@ class InteractionInline(admin.StackedInline):
     form = InteractionInlineForm
     can_delete = True
     extra = 0
+    autocomplete_fields = ('event',)
     readonly_fields = ('created_by', 'handled_by', 'created', 'updated')
     fk_name = 'user'
 
