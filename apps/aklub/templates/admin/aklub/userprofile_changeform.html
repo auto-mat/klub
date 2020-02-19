@@ -43,7 +43,8 @@
    $(".field-type select").live("change",(function(){
      var inline_id  = $(this).attr("id").match("set-(.*)-type")[1]; // get id of changed inline
      var type_id  = $(this).val();
-     $("#interaction_set-"+inline_id + " .fieldBox").hide();
+     $("#interaction_set-"+inline_id + " .form-row .fieldBox").css("display", "none"); //  need to hide all elemnts in row
+     $("#interaction_set-"+inline_id + " .form-row").css("display", "none"); //need to hide all rows (because fieldset)
      show_required({{required_fields|safe}}, inline_id)
      show_fields({{display_fields|safe}}, type_id, inline_id)
    }));
@@ -57,7 +58,9 @@
     )
     // hide and show fields manager
     function display_fields(interactions_json, required_fields){
-    $("#interaction_set-group  .fieldBox").hide();
+    $("#interaction_set-group  .form-row .fieldBox").css("display", "none"); //  need to hide all fields in row
+    $("#interaction_set-group  .form-row").css("display", "none"); // need to hide all rows (because fieldset)
+
       var inline_items = $('#interaction_set-group .inline-related').length - 1
         for(var i = 0; i < inline_items ; i++){
           type_selected_id = $("#id_interaction_set-"+ i +"-type").val()
@@ -75,7 +78,8 @@
               for(var field_name in interactions_json[j].fields){ // get throught field names
                   if (interactions_json[j].fields[field_name] && field_name.includes("_bool")){
                         var name =  field_name.replace("_bool","")
-                      $("#interaction_set-"+inline_id + " .field-"+ name).show()
+                        // row and field have same name (so both are displayed)
+                      $("#interaction_set-"+inline_id + " .field-"+ name).css("display", "");
                   };
               };
           };
@@ -85,18 +89,13 @@
     // shows fields where cant be null value
     function show_required(required_fields, inline_id){
       for(req_field in required_fields){
-        $("#interaction_set-"+inline_id + " .field-"+ required_fields[req_field]).show()
+        $("#interaction_set-"+inline_id + " .field-"+ required_fields[req_field]).css("display", "")
       };
     };
   /////////////////////////////////////////////////////////////////////////////////////////////
 </script>
 
-<style>
-/*changing interaction inline label to be over field*/
-#interaction_set-group .aligned label{
-    float:none;
-  }
-</style>
+
 
 {% endif %}
 {{block.super}}
