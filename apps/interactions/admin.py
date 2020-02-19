@@ -22,8 +22,16 @@ class InteractionAdmin(RelatedFieldAdmin, admin.ModelAdmin):
                 'date_from',
                 'subject',
                 'administrative_unit',
+                'created_by',
+                'handled_by',
+                'created',
+                'updated',
             )
     ordering = ('-date_from',)
+
+    readonly_fields = ("updated", "created", "created_by", "handled_by", )
+
+    search_fields = ['user__username', ]
 
     list_filter = (
                 'type__name',
@@ -53,10 +61,10 @@ class InteractionAdmin(RelatedFieldAdmin, admin.ModelAdmin):
     def get_readonly_fields(self, request, obj=None):
         if obj:
             if request.user.has_perm('aklub.can_edit_all_units'):
-                fields = []
+                fields = super().get_readonly_fields(request, obj)
             else:
                 if request.user.administrated_units.all().first() == obj.administrative_unit:
-                    fields = []
+                    fields = super().get_readonly_fields(request, obj)
                 else:
                     fields = [f.name for f in self.model._meta.fields]
         else:
