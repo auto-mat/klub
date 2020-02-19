@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
         InteractionType = apps.get_model("interactions", "InteractionType")
 
         mass_email_type = InteractionType.objects.using(db_alias).get(slug='email-mass')
-        email_type = InteractionType.objects.using(db_alias).get(slug='email')
+        email_type = InteractionType.objects.using(db_alias).get(slug='email-auto')
 
         MassCommunication = apps.get_model("aklub", "MassCommunication")
         AutomaticCommunication = apps.get_model("aklub", "AutomaticCommunication")
