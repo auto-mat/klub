@@ -144,6 +144,12 @@ class InteractionAdmin(ImportExportMixin, RelatedFieldAdmin, admin.ModelAdmin):
             fields = []
         return fields
 
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if not request.user.has_perm('aklub.can_edit_all_units'):
+            qs = qs.filter(user__administrative_units=request.user.administrated_units.first())
+        return qs
+
     def change_view(self, request, object_id, form_url='', extra_context=None):
         data = {}
         data['display_fields'] = serializers.serialize('json', InteractionType.objects.all())
