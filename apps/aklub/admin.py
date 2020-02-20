@@ -1298,7 +1298,6 @@ payment_request_pair_action.short_description = _("pair payments without account
 
 
 class PaymentAdmin(
-    # unit_admin_mixin_generator('user_donor_payment_channel__user__administrative_units'),
     ImportExportMixin,
     RelatedFieldAdmin,
 ):
