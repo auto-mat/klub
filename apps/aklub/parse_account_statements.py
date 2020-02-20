@@ -21,16 +21,24 @@ def check_incomming(amount):
     return amount < 0
 
 
-def header_parse(payments_reader, date_from_name, date_to_name):
+def header_parse(payments_reader, date_from_name, date_to_name, recipient_account=None):
     for payment in payments_reader:
+        if payment[payments_reader.fieldnames[0]] == recipient_account:
+
+            account = payment[payments_reader.fieldnames[1]]
+            if 'CZK' in account:  # because KB statement has CZK in account name
+                account = account.split()[0]
+            recipient_account = models.BankAccount.objects.get(bank_account_number__contains=account)
+
         if payment[payments_reader.fieldnames[0]] == date_from_name:
             date_from = payment[payments_reader.fieldnames[1]]
 
         if payment[payments_reader.fieldnames[0]] == date_to_name:
             date_to = payment[payments_reader.fieldnames[1]]
-            if date_to != "":
+            if date_to != "":  # because of kb statement has two empty rows and the second one is date
                 break
-    return date_from, date_to
+
+    return date_from, date_to, recipient_account
 
 
 def date_format(date):
@@ -68,7 +76,7 @@ class ParseAccountStatement(object):
             ],
         )
 
-        date_from, date_to = header_parse(payments_reader, "dateStart", "dateEnd")
+        date_from, date_to, recipient_account = header_parse(payments_reader, "dateStart", "dateEnd", "\ufeffaccountId")
         self.date_from = models.str_to_datetime(date_from)
         self.date_to = models.str_to_datetime(date_to)
         csv_head = True
@@ -82,6 +90,7 @@ class ParseAccountStatement(object):
                 payment['date'] = models.str_to_datetime(payment['date'])
                 payment['amount'] = amount_to_int(payment['amount'])
                 payment['bank_code'] = get_four_digit(payment['bank_code'])
+                payment['recipient_account'] = recipient_account
                 if check_incomming(payment['amount']):
                     continue
                 payments.append(register_payment(payment, self))
@@ -100,10 +109,11 @@ class ParseAccountStatement(object):
 
         )
 
-        date_from, date_to = header_parse(payments_reader, 'Počáteční datum období', 'Konečné datum období')
+        date_from, date_to, recipient_account = header_parse(
+                                payments_reader, 'Počáteční datum období', 'Konečné datum období', 'Číslo účtu',
+        )
         self.date_from = date_format(date_from)
         self.date_to = date_format(date_to)
-
         csv_head = True
         payments = []
         for payment in payments_reader:
@@ -127,7 +137,8 @@ class ParseAccountStatement(object):
                              'date': payment['datum_valuta'],
                              'VS': payment['VS1'],
                              'VS2': payment['VS2'],
-                             'operation_id': payment['reference_platby'],
+                             'operation_id': payment['bank_reference'],
+                             'recipient_account': recipient_account,
                              }
                 p_sort['date'] = date_format(p_sort['date'])
                 p_sort['amount'] = amount_to_int(p_sort['amount'])
@@ -150,7 +161,8 @@ class ParseAccountStatement(object):
             ],
 
         )
-        date_from, date_to = header_parse(payments_reader, 'Vypis za obdobi', '')
+
+        date_from, date_to, recipient_account = header_parse(payments_reader, 'Vypis za obdobi', '', 'Cislo uctu')
 
         self.date_from = models.str_to_datetime(date_from)
         self.date_to = models.str_to_datetime(date_to)
@@ -174,6 +186,7 @@ class ParseAccountStatement(object):
                              'recipient_message': payment['Popis pro prijemce'],
                              'transfer_note': payment['AV pole 1'].replace(' ', '') + ", " + payment['AV pole 2'].replace(' ', ''),
                              'date': payment['Datum splatnosti'],
+                             'recipient_account': recipient_account,
                              }
                 p_sort['amount'] = amount_to_int(p_sort['amount'])
                 p_sort['date'] = models.str_to_datetime(p_sort['date'])
@@ -205,6 +218,9 @@ class ParseAccountStatement(object):
                 elif line_parse[0] == 'Datum':
                     self.date_from = models.str_to_datetime(line_parse[4])
                     self.date_to = models.str_to_datetime(line_parse[7].replace(';', ''))
+                elif line_parse[0] == 'CEB':
+                    account = line_parse[12].replace(';', '')
+                    recipient_account = models.BankAccount.objects.get(bank_account_number__contains=account)
             else:
                 p_sort = {
                             'account': payment['ucet protistrany'].split('/')[0],
@@ -218,6 +234,7 @@ class ParseAccountStatement(object):
                             'recipient_message': payment['zprava prijemci i platci'],
                             'transfer_note': payment['poznamka'],
                             'date': payment['datum zauctovani'],
+                            'recipient_account': recipient_account,
                              }
 
                 p_sort['amount'] = amount_to_int(p_sort['amount'])
@@ -240,7 +257,13 @@ class ParseAccountStatement(object):
 
         )
         payments = []
+        recipient_account = None
         for payment in payments_reader:
+            if not recipient_account:
+                recipient_account = models.BankAccount.objects.get(
+                                                bank_account_number__contains=payment['owner_bank_number'].split()[1],
+                )
+
             VS, KS, SS = payment['symbols'].split(',')
             p_sort = {
                         'account': delete_left_nulls(payment['bank_account']),
@@ -254,6 +277,7 @@ class ParseAccountStatement(object):
                         'recipient_message': payment['message'],
                         'date': models.str_to_datetime(payment['date1']),
                         'transfer_type': payment['transfer_type'],
+                        'recipient_account': recipient_account,
                          }
 
             if payment['incomming_outcomming'] != 'Příchozí platba':
