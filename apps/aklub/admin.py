@@ -1297,11 +1297,41 @@ def payment_request_pair_action(self, request, queryset):
 payment_request_pair_action.short_description = _("pair payments without account statement (need to be admin of administrative unit)")
 
 
+class PaymentWidget(ForeignKeyWidget):
+    """ Handle ForeignKey no exist error """
+    def get_queryset(self, value, row):
+        values = self.model.objects.filter(id=value)
+        if values:
+            return values
+        else:
+            raise ValueError("This id doesn't exist")
+
+
+class PaymentResource(ModelResource):
+    recipient_account = fields.Field(attribute='recipient_account', widget=PaymentWidget(MoneyAccount))
+    user_donor_payment_channel = fields.Field(attribute='user_donor_payment_channel', widget=PaymentWidget(DonorPaymentChannel))
+
+    class Meta:
+        model = Payment
+        fields = (
+            'recipient_account', 'date', 'amount', 'account' 'bank_code', 'VS', 'VS2', 'SS', 'KS',
+            'BIC', 'user_identification', 'type', 'done_by', 'account_name', 'bank_name', 'transfer_note',
+            'currency', 'recipient_message', 'operation_id', 'transfer_type', 'specification',
+            'order_id', 'user_donor_payment_channel', 'created', 'updated',
+                  )
+        clean_model_instances = True
+    """
+    TODO: add payment_pair from account_statement model to pair payments
+        import_obj is the way
+    """
+
+
 class PaymentAdmin(
     ImportExportMixin,
     RelatedFieldAdmin,
 ):
     actions = (add_user_bank_acc_to_dpch, payment_pair_action, payment_request_pair_action)
+    resource_class = PaymentResource
     list_display = (
         'id',
         'date',
