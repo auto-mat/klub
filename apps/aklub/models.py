@@ -1666,9 +1666,7 @@ class ApiAccount(MoneyAccount):
         Event,
         help_text=("Event"),
         verbose_name=("Event"),
-        blank=True,
-        on_delete=models.SET_NULL,
-        null=True,
+        on_delete=models.CASCADE,
     )
 
     def __str__(self):
