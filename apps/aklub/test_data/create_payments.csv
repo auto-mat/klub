@@ -1,0 +1,4 @@
+recipient_account,date,amount,VS,VS2,SS,KS,BIC,user_identification,type,done_by,account_name,bank_name,transfer_note,currency,recipient_message,operation_id,transfer_type,specification,order_id,user_donor_payment_channel,created,updated
+11,2020-02-20,10000,1234,4321,111,111,443322,,bank-transfer,Done by,Testing user account,TestBANK s.r.o.,have nice day!,CZ,Test message,,Bezhotovostní příjem,,,,2020-02-20 13:52:18,2020-02-20 13:52:18
+11,2018-02-20,111,1234,,111,,,,bank-transfer,Test,,,have nice day!2,CZ,Message Test?,,,,,11,2020-02-20 13:52:18,2020-02-20 13:52:18
+11,2017-12-24,20000,,,,,,,cash,,,,,,,,,,,,,
