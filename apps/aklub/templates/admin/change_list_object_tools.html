@@ -4,7 +4,7 @@
 
   <li>
     <a style="background-color:black;
-    "href="{% url 'wiki:get' cl.opts.verbose_name_plural|cut:' '|add:'/' %}" target="_blank">Help
+    "href="{% url 'wiki:get' cl.opts.model_name|add:'/' %}" target="_blank">Help
   </a>
   </li>
 {% endblock %}
