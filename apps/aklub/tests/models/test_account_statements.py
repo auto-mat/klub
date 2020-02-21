@@ -250,16 +250,16 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
         self.run_commit_hooks()
 
         a1 = AccountStatements.objects.get(type="darujme")
-
+        api_account = ApiAccount.objects.filter(event__slug='klub').first()
         self.assertEqual(
-            list(a1.payment_set.order_by('SS').values_list("account_name", "date", "SS")),
+            list(a1.payment_set.order_by('SS').values_list("account_name", "date", "SS", "recipient_account_id")),
             [
-                ('User 1, Testing', datetime.date(2016, 1, 19), ''),
-                ('User 1, Testing', datetime.date(2016, 1, 19), '12121'),
-                ('Date, Blank', datetime.date(2016, 8, 9), '12345'),
-                ('User, Testing', datetime.date(2016, 1, 20), '17529'),
-                ('User 1, Testing', datetime.date(2016, 1, 19), '22256'),
-                ('User 1, Testing', datetime.date(2016, 1, 19), '22257'),
+                ('User 1, Testing', datetime.date(2016, 1, 19), '', 1),
+                ('User 1, Testing', datetime.date(2016, 1, 19), '12121', 1),
+                ('Date, Blank', datetime.date(2016, 8, 9), '12345', 1),
+                ('User, Testing', datetime.date(2016, 1, 20), '17529', 1),
+                ('User 1, Testing', datetime.date(2016, 1, 19), '22256', 1),
+                ('User 1, Testing', datetime.date(2016, 1, 19), '22257', 1),
             ],
         )
 
@@ -272,6 +272,7 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
         tel_unknown_user = Telephone.objects.filter(user=user_email.user).first()
         self.assertEqual(payment.amount, 150)
         self.assertEqual(payment.date, datetime.date(2016, 1, 19))
+        self.assertEqual(payment.recipient_account, api_account)
         self.assertEqual(tel_unknown_user.telephone, "656464222")
         self.assertEqual(unknown_user.user.street, "Ulice 321")
         self.assertEqual(unknown_user.user.city, "Nová obec")
@@ -321,6 +322,7 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
         self.assertEqual(tel_blank_date_user, None)
         self.assertEqual(payment_blank.amount, 500)
         self.assertEqual(payment_blank.date, datetime.date(2016, 8, 9))
+        self.assertEqual(payment_blank.recipient_account, api_account)
         self.assertEqual(blank_date_user.user.zip_code, "")
         self.assertEqual(blank_date_user.regular_amount, None)
         self.assertEqual(blank_date_user.end_of_regular_payments, None)
