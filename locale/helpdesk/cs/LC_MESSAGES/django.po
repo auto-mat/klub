@@ -1,0 +1,50 @@
+# This file is distributed under the same license as the django-helpdesk package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: django-helpdesk\n"
+"Report-Msgid-Bugs-To: \n"
+"Language: cs\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n >= 2 && n "
+"<= 4 && n % 1 == 0) ? 1: (n % 1 != 0 ) ? 2 : 3;\n"
+"X-Generator: Poedit 1.8.11\n"
+
+#: third_party/django-helpdesk/helpdesk/forms.py:147
+msgid "Summary of the problem"
+msgstr "Co vás trápí?"
+
+#: third_party/django-helpdesk/helpdesk/forms.py:152
+msgid "Description of your issue"
+msgstr "Sem napište podrobný popis lapálie"
+
+#: third_party/django-helpdesk/helpdesk/forms.py:176
+msgid "Attach File"
+msgstr "Přidejte důkaz"
+
+#: third_party/django-helpdesk/helpdesk/forms.py:177
+msgid "You can attach a file such as a document or screenshot to this ticket."
+msgstr "Častokrát stačí poslat snímek obrazovky, který nám pomůže váš dotaz rychle vyřešit."
+
+#: third_party/django-helpdesk/helpdesk/forms.py:186
+msgid "Knowledge Base Item"
+msgstr "Vyberte, čeho se váš dotaz týká"
+
+#: third_party/django-helpdesk/helpdesk/forms.py:347
+msgid "We will e-mail you when your ticket is updated."
+msgstr "Dáme Vám vědět emailem, až dotaz rozlouskneme."
+
+#: third_party/django-helpdesk/helpdesk/templates/helpdesk/create_ticket.html:19
+#: third_party/django-helpdesk/helpdesk/templates/helpdesk/navigation-header.html:71
+#: third_party/django-helpdesk/helpdesk/templates/helpdesk/public_create_ticket.html:16
+#: third_party/django-helpdesk/helpdesk/templates/helpdesk/public_homepage.html:38
+msgid "Submit a Ticket"
+msgstr "Odeslat dotaz"
+
+#: third_party/django-helpdesk/helpdesk/templates/helpdesk/create_ticket.html:40
+#: third_party/django-helpdesk/helpdesk/templates/helpdesk/public_create_ticket_base.html:9
+#: third_party/django-helpdesk/helpdesk/templates/helpdesk/public_homepage.html:66
+msgid "Submit Ticket"
+msgstr "Odeslat dotaz"

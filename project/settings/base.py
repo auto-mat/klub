@@ -162,6 +162,7 @@ CACHES = {
 }
 
 LOCALE_PATHS = [
+    normpath(PROJECT_ROOT, 'locale/helpdesk'),
     normpath(PROJECT_ROOT, 'apps/aklub/locale'),
 ]
 
