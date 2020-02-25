@@ -1,0 +1,9 @@
+{% extends "helpdesk/kb_category_base.html" %}{% load i18n %}
+{% block footer %}
+Nevidíte zde odpovědi na své otázky?
+<br/>
+Napište nám
+{% endblock %}
+{% block submit_button %}
+   <button type="button" class="btn btn-success btn-circle btn-xl float-right"><i class="fa fa-envelope fa-lg"></i> {% trans 'Potřebuji radu' %}</button>
+{% endblock %}
