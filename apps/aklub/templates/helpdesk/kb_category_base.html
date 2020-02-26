@@ -1,9 +1,49 @@
 {% extends "helpdesk/kb_category_base.html" %}{% load i18n %}
+
 {% block footer %}
 Nevidíte zde odpovědi na své otázky?
 <br/>
 Napište nám
 {% endblock %}
+
 {% block submit_button %}
-   <button type="button" class="btn btn-success btn-circle btn-xl float-right"><i class="fa fa-envelope fa-lg"></i> {% trans 'Potřebuji radu' %}</button>
+   <div class="btn btn-success btn-circle btn-xl float-right"><i class="fa fa-envelope fa-lg"></i> {% trans 'Potřebuji radu' %}</div>
+{% endblock %}
+
+{% block item_list %}
+
+<div id="accordion">
+{% for item in items %}
+
+   {# We must start with ending tag of the last loop, because otherwise we don't know if the next loop will change #}
+   {% ifchanged item.title %}
+      {% if not forloop.first and not forloop.last %}
+          </div>
+          </div>
+      {% endif %}
+   {% endifchanged %}
+
+
+   {% ifchanged item.title %}
+      <div class="card mb-3">
+       <div class="btn btn-link" data-toggle="collapse" data-target="#collapse{{item.id}}" role="region" aria-expanded="true" aria-controls="collapse{{item.id}}">
+           <div class="card-header" id="header{{item.id}}">
+               <h5 class="mb-0">
+                   {{ item.title }}
+               </h5>
+           </div>
+       </div>
+       <div id="collapse{{item.id}}" class="collapse {% if item.id == selected_item %}show{% endif %}" role="region" aria-labelledby="header{{item.id}}" data-parent="#accordion">
+   {% endifchanged %}
+
+   <div class="card mb-3">
+   {% block card_body %}{{ block.super }}{% endblock %}
+   </div>
+
+   {% if forloop.last %}
+       </div>
+       </div>
+   {% endif %}
+{% endfor %}
+</div>
 {% endblock %}

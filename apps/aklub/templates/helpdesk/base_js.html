@@ -1,0 +1,10 @@
+{% extends "helpdesk/base_js.html" %}
+
+{% block js_bottom %}
+   <script>
+      $(document).ready(function(){
+           $('.card-answer a').attr('target', '_blank');
+      });
+   </script>
+{% endblock %}
+
