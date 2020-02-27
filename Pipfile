@@ -68,7 +68,7 @@ email_reply_parser = "*"
 django-smmapdfs = "*"
 newrelic = "*"
 django-jsonfield = { markers="python_version < '2'" } # See https://stackoverflow.com/questions/57959565/how-can-i-ban-a-package-from-being-added-to-pipenv-lock-and-installed-by-pipenv/57982959#57982959
-jsonfield = "*"
+jsonfield = "<3"  # Higher version doesn't work in Django 1.11
 tablib = "==0.14"
 unicode-slugify = { editable = true,git = "https://github.com/un33k/python-slugify.git"} # See https://stackoverflow.com/questions/57959565/how-can-i-ban-a-package-from-being-added-to-pipenv-lock-and-installed-by-pipenv/57982959#57982959
 
