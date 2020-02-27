@@ -9,9 +9,11 @@
         &--align-justify:before { content: "\ea7a"; }
         &--background-image:before { content: "\e90e"; }
         &--vertical-space:before { content: "\ea72"; }
+        &--increase-font-size:before { content: "\ea0a"; }
+        &--decrease-font-size:before { content: "\ea0b"; }
     }
 }
 // Color picker dialog
 .cp-app {
-	z-index: 10010;
+        z-index: 10010;
 }
