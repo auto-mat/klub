@@ -12,7 +12,7 @@ module.exports = (grunt) ->
                 join: true
 
             build:
-                # options: 
+                # options:
                 #    sourceMap: true
                 files:
                     'src/tmp/content-tools.js': [
@@ -51,6 +51,8 @@ module.exports = (grunt) ->
                         'src/scripts/button-tool.coffee'
                         'src/scripts/background-image-tool.coffee'
                         'src/scripts/vertical-space-tool.coffee'
+                        'src/scripts/increase-font-size-tool.coffee'
+                        'src/scripts/decrease-font-size-tool.coffee'
                     ]
 
             sandbox:
