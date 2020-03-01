@@ -119,8 +119,8 @@ class FontSizeTool extends ContentTools.Tools.Bold
       }
       """
 
-    if @isApplied element, selection
-      style = document.getElementById fontSizeId
+    style = document.getElementById fontSizeId
+    if style?
       style.innerHTML = fontSizeCSSClass
     else
       @setNewCSS fontSizeId, fontSizeCSSClass

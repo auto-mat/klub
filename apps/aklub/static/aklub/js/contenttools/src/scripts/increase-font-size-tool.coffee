@@ -151,7 +151,11 @@ class IncreaseFontSizeTool extends ContentTools.Tools.Bold
         }
        """
 
-      @setNewCSS fontSizeId, fontSizeCSSClass
+      style = document.getElementById fontSizeId
+      if style?
+        style.innerHTML = fontSizeCSSClass
+      else
+        @setNewCSS fontSizeId, fontSizeCSSClass
 
       element.content = element.content.format(
         from,
