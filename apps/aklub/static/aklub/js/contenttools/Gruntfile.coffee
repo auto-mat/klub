@@ -54,6 +54,7 @@ module.exports = (grunt) ->
                         'src/scripts/font-size-tool.coffee'
                         'src/scripts/increase-font-size-tool.coffee'
                         'src/scripts/decrease-font-size-tool.coffee'
+                        'src/scripts/line-spacing-tool.coffee'
                     ]
 
             sandbox:
