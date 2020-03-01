@@ -143,13 +143,18 @@ class DecreaseFontSizeTool extends ContentTools.Tools.Bold
       @showOnce = true
 
     else
+
       fontSizeCSSClass = """
         .#{ fontSizeCSSClassName } {
           font-size: #{ @_newFontSize }px;
         }
        """
 
-      @setNewCSS fontSizeId, fontSizeCSSClass
+      style = document.getElementById fontSizeId
+      if style?
+        style.innerHTML = fontSizeCSSClass
+      else
+        @setNewCSS fontSizeId, fontSizeCSSClass
 
       element.content = element.content.format(
         from,
