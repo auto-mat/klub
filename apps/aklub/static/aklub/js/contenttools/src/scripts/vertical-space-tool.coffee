@@ -1,6 +1,7 @@
 class VerticalSpace extends ContentTools.Tool
 
-  # Insert a vertical space in to the current element at the specified selection.
+  # Insert a vertical space in to the current element at the specified
+  # selection.
 
   ContentTools.ToolShelf.stow(@, 'vertical-space')
 
@@ -73,11 +74,15 @@ class VerticalSpace extends ContentTools.Tool
 
     tdContent="vertical space: #{ verticalSpace } px"
 
-    tableHtmlString = "<table cellspacing='0' cellpadding='0' border='0' class='vertical-space'>" +
-    "<tbody><tr> <td style='border:none;padding:0' height='#{ verticalSpace }'>" +
-    "<center><b>vertical space</b></center></td></tr></tbody></table>"
+    tableHtmlString = "<table cellspacing='0' cellpadding='0' border='0'" +
+      " class='vertical-space'><tbody><tr>" +
+      "<td style='border:none;padding:0' height='#{ verticalSpace }'>" +
+      "<center><b>vertical space</b></center></td></tr></tbody></table>"
 
-    table = new HTMLString.String(tableHtmlString, element.content.preserveWhitespace())
+    table = new HTMLString.String(
+      tableHtmlString,
+      element.content.preserveWhitespace()
+    )
     element.content = tip.concat(table, tail)
     element.updateInnerHTML()
     element.taint()
@@ -114,7 +119,8 @@ class VerticalSpace extends ContentTools.Tool
 
 class GetVerticalSpaceDialog extends ContentTools.LinkDialog
 
-  # An anchored dialog to support inserting/modifying a vertical space px unit
+  # An anchored dialog to support inserting/modifying a vertical space
+  # px unit
 
   constructor: (@verticalSpace) ->
     super()
@@ -127,10 +133,12 @@ class GetVerticalSpaceDialog extends ContentTools.LinkDialog
     # Update the name and placeholder for the input field provided by the
     # link dialog.
 
-    @verticalSpace = if @verticalSpace then @verticalSpace else @_defVerticalSpace
+    @verticalSpace = if @verticalSpace then @verticalSpace else \
+      @_defVerticalSpace
     @_domInput.setAttribute 'name', 'verticalSpace'
     @_domInput.setAttribute 'value', @verticalSpace
-    @_domInput.setAttribute 'placeholder', ContentEdit._ 'Enter a vertical space (px)'
+    @_domInput.setAttribute 'placeholder', \
+      ContentEdit._ 'Enter a vertical space (px)'
 
     # Remove the new window target DOM element
     @_domElement.removeChild @_domTargetButton

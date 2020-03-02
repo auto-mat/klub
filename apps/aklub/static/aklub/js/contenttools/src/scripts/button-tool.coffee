@@ -14,16 +14,17 @@ class ButtonTool extends ContentTools.Tools.Bold
   @wrapperParentTagName = 'a'
 
   @_btnCSSProp = {}
-  
+
   @_btnHrefParentAttr = {target: '_blank'}
   @_btnHrefParentAttrDef = @_btnHrefParentAttr
-  
+
   @_btnAttr = {onclick: 'btnClickListener(this)'}
   @_btnAttrDef = @_btnAttr
 
   @_openDialogDelay = 1000
 
-  @apply: (element, selection, callback, btnHrefParentAttr, btnCSSStyle, btnCreate = true) ->
+  @apply: (element, selection, callback, btnHrefParentAttr, btnCSSStyle,
+    btnCreate = true) ->
     # Apply the tool to the specified element and selection
 
     # Store the selection state of the element so we can restore it once done
@@ -33,13 +34,13 @@ class ButtonTool extends ContentTools.Tools.Bold
     # selected when the focus is lost by the element.
     selectTag = new HTMLString.Tag 'span', {'class': 'ct--pseudo-select'}
     [from, to] = selection.get()
-    
+
     # Add btn position
     @_btnAttr.position = "#{ from },#{ to }"
 
     element.content = element.content.format from, to, selectTag
     element.updateInnerHTML()
-    
+
     # Set-up the dialog
     app = ContentTools.EditorApp.get()
 
@@ -69,11 +70,13 @@ class ButtonTool extends ContentTools.Tools.Bold
     rect = measureSpan[0].getBoundingClientRect()
 
     # Create background color dialog
-    bgColorDialog = new GetBgColorDialog @getBgColor btnCSSStyle, element, selection
+    bgColorDialog = new GetBgColorDialog @getBgColor btnCSSStyle, \
+      element, selection
     bgColorDialog.position @getDialogPosition rect
 
     # Create text color dialog
-    textColorDialog = new GetTextColorDialog @getTextColor btnCSSStyle, element,  selection
+    textColorDialog = new GetTextColorDialog @getTextColor btnCSSStyle, \
+      element,  selection
     textColorDialog.position @getDialogPosition rect
 
     # Create btn url link dialog
@@ -83,7 +86,8 @@ class ButtonTool extends ContentTools.Tools.Bold
     btnLinkDialog.position @getDialogPosition rect
 
     # Create padding dialog
-    paddingDialog = new GetPaddindDialog @parsePaddingToInput @getPadding btnCSSStyle, element, selection
+    paddingDialog = new GetPaddindDialog @parsePaddingToInput \
+      @getPadding btnCSSStyle, element, selection
     paddingDialog.position @getDialogPosition rect
 
     # Listen for save events against the dialog
@@ -112,7 +116,8 @@ class ButtonTool extends ContentTools.Tools.Bold
       link = ev.detail().href
 
       if link
-        @_btnHrefParentAttr = @extendObj false, {'href': link}, @_btnHrefParentAttr
+        @_btnHrefParentAttr = @extendObj false, {'href': link}, \
+          @_btnHrefParentAttr
 
       # Insert btn element
       applyBtn()
@@ -137,7 +142,7 @@ class ButtonTool extends ContentTools.Tools.Bold
 
       # Trigger the callback
       callback(true)
-    
+
     # Listen for save events against the dialog
     bgColorDialog.addEventListener 'save', (ev) =>
 
@@ -145,7 +150,8 @@ class ButtonTool extends ContentTools.Tools.Bold
       color = ev.detail().color
 
       if color
-        @_btnCSSProp = @extendObj false, {'background-color': color}, @_btnCSSProp
+        @_btnCSSProp = @extendObj false, {'background-color': color}, \
+          @_btnCSSProp
 
       # Hide dialog
       bgColorDialog.hide()
@@ -162,13 +168,15 @@ class ButtonTool extends ContentTools.Tools.Bold
       element.content = element.content.unformat from, to, @wrapperParentTagName
 
       if Object.keys(@_btnCSSProp).length > 0
-        
-        # Btn href parent elelement 
-        btnHrefParent = new HTMLString.Tag @wrapperParentTagName, @_btnHrefParentAttr
+
+        # Btn href parent elelement
+        btnHrefParent = new HTMLString.Tag @wrapperParentTagName, \
+          @_btnHrefParentAttr
         element.content = element.content.format from, to, btnHrefParent
 
         # Btn element
-        btn = new HTMLString.Tag(@tagName, @extendObj(false, @_btnAttr, @getCCCStr(@_btnCSSProp)))
+        btn = new HTMLString.Tag @tagName, @extendObj(false, \
+          @_btnAttr, @getCCCStr(@_btnCSSProp))
         element.content = element.content.format from, to, btn
 
       element.updateInnerHTML()
@@ -214,14 +222,14 @@ class ButtonTool extends ContentTools.Tools.Bold
 
     editor = ContentTools.EditorApp.get()
 
-    # Prevent deafult if editor is not in editting mode
+    # Prevent deafult if editor is not in editing mode
     if editor.isEditing() is true
       # Get evt target
       btn = evt
       btnText = btn.innerText
 
       # Create btn text node
-      btnToText = document.createTextNode btnText 
+      btnToText = document.createTextNode btnText
 
       # Replace btn node with text
       btnParent = btn.parentElement
@@ -231,19 +239,20 @@ class ButtonTool extends ContentTools.Tools.Bold
       [from, to] = btn.getAttribute('position').split ','
 
       # Get btn css prop
-      btnCSSStyle = @getBtnCSSProp btn 
+      btnCSSStyle = @getBtnCSSProp btn
 
       # Get btn attr
       link = btnParent.getAttribute 'href'
-      btnHrefParentAttr = @extendObj false, {'href': link}, @_btnHrefParentAttrDef
-      
+      btnHrefParentAttr = @extendObj false, {'href': link}, \
+        @_btnHrefParentAttrDef
+
       # Replace btn with btn text node
       btnHrefParent.replaceChild btnToText, btnParent
 
       # Create selection range
       range = new ContentSelect.Range parseInt(from), parseInt(to)
-      range.select btnHrefParent 
-      
+      range.select btnHrefParent
+
       # Get selected text element
       element = ContentEdit.Root.get().focused()
 
@@ -255,15 +264,17 @@ class ButtonTool extends ContentTools.Tools.Bold
       callback = () ->
 
       # Apply tool
-      @apply element, selection, callback, btnHrefParentAttr, btnCSSStyle, false
-    
+      @apply element, selection, callback, btnHrefParentAttr, \
+        btnCSSStyle, false
+
       # @addBtnListener: (element) ->
       # btns = element.domElement().getElementsByTagName('button')
 
       # for btn in btns
       # btn.addEventListener 'click', @btnClickListener
 
-  @getBgColor: (btnCSSStyle, element, selection, cssPropName = 'background-color') ->
+  @getBgColor: (btnCSSStyle, element, selection,
+    cssPropName = 'background-color') ->
     # Get CSS bg color prop value
     if btnCSSStyle?
       btnCSSStyle[cssPropName]
@@ -271,7 +282,7 @@ class ButtonTool extends ContentTools.Tools.Bold
 
   @getTextColor: (btnCSSStyle, element, selection, cssPropName = 'color') ->
     # Get CSS color prop value
-    if btnCSSStyle? 
+    if btnCSSStyle?
       btnCSSStyle[cssPropName]
     else @getCSSStyle(cssPropName, element, selection, @tagName)
 
@@ -281,7 +292,8 @@ class ButtonTool extends ContentTools.Tools.Bold
       btnHrefParentAttr[attrName]
     else @getAttr(attrName, element, selection, 'a')
 
-  @getTargetAttr: (btnHrefParentAttr, element, selection, attrName = 'target') ->
+  @getTargetAttr: (btnHrefParentAttr, element, selection,
+    attrName = 'target') ->
     # Get target attr value
     if btnHrefParentAttr?
       btnHrefParentAttr[attrName]
@@ -297,7 +309,7 @@ class ButtonTool extends ContentTools.Tools.Bold
     prop = []
 
     for k, v of cssProp
-      prop.push "#{ k }:#{ v }" 
+      prop.push "#{ k }:#{ v }"
 
     {'style': prop.join ';'}
 
@@ -307,25 +319,25 @@ class ButtonTool extends ContentTools.Tools.Bold
     'color': @getColorCSSProp 'color', element
     'background-color': @getColorCSSProp 'background-color', element
     'padding': @getPaddingCSSProp @getCSSProp 'padding', element
-    
+
     cssStyle
 
   @getColorCSSProp: (propName, element) ->
     # Convert rgb(255, 255, 255) to the #ffffff format
     regExp = /\(([^)]+)\)/
     color = element.style[propName]
-    
+
     if color.length > 0
       [r, g, b] = regExp.exec(color)[1].split ','
       return @rgbToHex parseInt(r), parseInt(g), parseInt(b)
-    
+
     return ''
 
   @getCSSProp: (propName, element) ->
     element.style[propName]
 
   @getPaddingCSSProp: (prop) ->
-    # If padding is same in every direction 
+    # If padding is same in every direction
     # set two same padding value in return string
     propSplit = prop.split ' '
     return if propSplit.length > 1 then prop else [prop, prop].join ' '
@@ -356,16 +368,17 @@ class ButtonTool extends ContentTools.Tools.Bold
   @showDialog: (dialog, colorPicker = true) ->
     # Show dialog
     dialog.show()
-    
+
     # Initialize color picker
     if colorPicker
       @initColorPicker 'input.color'
 
   @initColorPicker: (selector) ->
     # Initialize color picker
-    initial = (elm, colors) -> 
+    initial = (elm, colors) ->
       elm.style.backgroundColor = elm.value
-      elm.style.color = if colors.rgbaMixBG.luminance > 0.22 then '#222' else '#ddd'
+      elm.style.color = if colors.rgbaMixBG.luminance > 0.22 \
+        then '#222' else '#ddd'
 
     jsColorPicker(selector, {
       memoryColors: @getAutomatColors(),
@@ -387,18 +400,19 @@ class ButtonTool extends ContentTools.Tools.Bold
 
   @getCSSStyle: (cssPropName, element, selection, childElement) ->
     # Return any existing style value for the element and selection
-    # Find the first character in the selected text that has a `childElement` tag and
+    # Find the first character in the selected text that has a
+    # `childElement` tag and
     # return its `cssPropName` value.
 
     [from, to] = selection.get()
     selectedContent = element.content.slice from, to
 
     for c in selectedContent.characters
-      # Does this character have a time tag applied?
+      # Does this character have a button tag applied?
       if not c.hasTags childElement
         continue
 
-      # Find the time tag and return the datetime attribute value
+      # Find the button tag and return the attribute value
       for tag in c.tags()
         if tag.name() == childElement
           return tag.style cssPropName
@@ -407,7 +421,8 @@ class ButtonTool extends ContentTools.Tools.Bold
 
   @getAttr: (attrName, element, selection, childElement) ->
     # Return any existing attribute value for the element and selection
-    # Find the first character in the selected text that has a `childElement` tag and
+    # Find the first character in the selected text that has a
+    # `childElement` tag and
     # return its `attrName` value.
 
     [from, to] = selection.get()
@@ -430,13 +445,16 @@ class ButtonTool extends ContentTools.Tools.Bold
 
     # Merge the object into the extended object
     merge = (obj) ->
-      
+
       for prop in Object.keys obj
-        
+
         if Object.prototype.hasOwnProperty.call obj, prop
-          
+
           # If deep merge and property is an object, merge properties
-          if deep and Object.prototype.toString.call obj[prop] is '[object Object]'
+          if (
+            deep and
+            Object.prototype.toString.call obj[prop] is '[object Object]'
+          )
             extended[prop] = @extendObj true, extended[prop], obj[prop]
           else
             extended[prop] = obj[prop]
@@ -450,11 +468,12 @@ class ButtonTool extends ContentTools.Tools.Bold
 
 class GetBgColorDialog extends ContentTools.LinkDialog
 
-  # An anchored dialog to support inserting/modifying a background css color prop value
+  # An anchored dialog to support inserting/modifying a
+  # background css color prop value
 
   constructor: (color) ->
     @_color = color
-    
+
     super()
 
   mount: () ->
@@ -464,13 +483,15 @@ class GetBgColorDialog extends ContentTools.LinkDialog
     # link dialog.
     cssClass = @_domInput.getAttribute 'class'
     colorPickerCssClass = 'color'
-    color = if @_color then @_color else ButtonTool.getHexFormat ButtonTool.getAutomatColors()[1]
+    color = if @_color then @_color else \
+      ButtonTool.getHexFormat ButtonTool.getAutomatColors()[1]
     # purpleColor = ButtonTool.getHexFormat ButtonTool.getAutomatColors()[1]
 
     @_domInput.setAttribute 'name', 'color'
     @_domInput.setAttribute 'class', "#{ cssClass } #{ colorPickerCssClass }"
     @_domInput.setAttribute 'value', color
-    @_domInput.setAttribute 'placeholder', ContentEdit._ 'Enter a background color'
+    @_domInput.setAttribute 'placeholder', ContentEdit._ \
+      'Enter a background color'
 
     # Remove the new window target DOM element
     @_domElement.removeChild @_domTargetButton
@@ -490,7 +511,8 @@ class GetBgColorDialog extends ContentTools.LinkDialog
 
 class GetTextColorDialog extends GetBgColorDialog
 
-  # An anchored dialog to support inserting/modifying a background css color prop value
+  # An anchored dialog to support inserting/modifying a
+  # text-color css color prop value
 
   mount: () ->
     super()
@@ -509,7 +531,7 @@ class GetPaddindDialog extends ContentTools.LinkDialog
 
   constructor: (@padding) ->
     super()
-    
+
     @_defPadding = '20, 20'
 
   mount: () ->
@@ -521,7 +543,8 @@ class GetPaddindDialog extends ContentTools.LinkDialog
     @padding = if @padding then @padding else @_defPadding
     @_domInput.setAttribute 'name', 'padding'
     @_domInput.setAttribute 'value', @padding
-    @_domInput.setAttribute 'placeholder', ContentEdit._ 'Enter a button padding space'
+    @_domInput.setAttribute 'placeholder', \
+      ContentEdit._ 'Enter a button padding space'
 
     # Remove the new window target DOM element
     @_domElement.removeChild @_domTargetButton
@@ -535,4 +558,3 @@ class GetPaddindDialog extends ContentTools.LinkDialog
 
 
 ContentTools.DEFAULT_TOOLS[0].push('button')
-
