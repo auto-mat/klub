@@ -1,11 +1,11 @@
 class BackgroundImageDialog extends SuperClass
 
   @include ContentTools.DialogUI
-  @include ContentTools.ImageDialog 
+  @include ContentTools.ImageDialog
 
   constructor: () ->
     ContentTools.ImageDialog.call @
-    
+
   mount: () ->
     ContentTools.DialogUI::mount.call @
 
@@ -120,7 +120,9 @@ class BackgroundImageDialog extends SuperClass
   save: (imageURL, imageSize, imageAttrs) ->
     # Save and insert the current image
     # Set correct container height according uploaded image
-    document.getElementsByClassName('content-table')[0].setAttribute('height', "#{ imageSize[1] }")
+    document.getElementsByClassName('content-table')[0].setAttribute(
+      'height', "#{ imageSize[1] }"
+    )
     @dispatchEvent(
       @createEvent(
         'save',
@@ -162,7 +164,10 @@ class BackgroundImageDialog extends SuperClass
       # Set backgroundImage property
       ###
       @dispatchEvent(
-        @createEvent('imageuploader.fileready', {file: file, backgroundImage: true})
+        @createEvent(
+          'imageuploader.fileready',
+          {file: file, backgroundImage: true}
+        )
       )
 
     # Cancel upload
@@ -196,8 +201,8 @@ class BackgroundImageDialog extends SuperClass
 
   _setEmailTemplateBgImage: (containerClassName) ->
     ###
-    # Set html email template container background image 
-    ### 
+    # Set html email template container background image
+    ###
     container = document.getElementsByClassName(containerClassName)[0]
     container.style.backgroundImage = "url(#{ @_imageURL })"
 
@@ -245,7 +250,7 @@ class BackgroundImage extends ContentTools.Tools.Image
     dialog = new BackgroundImageDialog()
 
     # Support cancelling the dialog
-    dialog.addEventListener 'cancel', () =>
+    dialog.addEventListener 'cancel', () ->
 
       modal.hide()
       dialog.hide()

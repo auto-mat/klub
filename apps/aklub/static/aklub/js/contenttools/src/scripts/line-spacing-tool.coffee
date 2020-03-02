@@ -83,7 +83,7 @@ class LineSpacingTool extends CustomAlignLeftTool
 
   @index: (elementRef) ->
     nodes = Array.prototype.slice.call \
-    document.getElementsByClassName('[ article__content ]')[0].children
+      document.getElementsByClassName('[ article__content ]')[0].children
     return nodes.indexOf elementRef
 
   @_apply: (element, selection) =>
@@ -123,17 +123,17 @@ class LineSpacingDialog extends ContentTools.LinkDialog
     super()
 
     @lineSpacing = if @lineSpacing? then @lineSpacing else \
-    @_defLineSpacingValue
+      @_defLineSpacingValue
     @_domInput.setAttribute 'name', 'lineSpacing'
     @_domInput.setAttribute 'value', @lineSpacing
-    @_domInput.setAttribute 'placeholder', ContentEdit._ \
-    'Enter number to set the line height'
+    @_domInput.setAttribute 'placeholder', \
+      ContentEdit._ 'Enter number to set the line height'
 
     # Remove the new window target DOM element
     @_domElement.removeChild @_domTargetButton
 
   save: () ->
-    # Save the padding.
+    # Save the line spacing value.
     detail = {
       lineSpacing: @_domInput.value.trim()
     }

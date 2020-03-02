@@ -1,6 +1,6 @@
 class FontSizeTool extends ContentTools.Tools.Bold
 
-  # Apply a class to justify align the contents of the current text block.
+  # Set font size of the current selection of text.
 
   # Register the tool with the toolshelf
   ContentTools.ToolShelf.stow(@, 'font-size')
@@ -92,7 +92,7 @@ class FontSizeTool extends ContentTools.Tools.Bold
   @getFontSize: (styleClass) ->
     defaultFontSize = styleClass.getPropertyValue 'font-size'
     defaultFontSize = parseInt \
-    defaultFontSize.slice 0, defaultFontSize.length - 2
+      defaultFontSize.slice 0, defaultFontSize.length - 2
 
   @setNewCSS: (fontSizeId, fontSizeCSSClass) ->
     style = document.createElement('style')
@@ -103,7 +103,7 @@ class FontSizeTool extends ContentTools.Tools.Bold
 
   @index: (elementRef) ->
     nodes = Array.prototype.slice.call \
-    document.getElementsByClassName('[ article__content ]')[0].children
+      document.getElementsByClassName('[ article__content ]')[0].children
     return nodes.indexOf elementRef
 
   @_apply: (element, selection) =>
@@ -140,7 +140,7 @@ class FontSizeTool extends ContentTools.Tools.Bold
 
 class FontSizeValueDialog extends ContentTools.LinkDialog
 
-  # An anchored dialog to support inserting/modifying a padding css prop value
+  # An anchored dialog to support inserting/modifying a font size value
 
   constructor: (@size) ->
     super()
@@ -153,8 +153,8 @@ class FontSizeValueDialog extends ContentTools.LinkDialog
     @size = if @size? then @size else @_defFontSizeValue
     @_domInput.setAttribute 'name', 'size'
     @_domInput.setAttribute 'value', @size
-    @_domInput.setAttribute 'placeholder', ContentEdit._ \
-    'Enter a font size (px)'
+    @_domInput.setAttribute 'placeholder', \
+      ContentEdit._ 'Enter a font size (px)'
 
     # Remove the new window target DOM element
     @_domElement.removeChild @_domTargetButton

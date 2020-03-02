@@ -1,6 +1,6 @@
 class IncreaseFontSizeTool extends ContentTools.Tools.Bold
 
-  # Apply a class to justify align the contents of the current text block.
+  # Increase font size of the current selection of text.
 
   # Register the tool with the toolshelf
   ContentTools.ToolShelf.stow(@, 'increase-font-size')
@@ -54,7 +54,7 @@ class IncreaseFontSizeTool extends ContentTools.Tools.Bold
 
       # Dialog
       size = if DecreaseFontSizeTool._fontSizeFactor? \
-      then DecreaseFontSizeTool._fontSizeFactor else null
+        then DecreaseFontSizeTool._fontSizeFactor else null
       dialog = new GetIncreaseFontSizeValueDialog(size)
       dialog.position @getDialogPosition rect
 
@@ -94,7 +94,7 @@ class IncreaseFontSizeTool extends ContentTools.Tools.Bold
   @getNewFontSize: (styleClass) =>
     defaultFontSize = styleClass.getPropertyValue 'font-size'
     defaultFontSize = parseInt \
-    defaultFontSize.slice 0, defaultFontSize.length - 2
+      defaultFontSize.slice 0, defaultFontSize.length - 2
     newFontSize = defaultFontSize + parseInt @_fontSizeFactor
 
   @setNewCSS: (fontSizeId, fontSizeCSSClass) ->
@@ -106,7 +106,7 @@ class IncreaseFontSizeTool extends ContentTools.Tools.Bold
 
   @index: (elementRef) ->
     nodes = Array.prototype.slice.call \
-    document.getElementsByClassName('[ article__content ]')[0].children
+      document.getElementsByClassName('[ article__content ]')[0].children
     return nodes.indexOf elementRef
 
   @_apply: (element, selection) =>
@@ -124,7 +124,7 @@ class IncreaseFontSizeTool extends ContentTools.Tools.Bold
       style = document.getElementById fontSizeId
 
       styleClass = window.getComputedStyle \
-      document.getElementsByClassName(fontSizeCSSClassName)[0]
+        document.getElementsByClassName(fontSizeCSSClassName)[0]
       @_newFontSize = @getNewFontSize styleClass
 
       fontSizeCSSClass = """
@@ -174,7 +174,8 @@ class IncreaseFontSizeTool extends ContentTools.Tools.Bold
 
 class GetIncreaseFontSizeValueDialog extends ContentTools.LinkDialog
 
-  # An anchored dialog to support inserting/modifying a padding css prop value
+  # An anchored dialog to support inserting/modifying a increase font
+  # size value
 
   constructor: (@size) ->
     super()
@@ -187,14 +188,14 @@ class GetIncreaseFontSizeValueDialog extends ContentTools.LinkDialog
     @size = if @size? then @size else @_defIncreaseFontSizeValue
     @_domInput.setAttribute 'name', 'size'
     @_domInput.setAttribute 'value', @size
-    @_domInput.setAttribute 'placeholder', ContentEdit._ \
-    'Enter a font size increase factor (px)'
+    @_domInput.setAttribute 'placeholder', \
+      ContentEdit._ 'Enter a font size increase factor (px)'
 
     # Remove the new window target DOM element
     @_domElement.removeChild @_domTargetButton
 
   save: () ->
-    # Save the padding.
+    # Save the increase font size value.
     detail = {
       size: @_domInput.value.trim()
     }
