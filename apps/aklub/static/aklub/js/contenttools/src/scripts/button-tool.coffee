@@ -234,6 +234,9 @@ class ButtonTool extends ContentTools.Tools.Bold
       # Replace btn node with text
       btnParent = btn.parentElement
       btnHrefParent = btnParent.parentElement
+      btnParentEditableContainer = document.getElementsByClassName(
+        'ce-element--focused'
+      )[0]
 
       # Get position
       [from, to] = btn.getAttribute('position').split ','
@@ -251,7 +254,7 @@ class ButtonTool extends ContentTools.Tools.Bold
 
       # Create selection range
       range = new ContentSelect.Range parseInt(from), parseInt(to)
-      range.select btnHrefParent
+      range.select btnParentEditableContainer
 
       # Get selected text element
       element = ContentEdit.Root.get().focused()
