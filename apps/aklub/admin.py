@@ -73,7 +73,7 @@ from smmapdfs.actions import make_pdfsandwich
 from . import darujme, filters, mailing, tasks
 from .filters import ProfileTypeFilter, unit_admin_mixin_generator
 from .forms import (
-    CompanyProfileAddForm, CompanyProfileChangeForm, UnitUserProfileAddForm,
+    CompanyProfileAddForm, CompanyProfileChangeForm, TaxConfirmationForm, UnitUserProfileAddForm,
     UnitUserProfileChangeForm, UserCreateForm, UserUpdateForm,
 )
 from .models import (
@@ -871,6 +871,14 @@ class ProfileAdminMixin:
             last_payment_date=Max('userchannels__payment__date'),
         )
 
+    def make_tax_confirmation(self, request, queryset):
+        request.method = None
+        return ProfileAdmin.taxform(self, request, profiles=queryset)
+
+    make_tax_confirmation.short_description = _("Make Tax Confirmation")
+
+    actions = (make_tax_confirmation,)
+
 
 class ProfileAdmin(
     filters.AdministrativeUnitAdminMixin,
@@ -1014,6 +1022,40 @@ class ProfileAdmin(
         Return empty perms dict thus hiding the model from admin index.
         """
         return {}
+
+    def taxform(self, request, *args, **kwargs):
+        """ admin form view to generate tax confirmations"""
+        if request.method == 'POST':
+            data = request.POST
+            parameters = (
+                        data.get('year'),
+                        data.getlist('profile'),
+                        data.get('pdf_type')
+            )
+            tasks.generate_tax_confirmations.apply_async(args=parameters)
+            messages.info(request, _('TaxConfirmations created'))
+            return HttpResponseRedirect(reverse('admin:aklub_taxconfirmation_changelist'))
+        else:
+            from django.shortcuts import render
+            form = TaxConfirmationForm(profiles=kwargs.get('profiles'), request=request)
+            return render(
+                request,
+                'admin/aklub/profile_taxconfirmation.html',
+                {'opts': self.model._meta, 'form': form},
+            )
+
+    def get_urls(self):
+        """ add extra view to admin """
+        from django.conf.urls import url
+        urls = super().get_urls()
+        my_urls = [
+            url(
+                r'taxform',
+                self.admin_site.admin_view(self.taxform),
+                name='aklub_profile_taxform',
+            ),
+        ]
+        return my_urls + urls
 
 
 class DonorPaymentChannelLoaderClass(BaseInstanceLoader):
@@ -1791,7 +1833,11 @@ class SourceAdmin(admin.ModelAdmin):
     list_display = ('slug', 'name', 'direct_dialogue')
 
 
-class TaxConfirmationAdmin(unit_admin_mixin_generator('user_profile__administrative_units'), ImportExportMixin, admin.ModelAdmin):
+class TaxConfirmationAdmin(
+            unit_admin_mixin_generator('pdf_type__pdfsandwichtypeconnector__administrative_unit'),
+            ImportExportMixin,
+            admin.ModelAdmin,
+            ):
 
     def batch_download(self, request, queryset):
         links = []
@@ -1803,8 +1849,7 @@ class TaxConfirmationAdmin(unit_admin_mixin_generator('user_profile__administrat
 
     batch_download.short_description = _("generate download links for pdf files")
 
-    change_list_template = "admin/aklub/taxconfirmation/change_list.html"
-    list_display = ('user_profile', 'get_email', 'year', 'amount', 'get_pdf', 'administrative_unit', 'get_status', 'get_send_time', )
+    list_display = ('user_profile', 'get_email', 'year', 'amount', 'get_pdf', 'get_administrative_unit', 'pdf_type')
     ordering = (
         'user_profile__userprofile__last_name',
         'user_profile__userprofile__first_name',
@@ -1812,7 +1857,9 @@ class TaxConfirmationAdmin(unit_admin_mixin_generator('user_profile__administrat
     )
     list_filter = [
         'year',
-        'administrative_unit',
+        'pdf_type',
+        'pdf_type__pdfsandwichtypeconnector__administrative_unit',
+        'pdf_type__pdfsandwichtypeconnector__profile_type',
         filters.ProfileHasEmail,
         filters.ProfileHasFullAdress,
     ]
@@ -1830,24 +1877,8 @@ class TaxConfirmationAdmin(unit_admin_mixin_generator('user_profile__administrat
         'user_profile__companyprofile',
     )
 
-    readonly_fields = ['get_pdf', 'get_email', 'get_status', 'get_send_time']
-    fields = ['user_profile', 'year', 'amount', 'get_pdf', 'administrative_unit', ]
-
-    def generate(self, request):
-        tasks.generate_tax_confirmations.apply_async()
-        return HttpResponseRedirect(reverse('admin:aklub_taxconfirmation_changelist'))
-
-    def get_urls(self):
-        from django.conf.urls import url
-        urls = super(TaxConfirmationAdmin, self).get_urls()
-        my_urls = [
-            url(
-                r'generate',
-                self.admin_site.admin_view(self.generate),
-                name='aklub_taxconfirmation_generate',
-            ),
-        ]
-        return my_urls + urls
+    readonly_fields = ['get_pdf', 'get_email', 'pdf_type', 'get_administrative_unit']
+    fields = ['user_profile', 'year', 'amount', 'get_pdf', 'pdf_type']
 
     def get_email(self, obj):
         try:
@@ -1856,11 +1887,8 @@ class TaxConfirmationAdmin(unit_admin_mixin_generator('user_profile__administrat
             email = None
         return email
 
-    def get_status(self, obj):
-        return obj.taxconfirmationpdf_set.get().status
-
-    def get_send_time(self, obj):
-        return obj.taxconfirmationpdf_set.get().sent_time
+    def get_administrative_unit(self, obj):
+        return obj.pdf_type.pdfsandwichtypeconnector.administrative_unit.name
 
 
 @admin.register(AdministrativeUnit)
@@ -1949,7 +1977,8 @@ class UserProfileAdmin(
     actions = (
         create_export_job_action,
         send_mass_communication_action,
-    )
+    ) + ProfileAdminMixin.actions
+
     advanced_filter_fields = (
         'profileemail__email',
         'addressment',
@@ -2144,6 +2173,7 @@ class CompanyProfileAdmin(
         'contact_first_name',
         'contact_last_name',
     )
+    actions = () + ProfileAdminMixin.actions
     advanced_filter_fields = (
         'email',
         'telephone__telephone',
