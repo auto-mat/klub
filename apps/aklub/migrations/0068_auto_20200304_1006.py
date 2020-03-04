@@ -6,6 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
+        ('smmapdfs_edit', '0004_auto_20200304_0947'),
         ('aklub', '0067_taxconfirmation_pdf_type'),
     ]
     def taxconfirmation_type(apps, schema_editor):
