@@ -1888,7 +1888,11 @@ class TaxConfirmationAdmin(
         return email
 
     def get_administrative_unit(self, obj):
-        return obj.pdf_type.pdfsandwichtypeconnector.administrative_unit.name
+        try:
+            au = obj.pdf_type.pdfsandwichtypeconnector.administrative_unit.name
+        except AttributeError:
+            au = None
+        return au
 
 
 @admin.register(AdministrativeUnit)
