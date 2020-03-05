@@ -12,9 +12,9 @@ class Migration(migrations.Migration):
         db_alias = schema_editor.connection.alias
         MoneyAccount = apps.get_model("aklub", "MoneyAccount")
         AdministrativeUnit = apps.get_model("aklub", "AdministrativeUnit")
-        unit, _ = AdministrativeUnit.objects.using(db_alias).get_or_create(name='change_this_unit_then_delete')
         for obj in MoneyAccount.objects.using(db_alias).all():
             if not hasattr(obj, 'administrative_unit'):
+                unit, _ = AdministrativeUnit.objects.using(db_alias).get_or_create(name='change_this_unit_then_delete')
                 obj.administrative_unit = unit
                 obj.save()
 
@@ -22,10 +22,9 @@ class Migration(migrations.Migration):
         db_alias = schema_editor.connection.alias
         Preference = apps.get_model("aklub", "Preference")
         AdministrativeUnit = apps.get_model("aklub", "AdministrativeUnit")
-        unit, _ = AdministrativeUnit.objects.using(db_alias).get_or_create(name='change_this_unit_then_delete')
-
         for obj in Preference.objects.using(db_alias).all():
             if not hasattr(obj, 'administrative_unit'):
+                unit, _ = AdministrativeUnit.objects.using(db_alias).get_or_create(name='change_this_unit_then_delete')
                 obj.administrative_unit = unit
                 obj.save()
 
@@ -33,10 +32,10 @@ class Migration(migrations.Migration):
         db_alias = schema_editor.connection.alias
         TaxConfirmation = apps.get_model("aklub", "TaxConfirmation")
         AdministrativeUnit = apps.get_model("aklub", "AdministrativeUnit")
-        unit, _ = AdministrativeUnit.objects.using(db_alias).get_or_create(name='change_this_unit_then_delete')
 
         for obj in TaxConfirmation.objects.using(db_alias).all():
             if not hasattr(obj, 'administrative_unit'):
+                unit, _ = AdministrativeUnit.objects.using(db_alias).get_or_create(name='change_this_unit_then_delete')
                 obj.administrative_unit = unit
                 obj.save()
 
