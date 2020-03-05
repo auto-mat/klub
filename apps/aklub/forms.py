@@ -30,7 +30,7 @@ class TaxConfirmationForm(forms.Form):
         self.fields['profile'].initial = profiles
 
         if profiles:
-            if profiles.first().polymorphic_ctype.name == 'User profile':
+            if profiles.first().polymorphic_ctype.model == 'userprofile':
                 profile_type = 'user_profile'
             else:
                 profile_type = 'company_profile'
