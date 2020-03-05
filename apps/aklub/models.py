@@ -2797,6 +2797,12 @@ class MassCommunication(models.Model):
     def __str__(self):
         return str(self.name)
 
+    def clean(self):
+        if self.attach_tax_confirmation:
+            if not self.attached_tax_confirmation_year or not self.attached_tax_confirmation_type:
+                raise ValidationError("YEAR and PDF_TYPE must be set")
+        super().clean()
+
 
 class OverwriteStorage(FileSystemStorage):
 
