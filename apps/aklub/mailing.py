@@ -98,19 +98,22 @@ def send_communication_sync(communication_id, communication_type, userincampaign
         else:
             tax_confirmations = TaxConfirmationPdf.objects.filter(
                 obj__user_profile=userprofile,
-                obj__year=datetime.datetime.now().year - 1,
+                obj__year=mass_communication.attached_tax_confirmation_year,
+                obj__pdf_type=mass_communication.attached_tax_confirmation_type,
             )
             if len(tax_confirmations) > 0:
                 attachment = copy.copy(tax_confirmations[0].pdf)
             else:
                 tax_confirmations = TaxConfirmation.objects.filter(
                     user_profile=userprofile,
-                    year=datetime.datetime.now().year - 1,
+                    obj__year=mass_communication.attached_tax_confirmation_year,
+                    obj_pdf_type=mass_communication.attached_tax_confirmation_type,
                 )
                 if len(tax_confirmations) > 0:
                     attachment = copy.copy(tax_confirmations[0].file)
                 else:
                     attachment = None
+
         c = Interaction(
             user=userprofile, method=mass_communication.method, date=datetime.datetime.now(),
             administrative_unit=mass_communication.administrative_unit,
