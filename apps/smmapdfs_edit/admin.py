@@ -70,10 +70,13 @@ class PdfFieldsInline(admin.TabularInline):
 
     def formfield_for_choice_field(self, db_field, request, *args, **kwargs):
         if db_field.name == "field":
-            if self.obj.pdfsandwichtypeconnector.profile_type == 'company_profile':
-                kwargs['choices'] = [(a, a) for a in TaxConfirmationField.fields_company.keys()]
-            else:
-                kwargs['choices'] = [(a, a) for a in TaxConfirmationField.fields_user.keys()]
+            try:  # what if connector doesnt exist?
+                if self.obj.pdfsandwichtypeconnector.profile_type == 'company_profile':
+                    kwargs['choices'] = [(a, a) for a in TaxConfirmationField.fields_company.keys()]
+                else:
+                    kwargs['choices'] = [(a, a) for a in TaxConfirmationField.fields_user.keys()]
+            except PdfSandwichTypeConnector.DoesNotExist:
+                pass
         return super().formfield_for_choice_field(db_field, request, *args, **kwargs)
 
 
