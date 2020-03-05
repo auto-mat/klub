@@ -2751,9 +2751,21 @@ class MassCommunication(models.Model):
     )
     attach_tax_confirmation = models.BooleanField(
         verbose_name=_("Attach tax confirmation"),
-        help_text=_("If this field is checked, the tax confirmation "
-                    "for last year is appended to the message."),
+        help_text=_("If this field is checked, select year and type of pdf to send"),
         default=False,
+    )
+    attached_tax_confirmation_year = models.PositiveIntegerField(
+        verbose_name=_("Year"),
+        blank=True,
+        null=True,
+    )
+
+    attached_tax_confirmation_type = models.ForeignKey(
+        'smmapdfs.PdfSandwichType',
+        verbose_name=_("Type of PDF"),
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
     )
     send_to_users = models.ManyToManyField(
         Profile,
