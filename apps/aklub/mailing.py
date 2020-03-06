@@ -78,6 +78,7 @@ def create_mass_communication_tasks_sync(communication_id, sending_user_id):
 def send_communication_sync(communication_id, communication_type, userincampaign_id, sending_user_id):
     sending_user = Profile.objects.get(id=sending_user_id)
     payment_channel = None
+    # choose if email send  action is real or fake
     if userincampaign_id == "fake_user":
         payment_channel = create_fake_payment_channel(sending_user)
         userprofile = sending_user
@@ -85,34 +86,42 @@ def send_communication_sync(communication_id, communication_type, userincampaign
     else:
         userprofile = Profile.objects.get(id=userincampaign_id)
         save = True
+    # choose if email is mass or auto communication
     if communication_type == 'mass':
         mass_communication = MassCommunication.objects.get(id=communication_id)
     else:
         mass_communication = AutomaticCommunication.objects.get(id=communication_id)
+
     template, subject = get_template_subject_for_language(mass_communication, userprofile.language)
+
     if userprofile.is_active and subject and subject.strip() != '':
         if not subject or subject.strip() == '' or not template or template.strip('') == '':
             raise Exception("Message template is empty for one of the language variants.")
-        if hasattr(mass_communication, "attach_tax_confirmation") and not mass_communication.attach_tax_confirmation:
-            attachment = copy.copy(mass_communication.attachment)
-        else:
-            tax_confirmations = TaxConfirmationPdf.objects.filter(
-                obj__user_profile=userprofile,
-                obj__year=mass_communication.attached_tax_confirmation_year,
-                obj__pdf_type=mass_communication.attached_tax_confirmation_type,
-            )
-            if len(tax_confirmations) > 0:
-                attachment = copy.copy(tax_confirmations[0].pdf)
+
+        # check if its mass_communication ... if not its auto communication
+        if communication_type == "mass":
+            if not mass_communication.attach_tax_confirmation:
+                attachment = copy.copy(mass_communication.attachment)
             else:
-                tax_confirmations = TaxConfirmation.objects.filter(
-                    user_profile=userprofile,
+                tax_confirmations = TaxConfirmationPdf.objects.filter(
+                    obj__user_profile=userprofile,
                     obj__year=mass_communication.attached_tax_confirmation_year,
-                    obj_pdf_type=mass_communication.attached_tax_confirmation_type,
+                    obj__pdf_type=mass_communication.attached_tax_confirmation_type,
                 )
                 if len(tax_confirmations) > 0:
-                    attachment = copy.copy(tax_confirmations[0].file)
+                    attachment = copy.copy(tax_confirmations[0].pdf)
                 else:
-                    attachment = None
+                    tax_confirmations = TaxConfirmation.objects.filter(
+                        user_profile=userprofile,
+                        obj__year=mass_communication.attached_tax_confirmation_year,
+                        obj_pdf_type=mass_communication.attached_tax_confirmation_type,
+                    )
+                    if len(tax_confirmations) > 0:
+                        attachment = copy.copy(tax_confirmations[0].file)
+                    else:
+                        attachment = None
+        else:
+            attachment = None
 
         c = Interaction(
             user=userprofile, method=mass_communication.method, date=datetime.datetime.now(),
