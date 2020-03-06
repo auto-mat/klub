@@ -107,7 +107,7 @@ module.exports = (grunt) ->
 
             sandbox:
                 files:
-                    'sandbox/sandbox.css': 'src/sandbox/sandbox.scss'
+                    'sandbox/sandbox.css': 'sandbox/sandbox-concat.scss'
 
         cssnano:
             options:
@@ -136,6 +136,14 @@ module.exports = (grunt) ->
                     'src/tmp/content-tools.js'
                 ]
                 dest: 'build/content-tools.js'
+
+            sandbox:
+              src: [
+                'src/sandbox/sandbox.scss'
+                'src/sandbox/sandbox-append.scss'
+              ]
+              dest: 'sandbox/sandbox-concat.scss'
+
 
         clean:
             build: ['src/tmp']
@@ -189,6 +197,7 @@ module.exports = (grunt) ->
 
     grunt.registerTask 'sandbox', [
         'coffee:sandbox'
+        'concat:sandbox'
         'sass:sandbox'
     ]
 

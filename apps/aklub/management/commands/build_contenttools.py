@@ -1,5 +1,6 @@
 import os
 import pathlib
+import re
 import shutil
 import subprocess
 
@@ -64,6 +65,7 @@ class Command(BaseCommand):
         self.cttools_target_styles_dir = self.cttools_target_dir / 'src' / 'styles' / 'ui'
         self.cttools_target_fonts_dir = self.cttools_target_dir / 'build' / 'images'
         self.cttools_target_sandbox_dir = self.cttools_target_dir / 'src' / 'sandbox'
+        self.cttools_target_sandbox__build_dir = self.cttools_target_dir / 'sandbox'
 
         self.__copy_coffee_scripts()
         self.__copy_sass_styles()
@@ -84,16 +86,16 @@ class Command(BaseCommand):
             'install grunt-cli',
             )
         # Build ContentTools
-        program = self.cttools_target_dir / 'node_modules' / 'grunt-cli' / 'bin' / 'grunt'
+        grunt = self.cttools_target_dir / 'node_modules' / 'grunt-cli' / 'bin' / 'grunt'
         self.__install(
-            [program, 'build'],
-            program,
+            [grunt, 'build'],
+            grunt,
             'build',
             )
         # Build ContentTools sandbox
         self.__install(
-            [program, 'sandbox'],
-            program,
+            [grunt, 'sandbox'],
+            grunt,
             'sandbox',
             )
 
@@ -118,23 +120,72 @@ class Command(BaseCommand):
             if '@import "custom-toolbox";' not in content:
                 f.write('\n@import "custom-toolbox";')
 
-        _src_sandbox_scss_file = self.cttools_src_sandbox_styles_dir / 'sandbox.scss'
+        # Copy sandbox append file
+        sandbox_append_scss_file = self.cttools_src_sandbox_styles_dir / 'sandbox-append.scss'
+        shutil.copy(sandbox_append_scss_file, self.cttools_target_sandbox_dir)
+
+        # Apply sandbox replace file
+        _src_sandbox_scss_file = self.cttools_src_sandbox_styles_dir / 'sandbox-replace.scss'
         _target_sandbox_scss_file = self.cttools_target_sandbox_dir / 'sandbox.scss'
-        with open(_src_sandbox_scss_file, 'r') as f_read, open(_target_sandbox_scss_file, 'r+') as f_write:
-            text = f_read.readlines()
-            append_text = []
-            base_text = '$max-width: 920px;'
-            for line in text:
+
+        with open(_src_sandbox_scss_file, 'r') as f_read, \
+                open(_target_sandbox_scss_file, 'r+') as f_write:
+
+            new_content = None
+            source_content = f_read.readlines()
+
+            max_width_base_text = '$max-width: 600px;'
+
+            for line in source_content:
                 if '$max-width:' in line:
-                    replace_text = line
-                else:
-                    append_text.append(line)
+                    max_width_replace_text = line
+
             target_content = f_write.read()
-            if base_text in target_content:
-                content = target_content.replace(base_text, replace_text)
-                content += ''.join(append_text)
+
+            if max_width_base_text not in target_content:
+                new_content = target_content.replace(
+                    max_width_base_text,
+                    max_width_replace_text,
+                )
+
+            if not new_content:
+                new_content = target_content
+
+            new_content = self.__replace_css_import(new_content)
+
+            if new_content:
                 f_write.seek(0)
-                f_write.write(content)
+                f_write.truncate(0)
+                f_write.write(new_content)
+
+    def __replace_css_import(self, content):
+        """Replace default css import path with correct path"""
+
+        css_imports = re.findall('@import.*.;', content)
+
+        for css_import in css_imports:
+            css_import_split = css_import.split(' ')
+
+            try:
+                css_import_path = pathlib.PurePath(
+                    css_import_split[1][:-1].replace('"', ''),
+                )
+            except IndexError:
+                continue
+
+            css_import_path_parts = list(css_import_path.parts)
+            if css_import_path_parts.count('..') < 2:
+                continue
+
+            css_import_path_parts.pop(0)
+
+            css_import_new_path = pathlib.PurePath(*css_import_path_parts)
+            new_css_import_text = (
+                f"{css_import_split[0]} \"{css_import_new_path.as_posix()}\";"
+            )
+            content = content.replace(css_import, new_css_import_text)
+
+        return content
 
     def __copy_fonts(self):
         # Copy font icons
