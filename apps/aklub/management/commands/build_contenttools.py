@@ -27,7 +27,7 @@ class Command(BaseCommand):
 
         self.npm_path = pathlib.Path(self.npm_path)
         if not self.npm_path.exists():
-            raise CommandError("Npm path '{}' doesn't exist.".format(self.npm_path))
+            raise CommandError(f"Npm path '{self.npm_path}' doesn't exist.")
 
         # Aklub app assets dirs
         self.js_src_dir = _finders.find_in_app(
@@ -44,28 +44,42 @@ class Command(BaseCommand):
         )
 
         self.cttools_coffee_src_scripts_dir = (
-            pathlib.Path(self.js_src_dir) / 'contenttools' / 'src' / 'scripts'
+            pathlib.Path(self.js_src_dir) / 'contenttools' / 'src' /
+            'scripts'
         )
         self.cttools_src_styles_dir = (
-            pathlib.Path(self.styles_src_dir) / 'contenttools' / 'src' / 'styles' / 'ui'
+            pathlib.Path(self.styles_src_dir) / 'contenttools' / 'src' /
+            'styles' / 'ui'
         )
         self.cttools_src_fonts_dir = (
             pathlib.Path(self.fonts_src_dir) / 'contenttools'
         )
         self.cttools_src_sandbox_styles_dir = (
-            pathlib.Path(self.styles_src_dir) / 'contenttools' / 'src' / 'sandbox' / 'styles'
+            pathlib.Path(self.styles_src_dir) / 'contenttools' / 'src' /
+            'sandbox' / 'styles'
         )
 
         # Target dirs
         self.cttools_target_dir = (
-            pathlib.Path(settings.BASE_DIR) / 'bower_components' / 'ContentTools'
+            pathlib.Path(settings.BASE_DIR) / 'bower_components' /
+            'ContentTools'
         )
 
-        self.cttools_target_scripts_dir = self.cttools_target_dir / 'src' / 'scripts'
-        self.cttools_target_styles_dir = self.cttools_target_dir / 'src' / 'styles' / 'ui'
-        self.cttools_target_fonts_dir = self.cttools_target_dir / 'build' / 'images'
-        self.cttools_target_sandbox_dir = self.cttools_target_dir / 'src' / 'sandbox'
-        self.cttools_target_sandbox__build_dir = self.cttools_target_dir / 'sandbox'
+        self.cttools_target_scripts_dir = (
+            self.cttools_target_dir / 'src' / 'scripts'
+        )
+        self.cttools_target_styles_dir = (
+            self.cttools_target_dir / 'src' / 'styles' / 'ui'
+        )
+        self.cttools_target_fonts_dir = (
+            self.cttools_target_dir / 'build' / 'images'
+        )
+        self.cttools_target_sandbox_dir = (
+            self.cttools_target_dir / 'src' / 'sandbox'
+        )
+        self.cttools_target_sandbox__build_dir = (
+            self.cttools_target_dir / 'sandbox'
+        )
 
         self.__copy_coffee_scripts()
         self.__copy_sass_styles()
@@ -86,7 +100,10 @@ class Command(BaseCommand):
             'install grunt-cli',
             )
         # Build ContentTools
-        grunt = self.cttools_target_dir / 'node_modules' / 'grunt-cli' / 'bin' / 'grunt'
+        grunt = (
+            self.cttools_target_dir / 'node_modules' / 'grunt-cli' /
+            'bin' / 'grunt'
+        )
         self.__install(
             [grunt, 'build'],
             grunt,
@@ -105,13 +122,19 @@ class Command(BaseCommand):
         # Copy coffee scripts
         scripts = self.cttools_coffee_src_scripts_dir.glob('*.coffee')
         for script_file in scripts:
-            shutil.copy(script_file, self.cttools_target_scripts_dir / script_file.name)
+            shutil.copy(
+                script_file,
+                self.cttools_target_scripts_dir / script_file.name
+            )
 
     def __copy_sass_styles(self):
         # Copy sass styles
         styles = self.cttools_src_styles_dir.glob('*.scss')
         for style_file in styles:
-            shutil.copy(style_file, self.cttools_target_styles_dir / style_file.name)
+            shutil.copy(
+                style_file,
+                self.cttools_target_styles_dir / style_file.name
+            )
 
         _ui_scss_file = self.cttools_target_styles_dir / '_ui.scss'
         with open(_ui_scss_file, 'a+') as f:
@@ -121,12 +144,18 @@ class Command(BaseCommand):
                 f.write('\n@import "custom-toolbox";')
 
         # Copy sandbox append file
-        sandbox_append_scss_file = self.cttools_src_sandbox_styles_dir / 'sandbox-append.scss'
+        sandbox_append_scss_file = (
+            self.cttools_src_sandbox_styles_dir / 'sandbox-append.scss'
+        )
         shutil.copy(sandbox_append_scss_file, self.cttools_target_sandbox_dir)
 
         # Apply sandbox replace file
-        _src_sandbox_scss_file = self.cttools_src_sandbox_styles_dir / 'sandbox-replace.scss'
-        _target_sandbox_scss_file = self.cttools_target_sandbox_dir / 'sandbox.scss'
+        _src_sandbox_scss_file = (
+            self.cttools_src_sandbox_styles_dir / 'sandbox-replace.scss'
+        )
+        _target_sandbox_scss_file = (
+            self.cttools_target_sandbox_dir / 'sandbox.scss'
+        )
 
         with open(_src_sandbox_scss_file, 'r') as f_read, \
                 open(_target_sandbox_scss_file, 'r+') as f_write:
@@ -188,16 +217,25 @@ class Command(BaseCommand):
         return content
 
     def __copy_fonts(self):
-        # Copy font icons
+        """Copy font icons"""
+
         font_icon_file = self.cttools_src_fonts_dir / 'icons.woff'
-        shutil.copy(font_icon_file, self.cttools_target_fonts_dir / font_icon_file.name)
+        shutil.copy(
+            font_icon_file,
+            self.cttools_target_fonts_dir / font_icon_file.name
+        )
 
     def __copy_gruntfile(self):
-        # Copy Gruntfile
-        grunt_file = pathlib.Path(self.js_src_dir) / 'contenttools' / 'Gruntfile.coffee'
+        """Copy Gruntfile"""
+
+        grunt_file = (
+            pathlib.Path(self.js_src_dir) / 'contenttools' / 'Gruntfile.coffee'
+        )
         shutil.copy(grunt_file, self.cttools_target_dir / grunt_file.name)
 
     def __install(self, command, program, package='install'):
+        """Install/build package"""
+
         def raise_command_error(stream):
             raise CommandError(
                 f'Error executing command {program} '
