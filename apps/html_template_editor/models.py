@@ -3,6 +3,7 @@
 import uuid
 
 # from django.contrib.auth import get_user_model
+from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.utils.html import mark_safe
 from django.utils.translation import ugettext_lazy as _
@@ -40,6 +41,10 @@ class TemplateContent(models.Model):
     regions = models.TextField(
         blank=True,
         default='',
+        null=True,
+    )
+    styles = JSONField(
+        blank=True,
         null=True,
     )
 

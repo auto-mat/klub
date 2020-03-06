@@ -13,6 +13,9 @@
         <link rel="stylesheet" type="text/css" href={% static "ContentTools/build/content-tools.min.css" %}>
         <link rel="stylesheet" type="text/css" href={% static "aklub/css/base_template.css" %}>
         {% include "email_templates/automat_fonts.html" %}
+        {% for style in styles %}
+        <style id="{{ style.id }}" type="text/css">{{ style.style }}</style>
+        {% endfor %}
     </head>
     <body>
       {% block content %}

@@ -78,7 +78,8 @@
         element,
         pageId,
         successSaveFlash,
-        failSaveFlash;
+        failSaveFlash,
+        styles;
       // Collect the contents of each region into a FormData instance
       payload = new FormData();
       // Check that something changed
@@ -86,9 +87,11 @@
       if (Object.keys(regions).length == 0) {
         return;
       }
+      styles = ev.detail().styles;
       payload.append("page", getTemplatePageUrl());
       payload.append("images", JSON.stringify(getImages()));
       payload.append("regions", JSON.stringify(regions));
+      payload.append("styles", JSON.stringify(styles));
       // Send the updated content to the server to be saved
       onStateChange = function(ev) {
         // Check if the request is finished
