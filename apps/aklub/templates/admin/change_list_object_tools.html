@@ -1,10 +1,19 @@
 {% extends "admin/change_list_object_tools.html" %}
 {% block object-tools-items %}
   {{ block.super }}
+  {{ media }}
 
   <li>
     <a style="background-color:black;
     "href="{% url 'wiki:get' cl.opts.verbose_name_plural|cut:' '|add:'/' %}" target="_blank">Help
   </a>
   </li>
+
+  <script type="text/javascript">
+    // redirect import/export buttons to import/export jobs page
+    $( document ).ready(function() {
+        $(".import_link").attr("href", "{% url 'admin:import_export_celery_importjob_add'%}")
+        $(".export_link").attr("href", "{% url 'admin:import_export_celery_exportjob_changelist'%}")
+    });
+  </script>
 {% endblock %}
