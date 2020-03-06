@@ -163,7 +163,7 @@ class Command(BaseCommand):
             new_content = None
             source_content = f_read.readlines()
 
-            max_width_base_text = '$max-width: 600px;'
+            max_width_base_text = '$max-width: 920px;'
 
             for line in source_content:
                 if '$max-width:' in line:
@@ -171,7 +171,7 @@ class Command(BaseCommand):
 
             target_content = f_write.read()
 
-            if max_width_base_text not in target_content:
+            if max_width_base_text in target_content:
                 new_content = target_content.replace(
                     max_width_base_text,
                     max_width_replace_text,
