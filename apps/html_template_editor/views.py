@@ -27,11 +27,13 @@ class TemplateContentAdd(TemplateContentMixin, generics.CreateAPIView):
         regions = self.request.data.get('regions')
         images = self.request.data.get('images')
         page = self.request.data.get('page')
+        styles = self.request.data.get('styles')
 
         serializer.save(
             regions=regions,
             images=images,
             page=page,
+            styles=styles,
         )
 
 

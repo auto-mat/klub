@@ -111,6 +111,8 @@ def get_email_template_context(template_path, template_url):
         }
         regions = json.loads(content.regions)
         context.update(regions)
+        styles = json.loads(content.styles)
+        context.update({'styles': styles})
     else:
         context = {}
 

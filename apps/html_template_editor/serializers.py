@@ -17,7 +17,8 @@ class TemplateContentSerializer(serializers.ModelSerializer):
                   'uuid',
                   'page',
                   'regions',
-                  'images')
+                  'images',
+                  'styles')
 
     def to_representation(self, instance):
         ret = super(TemplateContentSerializer, self).to_representation(instance)
