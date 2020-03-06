@@ -1781,7 +1781,7 @@ class EventAdmin(unit_admin_mixin_generator('administrative_units'), admin.Model
     save_as = True
 
 
-class RecruiterAdmin(ImportExportMixin, admin.ModelAdmin):
+class RecruiterAdmin(admin.ModelAdmin):
     list_display = ('recruiter_id', 'person_name', 'email', 'telephone', 'problem', 'rating')
     list_filter = ('problem', 'campaigns')
     filter_horizontal = ('campaigns',)
@@ -1791,7 +1791,7 @@ class SourceAdmin(admin.ModelAdmin):
     list_display = ('slug', 'name', 'direct_dialogue')
 
 
-class TaxConfirmationAdmin(unit_admin_mixin_generator('user_profile__administrative_units'), ImportExportMixin, admin.ModelAdmin):
+class TaxConfirmationAdmin(unit_admin_mixin_generator('user_profile__administrative_units'), admin.ModelAdmin):
 
     def batch_download(self, request, queryset):
         links = []
