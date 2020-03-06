@@ -118,6 +118,11 @@ module.exports = (grunt) ->
                     'build/content-tools.min.css':
                         'build/content-tools.min.css'
 
+            sandbox:
+                files:
+                    'sandbox/sandbox.min.css':
+                        'sandbox/sandbox.css'
+
         uglify:
             options:
                 banner: '/*! <%= pkg.name %> v<%= pkg.version %> by <%= pkg.author.name %> <<%= pkg.author.email %>> (<%= pkg.author.url %>) */\n'
@@ -199,6 +204,7 @@ module.exports = (grunt) ->
         'coffee:sandbox'
         'concat:sandbox'
         'sass:sandbox'
+        'cssnano:sandbox'
     ]
 
     grunt.registerTask 'spec', [
