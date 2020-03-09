@@ -124,7 +124,7 @@ class Command(BaseCommand):
         for script_file in scripts:
             shutil.copy(
                 script_file,
-                self.cttools_target_scripts_dir / script_file.name
+                self.cttools_target_scripts_dir / script_file.name,
             )
 
     def __copy_sass_styles(self):
@@ -133,7 +133,7 @@ class Command(BaseCommand):
         for style_file in styles:
             shutil.copy(
                 style_file,
-                self.cttools_target_styles_dir / style_file.name
+                self.cttools_target_styles_dir / style_file.name,
             )
 
         _ui_scss_file = self.cttools_target_styles_dir / '_ui.scss'
@@ -222,7 +222,7 @@ class Command(BaseCommand):
         font_icon_file = self.cttools_src_fonts_dir / 'icons.woff'
         shutil.copy(
             font_icon_file,
-            self.cttools_target_fonts_dir / font_icon_file.name
+            self.cttools_target_fonts_dir / font_icon_file.name,
         )
 
     def __copy_gruntfile(self):
