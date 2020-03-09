@@ -5,6 +5,7 @@ import uuid
 # from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import JSONField
 from django.db import models
+from django.utils.functional import lazy
 from django.utils.html import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
@@ -166,7 +167,7 @@ class CompanySocialMedia(models.Model):
 
     icon_name = models.CharField(
         verbose_name=_("Icon name"),
-        choices=get_social_media_icons_names(),
+        choices=(),
         max_length=20,
         null=True,
         blank=True,
@@ -176,6 +177,12 @@ class CompanySocialMedia(models.Model):
         null=True,
         blank=True,
     )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._meta.get_field('icon_name').choices = lazy(
+            get_social_media_icons_names,
+        )()
 
     def __str__(self):
         return f'{self.icon_name} : {self.url}'
