@@ -20,7 +20,8 @@ class EditTemplateModalDialog extends FormatSelectorMixin
 
     @_closeBtnClass = 'mdl-close'
 
-    @_$editTemplateModalDialogPageContainer = $editTemplateModalDialogPageContainer
+    @_$editTemplateModalDialogPageContainer = \
+      $editTemplateModalDialogPageContainer
 
     @_$hiddenTemplateField = $hiddenTemplateField
 
@@ -42,14 +43,15 @@ class EditTemplateModalDialog extends FormatSelectorMixin
         @getIdFormat @_dialogId
         )
 
-      $('body').append @_popoverDialog 
+      $('body').append @_popoverDialog
 
     # Initialize dialog
     @init @getIdFormat @_popoverEditTemplateLinkElementId
 
     # Set html template page container attr
     if templateType.length > 1
-      url = @_setPageContainerArgs templateName, 'aklub:get_email_template_from_db'
+      url = @_setPageContainerArgs templateName, \
+        'aklub:get_email_template_from_db'
       sessionStorage.setItem @sessionStorageKey, url
     else
       url = @_setPageContainerArgs templateName, 'aklub:get_email_template'
@@ -58,7 +60,8 @@ class EditTemplateModalDialog extends FormatSelectorMixin
     @show @getIdFormat @_dialogId
 
     # Bind close modal template dialog event
-    $closeBtn = $ "#{ @getIdFormat @_dialogId } #{ @getClassFormat @_closeBtnClass }"
+    $closeBtn = $ "#{ @getIdFormat @_dialogId }
+      #{ @getClassFormat @_closeBtnClass }"
     $closeBtn.off 'click', @_closeEditTemplateModalDialog
     $closeBtn.on 'click', @_closeEditTemplateModalDialog
 
@@ -78,14 +81,15 @@ class EditTemplateModalDialog extends FormatSelectorMixin
     )
 
   _getIframeTemplateContent: () ->
-    templatePage = document.querySelector @getIdFormat @_$editTemplateModalDialogPageContainer.attr 'id'
+    templatePage = document.querySelector @getIdFormat \
+      @_$editTemplateModalDialogPageContainer.attr 'id'
     templatePage?.contentDocument
 
   _setPageContainerArgs: (templateName, urlName) ->
     # Set html template page container attr
     url = window.reverse urlName, {template_name: templateName}
 
-    attr = 
+    attr =
       data: url,
       width: $(window).width(),
       height: $(window).height()
@@ -99,4 +103,3 @@ class EditTemplateModalDialog extends FormatSelectorMixin
 
   show: (elementId) ->
     mdl_open(elementId)
-

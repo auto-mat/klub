@@ -12,7 +12,7 @@ class GetTemplateNameDialog extends FormatSelectorMixin
     popoverModalDialogEditTemplateLinkElementId,
     templateName,
     $editTemplateModalDialogPageContainer,
-    $hiddenTemplateField,
+    $hiddenTemplateField
   ) ->
 
     @_dialogId = 'get_template_name'
@@ -35,11 +35,13 @@ class GetTemplateNameDialog extends FormatSelectorMixin
 
     @_editTemplateModalDialogId = editTemplateModalDialogId
 
-    @_popoverModalDialogEditTemplateLinkElementId = popoverModalDialogEditTemplateLinkElementId
+    @_popoverModalDialogEditTemplateLinkElementId = \
+      popoverModalDialogEditTemplateLinkElementId
 
     @_templateName = templateName
 
-    @_$editTemplateModalDialogPageContainer = $editTemplateModalDialogPageContainer
+    @_$editTemplateModalDialogPageContainer = \
+      $editTemplateModalDialogPageContainer
 
     @_$hiddenTemplateField = $hiddenTemplateField
 
@@ -66,7 +68,9 @@ class GetTemplateNameDialog extends FormatSelectorMixin
     $formContentLabel.text gettext 'Template name'
 
     $formContentInput = $ '<input>'
-    $formContentInput.attr {id: @_templateNameInputId, name: @_templateNameInputId}
+    $formContentInput.attr
+      id: @_templateNameInputId,
+      name: @_templateNameInputId
 
     $formContentContainer.append($formContentLabel)
     $formContentContainer.append($formContentInput)
@@ -97,7 +101,8 @@ class GetTemplateNameDialog extends FormatSelectorMixin
 
   _checkTemplateName: (o, name, m) ->
     opts = []
-    $("#{ @getIdFormat @_templateNameFieldId } > option").each () -> opts.push($(@).text())
+    selector = "#{ @getIdFormat @_templateNameFieldId } > option"
+    $(selector).each () -> opts.push($(@).text())
 
     if opts.indexOf(name) > -1
       errorList = o.closest('form').find @getClassFormat @_errorListCSSClass
@@ -112,15 +117,17 @@ class GetTemplateNameDialog extends FormatSelectorMixin
     $templateName = $ @getIdFormat @_templateNameInputId
     $(@getClassFormat @_errorListCSSClass).html ''
 
-    message = gettext('Template name may consist of a-z, 0-9, ' +
-                      'underscores, not spaces and must begin with a letter,' +
-                      'and be lowercase.')
-    valid = valid and @_checkRegexp $templateName, /^[a-z]([0-9a-z_])+$/, message
+    message = gettext('Template name may consist of a-z, 0-9,
+                      underscores, not spaces and must begin with a letter,
+                      and be lowercase.')
+    valid = valid and @_checkRegexp $templateName, \
+      /^[a-z]([0-9a-z_])+$/, message
 
     message = gettext 'Template name exist.'
     $templateNameInput = $ @getIdFormat @_templateNameInputId
 
-    valid = valid and @_checkTemplateName $templateNameInput, $templateName.val(), message
+    valid = valid and @_checkTemplateName $templateNameInput, \
+      $templateName.val(), message
 
     return valid
 
@@ -159,7 +166,7 @@ class GetTemplateNameDialog extends FormatSelectorMixin
     okBtnClick = () =>
       @_confirmTemplateName()
 
-    btnNames.ok = 
+    btnNames.ok =
       text: gettext('Ok'),
       id: @_confirmBtnId,
       click: okBtnClick

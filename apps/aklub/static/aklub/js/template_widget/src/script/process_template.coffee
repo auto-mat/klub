@@ -4,24 +4,39 @@
 
 class PostProcessHtmlTemplate extends FormatSelectorMixin
 
-  constructor: (htmlDoc, $editTemplatePageContainer, $templateDivField, $hiddenTemplateField) ->
+  constructor: (
+    htmlDoc,
+    $editTemplatePageContainer,
+    $templateDivField,
+    $hiddenTemplateField
+    ) ->
 
-    @_htmlDoc = htmlDoc
+      @_htmlDoc = htmlDoc
 
-    @_$editTemplatePageContainer = $editTemplatePageContainer
+      @_$editTemplatePageContainer = $editTemplatePageContainer
 
-    @_$templateDivField = $templateDivField
+      @_$templateDivField = $templateDivField
 
-    @_$hiddenTemplateField = $hiddenTemplateField
-    
-    @_videoClass = 'video'
+      @_$hiddenTemplateField = $hiddenTemplateField
 
-    @_verticalSpaceClassName = 'vertical-space'
+      @_videoClass = 'video'
 
-    @_textContainerTags = ['p', 'ul', 'ol', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6']
+      @_verticalSpaceClassName = 'vertical-space'
 
-    # Methods
-    @convertVideoIframeToImgThumbnail()
+      @_textContainerTags = [
+        'p',
+        'ul',
+        'ol',
+        'h1',
+        'h2',
+        'h3',
+        'h4',
+        'h5',
+        'h6'
+        ]
+
+      # Methods
+      @convertVideoIframeToImgThumbnail()
 
   convertVideoIframeToImgThumbnail: () ->
 
@@ -32,24 +47,30 @@ class PostProcessHtmlTemplate extends FormatSelectorMixin
 
     vimeoRegex = new RegExp 'vimeo.com.*./(.*)'
 
-    addThumbnail = ($videoThumbnail, $clickableVideoThumbnail, $videoCaption, element, iframeCssFloatProperty) ->
+    addThumbnail = (
+      $videoThumbnail,
+      $clickableVideoThumbnail,
+      $videoCaption,
+      element,
+      iframeCssFloatProperty
+      ) ->
 
-      $videoThumbnail.css 'float', iframeCssFloatProperty
+        $videoThumbnail.css 'float', iframeCssFloatProperty
 
-      # Add video thumbnail
-      $clickableVideoThumbnail.append $videoThumbnail
+        # Add video thumbnail
+        $clickableVideoThumbnail.append $videoThumbnail
 
-      # Add video thumbnail figcaption
-      $clickableVideoThumbnail.append $videoCaption
+        # Add video thumbnail figcaption
+        $clickableVideoThumbnail.append $videoCaption
 
-      $(element).after $clickableVideoThumbnail
+        $(element).after $clickableVideoThumbnail
 
-      # Remove video iframe
-      $(element).remove()
+        # Remove video iframe
+        $(element).remove()
 
     success = (data) ->
       # videoThumbnailSrc = data[0].thumbnail_large
-      # attr = 
+      # attr =
       #  'src': videoThumbnailSrc
 
       if @videoType is 'vimeo'
@@ -77,7 +98,7 @@ class PostProcessHtmlTemplate extends FormatSelectorMixin
       iframeCssFloatProperty = $(element).css 'float'
       iframeWidth = $(element).attr 'width'
       iframeHeight = $(element).attr 'height'
-      
+
       $clickableVideoThumbnail = $ '<a href="" class="video"></a>'
       $clickableVideoThumbnail.attr 'href', iframeSrc
 
@@ -107,7 +128,7 @@ class PostProcessHtmlTemplate extends FormatSelectorMixin
         subUrl = "http://www.youtube.com/watch?v=#{ videoId }&"
         url = "https://noembed.com/embed?url=#{ subUrl }"
 
-        context = 
+        context =
           $videoThumbnail: $videoThumbnail,
           $clickableVideoThumbnail: $clickableVideoThumbnail,
           $videoCaption: $videoCaption,
@@ -115,7 +136,8 @@ class PostProcessHtmlTemplate extends FormatSelectorMixin
           iframeCssFloatProperty: iframeCssFloatProperty,
           videoType: 'youtube'
 
-        promises.push $.ajax @getAjaxData context, url, success, type='GET', dataType='jsonp'
+        promises.push $.ajax @getAjaxData context, url, success, \
+          type='GET', dataType='jsonp'
 
       else if iframeSrc.match(vimeoRegex)
 
@@ -133,10 +155,11 @@ class PostProcessHtmlTemplate extends FormatSelectorMixin
           https://developer.vimeo.com/api/oembed/videos
         ###
 
-        subUrl = "https://vimeo.com/#{ videoId }&width=#{ iframeWidth }&height=#{ iframeHeight }"
+        subUrl = "https://vimeo.com/#{ videoId }&
+          width=#{ iframeWidth }&height=#{ iframeHeight }"
         url = "https://vimeo.com/api/oembed.json?url=#{ subUrl }"
 
-        context = 
+        context =
           $videoThumbnail: $videoThumbnail,
           $clickableVideoThumbnail: $clickableVideoThumbnail,
           $videoCaption: $videoCaption,
@@ -144,7 +167,8 @@ class PostProcessHtmlTemplate extends FormatSelectorMixin
           iframeCssFloatProperty: iframeCssFloatProperty,
           videoType: 'vimeo'
 
-        promises.push $.ajax @getAjaxData context, url, success, type='GET', dataType='jsonp'
+        promises.push $.ajax @getAjaxData context, url, success, \
+          type='GET', dataType='jsonp'
 
     # Wait for an all ajax request done
     $.when.apply(null, promises).done () =>
@@ -209,7 +233,8 @@ class PostProcessHtmlTemplate extends FormatSelectorMixin
     $imgs.each (i, element) =>
 
       $clickableVideoThumbnail = $(element).closest @getClassFormat @_videoClass
-      $img = if $clickableVideoThumbnail.length > 0 then $clickableVideoThumbnail else $(element)
+      $img = if $clickableVideoThumbnail.length > 0 \
+        then $clickableVideoThumbnail else $(element)
 
       if $clickableVideoThumbnail.length == 0
         src = $(element).attr('src')
@@ -226,8 +251,12 @@ class PostProcessHtmlTemplate extends FormatSelectorMixin
 
     $img =  if $img.find('img').length > 0 then $img.find 'img' else $img
 
-    marginLeft = parseInt($img.css('margin-left').split('.')[0].replace('px', ''))
-    marginRight = parseInt($img.css('margin-right').split('.')[0].replace('px', ''))
+    marginLeft = parseInt(
+      $img.css('margin-left').split('.')[0].replace('px', '')
+      )
+    marginRight = parseInt(
+      $img.css('margin-right').split('.')[0].replace('px', '')
+      )
     floatPosition = $img.css 'float'
     $img.css 'display', ''
 
@@ -236,64 +265,64 @@ class PostProcessHtmlTemplate extends FormatSelectorMixin
 
     else if marginLeft > marginRight
 
-        $tableWrapper = @getElementPosition(
-          floatPosition,
-          $img.attr('width'),
-          $img.attr('height')
-          )
-        $tableCell = @convertImgFloatCssPositionToTable(
-          $img, 
-          @_$editTemplatePageContainer, 
-          floatPosition
-          )
+      $tableWrapper = @getElementPosition(
+        floatPosition,
+        $img.attr('width'),
+        $img.attr('height')
+        )
+      $tableCell = @convertImgFloatCssPositionToTable(
+        $img,
+        @_$editTemplatePageContainer,
+        floatPosition
+        )
 
     else if marginRight > marginLeft
 
-        $tableWrapper = @getElementPosition(
-          floatPosition, 
-          $img.attr('width'), 
-          $img.attr('height')
-          )
-        $tableCell = @convertImgFloatCssPositionToTable(
-          $img, 
-          @_$editTemplatePageContainer, 
-          floatPosition
-          )
+      $tableWrapper = @getElementPosition(
+        floatPosition,
+        $img.attr('width'),
+        $img.attr('height')
+        )
+      $tableCell = @convertImgFloatCssPositionToTable(
+        $img,
+        @_$editTemplatePageContainer,
+        floatPosition
+        )
 
     else if (floatPosition is'left') or (floatPosition is'right')
 
-        $tableWrapper = @getElementPosition(
-          floatPosition,
-          $img.attr('width'),
-          $img.attr('height')
-          )
-        $tableCell = @convertImgFloatCssPositionToTable(
-          $img, 
-          @_$editTemplatePageContainer, 
-          floatPosition
-          ) 
+      $tableWrapper = @getElementPosition(
+        floatPosition,
+        $img.attr('width'),
+        $img.attr('height')
+        )
+      $tableCell = @convertImgFloatCssPositionToTable(
+        $img,
+        @_$editTemplatePageContainer,
+        floatPosition
+        )
 
     videoClassSelector = @getClassFormat @_videoClass
     $videoIframe = $img.closest(videoClassSelector)
 
     $tableWrapper.find('td').append(
       if $videoIframe.length > 0
-        $videoIframe.clone() 
+        $videoIframe.clone()
       else $img.clone()
     )
 
     if floatPosition is 'left'
-      $tableWrapper.find('tr').append $tableCell 
-    else 
+      $tableWrapper.find('tr').append $tableCell
+    else
       $tableWrapper.find('tr').prepend $tableCell
 
     if $videoIframe.length > 0
-      $videoIframe.after $tableWrapper 
-    else 
+      $videoIframe.after $tableWrapper
+    else
       $img.after $tableWrapper
 
     if $videoIframe.length > 0
-      $videoIframe.remove() 
+      $videoIframe.remove()
     else
       $img.remove()
 
@@ -301,7 +330,8 @@ class PostProcessHtmlTemplate extends FormatSelectorMixin
 
   convertImgFloatCssPositionToTable: ($img, $editContainer, position) ->
     padding = 15
-    paddingValues = if position is 'left' then "0 0 0 #{ padding }px" else "0 #{ padding }px 0 0"
+    paddingValues = if position is 'left' then "0 0 0 #{ padding }px" \
+      else "0 #{ padding }px 0 0"
 
     $tableCell = $('<td></td>')
     $tableCell.css({
@@ -312,31 +342,37 @@ class PostProcessHtmlTemplate extends FormatSelectorMixin
 
     $videoIframe = $img.closest(@getClassFormat @_videoClass)
     if $videoIframe.length > 0
-      $contextElement = $videoIframe.next().clone() 
+      $contextElement = $videoIframe.next().clone()
     else
       $contextElement = $img.next().clone()
 
-    editContainerWidth = parseFloat($editContainer.find('#content_table').width())
+    editContainerWidth = parseFloat(
+      $editContainer.find('#content_table').width()
+    )
     contextWidth = editContainerWidth - parseFloat($img.attr('width')) - padding
-    $contextElement.css 'width', contextWidth 
+    $contextElement.css 'width', contextWidth
 
     $tableCell.attr 'width', contextWidth
     $tableCell.append $contextElement
 
-    if $videoIframe.length > 0 
-      $videoIframe.next().remove() 
-    else 
+    if $videoIframe.length > 0
+      $videoIframe.next().remove()
+    else
       $img.next().remove()
 
     return $tableCell
 
   _convertTextCssPositionToTable: () ->
 
-    @_$editTemplatePageContainer.find(@_textContainerTags.join(', ')).each (i, element) =>
-      elementCssClass = if $(element).attr('class') then $(element).attr('class').split(' ') else []
+    containers = @_textContainerTags.join(', ')
+
+    @_$editTemplatePageContainer.find(containers).each (i, element) =>
+
+      elementCssClass = if $(element).attr('class') \
+        then $(element).attr('class').split(' ') else []
 
       switch elementCssClass
-        when elementCssClass.indexOf('text-left') > -1 
+        when elementCssClass.indexOf('text-left') > -1
           $tableWrapper = @getElementPosition('left', '', '')
         when elementCssClass.indexOf('text-right') > -1
           $tableWrapper = @getElementPosition('right', '', '')
@@ -372,23 +408,25 @@ class PostProcessHtmlTemplate extends FormatSelectorMixin
     else
       position = 'padding--top'
 
-    paddingValue = $(@_htmlDoc).find('.article__content p').first().css(position)
+    paddingValue = $(@_htmlDoc).find(
+      '.article__content p').first().css(position)
 
     @_getNumberValue(paddingValue)
 
   _fixContentWidth: () ->
 
     paddingValue = @_getPaddingValue()
+    containers = @_textContainerTags.join(', ')
 
-    $(@_htmlDoc).find('article').find(@_textContainerTags.join(', ')).each (index, value) =>
+    $(@_htmlDoc).find('article').find(containers).each (index, value) =>
       origWidth = @_getNumberValue($(value).css('width'))
-      
+
       # Set correct width (orig width - 2 * padding value)
       $(value).css
         width: origWidth - paddingValue * 2
 
   _eraseVerticalSpaceContent: () ->
     # Erase vertical space content
-    @_$editTemplatePageContainer.find(@getClassFormat @_verticalSpaceClassName).each (i, element) =>
+    selector = @getClassFormat @_verticalSpaceClassName
+    @_$editTemplatePageContainer.find(selector).each (i, element) ->
       $(element).find('center').remove()
- 
