@@ -32,13 +32,16 @@ class HtmlTemplateFormFieldWidget extends FormatSelectorMixin
 
     @_editTemplateModalDialogId = editTemplateModalDialogId
 
-    @_popoverModalDialogEditTemplateLinkElementId = popoverModalDialogEditTemplateLinkElementId
+    @_popoverModalDialogEditTemplateLinkElementId = \
+      popoverModalDialogEditTemplateLinkElementId
 
-    @_templateDivFormFieldContainerCSSClass = templateDivFormFieldContainerCSSClass
+    @_templateDivFormFieldContainerCSSClass = \
+      templateDivFormFieldContainerCSSClass
 
-    @_templateTextareaFieldId = templateTextareaFieldId 
+    @_templateTextareaFieldId = templateTextareaFieldId
 
-    @_editTemplateModalDialogPageContainerId = editTemplateModalDialogPageContainerId
+    @_editTemplateModalDialogPageContainerId = \
+      editTemplateModalDialogPageContainerId
 
     @_$templateDivFieldContainer = null
 
@@ -52,14 +55,15 @@ class HtmlTemplateFormFieldWidget extends FormatSelectorMixin
 
     @_popoverModalDialogDestroyDelay = popoverModalDialogDestroyDelay
 
-    @_templateTextAreaFormFieldContainerCSSClass = templateTextAreaFormFieldContainerCSSClass
+    @_templateTextAreaFormFieldContainerCSSClass = \
+      templateTextAreaFormFieldContainerCSSClass
 
     @_templateTypeFieldId = templateTypeFieldId
 
     @_newEmptyTemplateName = null
 
     @_getTemplateNameDialog = null
-    
+
     @_popoverDialogOpts = null
 
     @_editTemplateBtnName = editTemplateBtnName
@@ -80,10 +84,13 @@ class HtmlTemplateFormFieldWidget extends FormatSelectorMixin
     @_$hiddenTemplateField = $ @getIdFormat @_hiddenTemplateFieldId
     @_$templateNameField = $ @getIdFormat @_templateNameFieldId
     @_$templateTypeField = $ @getIdFormat @_templateTypeFieldId
-    @_$templateDivFormFieldContainer = $ @getClassFormat @_templateDivFormFieldContainerCSSClass
-    @_$templateTextAreaFormFieldContainer = $ @getClassFormat @_templateTextAreaFormFieldContainerCSSClass
+    @_$templateDivFormFieldContainer = $ @getClassFormat \
+      @_templateDivFormFieldContainerCSSClass
+    @_$templateTextAreaFormFieldContainer = $ @getClassFormat \
+      @_templateTextAreaFormFieldContainerCSSClass
     @_$templateTextareaField = $ @getIdFormat @_templateTextareaFieldId
-    @_$editTemplateModalDialogPageContainer = $ @getIdFormat @_editTemplateModalDialogPageContainerId
+    @_$editTemplateModalDialogPageContainer = $ @getIdFormat \
+      @_editTemplateModalDialogPageContainerId
     @_$editTemplateBtn = $ @getNameFormat 'input', @_editTemplateBtnName
 
   _bindEvents: () ->
@@ -100,15 +107,17 @@ class HtmlTemplateFormFieldWidget extends FormatSelectorMixin
 
       @_exchangeFormFieldContainerContent()
 
-      # Copy value from template form field div widget to textarea and save as global value
+      # Copy value from template form field div widget to textarea and
+      # save as global value
       textareaValue = @_$templateDivField.html()
-      @_$templateTextareaField.html textareaValue 
+      @_$templateTextareaField.html textareaValue
       @_templateTextareaFieldValue = textareaValue
 
       @_$templateDivField.html ''
 
     else if @_$templateTypeField.val() is 'existed'
-      # Copy value from template form field div widget into hidden field after form page loaded
+      # Copy value from template form field div widget into hidden field
+      # after form page loaded
       @_$hiddenTemplateField.val @_$templateDivField.html()
 
     # Init edit template modal dialog
@@ -126,12 +135,12 @@ class HtmlTemplateFormFieldWidget extends FormatSelectorMixin
         @_$editTemplateBtn.prop('disabled', state)
 
     else
-        @_$editTemplateBtn.prop('disabled', state)
+      @_$editTemplateBtn.prop('disabled', state)
 
   _getTemplateFieldContainer: () ->
     @_$templateDivFieldContainer = @_$templateDivFormFieldContainer
     @_$templateTextareaFieldContainer = @_$templateTextAreaFormFieldContainer
-    return 
+    return
 
   _checkTemplateFieldWidget: () ->
     @_getTemplateFieldContainer()
@@ -149,8 +158,8 @@ class HtmlTemplateFormFieldWidget extends FormatSelectorMixin
       if @_checkTemplateFieldWidget() isnt 'textarea'
         @_exchangeFormFieldContainerContent()
     else if templateType is 'existed'
-        if @_checkTemplateFieldWidget() isnt 'div'
-          @_exchangeFormFieldContainerContentBack()
+      if @_checkTemplateFieldWidget() isnt 'div'
+        @_exchangeFormFieldContainerContentBack()
     return
 
   _exchangeFormFieldContainerContentBack: () ->
@@ -188,7 +197,7 @@ class HtmlTemplateFormFieldWidget extends FormatSelectorMixin
   delay: (ms, func) -> setTimeout func, ms
 
   _mouseMoveOverTemplateEvt: (evt) =>
-    # Mouse move event over template content 
+    # Mouse move event over template content
     # Initialize popover dialog
     offset = $(evt.currentTarget).offset()
     relX = evt.pageX - offset.left
@@ -196,7 +205,8 @@ class HtmlTemplateFormFieldWidget extends FormatSelectorMixin
     offsetTop = relY
     offsetLeft = relX
 
-    @delay @_showPopoverModalDialogDelay, => @_initPopoverModalDialog offsetTop, offsetLeft
+    @delay @_showPopoverModalDialogDelay, => \
+      @_initPopoverModalDialog offsetTop, offsetLeft
 
   _initPopoverModalDialog: (offsetTop, offsetLeft) ->
     @_popoverDialogOpts.mount(offsetTop, offsetLeft)
@@ -204,7 +214,7 @@ class HtmlTemplateFormFieldWidget extends FormatSelectorMixin
   _bindPopoverDialogMouseMoveEvt: () ->
 
     @_popoverDialogOpts = new PopoverModalDialog(
-      gettext('Edit template'), 
+      gettext('Edit template'),
       @_popoverModalDialogBackDrop,
       @_editTemplateModalDialogId,
       @_$templateNameField,
@@ -254,12 +264,13 @@ class HtmlTemplateFormFieldWidget extends FormatSelectorMixin
     attr =
       id: @_templateTextareaFieldId
       name: @_templateTextareaFieldId.slice(3)
-      
+
     @_$templateDivField.attr attr
 
     # Replace template div form field widget label
-    @_$templateDivFieldContainer.find('label').attr('for', @_templateDivFieldId)
-    @_$templateDivFieldContainer.find('label').text(@_$templateTextareaFieldContainer.find('label').text())
+    @_$templateDivFieldContainer.find('label').attr 'for', @_templateDivFieldId
+    @_$templateDivFieldContainer.find('label').text \
+      @_$templateTextareaFieldContainer.find('label').text()
 
     # Replace template textarea form field widget id
     attr =
@@ -287,7 +298,8 @@ class HtmlTemplateFormFieldWidget extends FormatSelectorMixin
 
     # Replace form field container content
     $templateDivFieldContainerChildren = @_$templateDivFieldContainer.children()
-    $templateTextareaFieldContainerChildren = @_$templateTextareaFieldContainer.children()
+    $templateTextareaFieldContainerChildren = \
+      @_$templateTextareaFieldContainer.children()
 
     @_$templateDivFieldContainer .html($templateTextareaFieldContainerChildren)
     @_$templateTextareaFieldContainer.html($templateDivFieldContainerChildren)
@@ -323,7 +335,8 @@ class HtmlTemplateFormFieldWidget extends FormatSelectorMixin
         # Enable edit btn if empty template name
         @_enableDisableEditBtn(false, false)
 
-        templateType = @_$templateNameField.find('option:selected').val().split ':'
+        templateType = @_$templateNameField.find(
+          'option:selected').val().split ':'
 
         dialog = new EditTemplateModalDialog(
           @_editTemplateModalDialogId,
@@ -344,7 +357,8 @@ class HtmlTemplateFormFieldWidget extends FormatSelectorMixin
   _addEditTemplateConfirmEvent: () ->
     confirmEditBtnClass = 'ct-ignition__button--confirm'
 
-    templatePage = document.querySelector @getIdFormat @_editTemplateModalDialogPageContainerId
+    templatePage = document.querySelector \
+      @getIdFormat @_editTemplateModalDialogPageContainerId
     htmlDocument = templatePage.contentDocument
 
     confirmEditBtn = $(htmlDocument).find @getClassFormat confirmEditBtnClass
@@ -372,4 +386,3 @@ class HtmlTemplateFormFieldWidget extends FormatSelectorMixin
       opt = new Option(text, value)
       element.append(opt)
       element.val(value)
-

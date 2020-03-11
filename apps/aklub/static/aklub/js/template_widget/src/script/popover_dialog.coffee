@@ -5,7 +5,7 @@
 class PopoverModalDialog extends FormatSelectorMixin
 
   @editTemplateLinkText = gettext('Edit template')
-  
+
   constructor: (
     title,
     backdrop,
@@ -30,9 +30,11 @@ class PopoverModalDialog extends FormatSelectorMixin
 
     @_$mountElement = $mountElement
 
-    @_popoverModalDialogEditTemplateLinkElementId = popoverModalDialogEditTemplateLinkElementId
+    @_popoverModalDialogEditTemplateLinkElementId = \
+      popoverModalDialogEditTemplateLinkElementId
 
-    @_$editTemplateModalDialogPageContainer = $editTemplateModalDialogPageContainer
+    @_$editTemplateModalDialogPageContainer = \
+      $editTemplateModalDialogPageContainer
 
     @_$hiddenTemplateField = $hiddenTemplateField
 
@@ -44,20 +46,20 @@ class PopoverModalDialog extends FormatSelectorMixin
     element.click (evt) =>
 
       evt.preventDefault()
-      
+
       templateNameSelectedOpt = @_$templateNameField.find('option:selected')
       templateName = templateNameSelectedOpt.text()
       templateType = templateNameSelectedOpt.val().split(':')
 
       # Show edit template modal dialog
       dialog = new EditTemplateModalDialog(
-        @_editTemplateModalDialogId, 
+        @_editTemplateModalDialogId,
         @_popoverModalDialogEditTemplateLinkElementId,
         @_$editTemplateModalDialogPageContainer,
         @_$hiddenTemplateField,
         @_$templateDivField
         )
-    
+
       dialog.mount templateName, 'openViaPopoverDialog', templateType
 
       # Destroy popover dialog
@@ -81,23 +83,26 @@ class PopoverModalDialog extends FormatSelectorMixin
 
   delay: (ms, func) -> setTimeout func, ms
 
-  @getContent: (popoverModalDialogEditTemplateLinkElementId, editTemplateModalDialogId) ->
+  @getContent: (
+    popoverModalDialogEditTemplateLinkElementId,
+    editTemplateModalDialogId,
+    ) ->
 
-    $element = $ '<a></a>'
-    $element.attr
-      id: @dialogId,
-      href: ''
+      $element = $ '<a></a>'
+      $element.attr
+        id: @dialogId,
+        href: ''
 
-    editTemplateModalDialogAttr =
-      id: popoverModalDialogEditTemplateLinkElementId,
-      'data-type': 'modal',
-      'data-target': editTemplateModalDialogId,
-      'data-fullscreen': 'true',
-      'data-overlayClick': 'true'
+      editTemplateModalDialogAttr =
+        id: popoverModalDialogEditTemplateLinkElementId,
+        'data-type': 'modal',
+        'data-target': editTemplateModalDialogId,
+        'data-fullscreen': 'true',
+        'data-overlayClick': 'true'
 
-    $element.attr editTemplateModalDialogAttr
-    $element.html "<b>#{ @editTemplateLinkText }</b>"
-    return $element
+      $element.attr editTemplateModalDialogAttr
+      $element.html "<b>#{ @editTemplateLinkText }</b>"
+      return $element
 
   _getOpt: () ->
 
@@ -105,7 +110,7 @@ class PopoverModalDialog extends FormatSelectorMixin
       @show element
 
     content = PopoverModalDialog.getContent(
-      @_popoverModalDialogEditTemplateLinkElementId, 
+      @_popoverModalDialogEditTemplateLinkElementId,
       @getIdFormat @_editTemplateModalDialogId
       )
 
@@ -119,4 +124,3 @@ class PopoverModalDialog extends FormatSelectorMixin
       animation: 'fade'
       backdrop: @_backdrop,
       onShow: show
-
