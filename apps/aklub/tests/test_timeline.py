@@ -36,9 +36,9 @@ class TimelineTest(CreateSuperUserMixin, TestCase):
                 administrative_unit=unit,
         )
 
-        # Search by email
+        # Search by id
         urlsafe_query = query_to_base64({
-            'search_string': 'foo@bar.cz',
+            'search_profile_pks': ['2978'],
         })
         address = reverse('helpdesk:timeline_ticket_list', args=[urlsafe_query])
         response = self.client.get(address)
