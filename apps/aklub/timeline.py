@@ -1,6 +1,6 @@
 import datetime
 
-from aklub.models import Payment, ProfileEmail, UserProfile
+from aklub.models import Payment, Profile
 
 from django.utils.translation import ugettext as _
 
@@ -24,21 +24,9 @@ def is_period(interaction):
 
 class Query(__Query__):
     def get_timeline_context(self):  # noqa
-
         context = super().get_timeline_context()
-        search = self.params.get('search_string', '')
         events = []
-        profiles = set()
-        for subsearch in search.split("OR"):
-            if "@" in subsearch:
-                for profileemail in ProfileEmail.objects.filter(email=subsearch.strip()):
-                    profiles.add(profileemail.user)
-                for profile in UserProfile.objects.filter(email=subsearch.strip()):
-                    profiles.add(profile)
-        for profile_pk in self.params.get('search_profile_pks', []):
-            fps = UserProfile.objects.filter(pk=profile_pk)
-            for profile in fps:
-                profiles.add(profile)
+        profiles = Profile.objects.filter(pk__in=self.params.get('search_profile_pks', []))
         for profile in profiles:
             if self.huser.user.can_administer_profile(profile):
                 events.append({
