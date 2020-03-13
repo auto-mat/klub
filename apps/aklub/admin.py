@@ -143,7 +143,7 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
         'get_sum_amount',
         'get_payment_count',
         'get_last_payment_date',
-        'get_payment_details',
+        'get_dpch_details',
         'get_payment_list_link',
     )
     fieldsets = (
@@ -157,7 +157,7 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
                     'get_sum_amount',
                     'get_payment_count',
                     'get_last_payment_date',
-                    'get_payment_details',
+                    'get_dpch_details',
                     'get_payment_list_link',
                 ),
             ),
@@ -197,16 +197,16 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
         return obj.last_payment_date
     get_last_payment_date.short_description = _('Last payment date')
 
-    def get_payment_details(self, obj):
+    def get_dpch_details(self, obj):
         url = reverse('admin:aklub_donorpaymentchannel_change', args=(obj.pk,))
         if obj.pk:
             redirect_button = mark_safe(
-                                f"<a href='{url}'><input type='button' value='Details'></a>"
+                                f"<a href='{url}'><input type='button' value='details'></a>"
                                 )
         else:
             redirect_button = None
         return redirect_button
-    get_payment_details.short_description = _('Payment Details')
+    get_dpch_details.short_description = _('DPCH details')
 
     def get_queryset(self, request):
         if not request.user.has_perm('aklub.can_edit_all_units'):
@@ -1183,7 +1183,6 @@ class DonorPaymetChannelAdmin(
     save_as = True
     list_max_show_all = 10000
     list_per_page = 100
-    inlines = (PaymentsInline, )
     raw_id_fields = (
         'user',
         # 'recruiter',
