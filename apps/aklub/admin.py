@@ -1420,6 +1420,18 @@ class PaymentAdmin(
     ]
     list_max_show_all = 10000
 
+    def get_changeform_initial_data(self, request, *args, **kwargs):
+        """
+        if filter on current dpch is active -> fill dpch field in add form
+        """
+        initial = super().get_changeform_initial_data(request)
+        if initial and 'user_donor_payment_channel' in initial.get('_changelist_filters'):
+            get_data = initial['_changelist_filters'].split('&')
+            dpch = [dpch for dpch in get_data if 'user_donor_payment_channel' in dpch][0].split('=')[1]
+            return {
+                'user_donor_payment_channel': dpch,
+            }
+
 
 class NewUserAdmin(DonorPaymetChannelAdmin):
     list_display = (
