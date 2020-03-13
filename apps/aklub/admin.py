@@ -814,6 +814,28 @@ class ProfileAdminMixin:
             last_payment_date=Max('userchannels__payment__date'),
         )
 
+    def change_view(self, request, object_id, extra_context=None, **kwargs):
+        from helpdesk.query import query_to_base64
+        extra_context = extra_context or {}
+        extra_context['urlsafe_query'] = query_to_base64({
+            'search_string': "OR".join([pe.email for pe in ProfileEmail.objects.filter(user__pk=object_id)]),
+            'search_profile_pks': [object_id],
+        })
+        extra_context['display_fields'] = serializers.serialize('json', InteractionType.objects.all())
+
+        ignore_required = ['id', 'user', 'baseinteraction2_ptr']
+        extra_context['required_fields'] = [
+                    field.name for field in Interaction._meta.get_fields()
+                    if not field.blank and field.name not in ignore_required
+        ]
+        extra_context['object_id'] = object_id
+        return super().change_view(
+            request,
+            object_id,
+            extra_context=extra_context,
+            **kwargs,
+        )
+
 
 class ProfileAdmin(
     filters.AdministrativeUnitAdminMixin,
@@ -1719,7 +1741,7 @@ class UserProfileAdmin(
     show_in_index = True
     resource_class = UserProfileResource
     import_template_name = "admin/import_export/userprofile_import.html"
-    change_form_template = "admin/aklub/userprofile_changeform.html"
+    change_form_template = "admin/aklub/profile_changeform.html"
     list_display = (
         'person_name',
         'username',
@@ -1893,40 +1915,19 @@ class UserProfileAdmin(
 
         return super().add_view(request)
 
-    def change_view(self, request, object_id, extra_context=None, **kwargs):
-        from helpdesk.query import query_to_base64
-        extra_context = extra_context or {}
-        extra_context['urlsafe_query'] = query_to_base64({
-            'search_string': "OR".join([pe.email for pe in ProfileEmail.objects.filter(user__pk=object_id)]),
-            'search_profile_pks': [object_id],
-        })
-        extra_context['display_fields'] = serializers.serialize('json', InteractionType.objects.all())
-
-        ignore_required = ['id', 'user', 'baseinteraction2_ptr']
-        extra_context['required_fields'] = [
-                    field.name for field in Interaction._meta.get_fields()
-                    if not field.blank and field.name not in ignore_required
-        ]
-        extra_context['object_id'] = object_id
-        return super().change_view(
-            request,
-            object_id,
-            extra_context=extra_context,
-            **kwargs,
-        )
-
 
 @admin.register(CompanyProfile)
 class CompanyProfileAdmin(
         child_redirect_mixin('companyprofile'), filters.AdministrativeUnitAdminMixin,
         ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFiltersMixin,
-        BaseProfileChildAdmin, ProfileAdminMixin,
+        ProfileAdminMixin, BaseProfileChildAdmin,
 ):
     """ Company profile polymorphic admin model child class """
     base_model = CompanyProfile
     show_in_index = True
     resource_class = CompanyProfileResource
     import_template_name = "admin/import_export/userprofile_import.html"
+    change_form_template = "admin/aklub/profile_changeform.html"
     list_display = (
         'name',
         'crn',
