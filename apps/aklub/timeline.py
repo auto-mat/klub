@@ -65,7 +65,7 @@ class Query(__Query__):
                                 ).filter(user_donor_payment_channel__user=profile.pk):
 
                     events.append({
-                        'group': _('Events'),
+                        'group': _('Payments'),
                         'start_date': self.mk_timeline_date(
                             datetime.datetime.combine(payment.date, datetime.time(0, 0)),
                         ),
