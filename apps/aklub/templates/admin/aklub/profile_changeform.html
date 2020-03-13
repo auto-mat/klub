@@ -40,7 +40,7 @@
   );
 
    // if interaction type is changed
-   $(document).on("change",".field-type select", (function(){
+   $(document).on("change",".field-type .field-type select", (function(){
      var inline_id  = $(this).attr("id").match("set-(.*)-type")[1]; // get id of changed inline
      var type_id  = $(this).val();
      $("#interaction_set-"+inline_id + " .form-row .fieldBox").css("display", "none"); //  need to hide all elemnts in row
