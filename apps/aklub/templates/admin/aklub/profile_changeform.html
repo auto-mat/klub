@@ -40,7 +40,7 @@
   );
 
    // if interaction type is changed
-   $(".field-type select").live("change",(function(){
+   $(document).on("change",".field-type select", (function(){
      var inline_id  = $(this).attr("id").match("set-(.*)-type")[1]; // get id of changed inline
      var type_id  = $(this).val();
      $("#interaction_set-"+inline_id + " .form-row .fieldBox").css("display", "none"); //  need to hide all elemnts in row
@@ -50,7 +50,7 @@
    }));
 
    // if add next interaction is clicked
-    $(" #interaction_set-group .add-row a ").live("click",function(){
+    $(document).on("click","#interaction_set-group .add-row a",function(){
       var last_inline_id = $('#interaction_set-group .inline-related').length - 2
       show_required({{required_fields|safe}}, last_inline_id)
 
