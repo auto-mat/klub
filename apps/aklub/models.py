@@ -218,6 +218,15 @@ class AdministrativeUnit(models.Model, ParseAccountStatement):
         default='#000000',
         help_text=_("Choose color to help discern Administrative unit in app"),
     )
+    slug = models.SlugField(
+        verbose_name=_("Slug"),
+        help_text=_("Identifier of the administrative unit"),
+        default=None,
+        max_length=100,
+        unique=True,
+        blank=False,
+        null=True,
+    )
 
     def __str__(self):
         return str(self.name)
@@ -677,6 +686,13 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
         auto_now=True,
         null=True,
     )
+    unsubscribe_token = models.CharField(
+        verbose_name=_("unsubscribe token"),
+        max_length=180,
+        unique=True,
+        null=True,
+        blank=True,
+    )
     administrative_units = models.ManyToManyField(
         AdministrativeUnit,
         verbose_name=_("administrative units"),
@@ -688,7 +704,6 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
         related_name='administrators',
         blank=True,
     )
-
     """
     next_communication_date = models.DateField(
         verbose_name=_("Date of next communication"),
@@ -797,19 +812,21 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
     def __str__(self):
         return str(self.person_name())
 
-    def clean(self):
+    def clean(self, *args, **kwargs):
         if self.email:
             self.email = self.email.lower()
         if self.email == "":
             self.email = None
 
+        if not self.unsubscribe_token:
+            import secrets
+            self.unsubscribe_token = secrets.token_urlsafe(16)
+        super().clean(*args, **kwargs)
+
     def save(self, *args, **kwargs):
-        self.clean()
         if not self.username and not self.id:
             from .views import get_unique_username
             self.username = get_unique_username(self.email)
-        if self.email:
-            self.email = self.email.lower()
         super().save(*args, **kwargs)
 
     def get_telephone(self):
