@@ -34,7 +34,7 @@ from django.core.validators import MinLengthValidator, RegexValidator
 from django.db.models import Case, CharField, Count, IntegerField, Q, Sum, Value, When
 from django.db.models.functions import TruncMonth
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render_to_response
+from django.shortcuts import get_object_or_404, redirect, render, render_to_response
 from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext_lazy as _
@@ -50,7 +50,7 @@ from sesame.backends import ModelBackend
 from . import autocom
 from .models import (
     BankAccount,
-    DonorPaymentChannel, Event, Payment, PetitionSignature,
+    DonorPaymentChannel, Event, Payment, PetitionSignature, Preference,
     Profile, ProfileEmail, Source, Telephone, UserInCampaign,
     UserProfile,
 )
@@ -784,3 +784,24 @@ class ConfirmEmailView(SesameUserMixin, View):
         user_in_campaign.save()
         cache.clear()
         return redirect(user_in_campaign.campaign.email_confirmation_redirect, permanent=False)
+
+
+class UnsubscribeView(View):
+    def get(self, *args, **kwargs):
+        # url format = /unsubscribe/automat/?profile=token_hex
+        unit = kwargs.get('slug')
+        profile_token = self.request.GET['profile']
+        try:
+            user_preference = Preference.objects.get(
+                                        user__unsubscribe_token=profile_token,
+                                        administrative_unit__slug=unit,
+            )
+            user_preference.send_mailing_lists = False
+            user_preference.newsletter_on = False
+            user_preference.save()
+            message = _('Unsubscribe from the email communication was successful ')
+        except Preference.DoesNotExist:
+            message = _("""Unsubscribe from the email communication was not successful.\n
+                        Contact us personally""")
+
+        return render(self.request, 'unsubscribe.html', {'message': message})
