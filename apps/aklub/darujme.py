@@ -157,13 +157,14 @@ def get_cetnost_regular_payments(data):
 def create_payment(data, payments, skipped_payments):  # noqa
     if data['email'] == '':
         return
-
     id_platby = data.get('id_platby')
+    campaign = get_campaign(data)
 
     if id_platby and Payment.objects.filter(type='darujme', SS=data['id'], operation_id=None).exists():
         payment = Payment.objects.filter(type='darujme', SS=data['id'], operation_id=None).first()
         payment.operation_id = id_platby
         payment.date = data['datum_prichozi_platby'] or data['datum_daru']
+        payment.recipient_account = campaign
         payment.save()
         return None
 
@@ -195,6 +196,7 @@ def create_payment(data, payments, skipped_payments):  # noqa
 
     amount = max(data['obdrzena_castka'] or data['uvedena_castka'], 0)
     p = None
+
     if STATE_OK_MAP[data['stav'].strip()]:
         p = Payment()
         p.type = 'darujme'
@@ -204,7 +206,8 @@ def create_payment(data, payments, skipped_payments):  # noqa
         p.amount = amount
         p.account_name = u'%s, %s' % (data['prijmeni'], data['jmeno'])
         p.user_identification = data['email']
-    campaign = get_campaign(data)
+        p.recipient_account = campaign
+
     username = get_unique_username(data['email'])
     email, email_created = ProfileEmail.objects.get_or_create(
                 email=data['email'],
