@@ -162,6 +162,19 @@ class InteractionAdmin(ImportExportMixin, RelatedFieldAdmin, admin.ModelAdmin):
         data['required_fields'] = [field.name for field in Interaction._meta.get_fields() if not field.blank]
         return super().add_view(request, form_url, extra_context=data,)
 
+    def get_changeform_initial_data(self, request, *args, **kwargs):
+        """
+        if filter on current user is active -> fill user field in add form
+        (can happen if view older interactions is clicked in profile)
+        """
+        initial = super().get_changeform_initial_data(request)
+        if initial and 'user' in initial.get('_changelist_filters'):
+            get_data = initial['_changelist_filters'].split('&')
+            user = [user for user in get_data if 'user' in user][0].split('=')[1]
+            return {
+                'user': user,
+            }
+
 
 @admin.register(InteractionCategory)
 class InteractionCategoryAdmin(admin.ModelAdmin):
