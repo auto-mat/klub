@@ -8,7 +8,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('aklub', '0068_delete_result'),
+        ('aklub', '0069_delete_result'),
         ('interactions', '0002_auto_20200130_0953'),
     ]
 

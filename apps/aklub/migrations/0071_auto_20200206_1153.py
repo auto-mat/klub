@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aklub', '0069_auto_20200206_1428'),
+        ('aklub', '0070_auto_20200206_1428'),
     ]
 
     def default_data_migration_mass_auto(apps, schema_editor):
