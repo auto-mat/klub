@@ -18,7 +18,8 @@ Instalace probíhá pomocí následujícíh příkazů:
 
 * sudo apt-get install libgraphviz-dev
 * pipenv install
-* cd apps/aklub && django-admin.py compilemessages -l "cs\_CZ"
+* pipenv shell
+* python manage.py compilemessages -l "cs_CZ"
 
 Instalace (Docker compose)
 ==========================

@@ -48,7 +48,7 @@ from django.utils.timesince import timesince
 from django.utils.translation import ugettext_lazy as _
 
 from polymorphic.managers import PolymorphicManager
-from polymorphic.models import PolymorphicModel
+from polymorphic.models import PolymorphicModel, PolymorphicTypeUndefined
 
 from smmapdfs.model_abcs import PdfSandwichABC, PdfSandwichFieldABC
 
@@ -713,26 +713,25 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
         return self.interaction_set.filter(type__send_email=True, dispatched=True).count()
 
     def person_name(self):
-        if hasattr(self, 'title_before'):
-            if self.first_name or self.last_name:
+        try:
+            profile = self.get_real_instance()
+        except PolymorphicTypeUndefined:
+            profile = self
+        if hasattr(profile, 'title_before'):
+            if profile.first_name or profile.last_name:
                 return " ".join(
                     filter(
                         None,
                         [
-                            self.title_before,
-                            self.last_name,
-                            self.first_name,
+                            profile.title_before,
+                            profile.last_name,
+                            profile.first_name,
                         ],
                     ),
-                ) + (", %s" % self.title_after if self.title_after else "")
-            return self.username
-        else:
-            if hasattr(self, 'name'):
-                if self.name:
-                    return self.name
-                else:
-                    return self.username
-            return self.username
+                ) + (", %s" % profile.title_after if profile.title_after else "")
+        elif hasattr(profile, 'name') and profile.name:
+            return profile.name
+        return profile.username
 
     person_name.short_description = _("Full name")
     person_name.admin_order_field = 'last_name'
@@ -1453,10 +1452,6 @@ class UserInCampaign(models.Model):
         autocom_check(users=UserProfile.objects.filter(userchannels__pk=self.pk, event=self.event), action=(insert and 'new-user' or None))
 
 
-def filter_by_condition(queryset, cond):
-    return queryset.filter(cond.condition.get_query()).distinct()
-
-
 def str_to_datetime_xml(date):
     return datetime.date(
         **dict(
@@ -1643,9 +1638,7 @@ class ApiAccount(MoneyAccount):
         Event,
         help_text=("Event"),
         verbose_name=("Event"),
-        blank=True,
-        on_delete=models.SET_NULL,
-        null=True,
+        on_delete=models.CASCADE,
     )
 
     def __str__(self):
@@ -1805,7 +1798,7 @@ class DonorPaymentChannel(models.Model):
 
     def __str__(self):
         return "Payment channel: {} - {}".format(
-            self.user.email if self.user else '',
+            self.user.get_email_str() if self.user else '',
             self.VS,
         )
 
@@ -2150,6 +2143,13 @@ class Payment(WithAdminUrl, models.Model):
         ('darujme', 'Darujme.cz'),
     )
 
+    recipient_account = models.ForeignKey(
+        MoneyAccount,
+        verbose_name=("Recipient account"),
+        help_text=_("Recipient bank account number"),
+        on_delete=models.SET_NULL,
+        null=True,
+    )
     date = models.DateField(
         verbose_name=_("Date of payment"),
     )

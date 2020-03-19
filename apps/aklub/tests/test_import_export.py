@@ -20,6 +20,157 @@ from ..models import ( # noqa
 )
 
 
+class PaymentsImportExportTests(CreateSuperUserMixin, TestCase):
+    def setUp(self):
+        super().setUp()
+        self.factory = RequestFactory()
+        self.client.force_login(self.superuser)
+
+        au = mommy.make(
+                    "aklub.administrativeunit",
+                    name='test_unit',
+                    )
+
+        self.bank_account = mommy.make(
+                            'aklub.BankAccount',
+                            id=11,
+                            bank_account_number='111111/1111',
+                            administrative_unit=au,
+                            )
+        self.donor_payment_channel = mommy.make(
+                            'aklub.donorpaymentchannel',
+                            money_account=self.bank_account,
+                            id=11,
+        )
+
+    def test_payments_import(self):
+        "test payments import"
+        address = reverse('admin:aklub_payment_import')
+        response_address = self.client.get(address)
+        self.assertEqual(response_address.status_code, 200)
+
+        p = pathlib.PurePath(__file__)
+        csv_file_create_interactions = os.path.join(p.parents[1], 'test_data', 'create_payments.csv')
+
+        with open(csv_file_create_interactions, "rb") as f:
+            data = {
+                'input_format': 0,
+                'import_file': f,
+            }
+            response = self.client.post(address, data)
+        self.assertEqual(response.status_code, 200)
+        with open("response.html", "w") as f:  # pragma: no cover
+            f.write(response.content.decode())  # pragma: no cover
+
+        result = re.search(
+            r'<input type="hidden" name="import_file_name".*?>',
+            response.rendered_content,
+        )
+
+        file_name = [val.split('=')[-1].replace('"', '') for val in result.group(0).split(' ') if 'value' in val][0]
+        post_data = {
+            'import_file_name': file_name,
+            'original_file_name': 'create_payments.csv',
+            'input_format': 0,
+        }
+
+        address = reverse('admin:aklub_payment_process_import')
+        response = self.client.post(address, post_data)
+        self.assertRedirects(response, expected_url=reverse('admin:aklub_payment_changelist'))
+
+        # check new payments
+        payments = self.bank_account.payment_set.all()
+        p1 = payments.get(amount='20000')
+        self.assertEqual(p1.recipient_account, self.bank_account)
+        self.assertEqual(p1.user_donor_payment_channel, None)
+        self.assertEqual(p1.date,  datetime.date(2017, 12, 24))
+        self.assertEqual(p1.amount, 20000)
+        self.assertEqual(p1.VS, '')
+        self.assertEqual(p1.VS2, '')
+        self.assertEqual(p1.SS, '')
+        self.assertEqual(p1.KS, '')
+        self.assertEqual(p1.BIC, '')
+        self.assertEqual(p1.user_identification, '')
+        self.assertEqual(p1.type, 'cash')
+        self.assertEqual(p1.done_by, '')
+        self.assertEqual(p1.account_name, '')
+        self.assertEqual(p1.bank_name, '')
+        self.assertEqual(p1.transfer_note, '')
+        self.assertEqual(p1.currency, '')
+        self.assertEqual(p1.recipient_message, '')
+        self.assertEqual(p1.operation_id, '')
+        self.assertEqual(p1.transfer_type, '')
+        self.assertEqual(p1.specification, '')
+        self.assertEqual(p1.order_id, '')
+
+        p2 = payments.get(amount='111')
+        self.assertEqual(p2.recipient_account, self.bank_account)
+        self.assertEqual(p2.user_donor_payment_channel, self.donor_payment_channel)
+        self.assertEqual(p2.date, datetime.date(2018, 2, 20))
+        self.assertEqual(p2.amount, 111)
+        self.assertEqual(p2.VS, '1234')
+        self.assertEqual(p2.VS2, '')
+        self.assertEqual(p2.SS, '111')
+        self.assertEqual(p2.KS, '')
+        self.assertEqual(p2.BIC, '')
+        self.assertEqual(p2.user_identification, '')
+        self.assertEqual(p2.type, 'bank-transfer')
+        self.assertEqual(p2.done_by, 'Test')
+        self.assertEqual(p2.account_name, '')
+        self.assertEqual(p2.bank_name, '')
+        self.assertEqual(p2.transfer_note, 'have nice day!2')
+        self.assertEqual(p2.currency, 'CZ')
+        self.assertEqual(p2.recipient_message, 'Message Test?')
+        self.assertEqual(p2.operation_id, '')
+        self.assertEqual(p2.transfer_type, '')
+        self.assertEqual(p2.specification, '')
+        self.assertEqual(p2.order_id, '')
+
+        p3 = payments.get(amount='10000')
+        self.assertEqual(p3.recipient_account, self.bank_account)
+        self.assertEqual(p3.user_donor_payment_channel, None)
+        self.assertEqual(p3.date, datetime.date(2020, 2, 20))
+        self.assertEqual(p3.amount, 10000)
+        self.assertEqual(p3.VS, '1234')
+        self.assertEqual(p3.VS2, '4321')
+        self.assertEqual(p3.SS, '111')
+        self.assertEqual(p3.KS, '111')
+        self.assertEqual(p3.BIC, '443322')
+        self.assertEqual(p3.user_identification, '')
+        self.assertEqual(p3.type, 'bank-transfer')
+        self.assertEqual(p3.done_by, 'Done by')
+        self.assertEqual(p3.account_name, 'Testing user account')
+        self.assertEqual(p3.bank_name, 'TestBANK s.r.o.')
+        self.assertEqual(p3.transfer_note, 'have nice day!')
+        self.assertEqual(p3.currency, 'CZ')
+        self.assertEqual(p3.recipient_message, 'Test message')
+        self.assertEqual(p3.operation_id, '')
+        self.assertEqual(p3.transfer_type, 'Bezhotovostní příjem')
+        self.assertEqual(p3.specification, '')
+        self.assertEqual(p3.order_id, '')
+
+    def test_payment_export(self):
+        mommy.make(
+            'aklub.payment',
+            recipient_account=self.bank_account,
+            amount=1000,
+            VS='111',
+            date=datetime.date(2020, 2, 20),
+            transfer_note='export_test_note',
+        )
+        address = "/aklub/payment/export/"
+        post_data = {
+            'file_format': 0,
+        }
+        response = self.client.post(address, post_data)
+        with open("response.html", "w") as f:  # pragma: no cover
+            f.write(response.content.decode())  # pragma: no cover
+        self.assertContains(
+            response,
+            '11,,2020-02-20,1000,111,,,,,,,,,,export_test_note,,,,,,,',
+        )
+
+
 class InteractionsImportExportTests(CreateSuperUserMixin, TestCase):
     def setUp(self):
         super().setUp()
@@ -1013,4 +1164,4 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         preference = Preference.objects.filter(user=company_profile[0], administrative_unit=1)
         self.assertEqual(preference[0].send_mailing_lists, False)
         self.assertEqual(preference[0].letter_on, False)
-        self.assertEqual(list(company_profile[0].administrative_units.all().values_list('name')), [('AU1',), ('AU2',)])
+        self.assertEqual(list(company_profile[0].administrative_units.all().values_list('name').order_by('name')), [('AU1',), ('AU2',)])

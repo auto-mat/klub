@@ -199,6 +199,7 @@ INSTALLED_APPS = (
     'django.contrib.humanize',
     'django_nyt.apps.DjangoNytConfig',
     'stdimage',
+    'dbbackup',
     'bootstrapform',
     'bootstrap4form',
     'django_extensions',
@@ -419,6 +420,11 @@ def get_interaction_resource():
     return InteractionResource
 
 
+def get_payment_channel_resource():
+    from aklub.admin import PaymentResource
+    return PaymentResource
+
+
 IMPORT_EXPORT_CELERY_MODELS = {
     "User profile": {
         'app_label': 'aklub',
@@ -439,6 +445,11 @@ IMPORT_EXPORT_CELERY_MODELS = {
         'app_label': 'interactions',
         'model_name': 'Interaction',
         'resource': get_interaction_resource,
+    },
+    "Payments": {
+        'app_label': 'aklub',
+        'model_name': 'payment',
+        'resource': get_payment_channel_resource,
     },
 }
 

@@ -281,6 +281,7 @@ class TestNameFunctions(TestCase):
     """ Test DonorPaymentChannel.person_name(), DonorPaymentChannel.__str__() """
 
     def setUp(self):
+
         user_profile = mommy.make(
             "aklub.UserProfile",
             first_name="Test",
@@ -288,11 +289,23 @@ class TestNameFunctions(TestCase):
             email="test@test.com",
             title_before="Ing.",
         )
+        mommy.make(
+            'aklub.ProfileEmail',
+            email="test@test.com",
+            user=user_profile,
+            is_primary=True,
+        )
         company_profile = mommy.make(
             "aklub.CompanyProfile",
             username="test",
             name="Company",
             email="test@test.com",
+        )
+        mommy.make(
+            'aklub.ProfileEmail',
+            email="test@test.com",
+            user=company_profile,
+            is_primary=True,
         )
         administrative_unit = mommy.make(
             "aklub.AdministrativeUnit",

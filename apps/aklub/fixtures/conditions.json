@@ -75,7 +75,8 @@
     "model": "flexible_filter_conditions.condition",
     "pk": 11,
     "fields": {
-        "operation": "nor",
+        "operation": "or",
+        "negate": true,
         "conds": null,
         "named_condition": 11
     }
@@ -147,7 +148,8 @@
     "model": "flexible_filter_conditions.condition",
     "pk": 19,
     "fields": {
-        "operation": "nor",
+        "operation": "or",
+        "negate": true,
         "conds": 20,
         "named_condition": null
     }
@@ -246,7 +248,8 @@
     "model": "flexible_filter_conditions.condition",
     "pk": 32,
     "fields": {
-        "operation": "nor",
+        "operation": "or",
+        "negate": true,
         "conds": null,
         "named_condition": 32
     }
@@ -255,7 +258,8 @@
     "model": "flexible_filter_conditions.condition",
     "pk": 33,
     "fields": {
-        "operation": "nor",
+        "operation": "or",
+        "negate": true,
         "conds": null,
         "named_condition": 33
     }
