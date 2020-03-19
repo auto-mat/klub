@@ -43,6 +43,7 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
         self.unit = AdministrativeUnit.objects.get(pk=1)
 
     def test_bank_new_statement_fio(self):
+        recipient_account = mommy.make("aklub.bankaccount", bank_account_number='2400063333/2010', administrative_unit=self.unit)
         with open("apps/aklub/test_data/Pohyby_5_2016.csv", "rb") as f:
             a = AccountStatements(csv_file=File(f), type="account", administrative_unit=self.unit)
             a.clean()
@@ -78,10 +79,12 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
         self.assertEqual(p1.specification, "Account specification")
         self.assertEqual(p1.order_id, "1232")
         self.assertEqual(p1.user_donor_payment_channel, donor_channel)
+        self.assertEqual(p1.recipient_account, recipient_account)
 
         self.assertEqual(donor_channel.payment_set.get(date=datetime.date(2016, 1, 18)), a1.payment_set.get(account=2150508001))
 
     def test_bank_new_statement_cs(self):
+        recipient_account = mommy.make("aklub.bankaccount", bank_account_number='99999999/2010', administrative_unit=self.unit)
         with open("apps/aklub/test_data/Pohyby_cs.csv", "rb") as f:
             a = AccountStatements(csv_file=File(f), type="account_cs", administrative_unit=self.unit)
             a.clean()
@@ -111,15 +114,17 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
         self.assertEqual(p1.transfer_note, "Message for sender 1")
         self.assertEqual(p1.currency, None)
         self.assertEqual(p1.recipient_message, "Message for recepien 1")
-        self.assertEqual(p1.operation_id, "112")
+        self.assertEqual(p1.operation_id, "201903110000301585001001")
         self.assertEqual(p1.transfer_type, None)
         self.assertEqual(p1.specification, None)
         self.assertEqual(p1.order_id, None)
         self.assertEqual(p1.user_donor_payment_channel, donor_channel)
+        self.assertEqual(p1.recipient_account, recipient_account)
 
         self.assertEqual(donor_channel.payment_set.get(date=datetime.date(2019, 3, 11)), a1.payment_set.get(account='20000-92392323'))
 
     def test_bank_new_statement_kb(self):
+        recipient_account = mommy.make("aklub.bankaccount", bank_account_number='999-99999999/2010', administrative_unit=self.unit)
         with open("apps/aklub/test_data/pohyby_kb.csv", "rb") as f:
             a = AccountStatements(csv_file=File(f), type="account_kb", administrative_unit=self.unit)
             a.clean()
@@ -155,10 +160,12 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
         self.assertEqual(p1.specification, None)
         self.assertEqual(p1.order_id, None)
         self.assertEqual(p1.user_donor_payment_channel, donor_channel)
+        self.assertEqual(p1.recipient_account, recipient_account)
 
         self.assertEqual(donor_channel.payment_set.get(date=datetime.date(2010, 2, 1)), a1.payment_set.get(account='28937-32323234'))
 
     def test_bank_new_statement_csob(self):
+        recipient_account = mommy.make("aklub.bankaccount", bank_account_number='99999999/0300', administrative_unit=self.unit)
         with open("apps/aklub/test_data/pohyby_csob.csv", "rb") as f:
             a = AccountStatements(csv_file=File(f), type="account_csob", administrative_unit=self.unit)
             a.clean()
@@ -194,10 +201,12 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
         self.assertEqual(p1.specification, None)
         self.assertEqual(p1.order_id, None)
         self.assertEqual(p1.user_donor_payment_channel, donor_channel)
+        self.assertEqual(p1.recipient_account, recipient_account)
 
         self.assertEqual(donor_channel.payment_set.get(date=datetime.date(2019, 7, 19)), a1.payment_set.get(account='99999999'))
 
     def test_bank_new_statement_sberbank(self):
+        recipient_account = mommy.make("aklub.bankaccount", bank_account_number='9999999999/0800', administrative_unit=self.unit)
         with open("apps/aklub/test_data/pohyby_sberbank.txt", "rb") as f:
             a = AccountStatements(csv_file=File(f), type="account_sberbank", administrative_unit=self.unit)
             a.clean()
@@ -233,6 +242,7 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
         self.assertEqual(p1.specification, None)
         self.assertEqual(p1.order_id, None)
         self.assertEqual(p1.user_donor_payment_channel, donor_channel)
+        self.assertEqual(p1.recipient_account, recipient_account)
 
         self.assertEqual(donor_channel.payment_set.get(date=datetime.date(2019, 8, 13)), a1.payment_set.get(account='9999999999'))
 
@@ -240,16 +250,16 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
         self.run_commit_hooks()
 
         a1 = AccountStatements.objects.get(type="darujme")
-
+        api_account = ApiAccount.objects.filter(event__slug='klub').first()
         self.assertEqual(
-            list(a1.payment_set.order_by('SS').values_list("account_name", "date", "SS")),
+            list(a1.payment_set.order_by('SS').values_list("account_name", "date", "SS", "recipient_account_id")),
             [
-                ('User 1, Testing', datetime.date(2016, 1, 19), ''),
-                ('User 1, Testing', datetime.date(2016, 1, 19), '12121'),
-                ('Date, Blank', datetime.date(2016, 8, 9), '12345'),
-                ('User, Testing', datetime.date(2016, 1, 20), '17529'),
-                ('User 1, Testing', datetime.date(2016, 1, 19), '22256'),
-                ('User 1, Testing', datetime.date(2016, 1, 19), '22257'),
+                ('User 1, Testing', datetime.date(2016, 1, 19), '', 1),
+                ('User 1, Testing', datetime.date(2016, 1, 19), '12121', 1),
+                ('Date, Blank', datetime.date(2016, 8, 9), '12345', 1),
+                ('User, Testing', datetime.date(2016, 1, 20), '17529', 1),
+                ('User 1, Testing', datetime.date(2016, 1, 19), '22256', 1),
+                ('User 1, Testing', datetime.date(2016, 1, 19), '22257', 1),
             ],
         )
 
@@ -262,6 +272,7 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
         tel_unknown_user = Telephone.objects.filter(user=user_email.user).first()
         self.assertEqual(payment.amount, 150)
         self.assertEqual(payment.date, datetime.date(2016, 1, 19))
+        self.assertEqual(payment.recipient_account, api_account)
         self.assertEqual(tel_unknown_user.telephone, "656464222")
         self.assertEqual(unknown_user.user.street, "Ulice 321")
         self.assertEqual(unknown_user.user.city, "Nová obec")
@@ -311,6 +322,7 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
         self.assertEqual(tel_blank_date_user, None)
         self.assertEqual(payment_blank.amount, 500)
         self.assertEqual(payment_blank.date, datetime.date(2016, 8, 9))
+        self.assertEqual(payment_blank.recipient_account, api_account)
         self.assertEqual(blank_date_user.user.zip_code, "")
         self.assertEqual(blank_date_user.regular_amount, None)
         self.assertEqual(blank_date_user.end_of_regular_payments, None)

@@ -1666,9 +1666,7 @@ class ApiAccount(MoneyAccount):
         Event,
         help_text=("Event"),
         verbose_name=("Event"),
-        blank=True,
-        on_delete=models.SET_NULL,
-        null=True,
+        on_delete=models.CASCADE,
     )
 
     def __str__(self):
@@ -1828,7 +1826,7 @@ class DonorPaymentChannel(models.Model):
 
     def __str__(self):
         return "Payment channel: {} - {}".format(
-            self.user.email if self.user else '',
+            self.user.get_email_str() if self.user else '',
             self.VS,
         )
 
@@ -2172,6 +2170,13 @@ class Payment(WithAdminUrl, models.Model):
         ('darujme', 'Darujme.cz'),
     )
 
+    recipient_account = models.ForeignKey(
+        MoneyAccount,
+        verbose_name=("Recipient account"),
+        help_text=_("Recipient bank account number"),
+        on_delete=models.SET_NULL,
+        null=True,
+    )
     date = models.DateField(
         verbose_name=_("Date of payment"),
     )

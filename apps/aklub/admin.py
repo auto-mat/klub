@@ -37,7 +37,7 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator
-from django.db.models import CharField, Count, Max, Sum
+from django.db.models import CharField, Count, Max, Q, Sum
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect
 from django.utils.html import format_html, format_html_join, mark_safe
@@ -143,7 +143,7 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
         'get_sum_amount',
         'get_payment_count',
         'get_last_payment_date',
-        'get_payment_details',
+        'get_dpch_details',
         'get_payment_list_link',
     )
     fieldsets = (
@@ -157,7 +157,7 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
                     'get_sum_amount',
                     'get_payment_count',
                     'get_last_payment_date',
-                    'get_payment_details',
+                    'get_dpch_details',
                     'get_payment_list_link',
                 ),
             ),
@@ -197,16 +197,16 @@ class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
         return obj.last_payment_date
     get_last_payment_date.short_description = _('Last payment date')
 
-    def get_payment_details(self, obj):
+    def get_dpch_details(self, obj):
         url = reverse('admin:aklub_donorpaymentchannel_change', args=(obj.pk,))
         if obj.pk:
             redirect_button = mark_safe(
-                                f"<a href='{url}'><input type='button' value='Details'></a>"
+                                f"<a href='{url}'><input type='button' value='details'></a>"
                                 )
         else:
             redirect_button = None
         return redirect_button
-    get_payment_details.short_description = _('Payment Details')
+    get_dpch_details.short_description = _('DPCH details')
 
     def get_queryset(self, request):
         if not request.user.has_perm('aklub.can_edit_all_units'):
@@ -239,6 +239,7 @@ class PaymentsInlineNoExtra(PaymentsInline):
     fields = (
         'type',
         'user_donor_payment_channel',
+        'recipient_account',
         'user_identification',
         'account_name',
         'recipient_message',
@@ -1225,7 +1226,6 @@ class DonorPaymetChannelAdmin(
     save_as = True
     list_max_show_all = 10000
     list_per_page = 100
-    inlines = (PaymentsInline, )
     raw_id_fields = (
         'user',
         # 'recruiter',
@@ -1338,17 +1338,46 @@ def payment_request_pair_action(self, request, queryset):
 payment_request_pair_action.short_description = _("pair payments without account statement (need to be admin of administrative unit)")
 
 
+class PaymentWidget(ForeignKeyWidget):
+    """ Handle ForeignKey no exist error """
+    def get_queryset(self, value, row):
+        values = self.model.objects.filter(id=value)
+        if values:
+            return values
+        else:
+            raise ValueError("This id doesn't exist")
+
+
+class PaymentResource(ModelResource):
+    recipient_account = fields.Field(attribute='recipient_account', widget=PaymentWidget(MoneyAccount))
+    user_donor_payment_channel = fields.Field(attribute='user_donor_payment_channel', widget=PaymentWidget(DonorPaymentChannel))
+
+    class Meta:
+        model = Payment
+        fields = (
+            'recipient_account', 'date', 'amount', 'account' 'bank_code', 'VS', 'VS2', 'SS', 'KS',
+            'BIC', 'user_identification', 'type', 'done_by', 'account_name', 'bank_name', 'transfer_note',
+            'currency', 'recipient_message', 'operation_id', 'transfer_type', 'specification',
+            'order_id', 'user_donor_payment_channel', 'created', 'updated',
+                  )
+        clean_model_instances = True
+    """
+    TODO: add payment_pair from account_statement model to pair payments
+        import_obj is the way
+    """
+
+
 class PaymentAdmin(
-    unit_admin_mixin_generator('user_donor_payment_channel__user__administrative_units'),
     ImportExportMixin,
     RelatedFieldAdmin,
 ):
     actions = (add_user_bank_acc_to_dpch, payment_pair_action, payment_request_pair_action)
+    resource_class = PaymentResource
     list_display = (
         'id',
         'date',
-        'user_donor_payment_channel__event',
-        'account_statement',
+        'user_donor_payment_channel',
+        'recipient_account__bankaccount__bank_account_number',
         'amount',
         'person_name',
         'account_name',
@@ -1370,6 +1399,7 @@ class PaymentAdmin(
         'created',
         'updated',
     )
+    list_editable = ('user_donor_payment_channel',)
     list_select_related = (
         'user_donor_payment_channel__user',
         'user_donor_payment_channel__event',
@@ -1380,10 +1410,12 @@ class PaymentAdmin(
             'fields': [
                 'user_donor_payment_channel', 'date', 'amount',
                 ('type',),
+                ('recipient_account',),
             ],
         }),
         (_("Details"), {
             'fields': [
+
                 'account',
                 'bank_code',
                 'account_name',
@@ -1462,6 +1494,43 @@ class PaymentAdmin(
         'created',
     ]
     list_max_show_all = 10000
+
+    def get_queryset(self, request):
+        """
+        Display all payments for request under adminstrated unit where:
+            payment's money_account_administrative_unit (if exist)
+            payments's account_statement_administrative_unit (if exist) (old reason)
+            payments' donor_payment_channel_money_account_administrative_unit (old reason)
+        """
+        qs = super().get_queryset(request)
+        if not request.user.has_perm('aklub.can_edit_all_units'):
+            administrated_unit = request.user.administrated_units.first()
+            qs = qs.filter(
+                Q(recipient_account__administrative_unit=administrated_unit) |
+                Q(user_donor_payment_channel__money_account__administrative_unit=administrated_unit) |
+                Q(account_statement__administrative_unit=administrated_unit),
+                )
+        return qs
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "recipient_account":
+            if not request.user.has_perm('aklub.can_edit_all_units'):
+                kwargs["queryset"] = MoneyAccount.objects.filter(administrative_unit=request.user.administrated_units.first())
+            else:
+                kwargs["queryset"] = MoneyAccount.objects.all()
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def get_changeform_initial_data(self, request, *args, **kwargs):
+        """
+        if filter on current dpch is active -> fill dpch field in add form
+        """
+        initial = super().get_changeform_initial_data(request)
+        if initial and 'user_donor_payment_channel' in initial.get('_changelist_filters'):
+            get_data = initial['_changelist_filters'].split('&')
+            dpch = [dpch for dpch in get_data if 'user_donor_payment_channel' in dpch][0].split('=')[1]
+            return {
+                'user_donor_payment_channel': dpch,
+            }
 
 
 class NewUserAdmin(DonorPaymetChannelAdmin):
@@ -1823,7 +1892,7 @@ class EventAdmin(unit_admin_mixin_generator('administrative_units'), admin.Model
     save_as = True
 
 
-class RecruiterAdmin(ImportExportMixin, admin.ModelAdmin):
+class RecruiterAdmin(admin.ModelAdmin):
     list_display = ('recruiter_id', 'person_name', 'email', 'telephone', 'problem', 'rating')
     list_filter = ('problem', 'campaigns')
     filter_horizontal = ('campaigns',)
@@ -1835,7 +1904,6 @@ class SourceAdmin(admin.ModelAdmin):
 
 class TaxConfirmationAdmin(
             unit_admin_mixin_generator('pdf_type__pdfsandwichtypeconnector__administrative_unit'),
-            ImportExportMixin,
             admin.ModelAdmin,
             ):
 

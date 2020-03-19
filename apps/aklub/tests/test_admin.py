@@ -186,6 +186,8 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
     @freeze_time("2015-5-1")
     def test_account_statement_changelist_post_bank_statement(self):
         donor_payment_channel_recipe.make(VS=120127010)
+        unit = mommy.make("aklub.administrativeunit", name='test_name')
+        mommy.make("aklub.bankaccount", bank_account_number='2400063333/2010', administrative_unit=unit)
         model_admin = django_admin.site._registry[AccountStatements]
         request = self.get_request()
         response = model_admin.add_view(request)
@@ -199,6 +201,7 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
                 'payment_set-TOTAL_FORMS': 0,
                 'payment_set-INITIAL_FORMS': 0,
             }
+
             request = self.post_request(post_data=post_data)
             response = model_admin.add_view(request)
             self.run_commit_hooks()
