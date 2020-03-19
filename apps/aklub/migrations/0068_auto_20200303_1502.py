@@ -8,7 +8,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('smmapdfs', '0003_auto_20191126_1611'),
-        ('aklub', '0066_auto_20200128_1502'),
+        ('aklub', '0067_auto_20200221_1145'),
     ]
 
     operations = [

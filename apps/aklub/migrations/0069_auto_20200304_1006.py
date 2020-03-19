@@ -7,7 +7,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('smmapdfs_edit', '0004_auto_20200304_0947'),
-        ('aklub', '0067_auto_20200303_1502'),
+        ('aklub', '0068_auto_20200303_1502'),
     ]
     def mass_communication_tax_detail_info(apps, schema_editor):
         db_alias = schema_editor.connection.alias
