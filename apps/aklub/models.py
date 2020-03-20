@@ -516,6 +516,7 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
 
         permissions = (
             ('can_edit_all_units', _('Může editovat všechno ve všech administrativních jednotkách')),
+            ('can_remove_contact_from_administrative_unit', _('Can remove contact from his administrative unit')),
         )
     objects = CustomUserManager()
     REQUIRED_FIELDS = ['email', 'polymorphic_ctype_id']

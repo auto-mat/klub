@@ -1016,6 +1016,50 @@ class ProfileAdmin(
         """
         return {}
 
+    def remove_contact_from_unit(self, request, pk=None):
+        from django.shortcuts import render
+        if request.method == "POST":
+            profile = Profile.objects.get(pk=pk)
+            if profile == request.user:
+                messages.warning(request, _('You can not remove administrative unit from your own profile'))
+            else:
+                profile.administrative_units.remove(request.user.administrated_units.first())
+                profile.preference_set.filter(administrative_unit=request.user.administrated_units.first()).delete()
+                messages.info(request, _(f'Profile with ID "{pk}" was removed from your administrative unit'))
+
+            if profile.polymorphic_ctype.model == 'userprofile':
+                url = 'admin:aklub_userprofile_changelist'
+            else:
+                url = 'admin:aklub_companyprofile_changelist'
+
+            return HttpResponseRedirect(reverse(url))
+        else:
+            profile = Profile.objects.get(pk=pk)
+            if request.user.administrated_units.first() not in profile.administrative_units.all():
+                messages.warning(request, _(f"profile with ID '{pk}' doesn't exist. Perhaps it was deleted?"))
+                return HttpResponseRedirect(reverse('admin:index'))
+
+            message = _("If you confirm, you wonˇt see this profile anymore ")
+            HttpResponseRedirect(reverse('admin:aklub_taxconfirmation_changelist'))
+            return render(
+                    request,
+                    'admin/aklub/profile_remove_contact_from_unit.html',
+                    {'opts': self.model._meta, 'pk': pk, 'message': message},
+                    )
+
+    def get_urls(self):
+        """ add extra view to admin """
+        from django.conf.urls import url
+        urls = super().get_urls()
+        my_urls = [
+            url(
+                r'^(?P<pk>[0-9]+)/remove_contact_from_unit/$',
+                self.admin_site.admin_view(self.remove_contact_from_unit),
+                name='aklub_remove_contact_from_unit',
+            ),
+        ]
+        return my_urls + urls
+
 
 class DonorPaymentChannelLoaderClass(BaseInstanceLoader):
     def get_instance(self, row):
