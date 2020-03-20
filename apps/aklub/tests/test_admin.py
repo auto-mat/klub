@@ -610,7 +610,7 @@ class AdminRemoveAdministrativeUnitTests(CreateSuperUserMixin, RunCommitHooksMix
         self.superuser.administrated_units.add(self.unit)
         self.superuser.administrative_units.add(self.unit)
 
-    def test_remove_administrative_unit(self):
+    def test_remove_administrative_unit_succes(self):
         """
         Test admin view remove_contact_from_unit to remove administrative_unit from profile succesfully
         """
@@ -622,8 +622,7 @@ class AdminRemoveAdministrativeUnitTests(CreateSuperUserMixin, RunCommitHooksMix
         self.assertEqual(profile.administrative_units.count(), 0)
         self.assertEqual(profile.preference_set.count(), 0)
 
-
-    def test_remove_administrative_unit(self):
+    def test_remove_administrative_unit_fail(self):
         """
         Test admin view remove_contact_from_unit to remove administrative_unit from own profile unsuccesfully
         """
