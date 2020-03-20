@@ -587,3 +587,51 @@ class AdminActionsTests(CreateSuperUserMixin, RunCommitHooksMixin, TestCase):
         response = self.client.post(address, post_data)
         self.assertRedirects(response, expected_url=address)
         self.assertEqual(Profile.objects.exclude(username=self.superuser.username).count(), 0)
+
+
+class AdminRemoveAdministrativeUnitTests(CreateSuperUserMixin, RunCommitHooksMixin, TestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.factory = RequestFactory()
+        self.client.force_login(self.superuser)
+
+        self.unit = mommy.make(
+            'aklub.AdministrativeUnit',
+            name='test_unit',
+        )
+        mommy.make(
+            'aklub.UserProfile',
+            username='test.userprofile',
+            id=11111,
+            administrative_units=[self.unit],
+        )
+        # add administrative_units to superuser
+        self.superuser.administrated_units.add(self.unit)
+        self.superuser.administrative_units.add(self.unit)
+
+    def test_remove_administrative_unit(self):
+        """
+        Test admin view remove_contact_from_unit to remove administrative_unit from profile succesfully
+        """
+        address = reverse('admin:aklub_remove_contact_from_unit', args=(11111,))
+        response = self.client.post(address)
+        self.assertEqual(response.status_code, 302)
+
+        profile = Profile.objects.get(pk=11111)
+        self.assertEqual(profile.administrative_units.count(), 0)
+        self.assertEqual(profile.preference_set.count(), 0)
+
+
+    def test_remove_administrative_unit(self):
+        """
+        Test admin view remove_contact_from_unit to remove administrative_unit from own profile unsuccesfully
+        """
+        address = reverse('admin:aklub_remove_contact_from_unit', args=(self.superuser.id,))
+        response = self.client.post(address, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'You can not remove administrative unit from your own profile', html=True)
+
+        profile = Profile.objects.get(pk=self.superuser.id)
+        self.assertEqual(profile.administrative_units.first(), self.unit)
+        self.assertEqual(profile.preference_set.count(), 1)
