@@ -50,3 +50,14 @@
 {% endif %}
 {{block.super}}
 {% endblock %}
+
+{% block submit_buttons_bottom %}
+{% if perms.aklub.can_remove_contact_from_administrative_unit %}
+<div class="submit-row">
+  <p class="deletelink-box">
+    <a class = "deletelink" href="{% url 'admin:aklub_remove_contact_from_unit' original.id %}"> {% trans 'Remove contact' %} </a>
+  </p>
+</div>
+{% endif %}
+{{block.super}}
+{% endblock %}
