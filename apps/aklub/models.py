@@ -111,7 +111,11 @@ class CustomUserManager(PolymorphicManager, UserManager):
 
 
 def get_full_name(self):
-    return self.first_name + ' ' + self.last_name
+    """ Sometimes can return parent model 'Profile' """
+    try:
+        return self.first_name + ' ' + self.last_name
+    except AttributeError:
+        return self.userprofile.first_name + ' ' + self.userprofile.last_name
 
 
 def get_profile_abstract_base_user_model_attrs():
