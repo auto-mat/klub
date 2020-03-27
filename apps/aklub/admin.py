@@ -706,6 +706,7 @@ class ApiAccountAdmin(
     """ Api account polymorphic admin model child class """
     base_model = ApiAccount
     show_in_index = True
+    list_display = ('__str__', 'project_name', 'event', 'project_id', 'api_id', 'administrative_unit')
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "event":
@@ -725,6 +726,7 @@ class BankAccountAdmin(
     """ bank account polymorphic admin model child class """
     base_model = BankAccount
     show_in_index = True
+    list_display = ('__str__', 'bank_account', 'bank_account_number', 'administrative_unit')
 
 
 @admin.register(MoneyAccount)
