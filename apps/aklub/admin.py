@@ -1024,7 +1024,6 @@ class ProfileAdmin(
                 messages.warning(request, _('You can not remove administrative unit from your own profile'))
             else:
                 profile.administrative_units.remove(request.user.administrated_units.first())
-                profile.preference_set.filter(administrative_unit=request.user.administrated_units.first()).delete()
                 messages.info(request, _(f'Profile with ID "{pk}" was removed from your administrative unit'))
 
             if profile.polymorphic_ctype.model == 'userprofile':

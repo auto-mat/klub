@@ -1047,14 +1047,37 @@ class ProfileEmail(models.Model):
         super().save(*args, **kwargs)
 
 
+def on_transaction_commit(func):
+    def inner(*args, **kwargs):
+        transaction.on_commit(lambda: func(*args, **kwargs))
+    return inner
+
+
 @receiver(signals.m2m_changed, sender=Profile.administrative_units.through)
+@on_transaction_commit
 def Userprofile_administrative_unit_changed(sender, **kwargs):
+    # this method is always called if m2m administrative_unit is changed in profile
+    def choose_if_active(status):
+        if user.preference_set.count() == 0 and not user.has_perm('aklub.can_edit_all_units'):
+            user.is_active = status
+            user.save()
+
     user = kwargs['instance']
-    for unit in user.administrative_units.all():
-        Preference.objects.get_or_create(
-            user=user,
-            administrative_unit=unit,
-        )
+    units = kwargs['pk_set']
+    action = kwargs['action']
+    if action == 'post_add':
+        # if user has 0 administrative units we set him as active because he was inactive before
+        choose_if_active(True)
+        for unit in units:
+            Preference.objects.get_or_create(
+                user=user,
+                administrative_unit_id=unit,
+            )
+
+    elif action == 'post_remove':
+        user.preference_set.filter(administrative_unit__id__in=units).delete()
+        # if user has 0 administrative units we set him as inactive
+        choose_if_active(False)
 
 
 class Preference(models.Model):
