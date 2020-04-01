@@ -2775,11 +2775,6 @@ class MassCommunication(models.Model):
         verbose_name=_("send to users"),
         help_text=_(
             "All users who should receive the communication"),
-        limit_choices_to={
-            'is_active': 'True',
-            # 'wished_information': 'True',
-            'preference__send_mailing_lists': 'True',
-        },
         blank=True,
     )
     note = models.TextField(
