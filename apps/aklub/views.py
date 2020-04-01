@@ -33,7 +33,7 @@ from django.core.mail import mail_managers
 from django.core.validators import MinLengthValidator, RegexValidator
 from django.db.models import Case, CharField, Count, IntegerField, Q, Sum, Value, When
 from django.db.models.functions import TruncMonth
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render_to_response
 from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
@@ -50,7 +50,7 @@ from sesame.backends import ModelBackend
 from . import autocom
 from .models import (
     BankAccount,
-    DonorPaymentChannel, Event, Payment, PetitionSignature,
+    DonorPaymentChannel, Event, Payment, PetitionSignature, Preference,
     Profile, ProfileEmail, Source, Telephone, UserInCampaign,
     UserProfile,
 )
@@ -779,8 +779,23 @@ class MailingFormSetView(SuccessMessageMixin, SesameUserMixin, UpdateWithInlines
 class ConfirmEmailView(SesameUserMixin, View):
 
     def get(self, *args, **kwargs):
-        user_in_campaign = UserInCampaign.objects.get(campaign__slug=kwargs['campaign_slug'], userprofile=self.get_object())
-        user_in_campaign.email_confirmed = True
-        user_in_campaign.save()
-        cache.clear()
-        return redirect(user_in_campaign.campaign.email_confirmation_redirect, permanent=False)
+        unit = kwargs['unit']
+        try:
+            preference = Preference.objects.get(
+                                    administrative_unit__slug=unit,
+                                    user=self.get_object(),
+                         )
+            preference.send_mailing_lists = False
+            preference.save()
+            cache.clear()
+            # TODO: this shoud be changed in future..  maybe we add unsubscribe to specific event
+            # maybe we add field email_confirmation_redirect to administrative_unit model
+            # right now we look for some event.. where email_confirmation_redirect is applied
+            event_with_redirect = Event.objects.exclude(
+                                    email_confirmation_redirect=None,
+                                  ).first()
+            if event_with_redirect:
+                return redirect(event_with_redirect.email_confirmation_redirect, permanent=False)
+        except ValueError:
+            pass
+        return HttpResponse(_("Something went wrong, please contact us."))
