@@ -90,7 +90,8 @@ def send_communication_sync(communication_id, communication_type, userincampaign
     else:
         mass_communication = AutomaticCommunication.objects.get(id=communication_id)
     template, subject = get_template_subject_for_language(mass_communication, userprofile.language)
-    if userprofile.is_active and subject and subject.strip() != '':
+    send_mailing_lists_on = userprofile.preference_set.get(administrative_unit=mass_communication.administrative_unit).send_mailing_lists
+    if userprofile.is_active and send_mailing_lists_on and subject and subject.strip() != '':
         if not subject or subject.strip() == '' or not template or template.strip('') == '':
             raise Exception("Message template is empty for one of the language variants.")
         if hasattr(mass_communication, "attach_tax_confirmation") and not mass_communication.attach_tax_confirmation:
