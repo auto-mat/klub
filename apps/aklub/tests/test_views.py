@@ -629,6 +629,22 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         self.assertEqual(new_user.money_account.slug, '12345123')
         self.assertTrue(PetitionSignature.objects.get(user__email="test@email.cz").gdpr_consent)
 
+    def test_unsubscribe_from_mailing_list(self):
+        """ test unsubscribe view """
+        unit = mommy.make('aklub.administrativeunit', name='test_unit', slug='test_unit_slug')
+        profile = mommy.make('aklub.userprofile', administrative_units=[unit, ], id=1111)
+
+        from sesame import utils as sesame_utils
+        profile_token = sesame_utils.get_query_string(profile)
+
+        address = reverse('email-confirmation', kwargs={'unit': unit.slug})
+        address += profile_token
+        response = self.client.get(address)
+        self.assertEqual(response.status_code, 200)
+
+        profile = UserProfile.objects.get(id=1111)
+        self.assertEqual(profile.preference_set.get(administrative_unit=unit).send_mailing_lists, False)
+
 
 class VariableSymbolTests(TestCase):
     fixtures = ['users']
