@@ -1685,9 +1685,12 @@ class MassCommunicationForm(forms.ModelForm):
         return self.cleaned_data['send_to_users']
 
 
-class MassCommunicationAdmin(large_initial.LargeInitialMixin, admin.ModelAdmin):
+class MassCommunicationAdmin(
+            unit_admin_mixin_generator('administrative_unit'),
+            large_initial.LargeInitialMixin,
+            admin.ModelAdmin,):
     save_as = True
-    list_display = ('name', 'date', 'method', 'subject')
+    list_display = ('name', 'date', 'method', 'subject', 'administrative_unit')
     ordering = ('-date',)
 
     filter_horizontal = ('send_to_users',)
@@ -1718,7 +1721,21 @@ class MassCommunicationAdmin(large_initial.LargeInitialMixin, admin.ModelAdmin):
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         if db_field.name == "send_to_users":
-            kwargs["queryset"] = Profile.objects.filter(is_active=True, preference__send_mailing_lists=True).distinct()
+            # lets make it a little easier for superadmin (if he has administrated_units)
+            if request.user.administrated_units:
+                users_ids = Preference.objects.filter(
+                                            administrative_unit=request.user.administrated_units.first(),
+                                            send_mailing_lists=True,
+                            ).values_list('user__id', flat=True)
+
+                kwargs["queryset"] = Profile.objects.filter(
+                                            is_active=True,
+                                            id__in=users_ids,
+                                     )
+            else:
+                # well, we dont know which unit is set, but dont worry,
+                # we check if send_mailing_lists=True during sending.
+                kwargs["queryset"] = Profile.objects.filter(is_active=True)
         return super().formfield_for_manytomany(db_field, request, **kwargs)
 
     def save_form(self, request, form, change):
