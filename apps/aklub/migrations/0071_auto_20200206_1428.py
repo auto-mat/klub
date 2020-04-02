@@ -15,13 +15,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='automaticcommunication',
             name='method_type',
-            field=models.ForeignKey(default='', limit_choices_to=models.Q(('send_sms', True), ('send_email', True), _connector='OR'), on_delete=django.db.models.deletion.CASCADE, to='interactions.InteractionType'),
+            field=models.ForeignKey(default='',null=True, limit_choices_to=models.Q(('send_sms', True), ('send_email', True), _connector='OR'), on_delete=django.db.models.deletion.CASCADE, to='interactions.InteractionType'),
             preserve_default=False,
         ),
         migrations.AddField(
             model_name='masscommunication',
             name='method_type',
-            field=models.ForeignKey(default='', limit_choices_to=models.Q(('send_sms', True), ('send_email', True), _connector='OR'), on_delete=django.db.models.deletion.CASCADE, to='interactions.InteractionType'),
+            field=models.ForeignKey(default='',null=True, limit_choices_to=models.Q(('send_sms', True), ('send_email', True), _connector='OR'), on_delete=django.db.models.deletion.CASCADE, to='interactions.InteractionType'),
             preserve_default=False,
         ),
     ]
