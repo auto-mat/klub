@@ -273,7 +273,10 @@ class NameFilter(SimpleListFilter):
 
 class UnitFilter(RelatedFieldListFilter):
     def field_choices(self, field, request, model_admin):
-        return field.get_choices(include_blank=False, limit_choices_to={'pk__in': request.user.administrated_units.all()})
+        if request.user.has_perm('aklub.can_edit_all_units'):
+            return field.get_choices(include_blank=False)
+        else:
+            return field.get_choices(include_blank=False, limit_choices_to={'pk__in': request.user.administrated_units.all()})
 
 
 class AdministrativeUnitAdminMixin(object):

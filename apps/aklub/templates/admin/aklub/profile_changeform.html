@@ -116,3 +116,13 @@
 {% endif %}
 {{block.super}}
 {% endblock %}
+
+{% block submit_buttons_bottom %}
+{{block.super}}
+{% if perms.aklub.can_remove_contact_from_administrative_unit and not request.user.is_superuser and urlsafe_query %}
+<script>
+  $( ".submit-row" ).append( "<p style='margin-left:5px;' class='deletelink-box'><a class = 'deletelink' href='{% url 'admin:aklub_remove_contact_from_unit' original.id %}'> {% trans 'Remove contact' %} </a></p>"
+  );
+</script>
+{% endif %}
+{% endblock %}

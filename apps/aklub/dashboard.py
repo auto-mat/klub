@@ -150,7 +150,7 @@ class AklubIndexDashboard(Dashboard):
                         "name": str(cond.name),
                         "items": get_users_by_condition_cached(cond).count(),
                     },
-                    'url': "aklub/user/?user_condition=%i" % cond.id,
+                    'url': reverse('admin:aklub_userprofile_changelist') + "?user_condition=%i" % cond.id,
                     'external': False,
                 }
             )
@@ -175,7 +175,7 @@ class AklubIndexDashboard(Dashboard):
             self.children.append(
                 modules.LinkList(
                     title=cond.name,
-                    title_url="aklub/user/?user_condition=%i" % cond.id,
+                    title_url=reverse('admin:aklub_userprofile_changelist') + "/?user_condition=%i" % cond.id,
                     children=children,
                     pre_content=_(u"Total number of items: %i") % members.count(),
                 ),
