@@ -230,8 +230,8 @@ class Migration(migrations.Migration):
         Interaction_new.objects.using(db_alias).bulk_create(new_interactions)
 
     operations = [
-        migrations.RunPython(old_interactions_migrate, reverse_code=migrations.RunPython.noop), # pak na konec
         migrations.RunPython(interactions_mailing_create, reverse_code=migrations.RunPython.noop),
         migrations.RunPython(interactions_autocom_create, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(old_interactions_migrate, reverse_code=migrations.RunPython.noop),
 
     ]
