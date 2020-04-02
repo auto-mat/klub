@@ -57,6 +57,7 @@ class Migration(migrations.Migration):
  # data migrations
     def old_interactions_migrate(apps, schema_editor):
         db_alias = schema_editor.connection.alias
+        AdministrativeUnit = apps.get_model("aklub", "AdministrativeUnit")
 
         Interaction_old = apps.get_model("aklub", "Interaction")
 
@@ -198,6 +199,12 @@ class Migration(migrations.Migration):
             else:
                 result = None
 
+            # in old version administrative_unit was not required () -> but in new version its required so..
+            # we must do it somehow
+            if not obj.administrative_unit:
+                unit, _ = AdministrativeUnit.objects.get_or_create(name='change_this_unit_then_delete')
+            else:
+                unit = obj.administrative_unit
             new = Interaction_new(
                     user=obj.user,
                     type= i_type,
@@ -214,7 +221,7 @@ class Migration(migrations.Migration):
                     handled_by= obj.handled_by,
                     created=obj.created,
                     updated=obj.updated,
-                    administrative_unit=obj.administrative_unit,
+                    administrative_unit=unit,
                     result=result
             )
 
