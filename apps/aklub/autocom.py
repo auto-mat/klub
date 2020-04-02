@@ -22,7 +22,10 @@ import datetime
 import logging
 import string
 
+
+from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
+from django.urls import reverse
 
 logger = logging.getLogger(__name__)
 
@@ -86,7 +89,7 @@ def gendrify_text(text, sex=''):
     return gender_text
 
 
-def process_template(template_string, user, payment_channel):
+def process_template(template_string, user, payment_channel, unit):
     from .models import UserInCampaign
     from sesame import utils as sesame_utils
 
@@ -106,7 +109,7 @@ def process_template(template_string, user, payment_channel):
     else:
         payment_substitutes = {}
 
-    # Make variable substitutions
+    # Make variable substitutions ("$email" in text is replaced by email )
     text = template.substitute(
         addressment=user.get_addressment(),
         last_name_vokativ=user.get_last_name_vokativ(),
@@ -116,12 +119,12 @@ def process_template(template_string, user, payment_channel):
         street=user.street,
         city=user.city,
         zipcode=user.zip_code,
-        email=user.email,
+        email=user.profileemail_set.get(is_primary=True),
         telephone=user.get_telephone(),
-        auth_token=sesame_utils.get_query_string(user),
+        auth_token=(Site.objects.get_current().domain + reverse("email-confirmation", kwargs={'unit': unit.slug}) +
+                    sesame_utils.get_query_string(user)),
         **payment_substitutes,
     )
-
     return gendrify_text(text, user.sex if hasattr(user, 'sex') else '')
 
 
@@ -157,7 +160,7 @@ def check(event, user_profiles=None, action=None):  # noqa
                 logger.info(u"Added new automatic communication \"%s\" for user \"%s\", action \"%s\"" % (auto_comm, user, action))
                 c = Interaction(
                     user=user, method=auto_comm.method, date=datetime.datetime.now(),
-                    subject=subject, summary=process_template(template, user, payment_channel),
+                    subject=subject, summary=process_template(template, user, payment_channel, auto_comm.administrative_unit),
                     note="Prepared by auto*mated mailer at %s" % datetime.datetime.now(),
                     send=auto_comm.dispatch_auto, type='auto',
                 )
