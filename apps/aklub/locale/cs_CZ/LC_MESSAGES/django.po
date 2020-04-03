@@ -247,10 +247,6 @@ msgstr "Aplikace"
 msgid "Administration"
 msgstr "Administrace"
 
-#: dashboard.py:107 dashboard.py:226
-msgid "Recent Actions"
-msgstr "Nedávné akce"
-
 #: dashboard.py:111
 msgid "Statistics"
 msgstr "Statistiky"
