@@ -25,7 +25,7 @@ try:
     from django.urls import reverse
 except ImportError:  # Django<2.0
     from django.core.urlresolvers import reverse
-from django.test import TestCase
+from django.test import TestCase, TransactionTestCase
 from django.test.utils import override_settings
 
 from model_mommy import mommy
@@ -45,7 +45,7 @@ class ClearCacheMixin(object):
 @override_settings(
     MANAGERS=(('Manager', 'manager@test.com'),),
 )
-class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
+class ViewsTests(CreateSuperUserMixin, ClearCacheMixin,  TransactionTestCase):
     fixtures = ['conditions', 'users', 'communications', 'dashboard_stats']
 
     def setUp(self):
@@ -633,7 +633,6 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         """ test unsubscribe view """
         unit = mommy.make('aklub.administrativeunit', name='test_unit', slug='test_unit_slug')
         profile = mommy.make('aklub.userprofile', administrative_units=[unit, ], id=1111)
-
         from sesame import utils as sesame_utils
         profile_token = sesame_utils.get_query_string(profile)
 
