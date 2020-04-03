@@ -17,12 +17,13 @@ env:
     - DJANGO_VERSION='https://github.com/django/django/archive/master.tar.gz'
 python:
   - "3.6"
+  - "3.7"
 before_install:
   - sudo apt-get install -y python-gdal
 install:
-  - 
   - pip install pipenv
-  - pipenv install --dev --ignore-pipfile
+  - pipenv install --dev --ignore-pipfile --python=python$TRAVIS_PYTHON_VERSION
+  - pipenv run python --version
   - pipenv run pip install flake8-strict  # not installable with pipenv, move ther when repaired
   - pipenv run pip install -q $DJANGO_VERSION
 before_script:
