@@ -796,6 +796,6 @@ class ConfirmEmailView(SesameUserMixin, View):
                                   ).first()
             if event_with_redirect:
                 return redirect(event_with_redirect.email_confirmation_redirect, permanent=False)
-        except ValueError:
+        except Preference.DoesNotExist:
             pass
         return HttpResponse(_("Something went wrong, please contact us."))
