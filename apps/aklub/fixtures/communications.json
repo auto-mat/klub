@@ -1,15 +1,25 @@
 [
     {
         "fields": {
+            "name": "test",
+            "slug": "test"
+        },
+        "model": "aklub.administrativeunit",
+        "pk": 11
+
+    },
+    {
+        "fields": {
             "name": "New user",
             "condition": "19",
             "dispatch_auto": true,
             "subject": "New user",
             "template": "New user has been created Jméno: $name Příjmení: $surname Ulice: $street Město: $city PSC: $zipcode E-mail: $email Telefon: $telephone",
-            "method": "email"
+            "method": "email",
+            "administrative_unit": 11
         },
         "model": "aklub.automaticcommunication",
-        "pk": 1 
+        "pk": 1
     },
     {
         "fields": {
@@ -18,7 +28,8 @@
             "dispatch_auto": true,
             "subject": "Resending data",
             "template": "Resending data to Jméno: $name Příjmení: $surname Ulice: $street Město: $city PSC: $zipcode E-mail: $email Telefon: $telephone",
-            "method": "email"
+            "method": "email",
+            "administrative_unit": 11
         },
         "model": "aklub.automaticcommunication",
         "pk": 2
@@ -26,7 +37,8 @@
     {
         "fields": {
             "date": "2016-03-12",
-            "name": "Mass communication"
+            "name": "Mass communication",
+            "administrative_unit": 11
         },
         "model": "aklub.masscommunication",
         "pk": 1
