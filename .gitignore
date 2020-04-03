@@ -3,6 +3,8 @@
 *.pyc
 *.swp
 *.swo
+*.orig
+media/
 *~
 env/
 .env

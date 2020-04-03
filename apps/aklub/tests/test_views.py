@@ -137,7 +137,7 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
     def test_aklub_admin_page(self):
         address = "/aklub/"
         response = self.client.get(address)
-        self.assertContains(response, "<h2>Nedávné akce</h2>", html=True)
+        self.assertContains(response, "<h2>Poslední akce</h2>", html=True)
 
     def test_stat_members(self):
         address = reverse('stat-members')
