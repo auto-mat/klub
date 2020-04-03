@@ -23,9 +23,13 @@ from django.db import transaction
 import mock
 
 
-def print_response(response):
-    with open("response.html", "w") as f:  # pragma: no cover
-        f.write(response.content.decode())  # pragma: no cover
+def print_response(response, stdout=False, filename="response.html"):
+    content = response.content.decode()
+    if stdout:
+        print(content)
+    else:
+        with open(filename, "w") as f:  # pragma: no cover
+            f.write(content)  # pragma: no cover
 
 
 ICON_FALSE = _boolean_icon(False)
