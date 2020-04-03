@@ -90,7 +90,7 @@ def gendrify_text(text, sex=''):
 
 
 def process_template(template_string, user, payment_channel, unit):
-    from .models import UserInCampaign
+    from .models import DonorPaymentChannel
     from sesame import utils as sesame_utils
 
     template = string.Template(template_string)
@@ -99,12 +99,12 @@ def process_template(template_string, user, payment_channel, unit):
         payment_substitutes = {
             'regular_amount': payment_channel.regular_amount,
             'regular_frequency': _localize_enum(
-                UserInCampaign.REGULAR_PAYMENT_FREQUENCIES,
+                DonorPaymentChannel.REGULAR_PAYMENT_FREQUENCIES,
                 payment_channel.regular_frequency,
                 user.language,
             ),
             'var_symbol': payment_channel.VS,
-            'last_payment_amount': payment_channel.last_payment and payment_channel.last_payment.amount or None,
+            'last_payment_amount': payment_channel.last_payment,
         }
     else:
         payment_substitutes = {}
@@ -112,14 +112,14 @@ def process_template(template_string, user, payment_channel, unit):
     # Make variable substitutions ("$email" in text is replaced by email )
     text = template.substitute(
         addressment=user.get_addressment(),
-        last_name_vokativ=user.get_last_name_vokativ(),
+        last_name_vokativ=user.last_name if user.language == 'en' else user.get_last_name_vokativ(),
         name=user.first_name if hasattr(user, 'first_name') else user.name,
         firstname=user.first_name if hasattr(user, 'first_name') else user.name,
         surname=user.last_name if hasattr(user, 'first_name') else user.name,
         street=user.street,
         city=user.city,
         zipcode=user.zip_code,
-        email=user.profileemail_set.get(is_primary=True),
+        email=user.profileemail_set.filter(is_primary=True).first(),
         telephone=user.get_telephone(),
         auth_token=(Site.objects.get_current().domain + reverse("email-confirmation", kwargs={'unit': unit.slug}) +
                     sesame_utils.get_query_string(user)),
