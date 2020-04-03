@@ -25,6 +25,8 @@ from django.test import TestCase
 
 from flexible_filter_conditions.models import Condition, NamedCondition, TerminalCondition
 
+from model_mommy import mommy
+
 from .. import autocom
 from ..models import (
                     AdministrativeUnit, AutomaticCommunication, BankAccount, DonorPaymentChannel,
@@ -34,33 +36,76 @@ from ..models import (
 
 class AutocomTest(TestCase):
     def setUp(self):
-        self.userprofile = UserProfile.objects.create(sex='male')
-        self.event = Event.objects.create(created=datetime.date(2010, 10, 10))
-        self.au = AdministrativeUnit.objects.create(name='test')
-        self.BankAccount = BankAccount.objects.create(bank_account_number=11111, administrative_unit=self.au)
-        self.payment_channel = DonorPaymentChannel.objects.create(user=self.userprofile, event=self.event, money_account=self.BankAccount)
-        nc = NamedCondition.objects.create()
-        c = Condition.objects.create(operation="or", negate=True, named_condition=nc)
-        TerminalCondition.objects.create(
+        self.userprofile = mommy.make("aklub.userprofile", sex='male', street='test_street', city='test_city', zip_code='111222', id=111)
+        self.email = mommy.make('aklub.profileemail', is_primary=True, email='autotest@email.com', user=self.userprofile)
+        self.telephone = mommy.make('aklub.telephone', is_primary=True, telephone=111222333, user=self.userprofile)
+        self.event = mommy.make('aklub.event', created=datetime.date(2010, 10, 10))
+        self.au = mommy.make('aklub.administrativeunit', name='test', slug='test')
+        self.bankaccount = mommy.make('aklub.bankaccount', bank_account_number=11111, administrative_unit=self.au)
+        self.payment_channel = mommy.make(
+                                    'aklub.donorpaymentchannel',
+                                    user=self.userprofile,
+                                    event=self.event,
+                                    money_account=self.bankaccount,
+                                    VS='123123123',
+                                    regular_frequency='monthly',
+                                    regular_amount=1000,
+                                )
+        self.payment = mommy.make('aklub.payment', amount=500, user_donor_payment_channel=self.payment_channel, date="2016-01-02")
+        nc = mommy.make('flexible_filter_conditions.namedcondition')
+        c = mommy.make('flexible_filter_conditions.condition', operation="or", negate=True, named_condition=nc)
+        mommy.make(
+            'flexible_filter_conditions.terminalcondition',
             variable="action",
             value="test-autocomm",
             operation="==",
             condition=c,
-        )
-        AutomaticCommunication.objects.create(
+            )
+        mommy.make(
+            'aklub.automaticcommunication',
             condition=nc,
-            template="Vazen{y|a} {pane|pani} $addressment $regular_frequency testovací šablona",
-            template_en="Dear {sir|miss} $addressment $regular_frequency test template",
+            template="""
+                        testovací šablona
+                        Vazen{y|a} {pane|pani}
+                        $addressment
+                        $last_name_vokativ
+                        $name
+                        $firstname
+                        $surname
+                        $street
+                        $city
+                        $zipcode
+                        $email
+                        $telephone
+                        $regular_amount
+                        $regular_frequency
+                        $var_symbol
+                        $last_payment_amount
+                        $auth_token
+                     """,
+            template_en="""
+                        test template
+                        Dear {sir|miss}
+                        $addressment
+                        $last_name_vokativ
+                        $name
+                        $firstname
+                        $surname
+                        $street
+                        $city
+                        $zipcode
+                        $email
+                        $telephone
+                        $regular_amount
+                        $regular_frequency
+                        $var_symbol
+                        $last_payment_amount
+                        $auth_token
+                        """,
             subject="Testovací komunikace",
             subject_en="Testing interaction",
+            administrative_unit=self.au,
         )
-
-    def test_autocom(self):
-        autocom.check(event=self.event, action="test-autocomm")
-        interaction = Interaction.objects.get(user=self.userprofile)
-        self.assertTrue("testovací šablona" in interaction.summary)
-        self.assertTrue("příteli Auto*Matu" in interaction.summary)
-        self.assertTrue("Vazeny pane" in interaction.summary)
 
     def test_autocom_female(self):
         self.userprofile.sex = 'female'
@@ -90,8 +135,8 @@ class AutocomTest(TestCase):
         self.assertIn("own addressment", interaction.summary)
         self.assertIn("Vazeny pane", interaction.summary)
 
-    def test_autocom_en(self):
-        self.userprofile.sex = 'unknown'
+    def test_autocom_no_addressment_en(self):
+        self.userprofile.sex = 'male'
         self.userprofile.language = 'en'
         self.userprofile.save()
         autocom.check(event=self.event, action="test-autocomm")
@@ -99,6 +144,64 @@ class AutocomTest(TestCase):
         self.assertIn("test template", interaction.summary)
         self.assertIn("Auto*Mat friend", interaction.summary)
         self.assertIn("Dear sir", interaction.summary)
+
+    def test_autocom(self):
+        self.userprofile.last_name = 'last_user'
+        self.userprofile.first_name = 'first_user'
+        self.userprofile.save()
+        autocom.check(event=self.event, action="test-autocomm")
+        interaction = Interaction.objects.get(user=self.userprofile)
+        # name
+        self.assertTrue("testovací šablona" in interaction.summary)
+        self.assertTrue("Vazeny pane" in interaction.summary)
+        self.assertTrue("First_Usere" in interaction.summary)
+        self.assertTrue("Last_Usere" in interaction.summary)
+        self.assertTrue("first_user" in interaction.summary)
+        self.assertTrue("last_user" in interaction.summary)
+        # address
+        self.assertTrue("test_street" in interaction.summary)
+        self.assertTrue("test_city" in interaction.summary)
+        self.assertTrue("111222" in interaction.summary)
+        # contact
+        self.assertTrue("autotest@email.com" in interaction.summary)
+        self.assertTrue("111222333" in interaction.summary)
+        # dpch
+        self.assertTrue("123123123" in interaction.summary)
+        self.assertTrue("měsíčně" in interaction.summary)
+        self.assertTrue("1000" in interaction.summary)
+        # token
+        url = "example.com/cs/email_confirmation/test/?url_auth_token=AAAAb1wKAecO8DcJ3HQqlu5XWGE%3AlvBqArDpLyHz-s5MiGfBf4_Kfsg"
+        self.assertTrue(url in interaction.summary)
+
+    def test_autocom_en(self):
+        self.userprofile.sex = 'unknown'
+        self.userprofile.language = 'en'
+        self.userprofile.last_name = 'last_user'
+        self.userprofile.first_name = 'first_user'
+        self.userprofile.save()
+        autocom.check(event=self.event, action="test-autocomm")
+        interaction = Interaction.objects.get(user=self.userprofile)
+        # name
+        self.assertTrue("test template" in interaction.summary)
+        self.assertTrue("Dear sir/miss" in interaction.summary)
+        self.assertTrue("first_user" in interaction.summary)
+        self.assertTrue("last_user" in interaction.summary)
+        self.assertTrue("first_user" in interaction.summary)
+        self.assertTrue("last_user" in interaction.summary)
+        # address
+        self.assertTrue("test_street" in interaction.summary)
+        self.assertTrue("test_city" in interaction.summary)
+        self.assertTrue("111222" in interaction.summary)
+        # contact
+        self.assertTrue("autotest@email.com" in interaction.summary)
+        self.assertTrue("111222333" in interaction.summary)
+        # dpch
+        self.assertTrue("123123123" in interaction.summary)
+        self.assertTrue("monthly" in interaction.summary)
+        self.assertTrue("1000" in interaction.summary)
+        # token
+        url = "example.com/cs/email_confirmation/test/?url_auth_token=AAAAb1wKAecO8DcJ3HQqlu5XWGE%3AlvBqArDpLyHz-s5MiGfBf4_Kfsg"
+        self.assertTrue(url in interaction.summary)
 
 
 class GenderStringsValidatorTest(TestCase):
