@@ -23,15 +23,10 @@ import datetime
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
-from flexible_filter_conditions.models import Condition, NamedCondition, TerminalCondition
-
 from model_mommy import mommy
 
 from .. import autocom
-from ..models import (
-                    AdministrativeUnit, AutomaticCommunication, BankAccount, DonorPaymentChannel,
-                    Event, Interaction, UserProfile,
-)
+from ..models import Interaction
 
 
 class AutocomTest(TestCase):
