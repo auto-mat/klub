@@ -31,6 +31,8 @@ from django_admin_smoke_tests import tests
 
 from freezegun import freeze_time
 
+from interactions.models import Interaction
+
 from model_mommy import mommy
 from model_mommy.recipe import seq
 
@@ -40,7 +42,7 @@ from .utils import RunCommitHooksMixin
 from .utils import print_response  # noqa
 from .. import admin
 from .. models import (
-    AccountStatements, AutomaticCommunication, DonorPaymentChannel, Interaction, MassCommunication,
+    AccountStatements, AutomaticCommunication, DonorPaymentChannel, MassCommunication,
     Profile, TaxConfirmation, Telephone, UserProfile, UserYearPayments,
 )
 
@@ -275,6 +277,8 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
             email="baz@email.com",
             language="en",
         )
+        inter_category = mommy.make('interactions.interactioncategory', category='testcategory')
+        inter_type = mommy.make('interactions.interactiontype', category=inter_category, name='testtype', send_email=True)
         for profile in [company_profile1, user_profile1, user_profile2]:
             mommy.make('Preference', send_mailing_lists=True, user=profile)
         model_admin = django_admin.site._registry[MassCommunication]
@@ -285,7 +289,7 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
         post_data = {
             '_continue': 'send_mails',
             'name': 'test communication',
-            "method": "email",
+            "method_type": inter_type.id,
             'date': "2010-03-03",
             "subject": "Subject",
             "send_to_users": [2978, 2979, 3],
@@ -311,16 +315,17 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
 
     def test_mass_communication_changelist_post(self):
         unit = mommy.make("aklub.AdministrativeUnit", name="test1")
+        inter_category = mommy.make('interactions.interactioncategory', category='testcategory')
+        inter_type = mommy.make('interactions.interactiontype', category=inter_category, name='testtype', send_email=True)
         model_admin = django_admin.site._registry[MassCommunication]
         request = self.get_request()
         response = model_admin.add_view(request)
         self.assertEqual(response.status_code, 200)
-
         attachment = SimpleUploadedFile("attachment.txt", b"attachment", content_type="text/plain")
         post_data = {
             '_continue': 'test_mail',
             'name': 'test communication',
-            "method": "email",
+            "method_type": inter_type.id,
             'date': "2010-03-03",
             "subject": "Subject",
             "attach_tax_confirmation": False,
@@ -337,6 +342,8 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
 
     def test_automatic_communication_changelist_post(self):
         unit = mommy.make("aklub.AdministrativeUnit", name="test1")
+        inter_category = mommy.make('interactions.interactioncategory', category='testcategory')
+        inter_type = mommy.make('interactions.interactiontype', category=inter_category, name='testtype', send_email=True)
         mommy.make("flexible_filter_conditions.NamedCondition", id=1)
         model_admin = django_admin.site._registry[AutomaticCommunication]
         request = self.get_request()
@@ -347,7 +354,7 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
             '_continue': 'test_mail',
             'name': 'test communication',
             'condition': 1,
-            "method": "email",
+            "method_type": inter_type.id,
             "subject": "Subject",
             "administrative_unit": unit.id,
             "template": "Test template",
@@ -362,6 +369,9 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
     def test_communication_changelist_post(self):
         user_profile = mommy.make('aklub.UserProfile')
         unit = mommy.make('aklub.AdministrativeUnit')
+
+        interaction_category = mommy.make('interactions.interactioncategory')
+        interaction_type = mommy.make('interactions.interactiontype', category=interaction_category)
         model_admin = django_admin.site._registry[Interaction]
         request = self.get_request()
         response = model_admin.add_view(request)
@@ -370,12 +380,13 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
         post_data = {
             '_save': 'test_mail',
             "user": user_profile.id,
-            "date_0": "2015-03-1",
-            "date_1": "12:43",
+            "date_from_0": "2015-03-1",
+            "date_from_1": "12:43",
             "method": "email",
             "subject": "Subject 123",
             "summary": "Test template",
             "administrative_unit": unit.id,
+            "type": interaction_type.id,
         }
         request = self.post_request(post_data=post_data)
         response = model_admin.add_view(request)
@@ -383,7 +394,7 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
         obj = Interaction.objects.get()
         self.assertEqual(obj.subject, "Subject 123")
         self.assertEqual(obj.summary, "Test template")
-        self.assertEqual(response.url, "/aklub/interaction/")
+        self.assertEqual(response.url, "/interactions/interaction/")
 
     def test_user_in_campaign_changelist_post(self):
         mommy.make("aklub.Event", id=1)

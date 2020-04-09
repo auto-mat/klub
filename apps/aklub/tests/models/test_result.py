@@ -28,7 +28,7 @@ class TestStr(TestCase):
 
     def test_result_str(self):
         result = mommy.make(
-            "aklub.Result",
+            "interactions.Result",
             name="Test result",
         )
         self.assertEqual(result.__str__(), 'Test result')

@@ -26,10 +26,12 @@ from django.test import TestCase
 
 from freezegun import freeze_time
 
+from interactions.models import Interaction
+
 from model_mommy import mommy
 
 from .utils import ICON_FALSE, ICON_UNKNOWN
-from ..models import DonorPaymentChannel, Event, Interaction, Payment, UserProfile
+from ..models import DonorPaymentChannel, Event, Payment, UserProfile
 
 
 @freeze_time("2016-5-1")
@@ -102,14 +104,17 @@ class CommunicationTest(TestCase):
         self.campaign = Event.objects.create(created=datetime.date(2010, 10, 10))
 
     def test_communication(self):
+        inter_category = mommy.make('interactions.interactioncategory', category='testcategory')
+        inter_type = mommy.make('interactions.interactiontype', category=inter_category, name='testtype', send_email=True)
+        unit = mommy.make('aklub.administrativeunit', name='testAU')
         Interaction.objects.create(
-            type="individual",
+            communication_type="individual",
             user=self.userprofile,
-            date=datetime.date(2016, 1, 1),
-            method="email",
+            date_from=datetime.date(2016, 1, 1),
+            type=inter_type,
             summary="Testing template",
             subject="Testing email",
-            send=True,
+            administrative_unit=unit,
         )
         self.assertEqual(len(mail.outbox), 1)
         msg = mail.outbox[0]
@@ -117,12 +122,15 @@ class CommunicationTest(TestCase):
         self.assertEqual(msg.subject, 'Testing email')
         self.assertIn("Testing template", msg.body)
 
-    def test_communication_phonecall(self):
+    def test_communication_sms(self):
+        inter_category = mommy.make('interactions.interactioncategory', category='testcategory')
+        inter_type = mommy.make('interactions.interactiontype', category=inter_category, name='testtype', send_sms=True)
+        unit = mommy.make('aklub.administrativeunit', name='testAU')
         Interaction.objects.create(
-            type="individual",
+            communication_type="individual",
             user=self.userprofile,
-            date=datetime.date(2016, 1, 1),
-            method="phonecall",
-            send=True,
+            date_from=datetime.date(2016, 1, 1),
+            type=inter_type,
+            administrative_unit=unit,
         )
         self.assertEqual(len(mail.outbox), 0)

@@ -98,6 +98,7 @@ TEMPLATES = [
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
             normpath(PROJECT_ROOT, 'apps/aklub/templates'),
+            normpath(PROJECT_ROOT, 'apps/interactions/templates'),
         ],
         'APP_DIRS': False,
         'OPTIONS': {
@@ -222,6 +223,7 @@ INSTALLED_APPS = (
     'adminfilters',
     'advanced_filters',
     'aklub',
+    'interactions',
     'helpdesk',
     'django_celery_beat',
     'django_celery_monitor',
@@ -413,8 +415,8 @@ def get_donor_payment_channel_resource():
     return DonorPaymentChannelResource
 
 
-def get_interaction_channel_resource():
-    from aklub.admin import InteractionResource
+def get_interaction_resource():
+    from interactions.admin import InteractionResource
     return InteractionResource
 
 
@@ -439,10 +441,10 @@ IMPORT_EXPORT_CELERY_MODELS = {
         'model_name': 'DonorPaymentChannel',
         'resource': get_donor_payment_channel_resource,
     },
-    "Interactions": {
-        'app_label': 'aklub',
+    "Interaction": {
+        'app_label': 'interactions',
         'model_name': 'Interaction',
-        'resource': get_interaction_channel_resource,
+        'resource': get_interaction_resource,
     },
     "Payments": {
         'app_label': 'aklub',

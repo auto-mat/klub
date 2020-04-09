@@ -2,7 +2,7 @@
 import django.core.validators
 from django.db import migrations, models
 
-from aklub.models import AdministrativeUnit, MoneyAccount, AccountStatements, Interaction, Preference, TaxConfirmation
+from aklub.models import AdministrativeUnit, MoneyAccount, AccountStatements, Preference, TaxConfirmation
 
 class Migration(migrations.Migration):
 
