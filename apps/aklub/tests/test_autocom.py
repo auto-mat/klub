@@ -171,7 +171,7 @@ class AutocomTest(TestCase):
         self.assertTrue("měsíčně" in interaction.summary)
         self.assertTrue("1000" in interaction.summary)
         # token
-        url = "example.com/cs/email_confirmation/test/?url_auth_token=AAAAb1wKAecO8DcJ3HQqlu5XWGE%3AlvBqArDpLyHz-s5MiGfBf4_Kfsg"
+        url = "example.com/cs/email_confirmation/test_unit/?url_auth_token=AAAAb1wKAecO8DcJ3HQqlu5XWGE%3AlvBqArDpLyHz-s5MiGfBf4_Kfsg"
         self.assertTrue(url in interaction.summary)
 
     def test_autocom_en(self):
@@ -201,7 +201,7 @@ class AutocomTest(TestCase):
         self.assertTrue("monthly" in interaction.summary)
         self.assertTrue("1000" in interaction.summary)
         # token
-        url = "example.com/cs/email_confirmation/test/?url_auth_token=AAAAb1wKAecO8DcJ3HQqlu5XWGE%3AlvBqArDpLyHz-s5MiGfBf4_Kfsg"
+        url = "example.com/cs/email_confirmation/test_unit/?url_auth_token=AAAAb1wKAecO8DcJ3HQqlu5XWGE%3AlvBqArDpLyHz-s5MiGfBf4_Kfsg"
         self.assertTrue(url in interaction.summary)
 
 

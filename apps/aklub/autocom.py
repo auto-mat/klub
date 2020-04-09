@@ -162,12 +162,10 @@ def check(event, user_profiles=None, action=None):  # noqa
                 c = Interaction(
                     user=user,
                     type=auto_comm.method_type,
-                    method=auto_comm.method,
-                    date=datetime.datetime.now(),
+                    date_from=datetime.datetime.now(),
                     subject=subject,
                     summary=process_template(template, user, payment_channel, auto_comm.administrative_unit),
                     note="Prepared by auto*mated mailer at %s" % datetime.datetime.now(),
-                    send=auto_comm.dispatch_auto,
                     settlement='a',
                     administrative_unit=auto_comm.administrative_unit,
                 )
