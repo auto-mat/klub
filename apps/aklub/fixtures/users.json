@@ -133,7 +133,7 @@
             "groups": [],
             "user_permissions": [],
             "campaigns": [1],
-            "administrative_units": [],
+            "administrative_units": [1],
             "administrated_units": []
 	}
     },
@@ -274,7 +274,7 @@
             "groups": [],
             "user_permissions": [],
             "campaigns": [],
-            "administrative_units": [],
+            "administrative_units": [1],
             "administrated_units": []
 	}
     },
@@ -496,7 +496,8 @@
             "birth_month": null,
             "birth_day": null,
             "first_name": "Without",
-            "last_name": "Payments"
+            "last_name": "Payments",
+            "administrative_units": [1]
 	}
     },
     {

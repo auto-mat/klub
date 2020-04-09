@@ -20,7 +20,7 @@
 
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core import mail
-from django.test import RequestFactory, TestCase
+from django.test import RequestFactory, TransactionTestCase
 from django.test.utils import override_settings
 
 from flexible_filter_conditions.models import NamedCondition
@@ -35,7 +35,7 @@ from .. import mailing, models
 @override_settings(
     CELERY_ALWAYS_EAGER=True,
 )
-class MailingTest(TestCase):
+class MailingTest(TransactionTestCase):
     fixtures = ['conditions', 'users']
 
     def setUp(self):
@@ -45,18 +45,22 @@ class MailingTest(TestCase):
         messages = FallbackStorage(self.request)
         setattr(self.request, '_messages', messages)
 
+        self.unit = models.AdministrativeUnit.objects.get(id=1)
+
     @freeze_time("2015-5-1")
     def test_mailing_fake_user(self):
         sending_user = models.UserProfile.objects.create(
             first_name="Testing",
             last_name="UserInCampaign",
         )
+        sending_user.administrative_units.add(self.unit)
         mommy.make("ProfileEmail", user=sending_user, email="test@test.com", is_primary=True)
         c = models.AutomaticCommunication.objects.create(
             condition=NamedCondition.objects.create(),
             template="Testing template",
             subject="Testing email",
             method="email",
+            administrative_unit=self.unit,
         )
         mailing.send_fake_communication(c, sending_user, self.request)
         self.assertEqual(len(mail.outbox), 1)
@@ -71,6 +75,7 @@ class MailingTest(TestCase):
             first_name="Testing",
             last_name="UserInCampaign",
         )
+        sending_user.administrative_units.add(self.unit)
         mommy.make("ProfileEmail", user=sending_user, email="test@test.com", is_primary=True)
         c = models.AutomaticCommunication.objects.create(
             condition=NamedCondition.objects.create(),
@@ -78,6 +83,7 @@ class MailingTest(TestCase):
             subject="Testing email",
             subject_en="Testing email",
             method="email",
+            administrative_unit=self.unit,
         )
         u = models.Profile.objects.get(email='test.user1@email.cz')
         with self.assertRaises(Exception) as ex:
@@ -86,10 +92,13 @@ class MailingTest(TestCase):
 
     @freeze_time("2015-5-1")
     def test_mailing(self):
+
         sending_user = models.UserProfile.objects.create(
             first_name="Testing",
             last_name="UserInCampaign",
         )
+        sending_user.administrative_units.add(self.unit)
+        sending_user.save()
         mommy.make("ProfileEmail", user=sending_user, email="test@test.com", is_primary=True)
         c = models.MassCommunication.objects.create(
             template="Testing template",
@@ -98,6 +107,7 @@ class MailingTest(TestCase):
             subject_en="Testing email en",
             method="email",
             date="2015-5-1",
+            administrative_unit=self.unit,
         )
         c.send_to_users.set(models.Profile.objects.filter(pk__in=[3, 2978, 2979]))
 
