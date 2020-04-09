@@ -1,0 +1,128 @@
+{% extends "admin/change_form.html" %}
+{% load i18n %}
+{% block extrahead %}
+{% if urlsafe_query %}
+<!-- 1 -->
+<link title="timeline-styles" rel="stylesheet" href="https://cdn.knightlab.com/libs/timeline3/latest/css/timeline.css">
+
+<!-- 2 -->
+<script src="https://cdn.knightlab.com/libs/timeline3/latest/js/timeline.js"></script>
+<script>
+ var timeline_loaded = false;
+ $(function (){
+     $("#timeline-embed").hide();
+ });
+ function show_hide_timeline() {
+     if($("#timeline-embed").is(":visible")) {
+         $("#timeline-embed").hide();
+         $("#timeline-toggler").text("{% trans 'Show timeline' %}");
+     } else {
+         $("#timeline-embed").show();
+         $("#timeline-toggler").text("{% trans 'Hide timeline' %}");
+
+     }
+     if(!timeline_loaded) {
+         timeline = new TL.Timeline(
+             'timeline-embed',
+             '{% url 'helpdesk:timeline_ticket_list' urlsafe_query %}'
+         );
+         timeline_loaded=true;
+     }
+ }
+
+//////////////////// Interaction inlines ///////////////////////////
+ $(document).ready(function() {
+   // loading template run and add button to redirect -> interactions
+   display_fields({{display_fields|safe}},{{required_fields|safe}});
+
+  $("#interaction_set-group").append(
+  "<a href='{% url 'admin:interactions_interaction_changelist' %}?user={{object_id}}'><input type='button' value='View older interactions'></a>"
+  );
+
+   // if interaction type is changed
+   $(document).on("change",".field-type .field-type select", (function(){
+     var inline_id  = $(this).attr("id").match("set-(.*)-type")[1]; // get id of changed inline
+     var type_id  = $(this).val();
+     $("#interaction_set-"+inline_id + " .form-row .fieldBox").css("display", "none"); //  need to hide all elemnts in row
+     $("#interaction_set-"+inline_id + " .form-row").css("display", "none"); //need to hide all rows (because fieldset)
+     show_required({{required_fields|safe}}, inline_id)
+     show_fields({{display_fields|safe}}, type_id, inline_id)
+   }));
+
+   // if add next interaction is clicked
+    $(document).on("click","#interaction_set-group .add-row a",function(){
+      var last_inline_id = $('#interaction_set-group .inline-related').length - 2
+      show_required({{required_fields|safe}}, last_inline_id)
+
+    }
+    )
+    // hide and show fields manager
+    function display_fields(interactions_json, required_fields){
+    $("#interaction_set-group  .form-row .fieldBox").css("display", "none"); //  need to hide all fields in row
+    $("#interaction_set-group  .form-row").css("display", "none"); // need to hide all rows (because fieldset)
+
+      var inline_items = $('#interaction_set-group .inline-related').length - 1
+        for(var i = 0; i < inline_items ; i++){
+          type_selected_id = $("#id_interaction_set-"+ i +"-type").val()
+            show_required(required_fields, i)
+            show_fields(interactions_json, type_selected_id, i)
+
+
+        };
+      };
+    });
+    // showing fields where bool=True
+    function show_fields(interactions_json, type_id, inline_id){
+      for (var j in interactions_json){ // loop throught interaction-bool objects
+          if(interactions_json[j].pk == type_id){ // check selected one
+              for(var field_name in interactions_json[j].fields){ // get throught field names
+                  if (interactions_json[j].fields[field_name] && field_name.includes("_bool")){
+                        var name =  field_name.replace("_bool","")
+                        // row and field have same name (so both are displayed)
+                      $("#interaction_set-"+inline_id + " .field-"+ name).css("display", "");
+                  };
+              };
+          };
+      };
+    };
+
+    // shows fields where cant be null value
+    function show_required(required_fields, inline_id){
+      for(req_field in required_fields){
+        $("#interaction_set-"+inline_id + " .field-"+ required_fields[req_field]).css("display", "")
+      };
+    };
+  /////////////////////////////////////////////////////////////////////////////////////////////
+</script>
+
+
+
+{% endif %}
+{{block.super}}
+{% endblock %}
+
+{% block object-tools-items %}
+{% if urlsafe_query %}
+<li>
+<a href="javascript:void(0)" onclick="show_hide_timeline()" id="timeline-toggler">{% trans 'Show timeline' %}</a>
+</li>
+{% endif %}
+{{block.super}}
+{% endblock %}
+
+{% block field_sets %}
+{% if urlsafe_query %}
+<div id="timeline-embed" style="width: 100%; height: 80vh"></div>
+{% endif %}
+{{block.super}}
+{% endblock %}
+
+{% block submit_buttons_bottom %}
+{{block.super}}
+{% if perms.aklub.can_remove_contact_from_administrative_unit and not request.user.is_superuser and urlsafe_query %}
+<script>
+  $( ".submit-row" ).append( "<p style='margin-left:5px;' class='deletelink-box'><a class = 'deletelink' href='{% url 'admin:aklub_remove_contact_from_unit' original.id %}'> {% trans 'Remove contact' %} </a></p>"
+  );
+</script>
+{% endif %}
+{% endblock %}

@@ -23,10 +23,12 @@ import datetime
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
+from interactions.models import Interaction
+
 from model_mommy import mommy
 
+
 from .. import autocom
-from ..models import Interaction
 
 
 class AutocomTest(TestCase):
@@ -55,9 +57,13 @@ class AutocomTest(TestCase):
             value="test-autocomm",
             operation="==",
             condition=c,
-            )
-        mommy.make(
-            'aklub.automaticcommunication',
+        )
+        inter_category = mommy.make('interactions.interactioncategory', category='testcategory')
+        inter_type = mommy.make('interactions.interactiontype', category=inter_category, name='testtype', send_email=True)
+        unit = mommy.make('aklub.administrativeunit', name='testAU')
+        from ..models import AutomaticCommunication
+        AutomaticCommunication.objects.create(
+            method_type=inter_type,
             condition=nc,
             template="""
                         testovací šablona
@@ -99,8 +105,8 @@ class AutocomTest(TestCase):
                         """,
             subject="Testovací komunikace",
             subject_en="Testing interaction",
-            administrative_unit=self.au,
-        )
+            administrative_unit=unit,
+          )
 
     def test_autocom_female(self):
         self.userprofile.sex = 'female'

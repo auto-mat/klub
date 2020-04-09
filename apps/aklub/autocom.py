@@ -129,7 +129,8 @@ def process_template(template_string, user, payment_channel, unit):
 
 
 def check(event, user_profiles=None, action=None):  # noqa
-    from .models import AutomaticCommunication, DonorPaymentChannel, UserProfile, Interaction
+    from .models import AutomaticCommunication, DonorPaymentChannel, UserProfile
+    from interactions.models import Interaction
     if not user_profiles:
         user_profiles = UserProfile.objects.all()
     for auto_comm in AutomaticCommunication.objects.all():
@@ -137,7 +138,7 @@ def check(event, user_profiles=None, action=None):  # noqa
             u"Processin condition \"%s\" for autocom \"%s\", method: \"%s\", action: \"%s\"" % (
                 auto_comm.condition,
                 auto_comm,
-                auto_comm.method,
+                auto_comm.method_type,
                 action,
             ),
         )
@@ -159,10 +160,16 @@ def check(event, user_profiles=None, action=None):  # noqa
             if template and template != '':
                 logger.info(u"Added new automatic communication \"%s\" for user \"%s\", action \"%s\"" % (auto_comm, user, action))
                 c = Interaction(
-                    user=user, method=auto_comm.method, date=datetime.datetime.now(),
-                    subject=subject, summary=process_template(template, user, payment_channel, auto_comm.administrative_unit),
+                    user=user,
+                    type=auto_comm.method_type,
+                    method=auto_comm.method,
+                    date=datetime.datetime.now(),
+                    subject=subject,
+                    summary=process_template(template, user, payment_channel, auto_comm.administrative_unit),
                     note="Prepared by auto*mated mailer at %s" % datetime.datetime.now(),
-                    send=auto_comm.dispatch_auto, type='auto',
+                    send=auto_comm.dispatch_auto,
+                    settlement='a',
+                    administrative_unit=auto_comm.administrative_unit,
                 )
                 if payment_channel:
                     auto_comm.sent_to_users.add(payment_channel)

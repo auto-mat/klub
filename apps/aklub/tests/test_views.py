@@ -28,12 +28,14 @@ except ImportError:  # Django<2.0
 from django.test import TestCase, TransactionTestCase
 from django.test.utils import override_settings
 
+from interactions.models import PetitionSignature
+
 from model_mommy import mommy
 
 from .test_admin import CreateSuperUserMixin
 from .utils import print_response  # noqa
 from .. import views
-from ..models import AdministrativeUnit, BankAccount, DonorPaymentChannel, PetitionSignature, ProfileEmail, UserProfile
+from ..models import AdministrativeUnit, BankAccount, DonorPaymentChannel, ProfileEmail, UserProfile
 
 
 class ClearCacheMixin(object):
@@ -188,13 +190,14 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin,  TransactionTestCase):
             '<h1>Děkujeme!</h1>',
             html=True,
         )
+
         self.assertEqual(len(mail.outbox), 2)
         msg = mail.outbox[0]
         self.assertEqual(msg.recipients(), ['test.user@email.cz', 'kp@auto-mat.cz'])
         self.assertEqual(msg.subject, 'Resending data')
         self.assertEqual(
             msg.body,
-            'Resending data to Jméno: Test Příjmení: User Ulice: Město: Praha 4 PSC:\nE-mail: test.user@email.cz Telefon:\n\n',
+            'Resending data to Jméno: Test Příjmení: User Ulice:  Město: Praha 4 PSC:  E-mail: test.user@email.cz Telefon: ',
         )
         msg1 = mail.outbox[1]
         self.assertEqual(msg1.recipients(), ['manager@test.com'])
@@ -246,7 +249,7 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin,  TransactionTestCase):
         self.assertEqual(msg.subject, 'New user')
         self.assertEqual(
             msg.body,
-            'New user has been created Jméno: Foo Příjmení: Duplabar Ulice: Město: PSC:\nE-mail: test@email.cz Telefon:\n\n',
+            'New user has been created Jméno: Foo Příjmení: Duplabar Ulice:  Město:  PSC:  E-mail: test@email.cz Telefon: ',
         )
         self.assertEqual(donor_payment_channel.user.last_name, 'Duplabar')
         self.assertEqual(donor_payment_channel.user.userchannels.count(), 2)
@@ -289,7 +292,7 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin,  TransactionTestCase):
         self.assertEqual(msg.subject, 'New user')
         self.assertEqual(
             msg.body,
-            'New user has been created Jméno: Testing Příjmení: User Ulice: Město: PSC:\nE-mail: test@test.cz Telefon: 111222333\n\n',
+            'New user has been created Jméno: Testing Příjmení: User Ulice:  Město:  PSC:  E-mail: test@test.cz Telefon: 111222333',
         )
 
         self.assertEqual(UserProfile.objects.get(email="test@test.cz").get_full_name(), "Testing User")
@@ -414,14 +417,13 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin,  TransactionTestCase):
         self.assertContains(response, '<tr><th>Částka: </th><td>100 Kč</td></tr>', html=True)
         self.assertContains(response, '<tr><th>Frekvence: </th><td>Měsíčně</td></tr>', html=True)
         self.assertContains(response, '<tr><th>Pravidelné platby: </th><td>Pravidelné platby</td></tr>', html=True)
-
         self.assertEqual(len(mail.outbox), 2)
         msg = mail.outbox[0]
         self.assertEqual(msg.recipients(), ['test.user@email.cz', 'kp@auto-mat.cz'])
         self.assertEqual(msg.subject, 'Resending data')
         self.assertEqual(
             msg.body,
-            'Resending data to Jméno: Test Příjmení: User Ulice: Město: Praha 4 PSC:\nE-mail: test.user@email.cz Telefon:\n\n',
+            'Resending data to Jméno: Test Příjmení: User Ulice:  Město: Praha 4 PSC:  E-mail: test.user@email.cz Telefon: ',
         )
         msg1 = mail.outbox[1]
         self.assertEqual(msg1.recipients(), ['manager@test.com'])
@@ -455,7 +457,7 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin,  TransactionTestCase):
         self.assertEqual(msg.subject, 'Resending data')
         self.assertEqual(
             msg.body,
-            'Resending data to Jméno: Test Příjmení: User Ulice: Město: Praha 4 PSC:\nE-mail: test.user@email.cz Telefon:\n\n',
+            'Resending data to Jméno: Test Příjmení: User Ulice:  Město: Praha 4 PSC:  E-mail: test.user@email.cz Telefon: ',
         )
         msg1 = mail.outbox[1]
         self.assertEqual(msg1.recipients(), ['manager@test.com'])

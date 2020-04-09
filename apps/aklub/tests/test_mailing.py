@@ -53,13 +53,15 @@ class MailingTest(TransactionTestCase):
             first_name="Testing",
             last_name="UserInCampaign",
         )
+        inter_category = mommy.make('interactions.interactioncategory', category='testcategory')
+        inter_type = mommy.make('interactions.interactiontype', category=inter_category, name='testtype', send_email=True)
         sending_user.administrative_units.add(self.unit)
         mommy.make("ProfileEmail", user=sending_user, email="test@test.com", is_primary=True)
         c = models.AutomaticCommunication.objects.create(
             condition=NamedCondition.objects.create(),
             template="Testing template",
             subject="Testing email",
-            method="email",
+            method_type=inter_type,
             administrative_unit=self.unit,
         )
         mailing.send_fake_communication(c, sending_user, self.request)
@@ -76,14 +78,16 @@ class MailingTest(TransactionTestCase):
             last_name="UserInCampaign",
         )
         sending_user.administrative_units.add(self.unit)
+        inter_category = mommy.make('interactions.interactioncategory', category='testcategory')
+        inter_type = mommy.make('interactions.interactiontype', category=inter_category, name='testtype', send_email=True)
         mommy.make("ProfileEmail", user=sending_user, email="test@test.com", is_primary=True)
         c = models.AutomaticCommunication.objects.create(
             condition=NamedCondition.objects.create(),
             template="Testing template",
             subject="Testing email",
             subject_en="Testing email",
-            method="email",
             administrative_unit=self.unit,
+            method_type=inter_type,
         )
         u = models.Profile.objects.get(email='test.user1@email.cz')
         with self.assertRaises(Exception) as ex:
@@ -100,17 +104,18 @@ class MailingTest(TransactionTestCase):
         sending_user.administrative_units.add(self.unit)
         sending_user.save()
         mommy.make("ProfileEmail", user=sending_user, email="test@test.com", is_primary=True)
+        inter_category = mommy.make('interactions.interactioncategory', category='testcategory')
+        inter_type = mommy.make('interactions.interactiontype', category=inter_category, name='testtype', send_email=True)
         c = models.MassCommunication.objects.create(
             template="Testing template",
             template_en="Testing template en",
             subject="Testing email",
             subject_en="Testing email en",
-            method="email",
+            method_type=inter_type,
             date="2015-5-1",
             administrative_unit=self.unit,
         )
         c.send_to_users.set(models.Profile.objects.filter(pk__in=[3, 2978, 2979]))
-
         mailing.send_mass_communication(c, sending_user, self.request)
         self.assertEqual(len(mail.outbox), 3)
         mail.outbox.sort(key=lambda m: m.recipients()[0])
