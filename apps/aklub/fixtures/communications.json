@@ -1,7 +1,7 @@
 [
     {
         "fields": {
-          "name": "test_unit"
+          "name": "test_unit",
           "slug": "test_unit"
         },
         "model": "aklub.administrativeunit",
