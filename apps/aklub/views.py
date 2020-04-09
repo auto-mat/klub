@@ -788,14 +788,16 @@ class ConfirmEmailView(SesameUserMixin, View):
             preference.send_mailing_lists = False
             preference.save()
             cache.clear()
-            # TODO: this shoud be changed in future..  maybe we add unsubscribe to specific event
-            # maybe we add field email_confirmation_redirect to administrative_unit model
-            # right now we look for some event.. where email_confirmation_redirect is applied
-            event_with_redirect = Event.objects.exclude(
-                                    email_confirmation_redirect=None,
-                                  ).first()
-            if event_with_redirect:
-                return redirect(event_with_redirect.email_confirmation_redirect, permanent=False)
+
         except Preference.DoesNotExist:
-            pass
-        return HttpResponse(_("Something went wrong, please contact us."))
+            return HttpResponse(_("Something went wrong, please contact us."))
+        # TODO: this shoud be changed in future..  maybe we add unsubscribe to specific event
+        # maybe we add field email_confirmation_redirect to administrative_unit model
+        # right now we look for some event.. where email_confirmation_redirect is applied
+        event_with_redirect = Event.objects.exclude(
+                                email_confirmation_redirect=None,
+                              ).first()
+        if event_with_redirect:
+            return redirect(event_with_redirect.email_confirmation_redirect, permanent=False)
+        else:
+            return HttpResponse(_("You  were unsubscribed from communication with us succefully."))
