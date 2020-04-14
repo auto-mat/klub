@@ -1,9 +1,10 @@
-
+from django import forms
 from django.contrib import admin
+
 
 from .models import (
     CompanyEmail, CompanyPhone, CompanySocialMedia,
-    CompanyUrl, TemplateFooter,
+    CompanyUrl, TemplateFooter, TemplateHeader,
 )
 
 # Register your models here.
@@ -72,3 +73,39 @@ class TemplateFooterAdminInline(admin.ModelAdmin):
         CompanyEmailAdminInline,
         CompanySocialMediaAdminInline,
     ]
+
+
+class TemplateHeaderAdminForm(forms.ModelForm):
+    class Meta:
+        model = TemplateHeader
+        exclude = ('user',)
+
+    def save(self, commit=True):
+        instance = super(TemplateHeaderAdminForm, self).save(commit=False)
+        instance.user = self.user
+        if commit:
+            instance.save()
+        return instance
+
+
+@admin.register(TemplateHeader)
+class TemplateHeaderAdminInline(admin.ModelAdmin):
+    form = TemplateHeaderAdminForm
+    list_display = (
+        'name',
+        'text',
+        'logo',
+        'user',
+        'show',
+    )
+    list_filter = (
+        'name',
+        'text',
+        'user',
+        'show',
+    )
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        form.user = request.user
+        return form
