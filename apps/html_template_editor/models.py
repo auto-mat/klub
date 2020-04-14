@@ -2,7 +2,7 @@
 
 import uuid
 
-# from django.contrib.auth import get_user_model
+from django.conf import settings
 from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.utils.functional import lazy
@@ -12,8 +12,7 @@ from django.utils.translation import ugettext_lazy as _
 from phonenumber_field.modelfields import PhoneNumberField
 
 from .utils import get_social_media_icons_names
-
-# User = get_user_model()
+from .validators import validate_logo_image
 
 
 class TemplateContent(models.Model):
@@ -247,3 +246,88 @@ class TemplateFooter(models.Model):
     def get_social_media(self):
         objs = self.social_media.all()
         return mark_safe("<br>".join([f"{o.icon_name}: {o.url}" for o in objs]))
+
+
+class TemplateHeader(models.Model):
+
+    class Meta:
+        verbose_name = _("Template header")
+        verbose_name_plural = _("Template headers")
+
+    name = models.CharField(
+        verbose_name=_("Header name"),
+        max_length=255,
+        null=True,
+        blank=True,
+    )
+    text = models.CharField(
+        verbose_name=_("Header text"),
+        max_length=255,
+        null=True,
+        blank=True,
+    )
+    text_horizontal_position = models.CharField(
+        verbose_name=_("Header horizontal text position"),
+        choices=(("left", _("Left")),
+                 ("center", _("Center")),
+                 ("right", _("Right"))),
+        default="left",
+        max_length=20,
+        null=True,
+        blank=True,
+    )
+    text_vertical_position = models.CharField(
+        verbose_name=_("Header vertical text position"),
+        choices=(("top", _("Top")),
+                 ("middle", _("Middle")),
+                 ("bottom", _("Bottom"))),
+        default="middle",
+        max_length=20,
+        null=True,
+        blank=True,
+    )
+    logo = models.ImageField(
+        verbose_name=_("Logo image"),
+        upload_to='images',
+        height_field=None,
+        width_field=None,
+        max_length=100,
+        validators=[validate_logo_image],
+        help_text=_("Max. image width 300 px, and max. image file size 5 MB"),
+    )
+    logo_horizontal_position = models.CharField(
+        verbose_name=_("Logo horizontal position"),
+        choices=(
+            ("left", _("Left")),
+            ("center", _("Center")),
+            ("right", _("Right"))),
+        default="left",
+        max_length=20,
+        null=True,
+        blank=True,
+    )
+    logo_position = models.CharField(
+        verbose_name=_("Logo position"),
+        choices=(
+            ("left", _("Left")),
+            ("right", _("Right"))),
+        default="left",
+        max_length=20,
+        null=True,
+        blank=True,
+        help_text=_("Left or right column logo position"),
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        models.SET_NULL,
+        blank=True,
+        null=True,
+    )
+    show = models.BooleanField(
+        verbose_name=_("Show"),
+        default=False,
+        help_text=_("Show header"),
+    )
+
+    def __str__(self):
+        return self.name
