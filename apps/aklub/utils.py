@@ -14,7 +14,7 @@ from django.utils.html import format_html_join, mark_safe
 from django.utils.translation import ugettext_lazy as _
 
 from html_template_editor.models import (
-    Images, TemplateContent, TemplateFooter,
+    Images, TemplateContent, TemplateFooter, TemplateHeader,
 )
 
 from . import models as aklub_models
@@ -140,6 +140,7 @@ def get_email_templates_names():
         'new_empty_template.html',
         'footer.html',
         'automat_fonts.html',
+        'header.html',
     ]
 
     def get_templates_files():
@@ -190,6 +191,10 @@ def get_email_template_context(template_path, template_url):
     footer = TemplateFooter.objects.filter(show=True).first()
     if footer:
         context['footer'] = footer
+
+    header = TemplateHeader.objects.filter(show=True).first()
+    if header:
+        context['header'] = header
 
     background_image = Images.objects.filter(
             template_url=template_url,
