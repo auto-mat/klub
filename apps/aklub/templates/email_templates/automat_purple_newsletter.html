@@ -1,5 +1,6 @@
 {% extends 'email_templates/base.html' %} {% load static %} {% block content %}
 <article class="article">
+  {% if header %} {% include "email_templates/header.html" %} {% endif %}
   <table
     id="background_table"
     cellspacing="0"
