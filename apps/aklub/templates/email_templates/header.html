@@ -1,0 +1,25 @@
+{% load static %}
+
+<div class="article__header" style="width: 600px;">
+  <table>
+    <tbody>
+      <tr style="border: none;">
+        {% if header.logo_position == "left" %}
+          <td style="width: 300px; border: none;">
+            <img src="{{ header.logo.url }}" align="{{ header.logo_horizontal_position }}"></img>
+          </td>
+          <td style="width: 300px; border: none; padding-left: 30px; vertical-align: {{ header.text_vertical_position }}; text-align: {{ header.text_horizontal_position }};">
+            <b>{{ header.text }}</b>{{ header.logo_position }}
+          </td>
+        {% else %}
+          <td style="width: 300px; border: none; padding-left: 30px; vertical-align: {{ header.text_vertical_position }}; text-align: {{ header.text_horizontal_position }};">
+            <b>{{ header.text }}</b>{{ header.logo_position }}
+          </td>
+          <td style="width: 300px; border: none;">
+            <img src="{{ header.logo.url }}" align="{{ header.logo_horizontal_position }}"></img>
+          </td>
+        {% endif %}
+      </tr>
+    </tbody>
+  </table>
+</div>
