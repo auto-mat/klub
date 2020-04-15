@@ -60,7 +60,8 @@ class AutocomTest(TestCase):
         )
         inter_category = mommy.make('interactions.interactioncategory', category='testcategory')
         inter_type = mommy.make('interactions.interactiontype', category=inter_category, name='testtype', send_email=True)
-        unit = mommy.make('aklub.administrativeunit', name='testAU')
+        unit = mommy.make('aklub.administrativeunit', name='testAU', slug='test_unit')
+
         from ..models import AutomaticCommunication
         AutomaticCommunication.objects.create(
             method_type=inter_type,
