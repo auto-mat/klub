@@ -59,8 +59,6 @@ class PaymentsImportExportTests(CreateSuperUserMixin, TestCase):
             }
             response = self.client.post(address, data)
         self.assertEqual(response.status_code, 200)
-        with open("response.html", "w") as f:  # pragma: no cover
-            f.write(response.content.decode())  # pragma: no cover
 
         result = re.search(
             r'<input type="hidden" name="import_file_name".*?>',
@@ -163,8 +161,7 @@ class PaymentsImportExportTests(CreateSuperUserMixin, TestCase):
             'file_format': 0,
         }
         response = self.client.post(address, post_data)
-        with open("response.html", "w") as f:  # pragma: no cover
-            f.write(response.content.decode())  # pragma: no cover
+
         self.assertContains(
             response,
             '11,,2020-02-20,1000,111,,,,,,,,,,export_test_note,,,,,,,',
@@ -228,8 +225,6 @@ class InteractionsImportExportTests(CreateSuperUserMixin, TestCase):
             }
             response = self.client.post(address, data)
         self.assertEqual(response.status_code, 200)
-        with open("response.html", "w") as f:  # pragma: no cover
-            f.write(response.content.decode())  # pragma: no cover
         self.assertContains(response, 'test_username', html=True)
         self.assertContains(response, 'test_email@email.com', html=True)
 
@@ -588,8 +583,6 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
             'file_format': 0,
         }
         response = self.client.post(address, post_data)
-        with open("response.html", "w") as f:
-            f.write(response.content.decode())
 
         self.assertContains(
             response,
