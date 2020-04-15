@@ -11,9 +11,26 @@ from django.db.models.functions import Lower
 from django.utils.translation import ugettext as _
 
 from .models import (
-    CompanyProfile, Profile, ProfileEmail, Telephone,
-    UserProfile,
+    CompanyProfile, Event, Profile, ProfileEmail, Telephone,
+    UserProfile, DonorPaymentChannel
 )
+
+
+class ProfileDonorEvent(SimpleListFilter):
+    title = _("Event")
+    parameter_name = 'profile_dpch_event'
+
+    def lookups(self, request, model_admin):
+        if request.user.has_perm('aklub.can_edit_all_units'):
+            data = Event.objects.all().order_by('name')
+        else:
+            data = Event.objects.filter(administrative_units__in=request.user.administrated_units.all())
+        return [(event.id, event.name) for event in data]
+
+    def queryset(self, request, queryset):
+        if self.value():
+            queryset = queryset.filter(userchannels__event__id=self.value())
+        return queryset
 
 
 class ProfileHasFullAdress(SimpleListFilter):
