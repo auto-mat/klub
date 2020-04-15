@@ -11,7 +11,7 @@
 
   <script type="text/javascript">
     // redirect import/export buttons to import/export jobs page
-    $( document ).ready(function() {
+    document.addEventListener("DOMContentLoaded", function(event){
         $(".import_link").attr("href", "{% url 'admin:import_export_celery_importjob_add'%}")
         $(".export_link").attr("href", "{% url 'admin:import_export_celery_exportjob_changelist'%}")
     });
