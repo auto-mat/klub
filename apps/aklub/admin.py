@@ -1382,6 +1382,7 @@ class PaymentAdmin(
                 'user_donor_payment_channel', 'date', 'amount',
                 ('type',),
                 ('recipient_account',),
+                ('our_note',),
             ],
         }),
         (_("Details"), {

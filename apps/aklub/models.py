@@ -273,7 +273,6 @@ class Event(models.Model):
     administrative_units = models.ManyToManyField(
         AdministrativeUnit,
         verbose_name=_("administrative units"),
-        blank=True,
     )
 
     def number_of_members(self):
@@ -1543,7 +1542,6 @@ class AccountStatements(ParseAccountStatement, models.Model):
         verbose_name=_("administrative unit"),
         on_delete=models.CASCADE,
         null=True,
-        blank=True,
     )
 
     def save(self, *args, **kwargs):
@@ -2166,9 +2164,17 @@ class Payment(WithAdminUrl, models.Model):
         ('bank-transfer', _('Bank transfer')),
         ('cash', _('In cash')),
         ('expected', _('Expected payment')),
+        ('creadit_card', _('Credit card')),
+        ('material_gift', _('Material gift')),
         ('darujme', 'Darujme.cz'),
     )
-
+    our_note = models.CharField(
+            verbose_name=("Our note"),
+            help_text=_("Little note to payment"),
+            max_length=100,
+            default="",
+            blank=True,
+    )
     recipient_account = models.ForeignKey(
         MoneyAccount,
         verbose_name=("Recipient account"),
@@ -2404,8 +2410,10 @@ class AutomaticCommunication(models.Model):
     )
     method_type = models.ForeignKey(
         "interactions.interactiontype",
+        help_text=_("Interaction type with allowed sending"),
         on_delete=models.CASCADE,
         limit_choices_to=Q(send_sms=True) | Q(send_email=True),
+        null=True,
     )
     subject = models.CharField(
         verbose_name=_("Subject"),
@@ -2509,7 +2517,9 @@ class MassCommunication(models.Model):
     method_type = models.ForeignKey(
         "interactions.interactiontype",
         on_delete=models.CASCADE,
+        help_text=_("Interaction type with allowed sending"),
         limit_choices_to=Q(send_sms=True) | Q(send_email=True),
+        null=True,
     )
     subject = models.CharField(
         verbose_name=_("Subject"),
