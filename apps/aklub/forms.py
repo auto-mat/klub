@@ -168,6 +168,10 @@ class UnitUserProfileChangeForm(UnitUserProfileAddForm):
         self.fields['administrative_units'].disabled = True
 
     def clean(self):
+        # we pop all fields which we dont want to be changed (administated things)
+        ignore_fields = ['is_superuser', 'user_permissions', 'is_staff', 'password', 'administrated_units', 'groups']
+        keys = list(self.cleaned_data)
+        [self.cleaned_data.pop(field) for field in keys if field in ignore_fields]
         return super(UnitUserProfileAddForm, self).clean()
 
     def is_valid(self):
