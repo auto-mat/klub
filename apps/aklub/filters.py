@@ -22,7 +22,7 @@ class ProfileDonorEvent(SimpleListFilter):
 
     def lookups(self, request, model_admin):
         if request.user.has_perm('aklub.can_edit_all_units'):
-            data = Event.objects.all().order_by('name')
+            data = Event.objects.order_by('name')
         else:
             data = Event.objects.filter(administrative_units__in=request.user.administrated_units.all())
         return [(event.id, event.name) for event in data]
