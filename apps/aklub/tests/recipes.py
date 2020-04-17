@@ -42,7 +42,7 @@ generic_profile_recipe = Recipe(
     '',
     is_staff=False,
     is_active=True,
-    date_joined='2016-09-16T16:22:30.128Z',
+    date_joined='2016-09-16 16:22:30',
     language='en',
     city='Praha 4',
     country='Česká republika',
