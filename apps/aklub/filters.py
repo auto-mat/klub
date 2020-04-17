@@ -12,7 +12,7 @@ from django.utils.translation import ugettext as _
 
 from .models import (
     CompanyProfile, Event, Profile, ProfileEmail, Telephone,
-    UserProfile, DonorPaymentChannel
+    UserProfile,
 )
 
 
