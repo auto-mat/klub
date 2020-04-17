@@ -27,6 +27,7 @@ from interactions.models import Interaction
 
 from model_mommy import mommy
 
+from sesame import utils as sesame_utils
 
 from .. import autocom
 
@@ -171,8 +172,8 @@ class AutocomTest(TestCase):
         self.assertTrue("123123123" in interaction.summary)
         self.assertTrue("měsíčně" in interaction.summary)
         self.assertTrue("1000" in interaction.summary)
-        # token
-        url = "example.com/cs/email_confirmation/test_unit/?url_auth_token=AAAAb1wKAecO8DcJ3HQqlu5XWGE%3AlvBqArDpLyHz-s5MiGfBf4_Kfsg"
+        # token (cant be compared by 'string')
+        url = "example.com/cs/email_confirmation/test_unit/" + sesame_utils.get_query_string(self.userprofile)
         self.assertTrue(url in interaction.summary)
 
     def test_autocom_en(self):
@@ -201,8 +202,8 @@ class AutocomTest(TestCase):
         self.assertTrue("123123123" in interaction.summary)
         self.assertTrue("monthly" in interaction.summary)
         self.assertTrue("1000" in interaction.summary)
-        # token
-        url = "example.com/cs/email_confirmation/test_unit/?url_auth_token=AAAAb1wKAecO8DcJ3HQqlu5XWGE%3AlvBqArDpLyHz-s5MiGfBf4_Kfsg"
+        # token (cant be compared by 'string')
+        url = "example.com/cs/email_confirmation/test_unit/" + sesame_utils.get_query_string(self.userprofile)
         self.assertTrue(url in interaction.summary)
 
 
