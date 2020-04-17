@@ -1331,6 +1331,7 @@ class PaymentResource(ModelResource):
             'order_id', 'user_donor_payment_channel', 'created', 'updated',
                   )
         clean_model_instances = True
+        import_id_fields = []  # must be empty or library take field id as default
     """
     TODO: add payment_pair from account_statement model to pair payments
         import_obj is the way
