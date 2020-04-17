@@ -82,6 +82,8 @@ wiki = "*"
 django-flexible-filter-conditions = "*"
 tablib = "==0.14"
 django-dbbackup = "*"
+faker = "*"
+
 
 [dev-packages]
 coverage = "*"
