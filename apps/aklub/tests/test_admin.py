@@ -180,7 +180,8 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
     @freeze_time("2015-5-1")
     def test_account_statement_changelist_post(self):
         event = mommy.make("aklub.Event", name="Klub přátel Auto*Matu")
-        mommy.make("aklub.ApiAccount", project_name="Klub přátel Auto*Matu", event=event)
+        unit = mommy.make("aklub.administrativeunit", name='test,unit')
+        mommy.make("aklub.ApiAccount", project_name="Klub přátel Auto*Matu", event=event, administrative_unit=unit)
         mommy.make("aklub.Payment", SS=22258, type="darujme", operation_id="13954", date="2016-02-09")
         donor_payment_channel_recipe.make(id=2979, userprofile__email="bar@email.com", userprofile__language="cs")
         model_admin = django_admin.site._registry[AccountStatements]
@@ -196,6 +197,7 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
                 "csv_file": f,
                 'payment_set-TOTAL_FORMS': 0,
                 'payment_set-INITIAL_FORMS': 0,
+                'administrative_unit': unit.id,
             }
             request = self.post_request(post_data=post_data)
             response = model_admin.add_view(request)
@@ -229,6 +231,7 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
                 "csv_file": f,
                 'payment_set-TOTAL_FORMS': 0,
                 'payment_set-INITIAL_FORMS': 0,
+                'administrative_unit': unit.id,
             }
 
             request = self.post_request(post_data=post_data)
