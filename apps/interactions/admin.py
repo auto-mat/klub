@@ -55,6 +55,7 @@ class InteractionResource(ModelResource):
 
          )
         clean_model_instances = True
+        import_id_fields = []  # must be empty or library take field id as default and ignore before_import_row
 
     def before_import_row(self, row, **kwargs):
         user = None
