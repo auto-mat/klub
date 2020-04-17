@@ -842,11 +842,10 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
         return administrative_units
 
     def get_event(self):
-        event = ', '.join(
-            '<nobr>' + str(donor.event.id) + ') ' + donor.event.name +
-            '</nobr>' for donor in self.userchannels.all() if donor.event is not None,
+        event = format_html_join(
+            ', ', "<nobr>{}) {}</nobr>", ((d.event.id, d.event.name) for d in self.userchannels.all() if d.event is not None),
             )
-        return mark_safe(event)
+        return event
 
     def can_administer_profile(self, profile):
         if self.has_perm('aklub.can_edit_all_units'):
