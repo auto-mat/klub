@@ -1908,7 +1908,6 @@ class UserProfileAdmin(
         'profileemail__email',
     )
     list_filter = (
-
         'userchannels__registered_support',
         'preference__send_mailing_lists',
         isnull_filter('userchannels__payment', _('Has any payment'), negate=True),
