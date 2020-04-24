@@ -33,6 +33,7 @@ from daterange_filter.filter import DateRangeFilter
 from django import forms
 from django.contrib import admin, messages
 from django.contrib.admin import site
+from django.contrib.admin.templatetags.admin_list import _boolean_icon
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.contenttypes.models import ContentType
 from django.core import serializers
@@ -728,7 +729,6 @@ class ProfileAdminMixin:
     def regular_amount(self, obj):
         result = self.get_donor_details(obj)
         return ',\n'.join(str(d.regular_amount) for d in result if d.regular_amount)
-
     regular_amount.short_description = _("Regular amount")
     regular_amount.admin_order_field = 'userchannels__regular_amount'
 
@@ -737,17 +737,17 @@ class ProfileAdminMixin:
         result = []
         for d in donors:
             if isinstance(d.regular_payments_delay(), (bool,)):
-                result.append('ok')
+                result.append(_boolean_icon(True))
             else:
-                result.append(str(d.regular_payments_delay().days) + ' days')
-        return ',\n'.join(result)
+                result.append('<nobr>' + _boolean_icon(False) + str(d.regular_payments_delay().days) + ' days' + '</nobr>')
+        return mark_safe(',<br>'.join(result))
 
     donor_delay.short_description = _("Payment delay")
     donor_delay.admin_order_field = 'donor_delay'
 
     def donor_extra_money(self, obj):
         result = self.get_donor_details(obj)
-        return ',\n'.join(str(d.extra_money) for d in result)
+        return mark_safe(',<br>'.join(str(d.extra_money) if d.extra_money else '-' for d in result ))
 
     donor_extra_money.short_description = _("Extra money")
     donor_extra_money.admin_order_field = 'donor_extra_money'
