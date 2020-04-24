@@ -24,7 +24,7 @@ import logging
 
 from colorfield.fields import ColorField
 
-from denorm import denormalized, depend_on_related
+from computedfields.models import ComputedFieldsModel, computed
 
 from django.conf import settings
 from django.contrib.admin.templatetags.admin_list import _boolean_icon
@@ -1688,7 +1688,7 @@ class UserBankAccount(models.Model):
         return u"%s" % (self.bank_account_number)
 
 
-class DonorPaymentChannel(models.Model):
+class DonorPaymentChannel(ComputedFieldsModel):
     class Meta:
         verbose_name = _("Donor payment channel")
         verbose_name_plural = _("Donor payment channels")
@@ -1846,8 +1846,7 @@ class DonorPaymentChannel(models.Model):
         except MoneyAccount.DoesNotExist:
             pass
 
-    @denormalized(models.IntegerField, null=True)
-    @depend_on_related('Payment', foreign_key="user_donor_payment_channel")
+    @computed(models.IntegerField(null=True), depends=['payment_set'])
     def number_of_payments(self):
         """Return number of payments made by this user
         """
@@ -1860,13 +1859,15 @@ class DonorPaymentChannel(models.Model):
         """Return last payment"""
         return self.payment_set.order_by('date').last()
 
-    @denormalized(
-        models.ForeignKey,
-        to='Payment',
-        default=None,
-        null=True,
-        related_name="user_last_payment",
-        on_delete=models.SET_NULL,
+    @computed(
+        models.ForeignKey(
+            to='Payment',
+            default=None,
+            null=True,
+            related_name="user_last_payment",
+            on_delete=models.SET_NULL,
+        ),
+        depends=['payment_set'],
     )
     def last_payment(self):
         """Return last payment"""
@@ -1930,8 +1931,7 @@ class DonorPaymentChannel(models.Model):
         except KeyError:
             return None
 
-    @denormalized(models.DateField, null=True)
-    @depend_on_related('Payment', foreign_key="user_donor_payment_channel")
+    @computed(models.DateField(null=True), depends=['payment_set'])
     def expected_regular_payment_date(self):
         last_payment = self.last_payment_function()
         last_payment_date = last_payment.date if last_payment else None
@@ -1954,8 +1954,7 @@ class DonorPaymentChannel(models.Model):
             expected = self.registered_support.date() + datetime.timedelta(days=31)
         return expected
 
-    @denormalized(models.FloatField, null=True)
-    @depend_on_related('Payment', foreign_key="user_donor_payment_channel")
+    @computed(models.FloatField(null=True), depends=['payment_set'])
     def payment_total(self):
         return self.payment_set.aggregate(sum=Sum('amount'))['sum'] or 0
 
@@ -1982,8 +1981,7 @@ class DonorPaymentChannel(models.Model):
                     return datetime.date.today() - expected_with_tolerance
         return False
 
-    @denormalized(models.IntegerField, null=True)
-    @depend_on_related('Payment', foreign_key="user_donor_payment_channel")
+    @computed(models.IntegerField(null=True), depends=['payment_set#amount'])
     def extra_money(self):
         """Check if we didn't receive more money than expected in the last payment period"""
         if self.regular_payments == "regular":
@@ -2029,8 +2027,8 @@ class DonorPaymentChannel(models.Model):
     extra_payments.short_description = _(u"Extra money")
     extra_payments.admin_order_field = 'extra_money'
 
-    @denormalized(models.NullBooleanField, null=True)
-    @depend_on_related('Payment', foreign_key="user_donor_payment_channel")
+
+    @computed(models.NullBooleanField(null=True), depends=['payment_set'])
     def no_upgrade(self):
         """Check for users without upgrade to payments
 
