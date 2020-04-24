@@ -914,6 +914,14 @@ class CompanyProfile(Profile):
         null=True,
     )
 
+    def full_contact_name(self):
+        """Return complete name"""
+        if self.contact_first_name and self.contact_last_name:
+            return f'{self.contact_first_name} {self.contact_last_name}'
+
+    full_contact_name.short_description = _("Contact name")
+    full_contact_name.admin_order_field = 'full_contact_name'
+
 
 class UserProfile(Profile, AbstractUserProfile):
     class Meta:

@@ -747,7 +747,7 @@ class ProfileAdminMixin:
 
     def donor_extra_money(self, obj):
         result = self.get_donor_details(obj)
-        return mark_safe(',<br>'.join(str(d.extra_money) if d.extra_money else '-' for d in result ))
+        return mark_safe(',<br>'.join(str(d.extra_money) if d.extra_money else '-' for d in result))
 
     donor_extra_money.short_description = _("Extra money")
     donor_extra_money.admin_order_field = 'donor_extra_money'
@@ -2066,21 +2066,25 @@ class CompanyProfileAdmin(
     resource_class = CompanyProfileResource
     import_template_name = "admin/import_export/userprofile_import.html"
     change_form_template = "admin/aklub/profile_changeform.html"
+
     list_display = (
         'name',
         'crn',
         'tin',
-        'email',
+        'full_contact_name',
+        'get_email',
         'get_main_telephone',
+        'get_administrative_units',
         'get_event',
-        'variable_symbol',
-        'regular_amount',
-        'is_staff',
         'date_joined',
-        'last_login',
-        'contact_first_name',
-        'contact_last_name',
+        'get_sum_amount',
+        'get_payment_count',
+        'get_last_payment_date',
+        'regular_amount',
+        'donor_delay',
+        'donor_extra_money',
     )
+
     advanced_filter_fields = (
         'email',
         'telephone__telephone',
