@@ -27,7 +27,7 @@ from model_mommy import mommy
 from model_mommy.recipe import Recipe
 
 from ..utils import ICON_FALSE
-from ...models import Profile
+from ...models import DonorPaymentChannel, Profile
 
 
 @freeze_time("2010-5-1")
@@ -337,3 +337,65 @@ class TestNameFunctions(TestCase):
     def test_str(self):
         self.assertEqual(self.donor_payment_channel_user_profile.__str__(), 'Payment channel: test@test.com - 1234')
         self.assertEqual(self.donor_payment_channel_company_profile.__str__(), 'Payment channel: test@test.com - 5678')
+
+
+class TestDenormalizedFields(TestCase):
+    """
+    testing if denormalized fields of donor_payment_channel are changed,
+    which are made by django-computedfields library
+    """
+
+    def setUp(self):
+        unit = mommy.make('aklub.AdministrativeUnit', name='test')
+        self.money_acc = mommy.make('aklub.BankAccount', administrative_unit=unit, bank_account_number='12345')
+        self.dpch = mommy.make(
+            'aklub.DonorPaymentChannel',
+            id=10,
+            money_account=self.money_acc,
+            regular_frequency='monthly',
+            regular_amount=100,
+            expected_date_of_first_payment=datetime.date(year=2022, month=1, day=19),
+
+        )
+
+        mommy.make(
+            'aklub.Payment',
+            user_donor_payment_channel=self.dpch,
+            recipient_account=self.money_acc,
+            amount=100,
+            date=datetime.date(year=2022, month=1, day=19),
+
+        )
+
+    def test_payment_changed(self):
+
+        payment = self.dpch.payment_set.first()
+        payment.amount = 500
+        payment.save()
+        dpch = DonorPaymentChannel.objects.get(id=10)
+
+        self.assertEqual(dpch.number_of_payments, 1)
+        self.assertEqual(dpch.last_payment, payment)
+        self.assertEqual(dpch.expected_regular_payment_date, datetime.date(2022, 2, 19))
+        self.assertEqual(dpch.payment_total, 500)
+        self.assertEqual(dpch.extra_money, 400)
+        self.assertEqual(dpch.no_upgrade, False)
+
+    def test_payment_added(self):
+        payment = mommy.make(
+            'aklub.Payment',
+            user_donor_payment_channel=self.dpch,
+            recipient_account=self.money_acc,
+            amount=300,
+            date=datetime.date(year=2022, month=2, day=19),
+        )
+        payment.user_donor_payment_channel = self.dpch
+        payment.save()
+        dpch = DonorPaymentChannel.objects.get(id=10)
+
+        self.assertEqual(dpch.number_of_payments, 2)
+        self.assertEqual(dpch.last_payment, payment)
+        self.assertEqual(dpch.expected_regular_payment_date, datetime.date(2022, 3, 22))
+        self.assertEqual(dpch.payment_total, 400)
+        self.assertEqual(dpch.extra_money, 300)
+        self.assertEqual(dpch.no_upgrade, False)
