@@ -810,7 +810,7 @@ class ProfileAdminMixin:
         # save request user's adminsitratived_unit here, so we dont have to peek in every loop
         self.user_administrated_units = self.request.user.administrated_units.all()
 
-        if self.request.user._wrapped.has_perm('aklub.can_edit_all_units'):
+        if self.request.user.has_perm('aklub.can_edit_all_units'):
             queryset = super().get_queryset(*args, **kwargs).prefetch_related(
                     'telephone_set',
                     'profileemail_set',
