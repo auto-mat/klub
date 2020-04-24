@@ -2102,16 +2102,21 @@ class CompanyProfileAdmin(
         'telephone__telephone',
     )
     list_filter = (
+        'userchannels__registered_support',
+        'preference__send_mailing_lists',
+        isnull_filter('userchannels__payment', _('Has any payment'), negate=True),
+        'userchannels__extra_money',
+        'userchannels__regular_amount',
+        'userchannels__regular_frequency',
         'is_staff',
         'is_superuser',
         'is_active',
         'groups',
         'language',
-        'userchannels__event',
+        filters.ProfileDonorEvent,
         filters.RegularPaymentsFilter,
         filters.EmailFilter,
         filters.TelephoneFilter,
-        filters.NameFilter,
     )
 
     ordering = ('email',)
