@@ -50,8 +50,28 @@ class CompanySocialMediaAdminInline(admin.StackedInline):
     extra = 0
 
 
+class TemplateFooterAdminForm(forms.ModelForm):
+    class Meta:
+        model = TemplateFooter
+        exclude = (
+            'url',
+            'phone',
+            'email',
+            'social_media',
+            'user',
+        )
+
+    def save(self, commit=True):
+        instance = super(TemplateFooterAdminForm, self).save(commit=False)
+        instance.user = self.user
+        if commit:
+            instance.save()
+        return instance
+
+
 @admin.register(TemplateFooter)
 class TemplateFooterAdminInline(admin.ModelAdmin):
+    form = TemplateFooterAdminForm
     list_display = (
         'company_name',
         'address',
@@ -59,13 +79,14 @@ class TemplateFooterAdminInline(admin.ModelAdmin):
         'get_email',
         'get_url',
         'get_social_media',
+        'user',
         'show',
     )
-    exclude = (
-        'url',
-        'phone',
-        'email',
-        'social_media',
+    list_filter = (
+        'name',
+        'company_name',
+        'user',
+        'show',
     )
     inlines = [
         CompanyPhoneAdminInline,
@@ -73,6 +94,11 @@ class TemplateFooterAdminInline(admin.ModelAdmin):
         CompanyEmailAdminInline,
         CompanySocialMediaAdminInline,
     ]
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        form.user = request.user
+        return form
 
 
 class TemplateHeaderAdminForm(forms.ModelForm):
