@@ -193,6 +193,12 @@ class TemplateFooter(models.Model):
         verbose_name = _("Template footer")
         verbose_name_plural = _("Template footers")
 
+    name = models.CharField(
+        verbose_name=_("Footer name"),
+        max_length=255,
+        null=True,
+        blank=True,
+    )
     company_name = models.CharField(
         verbose_name=_("Company name"),
         max_length=80,
@@ -224,6 +230,12 @@ class TemplateFooter(models.Model):
         verbose_name=_("Social media"),
         to=CompanySocialMedia,
         blank=True,
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        models.SET_NULL,
+        blank=True,
+        null=True,
     )
     show = models.BooleanField(
         verbose_name=_("Show"),
