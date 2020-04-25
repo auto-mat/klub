@@ -248,16 +248,20 @@ class TemplateFooter(models.Model):
 
     def get_url(self):
         return mark_safe("<br>".join([o.url for o in self.url.all()]))
+    get_url.short_description = _('Url')
 
     def get_email(self):
         return mark_safe("<br>".join([o.email for o in self.email.all()]))
+    get_email.short_description = _('Email')
 
     def get_phone(self):
         return mark_safe("<br>".join([str(o.phone) for o in self.phone.all()]))
+    get_phone.short_description = _('Phone number')
 
     def get_social_media(self):
         objs = self.social_media.all()
         return mark_safe("<br>".join([f"{o.icon_name}: {o.url}" for o in objs]))
+    get_social_media.short_description = _('Social media link')
 
 
 class TemplateHeader(models.Model):
