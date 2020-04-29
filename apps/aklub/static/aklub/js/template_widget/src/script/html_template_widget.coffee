@@ -167,9 +167,6 @@ class HtmlTemplateFormFieldWidget extends FormatSelectorMixin
     # childrens with childrens from the 'template_textarea' div
     # form field widget container
 
-    # Disable tinymce form field widget editor
-    @_disableFormFieldWysiwygEditor()
-
     @_$templateNameField.attr('disabled', false)
 
     # Exchange form field container childrens
@@ -279,19 +276,10 @@ class HtmlTemplateFormFieldWidget extends FormatSelectorMixin
 
     @_$templateTextareaField.attr attr
 
-    # Enable tinymce form field widget editor
-    @_enableFormFieldWysiwygEditor()
-
     @_$templateTextAreaFormFieldContainer.addClass('hidden')
 
     # Erase hidden template form field
     @_$hiddenTemplateField.val('')
-
-  _enableFormFieldWysiwygEditor: () ->
-    django_wysiwyg.enable(@_templateDivFieldId.slice(3))
-
-  _disableFormFieldWysiwygEditor: () ->
-    django_wysiwyg.disable(@_templateDivFieldId.slice(3))
 
   _exchangeContent: () ->
     @_getTemplateFieldContainer()
