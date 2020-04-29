@@ -51,8 +51,6 @@ from django.views.generic.edit import FormView
 
 from extra_views import InlineFormSet, UpdateWithInlinesView
 
-from html_template_editor.models import TemplateContent
-
 from interactions.models import PetitionSignature  # TODO: Not sure if it works (model moved from aklub to interaction app)
 
 from sesame.backends import ModelBackend
