@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 # Author: Petr Dlouhý <petr.dlouhy@email.cz>
 #
@@ -27,6 +26,7 @@ from betterforms.multiform import MultiModelForm
 
 
 from django import forms, http
+from django.conf import settings
 from django.contrib import messages
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
@@ -854,3 +854,23 @@ def get_email_template_from_db(request, template_name):
     template, context = get_email_template_context(template_path, template_url)
 
     return HttpResponse(template.render(context))
+
+
+def get_contenttools_translation(request, language):
+    """ Get ContentTools translation file  """
+
+    cttools_language_file = (
+        pathlib.Path(settings.BASE_DIR) / 'bower_components' /
+        'ContentTools' / 'translations' / f"{language}.json"
+    )
+
+    if not cttools_language_file.exists():
+        message_text = _(
+            "language '%(lang)s.json' translation file doesn't exist",
+        ) % {'lang': language}
+        return JsonResponse({'message': message_text})
+
+    with open(cttools_language_file) as f:
+        translation = json.load(f)
+
+    return JsonResponse(translation)
