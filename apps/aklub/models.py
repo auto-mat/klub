@@ -1826,10 +1826,7 @@ class DonorPaymentChannel(models.Model):
     )
 
     def __str__(self):
-        return "Payment channel: {} - {}".format(
-            self.user.get_email_str() if self.user else '',
-            self.VS,
-        )
+        return f"Payment channel: {self.VS}"
 
     def generate_VS(self):
         if self.VS == "" or self.VS is None:
