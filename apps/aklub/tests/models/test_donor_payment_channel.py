@@ -335,5 +335,5 @@ class TestNameFunctions(TestCase):
         self.assertEqual(self.donor_payment_channel_company_profile.person_name(), 'Company')
 
     def test_str(self):
-        self.assertEqual(self.donor_payment_channel_user_profile.__str__(), 'Payment channel: test@test.com - 1234')
-        self.assertEqual(self.donor_payment_channel_company_profile.__str__(), 'Payment channel: test@test.com - 5678')
+        self.assertEqual(self.donor_payment_channel_user_profile.__str__(), 'Payment channel: 1234')
+        self.assertEqual(self.donor_payment_channel_company_profile.__str__(), 'Payment channel: 5678')
