@@ -1,7 +1,9 @@
 {% load static %}
+{% load i18n %}
 {% load automat_fonts %}
 {% get_automat_fonts %}
 
+{% get_current_language as LANGUAGE_CODE %}
 
 <!DOCTYPE html>
 <html>
@@ -23,10 +25,12 @@
     </body>
     <script src="{% url 'js_urls' %}" type="text/javascript"></script>
     <script type="text/javascript" src="{% url 'jsi18n' %}"></script>
+    <script type="text/javascript">var djangoLang = "{{ LANGUAGE_CODE }}";</script>
     <script type="text/javascript" src={% static "aklub/js/csrf_token.js" %}></script>
     <script type="text/javascript" src={% static "aklub/js/edit_html_template.js" %}></script>
     <script type="text/javascript" src={% static "ContentTools/build/content-tools.min.js" %}></script>
     <script type="text/javascript" src={% static "colorPicker/javascript_implementation/jsColorPicker.min.js" %}></script>
     <script type="text/javascript" src={% static "aklub/js/image_uploader.js" %}></script>
     <script type="text/javascript" src={% static "aklub/js/editor.js" %}></script>
+    <script type="text/javascript" src={% static "aklub/js/internationalization.js" %}></script>
 </html>

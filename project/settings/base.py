@@ -568,6 +568,7 @@ JS_URLS = (
     'aklub:get_email_template',
     'aklub:get_email_template_from_db',
     'aklub:get_email_template_footer',
+    'aklub:get_contenttools_translation',
 )
 
 STATICFILES_STORAGE = 'project.settings.custom_storage.CustomStaticFilesStorage'

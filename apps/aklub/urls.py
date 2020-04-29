@@ -48,4 +48,9 @@ urlpatterns = [
         login_required(views.get_email_template_from_db),
         name='get_email_template_from_db',
     ),
+    path(
+        'get_contenttools_translation/<language>/',
+        views.get_contenttools_translation,
+        name='get_contenttools_translation',
+    ),
 ]
