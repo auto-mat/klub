@@ -1893,6 +1893,7 @@ class UserProfileAdmin(
         'profileemail__email',
     )
     list_filter = (
+        filters.PreferenceMailingListAllowed,
         isnull_filter('userchannels__payment', _('Has any payment'), negate=True),
         'userchannels__extra_money',
         'userchannels__regular_amount',
@@ -2069,8 +2070,7 @@ class CompanyProfileAdmin(
         'telephone__telephone',
     )
     list_filter = (
-        'userchannels__registered_support',
-        'preference__send_mailing_lists',
+        filters.PreferenceMailingListAllowed,
         isnull_filter('userchannels__payment', _('Has any payment'), negate=True),
         'userchannels__extra_money',
         'userchannels__regular_amount',

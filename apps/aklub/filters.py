@@ -17,6 +17,34 @@ from .models import (
 )
 
 
+class PreferenceMailingListAllowed(SimpleListFilter):
+    title = _("Mailing list allowed")
+    parameter_name = 'mailing_list_allowed'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('yes', _('Yes')),
+            ('no', _('No')),
+            ('unknown', _('Unknown'))
+        )
+
+    def queryset(self, request, queryset):
+        filters = {}
+        if not request.user.has_perm('can_edit_all_units'):
+            filters.update({'preference__administrative_unit': request.user.administrated_units.first()})
+
+        if self.value() == 'yes':
+            filters.update({'preference__send_mailing_lists': True})
+            queryset = queryset.filter(**filters)
+        elif self.value() == 'no':
+            filters.update({'preference__send_mailing_lists': False})
+            queryset = queryset.filter(**filters)
+        elif self.value() == 'unknown':
+            filters.update({'preference__send_mailing_lists': None})
+            queryset = queryset.filter(**filters)
+        return queryset
+
+
 class ProfileDonorEvent(SimpleListFilter):
     title = _("Event")
     parameter_name = 'profile_dpch_event'
