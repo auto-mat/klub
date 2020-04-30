@@ -37,8 +37,10 @@ def generate_tax_confirmations(year, profiles_ids, pdf_type_id):
     confirmations = []
     for user in users:
         confirmation, created = user.make_tax_confirmation(year, unit, pdf_type)
-        confirmations.append(confirmation)
-
+        # we want to rewrite existed confirmations,
+        # but we dont want to send null values to PdfSandwich cuz it raise bug and pdf is not created
+        if confirmation:
+            confirmations.append(confirmation)
     smmapdfs.actions.make_pdfsandwich(None, None, confirmations)
 
 
