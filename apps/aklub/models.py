@@ -2108,13 +2108,6 @@ class DonorPaymentChannel(ComputedFieldsModel):
             )
 
 
-class UserYearPayments(DonorPaymentChannel):
-    class Meta:
-        proxy = True
-        verbose_name = _("Payment for users in time period")
-        verbose_name_plural = _("Payments for users in time periods")
-
-
 class NewUserManager(models.Manager):
     def get_queryset(self):
         return super(NewUserManager, self).get_queryset().filter()

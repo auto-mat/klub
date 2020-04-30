@@ -87,7 +87,7 @@ from .models import (
     CompanyProfile, DonorPaymentChannel, Event, Expense,
     MassCommunication, MoneyAccount, NewUser, Payment, Preference, Profile, ProfileEmail, Recruiter,
     Source, TaxConfirmation, Telephone, UserBankAccount,
-    UserProfile, UserYearPayments,
+    UserProfile,
 )
 from .profile_model_resources import (
     ProfileModelResource, get_polymorphic_parent_child_fields,
@@ -1253,39 +1253,6 @@ class DonorPaymetChannelAdmin(
         return obj.user.telephone_url()
 
 
-class UserYearPaymentsAdmin(DonorPaymetChannelAdmin):
-    list_display = (
-        'person_name',
-        'user__email',
-        # 'source',
-        'VS',
-        'SS',
-        # 'registered_support_date',
-        'payment_total_by_year',
-        'user__is_active',
-        # 'last_payment_date',
-    )
-    list_filter = [
-        ('payment__date', DateRangeFilter), 'regular_payments', 'user__language', 'user__is_active',
-        # 'wished_information',
-        'old_account',
-        # 'source',
-        ('registered_support', DateRangeFilter), UserConditionFilter, UserConditionFilter1,
-    ]
-
-    def payment_total_by_year(self, obj):
-        if self.from_date and self.to_date:
-            return obj.payment_total_range(
-                datetime.datetime.strptime(self.from_date, '%d.%m.%Y'),
-                datetime.datetime.strptime(self.to_date, '%d.%m.%Y'),
-            )
-
-    def changelist_view(self, request, extra_context=None):
-        self.from_date = request.GET.get('drf__payment__date__gte', None)
-        self.to_date = request.GET.get('drf__payment__date__lte', None)
-        return super(UserYearPaymentsAdmin, self).changelist_view(request, extra_context=extra_context)
-
-
 def add_user_bank_acc_to_dpch(self, request, queryset):
     for payment in queryset:
         if payment.user_donor_payment_channel and payment.account and payment.bank_code:
@@ -2233,7 +2200,6 @@ class CompanyProfileAdmin(
 
 
 admin.site.register(DonorPaymentChannel, DonorPaymetChannelAdmin)
-admin.site.register(UserYearPayments, UserYearPaymentsAdmin)
 admin.site.register(NewUser, NewUserAdmin)
 admin.site.register(Payment, PaymentAdmin)
 admin.site.register(AccountStatements, AccountStatementsAdmin)
