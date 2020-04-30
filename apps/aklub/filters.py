@@ -3,6 +3,7 @@
 import operator
 from datetime import date, timedelta
 from functools import reduce
+
 from django.contrib import messages
 from django.contrib.admin import SimpleListFilter
 from django.contrib.admin.filters import RelatedFieldListFilter
