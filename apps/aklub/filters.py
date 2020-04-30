@@ -3,7 +3,7 @@
 import operator
 from datetime import date, timedelta
 from functools import reduce
-
+from django.contrib import messages
 from django.contrib.admin import SimpleListFilter
 from django.contrib.admin.filters import RelatedFieldListFilter
 from django.db.models import Count, Q
@@ -11,7 +11,7 @@ from django.db.models.functions import Lower
 from django.utils.translation import ugettext as _
 
 from .models import (
-    CompanyProfile, Event, Profile, ProfileEmail, Telephone,
+    CompanyProfile, Event, ProfileEmail, Telephone,
     UserProfile,
 )
 
@@ -163,24 +163,37 @@ class EmailFilter(SimpleListFilter):
 
 
 class RegularPaymentsFilter(SimpleListFilter):
-    title = _("Regular payments (of any user in campaign)")
+    title = _("Regular payments in time")
     parameter_name = 'regular_payments'
 
     def lookups(self, request, model_admin):
         return (
-            ('not-delayed', _('Not dealyed')),
-            ('delayed', _('Delayed or none')),
+            ('not-delayed', _('Not delayed')),
+            ('delayed', _('Delayed')),
         )
 
     def queryset(self, request, queryset):
-        if self.value() == 'not-delayed':
-            return Profile.objects.filter(
-                userchannels__expected_regular_payment_date__gt=date.today() - timedelta(days=11),
-            )
-        if self.value() == 'delayed':
-            return Profile.objects.exclude(
-                userchannels__expected_regular_payment_date__gt=date.today() - timedelta(days=11),
-            )
+        """
+        In this filter we dont have to handle administrative units, because event is required for filter,
+        thats good because user under AU can select only events under his AU
+        """
+        if request.GET.get('profile_dpch_event'):
+            event_id = request.GET['profile_dpch_event']
+            if self.value() == 'not-delayed':
+                queryset = queryset.filter(
+                    userchannels__expected_regular_payment_date__gt=date.today() - timedelta(days=11),
+                    userchannels__regular_payments='regular',
+                    userchannels__event_id=event_id,
+                )
+            if self.value() == 'delayed':
+                queryset = queryset.filter(
+                    userchannels__expected_regular_payment_date__lt=date.today() - timedelta(days=11),
+                    userchannels__regular_payments='regular',
+                    userchannels__event_id=event_id,
+                )
+
+        elif request.GET.get('regular_payments') and not request.GET.get('profile_dpch_event'):
+            messages.warning(request, _('You cant check payments delay if event is not selected'))
         return queryset
 
 

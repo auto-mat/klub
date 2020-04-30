@@ -1926,12 +1926,11 @@ class UserProfileAdmin(
         'profileemail__email',
     )
     list_filter = (
-        'userchannels__registered_support',
-        'preference__send_mailing_lists',
         isnull_filter('userchannels__payment', _('Has any payment'), negate=True),
         'userchannels__extra_money',
         'userchannels__regular_amount',
         'userchannels__regular_frequency',
+        ('userchannels__registered_support', DateRangeFilter),
         'is_staff',
         'is_superuser',
         'is_active',
@@ -2108,6 +2107,7 @@ class CompanyProfileAdmin(
         'userchannels__extra_money',
         'userchannels__regular_amount',
         'userchannels__regular_frequency',
+        ('userchannels__registered_support', DateRangeFilter),
         'is_staff',
         'is_superuser',
         'is_active',
@@ -2117,6 +2117,7 @@ class CompanyProfileAdmin(
         filters.RegularPaymentsFilter,
         filters.EmailFilter,
         filters.TelephoneFilter,
+        UserConditionFilter, UserConditionFilter1,
     )
 
     ordering = ('email',)
