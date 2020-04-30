@@ -21,7 +21,6 @@
 """Database models for the club management application"""
 import datetime
 import logging
-import os.path
 
 from colorfield.fields import ColorField
 
@@ -37,10 +36,9 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.humanize.templatetags.humanize import intcomma
 from django.core.exceptions import ValidationError
 from django.core.files.storage import FileSystemStorage
-from django.core.mail import EmailMultiAlternatives
 from django.core.validators import RegexValidator
 from django.db import models, transaction
-from django.db.models import Count, Sum, signals
+from django.db.models import Count, Q, Sum, signals
 from django.dispatch import receiver
 from django.urls import reverse
 from django.utils import timezone
@@ -48,8 +46,6 @@ from django.utils.html import format_html, format_html_join, mark_safe
 from django.utils.text import format_lazy
 from django.utils.timesince import timesince
 from django.utils.translation import ugettext_lazy as _
-
-import html2text
 
 from polymorphic.managers import PolymorphicManager
 from polymorphic.models import PolymorphicModel, PolymorphicTypeUndefined
@@ -111,7 +107,11 @@ class CustomUserManager(PolymorphicManager, UserManager):
 
 
 def get_full_name(self):
-    return self.first_name + ' ' + self.last_name
+    """ Sometimes can return parent model 'Profile' """
+    try:
+        return self.first_name + ' ' + self.last_name
+    except AttributeError:
+        return self.userprofile.first_name + ' ' + self.userprofile.last_name
 
 
 def get_profile_abstract_base_user_model_attrs():
@@ -154,30 +154,6 @@ AbstractUserProfile = create_model(
     module='',
     options={'abstract': True},
 )
-
-
-class Result(models.Model):
-    RESULT_SORT = (
-        ('promise', _("Promise")),
-        ('ongoing', _("Ongoing communication")),
-        ('dont_contact', _("Don't contact again")),
-    )
-
-    name = models.CharField(
-        verbose_name=_("Name of result"),
-        max_length=200,
-        blank=False,
-        null=False,
-    )
-    sort = models.CharField(
-        verbose_name=_("Sort of result"),
-        max_length=30,
-        choices=RESULT_SORT,
-        default='individual',
-    )
-
-    def __str__(self):
-        return str(self.name)
 
 
 ICO_ERROR_MESSAGE = _("IČO není zadáno ve správném formátu. Zkontrolujte že číslo má osm číslic a případně ho doplňte nulami zleva.")
@@ -265,7 +241,7 @@ class Event(models.Model):
         null=True,
     )
     result = models.ManyToManyField(
-        Result,
+        'interactions.result',
         verbose_name=_("Acceptable results of communication"),
         blank=True,
     )
@@ -297,7 +273,6 @@ class Event(models.Model):
     administrative_units = models.ManyToManyField(
         AdministrativeUnit,
         verbose_name=_("administrative units"),
-        blank=True,
     )
 
     def number_of_members(self):
@@ -516,6 +491,7 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
 
         permissions = (
             ('can_edit_all_units', _('Může editovat všechno ve všech administrativních jednotkách')),
+            ('can_remove_contact_from_administrative_unit', _('Can remove contact from his administrative unit')),
         )
     objects = CustomUserManager()
     REQUIRED_FIELDS = ['email', 'polymorphic_ctype_id']
@@ -738,7 +714,7 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
             return ""
 
     def mail_communications_count(self):
-        return self.interaction_set.filter(method="mail").count()
+        return self.interaction_set.filter(type__send_email=True, dispatched=True).count()
 
     def person_name(self):
         try:
@@ -808,8 +784,6 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
         if not self.username and not self.id:
             from .views import get_unique_username
             self.username = get_unique_username(self.email)
-        if self.email:
-            self.email = self.email.lower()
         super().save(*args, **kwargs)
 
     def get_telephone(self):
@@ -867,7 +841,9 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
         return administrative_units
 
     def get_event(self):
-        event = ', '.join(str(donor.event.id) + ') ' + donor.event.name for donor in self.userchannels.all() if donor.event is not None)
+        event = format_html_join(
+            ', ', "<nobr>{}) {}</nobr>", ((d.event.id, d.event.name) for d in self.userchannels.all() if d.event is not None),
+            )
         return event
 
     def can_administer_profile(self, profile):
@@ -1048,14 +1024,37 @@ class ProfileEmail(models.Model):
         super().save(*args, **kwargs)
 
 
+def on_transaction_commit(func):
+    def inner(*args, **kwargs):
+        transaction.on_commit(lambda: func(*args, **kwargs))
+    return inner
+
+
 @receiver(signals.m2m_changed, sender=Profile.administrative_units.through)
+@on_transaction_commit
 def Userprofile_administrative_unit_changed(sender, **kwargs):
+    # this method is always called if m2m administrative_unit is changed in profile
+    def choose_if_active(status):
+        if user.preference_set.count() == 0 and not user.has_perm('aklub.can_edit_all_units'):
+            user.is_active = status
+            user.save()
+
     user = kwargs['instance']
-    for unit in user.administrative_units.all():
-        Preference.objects.get_or_create(
-            user=user,
-            administrative_unit=unit,
-        )
+    units = kwargs['pk_set']
+    action = kwargs['action']
+    if action == 'post_add':
+        # if user has 0 administrative units we set him as active because he was inactive before
+        choose_if_active(True)
+        for unit in units:
+            Preference.objects.get_or_create(
+                user=user,
+                administrative_unit_id=unit,
+            )
+
+    elif action == 'post_remove':
+        user.preference_set.filter(administrative_unit__id__in=units).delete()
+        # if user has 0 administrative units we set him as inactive
+        choose_if_active(False)
 
 
 class Preference(models.Model):
@@ -1440,7 +1439,7 @@ class UserInCampaign(models.Model):
             return "No Profile"
 
     person_name.short_description = _("Full name")
-
+    '''
     def requires_action(self):
         """Return true if the user requires some action from
         the club manager, otherwise return False"""
@@ -1448,7 +1447,7 @@ class UserInCampaign(models.Model):
             return True
         else:
             return False
-
+    '''
     def is_direct_dialogue(self):
         if self.source:
             return self.source.direct_dialogue
@@ -1545,7 +1544,6 @@ class AccountStatements(ParseAccountStatement, models.Model):
         verbose_name=_("administrative unit"),
         on_delete=models.CASCADE,
         null=True,
-        blank=True,
     )
 
     def save(self, *args, **kwargs):
@@ -1839,6 +1837,7 @@ class DonorPaymentChannel(models.Model):
     def requires_action(self):
         """Return true if the user requires some action from
         the club manager, otherwise return False"""
+        from interactions.models import Interaction
         if len(Interaction.objects.filter(user=self.user, dispatched=False)) > 0:
             return True
         else:
@@ -2167,9 +2166,17 @@ class Payment(WithAdminUrl, models.Model):
         ('bank-transfer', _('Bank transfer')),
         ('cash', _('In cash')),
         ('expected', _('Expected payment')),
+        ('creadit_card', _('Credit card')),
+        ('material_gift', _('Material gift')),
         ('darujme', 'Darujme.cz'),
     )
-
+    our_note = models.CharField(
+            verbose_name=("Our note"),
+            help_text=_("Little note to payment"),
+            max_length=100,
+            default="",
+            blank=True,
+    )
     recipient_account = models.ForeignKey(
         MoneyAccount,
         verbose_name=("Recipient account"),
@@ -2372,212 +2379,11 @@ class Payment(WithAdminUrl, models.Model):
         return str(self.amount)
 
 
-class BaseInteraction(models.Model):
-    user = models.ForeignKey(
-        Profile,
-        verbose_name=_("User"),
-        on_delete=models.CASCADE,
-        # related_name="communications",
-    )
-    event = models.ForeignKey(
-        Event,
-        verbose_name=_("Event"),
-        on_delete=models.SET_NULL,
-        # related_name="events",
-        null=True,
-        blank=True,
-    )
-    date = models.DateTimeField(
-        verbose_name=_("Date and time of the communication"),
-        null=True,
-    )
-    created = models.DateTimeField(
-        verbose_name=_("Date of creation"),
-        auto_now_add=True,
-        null=True,
-    )
-    updated = models.DateTimeField(
-        verbose_name=_("Date of last change"),
-        auto_now=True,
-        null=True,
-    )
-
-    def save(self, *args, **kwargs):
-        if not self.date:
-            self.date = datetime.datetime.now()
-        super().save(*args, **kwargs)
-
-    class Meta:
-        abstract = True
-
-
 COMMUNICATION_TYPE = (
     ('mass', _("Mass")),
     ('auto', _("Automatic")),
     ('individual', _("Individual")),
 )
-
-
-class Interaction(WithAdminUrl, BaseInteraction):
-    """Interaction entry and DB Model
-
-    A communication is one action in the dialog between the club
-    administration and the user. Communication can have various forms,
-    e.g. email, phonecall or snail mail. Some communications are
-    dispatched automatically, others on confirmation or entirely
-    manually by the club administration.
-    """
-
-    class Meta:
-        verbose_name = _("Interaction")
-        verbose_name_plural = _("Interactions")
-        ordering = ['date']
-
-    method = models.CharField(
-        verbose_name=_("Method"),
-        max_length=30,
-        choices=COMMUNICATION_METHOD,
-    )
-    type = models.CharField(  # noqa
-        verbose_name=_("Type of communication"),
-        max_length=30, choices=COMMUNICATION_TYPE,
-        default='individual',
-    )
-    subject = models.CharField(
-        verbose_name=_("Subject"),
-        help_text=_("The topic of this communication"),
-        max_length=130,
-    )
-    summary = models.TextField(
-        verbose_name=_("Text"),
-        help_text=_("Text or summary of this communication"),
-        max_length=50000,
-    )
-    attachment = models.FileField(
-        verbose_name=_("Attachment"),
-        upload_to='communication-attachments',
-        blank=True,
-        null=True,
-    )
-    note = models.TextField(
-        verbose_name=_("Notes"),
-        help_text=_("Internal notes about this communication"),
-        max_length=3000,
-        blank=True,
-    )
-    created_by = models.ForeignKey(
-        Profile,
-        verbose_name=_("Created by"),
-        related_name='created_by_communication',
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-    )
-    handled_by = models.ForeignKey(
-        Profile,
-        verbose_name=_("Last handled by"),
-        related_name='handled_by_communication',
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-    )
-    result = models.ForeignKey(
-        Result,
-        verbose_name=_("Result of communication"),
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-    )
-    send = models.BooleanField(
-        verbose_name=_("Send / Handle"),
-        help_text=_("Request sending or resolving this communication. For emails, this means that "
-                    "the email will be immediatelly sent to the user. In other types of "
-                    "communications, someone must handle this manually."),
-        default=False,
-    )
-    dispatched = models.BooleanField(
-        verbose_name=_("Dispatched / Done"),
-        help_text=_("Was this message already sent, communicated and/or resolved?"),
-        default=False,
-    )
-    administrative_unit = models.ForeignKey(
-        AdministrativeUnit,
-        verbose_name=_("administrative units"),
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        )
-
-    def save(self, *args, **kwargs):
-        """Record save hook
-
-        If state of the dispatched field changes to True, call
-        the automated dispatch() method.
-        """
-        if self.send:
-            self.dispatch(save=False)  # then try to dispatch this email automatically
-        super().save(*args, **kwargs)
-
-    def dispatch(self, save=True):
-        """Dispatch the communication
-
-        Currently only method 'email' is implemented, all other methods will be only saved. For these messages, the
-        email is sent via the service configured in application settings.
-
-        TODO: Implement 'mail': the form with the requested text should be
-        typeseted and the admin presented with a 'print' button. Address for
-        filling on the envelope should be displayed to the admin.
-        """
-
-        administrative_unit = getattr(self, 'administrative_unit', None)
-
-        if self.method == 'email':
-            bcc = [] if self.type == 'mass' else [administrative_unit.from_email_address if administrative_unit else 'kp@auto-mat.cz']
-
-            if self.user.get_email_str() != "":
-                email = EmailMultiAlternatives(
-                    subject=self.subject,
-                    body=self.summary_txt(),
-                    from_email=administrative_unit.from_email_str if administrative_unit else 'Klub pratel Auto*Matu <kp@auto-mat.cz>',
-                    to=[self.user.get_email_str()],
-                    bcc=bcc,
-                )
-                if self.type != 'individual':
-                    email.attach_alternative(self.summary, "text/html")
-                if self.attachment:
-                    att = self.attachment
-                    email.attach(os.path.basename(att.name), att.read())
-                email.send(fail_silently=False)
-                self.dispatched = True
-                self.send = False
-            if save:
-                self.save()
-        else:
-            self.dispatched = True
-            self.send = False
-            if save:
-                self.save()
-
-    def summary_txt(self):
-        if self.type == 'individual':
-            return self.summary
-        else:
-            return html2text.html2text(self.summary)
-
-
-class PetitionSignature(BaseInteraction):
-    email_confirmed = models.BooleanField(
-        verbose_name=_("Is confirmed via e-mail"),
-        default=False,
-    )
-    gdpr_consent = models.BooleanField(
-        _("GDPR consent"),
-        default=False,
-    )
-    public = models.BooleanField(
-        verbose_name=_("Publish my name in the list of supporters/petitents of this campaign"),
-        default=False,
-    )
 
 
 class AutomaticCommunication(models.Model):
@@ -2604,10 +2410,12 @@ class AutomaticCommunication(models.Model):
         null=True,
         on_delete=models.SET_NULL,
     )
-    method = models.CharField(
-        verbose_name=_("Method"),
-        max_length=30,
-        choices=COMMUNICATION_METHOD,
+    method_type = models.ForeignKey(
+        "interactions.interactiontype",
+        help_text=_("Interaction type with allowed sending"),
+        on_delete=models.CASCADE,
+        limit_choices_to=Q(send_sms=True) | Q(send_email=True),
+        null=True,
     )
     subject = models.CharField(
         verbose_name=_("Subject"),
@@ -2708,10 +2516,12 @@ class MassCommunication(models.Model):
         blank=False,
         null=False,
     )
-    method = models.CharField(
-        verbose_name=_("Method"),
-        max_length=30,
-        choices=COMMUNICATION_METHOD,
+    method_type = models.ForeignKey(
+        "interactions.interactiontype",
+        on_delete=models.CASCADE,
+        help_text=_("Interaction type with allowed sending"),
+        limit_choices_to=Q(send_sms=True) | Q(send_email=True),
+        null=True,
     )
     subject = models.CharField(
         verbose_name=_("Subject"),

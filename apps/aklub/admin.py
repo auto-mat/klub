@@ -35,6 +35,7 @@ from django.contrib import admin, messages
 from django.contrib.admin import site
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.contenttypes.models import ContentType
+from django.core import serializers
 from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator
 from django.db.models import CharField, Count, Max, Q, Sum
@@ -58,6 +59,9 @@ from import_export.widgets import ForeignKeyWidget
 
 from import_export_celery.admin_actions import create_export_job_action
 
+from interactions.admin import InteractionInline
+from interactions.models import Interaction, InteractionType
+
 from isnull_filter import isnull_filter
 
 import large_initial
@@ -70,6 +74,7 @@ from related_admin import RelatedFieldAdmin
 
 from smmapdfs.actions import make_pdfsandwich
 
+
 from . import darujme, filters, mailing, tasks
 from .filters import ProfileTypeFilter, unit_admin_mixin_generator
 from .forms import (
@@ -78,9 +83,9 @@ from .forms import (
 )
 from .models import (
     AccountStatements, AdministrativeUnit, ApiAccount, AutomaticCommunication, BankAccount,
-    CompanyProfile, DonorPaymentChannel, Event, Expense, Interaction,
+    CompanyProfile, DonorPaymentChannel, Event, Expense,
     MassCommunication, MoneyAccount, NewUser, Payment, Preference, Profile, ProfileEmail, Recruiter,
-    Result, Source, TaxConfirmation, Telephone, UserBankAccount,
+    Source, TaxConfirmation, Telephone, UserBankAccount,
     UserProfile, UserYearPayments,
 )
 from .profile_model_resources import (
@@ -133,7 +138,7 @@ class DonorPaymentChannelInlineForm(forms.ModelForm):
         return super().save()
 
 
-class DonorPaymentChannelInline(nested_admin.NestedStackedInline):
+class DonorPaymentChannelInline(admin.StackedInline):
     model = DonorPaymentChannel
     form = DonorPaymentChannelInlineForm
     extra = 0
@@ -265,65 +270,6 @@ class PaymentsInlineNoExtra(PaymentsInline):
 
     def user__campaign(self, obj):
         return obj.user.campaign
-
-
-class InteractionInlineForm(forms.ModelForm):
-    class Meta:
-        model = Interaction
-        fields = (
-            'event',
-            'administrative_unit',
-            'date',
-            'method',
-            'type',
-            'subject',
-            'summary',
-            'attachment',
-            'note',
-            'created_by',
-            'handled_by',
-            'result',
-            'send',
-            'dispatched',
-        )
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if not self.request.user.has_perm('aklub.can_edit_all_units'):
-            if not self.instance.pk:
-                self.fields['administrative_unit'].queryset = self.request.user.administrated_units
-                self.fields['administrative_unit'].empty_label = None
-            else:
-                if self.request.user.administrated_units.first() != self.instance.administrative_unit:
-                    for field_name in self.fields:
-                        self.fields[field_name].disabled = True
-                else:
-                    self.fields['administrative_unit'].queryset = self.request.user.administrated_units
-                    self.fields['administrative_unit'].empty_label = None
-
-
-class InteractionInline(nested_admin.NestedTabularInline):
-    model = Interaction
-    form = InteractionInlineForm
-    extra = 0
-    can_delete = True
-    show_change_link = True
-    readonly_fields = ('type', 'created_by', 'handled_by',)
-    fk_name = 'user'
-
-    def get_queryset(self, request):
-        qs = super(InteractionInline, self).get_queryset(request)
-        qs = qs.filter(type__in=('individual', 'auto')).order_by('-date')
-        qs = qs.select_related('created_by', 'handled_by')
-        return qs
-
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == "event":
-            if not request.user.has_perm('aklub.can_edit_all_units'):
-                kwargs["queryset"] = Event.objects.filter(administrative_units__in=request.user.administrated_units.all())
-            else:
-                kwargs["queryset"] = Event.objects.all()
-        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 class ExpenseInline(admin.TabularInline):
@@ -573,7 +519,7 @@ class ProfileMergeForm(merge.MergeForm):
         fields = '__all__'
 
 
-class PreferenceInline(nested_admin.NestedStackedInline):
+class PreferenceInline(admin.StackedInline):
     model = Preference
     extra = 0
     max_number = 1
@@ -596,7 +542,7 @@ class PreferenceInline(nested_admin.NestedStackedInline):
             return super().get_queryset(request)
 
 
-class TelephoneInline(nested_admin.NestedTabularInline):
+class TelephoneInline(admin.TabularInline):
     model = Telephone
     extra = 0
     can_delete = True
@@ -653,7 +599,7 @@ class ProfileEmailAdminForm(forms.ModelForm):
             return cleaned_data
 
 
-class ProfileEmailInline(nested_admin.NestedTabularInline):
+class ProfileEmailInline(admin.TabularInline):
     model = ProfileEmail
     extra = 0
     can_delete = True
@@ -663,7 +609,7 @@ class ProfileEmailInline(nested_admin.NestedTabularInline):
 
 class RedirectMixin(object):
     def response_add(self, request, obj, post_url_continue=None):
-        response = super(nested_admin.NestedModelAdmin, self).response_add(
+        response = super(PolymorphicChildModelAdmin, self).response_add(
             request, obj, post_url_continue,)
         if not hasattr(response, 'url'):
             return response
@@ -673,7 +619,7 @@ class RedirectMixin(object):
             return redirect('admin:aklub_' + self.redirect_page + '_changelist')
 
     def response_change(self, request, obj):
-        response = super(nested_admin.NestedModelAdmin, self).response_change(
+        response = super(PolymorphicChildModelAdmin, self).response_change(
             request, obj,)
         if not hasattr(response, 'url'):
             return response
@@ -690,7 +636,6 @@ def child_redirect_mixin(redirect):
 
 class MoneyAccountChildAdmin(
                     unit_admin_mixin_generator('administrative_unit'),
-                    nested_admin.NestedModelAdmin,
                     PolymorphicChildModelAdmin,
                     ):
     """ Base admin class for all child models """
@@ -706,6 +651,7 @@ class ApiAccountAdmin(
     """ Api account polymorphic admin model child class """
     base_model = ApiAccount
     show_in_index = True
+    list_display = ('__str__', 'project_name', 'event', 'project_id', 'api_id', 'administrative_unit')
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "event":
@@ -725,6 +671,7 @@ class BankAccountAdmin(
     """ bank account polymorphic admin model child class """
     base_model = BankAccount
     show_in_index = True
+    list_display = ('__str__', 'bank_account', 'bank_account_number', 'administrative_unit')
 
 
 @admin.register(MoneyAccount)
@@ -880,12 +827,34 @@ class ProfileAdminMixin:
 
     actions = (make_tax_confirmation,)
 
+    def change_view(self, request, object_id, extra_context=None, **kwargs):
+        from helpdesk.query import query_to_base64
+        extra_context = extra_context or {}
+        extra_context['urlsafe_query'] = query_to_base64({
+            'search_string': "OR".join([pe.email for pe in ProfileEmail.objects.filter(user__pk=object_id)]),
+            'search_profile_pks': [object_id],
+        })
+        extra_context['display_fields'] = serializers.serialize('json', InteractionType.objects.all())
+
+        ignore_required = ['id', 'user', 'baseinteraction2_ptr']
+        extra_context['required_fields'] = [
+                    field.name for field in Interaction._meta.get_fields()
+                    if not field.blank and field.name not in ignore_required
+        ]
+        extra_context['object_id'] = object_id
+        return super().change_view(
+            request,
+            object_id,
+            extra_context=extra_context,
+            **kwargs,
+        )
+
 
 class ProfileAdmin(
     filters.AdministrativeUnitAdminMixin,
     ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFiltersMixin,
     ProfileAdminMixin,
-    UserAdmin, nested_admin.NestedModelAdmin, PolymorphicParentModelAdmin,
+    UserAdmin, PolymorphicParentModelAdmin,
 ):
     polymorphic_list = True
     resource_class = ProfileResource
@@ -1045,11 +1014,46 @@ class ProfileAdmin(
                 {'opts': self.model._meta, 'form': form},
             )
 
+    def remove_contact_from_unit(self, request, pk=None):
+        from django.shortcuts import render
+        if request.method == "POST":
+            profile = Profile.objects.get(pk=pk)
+            if profile == request.user:
+                messages.warning(request, _('You can not remove administrative unit from your own profile'))
+            else:
+                profile.administrative_units.remove(request.user.administrated_units.first())
+                messages.info(request, _(f'Profile with ID "{pk}" was removed from your administrative unit'))
+
+            if profile.polymorphic_ctype.model == 'userprofile':
+                url = 'admin:aklub_userprofile_changelist'
+            else:
+                url = 'admin:aklub_companyprofile_changelist'
+
+            return HttpResponseRedirect(reverse(url))
+        else:
+            profile = Profile.objects.get(pk=pk)
+            if request.user.administrated_units.first() not in profile.administrative_units.all():
+                messages.warning(request, _(f"profile with ID '{pk}' doesn't exist. Perhaps it was deleted?"))
+                return HttpResponseRedirect(reverse('admin:index'))
+
+            message = _("If you confirm, you wonˇt see this profile anymore ")
+            HttpResponseRedirect(reverse('admin:aklub_taxconfirmation_changelist'))
+            return render(
+                    request,
+                    'admin/aklub/profile_remove_contact_from_unit.html',
+                    {'opts': self.model._meta, 'pk': pk, 'message': message},
+                    )
+
     def get_urls(self):
         """ add extra view to admin """
         from django.conf.urls import url
         urls = super().get_urls()
         my_urls = [
+            url(
+                r'^(?P<pk>[0-9]+)/remove_contact_from_unit/$',
+                self.admin_site.admin_view(self.remove_contact_from_unit),
+                name='aklub_remove_contact_from_unit',
+            ),
             url(
                 r'taxform',
                 self.admin_site.admin_view(self.taxform),
@@ -1361,6 +1365,7 @@ class PaymentResource(ModelResource):
             'order_id', 'user_donor_payment_channel', 'created', 'updated',
                   )
         clean_model_instances = True
+        import_id_fields = []  # must be empty or library take field id as default
     """
     TODO: add payment_pair from account_statement model to pair payments
         import_obj is the way
@@ -1411,6 +1416,7 @@ class PaymentAdmin(
                 'user_donor_payment_channel', 'date', 'amount',
                 ('type',),
                 ('recipient_account',),
+                ('our_note',),
             ],
         }),
         (_("Details"), {
@@ -1545,150 +1551,8 @@ class NewUserAdmin(DonorPaymetChannelAdmin):
     )
 
 
-class InteractionWidget(ForeignKeyWidget):
-    """ Handle ForeignKey no exist error """
-    def get_queryset(self, value, row):
-        values = self.model.objects.filter(id=value)
-        if values:
-            return values
-        else:
-            raise ValueError("Item with this id doesn't exist")
-
-
-class InteractionResource(ModelResource):
-    email = fields.Field()
-    event = fields.Field(attribute='event', widget=InteractionWidget(Event))
-    created_by = fields.Field(attribute='created_by', widget=InteractionWidget(Profile))
-    handled_by = fields.Field(attribute='handled_by', widget=InteractionWidget(Profile))
-    result = fields.Field(attribute='result', widget=InteractionWidget(Result))
-    administrative_unit = fields.Field(attribute='administrative_unit', widget=InteractionWidget(AdministrativeUnit))
-
-    class Meta:
-        model = Interaction
-        fields = ('email', 'user', 'event', 'date', 'method',
-                  'type', 'subject', 'summary', 'note', 'created_by',
-                  'handled_by', 'result', 'send', 'dispatched', 'administrative_unit',
-                  )
-        clean_model_instances = True
-
-    def before_import_row(self, row, **kwargs):
-        user = None
-        if row.get('email'):
-            try:
-                user = ProfileEmail.objects.get(email=row['email']).user
-            except ProfileEmail.DoesNotExist:
-                pass
-        if row.get('user') and not user:
-            try:
-                user = Profile.objects.get(username=row['user'])
-            except Profile.DoesNotExist:
-                pass
-        if user:
-            row['user'] = user.id
-            return row
-        else:
-            raise ValidationError({'user': 'User with this username or email doesnt exist'})
-
-    def dehydrate_user(self, interaction):
-        if hasattr(interaction, 'user'):
-            return interaction.user
-
-    def dehydrate_event(self, interaction):
-        if hasattr(interaction, 'event'):
-            return interaction.event
-
-    def dehydrate_email(self, interaction):
-        if hasattr(interaction, 'user'):
-            return interaction.user.get_email_str()
-
-
-class InteractionAdmin(
-    ImportExportMixin,
-    unit_admin_mixin_generator('user__administrative_units'),
-    RelatedFieldAdmin,
-    admin.ModelAdmin,
-):
-    resource_class = InteractionResource
-
-    list_display = (
-        'subject',
-        'dispatched',
-        'user',
-        'event',
-        # 'user__telephone__telephone',
-        # 'user__next_communication_date',
-        'method',
-        'result',
-        'created_by',
-        'handled_by',
-        'administrative_unit',
-        # 'user__regular_payments_info',
-        # 'user__payment_delay',
-        # 'user__extra_payments',
-        'date', 'type',
-    )
-    autocomplete_fields = ('user', 'event')
-    readonly_fields = ('type', 'created_by', 'handled_by', )
-    list_filter = [
-        'dispatched',
-        'send',
-        'date',
-        'method',
-        'type',
-        'event',
-        'administrative_unit',
-    ]
-    search_fields = (
-        'subject',
-        # 'user__userprofile__telephone',
-        'user__userprofile__first_name',
-        'user__userprofile__last_name',
-        'user__companyprofile__name',
-        'user__email',
-    )
-    date_hierarchy = 'date'
-    ordering = ('-date',)
-    fieldsets = [
-        (_("Header"), {
-            'fields': [
-                ('user', 'event', 'method'),
-                'date',
-                'administrative_unit',
-            ],
-        }),
-        (_("Content"), {
-            'fields': [
-                'subject',
-                ('summary', 'attachment'),
-                'note',
-                'result',
-            ],
-        }
-        ),
-        (_("Sending"), {
-            'fields': [('created_by', 'handled_by', 'send', 'dispatched')],
-        }
-        ),
-    ]
-
-    def save_model(self, request, obj, form, change):
-        if not obj.pk:
-            obj.created_by = request.user
-        obj.handled_by = request.user
-        obj.save()
-
-    def get_queryset(self, request):
-        # Filter out mass communications which are already dispatched
-        # There is no use in displaying the many repetitive rows that
-        # arrise from mass communications once they are dispatched. If
-        # however not dispatched yet, these communications
-        # still require admin action and should be visible.
-        qs = super(InteractionAdmin, self).get_queryset(request)
-        return qs.exclude(type='mass', dispatched=True)
-
-
 class AutomaticCommunicationAdmin(admin.ModelAdmin):
-    list_display = ('name', 'method', 'subject', 'condition', 'only_once', 'dispatch_auto')
+    list_display = ('name', 'method_type', 'subject', 'condition', 'only_once', 'dispatch_auto')
     ordering = ('name',)
     readonly_fields = ('sent_to_users_count',)
     exclude = ('sent_to_users',)
@@ -1729,7 +1593,7 @@ class MassCommunicationForm(forms.ModelForm):
 
 class MassCommunicationAdmin(large_initial.LargeInitialMixin, admin.ModelAdmin):
     save_as = True
-    list_display = ('name', 'date', 'method', 'subject')
+    list_display = ('name', 'date', 'method_type', 'subject')
     ordering = ('-date',)
 
     filter_horizontal = ('send_to_users',)
@@ -1850,14 +1714,6 @@ def download_darujme_statement(self, request, queryset):
 download_darujme_statement.short_description = _("Download darujme statements")
 
 
-class ResultAdmin(admin.ModelAdmin):
-    list_display = (
-        'name',
-        'sort',
-    )
-    save_as = True
-
-
 class EventAdmin(unit_admin_mixin_generator('administrative_units'), admin.ModelAdmin):
     list_display = (
         'name',
@@ -1975,7 +1831,7 @@ class AdministrativeUnitAdmin(admin.ModelAdmin):
     )
 
 
-class BaseProfileChildAdmin(PolymorphicChildModelAdmin, nested_admin.NestedModelAdmin):
+class BaseProfileChildAdmin(PolymorphicChildModelAdmin,):
     """ Base admin class for all Profile child models """
     merge_form = ProfileMergeForm
 
@@ -2029,7 +1885,7 @@ class UserProfileAdmin(
     show_in_index = True
     resource_class = UserProfileResource
     import_template_name = "admin/import_export/userprofile_import.html"
-    change_form_template = "admin/aklub/userprofile_changeform.html"
+    change_form_template = "admin/aklub/profile_changeform.html"
     list_display = (
         'person_name',
         'username',
@@ -2076,7 +1932,6 @@ class UserProfileAdmin(
         'profileemail__email',
     )
     list_filter = (
-        'administrative_units',
         'userchannels__registered_support',
         'preference__send_mailing_lists',
         isnull_filter('userchannels__payment', _('Has any payment'), negate=True),
@@ -2088,7 +1943,7 @@ class UserProfileAdmin(
         'is_active',
         'groups',
         'language',
-        'userchannels__event',
+        filters.ProfileDonorEvent,
         filters.RegularPaymentsFilter,
         filters.EmailFilter,
         filters.TelephoneFilter,
@@ -2204,32 +2059,19 @@ class UserProfileAdmin(
 
         return super().add_view(request)
 
-    def change_view(self, request, object_id, extra_context=None, **kwargs):
-        from helpdesk.query import query_to_base64
-        extra_context = extra_context or {}
-        extra_context['urlsafe_query'] = query_to_base64({
-            'search_string': "OR".join([pe.email for pe in ProfileEmail.objects.filter(user__pk=object_id)]),
-            'search_profile_pks': [object_id],
-        })
-        return super().change_view(
-            request,
-            object_id,
-            extra_context=extra_context,
-            **kwargs,
-        )
-
 
 @admin.register(CompanyProfile)
 class CompanyProfileAdmin(
         child_redirect_mixin('companyprofile'), filters.AdministrativeUnitAdminMixin,
         ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFiltersMixin,
-        BaseProfileChildAdmin, ProfileAdminMixin,
+        ProfileAdminMixin, BaseProfileChildAdmin,
 ):
     """ Company profile polymorphic admin model child class """
     base_model = CompanyProfile
     show_in_index = True
     resource_class = CompanyProfileResource
     import_template_name = "admin/import_export/userprofile_import.html"
+    change_form_template = "admin/aklub/profile_changeform.html"
     list_display = (
         'name',
         'crn',
@@ -2390,13 +2232,11 @@ class CompanyProfileAdmin(
 admin.site.register(DonorPaymentChannel, DonorPaymetChannelAdmin)
 admin.site.register(UserYearPayments, UserYearPaymentsAdmin)
 admin.site.register(NewUser, NewUserAdmin)
-admin.site.register(Interaction, InteractionAdmin)
 admin.site.register(Payment, PaymentAdmin)
 admin.site.register(AccountStatements, AccountStatementsAdmin)
 admin.site.register(AutomaticCommunication, AutomaticCommunicationAdmin)
 admin.site.register(MassCommunication, MassCommunicationAdmin)
 admin.site.register(Event, EventAdmin)
-admin.site.register(Result, ResultAdmin)
 admin.site.register(Recruiter, RecruiterAdmin)
 admin.site.register(TaxConfirmation, TaxConfirmationAdmin)
 admin.site.register(Source, SourceAdmin)

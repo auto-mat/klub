@@ -25,10 +25,14 @@ from django.test import TestCase
 
 from flexible_filter_conditions.models import Condition, NamedCondition, TerminalCondition
 
+from interactions.models import Interaction
+
+from model_mommy import mommy
+
 from .. import autocom
 from ..models import (
                     AdministrativeUnit, AutomaticCommunication, BankAccount, DonorPaymentChannel,
-                    Event, Interaction, UserProfile,
+                    Event, UserProfile,
 )
 
 
@@ -47,12 +51,17 @@ class AutocomTest(TestCase):
             operation="==",
             condition=c,
         )
+        inter_category = mommy.make('interactions.interactioncategory', category='testcategory')
+        inter_type = mommy.make('interactions.interactiontype', category=inter_category, name='testtype', send_email=True)
+        unit = mommy.make('aklub.administrativeunit', name='testAU')
         AutomaticCommunication.objects.create(
+            method_type=inter_type,
             condition=nc,
             template="Vazen{y|a} {pane|pani} $addressment $regular_frequency testovací šablona",
             template_en="Dear {sir|miss} $addressment $regular_frequency test template",
             subject="Testovací komunikace",
             subject_en="Testing interaction",
+            administrative_unit=unit,
         )
 
     def test_autocom(self):

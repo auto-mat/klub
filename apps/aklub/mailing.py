@@ -23,12 +23,14 @@ import datetime
 from django.contrib import messages
 from django.utils.translation import ugettext as _
 
+from interactions.models import Interaction
+
 from . import autocom
 from .models import (
-    AutomaticCommunication, DonorPaymentChannel, Interaction,
-    MassCommunication, Payment, Profile, TaxConfirmation,
-    TaxConfirmationPdf,
+    AutomaticCommunication, DonorPaymentChannel,
+    MassCommunication, Payment, Profile, TaxConfirmation, TaxConfirmationPdf,
 )
+
 """Mailing"""
 
 
@@ -95,6 +97,7 @@ def send_communication_sync(communication_id, communication_type, userincampaign
     template, subject = get_template_subject_for_language(mass_communication, userprofile.language)
 
     if userprofile.is_active and subject and subject.strip() != '':
+
         if not subject or subject.strip() == '' or not template or template.strip('') == '':
             raise Exception("Message template is empty for one of the language variants.")
 
@@ -124,13 +127,17 @@ def send_communication_sync(communication_id, communication_type, userincampaign
             attachment = None
 
         c = Interaction(
-            user=userprofile, method=mass_communication.method, date=datetime.datetime.now(),
+            user=userprofile,
+            type=mass_communication.method_type,
+            date_from=datetime.datetime.now(),
             administrative_unit=mass_communication.administrative_unit,
             subject=autocom.process_template(subject, userprofile, payment_channel),
             summary=autocom.process_template(template, userprofile, payment_channel),
             attachment=attachment,
             note=_("Prepared by auto*mated mass communications at %s") % datetime.datetime.now(),
-            send=True, created_by=sending_user, handled_by=sending_user,
-            type='mass',
+            created_by=sending_user,
+            handled_by=sending_user,
+            settlement='a',
+            communication_type='mass',
         )
         c.dispatch(save=save)

@@ -1,0 +1,13 @@
+{% extends "admin/change_form.html" %}
+{% load i18n %}
+{% block content %}
+{% load admin_urls %}
+<h1>{% trans "Remove contact from administrative unit" %}</h1>
+<form action="{% url 'admin:aklub_remove_contact_from_unit' pk %}" method="POST">
+  {% csrf_token %}
+  <p>{{message}}</p>
+    <div class="submit-row">
+      <input type="submit" class="default" value="{% trans "Confirm" %}">
+  </div>
+</form>
+{% endblock %}

@@ -1,4 +1,3 @@
-
 import datetime
 import os
 import pathlib
@@ -8,6 +7,8 @@ from django.contrib.messages.storage.fallback import FallbackStorage
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
+from interactions.models import Interaction
+
 from model_mommy import mommy
 
 from .recipes import generic_profile_recipe
@@ -15,7 +16,7 @@ from .test_admin import CreateSuperUserMixin
 
 from ..models import ( # noqa
             BankAccount, CompanyProfile, ContentType, DonorPaymentChannel,
-            Event, Interaction, Preference, Profile, ProfileEmail, UserBankAccount, UserProfile,
+            Event, Preference, Profile, ProfileEmail, UserBankAccount, UserProfile,
 )
 
 
@@ -58,8 +59,6 @@ class PaymentsImportExportTests(CreateSuperUserMixin, TestCase):
             }
             response = self.client.post(address, data)
         self.assertEqual(response.status_code, 200)
-        with open("response.html", "w") as f:  # pragma: no cover
-            f.write(response.content.decode())  # pragma: no cover
 
         result = re.search(
             r'<input type="hidden" name="import_file_name".*?>',
@@ -162,8 +161,7 @@ class PaymentsImportExportTests(CreateSuperUserMixin, TestCase):
             'file_format': 0,
         }
         response = self.client.post(address, post_data)
-        with open("response.html", "w") as f:  # pragma: no cover
-            f.write(response.content.decode())  # pragma: no cover
+
         self.assertContains(
             response,
             '11,,2020-02-20,1000,111,,,,,,,,,,export_test_note,,,,,,,',
@@ -179,12 +177,12 @@ class InteractionsImportExportTests(CreateSuperUserMixin, TestCase):
         self.user = mommy.make(
                     'aklub.UserProfile',
                     id=1,
-                    username='test_user',
+                    username='test_username',
 
         )
         mommy.make(
                 'aklub.ProfileEmail',
-                email='test_user@test.com',
+                email='test_email@email.com',
                 user=self.user,
                 is_primary=True,
 
@@ -200,9 +198,20 @@ class InteractionsImportExportTests(CreateSuperUserMixin, TestCase):
                 name='test_event',
         )
 
+        category = mommy.make(
+                'interactions.InteractionCategory',
+                category='category',
+        )
+        self.int_type = mommy.make(
+                'interactions.InteractionType',
+                category=category,
+                name='test_category',
+                id=11,
+        )
+
     def test_interaction_import(self):
         "test donor payment channel import"
-        address = reverse('admin:aklub_interaction_import')
+        address = reverse('admin:interactions_interaction_import')
         response_address = self.client.get(address)
         self.assertEqual(response_address.status_code, 200)
 
@@ -216,8 +225,8 @@ class InteractionsImportExportTests(CreateSuperUserMixin, TestCase):
             }
             response = self.client.post(address, data)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'test_user', html=True)
-        self.assertContains(response, 'test_user@test.com', html=True)
+        self.assertContains(response, 'test_username', html=True)
+        self.assertContains(response, 'test_email@email.com', html=True)
 
         result = re.search(
             r'<input type="hidden" name="import_file_name".*?>',
@@ -231,34 +240,43 @@ class InteractionsImportExportTests(CreateSuperUserMixin, TestCase):
             'input_format': 0,
         }
 
-        address = reverse('admin:aklub_interaction_process_import')
+        address = reverse('admin:interactions_interaction_process_import')
         response = self.client.post(address, post_data)
-        self.assertRedirects(response, expected_url=reverse('admin:aklub_interaction_changelist'))
+        self.assertRedirects(response, expected_url=reverse('admin:interactions_interaction_changelist'))
 
         # check new interactions
-        int1 = Interaction.objects.get(subject='sub1')
+        int1 = Interaction.objects.get(subject='test_subject1')
+        self.assertEqual(int1.user.get_email_str(), 'test_email@email.com')
+        self.assertEqual(int1.event, self.event)
         self.assertEqual(int1.created_by, self.user)
         self.assertEqual(int1.handled_by, self.user)
         self.assertEqual(int1.administrative_unit, self.au)
-        self.assertEqual(int1.date.isoformat(), '2019-12-10T08:59:22+00:00')
-        self.assertEqual(int1.method, 'email')
-        self.assertEqual(int1.type, 'individual')
-        self.assertEqual(int1.summary, 'text1')
-        self.assertEqual(int1.note, 'Note1')
-        self.assertEqual(int1.send, 0)
+        self.assertEqual(int1.date_from.isoformat(), '2020-02-19T12:08:40+00:00')
+        self.assertEqual(int1.next_communication_date.isoformat(), '2020-02-19T12:08:42+00:00')
+        self.assertEqual(int1.type, self.int_type)
+        self.assertEqual(int1.communication_type, 'individual')
+        self.assertEqual(int1.summary, 'happy_day_summary1')
+        self.assertEqual(int1.note, 'test_note1')
         self.assertEqual(int1.dispatched, 0)
+        self.assertEqual(int1.rating, '1')
+        self.assertEqual(int1.next_step, 'call_soon')
 
-        int2 = Interaction.objects.get(subject='sub2')
+        int2 = Interaction.objects.get(subject='test_subject2')
+        self.assertEqual(int2.user.username, 'test_username')
+        self.assertEqual(int2.event, self.event)
         self.assertEqual(int2.created_by, self.user)
         self.assertEqual(int2.handled_by, self.user)
         self.assertEqual(int2.administrative_unit, self.au)
-        self.assertEqual(int2.date.isoformat(), '2017-12-10T08:59:22+00:00')
-        self.assertEqual(int2.method, 'phonecall')
-        self.assertEqual(int2.type, 'mass')
-        self.assertEqual(int2.summary, 'text2')
-        self.assertEqual(int2.note, 'Note2')
-        self.assertEqual(int2.send, 0)
-        self.assertEqual(int2.dispatched, 0)
+        self.assertEqual(int2.date_from.isoformat(), '2020-02-19T09:25:35+00:00')
+        self.assertEqual(int2.date_to.isoformat(), '2021-02-19T09:25:35+00:00')
+        self.assertEqual(int2.next_communication_date, None)
+        self.assertEqual(int2.type, self.int_type)
+        self.assertEqual(int2.communication_type, 'individual')
+        self.assertEqual(int2.summary, 'happy_day_summary2')
+        self.assertEqual(int2.note, 'test_note2')
+        self.assertEqual(int2.dispatched, 1)
+        self.assertEqual(int2.rating, '5')
+        self.assertEqual(int2.next_step, 'call_soon')
 
 
 class DonorImportExportTests(CreateSuperUserMixin, TestCase):
@@ -473,11 +491,15 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
                 name=administrative_units[index],
             )
             user.administrated_units.add(administrative_unit)
+            inter_category = mommy.make('interactions.interactioncategory', category='testcategory')
+            inter_type = mommy.make('interactions.interactiontype', category=inter_category, name='test2type')
             mommy.make(
-                'aklub.Interaction',
+                'interactions.Interaction',
                 dispatched=False,
-                date='2016-2-9',
+                date_from='2016-2-9',
                 user=user,
+                type=inter_type,
+                administrative_unit=administrative_unit,
             )
             mommy.make(
                 'aklub.TaxConfirmation',
@@ -524,10 +546,12 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         """ Test ProfileAdmin admin model export """
         self.create_profiles()
         address = reverse('admin:aklub_profile_export')
+
         post_data = {
             'file_format': 0,
         }
         response = self.client.post(address, post_data)
+
         self.assertContains(
             response,
             ''.join(
@@ -559,8 +583,6 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
             'file_format': 0,
         }
         response = self.client.post(address, post_data)
-        with open("response.html", "w") as f:
-            f.write(response.content.decode())
 
         self.assertContains(
             response,

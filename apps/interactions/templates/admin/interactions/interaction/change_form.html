@@ -1,0 +1,34 @@
+{% extends "admin/change_form.html" %}
+{% load i18n %}
+{% block object-tools %}
+<script>
+  django.jQuery(function(){
+      show_fields({{display_fields|safe}},{{required_fields|safe}});
+      $("#id_type").change(function(){
+        show_fields({{display_fields|safe}},{{required_fields|safe}});
+      });
+
+
+      function show_fields(interactions_json, required_fields){
+          $(".form-row").hide();
+          for(req_field in required_fields){
+            $(".field-"+required_fields[req_field]).show()
+          }
+
+          var selected_id = $("#id_type").val();
+          for(var i = 0; i < interactions_json.length; i++){
+              if(interactions_json[i].pk ==selected_id){
+                  for(var field_name in interactions_json[i].fields){
+                      if (interactions_json[i].fields[field_name] && field_name.includes("_bool")){
+                        $(".field-"+field_name.replace("_bool","")).show()
+
+                      };
+                  };
+              };
+          };
+      };
+  });
+
+
+</script>
+{% endblock %}

@@ -318,12 +318,29 @@
     },
     {
         "fields": {
-            "dispatched": "False",
-            "date": "2016-2-9",
-            "user": "2978",
-            "administrative_unit": 1
+          "category": "testcategory"
         },
-        "model": "aklub.interaction",
+        "model": "interactions.interactioncategory",
+        "pk": 1
+    },
+    {
+        "fields": {
+          "name": "testtype",
+          "category": 1,
+          "send_email": true
+        },
+        "model": "interactions.interactiontype",
+        "pk": 1
+    },
+    {
+        "fields": {
+            "dispatched": "False",
+            "date_from": "2016-2-9",
+            "user": "2978",
+            "administrative_unit": 1,
+            "type": 1
+        },
+        "model": "interactions.interaction",
         "pk": 1
     },
     {
@@ -410,7 +427,7 @@
             "email_confirmed": true,
             "date": "2016-12-16T18:22:30.128"
         },
-        "model": "aklub.petitionsignature",
+        "model": "interactions.petitionsignature",
         "pk": 2978
     },
     {
@@ -420,7 +437,7 @@
             "email_confirmed": true,
             "date": "2015-12-16T18:22:30.128"
         },
-        "model": "aklub.petitionsignature",
+        "model": "interactions.petitionsignature",
         "pk": 2979
     },
     {
@@ -430,7 +447,7 @@
             "email_confirmed": true,
             "date": "2017-12-16T18:22:30.128"
         },
-        "model": "aklub.petitionsignature",
+        "model": "interactions.petitionsignature",
         "pk": 3
     },
     {

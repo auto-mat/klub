@@ -11,9 +11,26 @@ from django.db.models.functions import Lower
 from django.utils.translation import ugettext as _
 
 from .models import (
-    CompanyProfile, Profile, ProfileEmail, Telephone,
+    CompanyProfile, Event, Profile, ProfileEmail, Telephone,
     UserProfile,
 )
+
+
+class ProfileDonorEvent(SimpleListFilter):
+    title = _("Event")
+    parameter_name = 'profile_dpch_event'
+
+    def lookups(self, request, model_admin):
+        if request.user.has_perm('aklub.can_edit_all_units'):
+            data = Event.objects.order_by('name')
+        else:
+            data = Event.objects.filter(administrative_units__in=request.user.administrated_units.all())
+        return [(event.id, event.name) for event in data]
+
+    def queryset(self, request, queryset):
+        if self.value():
+            queryset = queryset.filter(userchannels__event__id=self.value())
+        return queryset
 
 
 class ProfileHasFullAdress(SimpleListFilter):
@@ -273,7 +290,10 @@ class NameFilter(SimpleListFilter):
 
 class UnitFilter(RelatedFieldListFilter):
     def field_choices(self, field, request, model_admin):
-        return field.get_choices(include_blank=False, limit_choices_to={'pk__in': request.user.administrated_units.all()})
+        if request.user.has_perm('aklub.can_edit_all_units'):
+            return field.get_choices(include_blank=False)
+        else:
+            return field.get_choices(include_blank=False, limit_choices_to={'pk__in': request.user.administrated_units.all()})
 
 
 class AdministrativeUnitAdminMixin(object):
