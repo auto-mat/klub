@@ -5,5 +5,14 @@
     "Decrease font size": "Zmenšit velikost písma",
     "Font size": "Velikost písma",
     "Increase font size": "Zvětšit velikost písma",
-    "Line spacing": "Řádkování"
+    "Line spacing": "Řádkování",
+    "Add vertical space": "Přidejte svislú mezeru",
+    "Enter number to set the line height": "Zadejte číslo pro nastavení výšky řádku",
+    "Enter a text color": "Zadejte barvu textu",
+    "Enter a button padding space": "Zadejte hodnotu vzdálenosti textu tlačidla od okraje",
+    "Enter a background color": "Zadejte barvu pozadí",
+    "Enter a font size deacrease factor (px)": "Zadejte faktor snížení velikosti písma (px)",
+    "Enter a font size increase factor (px)": "Zadejte faktor zvětšení velikosti písma (px)",
+    "Enter a font size (px)": "Zadejte velikost písma (px)",
+    "Enter a vertical space (px)": "Zadejte svislú mezeru (px)"
 }
