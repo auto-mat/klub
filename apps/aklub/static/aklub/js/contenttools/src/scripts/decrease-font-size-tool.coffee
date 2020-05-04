@@ -191,7 +191,7 @@ class GetDecreaseFontSizeValueDialog extends ContentTools.LinkDialog
     @_domInput.setAttribute 'name', 'size'
     @_domInput.setAttribute 'value', @size
     @_domInput.setAttribute 'placeholder', \
-      ContentEdit._ 'Enter a font size deacrease factor (px)'
+      ContentEdit._ 'Enter a font size decrease factor (px)'
 
     # Remove the new window target DOM element
     @_domElement.removeChild @_domTargetButton
