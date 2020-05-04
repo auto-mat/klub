@@ -1,3 +1,4 @@
+import json
 import os
 import pathlib
 import re
@@ -58,6 +59,10 @@ class Command(BaseCommand):
             pathlib.Path(self.styles_src_dir) / 'contenttools' / 'src' /
             'sandbox' / 'styles'
         )
+        self.cttools_src_trans_dir = (
+            pathlib.Path(self.js_src_dir) / 'contenttools' / 'src' /
+            'translations'
+        )
 
         # Target dirs
         self.cttools_target_dir = (
@@ -80,11 +85,15 @@ class Command(BaseCommand):
         self.cttools_target_sandbox__build_dir = (
             self.cttools_target_dir / 'sandbox'
         )
+        self.cttools_target_trans_dir = (
+            self.cttools_target_dir / 'translations'
+        )
 
         self.__copy_coffee_scripts()
         self.__copy_sass_styles()
         self.__copy_fonts()
         self.__copy_gruntfile()
+        self.__copy_localizations()
 
         os.chdir(self.cttools_target_dir)
 
@@ -232,6 +241,37 @@ class Command(BaseCommand):
             pathlib.Path(self.js_src_dir) / 'contenttools' / 'Gruntfile.coffee'
         )
         shutil.copy(grunt_file, self.cttools_target_dir / grunt_file.name)
+
+    def __copy_localizations(self):
+        """Copy localization json files"""
+
+        trans_src_files = self.cttools_src_trans_dir.glob('*.json')
+
+        for trans_src_file in trans_src_files:
+
+            trans_target_file = (self.cttools_target_trans_dir /
+                                 trans_src_file.name)
+
+            with open(trans_src_file, 'r') as src_read_trans_f, \
+                    open(trans_target_file, 'r+', encoding='utf-8') as \
+                    target_write_trans_f:
+
+                src_trans = json.load(src_read_trans_f)
+                target_trans = json.load(target_write_trans_f)
+                target_trans_keys = target_trans.keys()
+                update_trans = {}
+
+                for trans_string in src_trans.keys():
+                    if trans_string not in target_trans_keys:
+                        update_trans[trans_string] = src_trans[trans_string]
+
+                if update_trans:
+                    target_trans.update(update_trans)
+
+                    target_write_trans_f.seek(0)
+                    target_write_trans_f.truncate(0)
+                    json.dump(target_trans, target_write_trans_f, indent=4,
+                              ensure_ascii=False, sort_keys=True)
 
     def __install(self, command, program, package='install'):
         """Install/build package"""
