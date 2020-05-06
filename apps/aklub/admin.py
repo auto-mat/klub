@@ -38,7 +38,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core import serializers
 from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator
-from django.db.models import CharField, Count, Max, Q, Sum
+from django.db.models import CharField, Count, F, Max, OuterRef, Q, Subquery, Sum
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect
 from django.utils.html import format_html, format_html_join, mark_safe
@@ -1773,7 +1773,13 @@ class TaxConfirmationAdmin(
 
     batch_download.short_description = _("generate download links for pdf files")
 
-    list_display = ('user_profile', 'get_email', 'year', 'amount', 'get_pdf', 'get_administrative_unit', 'pdf_type')
+    list_display = ('get_name',
+                    'get_email',
+                    'year',
+                    'amount',
+                    'get_pdf',
+                    'get_administrative_unit',
+                    'pdf_type')
     ordering = (
         'user_profile__userprofile__last_name',
         'user_profile__userprofile__first_name',
@@ -1804,12 +1810,25 @@ class TaxConfirmationAdmin(
     readonly_fields = ['get_pdf', 'get_email', 'pdf_type', 'get_administrative_unit']
     fields = ['user_profile', 'year', 'amount', 'get_pdf', 'pdf_type']
 
+    def get_queryset(self, request):
+        """
+        The annotate hacking in this query is because django-polymorphic doesnt support
+        prefetch_related and select_related in normal way!
+        Then we want to avoid hitting DB in every list_row
+        """
+        primary_email = ProfileEmail.objects.filter(user=OuterRef('user_profile_id'), is_primary=True)
+        qs = super().get_queryset(request).select_related(
+                'pdf_type__pdfsandwichtypeconnector__administrative_unit'
+        ).annotate(
+                last_name=F("user_profile__userprofile__last_name"),
+                first_name=F("user_profile__userprofile__first_name"),
+                company_name=F("user_profile__companyprofile__name"),
+                email_address=Subquery(primary_email.values('email')),
+        )
+        return qs
+
     def get_email(self, obj):
-        try:
-            email = obj.user_profile.profileemail_set.get(is_primary=True)
-        except ProfileEmail.DoesNotExist:
-            email = None
-        return email
+        return obj.email_address
 
     def get_administrative_unit(self, obj):
         try:
@@ -1817,6 +1836,12 @@ class TaxConfirmationAdmin(
         except AttributeError:
             au = None
         return au
+
+    def get_name(self, obj):
+        if obj.company_name:
+            return obj.company_name
+        else:
+            return f"{obj.first_name} {obj.last_name}"
 
 
 @admin.register(AdministrativeUnit)
