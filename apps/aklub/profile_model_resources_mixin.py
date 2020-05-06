@@ -85,6 +85,9 @@ def import_obj(self, obj, data, dry_run):  # noqa
     # Call this method only in the ProfileResource model resource subclass
     if hasattr(self, '_set_child_model_field_value'):
         self._set_child_model_field_value(obj=obj, data=data)
+    # profile signal for m2m is called during import and save data...
+    # we add dry_run to obj and solve it in signal to avoid it
+    obj.dry_run = dry_run
     obj.save()
     if data.get('telephone'):
         check['telephone'], _ = Telephone.objects.get_or_create(
