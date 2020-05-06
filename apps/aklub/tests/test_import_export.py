@@ -4,7 +4,7 @@ import pathlib
 import re
 
 from django.contrib.messages.storage.fallback import FallbackStorage
-from django.test import RequestFactory, TestCase
+from django.test import RequestFactory, TransactionTestCase
 from django.urls import reverse
 
 from interactions.models import Interaction
@@ -16,11 +16,11 @@ from .test_admin import CreateSuperUserMixin
 
 from ..models import ( # noqa
             BankAccount, CompanyProfile, ContentType, DonorPaymentChannel,
-            Event, Preference, Profile, ProfileEmail, UserBankAccount, UserProfile,
+            Event, Payment, Preference, Profile, ProfileEmail, UserBankAccount, UserProfile,
 )
 
 
-class PaymentsImportExportTests(CreateSuperUserMixin, TestCase):
+class PaymentsImportExportTests(CreateSuperUserMixin, TransactionTestCase):
     def setUp(self):
         super().setUp()
         self.factory = RequestFactory()
@@ -51,7 +51,7 @@ class PaymentsImportExportTests(CreateSuperUserMixin, TestCase):
 
         p = pathlib.PurePath(__file__)
         csv_file_create_interactions = os.path.join(p.parents[1], 'test_data', 'create_payments.csv')
-
+        count_before = Payment.objects.count()
         with open(csv_file_create_interactions, "rb") as f:
             data = {
                 'input_format': 0,
@@ -59,7 +59,9 @@ class PaymentsImportExportTests(CreateSuperUserMixin, TestCase):
             }
             response = self.client.post(address, data)
         self.assertEqual(response.status_code, 200)
-
+        count_after = Payment.objects.count()
+        # checking that nothing was creted during dry import
+        self.assertEqual(count_before, count_after)
         result = re.search(
             r'<input type="hidden" name="import_file_name".*?>',
             response.rendered_content,
@@ -168,7 +170,7 @@ class PaymentsImportExportTests(CreateSuperUserMixin, TestCase):
         )
 
 
-class InteractionsImportExportTests(CreateSuperUserMixin, TestCase):
+class InteractionsImportExportTests(CreateSuperUserMixin, TransactionTestCase):
     def setUp(self):
         super().setUp()
         self.factory = RequestFactory()
@@ -217,7 +219,7 @@ class InteractionsImportExportTests(CreateSuperUserMixin, TestCase):
 
         p = pathlib.PurePath(__file__)
         csv_file_create_interactions = os.path.join(p.parents[1], 'test_data', 'create_interactions.csv')
-
+        count_before = Interaction.objects.count()
         with open(csv_file_create_interactions, "rb") as f:
             data = {
                 'input_format': 0,
@@ -225,6 +227,9 @@ class InteractionsImportExportTests(CreateSuperUserMixin, TestCase):
             }
             response = self.client.post(address, data)
         self.assertEqual(response.status_code, 200)
+        count_after = Interaction.objects.count()
+        # testing that nothing was created during dry import
+        self.assertEqual(count_before, count_after)
         self.assertContains(response, 'test_username', html=True)
         self.assertContains(response, 'test_email@email.com', html=True)
 
@@ -279,7 +284,7 @@ class InteractionsImportExportTests(CreateSuperUserMixin, TestCase):
         self.assertEqual(int2.next_step, 'call_soon')
 
 
-class DonorImportExportTests(CreateSuperUserMixin, TestCase):
+class DonorImportExportTests(CreateSuperUserMixin, TransactionTestCase):
     def setUp(self):
         super().setUp()
         self.factory = RequestFactory()
@@ -326,7 +331,7 @@ class DonorImportExportTests(CreateSuperUserMixin, TestCase):
                     end_of_regular_payments=datetime.date(2011, 2, 11),
         )
 
-    def test_profile_import(self):
+    def test_dpch_import(self):
         "test donor payment channel import"
         address = reverse('admin:aklub_donorpaymentchannel_import')
         response_address = self.client.get(address)
@@ -334,7 +339,7 @@ class DonorImportExportTests(CreateSuperUserMixin, TestCase):
 
         p = pathlib.PurePath(__file__)
         csv_file_create_dpch = os.path.join(p.parents[1], 'test_data', 'test_donor_import.csv')
-
+        count_before = DonorPaymentChannel.objects.count()
         with open(csv_file_create_dpch, "rb") as f:
             data = {
                 'input_format': 0,
@@ -342,6 +347,9 @@ class DonorImportExportTests(CreateSuperUserMixin, TestCase):
             }
             response = self.client.post(address, data)
         self.assertEqual(response.status_code, 200)
+        count_after = DonorPaymentChannel.objects.count()
+        # testing that nothing was created during dry import
+        self.assertEqual(count_before, count_after)
         self.assertContains(response, 'test1@test.com', html=True)
         self.assertContains(response, '9999/999', html=True)
 
@@ -400,7 +408,7 @@ class DonorImportExportTests(CreateSuperUserMixin, TestCase):
         )
 
 
-class AdminImportExportTests(CreateSuperUserMixin, TestCase):
+class AdminImportExportTests(CreateSuperUserMixin, TransactionTestCase):
     fixtures = ['conditions', 'users', 'communications']
 
     def setUp(self):
@@ -629,6 +637,7 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         p = pathlib.PurePath(__file__)
         csv_file_create_profiles = p.parents[1] / 'test_data' / 'create_profiles.csv'
         address = reverse('admin:aklub_profile_import')
+        profiles_count_before = Profile.objects.count()
         with open(csv_file_create_profiles) as fp:
             post_data = {
                 'import_file': fp,
@@ -636,6 +645,9 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
             }
             response = self.client.post(address, post_data)
         self.assertEqual(response.status_code, 200)
+        profiles_count_after = Profile.objects.count()
+        # checking that new profiles were not created during dry import
+        self.assertEqual(profiles_count_before, profiles_count_after)
         self.assertContains(
             response,
             'test.companyprofile@companyprofile.test',
@@ -727,13 +739,16 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         p = pathlib.PurePath(__file__)
         csv_file_update_profiles = p.parents[1] / 'test_data' / 'update_profiles.csv'
         address = reverse('admin:aklub_profile_import')
+        profiles_count_before = Profile.objects.count()
         with open(csv_file_update_profiles) as fp:
             post_data = {
                 'import_file': fp,
                 'input_format': 0,
             }
             response = self.client.post(address, post_data)
-
+        profiles_count_after = Profile.objects.count()
+        # checking that new profiles were not created during dry import
+        self.assertEqual(profiles_count_before, profiles_count_after)
         result = re.search(
             r'<input type="hidden" name="import_file_name".*?>',
             response.rendered_content,
@@ -795,6 +810,7 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         csv_file = 'create_profiles_minimal_fields.csv'
         csv_file_create_profiles = p.parents[1] / 'test_data' / csv_file
         address = reverse('admin:aklub_profile_import')
+        profiles_count_before = Profile.objects.count()
         with open(csv_file_create_profiles) as fp:
             post_data = {
                 'import_file': fp,
@@ -802,6 +818,9 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
             }
             response = self.client.post(address, post_data)
         self.assertEqual(response.status_code, 200)
+        profiles_count_after = Profile.objects.count()
+        # checking that new profiles were not created during dry import
+        self.assertEqual(profiles_count_before, profiles_count_after)
         self.assertContains(
             response,
             '22670319',
@@ -845,6 +864,7 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         csv_file = 'create_user_profiles.csv'
         csv_file_create_user_profiles = p.parents[1] / 'test_data' / csv_file
         address = reverse('admin:aklub_userprofile_import')
+        profiles_count_before = Profile.objects.count()
         with open(csv_file_create_user_profiles) as fp:
             post_data = {
                 'import_file': fp,
@@ -852,6 +872,9 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
             }
             response = self.client.post(address, post_data)
         self.assertEqual(response.status_code, 200)
+        profiles_count_after = Profile.objects.count()
+        # checking that new profiles were not created during dry import
+        self.assertEqual(profiles_count_before, profiles_count_after)
         self.assertContains(
             response,
             'test.userprofile@userprofile.test',
@@ -908,12 +931,16 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         csv_file = 'update_user_profiles.csv'
         csv_file_update_user_profiles = p.parents[1] / 'test_data' / csv_file
         address = reverse('admin:aklub_userprofile_import')
+        profiles_count_before = Profile.objects.count()
         with open(csv_file_update_user_profiles) as fp:
             post_data = {
                 'import_file': fp,
                 'input_format': 0,
             }
             response = self.client.post(address, post_data)
+        profiles_count_after = Profile.objects.count()
+        # checking that new profiles were not created during dry import
+        self.assertEqual(profiles_count_before, profiles_count_after)
 
         result = re.search(
             r'<input type="hidden" name="import_file_name".*?>',
@@ -957,6 +984,7 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         csv_file = 'create_user_profiles_minimal_fields.csv'
         csv_file_create_user_profiles = p.parents[1] / 'test_data' / csv_file
         address = reverse('admin:aklub_userprofile_import')
+        profiles_count_before = Profile.objects.count()
         with open(csv_file_create_user_profiles) as fp:
             post_data = {
                 'import_file': fp,
@@ -964,6 +992,10 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
             }
             response = self.client.post(address, post_data)
         self.assertEqual(response.status_code, 200)
+        profiles_count_after = Profile.objects.count()
+        # checking that new profiles were not created during dry import
+        self.assertEqual(profiles_count_before, profiles_count_after)
+
         self.assertContains(
             response,
             'male',
@@ -999,6 +1031,7 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         csv_file = 'create_company_profiles_minimal_fields.csv'
         csv_file_create_company_profiles = p.parents[1] / 'test_data' / csv_file
         address = reverse('admin:aklub_companyprofile_import')
+        profiles_count_before = Profile.objects.count()
         with open(csv_file_create_company_profiles) as fp:
             post_data = {
                 'import_file': fp,
@@ -1006,6 +1039,9 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
             }
             response = self.client.post(address, post_data)
         self.assertEqual(response.status_code, 200)
+        profiles_count_after = Profile.objects.count()
+        # checking that new profiles were not created during dry import
+        self.assertEqual(profiles_count_before, profiles_count_after)
         self.assertContains(
             response,
             '22670319',
@@ -1049,6 +1085,7 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         csv_file = 'create_company_profiles.csv'
         csv_file_create_companyprofiles = p.parents[1] / 'test_data' / csv_file
         address = reverse('admin:aklub_companyprofile_import')
+        profiles_count_before = Profile.objects.count()
         with open(csv_file_create_companyprofiles) as fp:
             post_data = {
                 'import_file': fp,
@@ -1056,6 +1093,9 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
             }
             response = self.client.post(address, post_data)
         self.assertEqual(response.status_code, 200)
+        profiles_count_after = Profile.objects.count()
+        # checking that new profiles were not created during dry import
+        self.assertEqual(profiles_count_before, profiles_count_after)
         self.assertContains(
             response,
             'test.companyprofile@companyprofile.test',
@@ -1114,13 +1154,16 @@ class AdminImportExportTests(CreateSuperUserMixin, TestCase):
         csv_file = 'update_company_profiles.csv'
         csv_file_update_company_profiles = p.parents[1] / 'test_data' / csv_file
         address = reverse('admin:aklub_companyprofile_import')
+        profiles_count_before = Profile.objects.count()
         with open(csv_file_update_company_profiles) as fp:
             post_data = {
                 'import_file': fp,
                 'input_format': 0,
             }
             response = self.client.post(address, post_data)
-
+        profiles_count_after = Profile.objects.count()
+        # checking that new profiles were not created during dry import
+        self.assertEqual(profiles_count_before, profiles_count_after)
         result = re.search(
             r'<input type="hidden" name="import_file_name".*?>',
             response.rendered_content,
