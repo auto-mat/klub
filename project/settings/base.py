@@ -242,6 +242,7 @@ INSTALLED_APPS = (
     'wiki.plugins.macros.apps.MacrosConfig',
     'colorfield',
     'flexible_filter_conditions.apps.FlexibleFilterConditionsConfig',
+    'rest_framework',
 )
 
 
