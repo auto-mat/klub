@@ -33,6 +33,7 @@ from daterange_filter.filter import DateRangeFilter
 from django import forms
 from django.contrib import admin, messages
 from django.contrib.admin import site
+from django.contrib.admin.templatetags.admin_list import _boolean_icon
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.contenttypes.models import ContentType
 from django.core import serializers
@@ -86,12 +87,13 @@ from .models import (
     CompanyProfile, DonorPaymentChannel, Event, Expense,
     MassCommunication, MoneyAccount, NewUser, Payment, Preference, Profile, ProfileEmail, Recruiter,
     Source, TaxConfirmation, Telephone, UserBankAccount,
-    UserProfile, UserYearPayments,
+    UserProfile,
 )
 from .profile_model_resources import (
     ProfileModelResource, get_polymorphic_parent_child_fields,
 )
 from .profile_model_resources_mixin import ProfileModelResourceMixin
+from .utils import sweet_text
 
 
 def admin_links(args_generator):
@@ -705,65 +707,55 @@ class ProfileAdminMixin:
     def date_format(self, obj):
         return list(map(lambda o: o.strftime('%d. %m. %Y'), obj))
 
-    def get_donor_details(self, obj, attr, *args):
+    def get_donor_details(self, obj, *args):
+        """ soft sort of donor payment channels """
         channels = obj.userchannels.all()
         results = []
         for channel in channels:
             if channel.regular_payments == 'regular':
-                if (
-                    self.request.user.has_perm('aklub.can_edit_all_units') or
-                    channel.money_account and channel.money_account.administrative_unit in self.request.user.administrated_units.all()
-                ):
-                    results.append(getattr(channel, attr, '-') or '-')
+                if self.request.user.has_perm('aklub.can_edit_all_units'):
+                    results.append(channel)
+                # self.user_administrated_units is defined in queryset below
+                elif channel.money_account.administrative_unit in self.user_administrated_units:
+                    results.append(channel)
         return results
 
-    def get_donor(self, obj):
-        if not self.request.user.has_perm('aklub.can_edit_all_units'):
-            result = obj.userchannels.filter(
-                            money_account__administrative_unit__in=self.request.user.administrated_units.all(),
-                            regular_payments='regular',
-            )
-        else:
-            result = obj.userchannels.filter(regular_payments='regular')
-        return result
-
     def registered_support_date(self, obj):
-        result = self.get_donor_details(obj, "registered_support")
-        return ',\n'.join(d.strftime('%Y-%m-%d') for d in result)
+        result = self.get_donor_details(obj)
+        return ',\n'.join(d.registered_support.strftime('%Y-%m-%d') for d in result)
 
     registered_support_date.short_description = _("Registration")
     registered_support_date.admin_order_field = 'userchannels__registered_support'
 
     def regular_amount(self, obj):
-        result = self.get_donor_details(obj, "regular_amount")
-        return ',\n'.join(str(d) for d in result)
-
+        result = self.get_donor_details(obj)
+        return sweet_text(((str(d.regular_amount),) for d in result if d.regular_amount))
     regular_amount.short_description = _("Regular amount")
     regular_amount.admin_order_field = 'userchannels__regular_amount'
 
     def donor_delay(self, obj):
-        donors = self.get_donor(obj)
-        result = []
-        for d in donors:
-            if isinstance(d.regular_payments_delay(), (bool,)):
-                result.append('ok')
+        def get_result(dpch):
+            if isinstance(dpch.regular_payments_delay(), (bool,)):
+                return _boolean_icon(True)
             else:
-                result.append(str(d.regular_payments_delay().days) + ' days')
-        return ',\n'.join(result)
+                return format_html("{} {} {}", mark_safe(_boolean_icon(False)), str(dpch.regular_payments_delay().days), 'days')
+
+        result = sweet_text(((get_result(d),) for d in self.get_donor_details(obj)))
+        return result
 
     donor_delay.short_description = _("Payment delay")
     donor_delay.admin_order_field = 'donor_delay'
 
     def donor_extra_money(self, obj):
-        result = self.get_donor_details(obj, "extra_money")
-        return ',\n'.join(str(d) for d in result)
+        result = self.get_donor_details(obj)
+        return sweet_text(((str(d.extra_money),) if d.extra_money else '-' for d in result))
 
     donor_extra_money.short_description = _("Extra money")
     donor_extra_money.admin_order_field = 'donor_extra_money'
 
     def donor_frequency(self, obj):
-        result = self.get_donor_details(obj, "regular_frequency")
-        return ',\n'.join(str(d) for d in result)
+        result = self.get_donor_details(obj)
+        return ',\n'.join(str(d.regular_frequency) for d in result)
 
     donor_frequency.short_description = _("Donor frequency")
     donor_frequency.admin_order_field = 'donor_frequency'
@@ -806,18 +798,45 @@ class ProfileAdminMixin:
     get_last_payment_date.admin_order_field = 'last_payment_date'
     get_last_payment_date.short_description = _("Date of last payment")
 
+    def get_event(self, obj):
+        event = format_html_join(
+            ', ', "<nobr>{}) {}</nobr>", ((d.event.id, d.event.name) for d in self.get_donor_details(obj) if d.event is not None),
+            )
+        return event
+
+    get_event.admin_order_field = 'events'
+    get_event.short_description = _("Events")
+
     def get_queryset(self, *args, **kwargs):
-        return super().get_queryset(*args, **kwargs).prefetch_related(
-            'telephone_set',
-            'profileemail_set',
-            'administrative_units',
-            'userchannels',
-            'userchannels__event',
-        ).annotate(
-            sum_amount=Sum('userchannels__payment__amount'),
-            payment_count=Count('userchannels__payment'),
-            last_payment_date=Max('userchannels__payment__date'),
-        )
+        # save request user's adminsitratived_unit here, so we dont have to peek in every loop
+        self.user_administrated_units = self.request.user.administrated_units.all()
+
+        if self.request.user.has_perm('aklub.can_edit_all_units'):
+            queryset = super().get_queryset(*args, **kwargs).prefetch_related(
+                    'telephone_set',
+                    'profileemail_set',
+                    'administrative_units',
+                    'userchannels__event',
+                ).annotate(
+                    sum_amount=Sum('userchannels__payment__amount'),
+                    payment_count=Count('userchannels__payment'),
+                    last_payment_date=Max('userchannels__payment__date'),
+                )
+        else:
+            units = Q(userchannels__money_account__administrative_unit=self.user_administrated_units.first())
+            queryset = super().get_queryset(*args, **kwargs).prefetch_related(
+                    'telephone_set',
+                    'profileemail_set',
+                    'administrative_units',
+                    'userchannels__event',
+                    'userchannels__money_account__administrative_unit',
+                ).annotate(
+                    sum_amount=Sum('userchannels__payment__amount', filter=units),
+                    payment_count=Count('userchannels__payment', filter=units),
+                    last_payment_date=Max('userchannels__payment__date', filter=units),
+                )
+
+        return queryset
 
     def change_view(self, request, object_id, extra_context=None, **kwargs):
         from helpdesk.query import query_to_base64
@@ -1233,39 +1252,6 @@ class DonorPaymetChannelAdmin(
 
     def user_telephone_url(self, obj):
         return obj.user.telephone_url()
-
-
-class UserYearPaymentsAdmin(DonorPaymetChannelAdmin):
-    list_display = (
-        'person_name',
-        'user__email',
-        # 'source',
-        'VS',
-        'SS',
-        # 'registered_support_date',
-        'payment_total_by_year',
-        'user__is_active',
-        # 'last_payment_date',
-    )
-    list_filter = [
-        ('payment__date', DateRangeFilter), 'regular_payments', 'user__language', 'user__is_active',
-        # 'wished_information',
-        'old_account',
-        # 'source',
-        ('registered_support', DateRangeFilter), UserConditionFilter, UserConditionFilter1,
-    ]
-
-    def payment_total_by_year(self, obj):
-        if self.from_date and self.to_date:
-            return obj.payment_total_range(
-                datetime.datetime.strptime(self.from_date, '%d.%m.%Y'),
-                datetime.datetime.strptime(self.to_date, '%d.%m.%Y'),
-            )
-
-    def changelist_view(self, request, extra_context=None):
-        self.from_date = request.GET.get('drf__payment__date__gte', None)
-        self.to_date = request.GET.get('drf__payment__date__lte', None)
-        return super(UserYearPaymentsAdmin, self).changelist_view(request, extra_context=extra_context)
 
 
 def add_user_bank_acc_to_dpch(self, request, queryset):
@@ -1920,17 +1906,18 @@ class UserProfileAdmin(
         'profileemail__email',
     )
     list_filter = (
-        'userchannels__registered_support',
-        'preference__send_mailing_lists',
+        filters.PreferenceMailingListAllowed,
         isnull_filter('userchannels__payment', _('Has any payment'), negate=True),
         'userchannels__extra_money',
         'userchannels__regular_amount',
         'userchannels__regular_frequency',
+        ('userchannels__registered_support', DateRangeFilter),
         'is_staff',
         'is_superuser',
         'is_active',
         'groups',
         'language',
+        ('userchannels__last_payment__date', DateRangeFilter),
         filters.ProfileDonorEvent,
         filters.RegularPaymentsFilter,
         filters.EmailFilter,
@@ -2060,21 +2047,25 @@ class CompanyProfileAdmin(
     resource_class = CompanyProfileResource
     import_template_name = "admin/import_export/userprofile_import.html"
     change_form_template = "admin/aklub/profile_changeform.html"
+
     list_display = (
         'name',
         'crn',
         'tin',
-        'email',
+        'full_contact_name',
+        'get_email',
         'get_main_telephone',
+        'get_administrative_units',
         'get_event',
-        'variable_symbol',
-        'regular_amount',
-        'is_staff',
         'date_joined',
-        'last_login',
-        'contact_first_name',
-        'contact_last_name',
+        'get_sum_amount',
+        'get_payment_count',
+        'get_last_payment_date',
+        'regular_amount',
+        'donor_delay',
+        'donor_extra_money',
     )
+
     advanced_filter_fields = (
         'email',
         'telephone__telephone',
@@ -2092,16 +2083,23 @@ class CompanyProfileAdmin(
         'telephone__telephone',
     )
     list_filter = (
+        filters.PreferenceMailingListAllowed,
+        isnull_filter('userchannels__payment', _('Has any payment'), negate=True),
+        'userchannels__extra_money',
+        'userchannels__regular_amount',
+        'userchannels__regular_frequency',
+        ('userchannels__registered_support', DateRangeFilter),
         'is_staff',
         'is_superuser',
         'is_active',
         'groups',
         'language',
-        'userchannels__event',
+        ('userchannels__last_payment__date', DateRangeFilter),
+        filters.ProfileDonorEvent,
         filters.RegularPaymentsFilter,
         filters.EmailFilter,
         filters.TelephoneFilter,
-        filters.NameFilter,
+        UserConditionFilter, UserConditionFilter1,
     )
 
     ordering = ('email',)
@@ -2217,7 +2215,6 @@ class CompanyProfileAdmin(
 
 
 admin.site.register(DonorPaymentChannel, DonorPaymetChannelAdmin)
-admin.site.register(UserYearPayments, UserYearPaymentsAdmin)
 admin.site.register(NewUser, NewUserAdmin)
 admin.site.register(Payment, PaymentAdmin)
 admin.site.register(AccountStatements, AccountStatementsAdmin)

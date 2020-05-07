@@ -43,7 +43,7 @@ from .utils import print_response  # noqa
 from .. import admin
 from .. models import (
     AccountStatements, AutomaticCommunication, DonorPaymentChannel, MassCommunication,
-    Profile, TaxConfirmation, Telephone, UserProfile, UserYearPayments,
+    Profile, TaxConfirmation, Telephone, UserProfile,
 )
 
 
@@ -149,33 +149,6 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
             {'year': 2016, 'user_profile': 2979, 'amount': 130},
         ]
         self.assertListEqual(list(confirmation_values), expected_confirmation_values)
-
-    def test_useryearpayments(self):
-        """
-        Test, that the resulting amount in selected period matches
-        """
-        for model in Profile.__subclasses__():
-            model_name = model._meta.model_name
-            profile = mommy.make(
-                model_name,
-                username='test.{}'.format(model_name),
-            )
-            donor_payment_channel_recipe.make(
-                payment_set=[
-                    mommy.make("aklub.Payment", date="2016-2-9", amount=150),
-                    mommy.make("aklub.Payment", date="2016-1-9", amount=100),
-                    mommy.make("aklub.Payment", date="2012-1-9", amount=100),
-                    mommy.make("aklub.Payment", date="2016-12-9", amount=100),  # Payment outside of selected period
-                ],
-                user=profile,
-            )
-            model_admin = django_admin.site._registry[UserYearPayments]
-            request = self.get_request({
-                "drf__payment__date__gte": "01.07.2010",
-                "drf__payment__date__lte": "10.10.2016",
-            })
-            response = model_admin.changelist_view(request)
-            self.assertContains(response, '<td class="field-payment_total_by_year">350</td>', html=True)
 
     @freeze_time("2015-5-1")
     def test_account_statement_changelist_post(self):
@@ -541,7 +514,7 @@ class UserProfileAdminTests(TestCase):
         response = self.client.get(reverse('admin:aklub_userprofile_changelist'), follow=True)
         self.assertContains(response, '<td class="field-get_administrative_units">test1</td>', html=True)
         self.assertContains(response, '<td class="field-get_sum_amount">100</td>', html=True)
-        self.assertContains(response, '<td class="field-regular_amount">120</td>', html=True)
+        self.assertContains(response, '<td class="field-regular_amount"><nobr>120</nobr></td>', html=True)
         self.assertNotContains(response, '<td class="field-get_administrative_units">test2</td>', html=True)
 
 

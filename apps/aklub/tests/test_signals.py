@@ -16,19 +16,18 @@ class AdministrativeUnitChangeSignalTest(TransactionTestCase):
 
         user = UserProfile.objects.get(id=11)
         self.assertEqual(user.preference_set.count(), 1)
-        self.assertListEqual(list(user.preference_set.values_list('administrative_unit__name', flat=True)), ['unit1', ])
+        self.assertCountEqual(list(user.preference_set.values_list('administrative_unit__name', flat=True)), ['unit1', ])
         self.assertEqual(user.is_active, True)
 
         user.administrative_units.add(unit2)
 
         self.assertEqual(user.preference_set.count(), 2)
-        self.assertListEqual(list(user.preference_set.values_list('administrative_unit__name', flat=True)), ['unit1', 'unit2'])
+        self.assertCountEqual(list(user.preference_set.values_list('administrative_unit__name', flat=True)), ['unit1', 'unit2'])
         self.assertEqual(user.is_active, True)
-
         user.administrative_units.remove(unit1)
 
         self.assertEqual(user.preference_set.count(), 1)
-        self.assertListEqual(list(user.preference_set.values_list('administrative_unit__name', flat=True)), ['unit2', ])
+        self.assertCountEqual(list(user.preference_set.values_list('administrative_unit__name', flat=True)), ['unit2', ])
         self.assertEqual(user.is_active, True)
 
         user.administrative_units.remove(unit2)
