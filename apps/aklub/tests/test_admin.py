@@ -514,7 +514,7 @@ class UserProfileAdminTests(TestCase):
         response = self.client.get(reverse('admin:aklub_userprofile_changelist'), follow=True)
         self.assertContains(response, '<td class="field-get_administrative_units">test1</td>', html=True)
         self.assertContains(response, '<td class="field-get_sum_amount">100</td>', html=True)
-        self.assertContains(response, '<td class="field-regular_amount">120</td>', html=True)
+        self.assertContains(response, '<td class="field-regular_amount"><nobr>120</nobr></td>', html=True)
         self.assertNotContains(response, '<td class="field-get_administrative_units">test2</td>', html=True)
 
 
