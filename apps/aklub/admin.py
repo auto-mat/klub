@@ -39,7 +39,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core import serializers
 from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator
-from django.db.models import CharField, Count, Max, Q, Sum
+from django.db.models import CharField, Count, F, Max, Q, Sum
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect
 from django.utils.html import format_html, format_html_join, mark_safe
@@ -1327,15 +1327,22 @@ class PaymentAdmin(
     ImportExportMixin,
     RelatedFieldAdmin,
 ):
+    def get_full_name(self, obj):
+        if obj.company_name:
+            return obj.company_name
+        else:
+            return f"{obj.first_name} {obj.last_name}"
+
+    get_full_name.short_description = _("name")
+
     actions = (add_user_bank_acc_to_dpch, payment_pair_action, payment_request_pair_action)
     resource_class = PaymentResource
     list_display = (
         'id',
         'date',
-        'user_donor_payment_channel',
-        'recipient_account__bankaccount__bank_account_number',
         'amount',
-        'person_name',
+        'user_donor_payment_channel',
+        'get_full_name',
         'account_name',
         'account',
         'bank_code',
@@ -1356,11 +1363,6 @@ class PaymentAdmin(
         'updated',
     )
     list_editable = ('user_donor_payment_channel',)
-    list_select_related = (
-        'user_donor_payment_channel__user',
-        'user_donor_payment_channel__event',
-        'account_statement',
-    )
     fieldsets = [
         (_("Basic"), {
             'fields': [
@@ -1372,7 +1374,6 @@ class PaymentAdmin(
         }),
         (_("Details"), {
             'fields': [
-
                 'account',
                 'bank_code',
                 'account_name',
@@ -1458,14 +1459,25 @@ class PaymentAdmin(
             payment's money_account_administrative_unit (if exist)
             payments's account_statement_administrative_unit (if exist) (old reason)
             payments' donor_payment_channel_money_account_administrative_unit (old reason)
+
+        The annotate hacking in this query is because django-polymorphic doesnt support
+        prefetch_related and select_related in normal way!
+        Then we want to avoid hitting DB in every list_row
         """
-        qs = super().get_queryset(request)
+        qs = super().get_queryset(request)\
+                    .select_related('user_donor_payment_channel')\
+                    .annotate(
+                        last_name=F("user_donor_payment_channel__user__userprofile__last_name"),
+                        first_name=F("user_donor_payment_channel__user__userprofile__first_name"),
+                        company_name=F("user_donor_payment_channel__user__companyprofile__name"),
+                    )
+
         if not request.user.has_perm('aklub.can_edit_all_units'):
             administrated_unit = request.user.administrated_units.first()
             qs = qs.filter(
-                Q(recipient_account__administrative_unit=administrated_unit) |
-                Q(user_donor_payment_channel__money_account__administrative_unit=administrated_unit) |
-                Q(account_statement__administrative_unit=administrated_unit),
+                    Q(recipient_account__administrative_unit=administrated_unit) |
+                    Q(user_donor_payment_channel__money_account__administrative_unit=administrated_unit) |
+                    Q(account_statement__administrative_unit=administrated_unit),
                 )
         return qs
 

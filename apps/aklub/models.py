@@ -1041,19 +1041,22 @@ def Userprofile_administrative_unit_changed(sender, **kwargs):
     user = kwargs['instance']
     units = kwargs['pk_set']
     action = kwargs['action']
-    if action == 'post_add':
-        # if user has 0 administrative units we set him as active because he was inactive before
-        choose_if_active(True)
-        for unit in units:
-            Preference.objects.get_or_create(
-                user=user,
-                administrative_unit_id=unit,
-            )
+    # dry_run is defined during importing..
+    # we want to call signal only if dry_run => false or doesnt exist
+    if not hasattr(user, 'dry_run') or not user.dry_run:
+        if action == 'post_add':
+            # if user has 0 administrative units we set him as active because he was inactive before
+            choose_if_active(True)
+            for unit in units:
+                Preference.objects.get_or_create(
+                    user=user,
+                    administrative_unit_id=unit,
+                )
 
-    elif action == 'post_remove':
-        user.preference_set.filter(administrative_unit__id__in=units).delete()
-        # if user has 0 administrative units we set him as inactive
-        choose_if_active(False)
+        elif action == 'post_remove':
+            user.preference_set.filter(administrative_unit__id__in=units).delete()
+            # if user has 0 administrative units we set him as inactive
+            choose_if_active(False)
 
 
 class Preference(models.Model):
@@ -1822,10 +1825,7 @@ class DonorPaymentChannel(ComputedFieldsModel):
     )
 
     def __str__(self):
-        return "Payment channel: {} - {}".format(
-            self.user.get_email_str() if self.user else '',
-            self.VS,
-        )
+        return f"Payment channel: {self.VS}"
 
     def generate_VS(self):
         if self.VS == "" or self.VS is None:
