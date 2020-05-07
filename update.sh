@@ -43,7 +43,6 @@ python ./manage.py bower_install
 python ./manage.py collectstatic --noinput
 touch wsgi.py
 type supervisorctl && sudo supervisorctl restart $app_name
-python ./manage.py denorm_drop
-python ./manage.py denorm_init
+python ./manage.py updatedata
 
 echo "App succesfully updated"

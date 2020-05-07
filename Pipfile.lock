@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "2efe85de9f391b3ba576a357267730a4bd88d4652041b8f478972ee93b826017"
+            "sha256": "d81ff8a11a95b6b07f04cd764d982228b8ac244541fd034a0f986a691cbdf20a"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -62,18 +62,18 @@
         },
         "boto3": {
             "hashes": [
-                "sha256:b9b7ae76d272845c33fe4ba4cdf4a3a80fb62bd662da3fe167b5649ecd1283c1",
-                "sha256:feb078abe4bd03fc9df24c06b778d94fd1a85a1e186ea9bebd6e6e1e9cbd098b"
+                "sha256:100863bbf7685a41b5f5647211a1e613fdb0c2fc05541de651859a9ad96c418a",
+                "sha256:daa371c7d4addeba77c9c84ff847c598a7af26de6a0a101c7ba040c376d55fc5"
             ],
             "index": "pypi",
-            "version": "==1.12.40"
+            "version": "==1.12.45"
         },
         "botocore": {
             "hashes": [
-                "sha256:b735abd59cfe1907a38166d80bfb9d8570eefb05ff4e7b22efc64faee9ffd03b",
-                "sha256:ff9a8638471990ff8b3f3b34e9cbb91e5f6819197d4de33887287d0d499cb8b0"
+                "sha256:036183d917429a7145b031c55e7c1b9ea24f0d034fc612669963e8a78e662d74",
+                "sha256:5540477cecdc6b86c5659b747ddc5e8bfde8b722fa3e3ddd909a2b4c57864d74"
             ],
-            "version": "==1.15.40"
+            "version": "==1.15.45"
         },
         "celery": {
             "hashes": [
@@ -269,6 +269,13 @@
             "index": "pypi",
             "version": "==0.3.0"
         },
+        "django-computedfields": {
+            "hashes": [
+                "sha256:bf7e1e4b557a833adee636570cbfec78bb3dc202d417a9b3b723e67cadb91a8d"
+            ],
+            "index": "pypi",
+            "version": "==0.0.16"
+        },
         "django-cors-headers": {
             "hashes": [
                 "sha256:a5960addecc04527ab26617e51b8ed42f0adab4594b24bb0f3c33e2bd3857c3f",
@@ -290,13 +297,6 @@
             ],
             "index": "pypi",
             "version": "==3.3.0"
-        },
-        "django-denorm": {
-            "hashes": [
-                "sha256:34cb7b5ee71f9aab3e69ebb0bd51f9e0f83f7d733ad2455ac13151fb4a07e77b"
-            ],
-            "index": "pypi",
-            "version": "==1.0.0"
         },
         "django-extensions": {
             "hashes": [
@@ -405,11 +405,11 @@
         },
         "django-nested-admin": {
             "hashes": [
-                "sha256:4a1189b57a85496fb319045e5b6db71a1242bc539721179aa3e4f54aae56fe0f",
-                "sha256:f6175d2fec1c883e9335695119b020267c69796cc95f5f2c9b7a315ad522b2c1"
+                "sha256:46ef9d15a9c88ca967757af83e68d37029b33531c768971198d10bce4c494399",
+                "sha256:a87be64016d1926f2dd30f4a5f8d96b06e21f22cf6e4f5016f1e4b81efcdfc14"
             ],
             "index": "pypi",
-            "version": "==3.2.4"
+            "version": "==3.3.0"
         },
         "django-nvd3": {
             "hashes": [
@@ -517,11 +517,11 @@
         },
         "django-tinymce": {
             "hashes": [
-                "sha256:759d864dd0e69a2965fa1a95892392ad5922ccb208576474b4ff8365ed1b718c",
-                "sha256:8e5a12ba5bd403b933c00ef2963dde4d4920fd89932373f90bb8840fe4e3d514"
+                "sha256:0ad9c91851261dafb6f4abfc80de5560002fbfb1a681a1cec2f0eca349462a4a",
+                "sha256:fe82e476059b27187eaec849b6b765ef9918a25e64e419861c4f507d0c8cc143"
             ],
             "index": "pypi",
-            "version": "==3.0.1"
+            "version": "==3.0.2"
         },
         "django-wysiwyg": {
             "hashes": [
@@ -802,10 +802,10 @@
         },
         "progressbar2": {
             "hashes": [
-                "sha256:2c21c14482016162852c8265da03886c2b4dea6f84e5a817ad9b39f6bd82a772",
-                "sha256:7849b84c01a39e4eddd2b369a129fed5e24dfb78d484ae63f9e08e58277a2928"
+                "sha256:f2892f08628aa9b488b08d5caa1dbe84b45978054a305f6d1924495d76a2e721",
+                "sha256:fb71a37a8430f9a52a7ab8dc3d20f63afa3449da533043395f60d0c80c66dab1"
             ],
-            "version": "==3.50.1"
+            "version": "==3.51.0"
         },
         "psycopg2": {
             "hashes": [

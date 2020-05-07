@@ -24,7 +24,7 @@ import logging
 
 from colorfield.fields import ColorField
 
-from denorm import denormalized, depend_on_related
+from computedfields.models import ComputedFieldsModel, computed
 
 from django.conf import settings
 from django.contrib.admin.templatetags.admin_list import _boolean_icon
@@ -840,12 +840,6 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
         administrative_units = ', '.join(administrative_unit.name for administrative_unit in self.administrative_units.all())
         return administrative_units
 
-    def get_event(self):
-        event = format_html_join(
-            ', ', "<nobr>{}) {}</nobr>", ((d.event.id, d.event.name) for d in self.userchannels.all() if d.event is not None),
-            )
-        return event
-
     def can_administer_profile(self, profile):
         if self.has_perm('aklub.can_edit_all_units'):
             return True
@@ -855,9 +849,6 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
             return True
         else:
             return False
-
-    variable_symbol.short_description = _("event")
-    get_event.admin_order_field = 'userchannels__event'
 
     def get_email(self):
         emails = self.profileemail_set.all()
@@ -922,6 +913,14 @@ class CompanyProfile(Profile):
         blank=True,
         null=True,
     )
+
+    def full_contact_name(self):
+        """Return complete name"""
+        if self.contact_first_name and self.contact_last_name:
+            return f'{self.contact_first_name} {self.contact_last_name}'
+
+    full_contact_name.short_description = _("Contact name")
+    full_contact_name.admin_order_field = 'full_contact_name'
 
 
 class UserProfile(Profile, AbstractUserProfile):
@@ -1042,19 +1041,22 @@ def Userprofile_administrative_unit_changed(sender, **kwargs):
     user = kwargs['instance']
     units = kwargs['pk_set']
     action = kwargs['action']
-    if action == 'post_add':
-        # if user has 0 administrative units we set him as active because he was inactive before
-        choose_if_active(True)
-        for unit in units:
-            Preference.objects.get_or_create(
-                user=user,
-                administrative_unit_id=unit,
-            )
+    # dry_run is defined during importing..
+    # we want to call signal only if dry_run => false or doesnt exist
+    if not hasattr(user, 'dry_run') or not user.dry_run:
+        if action == 'post_add':
+            # if user has 0 administrative units we set him as active because he was inactive before
+            choose_if_active(True)
+            for unit in units:
+                Preference.objects.get_or_create(
+                    user=user,
+                    administrative_unit_id=unit,
+                )
 
-    elif action == 'post_remove':
-        user.preference_set.filter(administrative_unit__id__in=units).delete()
-        # if user has 0 administrative units we set him as inactive
-        choose_if_active(False)
+        elif action == 'post_remove':
+            user.preference_set.filter(administrative_unit__id__in=units).delete()
+            # if user has 0 administrative units we set him as inactive
+            choose_if_active(False)
 
 
 class Preference(models.Model):
@@ -1697,7 +1699,7 @@ class UserBankAccount(models.Model):
         return u"%s" % (self.bank_account_number)
 
 
-class DonorPaymentChannel(models.Model):
+class DonorPaymentChannel(ComputedFieldsModel):
     class Meta:
         verbose_name = _("Donor payment channel")
         verbose_name_plural = _("Donor payment channels")
@@ -1823,10 +1825,7 @@ class DonorPaymentChannel(models.Model):
     )
 
     def __str__(self):
-        return "Payment channel: {} - {}".format(
-            self.user.get_email_str() if self.user else '',
-            self.VS,
-        )
+        return f"Payment channel: {self.VS}"
 
     def generate_VS(self):
         if self.VS == "" or self.VS is None:
@@ -1855,8 +1854,7 @@ class DonorPaymentChannel(models.Model):
         except MoneyAccount.DoesNotExist:
             pass
 
-    @denormalized(models.IntegerField, null=True)
-    @depend_on_related('Payment', foreign_key="user_donor_payment_channel")
+    @computed(models.IntegerField(null=True), depends=['payment_set'])
     def number_of_payments(self):
         """Return number of payments made by this user
         """
@@ -1869,13 +1867,15 @@ class DonorPaymentChannel(models.Model):
         """Return last payment"""
         return self.payment_set.order_by('date').last()
 
-    @denormalized(
-        models.ForeignKey,
-        to='Payment',
-        default=None,
-        null=True,
-        related_name="user_last_payment",
-        on_delete=models.SET_NULL,
+    @computed(
+        models.ForeignKey(
+            to='Payment',
+            default=None,
+            null=True,
+            related_name="user_last_payment",
+            on_delete=models.SET_NULL,
+        ),
+        depends=['payment_set'],
     )
     def last_payment(self):
         """Return last payment"""
@@ -1939,8 +1939,7 @@ class DonorPaymentChannel(models.Model):
         except KeyError:
             return None
 
-    @denormalized(models.DateField, null=True)
-    @depend_on_related('Payment', foreign_key="user_donor_payment_channel")
+    @computed(models.DateField(null=True), depends=['payment_set'])
     def expected_regular_payment_date(self):
         last_payment = self.last_payment_function()
         last_payment_date = last_payment.date if last_payment else None
@@ -1963,8 +1962,7 @@ class DonorPaymentChannel(models.Model):
             expected = self.registered_support.date() + datetime.timedelta(days=31)
         return expected
 
-    @denormalized(models.FloatField, null=True)
-    @depend_on_related('Payment', foreign_key="user_donor_payment_channel")
+    @computed(models.FloatField(null=True), depends=['payment_set'])
     def payment_total(self):
         return self.payment_set.aggregate(sum=Sum('amount'))['sum'] or 0
 
@@ -1991,8 +1989,7 @@ class DonorPaymentChannel(models.Model):
                     return datetime.date.today() - expected_with_tolerance
         return False
 
-    @denormalized(models.IntegerField, null=True)
-    @depend_on_related('Payment', foreign_key="user_donor_payment_channel")
+    @computed(models.IntegerField(null=True), depends=['payment_set#amount'])
     def extra_money(self):
         """Check if we didn't receive more money than expected in the last payment period"""
         if self.regular_payments == "regular":
@@ -2038,8 +2035,7 @@ class DonorPaymentChannel(models.Model):
     extra_payments.short_description = _(u"Extra money")
     extra_payments.admin_order_field = 'extra_money'
 
-    @denormalized(models.NullBooleanField, null=True)
-    @depend_on_related('Payment', foreign_key="user_donor_payment_channel")
+    @computed(models.NullBooleanField(null=True), depends=['payment_set'])
     def no_upgrade(self):
         """Check for users without upgrade to payments
 
@@ -2110,13 +2106,6 @@ class DonorPaymentChannel(models.Model):
                 event=self.event,
                 action=(insert and 'new-user' or None),
             )
-
-
-class UserYearPayments(DonorPaymentChannel):
-    class Meta:
-        proxy = True
-        verbose_name = _("Payment for users in time period")
-        verbose_name_plural = _("Payments for users in time periods")
 
 
 class NewUserManager(models.Manager):
