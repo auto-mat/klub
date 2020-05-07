@@ -93,6 +93,7 @@ from .profile_model_resources import (
     ProfileModelResource, get_polymorphic_parent_child_fields,
 )
 from .profile_model_resources_mixin import ProfileModelResourceMixin
+from .utils import sweet_text
 
 
 def admin_links(args_generator):
@@ -728,26 +729,26 @@ class ProfileAdminMixin:
 
     def regular_amount(self, obj):
         result = self.get_donor_details(obj)
-        return ',\n'.join(str(d.regular_amount) for d in result if d.regular_amount)
+        return sweet_text(((str(d.regular_amount),) for d in result if d.regular_amount))
     regular_amount.short_description = _("Regular amount")
     regular_amount.admin_order_field = 'userchannels__regular_amount'
 
     def donor_delay(self, obj):
-        donors = self.get_donor_details(obj)
-        result = []
-        for d in donors:
-            if isinstance(d.regular_payments_delay(), (bool,)):
-                result.append(_boolean_icon(True))
+        def get_result(dpch):
+            if isinstance(dpch.regular_payments_delay(), (bool,)):
+                return _boolean_icon(True)
             else:
-                result.append('<nobr>' + _boolean_icon(False) + str(d.regular_payments_delay().days) + ' days' + '</nobr>')
-        return mark_safe(',<br>'.join(result))
+                return format_html("{} {} {}", mark_safe(_boolean_icon(False)), str(dpch.regular_payments_delay().days), 'days')
+
+        result = sweet_text(((get_result(d),) for d in self.get_donor_details(obj)))
+        return result
 
     donor_delay.short_description = _("Payment delay")
     donor_delay.admin_order_field = 'donor_delay'
 
     def donor_extra_money(self, obj):
         result = self.get_donor_details(obj)
-        return mark_safe(',<br>'.join(str(d.extra_money) if d.extra_money else '-' for d in result))
+        return sweet_text(((str(d.extra_money),) if d.extra_money else '-' for d in result))
 
     donor_extra_money.short_description = _("Extra money")
     donor_extra_money.admin_order_field = 'donor_extra_money'
