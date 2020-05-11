@@ -28,7 +28,7 @@ def validate_logo_image(image):
 
     if image_file_size > megabyte_limit:
         raise ValidationError(
-            _("Image size is larger than what is allowed "
+            _("Image file size is larger than what is allowed "
               "%(max_file_size)s MB"),
             params={'max_file_size': megabyte_limit},
         )
