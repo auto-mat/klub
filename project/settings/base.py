@@ -173,6 +173,7 @@ CACHES = {
 
 LOCALE_PATHS = [
     normpath(PROJECT_ROOT, 'apps/aklub/locale'),
+    normpath(PROJECT_ROOT, 'apps/html_template_editor/locale'),
 ]
 
 USE_L10N = True
