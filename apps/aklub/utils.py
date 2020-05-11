@@ -19,6 +19,10 @@ from html_template_editor.models import (
 
 from . import models as aklub_models
 
+from html_template_editor.models import (
+    Images, TemplateContent, TemplateFooter, TemplateHeader,
+)
+
 
 def sweet_text(generator):
     """
