@@ -10,6 +10,10 @@ from django.template import loader
 from django.urls import reverse
 from django.utils.html import format_html_join, mark_safe
 
+from html_template_editor.models import (
+    Images, TemplateContent, TemplateFooter, TemplateHeader,
+)
+
 
 def sweet_text(generator):
     """
@@ -23,10 +27,6 @@ def sweet_text(generator):
     3000
     """
     return format_html_join(mark_safe(',<br/>'), "<nobr>{}</nobr>", generator)
-
-from html_template_editor.models import (
-    Images, TemplateContent, TemplateFooter, TemplateHeader,
-)
 
 
 def create_model(
