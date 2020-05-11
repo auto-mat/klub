@@ -17,33 +17,44 @@ from .validators import validate_logo_image
 
 class TemplateContent(models.Model):
 
+    class Meta:
+        verbose_name = _("Template content")
+        verbose_name_plural = _("Template contents")
+
     created = models.DateTimeField(
+        verbose_name=_("Created"),
         auto_now_add=True,
     )
     modified = models.DateTimeField(
+        verbose_name=_("Modified"),
         auto_now=True,
     )
     uuid = models.UUIDField(
+        verbose_name=_("Universally unique identifier"),
         default=uuid.uuid4,
         editable=False,
         unique=True,
     )
     images = models.CharField(
+        verbose_name=_("Images"),
         max_length=100,
         blank=True,
         null=True,
     )
     page = models.CharField(
+        verbose_name=_("Pages"),
         max_length=100,
         blank=True,
         null=True,
     )
     regions = models.TextField(
+        verbose_name=_("Regions"),
         blank=True,
         default='',
         null=True,
     )
     styles = JSONField(
+        verbose_name=_("Styles"),
         blank=True,
         null=True,
     )
@@ -51,13 +62,20 @@ class TemplateContent(models.Model):
 
 class Images(models.Model):
 
+    class Meta:
+        verbose_name = _("Images")
+        verbose_name_plural = _("Images")
+
     created = models.DateTimeField(
+        verbose_name=_("Created"),
         auto_now_add=True,
     )
     modified = models.DateTimeField(
+        verbose_name=_("Modified"),
         auto_now=True,
     )
     image = models.ImageField(
+        verbose_name=_("Image"),
         upload_to='images',
         height_field=None,
         width_field=None,
@@ -65,28 +83,34 @@ class Images(models.Model):
         null=True,
     )
     name = models.CharField(
+        verbose_name=_("Name"),
         max_length=100,
         blank=True,
         null=True,
     )
     edited_width = models.IntegerField(
+        verbose_name=_("Edited width"),
         blank=True,
         null=True,
     )
     edited_crop = models.CharField(
+        verbose_name=_("Edited crop"),
         max_length=80,
         blank=True,
         null=True,
     )
     edited_direction = models.CharField(
+        verbose_name=_("Edited direction"),
         max_length=5,
         blank=True,
         null=True,
     )
     background_image = models.BooleanField(
+        verbose_name=_("Background image"),
         default=False,
     )
     template_url = models.CharField(
+        verbose_name=_("Template url"),
         max_length=350,
         blank=True,
         null=True,
@@ -146,7 +170,7 @@ class CompanyEmail(models.Model):
 
     class Meta:
         verbose_name = _("Company email")
-        verbose_name_plural = _("Company email")
+        verbose_name_plural = _("Company emails")
 
     email = models.EmailField(
         verbose_name=_("Company email"),
@@ -161,8 +185,8 @@ class CompanyEmail(models.Model):
 class CompanySocialMedia(models.Model):
 
     class Meta:
-        verbose_name = _("Social media")
-        verbose_name_plural = _("Social media")
+        verbose_name = _("Company social media")
+        verbose_name_plural = _("Company social media")
 
     icon_name = models.CharField(
         verbose_name=_("Icon name"),
@@ -232,8 +256,9 @@ class TemplateFooter(models.Model):
         blank=True,
     )
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        models.SET_NULL,
+        verbose_name=_("User"),
+        to=settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
         blank=True,
         null=True,
     )
@@ -334,8 +359,9 @@ class TemplateHeader(models.Model):
         help_text=_("Left or right column logo position"),
     )
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        models.SET_NULL,
+        verbose_name=_("User"),
+        to=settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
         blank=True,
         null=True,
     )
