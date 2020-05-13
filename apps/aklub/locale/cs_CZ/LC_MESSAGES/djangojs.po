@@ -1,0 +1,54 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-05-11 09:34+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: static/aklub/js/image_uploader.js:80
+msgid "Max allowed image width is 600 px."
+msgstr "Maximální povolená šířka obrázku je 600 px."
+
+#: static/aklub/js/template_widget.min.js:2 static/template_widget.js:16
+#: static/template_widget.js:525
+msgid "Edit template"
+msgstr "Upravit šablonu"
+
+#: static/aklub/js/template_widget.min.js:2 static/template_widget.js:124
+#: static/template_widget.js:166
+msgid "Template name"
+msgstr "Název šablony"
+
+#: static/aklub/js/template_widget.min.js:2
+msgid ""
+"Template name may consist of a-z, 0-9, underscores, not spaces and must "
+"begin with a letter, and be lowercase."
+msgstr "Název šablony může obsahovat a-z, 0-9, podtržítka, nikoli mezery "
+"a musí začínat písmenem a musí být malá."
+
+#: static/aklub/js/template_widget.min.js:2 static/template_widget.js:228
+msgid "Template name exist."
+msgstr "Název šablony existuje."
+
+#: static/aklub/js/template_widget.min.js:2 static/template_widget.js:262
+msgid "Ok"
+msgstr "Potvrdit"
+
+#: static/template_widget.js:226
+msgid ""
+"Template name may consist of a-z, 0-9, underscores, not spaces and must "
+"begin with a letter,and be lowercase."
+msgstr "Název šablony může obsahovat a-z, 0-9, podtržítka, nikoli mezery "
+"a musí začínat písmenem a musí být malá."
