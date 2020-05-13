@@ -752,7 +752,7 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
 
     userattendance_links.short_description = _('Users in campaign')
 
-    def make_tax_confirmation(self, year, unit):
+    def make_tax_confirmation(self, year, unit, pdf_type):
         payment_set = Payment.objects.filter(
                             user_donor_payment_channel__user=self,
                             user_donor_payment_channel__money_account__administrative_unit=unit,
@@ -763,7 +763,7 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
         confirm, created = TaxConfirmation.objects.update_or_create(
             user_profile=self,
             year=year,
-            administrative_unit=unit,
+            pdf_type=pdf_type,
             defaults={
                 'amount': amount,
             },
@@ -2555,9 +2555,21 @@ class MassCommunication(models.Model):
     )
     attach_tax_confirmation = models.BooleanField(
         verbose_name=_("Attach tax confirmation"),
-        help_text=_("If this field is checked, the tax confirmation "
-                    "for last year is appended to the message."),
+        help_text=_("If this field is checked, select year and type of pdf to send"),
         default=False,
+    )
+    attached_tax_confirmation_year = models.PositiveIntegerField(
+        verbose_name=_("Year"),
+        blank=True,
+        null=True,
+    )
+
+    attached_tax_confirmation_type = models.ForeignKey(
+        'smmapdfs.PdfSandwichType',
+        verbose_name=_("Type of PDF"),
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
     )
     send_to_users = models.ManyToManyField(
         Profile,
@@ -2589,6 +2601,12 @@ class MassCommunication(models.Model):
     def __str__(self):
         return str(self.name)
 
+    def clean(self):
+        if self.attach_tax_confirmation:
+            if not self.attached_tax_confirmation_year or not self.attached_tax_confirmation_type:
+                raise ValidationError("YEAR and PDF_TYPE must be set")
+        super().clean()
+
 
 class OverwriteStorage(FileSystemStorage):
 
@@ -2604,10 +2622,11 @@ class OverwriteStorage(FileSystemStorage):
 
 
 class TaxConfirmationField(PdfSandwichFieldABC):
-    fields = {
+    # fields are used for userprofile taxs
+    fields_user = {
         "year": (lambda tc: str(tc.year)),
         "amount": (lambda tc: "%s Kč." % intcomma(int(tc.amount))),
-        "name": (lambda tc: tc.get_name()),
+        "name": (lambda tc: tc.get_user_name()),
         "street": (lambda tc: tc.get_street()),
         "addr_city": (lambda tc: tc.get_addr_city()),
         "zip_code": (lambda tc: tc.get_zip_code()),
@@ -2615,6 +2634,24 @@ class TaxConfirmationField(PdfSandwichFieldABC):
         "date": (lambda tc: datetime.date.today().strftime("%d.%m.%Y")),
         "administrative_unit": (lambda tc: tc.get_administrative_unit()),
     }
+    # fields are used for company_profiles taxs
+    fields_company = {
+        "year": (lambda tc: str(tc.year)),
+        "amount": (lambda tc: "%s Kč." % intcomma(int(tc.amount))),
+        "street": (lambda tc: tc.get_street()),
+        "addr_city": (lambda tc: tc.get_addr_city()),
+        "zip_code": (lambda tc: tc.get_zip_code()),
+        "country": (lambda tc: tc.get_country()),
+        "date": (lambda tc: datetime.date.today().strftime("%d.%m.%Y")),
+        "administrative_unit": (lambda tc: tc.get_administrative_unit()),
+        "company_name": (lambda tc: tc.get_company_name()),
+        "contact_name": (lambda tc: tc.get_company_contact_name()),
+        "crn": (lambda tc: tc.get_company_crn()),
+        "tin": (lambda tc: tc.get_company_tin()),
+
+    }
+
+    fields = dict(fields_user, **fields_company)
 
 
 class TaxConfirmationPdf(PdfSandwichABC):
@@ -2641,13 +2678,11 @@ class TaxConfirmation(models.Model):
     year = models.PositiveIntegerField()
     amount = models.PositiveIntegerField(default=0)
     file = models.FileField(storage=OverwriteStorage())  # DEPRICATED!
-
-    administrative_unit = models.ForeignKey(
-        AdministrativeUnit,
-        verbose_name=_("administrative unit"),
-        on_delete=models.CASCADE,
-        null=False,
-        blank=False,
+    pdf_type = models.ForeignKey(
+                    'smmapdfs.PdfSandwichType',
+                    on_delete=models.SET_NULL,
+                    null=True,
+                    blank=True,
     )
 
     def get_pdf(self):
@@ -2665,7 +2700,7 @@ class TaxConfirmation(models.Model):
 
     get_pdf.short_description = _("PDF")
 
-    def get_name(self):
+    def get_user_name(self):
         return "%s %s" % (self.user_profile.first_name, self.user_profile.last_name)
 
     def get_street(self):
@@ -2683,13 +2718,25 @@ class TaxConfirmation(models.Model):
     sandwich_model = TaxConfirmationPdf
 
     def get_sandwich_type(self):
-        return self.administrative_unit.pdfsandwichtypeconnector.pdfsandwichtype
+        return self.pdf_type
 
     def get_payment_set(self):
         return Payment.objects.filter(user_profile=self.user_profile).exclude(type='expected').filter(date__year=self.year)
 
     def get_administrative_unit(self):
-        return self.administrative_unit.name
+        return self.pdf_type.pdfsandwichtypeconnector.administrative_unit.name
+
+    def get_company_name(self):
+        return self.user_profile.name
+
+    def get_company_contact_name(self):
+        return f'{self.user_profile.contact_first_name} {self.user_profile.contact_last_name}'
+
+    def get_company_tin(self):
+        return self.user_profile.tin
+
+    def get_company_crn(self):
+        return self.user_profile.crn
 
     class Meta:
         verbose_name = _("Tax confirmation")

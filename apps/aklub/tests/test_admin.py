@@ -43,7 +43,7 @@ from .utils import print_response  # noqa
 from .. import admin
 from .. models import (
     AccountStatements, AutomaticCommunication, DonorPaymentChannel, MassCommunication,
-    Profile, TaxConfirmation, Telephone, UserProfile,
+    Profile, Telephone, UserProfile,
 )
 
 
@@ -122,33 +122,6 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
             for u in queryset:
                 user = getattr(u, 'user', u)
                 self.assertContains(response, '<option value="%s" selected>%s</option>' % (user.id, str(user)), html=True)
-
-    @freeze_time("2017-5-1")
-    def test_tax_confirmation_generate(self):
-        _foo_user = user_profile_recipe.make(id=2978, first_name="Foo")
-        _bar_user = user_profile_recipe.make(id=2979, first_name="Bar")
-        au1 = mommy.make("aklub.AdministrativeUnit", name="test1")
-        au2 = mommy.make("aklub.AdministrativeUnit", name="test2")
-        bank_acc1 = mommy.make("aklub.BankAccount", bank_account_number=111, administrative_unit=au1)
-        bank_acc2 = mommy.make("aklub.BankAccount", bank_account_number=222, administrative_unit=au2)
-        foo_user = donor_payment_channel_recipe.make(user=_foo_user, money_account=bank_acc1)
-        bar_user = donor_payment_channel_recipe.make(user=_bar_user, money_account=bank_acc2)
-
-        mommy.make("aklub.Payment", amount=350, date="2016-01-02", user_donor_payment_channel=foo_user, type="cash")
-        mommy.make("aklub.Payment", amount=130, date="2016-01-02", user_donor_payment_channel=bar_user, type="cash")
-        model_admin = django_admin.site._registry[TaxConfirmation]
-        request = self.post_request({})
-        response = model_admin.generate(request)
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, "/aklub/taxconfirmation/")
-        self.assertEqual(TaxConfirmation.objects.get(user_profile__id=2978, year=2016).amount, 350)
-        self.assertEqual(TaxConfirmation.objects.get(user_profile__id=2979, year=2016).amount, 130)
-        confirmation_values = TaxConfirmation.objects.filter(year=2016).values('user_profile', 'amount', 'year').order_by('user_profile')
-        expected_confirmation_values = [
-            {'year': 2016, 'user_profile': 2978, 'amount': 350},
-            {'year': 2016, 'user_profile': 2979, 'amount': 130},
-        ]
-        self.assertListEqual(list(confirmation_values), expected_confirmation_values)
 
     @freeze_time("2015-5-1")
     def test_account_statement_changelist_post(self):

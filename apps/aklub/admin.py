@@ -39,7 +39,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core import serializers
 from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator
-from django.db.models import CharField, Count, F, Max, Q, Sum
+from django.db.models import CharField, Count, F, Max, OuterRef, Q, Subquery, Sum
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect
 from django.utils.html import format_html, format_html_join, mark_safe
@@ -79,7 +79,7 @@ from smmapdfs.actions import make_pdfsandwich
 from . import darujme, filters, mailing, tasks
 from .filters import ProfileTypeFilter, unit_admin_mixin_generator
 from .forms import (
-    CompanyProfileAddForm, CompanyProfileChangeForm, UnitUserProfileAddForm,
+    CompanyProfileAddForm, CompanyProfileChangeForm, TaxConfirmationForm, UnitUserProfileAddForm,
     UnitUserProfileChangeForm, UserCreateForm, UserUpdateForm,
 )
 from .models import (
@@ -838,6 +838,14 @@ class ProfileAdminMixin:
 
         return queryset
 
+    def make_tax_confirmation(self, request, queryset):
+        request.method = None
+        return ProfileAdmin.taxform(self, request, profiles=queryset)
+
+    make_tax_confirmation.short_description = _("Make Tax Confirmation")
+
+    actions = (make_tax_confirmation,)
+
     def change_view(self, request, object_id, extra_context=None, **kwargs):
         from helpdesk.query import query_to_base64
         extra_context = extra_context or {}
@@ -1004,6 +1012,27 @@ class ProfileAdmin(
         """
         return {}
 
+    def taxform(self, request, *args, **kwargs):
+        """ admin form view to generate tax confirmations"""
+        if request.method == 'POST':
+            data = request.POST
+            parameters = (
+                        data.get('year'),
+                        data.getlist('profile'),
+                        data.get('pdf_type')
+            )
+            tasks.generate_tax_confirmations.apply_async(args=parameters)
+            messages.info(request, _('TaxConfirmations created'))
+            return HttpResponseRedirect(reverse('admin:aklub_taxconfirmation_changelist'))
+        else:
+            from django.shortcuts import render
+            form = TaxConfirmationForm(profiles=kwargs.get('profiles'), request=request)
+            return render(
+                request,
+                'admin/aklub/profile_taxconfirmation.html',
+                {'opts': self.model._meta, 'form': form},
+            )
+
     def remove_contact_from_unit(self, request, pk=None):
         from django.shortcuts import render
         if request.method == "POST":
@@ -1043,6 +1072,11 @@ class ProfileAdmin(
                 r'^(?P<pk>[0-9]+)/remove_contact_from_unit/$',
                 self.admin_site.admin_view(self.remove_contact_from_unit),
                 name='aklub_remove_contact_from_unit',
+            ),
+            url(
+                r'taxform',
+                self.admin_site.admin_view(self.taxform),
+                name='aklub_profile_taxform',
             ),
         ]
         return my_urls + urls
@@ -1722,7 +1756,10 @@ class SourceAdmin(admin.ModelAdmin):
     list_display = ('slug', 'name', 'direct_dialogue')
 
 
-class TaxConfirmationAdmin(unit_admin_mixin_generator('user_profile__administrative_units'), admin.ModelAdmin):
+class TaxConfirmationAdmin(
+            unit_admin_mixin_generator('pdf_type__pdfsandwichtypeconnector__administrative_unit'),
+            admin.ModelAdmin,
+            ):
 
     def batch_download(self, request, queryset):
         links = []
@@ -1734,8 +1771,13 @@ class TaxConfirmationAdmin(unit_admin_mixin_generator('user_profile__administrat
 
     batch_download.short_description = _("generate download links for pdf files")
 
-    change_list_template = "admin/aklub/taxconfirmation/change_list.html"
-    list_display = ('user_profile', 'get_email', 'year', 'amount', 'get_pdf', 'administrative_unit', 'get_status', 'get_send_time', )
+    list_display = ('get_name',
+                    'get_email',
+                    'year',
+                    'amount',
+                    'get_pdf',
+                    'get_administrative_unit',
+                    'pdf_type')
     ordering = (
         'user_profile__userprofile__last_name',
         'user_profile__userprofile__first_name',
@@ -1743,7 +1785,9 @@ class TaxConfirmationAdmin(unit_admin_mixin_generator('user_profile__administrat
     )
     list_filter = [
         'year',
-        'administrative_unit',
+        'pdf_type',
+        'pdf_type__pdfsandwichtypeconnector__administrative_unit',
+        'pdf_type__pdfsandwichtypeconnector__profile_type',
         filters.ProfileHasEmail,
         filters.ProfileHasFullAdress,
     ]
@@ -1761,37 +1805,41 @@ class TaxConfirmationAdmin(unit_admin_mixin_generator('user_profile__administrat
         'user_profile__companyprofile',
     )
 
-    readonly_fields = ['get_pdf', 'get_email', 'get_status', 'get_send_time']
-    fields = ['user_profile', 'year', 'amount', 'get_pdf', 'administrative_unit', ]
+    readonly_fields = ['get_pdf', 'get_email', 'pdf_type', 'get_administrative_unit']
+    fields = ['user_profile', 'year', 'amount', 'get_pdf', 'pdf_type']
 
-    def generate(self, request):
-        tasks.generate_tax_confirmations.apply_async()
-        return HttpResponseRedirect(reverse('admin:aklub_taxconfirmation_changelist'))
-
-    def get_urls(self):
-        from django.conf.urls import url
-        urls = super(TaxConfirmationAdmin, self).get_urls()
-        my_urls = [
-            url(
-                r'generate',
-                self.admin_site.admin_view(self.generate),
-                name='aklub_taxconfirmation_generate',
-            ),
-        ]
-        return my_urls + urls
+    def get_queryset(self, request):
+        """
+        The annotate hacking in this query is because django-polymorphic doesnt support
+        prefetch_related and select_related in normal way!
+        Then we want to avoid hitting DB in every list_row
+        """
+        primary_email = ProfileEmail.objects.filter(user=OuterRef('user_profile_id'), is_primary=True)
+        qs = super().get_queryset(request).select_related(
+                'pdf_type__pdfsandwichtypeconnector__administrative_unit'
+        ).annotate(
+                last_name=F("user_profile__userprofile__last_name"),
+                first_name=F("user_profile__userprofile__first_name"),
+                company_name=F("user_profile__companyprofile__name"),
+                email_address=Subquery(primary_email.values('email')),
+        )
+        return qs
 
     def get_email(self, obj):
+        return obj.email_address
+
+    def get_administrative_unit(self, obj):
         try:
-            email = obj.user_profile.profileemail_set.get(is_primary=True)
-        except ProfileEmail.DoesNotExist:
-            email = None
-        return email
+            au = obj.pdf_type.pdfsandwichtypeconnector.administrative_unit.name
+        except AttributeError:
+            au = None
+        return au
 
-    def get_status(self, obj):
-        return obj.taxconfirmationpdf_set.get().status
-
-    def get_send_time(self, obj):
-        return obj.taxconfirmationpdf_set.get().sent_time
+    def get_name(self, obj):
+        if obj.company_name:
+            return obj.company_name
+        else:
+            return f"{obj.first_name} {obj.last_name}"
 
 
 @admin.register(AdministrativeUnit)
@@ -1880,7 +1928,8 @@ class UserProfileAdmin(
     actions = (
         create_export_job_action,
         send_mass_communication_action,
-    )
+    ) + ProfileAdminMixin.actions
+
     advanced_filter_fields = (
         'profileemail__email',
         'addressment',
@@ -2065,6 +2114,8 @@ class CompanyProfileAdmin(
         'donor_delay',
         'donor_extra_money',
     )
+
+    actions = () + ProfileAdminMixin.actions
 
     advanced_filter_fields = (
         'email',
