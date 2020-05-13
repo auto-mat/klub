@@ -179,7 +179,7 @@ def dehydrate_donor(self, profile):
             try:
                 donor_list.append(f"user_bank_account:{donor.user_bank_account.bank_account_number}\n")
             except AttributeError:
-                donor_list.append(f"user_bank_account:\n")
+                donor_list.append("user_bank_account:\n")
             donor_list.append("\n")
 
     return "".join(tuple(donor_list))
