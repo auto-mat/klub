@@ -1,84 +1,142 @@
 [
-{
-    "model": "admin_tools_stats.dashboardstatscriteria",
-    "pk": 1,
-    "fields": {
-        "criteria_name": "Typ d\u00e1rce",
-        "criteria_fix_mapping": "\"\"",
-        "dynamic_criteria_field_name": "user_donor_payment_channel__regular_payments",
-        "criteria_dynamic_mapping": "{\"\":\"Vsichni\",\"onetime\":\"Jednorazovi\",\"promise\":\"Prislib\",\"regular\":\"Pravidelni\"}",
-        "created_date": "2016-09-08T09:31:45.465Z",
-        "updated_date": "2019-10-03T09:09:40.201Z"
+    {
+        "fields": {
+            "created_date": "2016-09-08T09:31:45.465Z",
+            "criteria_dynamic_mapping": {
+                "": [
+                    null,
+                    "Vsichni"
+                ],
+                "onetime": [
+                    "onetime",
+                    "Jednorazovi"
+                ],
+                "promise": [
+                    "promise",
+                    "Prislib"
+                ],
+                "regular": [
+                    "regular",
+                    "Pravidelni"
+                ]
+            },
+            "criteria_fix_mapping": "",
+            "criteria_name": "Typ d\u00e1rce",
+            "dynamic_criteria_field_name": "user_donor_payment_channel__regular_payments",
+            "updated_date": "2020-05-13T12:40:30.432Z"
+        },
+        "model": "admin_tools_stats.dashboardstatscriteria",
+        "pk": 1
+    },
+    {
+        "fields": {
+            "created_date": "2020-05-13T12:44:34.321Z",
+            "criteria_dynamic_mapping": "",
+            "criteria_fix_mapping": "",
+            "criteria_name": "\u010c\u00e1stka",
+            "dynamic_criteria_field_name": "amount",
+            "updated_date": "2020-05-13T12:44:34.321Z"
+        },
+        "model": "admin_tools_stats.dashboardstatscriteria",
+        "pk": 3
+    },
+    {
+        "fields": {
+            "created_date": "2016-09-08T09:22:25.501Z",
+            "date_field_name": "date",
+            "default_chart_type": "stackedAreaChart",
+            "default_time_period": 31,
+            "default_time_scale": "weeks",
+            "distinct": false,
+            "graph_key": "payment_amount",
+            "graph_title": "Mno\u017estv\u00ed plateb (K\u010d)",
+            "is_visible": true,
+            "model_app_name": "aklub",
+            "model_name": "Payment",
+            "operation_field_name": "amount",
+            "type_operation_field_name": "Sum",
+            "updated_date": "2020-05-13T12:46:05.254Z",
+            "user_field_name": null,
+            "y_axis_format": null
+        },
+        "model": "admin_tools_stats.dashboardstats",
+        "pk": 1
+    },
+    {
+        "fields": {
+            "created_date": "2016-09-08T09:34:41.780Z",
+            "date_field_name": "date_joined",
+            "default_chart_type": "discreteBarChart",
+            "default_time_period": 31,
+            "default_time_scale": "days",
+            "distinct": false,
+            "graph_key": "user_count",
+            "graph_title": "Po\u010det d\u00e1rc\u016f",
+            "is_visible": true,
+            "model_app_name": "aklub",
+            "model_name": "UserProfile",
+            "operation_field_name": null,
+            "type_operation_field_name": "Count",
+            "updated_date": "2020-05-13T12:36:22.199Z",
+            "user_field_name": null,
+            "y_axis_format": null
+        },
+        "model": "admin_tools_stats.dashboardstats",
+        "pk": 2
+    },
+    {
+        "fields": {
+            "created_date": "2016-09-08T11:46:17.327Z",
+            "date_field_name": "date",
+            "default_chart_type": "stackedAreaChart",
+            "default_time_period": 31,
+            "default_time_scale": "days",
+            "distinct": false,
+            "graph_key": "payment_count",
+            "graph_title": "Po\u010det plateb",
+            "is_visible": true,
+            "model_app_name": "aklub",
+            "model_name": "Payment",
+            "operation_field_name": null,
+            "type_operation_field_name": "Count",
+            "updated_date": "2020-05-13T12:41:55.246Z",
+            "user_field_name": null,
+            "y_axis_format": null
+        },
+        "model": "admin_tools_stats.dashboardstats",
+        "pk": 3
+    },
+    {
+        "fields": {
+            "criteria": 1,
+            "order": null,
+            "prefix": "",
+            "stats": 3,
+            "use_as": "multiple_series"
+        },
+        "model": "admin_tools_stats.criteriatostatsm2m",
+        "pk": 2
+    },
+    {
+        "fields": {
+            "criteria": 1,
+            "order": 2,
+            "prefix": "",
+            "stats": 1,
+            "use_as": "multiple_series"
+        },
+        "model": "admin_tools_stats.criteriatostatsm2m",
+        "pk": 3
+    },
+    {
+        "fields": {
+            "criteria": 3,
+            "order": 1,
+            "prefix": "",
+            "stats": 1,
+            "use_as": "multiple_series"
+        },
+        "model": "admin_tools_stats.criteriatostatsm2m",
+        "pk": 4
     }
-},
-{
-    "model": "admin_tools_stats.dashboardstatscriteria",
-    "pk": 2,
-    "fields": {
-        "criteria_name": "Typ d\u00e1rce (pro u\u017eivatele)",
-        "criteria_fix_mapping": "\"\"",
-        "dynamic_criteria_field_name": "userprofile__regular_payments",
-        "criteria_dynamic_mapping": "{\"\":\"Vsichni\",\"onetime\":\"Jednorazovi\",\"promise\":\"Prislib\",\"regular\":\"Pravidelni\"}",
-        "created_date": "2016-09-08T13:14:23.681Z",
-        "updated_date": "2019-10-03T08:29:26.345Z"
-    }
-},
-{
-    "model": "admin_tools_stats.dashboardstats",
-    "pk": 1,
-    "fields": {
-        "graph_key": "payment_amount",
-        "graph_title": "Mno\u017estv\u00ed plateb (K\u010d)",
-        "model_app_name": "aklub",
-        "model_name": "Payment",
-        "date_field_name": "date",
-        "user_field_name": null,
-        "operation_field_name": "amount",
-        "type_operation_field_name": "Sum",
-        "is_visible": true,
-        "created_date": "2016-09-08T09:22:25.501Z",
-        "updated_date": "2016-09-08T11:54:25.702Z",
-        "criteria": [
-            1
-        ]
-    }
-},
-{
-    "model": "admin_tools_stats.dashboardstats",
-    "pk": 2,
-    "fields": {
-        "graph_key": "user_count",
-        "graph_title": "Po\u010det d\u00e1rc\u016f",
-        "model_app_name": "aklub",
-        "model_name": "UserProfile",
-        "date_field_name": "date_joined",
-        "user_field_name": null,
-        "operation_field_name": "",
-        "type_operation_field_name": "Count",
-        "is_visible": true,
-        "created_date": "2016-09-08T09:34:41.780Z",
-        "updated_date": "2016-09-08T13:19:42.003Z",
-        "criteria": []
-    }
-},
-{
-    "model": "admin_tools_stats.dashboardstats",
-    "pk": 3,
-    "fields": {
-        "graph_key": "payment_count",
-        "graph_title": "Po\u010det plateb",
-        "model_app_name": "aklub",
-        "model_name": "Payment",
-        "date_field_name": "date",
-        "user_field_name": null,
-        "operation_field_name": null,
-        "type_operation_field_name": "Count",
-        "is_visible": true,
-        "created_date": "2016-09-08T11:46:17.327Z",
-        "updated_date": "2019-10-03T09:09:01.415Z",
-        "criteria": [
-            1
-        ]
-    }
-}
 ]
