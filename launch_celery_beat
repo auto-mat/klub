@@ -1,2 +1,0 @@
-#!/bin/sh
-celery beat -A project.celery --scheduler django_celery_beat.schedulers:DatabaseScheduler & celery -A project.celery events -l info --camera django_celery_monitor.camera.Camera --frequency=2.0
