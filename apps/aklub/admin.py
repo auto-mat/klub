@@ -2255,7 +2255,7 @@ class CompanyProfileAdmin(
                 unit = AdministrativeUnit.objects.get(id=data.get('administrative_units'))
                 company.administrative_units.add(unit)
                 company.save()
-                messages.warning(request, f'Company is in database already. You are able to make changes now.')
+                messages.warning(request, 'Company is in database already. You are able to make changes now.')
                 url = reverse('admin:aklub_companyprofile_change', args=(company.pk,))
                 return HttpResponseRedirect(url)
 

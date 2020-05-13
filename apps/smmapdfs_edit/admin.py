@@ -41,6 +41,8 @@ class PdfTypeAdminInline(PdfInlineMixin, admin.StackedInline):
 
 
 admin.site.unregister(PdfSandwichEmail)
+
+
 @admin.register(PdfSandwichEmail)
 class _PdfSandwichEmailAdmin(
     unit_admin_mixin_generator('pdfsandwichemailconnector__administrative_unit'),
@@ -81,6 +83,8 @@ class PdfFieldsInline(admin.TabularInline):
 
 
 admin.site.unregister(PdfSandwichType)
+
+
 @admin.register(PdfSandwichType)
 class _PdfSandwichTypeAdmin(
     unit_admin_mixin_generator('pdfsandwichtypeconnector__administrative_unit'),
