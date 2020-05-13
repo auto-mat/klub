@@ -376,7 +376,7 @@ class UserProfileLoaderClass(BaseInstanceLoader):
         obj = None
         if row.get('email'):
             try:
-                obj = ProfileEmail.objects.get(email=row['email']).user
+                obj = ProfileEmail.objects.get(email=row['email'], user__polymorphic_ctype__model=UserProfile._meta.model_name).user
             except ProfileEmail.DoesNotExist:
                 pass
         return obj
