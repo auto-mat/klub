@@ -1,2 +1,2 @@
 #!/bin/sh
-celery worker -A project.celery --concurrency=1 --autoscale=1 -E
+SINGLE_BEAT_REDIS_SERVER=$REDIS_URL single-beat celery beat -A project.celery --scheduler django_celery_beat.schedulers:DatabaseScheduler & celery -A project.celery events -l info --camera django_celery_monitor.camera.Camera --frequency=2.0 & celery worker -A project.celery --concurrency=1 --autoscale=1 -E
