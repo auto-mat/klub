@@ -24,7 +24,7 @@ class GetDpchUserProfileSerializer(serializers.ModelSerializer, RelatedFieldsMix
         fields = [
             'email', 'first_name', 'last_name', 'telephone', 'street',
             'city', 'zip_code', 'money_account', 'event', 'birth_day', 'birth_month',
-            'age_group', 'birth_month', 'birth_day', 'sex', 'amount', 'regular',
+            'age_group', 'sex', 'amount', 'regular',
             ]
         extra_kwargs = {
             'first_name': {'required': True},

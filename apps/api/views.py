@@ -54,9 +54,8 @@ class CreateDpchUserProfileView(APIView):
                 user.age_group = serializer.validated_data.get('age_group', None)
                 user.birth_month = serializer.validated_data.get('birth_month', None)
                 user.birth_day = serializer.validated_data.get('birth_day', None)
-            if not user.sex:
-
-                user.sex = serializer.validated_data.get('sex', 'unknow')
+            if user.sex == 'unknown':
+                user.sex = serializer.validated_data.get('sex', 'unknown')
             user.save()
 
             if created:
