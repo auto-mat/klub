@@ -10,6 +10,24 @@ from rest_framework.views import APIView
 from .serializers import GetDpchCompanyProfileSerializer, GetDpchUserProfileSerializer
 
 
+def get_or_create_dpch(serializer, profile):
+    dpch, created = DonorPaymentChannel.objects.get_or_create(
+                    event=serializer.validated_data['event'],
+                    money_account=serializer.validated_data['money_account'],
+                    user=profile,
+                    )
+    if created:
+        dpch.expected_date_of_first_payment = datetime.date.today() + datetime.timedelta(days=3)
+        if serializer.validated_data.get('regular'):
+            dpch.regular_payments = 'regular'
+        else:
+            dpch.regular_payments = 'onetime'
+        dpch.regular_amount = serializer.validated_data['amount']
+        dpch.generate_VS()
+        dpch.save()
+    return dpch.VS
+
+
 class CreateDpchUserProfileView(APIView):
     """ accepts email and so... create DPCH or find existed and return VS"""
     permission_classes = [IsAuthenticated]
@@ -34,24 +52,17 @@ class CreateDpchUserProfileView(APIView):
                 user.age_group = serializer.validated_data.get('age_group', '')
                 user.birth_month = serializer.validated_data.get('birth_month', '')
                 user.birth_day = serializer.validated_data.get('birth_day', '')
+            if not user.sex:
+                user.sex = serializer.validated_data.get('sex', '')
             user.save()
 
             if created:
                 ProfileEmail.objects.create(email=serializer.validated_data['email'], user=user)
 
             Telephone.objects.get_or_create(telephone=serializer.validated_data['telephone'], user=user)
-            # check dpch
-            dpch, created = DonorPaymentChannel.objects.get_or_create(
-                            event=serializer.validated_data['event'],
-                            money_account=serializer.validated_data['money_account'],
-                            user=user,
-                            )
-            if created:
-                dpch.expected_date_of_first_payment = datetime.date.today() + datetime.timedelta(days=3)
-                dpch.generate_VS()
-                dpch.save()
-            VS = dpch.VS
-            # TODO: interaction
+
+            VS = get_or_create_dpch(serializer, user)
+
             return Response({'VS': VS})
 
 
@@ -80,19 +91,8 @@ class CreateDpchCompanyProfileView(APIView):
                 company.zip_code = serializer.validated_data.get('zip_code', '')
             company.save()
 
-            # TODO: will change with new version of company profiles
             ProfileEmail.objects.get_or_create(email=serializer.validated_data.get('email'), user=company)
             Telephone.objects.get_or_create(telephone=serializer.validated_data.get('telephone'), user=company)
-            # check dpch
-            dpch, created = DonorPaymentChannel.objects.get_or_create(
-                            event=serializer.validated_data.get('event'),
-                            money_account=serializer.validated_data.get('money_account'),
-                            user=company,
-                            )
-            if created:
-                dpch.expected_date_of_first_payment = datetime.date.today() + datetime.timedelta(days=3)
-                dpch.generate_VS()
-                dpch.save()
-            VS = dpch.VS
-            # TODO: interaction
+
+            VS = get_or_create_dpch(serializer, company)
             return Response({'VS': VS})

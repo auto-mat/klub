@@ -13,15 +13,18 @@ class RelatedFieldsMixin(serializers.Serializer):
         required=True,
         validators=[RegexValidator(r'^[0-9+ ]*$', _('Telephone must consist of numbers, spaces and plus sign')), MinLengthValidator(9)],
     )
+    amount = serializers.IntegerField(required=True)
+    regular = serializers.BooleanField(initial=False)
 
 
 class GetDpchUserProfileSerializer(serializers.ModelSerializer, RelatedFieldsMixin):
+
     class Meta:
         model = UserProfile
         fields = [
             'email', 'first_name', 'last_name', 'telephone', 'street',
             'city', 'zip_code', 'money_account', 'event', 'birth_day', 'birth_month',
-            'age_group', 'birth_month', 'birth_day',
+            'age_group', 'birth_month', 'birth_day', 'sex', 'amount', 'regular',
             ]
         extra_kwargs = {
             'first_name': {'required': True},
@@ -31,9 +34,13 @@ class GetDpchUserProfileSerializer(serializers.ModelSerializer, RelatedFieldsMix
 
 
 class GetDpchCompanyProfileSerializer(serializers.ModelSerializer, RelatedFieldsMixin):
+
     class Meta:
         model = CompanyProfile
-        fields = ['crn', 'name', 'email', 'telephone', 'street', 'city', 'zip_code', 'money_account', 'event']
+        fields = [
+            'crn', 'name', 'email', 'telephone', 'street', 'city',
+            'zip_code', 'money_account', 'event', 'amount', 'regular',
+            ]
         extra_kwargs = {
             'name': {'required': True},
             'email': {'required': True},
