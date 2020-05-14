@@ -243,8 +243,15 @@ INSTALLED_APPS = (
     'colorfield',
     'flexible_filter_conditions.apps.FlexibleFilterConditionsConfig',
     'rest_framework',
+    'oauth2_provider',
 )
 
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [ # noqa
+        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
+        ]
+}
 
 FLEXIBLE_FILTER_CONDITIONS_FIELD_MAP = {
     'User': ('aklub.models', 'User'),

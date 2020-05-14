@@ -3,6 +3,7 @@ import datetime
 
 from aklub.models import CompanyProfile, DonorPaymentChannel, ProfileEmail, Telephone,  UserProfile
 
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -11,6 +12,8 @@ from .serializers import GetDpchCompanyProfileSerializer, GetDpchUserProfileSeri
 
 class CreateDpchUserProfileView(APIView):
     """ accepts email and so... create DPCH or find existed and return VS"""
+    permission_classes = [IsAuthenticated]
+
     def post(self, request):
         serializer = GetDpchUserProfileSerializer(data=self.request.data)
         if serializer.is_valid(raise_exception=True):
@@ -54,6 +57,8 @@ class CreateDpchUserProfileView(APIView):
 
 class CreateDpchCompanyProfileView(APIView):
     """ accepts crn and so... create DPCH or find existed and return VS"""
+    permission_classes = [IsAuthenticated]
+
     def post(self, request):
         serializer = GetDpchCompanyProfileSerializer(data=self.request.data)
         if serializer.is_valid(raise_exception=True):
