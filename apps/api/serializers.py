@@ -34,12 +34,16 @@ class GetDpchUserProfileSerializer(serializers.ModelSerializer, RelatedFieldsMix
 
 
 class GetDpchCompanyProfileSerializer(serializers.ModelSerializer, RelatedFieldsMixin):
+    # future version of changed company profile model
+    contact_first_name = serializers.CharField(max_length=256, required=False)
+    contact_last_name = serializers.CharField(max_length=256, required=False)
 
     class Meta:
         model = CompanyProfile
         fields = [
             'crn', 'name', 'email', 'telephone', 'street', 'city',
             'zip_code', 'money_account', 'event', 'amount', 'regular',
+            'contact_first_name', 'contact_last_name',
             ]
         extra_kwargs = {
             'name': {'required': True},

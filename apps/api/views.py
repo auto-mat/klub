@@ -92,6 +92,7 @@ class CreateDpchCompanyProfileView(APIView):
                 company.zip_code = serializer.validated_data.get('zip_code', '')
             company.save()
 
+            # TODO: will change in future version
             ProfileEmail.objects.get_or_create(email=serializer.validated_data.get('email'), user=company)
             Telephone.objects.get_or_create(telephone=serializer.validated_data.get('telephone'), user=company)
 
