@@ -1,4 +1,6 @@
 
+import datetime
+
 from aklub.models import CompanyProfile, DonorPaymentChannel, ProfileEmail, Telephone,  UserProfile
 
 from rest_framework.response import Response
@@ -25,6 +27,10 @@ class CreateDpchUserProfileView(APIView):
                 user.street = serializer.validated_data.get('street', '')
                 user.city = serializer.validated_data.get('city', '')
                 user.zip_code = serializer.validated_data.get('zip_code', '')
+            if not user.age_group and not user.birth_month and not user.birth_day:
+                user.age_group = serializer.validated_data.get('age_group', '')
+                user.birth_month = serializer.validated_data.get('birth_month', '')
+                user.birth_day = serializer.validated_data.get('birth_day', '')
             user.save()
 
             if created:
@@ -38,6 +44,7 @@ class CreateDpchUserProfileView(APIView):
                             user=user,
                             )
             if created:
+                dpch.expected_date_of_first_payment = datetime.date.today() + datetime.timedelta(days=3)
                 dpch.generate_VS()
                 dpch.save()
             VS = dpch.VS
@@ -78,6 +85,7 @@ class CreateDpchCompanyProfileView(APIView):
                             user=company,
                             )
             if created:
+                dpch.expected_date_of_first_payment = datetime.date.today() + datetime.timedelta(days=3)
                 dpch.generate_VS()
                 dpch.save()
             VS = dpch.VS

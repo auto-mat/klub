@@ -18,7 +18,11 @@ class RelatedFieldsMixin(serializers.Serializer):
 class GetDpchUserProfileSerializer(serializers.ModelSerializer, RelatedFieldsMixin):
     class Meta:
         model = UserProfile
-        fields = ['email', 'first_name', 'last_name', 'telephone', 'street', 'city', 'zip_code', 'money_account', 'event']
+        fields = [
+            'email', 'first_name', 'last_name', 'telephone', 'street',
+            'city', 'zip_code', 'money_account', 'event', 'birth_day', 'birth_month',
+            'age_group', 'birth_month', 'birth_day',
+            ]
         extra_kwargs = {
             'first_name': {'required': True},
             'last_name': {'required': True},
