@@ -3,7 +3,9 @@ import datetime
 
 from aklub.models import CompanyProfile, DonorPaymentChannel, ProfileEmail, Telephone,  UserProfile
 
-from rest_framework.permissions import IsAuthenticated
+from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope
+
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -30,7 +32,7 @@ def get_or_create_dpch(serializer, profile):
 
 class CreateDpchUserProfileView(APIView):
     """ accepts email and so... create DPCH or find existed and return VS"""
-    permission_classes = [IsAuthenticated]
+    permission_classes = [TokenHasReadWriteScope]
 
     def post(self, request):
         serializer = GetDpchUserProfileSerializer(data=self.request.data)
@@ -68,7 +70,7 @@ class CreateDpchUserProfileView(APIView):
 
 class CreateDpchCompanyProfileView(APIView):
     """ accepts crn and so... create DPCH or find existed and return VS"""
-    permission_classes = [IsAuthenticated]
+    permission_classes = [TokenHasReadWriteScope]
 
     def post(self, request):
         serializer = GetDpchCompanyProfileSerializer(data=self.request.data)
@@ -95,4 +97,4 @@ class CreateDpchCompanyProfileView(APIView):
             Telephone.objects.get_or_create(telephone=serializer.validated_data.get('telephone'), user=company)
 
             VS = get_or_create_dpch(serializer, company)
-            return Response({'VS': VS})
+            return Response({'VS': VS}, status=status.HTTP_200_OK)
