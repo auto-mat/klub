@@ -51,11 +51,12 @@ class CreateDpchUserProfileView(APIView):
                 user.city = serializer.validated_data.get('city', '')
                 user.zip_code = serializer.validated_data.get('zip_code', '')
             if not user.age_group and not user.birth_month and not user.birth_day:
-                user.age_group = serializer.validated_data.get('age_group', '')
-                user.birth_month = serializer.validated_data.get('birth_month', '')
-                user.birth_day = serializer.validated_data.get('birth_day', '')
+                user.age_group = serializer.validated_data.get('age_group', None)
+                user.birth_month = serializer.validated_data.get('birth_month', None)
+                user.birth_day = serializer.validated_data.get('birth_day', None)
             if not user.sex:
-                user.sex = serializer.validated_data.get('sex', '')
+
+                user.sex = serializer.validated_data.get('sex', 'unknow')
             user.save()
 
             if created:
@@ -64,8 +65,7 @@ class CreateDpchUserProfileView(APIView):
             Telephone.objects.get_or_create(telephone=serializer.validated_data['telephone'], user=user)
 
             VS = get_or_create_dpch(serializer, user)
-
-            return Response({'VS': VS})
+            return Response({'VS': VS}, status=status.HTTP_200_OK)
 
 
 class CreateDpchCompanyProfileView(APIView):
