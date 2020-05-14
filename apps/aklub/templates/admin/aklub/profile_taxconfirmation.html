@@ -1,0 +1,29 @@
+{% extends "admin/change_form.html" %}
+{% load i18n %}
+{% block content %}
+{% load admin_urls %}
+<h1>{% trans "Tax Confirmation" %}</h1>
+<form action="{% url 'admin:aklub_profile_taxform' %}" method="POST">
+  {% csrf_token %}
+
+    <fieldset class="module aligned">
+      {% for field in form %}
+        <div class="form-row">
+          {{ field.errors }}
+
+          {{ field.label_tag }}
+
+          {{ field }}
+
+          {% if field.field.help_text %}
+          <p class="help">{{ field.field.help_text|safe }}</p>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </fieldset>
+
+    <div class="submit-row">
+      <input type="submit" class="default" value="{% trans "Submit" %}">
+    </div>
+</form>
+{% endblock %}

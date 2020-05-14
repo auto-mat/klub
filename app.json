@@ -23,10 +23,6 @@
         "REVIEW_APP_PASSWORD": {"generator": "secret"}
     },
     "formation": {
-        "beat": {
-            "quantity": 1,
-            "size": "hobby"
-        },
         "celery": {
             "quantity": 1,
             "size": "hobby"

@@ -33,12 +33,13 @@ from daterange_filter.filter import DateRangeFilter
 from django import forms
 from django.contrib import admin, messages
 from django.contrib.admin import site
+from django.contrib.admin.templatetags.admin_list import _boolean_icon
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.contenttypes.models import ContentType
 from django.core import serializers
 from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator
-from django.db.models import CharField, Count, Max, Q, Sum
+from django.db.models import CharField, Count, F, Max, OuterRef, Q, Subquery, Sum
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect
 from django.utils.html import format_html, format_html_join, mark_safe
@@ -78,7 +79,7 @@ from smmapdfs.actions import make_pdfsandwich
 from . import darujme, filters, mailing, tasks
 from .filters import ProfileTypeFilter, unit_admin_mixin_generator
 from .forms import (
-    CompanyProfileAddForm, CompanyProfileChangeForm, UnitUserProfileAddForm,
+    CompanyProfileAddForm, CompanyProfileChangeForm, TaxConfirmationForm, UnitUserProfileAddForm,
     UnitUserProfileChangeForm, UserCreateForm, UserUpdateForm,
 )
 from .models import (
@@ -86,12 +87,13 @@ from .models import (
     CompanyProfile, DonorPaymentChannel, Event, Expense,
     MassCommunication, MoneyAccount, NewUser, Payment, Preference, Profile, ProfileEmail, Recruiter,
     Source, TaxConfirmation, Telephone, UserBankAccount,
-    UserProfile, UserYearPayments,
+    UserProfile,
 )
 from .profile_model_resources import (
     ProfileModelResource, get_polymorphic_parent_child_fields,
 )
 from .profile_model_resources_mixin import ProfileModelResourceMixin
+from .utils import sweet_text
 
 
 def admin_links(args_generator):
@@ -374,7 +376,7 @@ class UserProfileLoaderClass(BaseInstanceLoader):
         obj = None
         if row.get('email'):
             try:
-                obj = ProfileEmail.objects.get(email=row['email']).user
+                obj = ProfileEmail.objects.get(email=row['email'], user__polymorphic_ctype__model=UserProfile._meta.model_name).user
             except ProfileEmail.DoesNotExist:
                 pass
         return obj
@@ -705,65 +707,55 @@ class ProfileAdminMixin:
     def date_format(self, obj):
         return list(map(lambda o: o.strftime('%d. %m. %Y'), obj))
 
-    def get_donor_details(self, obj, attr, *args):
+    def get_donor_details(self, obj, *args):
+        """ soft sort of donor payment channels """
         channels = obj.userchannels.all()
         results = []
         for channel in channels:
             if channel.regular_payments == 'regular':
-                if (
-                    self.request.user.has_perm('aklub.can_edit_all_units') or
-                    channel.money_account and channel.money_account.administrative_unit in self.request.user.administrated_units.all()
-                ):
-                    results.append(getattr(channel, attr, '-') or '-')
+                if self.request.user.has_perm('aklub.can_edit_all_units'):
+                    results.append(channel)
+                # self.user_administrated_units is defined in queryset below
+                elif channel.money_account.administrative_unit in self.user_administrated_units:
+                    results.append(channel)
         return results
 
-    def get_donor(self, obj):
-        if not self.request.user.has_perm('aklub.can_edit_all_units'):
-            result = obj.userchannels.filter(
-                            money_account__administrative_unit__in=self.request.user.administrated_units.all(),
-                            regular_payments='regular',
-            )
-        else:
-            result = obj.userchannels.filter(regular_payments='regular')
-        return result
-
     def registered_support_date(self, obj):
-        result = self.get_donor_details(obj, "registered_support")
-        return ',\n'.join(d.strftime('%Y-%m-%d') for d in result)
+        result = self.get_donor_details(obj)
+        return ',\n'.join(d.registered_support.strftime('%Y-%m-%d') for d in result)
 
     registered_support_date.short_description = _("Registration")
     registered_support_date.admin_order_field = 'userchannels__registered_support'
 
     def regular_amount(self, obj):
-        result = self.get_donor_details(obj, "regular_amount")
-        return ',\n'.join(str(d) for d in result)
-
+        result = self.get_donor_details(obj)
+        return sweet_text(((str(d.regular_amount),) for d in result if d.regular_amount))
     regular_amount.short_description = _("Regular amount")
     regular_amount.admin_order_field = 'userchannels__regular_amount'
 
     def donor_delay(self, obj):
-        donors = self.get_donor(obj)
-        result = []
-        for d in donors:
-            if isinstance(d.regular_payments_delay(), (bool,)):
-                result.append('ok')
+        def get_result(dpch):
+            if isinstance(dpch.regular_payments_delay(), (bool,)):
+                return _boolean_icon(True)
             else:
-                result.append(str(d.regular_payments_delay().days) + ' days')
-        return ',\n'.join(result)
+                return format_html("{} {} {}", mark_safe(_boolean_icon(False)), str(dpch.regular_payments_delay().days), 'days')
+
+        result = sweet_text(((get_result(d),) for d in self.get_donor_details(obj)))
+        return result
 
     donor_delay.short_description = _("Payment delay")
     donor_delay.admin_order_field = 'donor_delay'
 
     def donor_extra_money(self, obj):
-        result = self.get_donor_details(obj, "extra_money")
-        return ',\n'.join(str(d) for d in result)
+        result = self.get_donor_details(obj)
+        return sweet_text(((str(d.extra_money),) if d.extra_money else '-' for d in result))
 
     donor_extra_money.short_description = _("Extra money")
     donor_extra_money.admin_order_field = 'donor_extra_money'
 
     def donor_frequency(self, obj):
-        result = self.get_donor_details(obj, "regular_frequency")
-        return ',\n'.join(str(d) for d in result)
+        result = self.get_donor_details(obj)
+        return ',\n'.join(str(d.regular_frequency) for d in result)
 
     donor_frequency.short_description = _("Donor frequency")
     donor_frequency.admin_order_field = 'donor_frequency'
@@ -806,18 +798,53 @@ class ProfileAdminMixin:
     get_last_payment_date.admin_order_field = 'last_payment_date'
     get_last_payment_date.short_description = _("Date of last payment")
 
+    def get_event(self, obj):
+        event = format_html_join(
+            ', ', "<nobr>{}) {}</nobr>", ((d.event.id, d.event.name) for d in self.get_donor_details(obj) if d.event is not None),
+            )
+        return event
+
+    get_event.admin_order_field = 'events'
+    get_event.short_description = _("Events")
+
     def get_queryset(self, *args, **kwargs):
-        return super().get_queryset(*args, **kwargs).prefetch_related(
-            'telephone_set',
-            'profileemail_set',
-            'administrative_units',
-            'userchannels',
-            'userchannels__event',
-        ).annotate(
-            sum_amount=Sum('userchannels__payment__amount'),
-            payment_count=Count('userchannels__payment'),
-            last_payment_date=Max('userchannels__payment__date'),
-        )
+        # save request user's adminsitratived_unit here, so we dont have to peek in every loop
+        self.user_administrated_units = self.request.user.administrated_units.all()
+
+        if self.request.user.has_perm('aklub.can_edit_all_units'):
+            queryset = super().get_queryset(*args, **kwargs).prefetch_related(
+                    'telephone_set',
+                    'profileemail_set',
+                    'administrative_units',
+                    'userchannels__event',
+                ).annotate(
+                    sum_amount=Sum('userchannels__payment__amount'),
+                    payment_count=Count('userchannels__payment'),
+                    last_payment_date=Max('userchannels__payment__date'),
+                )
+        else:
+            units = Q(userchannels__money_account__administrative_unit=self.user_administrated_units.first())
+            queryset = super().get_queryset(*args, **kwargs).prefetch_related(
+                    'telephone_set',
+                    'profileemail_set',
+                    'administrative_units',
+                    'userchannels__event',
+                    'userchannels__money_account__administrative_unit',
+                ).annotate(
+                    sum_amount=Sum('userchannels__payment__amount', filter=units),
+                    payment_count=Count('userchannels__payment', filter=units),
+                    last_payment_date=Max('userchannels__payment__date', filter=units),
+                )
+
+        return queryset
+
+    def make_tax_confirmation(self, request, queryset):
+        request.method = None
+        return ProfileAdmin.taxform(self, request, profiles=queryset)
+
+    make_tax_confirmation.short_description = _("Make Tax Confirmation")
+
+    actions = (make_tax_confirmation,)
 
     def change_view(self, request, object_id, extra_context=None, **kwargs):
         from helpdesk.query import query_to_base64
@@ -985,6 +1012,27 @@ class ProfileAdmin(
         """
         return {}
 
+    def taxform(self, request, *args, **kwargs):
+        """ admin form view to generate tax confirmations"""
+        if request.method == 'POST':
+            data = request.POST
+            parameters = (
+                        data.get('year'),
+                        data.getlist('profile'),
+                        data.get('pdf_type')
+            )
+            tasks.generate_tax_confirmations.apply_async(args=parameters)
+            messages.info(request, _('TaxConfirmations created'))
+            return HttpResponseRedirect(reverse('admin:aklub_taxconfirmation_changelist'))
+        else:
+            from django.shortcuts import render
+            form = TaxConfirmationForm(profiles=kwargs.get('profiles'), request=request)
+            return render(
+                request,
+                'admin/aklub/profile_taxconfirmation.html',
+                {'opts': self.model._meta, 'form': form},
+            )
+
     def remove_contact_from_unit(self, request, pk=None):
         from django.shortcuts import render
         if request.method == "POST":
@@ -1024,6 +1072,11 @@ class ProfileAdmin(
                 r'^(?P<pk>[0-9]+)/remove_contact_from_unit/$',
                 self.admin_site.admin_view(self.remove_contact_from_unit),
                 name='aklub_remove_contact_from_unit',
+            ),
+            url(
+                r'taxform',
+                self.admin_site.admin_view(self.taxform),
+                name='aklub_profile_taxform',
             ),
         ]
         return my_urls + urls
@@ -1235,39 +1288,6 @@ class DonorPaymetChannelAdmin(
         return obj.user.telephone_url()
 
 
-class UserYearPaymentsAdmin(DonorPaymetChannelAdmin):
-    list_display = (
-        'person_name',
-        'user__email',
-        # 'source',
-        'VS',
-        'SS',
-        # 'registered_support_date',
-        'payment_total_by_year',
-        'user__is_active',
-        # 'last_payment_date',
-    )
-    list_filter = [
-        ('payment__date', DateRangeFilter), 'regular_payments', 'user__language', 'user__is_active',
-        # 'wished_information',
-        'old_account',
-        # 'source',
-        ('registered_support', DateRangeFilter), UserConditionFilter, UserConditionFilter1,
-    ]
-
-    def payment_total_by_year(self, obj):
-        if self.from_date and self.to_date:
-            return obj.payment_total_range(
-                datetime.datetime.strptime(self.from_date, '%d.%m.%Y'),
-                datetime.datetime.strptime(self.to_date, '%d.%m.%Y'),
-            )
-
-    def changelist_view(self, request, extra_context=None):
-        self.from_date = request.GET.get('drf__payment__date__gte', None)
-        self.to_date = request.GET.get('drf__payment__date__lte', None)
-        return super(UserYearPaymentsAdmin, self).changelist_view(request, extra_context=extra_context)
-
-
 def add_user_bank_acc_to_dpch(self, request, queryset):
     for payment in queryset:
         if payment.user_donor_payment_channel and payment.account and payment.bank_code:
@@ -1342,15 +1362,22 @@ class PaymentAdmin(
     ImportExportMixin,
     RelatedFieldAdmin,
 ):
+    def get_full_name(self, obj):
+        if obj.company_name:
+            return obj.company_name
+        else:
+            return f"{obj.first_name} {obj.last_name}"
+
+    get_full_name.short_description = _("name")
+
     actions = (add_user_bank_acc_to_dpch, payment_pair_action, payment_request_pair_action)
     resource_class = PaymentResource
     list_display = (
         'id',
         'date',
-        'user_donor_payment_channel',
-        'recipient_account__bankaccount__bank_account_number',
         'amount',
-        'person_name',
+        'user_donor_payment_channel',
+        'get_full_name',
         'account_name',
         'account',
         'bank_code',
@@ -1371,11 +1398,6 @@ class PaymentAdmin(
         'updated',
     )
     list_editable = ('user_donor_payment_channel',)
-    list_select_related = (
-        'user_donor_payment_channel__user',
-        'user_donor_payment_channel__event',
-        'account_statement',
-    )
     fieldsets = [
         (_("Basic"), {
             'fields': [
@@ -1387,7 +1409,6 @@ class PaymentAdmin(
         }),
         (_("Details"), {
             'fields': [
-
                 'account',
                 'bank_code',
                 'account_name',
@@ -1473,14 +1494,25 @@ class PaymentAdmin(
             payment's money_account_administrative_unit (if exist)
             payments's account_statement_administrative_unit (if exist) (old reason)
             payments' donor_payment_channel_money_account_administrative_unit (old reason)
+
+        The annotate hacking in this query is because django-polymorphic doesnt support
+        prefetch_related and select_related in normal way!
+        Then we want to avoid hitting DB in every list_row
         """
-        qs = super().get_queryset(request)
+        qs = super().get_queryset(request)\
+                    .select_related('user_donor_payment_channel')\
+                    .annotate(
+                        last_name=F("user_donor_payment_channel__user__userprofile__last_name"),
+                        first_name=F("user_donor_payment_channel__user__userprofile__first_name"),
+                        company_name=F("user_donor_payment_channel__user__companyprofile__name"),
+                    )
+
         if not request.user.has_perm('aklub.can_edit_all_units'):
             administrated_unit = request.user.administrated_units.first()
             qs = qs.filter(
-                Q(recipient_account__administrative_unit=administrated_unit) |
-                Q(user_donor_payment_channel__money_account__administrative_unit=administrated_unit) |
-                Q(account_statement__administrative_unit=administrated_unit),
+                    Q(recipient_account__administrative_unit=administrated_unit) |
+                    Q(user_donor_payment_channel__money_account__administrative_unit=administrated_unit) |
+                    Q(account_statement__administrative_unit=administrated_unit),
                 )
         return qs
 
@@ -1724,7 +1756,10 @@ class SourceAdmin(admin.ModelAdmin):
     list_display = ('slug', 'name', 'direct_dialogue')
 
 
-class TaxConfirmationAdmin(unit_admin_mixin_generator('user_profile__administrative_units'), admin.ModelAdmin):
+class TaxConfirmationAdmin(
+            unit_admin_mixin_generator('pdf_type__pdfsandwichtypeconnector__administrative_unit'),
+            admin.ModelAdmin,
+            ):
 
     def batch_download(self, request, queryset):
         links = []
@@ -1736,8 +1771,13 @@ class TaxConfirmationAdmin(unit_admin_mixin_generator('user_profile__administrat
 
     batch_download.short_description = _("generate download links for pdf files")
 
-    change_list_template = "admin/aklub/taxconfirmation/change_list.html"
-    list_display = ('user_profile', 'get_email', 'year', 'amount', 'get_pdf', 'administrative_unit', 'get_status', 'get_send_time', )
+    list_display = ('get_name',
+                    'get_email',
+                    'year',
+                    'amount',
+                    'get_pdf',
+                    'get_administrative_unit',
+                    'pdf_type')
     ordering = (
         'user_profile__userprofile__last_name',
         'user_profile__userprofile__first_name',
@@ -1745,7 +1785,9 @@ class TaxConfirmationAdmin(unit_admin_mixin_generator('user_profile__administrat
     )
     list_filter = [
         'year',
-        'administrative_unit',
+        'pdf_type',
+        'pdf_type__pdfsandwichtypeconnector__administrative_unit',
+        'pdf_type__pdfsandwichtypeconnector__profile_type',
         filters.ProfileHasEmail,
         filters.ProfileHasFullAdress,
     ]
@@ -1763,37 +1805,41 @@ class TaxConfirmationAdmin(unit_admin_mixin_generator('user_profile__administrat
         'user_profile__companyprofile',
     )
 
-    readonly_fields = ['get_pdf', 'get_email', 'get_status', 'get_send_time']
-    fields = ['user_profile', 'year', 'amount', 'get_pdf', 'administrative_unit', ]
+    readonly_fields = ['get_pdf', 'get_email', 'pdf_type', 'get_administrative_unit']
+    fields = ['user_profile', 'year', 'amount', 'get_pdf', 'pdf_type']
 
-    def generate(self, request):
-        tasks.generate_tax_confirmations.apply_async()
-        return HttpResponseRedirect(reverse('admin:aklub_taxconfirmation_changelist'))
-
-    def get_urls(self):
-        from django.conf.urls import url
-        urls = super(TaxConfirmationAdmin, self).get_urls()
-        my_urls = [
-            url(
-                r'generate',
-                self.admin_site.admin_view(self.generate),
-                name='aklub_taxconfirmation_generate',
-            ),
-        ]
-        return my_urls + urls
+    def get_queryset(self, request):
+        """
+        The annotate hacking in this query is because django-polymorphic doesnt support
+        prefetch_related and select_related in normal way!
+        Then we want to avoid hitting DB in every list_row
+        """
+        primary_email = ProfileEmail.objects.filter(user=OuterRef('user_profile_id'), is_primary=True)
+        qs = super().get_queryset(request).select_related(
+                'pdf_type__pdfsandwichtypeconnector__administrative_unit'
+        ).annotate(
+                last_name=F("user_profile__userprofile__last_name"),
+                first_name=F("user_profile__userprofile__first_name"),
+                company_name=F("user_profile__companyprofile__name"),
+                email_address=Subquery(primary_email.values('email')),
+        )
+        return qs
 
     def get_email(self, obj):
+        return obj.email_address
+
+    def get_administrative_unit(self, obj):
         try:
-            email = obj.user_profile.profileemail_set.get(is_primary=True)
-        except ProfileEmail.DoesNotExist:
-            email = None
-        return email
+            au = obj.pdf_type.pdfsandwichtypeconnector.administrative_unit.name
+        except AttributeError:
+            au = None
+        return au
 
-    def get_status(self, obj):
-        return obj.taxconfirmationpdf_set.get().status
-
-    def get_send_time(self, obj):
-        return obj.taxconfirmationpdf_set.get().sent_time
+    def get_name(self, obj):
+        if obj.company_name:
+            return obj.company_name
+        else:
+            return f"{obj.first_name} {obj.last_name}"
 
 
 @admin.register(AdministrativeUnit)
@@ -1882,7 +1928,8 @@ class UserProfileAdmin(
     actions = (
         create_export_job_action,
         send_mass_communication_action,
-    )
+    ) + ProfileAdminMixin.actions
+
     advanced_filter_fields = (
         'profileemail__email',
         'addressment',
@@ -1908,17 +1955,18 @@ class UserProfileAdmin(
         'profileemail__email',
     )
     list_filter = (
-        'userchannels__registered_support',
-        'preference__send_mailing_lists',
+        filters.PreferenceMailingListAllowed,
         isnull_filter('userchannels__payment', _('Has any payment'), negate=True),
         'userchannels__extra_money',
         'userchannels__regular_amount',
         'userchannels__regular_frequency',
+        ('userchannels__registered_support', DateRangeFilter),
         'is_staff',
         'is_superuser',
         'is_active',
         'groups',
         'language',
+        ('userchannels__last_payment__date', DateRangeFilter),
         filters.ProfileDonorEvent,
         filters.RegularPaymentsFilter,
         filters.EmailFilter,
@@ -2048,21 +2096,27 @@ class CompanyProfileAdmin(
     resource_class = CompanyProfileResource
     import_template_name = "admin/import_export/userprofile_import.html"
     change_form_template = "admin/aklub/profile_changeform.html"
+
     list_display = (
         'name',
         'crn',
         'tin',
-        'email',
+        'full_contact_name',
+        'get_email',
         'get_main_telephone',
+        'get_administrative_units',
         'get_event',
-        'variable_symbol',
-        'regular_amount',
-        'is_staff',
         'date_joined',
-        'last_login',
-        'contact_first_name',
-        'contact_last_name',
+        'get_sum_amount',
+        'get_payment_count',
+        'get_last_payment_date',
+        'regular_amount',
+        'donor_delay',
+        'donor_extra_money',
     )
+
+    actions = () + ProfileAdminMixin.actions
+
     advanced_filter_fields = (
         'email',
         'telephone__telephone',
@@ -2080,16 +2134,23 @@ class CompanyProfileAdmin(
         'telephone__telephone',
     )
     list_filter = (
+        filters.PreferenceMailingListAllowed,
+        isnull_filter('userchannels__payment', _('Has any payment'), negate=True),
+        'userchannels__extra_money',
+        'userchannels__regular_amount',
+        'userchannels__regular_frequency',
+        ('userchannels__registered_support', DateRangeFilter),
         'is_staff',
         'is_superuser',
         'is_active',
         'groups',
         'language',
-        'userchannels__event',
+        ('userchannels__last_payment__date', DateRangeFilter),
+        filters.ProfileDonorEvent,
         filters.RegularPaymentsFilter,
         filters.EmailFilter,
         filters.TelephoneFilter,
-        filters.NameFilter,
+        UserConditionFilter, UserConditionFilter1,
     )
 
     ordering = ('email',)
@@ -2194,7 +2255,7 @@ class CompanyProfileAdmin(
                 unit = AdministrativeUnit.objects.get(id=data.get('administrative_units'))
                 company.administrative_units.add(unit)
                 company.save()
-                messages.warning(request, f'Company is in database already. You are able to make changes now.')
+                messages.warning(request, 'Company is in database already. You are able to make changes now.')
                 url = reverse('admin:aklub_companyprofile_change', args=(company.pk,))
                 return HttpResponseRedirect(url)
 
@@ -2205,7 +2266,6 @@ class CompanyProfileAdmin(
 
 
 admin.site.register(DonorPaymentChannel, DonorPaymetChannelAdmin)
-admin.site.register(UserYearPayments, UserYearPaymentsAdmin)
 admin.site.register(NewUser, NewUserAdmin)
 admin.site.register(Payment, PaymentAdmin)
 admin.site.register(AccountStatements, AccountStatementsAdmin)

@@ -1,12 +1,51 @@
 # -*- coding: utf-8 -*-
+import datetime
+
 from django import forms
+from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import ReadOnlyPasswordHashField, UserChangeForm, UserCreationForm, UsernameField
 from django.urls import reverse_lazy
 
-from .models import ProfileEmail, Telephone
+from smmapdfs.models import PdfSandwichType
+
+from .models import AdministrativeUnit, ProfileEmail, Telephone
 
 Profile = get_user_model()
+
+
+class TaxConfirmationForm(forms.Form):
+    year = forms.IntegerField(label='Year')
+
+    def __init__(self, *args, **kwargs):
+        profiles = kwargs.pop('profiles', None)
+        request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+
+        self.fields['year'].initial = datetime.datetime.now().year - 1
+        self.fields['year'].required = True
+        if not profiles:
+            profiles = Profile.objects.none()
+        self.fields['profile'] = forms.ModelMultipleChoiceField(queryset=profiles, widget=FilteredSelectMultiple("UserProfile", False))
+        self.fields['profile'].initial = profiles
+
+        if profiles:
+            if profiles.first().polymorphic_ctype.model == 'userprofile':
+                profile_type = 'user_profile'
+            else:
+                profile_type = 'company_profile'
+
+            if not request.user.has_perm('aklub.can_edit_all_units'):
+                au = request.user.administrated_units.all()
+            else:
+                au = AdministrativeUnit.objects.all()
+
+            pdf_type_queryset = PdfSandwichType.objects.filter(
+                                            pdfsandwichtypeconnector__administrative_unit__in=au,
+                                            pdfsandwichtypeconnector__profile_type=profile_type,
+                                            )
+            self.fields['pdf_type'] = forms.ModelChoiceField(queryset=pdf_type_queryset)
+            self.fields['pdf_type'].required = True
 
 
 def hidden_fields_switcher(self):

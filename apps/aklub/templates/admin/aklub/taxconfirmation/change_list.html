@@ -1,9 +1,0 @@
-{% extends "admin/import_export/change_list_import_export.html" %}
-{% load i18n %}
-{% load admin_urls %}
-
-{% block object-tools-items %}
-  <li><a href="{% url cl.opts|admin_urlname:'generate' %}">{% trans "Generate" %}</a></li>
-  {{ block.super }}
-{% endblock %}
-

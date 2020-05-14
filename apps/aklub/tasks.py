@@ -1,10 +1,9 @@
-import datetime
-
 from celery import task
 
 from django.core.management import call_command
 
 import smmapdfs.actions
+from smmapdfs.models import PdfSandwichType
 
 from . import darujme
 from . import models
@@ -29,16 +28,18 @@ def post_office_send_mail():
 
 
 @task()
-def generate_tax_confirmations():
-    year = datetime.datetime.now().year - 1
+def generate_tax_confirmations(year, profiles_ids, pdf_type_id):
+
     payed = models.Payment.objects.filter(date__year=year).exclude(type='expected')
-    users = models.UserProfile.objects.filter(userchannels__payment__in=payed).order_by('last_name').distinct()
+    users = models.Profile.objects.filter(userchannels__payment__in=payed, id__in=profiles_ids).distinct()
+    pdf_type = PdfSandwichType.objects.get(id=pdf_type_id)
+    unit = pdf_type.pdfsandwichtypeconnector.administrative_unit
     confirmations = []
     for user in users:
-        donors_channels = user.userchannels.filter(payment__in=payed)
-        administrative_units = models.AdministrativeUnit.objects.filter(moneyaccount__moneyaccounts__in=donors_channels)
-        for unit in administrative_units:
-            confirmation, created = user.make_tax_confirmation(year, unit)
+        confirmation, created = user.make_tax_confirmation(year, unit, pdf_type)
+        # we want to rewrite existed confirmations,
+        # but we dont want to send null values to PdfSandwich cuz it raise bug and pdf is not created
+        if confirmation:
             confirmations.append(confirmation)
     smmapdfs.actions.make_pdfsandwich(None, None, confirmations)
 
