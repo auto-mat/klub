@@ -20,7 +20,7 @@
                     "Pravidelni"
                 ]
             },
-            "criteria_fix_mapping": "",
+            "criteria_fix_mapping": {},
             "criteria_name": "Typ d\u00e1rce",
             "dynamic_criteria_field_name": "user_donor_payment_channel__regular_payments",
             "updated_date": "2020-05-13T12:40:30.432Z"
@@ -31,8 +31,8 @@
     {
         "fields": {
             "created_date": "2020-05-13T12:44:34.321Z",
-            "criteria_dynamic_mapping": "",
-            "criteria_fix_mapping": "",
+            "criteria_dynamic_mapping": {},
+            "criteria_fix_mapping": {},
             "criteria_name": "\u010c\u00e1stka",
             "dynamic_criteria_field_name": "amount",
             "updated_date": "2020-05-13T12:44:34.321Z"
