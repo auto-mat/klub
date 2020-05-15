@@ -245,9 +245,10 @@ INSTALLED_APPS = (
     'oauth2_provider',
 )
 
-
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [ # noqa
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
         'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
         ]
 }
