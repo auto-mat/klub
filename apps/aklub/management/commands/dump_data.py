@@ -2,9 +2,9 @@ import datetime
 from random import randint
 
 from aklub.models import (
-            AdministrativeUnit, BankAccount, CompanyProfile,
+            AdministrativeUnit, BankAccount, CompanyContact, CompanyProfile,
             DonorPaymentChannel, Event, Payment, ProfileEmail, Telephone, UserBankAccount,
-            UserProfile, CompanyContact
+            UserProfile,
             )
 from aklub.views import generate_variable_symbol
 
