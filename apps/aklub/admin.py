@@ -2126,8 +2126,8 @@ class CompanyProfileAdmin(
         'crn',
         'tin',
         'full_contact_name',
-        'get_email',
-        'get_telephone',
+        'get_company_email',
+        'get_company_telephone',
         'get_administrative_units',
         'get_event',
         'date_joined',
@@ -2140,7 +2140,7 @@ class CompanyProfileAdmin(
     )
 
     actions = () + ProfileAdminMixin.actions
-
+    readonly_fields = BaseProfileChildAdmin.readonly_fields + ('get_company_email', 'get_company_telephone')
     advanced_filter_fields = (
         'email',
         'telephone__telephone',
@@ -2204,8 +2204,8 @@ class CompanyProfileAdmin(
                 'username', ('name'),
                 'is_active',
                 ('contact_first_name', 'contact_last_name',),
-                'get_email',
-                'get_main_telephone',
+                'get_company_email',
+                'get_company_telephone',
                 'note',
                 'administrative_units',
                 'crn',
@@ -2242,21 +2242,21 @@ class CompanyProfileAdmin(
         ),
     )
 
-    def get_email(self, obj):
+    def get_company_email(self, obj):
         if self.request.user.has_perm('aklub.can_edit_all_units'):
             return sweet_text(((res.email,) for res in obj.companycontact_set.filter(is_primary=True)))
         else:
             return obj.companycontact_set.get(is_primary=True, administrative_unit=self.request.user.administrated_units.first()).email
 
-    get_email.short_description = _("Main telephone")
+    get_company_email.short_description = _("Main telephone")
 
-    def get_telephone(self, obj):
+    def get_company_telephone(self, obj):
         if self.request.user.has_perm('aklub.can_edit_all_units'):
             return sweet_text(((res.telephone,) for res in obj.companycontact_set.filter(is_primary=True)))
         else:
             return obj.companycontact_set.get(is_primary=True, administrative_unit=self.request.user.administrated_units.first()).telephone
 
-    get_telephone.short_description = _("Main telephone")
+    get_company_telephone.short_description = _("Main telephone")
 
     def get_form(self, request, obj=None, **kwargs):
         if obj:
