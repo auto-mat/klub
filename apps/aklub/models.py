@@ -977,6 +977,63 @@ class UserProfile(Profile, AbstractUserProfile):
         }
 
 
+class CompanyContact(models.Model):
+
+    BOOL_CHOICES = (
+        (None, "No"),
+        (True, "Yes")
+    )
+
+    contact_first_name = models.CharField(
+        verbose_name=_("Contact first name"),
+        max_length=256,
+        blank=True,
+    )
+    contact_last_name = models.CharField(
+        verbose_name=_("Contact last name"),
+        max_length=256,
+        blank=True,
+    )
+    email = models.EmailField(
+        _('email address'),
+        blank=True,
+        null=True,
+    )
+    telephone = models.CharField(
+        verbose_name=_("Telephone number"),
+        max_length=100,
+        blank=True,
+        validators=[
+            RegexValidator(
+                r'^\+?(42(0|1){1})?\s?\d{3}\s?\d{3}\s?\d{3}$',
+                _("Telephone must consist of numbers, spaces and + sign or maximum number count is higher."),
+            ),
+        ],
+    )
+    is_primary = models.NullBooleanField(
+        verbose_name=_("Primary contact"),
+        blank=True,
+        default=None,
+        choices=BOOL_CHOICES,
+    )
+    note = models.CharField(
+        verbose_name=_("Note"),
+        max_length=70,
+        blank=True,
+    )
+    company = models.ForeignKey(
+        CompanyProfile,
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+    )
+    administrative_unit = models.ForeignKey(
+        AdministrativeUnit,
+        verbose_name=_("administrative unit"),
+        on_delete=models.CASCADE,
+    )
+
+
 class ProfileEmail(models.Model):
     class Meta:
         verbose_name = _("Email")
@@ -1005,7 +1062,7 @@ class ProfileEmail(models.Model):
         null=True,
     )
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+        UserProfile,
         blank=True,
         null=True,
         on_delete=models.CASCADE,
@@ -1143,7 +1200,7 @@ class Telephone(models.Model):
         blank=True,
     )
     user = models.ForeignKey(
-        Profile,
+        UserProfile,
         blank=True,
         null=True,
         on_delete=models.SET_NULL,

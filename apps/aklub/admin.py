@@ -84,7 +84,7 @@ from .forms import (
 )
 from .models import (
     AccountStatements, AdministrativeUnit, ApiAccount, AutomaticCommunication, BankAccount,
-    CompanyProfile, DonorPaymentChannel, Event, Expense,
+    CompanyProfile, CompanyContact, DonorPaymentChannel, Event, Expense,
     MassCommunication, MoneyAccount, NewUser, Payment, Preference, Profile, ProfileEmail, Recruiter,
     Source, TaxConfirmation, Telephone, UserBankAccount,
     UserProfile,
@@ -1891,11 +1891,6 @@ class BaseProfileChildAdmin(PolymorphicChildModelAdmin,):
             inlines = []
         return inlines
 
-    inlines = [
-        PreferenceInline, ProfileEmailInline, TelephoneInline,
-        DonorPaymentChannelInline, InteractionInline,
-    ]
-
 
 @admin.register(UserProfile)
 class UserProfileAdmin(
@@ -1909,6 +1904,10 @@ class UserProfileAdmin(
     resource_class = UserProfileResource
     import_template_name = "admin/import_export/userprofile_import.html"
     change_form_template = "admin/aklub/profile_changeform.html"
+    inlines = [
+        PreferenceInline, ProfileEmailInline, TelephoneInline,
+        DonorPaymentChannelInline, InteractionInline,
+    ]
     list_display = (
         'person_name',
         'username',
@@ -2084,6 +2083,13 @@ class UserProfileAdmin(
         return super().add_view(request)
 
 
+class CompanyContactInline(admin.TabularInline):
+    model = CompanyContact
+    extra = 0
+    can_delete = True
+    show_change_link = True
+
+
 @admin.register(CompanyProfile)
 class CompanyProfileAdmin(
         child_redirect_mixin('companyprofile'), filters.AdministrativeUnitAdminMixin,
@@ -2096,7 +2102,10 @@ class CompanyProfileAdmin(
     resource_class = CompanyProfileResource
     import_template_name = "admin/import_export/userprofile_import.html"
     change_form_template = "admin/aklub/profile_changeform.html"
-
+    inlines = [
+        PreferenceInline, DonorPaymentChannelInline,
+        InteractionInline, CompanyContactInline,
+    ]
     list_display = (
         'name',
         'crn',
