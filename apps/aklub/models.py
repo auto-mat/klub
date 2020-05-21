@@ -795,7 +795,10 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
         return donors
 
     def get_main_telephone(self):
-        active_numbers = self.telephone_set.all()
+        if self.is_userprofile():
+            active_numbers = self.telephone_set.all()
+        else:
+            active_numbers = self.companycontact_set.all()
         numbers = list(map(lambda number: number.create_link(), active_numbers))
         return mark_safe('\n'.join(numbers))
 
@@ -850,8 +853,17 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
         else:
             return False
 
+    def is_userprofile(self):
+        if self._meta.model_name == UserProfile._meta.model_name:
+            return True
+        else:
+            return False
+
     def get_email(self):
-        emails = self.profileemail_set.all()
+        if self.is_userprofile():
+            emails = self.profileemail_set.all()
+        else:
+            emails = self.companycontact_set.all()
         result = list(
             map(
                 lambda email:
@@ -1032,6 +1044,22 @@ class CompanyContact(models.Model):
         verbose_name=_("administrative unit"),
         on_delete=models.CASCADE,
     )
+
+    def format_number(self):
+        if hasattr(self, "telephone") and self.telephone != "":
+            removed_space_tel = self.telephone.replace(" ", "")
+            if len(removed_space_tel) > 9:
+                return '+' + removed_space_tel[-12:]
+            else:
+                return '+420' + removed_space_tel[-9:]
+
+    def create_link(self):
+        if hasattr(self, "telephone"):
+            formated_telephone = self.format_number()
+            if self.is_primary is True:
+                return format_html("<b><a href='sip:{}'>{}</a></b>", formated_telephone, formated_telephone)
+            else:
+                return format_html("<a href='sip:{}'>{}</a>", formated_telephone, formated_telephone)
 
 
 class ProfileEmail(models.Model):

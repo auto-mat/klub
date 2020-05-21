@@ -807,36 +807,6 @@ class ProfileAdminMixin:
     get_event.admin_order_field = 'events'
     get_event.short_description = _("Events")
 
-    def get_queryset(self, *args, **kwargs):
-        # save request user's adminsitratived_unit here, so we dont have to peek in every loop
-        self.user_administrated_units = self.request.user.administrated_units.all()
-
-        if self.request.user.has_perm('aklub.can_edit_all_units'):
-            queryset = super().get_queryset(*args, **kwargs).prefetch_related(
-                    'telephone_set',
-                    'profileemail_set',
-                    'administrative_units',
-                    'userchannels__event',
-                ).annotate(
-                    sum_amount=Sum('userchannels__payment__amount'),
-                    payment_count=Count('userchannels__payment'),
-                    last_payment_date=Max('userchannels__payment__date'),
-                )
-        else:
-            units = Q(userchannels__money_account__administrative_unit=self.user_administrated_units.first())
-            queryset = super().get_queryset(*args, **kwargs).prefetch_related(
-                    'telephone_set',
-                    'profileemail_set',
-                    'administrative_units',
-                    'userchannels__event',
-                    'userchannels__money_account__administrative_unit',
-                ).annotate(
-                    sum_amount=Sum('userchannels__payment__amount', filter=units),
-                    payment_count=Count('userchannels__payment', filter=units),
-                    last_payment_date=Max('userchannels__payment__date', filter=units),
-                )
-
-        return queryset
 
     def make_tax_confirmation(self, request, queryset):
         request.method = None
@@ -2082,6 +2052,37 @@ class UserProfileAdmin(
 
         return super().add_view(request)
 
+    def get_queryset(self, request, *args, **kwargs):
+        # save request user's adminsitratived_unit here, so we dont have to peek in every loop
+        self.user_administrated_units = request.user.administrated_units.all()
+
+        if request.user.has_perm('aklub.can_edit_all_units'):
+            queryset = super().get_queryset(request, *args, **kwargs).prefetch_related(
+                    'telephone_set',
+                    'profileemail_set',
+                    'administrative_units',
+                    'userchannels__event',
+                ).annotate(
+                    sum_amount=Sum('userchannels__payment__amount'),
+                    payment_count=Count('userchannels__payment'),
+                    last_payment_date=Max('userchannels__payment__date'),
+                )
+        else:
+            units = Q(userchannels__money_account__administrative_unit=self.user_administrated_units.first())
+            queryset = super().get_queryset(request, *args, **kwargs).prefetch_related(
+                    'telephone_set',
+                    'profileemail_set',
+                    'administrative_units',
+                    'userchannels__event',
+                    'userchannels__money_account__administrative_unit',
+                ).annotate(
+                    sum_amount=Sum('userchannels__payment__amount', filter=units),
+                    payment_count=Count('userchannels__payment', filter=units),
+                    last_payment_date=Max('userchannels__payment__date', filter=units),
+                )
+
+        return queryset
+
 
 class CompanyContactInline(admin.TabularInline):
     model = CompanyContact
@@ -2272,6 +2273,34 @@ class CompanyProfileAdmin(
                 pass
 
         return super().add_view(request)
+    def get_queryset(self, request, *args, **kwargs):
+        # save request user's adminsitratived_unit here, so we dont have to peek in every loop
+        self.user_administrated_units = request.user.administrated_units.all()
+
+        if request.user.has_perm('aklub.can_edit_all_units'):
+            queryset = super().get_queryset(request, *args, **kwargs).prefetch_related(
+                    'companycontact_set',
+                    'administrative_units',
+                    'userchannels__event',
+                ).annotate(
+                    sum_amount=Sum('userchannels__payment__amount'),
+                    payment_count=Count('userchannels__payment'),
+                    last_payment_date=Max('userchannels__payment__date'),
+                )
+        else:
+            units = Q(userchannels__money_account__administrative_unit=self.user_administrated_units.first())
+            queryset = super().get_queryset(request, *args, **kwargs).prefetch_related(
+                    'companycontact_set',
+                    'administrative_units',
+                    'userchannels__event',
+                    'userchannels__money_account__administrative_unit',
+                ).annotate(
+                    sum_amount=Sum('userchannels__payment__amount', filter=units),
+                    payment_count=Count('userchannels__payment', filter=units),
+                    last_payment_date=Max('userchannels__payment__date', filter=units),
+                )
+
+        return queryset
 
 
 admin.site.register(DonorPaymentChannel, DonorPaymetChannelAdmin)
