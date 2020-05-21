@@ -84,7 +84,7 @@ from .forms import (
 )
 from .models import (
     AccountStatements, AdministrativeUnit, ApiAccount, AutomaticCommunication, BankAccount,
-    CompanyProfile, CompanyContact, DonorPaymentChannel, Event, Expense,
+    CompanyContact, CompanyProfile, DonorPaymentChannel, Event, Expense,
     MassCommunication, MoneyAccount, NewUser, Payment, Preference, Profile, ProfileEmail, Recruiter,
     Source, TaxConfirmation, Telephone, UserBankAccount,
     UserProfile,
@@ -806,7 +806,6 @@ class ProfileAdminMixin:
 
     get_event.admin_order_field = 'events'
     get_event.short_description = _("Events")
-
 
     def make_tax_confirmation(self, request, queryset):
         request.method = None
@@ -2273,6 +2272,7 @@ class CompanyProfileAdmin(
                 pass
 
         return super().add_view(request)
+
     def get_queryset(self, request, *args, **kwargs):
         # save request user's adminsitratived_unit here, so we dont have to peek in every loop
         self.user_administrated_units = request.user.administrated_units.all()
