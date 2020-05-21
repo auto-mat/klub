@@ -26,7 +26,6 @@ from colorfield.fields import ColorField
 
 from computedfields.models import ComputedFieldsModel, computed
 
-from django.conf import settings
 from django.contrib.admin.templatetags.admin_list import _boolean_icon
 from django.contrib.auth.models import (
     AbstractBaseUser, AbstractUser, PermissionsMixin,
