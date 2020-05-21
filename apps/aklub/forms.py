@@ -9,7 +9,7 @@ from django.urls import reverse_lazy
 
 from smmapdfs.models import PdfSandwichType
 
-from .models import AdministrativeUnit, ProfileEmail, Telephone
+from .models import AdministrativeUnit, CompanyContact, ProfileEmail, Telephone
 
 Profile = get_user_model()
 
@@ -260,10 +260,17 @@ class CompanyProfileAddForm(forms.ModelForm):
         email = user.email
         user.email = None
         user.save()
-        if self.cleaned_data['email'] is not None:
-            ProfileEmail.objects.create(email=email, user=user, is_primary=True)
-        if self.cleaned_data['telephone']:
-            Telephone.objects.create(telephone=self.cleaned_data['telephone'], user=user, is_primary=True)
+        if email or self.cleaned_data['telephone']:
+            for unit in self.cleaned_data['administrative_units']:
+                CompanyContact.objects.create(
+                    email=email,
+                    telephone=self.cleaned_data['telephone'],
+                    company=user,
+                    is_primary=True,
+                    administrative_unit=unit,
+                    contact_first_name=user.contact_first_name if user.contact_first_name else '',
+                    contact_last_name=user.contact_last_name if user.contact_last_name else '',
+                )
         return user
 
 
