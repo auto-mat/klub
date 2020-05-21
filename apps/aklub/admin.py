@@ -2104,8 +2104,8 @@ class CompanyProfileAdmin(
     import_template_name = "admin/import_export/userprofile_import.html"
     change_form_template = "admin/aklub/profile_changeform.html"
     inlines = [
-        PreferenceInline, DonorPaymentChannelInline,
-        InteractionInline, CompanyContactInline,
+        PreferenceInline, CompanyContactInline,
+        DonorPaymentChannelInline, InteractionInline,
     ]
     list_display = (
         'name',
