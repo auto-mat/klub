@@ -2089,6 +2089,21 @@ class CompanyContactInline(admin.TabularInline):
     can_delete = True
     show_change_link = True
 
+    def get_queryset(self, request):
+        if not request.user.has_perm('aklub.can_edit_all_units'):
+            queryset = CompanyContact.objects.filter(administrative_unit__in=request.user.administrated_units.all())
+        else:
+            queryset = super().get_queryset(request)
+        return queryset
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "administrative_unit":
+            if not request.user.has_perm('aklub.can_edit_all_units'):
+                kwargs['queryset'] = request.user.administrated_units.all()
+            else:
+                kwargs['queryset'] = AdministrativeUnit.objects.all()
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
 
 @admin.register(CompanyProfile)
 class CompanyProfileAdmin(
@@ -2112,7 +2127,7 @@ class CompanyProfileAdmin(
         'tin',
         'full_contact_name',
         'get_email',
-        'get_main_telephone',
+        'get_telephone',
         'get_administrative_units',
         'get_event',
         'date_joined',
@@ -2226,6 +2241,22 @@ class CompanyProfileAdmin(
         }
         ),
     )
+
+    def get_email(self, obj):
+        if self.request.user.has_perm('aklub.can_edit_all_units'):
+            return sweet_text(((res.email,) for res in obj.companycontact_set.filter(is_primary=True)))
+        else:
+            return obj.companycontact_set.get(is_primary=True, administrative_unit=self.request.user.administrated_units.first()).email
+
+    get_email.short_description = _("Main telephone")
+
+    def get_telephone(self, obj):
+        if self.request.user.has_perm('aklub.can_edit_all_units'):
+            return sweet_text(((res.telephone,) for res in obj.companycontact_set.filter(is_primary=True)))
+        else:
+            return obj.companycontact_set.get(is_primary=True, administrative_unit=self.request.user.administrated_units.first()).telephone
+
+    get_telephone.short_description = _("Main telephone")
 
     def get_form(self, request, obj=None, **kwargs):
         if obj:
