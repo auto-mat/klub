@@ -2248,7 +2248,7 @@ class CompanyProfileAdmin(
         else:
             return obj.companycontact_set.get(is_primary=True, administrative_unit=self.request.user.administrated_units.first()).email
 
-    get_company_email.short_description = _("Main telephone")
+    get_company_email.short_description = _("Main email")
 
     def get_company_telephone(self, obj):
         if self.request.user.has_perm('aklub.can_edit_all_units'):
