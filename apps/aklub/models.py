@@ -786,7 +786,10 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
         super().save(*args, **kwargs)
 
     def get_telephone(self):
-        numbers = ','.join(number.telephone for number in self.telephone_set.all())
+        if self.is_userprofile():
+            numbers = ','.join(number.telephone for number in self.telephone_set.all())
+        else:
+            numbers = ','.join(number.telephone for number in self.companycontact_set.all())
         return numbers
 
     def get_donor(self):

@@ -431,14 +431,14 @@ class CompanyProfileResource(ProfileModelResourceMixin):
         clean_model_instances = True
 
     def dehydrate_email(self, profile):
-        emails = ProfileEmail.objects.filter(user=profile)
+        emails = CompanyContact.objects.get(company=profile)
         return ',\n'.join(email.email for email in emails)
 
     def export_dehydrate_email(self, profile):
         try:
-            email = ProfileEmail.objects.get(user=profile, is_primary=True)
-        except ProfileEmail.DoesNotExist:
-            email = ProfileEmail.objects.filter(user=profile).first()
+            email = CompanyContact.objects.get(company=profile, is_primary=True)
+        except CompanyContact.DoesNotExist:
+            email = CompanyContact.objects.filter(company=profile).first()
         if email:
             return email.email
         return None

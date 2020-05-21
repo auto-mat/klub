@@ -5,7 +5,7 @@ from import_export import fields
 from import_export.resources import ModelResource
 
 from .models import (
-    BankAccount, DonorPaymentChannel, Event, Preference,
+    BankAccount, CompanyContact, DonorPaymentChannel, Event, Preference,
     ProfileEmail, Telephone, UserBankAccount,
 )
 
@@ -89,14 +89,6 @@ def import_obj(self, obj, data, dry_run):  # noqa
     # we add dry_run to obj and solve it in signal to avoid it
     obj.dry_run = dry_run
     obj.save()
-    if data.get('telephone'):
-        check['telephone'], _ = Telephone.objects.get_or_create(
-            telephone=data['telephone'],
-            user=obj,
-            defaults={'is_primary': None},
-        )
-    if data.get("email"):
-        check['email'] = save_email(data['email'], obj)
 
     if data.get("administrative_units"):
         if not obj.administrative_units.filter(id=data["administrative_units"]):
@@ -120,6 +112,31 @@ def import_obj(self, obj, data, dry_run):  # noqa
             check['preference'].public = data['public']
 
         check['preference'].save()
+
+    if obj.is_userprofile():
+        if data.get('telephone'):
+            check['telephone'], _ = Telephone.objects.get_or_create(
+                telephone=data['telephone'],
+                user=obj,
+                defaults={'is_primary': None},
+            )
+        if data.get("email"):
+            check['email'] = save_email(data['email'], obj)
+    else:
+        if data.get('telephone') or data.get("email"):
+            email, _ = CompanyContact.objects.get_or_create(
+                telephone=data.get('telephone'),
+                email=data.get("email"),
+                company=obj,
+                administrative_unit_id=data["administrative_units"],
+                defaults={
+                    'is_primary': None,
+                    },
+                )
+            if not email.contact_first_name and not email.contact_last_name:
+                email.contact_first_name = data.get('contact_first_name')
+                email.contact_last_name = data.get('contact_last_name')
+                email.save()
 
     if data.get('event') and data.get('bank_account') and data.get('donor') == 'x':
         SS = data.get('SS', None)
