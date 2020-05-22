@@ -544,11 +544,18 @@ class AdminImportExportTests(CreateSuperUserMixin, TransactionTestCase):
                 administrative_unit=administrative_unit,
                 bank_account_number='2233445566/0100',
             )
-            mommy.make(
-                'aklub.ProfileEmail',
-                email=user.email,
-                user=user,
-            )
+            if user.is_userprofile():
+                mommy.make(
+                    'aklub.ProfileEmail',
+                    email=user.email,
+                    user=user,
+                )
+            else:
+                mommy.make(
+                    'aklub.CompanyContact',
+                    email=user.email,
+                    company=user,
+                    )
 
     def test_user_profile_export(self):
         """ Test UserProfileAdmin admin model export """
