@@ -12,7 +12,7 @@ from django.db.models.functions import Lower
 from django.utils.translation import ugettext as _
 
 from .models import (
-    CompanyProfile, Event, ProfileEmail, Telephone,
+    CompanyContact, CompanyProfile, Event, ProfileEmail, Telephone,
     UserProfile,
 )
 
@@ -168,26 +168,49 @@ class EmailFilter(SimpleListFilter):
 
     def queryset(self, request, queryset):
         if self.value():
-            blank_filter = Q(profileemail__email__exact='') | Q(profileemail__email__isnull=True)
+            if not queryset:
+                return queryset
+            if queryset.first().is_userprofile():
+                blank_filter = Q(profileemail__email__exact='') | Q(profileemail__email__isnull=True)
+            else:
+                blank_filter = Q(companycontact__email__exact='') | Q(companycontact__email__isnull=True)
+
             if self.value() == 'blank':
                 return queryset.filter(blank_filter)
             else:
                 queryset = queryset.exclude(blank_filter)
 
             if self.value() == 'duplicate':
-                duplicates = ProfileEmail.objects.filter(email__isnull=False).\
-                    exclude(email__exact='').\
-                    annotate(email_lower=Lower('email')).\
-                    values('email_lower').\
-                    annotate(Count('id')).\
-                    values('email_lower').\
-                    order_by().\
-                    filter(id__count__gt=1).\
-                    values_list('email_lower', flat=True)
-                duplicates = ProfileEmail.objects.annotate(email_lower=Lower('email')).filter(email_lower__in=duplicates)
-                return queryset.filter(profileemail__in=duplicates)
+                if queryset.first().is_userprofile():
+                    duplicates = ProfileEmail.objects.filter(email__isnull=False).\
+                        exclude(email__exact='').\
+                        annotate(email_lower=Lower('email')).\
+                        values('email_lower').\
+                        annotate(Count('id')).\
+                        values('email_lower').\
+                        order_by().\
+                        filter(id__count__gt=1).\
+                        values_list('email_lower', flat=True)
+                    duplicates = ProfileEmail.objects.annotate(email_lower=Lower('email')).filter(email_lower__in=duplicates)
+                    return queryset.filter(profileemail__in=duplicates)
+                else:
+                    duplicates = CompanyContact.objects.filter(email__isnull=False).\
+                        exclude(email__exact='').\
+                        annotate(email_lower=Lower('email')).\
+                        values('email_lower').\
+                        annotate(Count('id')).\
+                        values('email_lower').\
+                        order_by().\
+                        filter(id__count__gt=1).\
+                        values_list('email_lower', flat=True)
+                    duplicates = CompanyContact.objects.annotate(email_lower=Lower('email')).filter(email_lower__in=duplicates)
+                    return queryset.filter(companycontact__in=duplicates)
+
             if self.value() == 'email-format':
-                return queryset.exclude(email__iregex=r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9.-]+$)")
+                if queryset.first().is_userprofile():
+                    return queryset.exclude(profileemail__email__iregex=r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9.-]+$)")
+                else:
+                    return queryset.exclude(companycontact__email__iregex=r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9.-]+$)")
         return queryset
 
 
@@ -239,22 +262,43 @@ class TelephoneFilter(SimpleListFilter):
 
     def queryset(self, request, queryset):
         if self.value():
-            blank_filter = Q(telephone__telephone__exact='') | Q(telephone__telephone__isnull=True)
+            if not queryset:
+                return queryset
+            if queryset.first().is_userprofile():
+                blank_filter = Q(telephone__telephone__exact='') | Q(telephone__telephone__isnull=True)
+            else:
+                blank_filter = Q(companycontact__telephone__exact='') | Q(companycontact__telephone__isnull=True)
+
             if self.value() == 'blank':
                 return queryset.filter(blank_filter)
             else:
                 queryset = queryset.exclude(blank_filter)
             if self.value() == 'duplicate':
-                duplicates = Telephone.objects.\
-                    values('telephone').\
-                    annotate(Count('id')).\
-                    values('telephone').\
-                    order_by().\
-                    filter(id__count__gt=1).\
-                    values_list('telephone', flat=True)
-                return queryset.filter(telephone__telephone__in=duplicates)
+                if queryset.first().is_userprofile():
+                    duplicates = Telephone.objects.\
+                        values('telephone').\
+                        annotate(Count('id')).\
+                        values('telephone').\
+                        order_by().\
+                        filter(id__count__gt=1).\
+                        values_list('telephone', flat=True)
+                    return queryset.filter(telephone__telephone__in=duplicates)
+                else:
+                    duplicates = CompanyContact.objects.\
+                        values('telephone').\
+                        annotate(Count('id')).\
+                        values('telephone').\
+                        order_by().\
+                        filter(id__count__gt=1).\
+                        values_list('telephone', flat=True)
+                    return queryset.filter(companycontact__telephone__in=duplicates)
+
             if self.value() == 'bad-format':
-                return queryset.exclude(telephone__telephone__iregex=r'^\+?([0-9] *){9,}$')
+                if queryset.first().is_userprofile():
+                    return queryset.exclude(telephone__telephone__iregex=r'^\+?([0-9] *){9,}$')
+                else:
+                    return queryset.exclude(companycontact__telephone__iregex=r'^\+?([0-9] *){9,}$')
+
         return queryset
 
 
