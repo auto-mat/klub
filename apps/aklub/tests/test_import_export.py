@@ -1108,10 +1108,14 @@ class AdminImportExportTests(CreateSuperUserMixin, TransactionTestCase):
         )
         self.assertContains(
             response,
+            '111222333',
+            html=True,
+        )
+        self.assertContains(
+            response,
             'Company',
             html=True,
         )
-
         # Create model
         result = re.search(
             r'<input type="hidden" name="import_file_name".*?>',
@@ -1149,6 +1153,13 @@ class AdminImportExportTests(CreateSuperUserMixin, TransactionTestCase):
         self.assertEqual(preference[0].send_mailing_lists, True)
         self.assertEqual(preference[0].letter_on, True)
         self.assertEqual(company_profile[0].administrative_units.all().values_list('name')[0], ('AU2',))
+        company_contact = company_profile[0].companycontact_set.first()
+        self.assertEqual(company_contact.email, 'test.companyprofile@companyprofile.test')
+        self.assertEqual(company_contact.telephone, '111222333')
+        self.assertEqual(company_contact.is_primary, None)
+        self.assertEqual(company_contact.contact_first_name, "")
+        self.assertEqual(company_contact.contact_last_name, "")
+
         # Update model (shoud not update)
         p = pathlib.PurePath(__file__)
         csv_file = 'update_company_profiles.csv'
