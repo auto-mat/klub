@@ -360,7 +360,7 @@ def create_new_user_profile(form, regular):
     new_user_profile = new_user_objects['userprofile']
     # Save new user instance
     if hasattr(form.forms['userprofile'], 'email_used') and form.forms['userprofile'].email_used:
-        new_user_profile = Profile.objects.get(profileemail__email=form.forms['userprofile'].email_used)
+        new_user_profile = UserProfile.objects.get(profileemail__email=form.forms['userprofile'].email_used)
     else:
         new_user_profile.save()
         ProfileEmail.objects.create(email=form.forms['userprofile'].cleaned_data['email'], user=new_user_profile, is_primary=True)
