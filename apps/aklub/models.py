@@ -708,8 +708,11 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
 
     def get_email_str(self):
         try:
-            return self.profileemail_set.get(is_primary=True).email
-        except ProfileEmail.DoesNotExist:
+            if self.is_userprofile():
+                return self.profileemail_set.get(is_primary=True).email
+            else:
+                return self.companycontact_set.get(is_primary=True).email
+        except (ProfileEmail.DoesNotExist, CompanyContact.DoesNotExist):
             return ""
 
     def mail_communications_count(self):

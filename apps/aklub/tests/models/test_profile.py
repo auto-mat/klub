@@ -180,13 +180,13 @@ class TestStr(TestCase):
         t = mommy.make(
             "aklub.UserProfile",
         )
-        mommy.make("ProfileEmail", user=t, email="  test@test.cz", is_primary=True)
+        mommy.make("ProfileEmail", user=t, email="test@test.cz", is_primary=True)
         self.assertEqual(t.get_email_str(), "test@test.cz")
 
         c = mommy.make(
             "aklub.CompanyProfile",
         )
-        mommy.make("ProfileEmail", user=c, email="  test@test.cz", is_primary=True)
+        mommy.make("CompanyContact", company=c, email="test@test.cz", is_primary=True)
         self.assertEqual(c.get_email_str(), "test@test.cz")
 
     def test_clean_email(self):
