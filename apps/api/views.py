@@ -13,6 +13,7 @@ from .utils import get_or_create_dpch
 class CreateDpchUserProfileView(APIView):
     """ accepts email and so... create DPCH or find existed and return VS"""
     permission_classes = [TokenHasReadWriteScope]
+    required_scopes = ['can_create_profiles']
 
     def post(self, request):
         serializer = GetDpchUserProfileSerializer(data=self.request.data)
@@ -50,6 +51,7 @@ class CreateDpchUserProfileView(APIView):
 class CreateDpchCompanyProfileView(APIView):
     """ accepts crn and so... create DPCH or find existed and return VS"""
     permission_classes = [TokenHasReadWriteScope]
+    required_scopes = ['can_create_profiles']
 
     def post(self, request):
         serializer = GetDpchCompanyProfileSerializer(data=self.request.data)

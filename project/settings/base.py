@@ -252,6 +252,11 @@ REST_FRAMEWORK = {
         'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
         ]
 }
+OAUTH2_PROVIDER = {
+    # this is the list of available scopes
+    # TODO: shoud be added by each application
+    'SCOPES': {'read': 'Read scope', 'write': 'Write scope', 'can_create_profiles': 'Can create profiles by API'},
+}
 
 FLEXIBLE_FILTER_CONDITIONS_FIELD_MAP = {
     'User': ('aklub.models', 'User'),
