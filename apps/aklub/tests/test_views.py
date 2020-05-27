@@ -528,7 +528,7 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         self.assertJSONEqual(
             response.content.decode(),
             {
-                'gdpr': ['Toto pole je třeba vyplnit.'],
+                'gdpr': ['Toto pole je vyžadováno.'],
             },
         )
 

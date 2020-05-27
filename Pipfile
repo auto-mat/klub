@@ -83,6 +83,7 @@ tablib = "==0.14"
 django-dbbackup = "*"
 faker = "*"
 django-computedfields = "*"
+django-oauth-toolkit = "*"
 
 
 [dev-packages]
