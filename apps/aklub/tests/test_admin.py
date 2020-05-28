@@ -42,7 +42,7 @@ from .utils import RunCommitHooksMixin
 from .utils import print_response  # noqa
 from .. import admin
 from .. models import (
-    AccountStatements, AutomaticCommunication, DonorPaymentChannel, MassCommunication,
+    AccountStatements, AutomaticCommunication, CompanyContact, DonorPaymentChannel, MassCommunication,
     Profile, Telephone, UserProfile,
 )
 
@@ -431,6 +431,7 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
                     bank_account=bank_account,
                     test_str=test_str,
                     action=action,
+                    child_model=child_model,
                 )
                 post_data = self.update_profile_post_data(
                     action=action,
@@ -453,13 +454,18 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
                 )
 
                 # Telephone
-                telephone = set(
-                        Telephone.objects.filter(user=profile).values_list('telephone', flat=True),
-                    )
-                if action == 'add':
-                    self.assertEqual(telephone, {post_data['telephone']})
+                if profile.is_userprofile():
+                    telephone = set(Telephone.objects.filter(user=profile).values_list('telephone', flat=True))
+                    if action == 'add':
+                        self.assertEqual(telephone, {post_data['telephone']})
+                    else:
+                        self.assertEqual(telephone, {post_data['telephone_set-0-telephone']})
                 else:
-                    self.assertEqual(telephone, {post_data['telephone_set-0-telephone']})
+                    telephone = set(CompanyContact.objects.filter(company=profile).values_list('telephone', flat=True))
+                    if action == 'add':
+                        self.assertEqual(telephone, {post_data['telephone']})
+                    else:
+                        self.assertEqual(telephone, {post_data['companycontact_set-0-telephone']})
 
         new_profiles = Profile.objects.exclude(username=self.superuser.username)
         self.assertEqual(new_profiles.count(), len(child_models))
