@@ -338,19 +338,28 @@ class DonorImportExportTests(CreateSuperUserMixin, TransactionTestCase):
                     'aklub.Event',
                     name='test_old',
         )
-        user = mommy.make(
+        self.user = mommy.make(
                     'aklub.UserProfile',
                     username='test1',
         )
         mommy.make(
                     'aklub.ProfileEmail',
                     email='test1@test.com',
-                    user=user,
+                    user=self.user,
+        )
+        self.company = company = mommy.make(
+                    'aklub.CompanyProfile',
+                    username='test_company1',
+        )
+        mommy.make(
+                    'aklub.CompanyContact',
+                    email='test1@test.com',
+                    company=company,
         )
         mommy.make(
                     'aklub.DonorPaymentChannel',
                     id=101,
-                    user=user,
+                    user=self.user,
                     VS=9999,
                     SS=111,
                     regular_frequency='quaterly',
@@ -399,9 +408,8 @@ class DonorImportExportTests(CreateSuperUserMixin, TransactionTestCase):
         response = self.client.post(address, post_data)
         self.assertRedirects(response, expected_url=reverse('admin:aklub_donorpaymentchannel_changelist'))
 
-        # check new DonorPaymentChannel data
-        email = ProfileEmail.objects.get(email='test1@test.com')
-        new_dpch = DonorPaymentChannel.objects.get(user=email.user, event=self.event1)
+        # check new DonorPaymentChannel data (UserProfile)
+        new_dpch = DonorPaymentChannel.objects.get(user=self.user, event=self.event1)
 
         self.assertEqual(new_dpch.money_account, self.bank_acc)
         self.assertEqual(new_dpch.event, self.event1)
@@ -413,6 +421,19 @@ class DonorImportExportTests(CreateSuperUserMixin, TransactionTestCase):
         self.assertEqual(new_dpch.regular_payments, 'regular')
         self.assertEqual(new_dpch.user_bank_account.bank_account_number, '9999/999')
         self.assertEqual(new_dpch.end_of_regular_payments, datetime.date(2017, 9, 16))
+        # CompanyProfile
+        new_dpch2 = DonorPaymentChannel.objects.get(user=self.company, event=self.event1)
+
+        self.assertEqual(new_dpch2.money_account, self.bank_acc)
+        self.assertEqual(new_dpch2.event, self.event1)
+        self.assertEqual(new_dpch2.VS, '4332')
+        self.assertEqual(new_dpch2.SS, '4442')
+        self.assertEqual(new_dpch2.regular_frequency, 'monthly')
+        self.assertEqual(new_dpch2.expected_date_of_first_payment, datetime.date(2016, 1, 12))
+        self.assertEqual(new_dpch2.regular_amount, 987)
+        self.assertEqual(new_dpch2.regular_payments, 'regular')
+        self.assertEqual(new_dpch2.user_bank_account.bank_account_number, '9999/9992')
+        self.assertEqual(new_dpch2.end_of_regular_payments, datetime.date(2017, 1, 11))
 
         # check updated  DonorPaymentChannel data
         dpch_update = DonorPaymentChannel.objects.get(id=101)
