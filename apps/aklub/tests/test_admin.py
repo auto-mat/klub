@@ -36,6 +36,7 @@ from interactions.models import Interaction
 from model_mommy import mommy
 from model_mommy.recipe import seq
 
+
 from .recipes import donor_payment_channel_recipe, user_profile_recipe
 from .test_admin_helper import TestProfilePostMixin
 from .utils import RunCommitHooksMixin
@@ -61,6 +62,7 @@ class CreateSuperUserMixin:
 class AdminSmokeTest(CreateSuperUserMixin, tests.AdminSiteSmokeTest):
     fixtures = ['conditions', 'users']
     exclude_apps = ['helpdesk', 'postoffice', 'advanced_filters', 'celery_monitor', 'import_export_celery', 'wiki_attachments']
+    exclude_modeladmins = [admin.ProfileAdmin]  # Profile Admin is not used in views, so we dont have to take care
 
     def setUp(self):
         super().setUp()
