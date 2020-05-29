@@ -950,12 +950,12 @@ class ProfileAdmin(
 
 class DonorPaymentChannelLoaderClass(BaseInstanceLoader):
     def get_instance(self, row):
-        user = ProfileEmail.objects.get(email=row['email']).user
         try:
             event = Event.objects.get(name=row.get('event'))
             money_account = BankAccount.objects.get(bank_account_number=row.get('money_account'))
+
             obj = DonorPaymentChannel.objects.get(
-                                            user=user,
+                                            user_id=row.get('user'),
                                             event=event,
                                             money_account=money_account,
             )
@@ -966,11 +966,11 @@ class DonorPaymentChannelLoaderClass(BaseInstanceLoader):
 
         except DonorPaymentChannel.DoesNotExist:
             return None
-
         return obj
 
 
 class DonorPaymentChannelResource(ModelResource):
+    profile_type = fields.Field()
     email = fields.Field()
     user_bank_account = fields.Field()
     event = fields.Field(
@@ -996,18 +996,23 @@ class DonorPaymentChannelResource(ModelResource):
         instance_loader_class = DonorPaymentChannelLoaderClass
 
     def before_import_row(self, row, **kwargs):
+        if not row.get('profile_type'):
+            raise ValidationError({'profile_type': 'Insert "c" or "u" (company/user)'})
+        row['email'] = row['email'].lower()
         try:
-            row['email'] = row['email'].lower()
-            row['user'] = ProfileEmail.objects.get(email=row['email']).user.id
-        except ProfileEmail.DoesNotExist:
-            raise ValidationError({"email": "User with this email doesn't exist"})
+            if row.get('profile_type') == 'u':
+                row['user'] = ProfileEmail.objects.get(email=row['email']).user.id
+            else:
+                row['user'] = CompanyContact.objects.get(email=row['email']).company.id
+        except (ProfileEmail.DoesNotExist, CompanyContact.DoesNotExist):
+            raise ValidationError({"email": "Company/User with this email doesn't exist"})
 
     def import_obj(self, obj, data, dry_run):
         super(ModelResource, self).import_obj(obj, data, dry_run)
         if data.get('user_bank_account'):
             user_bank_acc, _ = UserBankAccount.objects.get_or_create(bank_account_number=data.get('user_bank_account'))
             obj.user_bank_account = user_bank_acc
-        obj.user = ProfileEmail.objects.get(email=data['email']).user
+            obj.save()
         return obj
 
     def dehydrate_user_bank_account(self, donor):
@@ -1019,10 +1024,16 @@ class DonorPaymentChannelResource(ModelResource):
 
     def dehydrate_email(self, donor):
         if hasattr(donor, 'user'):
-            try:
-                email = ProfileEmail.objects.get(user=donor.user, is_primary=True)
-            except ProfileEmail.DoesNotExist:
-                email = ProfileEmail.objects.filter(user=donor.user).first()
+            if donor.user.polymorphic_ctype.model == UserProfile._meta.model_name:
+                try:
+                    email = donor.user.userprofile.profileemail_set.get(is_primary=True)
+                except ProfileEmail.DoesNotExist:
+                    email = donor.user.userprofile.profileemail_set.first()
+            else:
+                try:
+                    email = donor.user.companyprofile.companycontact_set.get(is_primary=True)
+                except CompanyContact.DoesNotExist:
+                    email = donor.user.companyprofile.companycontact_set.first()
             return email.email
         return ''
 
