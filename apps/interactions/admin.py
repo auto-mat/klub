@@ -1,4 +1,4 @@
-from aklub.models import AdministrativeUnit, Event, Profile, ProfileEmail
+from aklub.models import AdministrativeUnit, CompanyContact, Event, Profile, ProfileEmail
 
 from django.contrib import admin
 from django.core import serializers
@@ -31,6 +31,7 @@ class InteractionWidget(ForeignKeyWidget):
 
 
 class InteractionResource(ModelResource):
+    profile_type = fields.Field()
     email = fields.Field()
     type = fields.Field(attribute='type', widget=InteractionWidget(InteractionType)) # noqa
     event = fields.Field(attribute='event', widget=InteractionWidget(Event))
@@ -49,20 +50,21 @@ class InteractionResource(ModelResource):
             'settlement', 'note', 'summary', 'status', 'result', 'rating',
             'next_step', 'communication_type',
             'created_by', 'handled_by', 'created', 'updated',  # readonly fields
-
-
-
-
          )
         clean_model_instances = True
         import_id_fields = []  # must be empty or library take field id as default and ignore before_import_row
 
-    def before_import_row(self, row, **kwargs):
+    def before_import_row(self, row, **kwargs): # noqa
         user = None
+        if not row.get('profile_type') and row.get('email'):
+            raise ValidationError({'profile_type': 'Insert "c" or "u" (company/user)'})
         if row.get('email'):
             try:
-                user = ProfileEmail.objects.get(email=row['email']).user
-            except ProfileEmail.DoesNotExist:
+                if row.get('profile_type') == 'u':
+                    user = ProfileEmail.objects.get(email=row['email']).user
+                else:
+                    user = CompanyContact.objects.get(email=row['email']).company
+            except (ProfileEmail.DoesNotExist, CompanyContact.DoesNotExist):
                 pass
         if row.get('user') and not user:
             try:
