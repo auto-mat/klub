@@ -189,6 +189,18 @@ class InteractionsImportExportTests(CreateSuperUserMixin, TransactionTestCase):
                 is_primary=True,
 
         )
+        self.company = mommy.make(
+                'aklub.CompanyProfile',
+                id=3,
+                username='test_companyname',
+        )
+        mommy.make(
+                'aklub.CompanyContact',
+                email='test_email@email.com',
+                company=self.company,
+                is_primary=True,
+
+        )
         self.au = mommy.make(
                 'aklub.AdministrativeUnit',
                 id=1,
@@ -252,6 +264,7 @@ class InteractionsImportExportTests(CreateSuperUserMixin, TransactionTestCase):
         # check new interactions
         int1 = Interaction.objects.get(subject='test_subject1')
         self.assertEqual(int1.user.get_email_str(), 'test_email@email.com')
+        self.assertEqual(int1.user, self.user)
         self.assertEqual(int1.event, self.event)
         self.assertEqual(int1.created_by, self.user)
         self.assertEqual(int1.handled_by, self.user)
@@ -282,6 +295,24 @@ class InteractionsImportExportTests(CreateSuperUserMixin, TransactionTestCase):
         self.assertEqual(int2.dispatched, 1)
         self.assertEqual(int2.rating, '5')
         self.assertEqual(int2.next_step, 'call_soon')
+
+        int3 = Interaction.objects.get(subject='test_subject3_company')
+        self.assertEqual(int3.user.get_email_str(), 'test_email@email.com')
+        self.assertEqual(int3.user, self.company)
+        self.assertEqual(int3.event, self.event)
+        self.assertEqual(int3.created_by, self.user)
+        self.assertEqual(int3.handled_by, self.user)
+        self.assertEqual(int3.administrative_unit, self.au)
+        self.assertEqual(int3.date_from.isoformat(), '2020-02-19T12:08:40+00:00')
+        self.assertEqual(int3.date_to, None)
+        self.assertEqual(int1.next_communication_date.isoformat(), '2020-02-19T12:08:42+00:00')
+        self.assertEqual(int3.type, self.int_type)
+        self.assertEqual(int3.communication_type, 'individual')
+        self.assertEqual(int3.summary, 'happy_day_summary_company_3')
+        self.assertEqual(int3.note, 'test_note3_company')
+        self.assertEqual(int3.dispatched, 0)
+        self.assertEqual(int3.rating, '1')
+        self.assertEqual(int3.next_step, 'call_soon')
 
 
 class DonorImportExportTests(CreateSuperUserMixin, TransactionTestCase):
