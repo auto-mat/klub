@@ -2040,7 +2040,7 @@ class CompanyProfileAdmin(
     readonly_fields = BaseProfileChildAdmin.readonly_fields + ('get_company_email', 'get_company_telephone')
     advanced_filter_fields = (
         'email',
-        'telephone__telephone',
+        'companycontact__telephone',
         'name',
         'crn',
         'tin',
@@ -2052,7 +2052,7 @@ class CompanyProfileAdmin(
     search_fields = (
         'email',
         'name',
-        'telephone__telephone',
+        'companycontact__telephone',
     )
     list_filter = (
         filters.PreferenceMailingListAllowed,
