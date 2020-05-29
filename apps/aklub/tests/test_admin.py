@@ -520,7 +520,7 @@ class AdminActionsTests(CreateSuperUserMixin, RunCommitHooksMixin, TestCase):
 
     def test_delete_selected_profiles(self):
         """
-        Test admin profile model 'Delete selected Profiles'
+        Test admin userprofile and companyprofile model 'Delete method'
         action
         """
         user_profile = mommy.make(
@@ -538,18 +538,29 @@ class AdminActionsTests(CreateSuperUserMixin, RunCommitHooksMixin, TestCase):
             username='test.companyprofile',
         )
         mommy.make(
-            'aklub.ProfileEmail',
+            'aklub.CompanyContact',
             email='test.companyprofile@test.companyprofile.test',
             is_primary=True,
-            user=company_profile,
+            company=company_profile,
         )
+
+        self.assertEqual(Profile.objects.exclude(username=self.superuser.username).count(), 2)
         post_data = {
-            '_selected_action': [user_profile.id, company_profile.id],
+            '_selected_action': [user_profile.id],
             'action': 'delete_selected',
             'post': 'yes',
         }
-        self.assertEqual(Profile.objects.exclude(username=self.superuser.username).count(), 2)
-        address = reverse('admin:aklub_profile_changelist')
+        address = reverse('admin:aklub_userprofile_changelist')
+        response = self.client.post(address, post_data)
+        self.assertRedirects(response, expected_url=address)
+        self.assertEqual(Profile.objects.exclude(username=self.superuser.username).count(), 1)
+
+        post_data = {
+            '_selected_action': [company_profile.id],
+            'action': 'delete_selected',
+            'post': 'yes',
+        }
+        address = reverse('admin:aklub_companyprofile_changelist')
         response = self.client.post(address, post_data)
         self.assertRedirects(response, expected_url=address)
         self.assertEqual(Profile.objects.exclude(username=self.superuser.username).count(), 0)

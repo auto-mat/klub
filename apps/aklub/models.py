@@ -48,6 +48,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from polymorphic.managers import PolymorphicManager
 from polymorphic.models import PolymorphicModel, PolymorphicTypeUndefined
+from polymorphic.query import PolymorphicQuerySet
 
 from smmapdfs.model_abcs import PdfSandwichABC, PdfSandwichFieldABC
 
@@ -72,7 +73,29 @@ COMMUNICATION_METHOD = (
 )
 
 
+class CustomUserQueryset(PolymorphicQuerySet):
+    """
+    Rewriting  base delete method to separatly delete UserProfile/CompanyProfile by calling parent delete method
+    Bug is raised by diff FK for child model
+    """
+    def delete(self):
+        UserProfile.objects.filter(id__in=self.instance_of(UserProfile).values_list('id', flat=True)).delete()
+        CompanyProfile.objects.filter(id__in=self.instance_of(CompanyProfile).values_list('id', flat=True)).delete()
+
+
 class CustomUserManager(PolymorphicManager, UserManager):
+    queryset_class = PolymorphicQuerySet
+
+    def get_queryset(self):
+        """
+        we call diff Manager for Polymorphic parent and chill
+        """
+        if self.model == Profile:
+            self.queryset_class = CustomUserQueryset
+        qs = self.queryset_class(self.model, using=self._db, hints=self._hints)
+        if self.model._meta.proxy:
+            qs = qs.instance_of(self.model)
+        return qs
 
     def create_user(self, email, password, **extra_fields):
         if extra_fields.get('polymorphic_ctype_id', None):

@@ -19,7 +19,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 import PyPDF2
 
-from aklub.models import TaxConfirmation
+from aklub.models import Profile, TaxConfirmation
 
 from django.core.files import File
 from django.test import RequestFactory, TestCase
@@ -32,6 +32,16 @@ from freezegun import freeze_time
 from model_mommy import mommy
 
 from ..test_admin import CreateSuperUserMixin
+
+
+class ProfileMethods(TestCase):
+    """ test rewrited .delete method in model Profile"""
+    def test_delete_method(self):
+        mommy.make("aklub.UserProfile")
+        mommy.make("aklub.CompanyProfile")
+        self.assertEqual(Profile.objects.all().count(), 2)
+        Profile.objects.all().delete()
+        self.assertEqual(Profile.objects.all().count(), 0)
 
 
 class TestStr(TestCase):
