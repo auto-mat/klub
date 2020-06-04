@@ -729,12 +729,12 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
     get_addressment.short_description = _("Addressment")
     get_addressment.admin_order_field = 'addressment'
 
-    def get_email_str(self):
+    def get_email_str(self, administrative_unit=None):
         try:
             if self.is_userprofile():
                 return self.profileemail_set.get(is_primary=True).email
             else:
-                return self.companycontact_set.get(is_primary=True).email
+                return self.companycontact_set.get(is_primary=True, administrative_unit=administrative_unit).email
         except (ProfileEmail.DoesNotExist, CompanyContact.DoesNotExist):
             return ""
 

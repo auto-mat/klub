@@ -193,11 +193,14 @@ class TestStr(TestCase):
         mommy.make("ProfileEmail", user=t, email="test@test.cz", is_primary=True)
         self.assertEqual(t.get_email_str(), "test@test.cz")
 
+        unit1 = mommy.make('aklub.administrativeunit', name='unit1')
+        unit2 = mommy.make('aklub.administrativeunit', name='unit1')
         c = mommy.make(
             "aklub.CompanyProfile",
         )
-        mommy.make("CompanyContact", company=c, email="test@test.cz", is_primary=True)
-        self.assertEqual(c.get_email_str(), "test@test.cz")
+        mommy.make("CompanyContact", company=c, email="test_yes@test.cz", is_primary=True, administrative_unit=unit1)
+        mommy.make("CompanyContact", company=c, email="test_no@test.cz", is_primary=True, administrative_unit=unit2)
+        self.assertEqual(c.get_email_str(unit1), "test_yes@test.cz")
 
     def test_clean_email(self):
         """ Test, that clean function cleanes the email """
