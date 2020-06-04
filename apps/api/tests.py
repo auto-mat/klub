@@ -25,7 +25,7 @@ def login_mixin():
         token='foo',
         application=app,
         expires=datetime.datetime.now() + datetime.timedelta(days=999),
-        scope='read write',
+        scope='read write can_create_profiles',
     )
 
 
@@ -135,8 +135,8 @@ class CreateDpchCompanyProfileViewTest(TestCase):
         self.assertEqual(dpch.money_account, self.bank_acc)
 
         self.assertEqual(user.name, 'company_name')
-        self.assertEqual(user.profileemail_set.first().email, 'company@test.com')
-        self.assertEqual(user.telephone_set.first().telephone, '111222333')
+        self.assertEqual(user.companycontact_set.first().email, 'company@test.com')
+        self.assertEqual(user.companycontact_set.first().telephone, '111222333')
         # update fields
         data_update = {
             'street': 'street_name',
@@ -155,4 +155,5 @@ class CreateDpchCompanyProfileViewTest(TestCase):
         self.assertEqual(user.street, 'street_name')
         self.assertEqual(user.city, 'city_name')
         self.assertEqual(user.zip_code, '111 22')
-        self.assertCountEqual(user.telephone_set.values_list('telephone', flat=True), ['111222333', '333222111'])
+        self.assertCountEqual(user.companycontact_set.values_list('telephone', flat=True), ['111222333', '333222111'])
+        self.assertCountEqual(user.companycontact_set.values_list('email', flat=True), ['company_new@test.com', 'company@test.com'])

@@ -1,4 +1,4 @@
-from aklub.models import CompanyProfile, ProfileEmail, Telephone,  UserProfile
+from aklub.models import CompanyContact, CompanyProfile, ProfileEmail, Telephone,  UserProfile
 
 from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope
 
@@ -20,7 +20,7 @@ class CreateDpchUserProfileView(APIView):
         if serializer.is_valid(raise_exception=True):
             # check profile data
             user, created = UserProfile.objects.get_or_create(
-                                    profileemail__email=serializer.validated_data.get('email'),
+                profileemail__email=serializer.validated_data.get('email'),
             )
             user.administrative_units.add(serializer.validated_data.get('money_account').administrative_unit)
             if not user.first_name:
@@ -59,13 +59,12 @@ class CreateDpchCompanyProfileView(APIView):
             # check profile data
             if serializer.validated_data.get('crn'):
                 company, created = CompanyProfile.objects.get_or_create(
-                                        crn=serializer.validated_data.get('crn'),
-
+                    crn=serializer.validated_data.get('crn'),
                 )
             else:
                 company = CompanyProfile.objects.create()
-
-            company.administrative_units.add(serializer.validated_data['money_account'].administrative_unit)
+            unit = serializer.validated_data['money_account'].administrative_unit
+            company.administrative_units.add(unit)
             if not company.name:
                 company.name = serializer.validated_data.get('name')
             if not company.street and not company.city and not company.zip_code:
@@ -73,10 +72,15 @@ class CreateDpchCompanyProfileView(APIView):
                 company.city = serializer.validated_data.get('city', '')
                 company.zip_code = serializer.validated_data.get('zip_code', '')
             company.save()
-
-            # TODO: will change in future version
-            ProfileEmail.objects.get_or_create(email=serializer.validated_data.get('email'), user=company)
-            Telephone.objects.get_or_create(telephone=serializer.validated_data.get('telephone'), user=company)
-
+            contact, created = CompanyContact.objects.get_or_create(
+                company=company,
+                email=serializer.validated_data.get('email'),
+                telephone=serializer.validated_data.get('telephone'),
+                administrative_unit=unit,
+            )
+            # if we created first companycontact => we make it primary
+            if company.companycontact_set.filter(administrative_unit=unit).count() == 1:
+                contact.is_primary = True
+                contact.save()
             VS = get_or_create_dpch(serializer, company)
             return Response({'VS': VS}, status=status.HTTP_200_OK)
