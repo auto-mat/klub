@@ -176,6 +176,11 @@ class InteractionsImportExportTests(CreateSuperUserMixin, TransactionTestCase):
         self.factory = RequestFactory()
         self.client.force_login(self.superuser)
 
+        self.au = mommy.make(
+                'aklub.AdministrativeUnit',
+                id=1,
+                name='test_unit',
+        )
         self.user = mommy.make(
                     'aklub.UserProfile',
                     id=1,
@@ -198,13 +203,8 @@ class InteractionsImportExportTests(CreateSuperUserMixin, TransactionTestCase):
                 'aklub.CompanyContact',
                 email='test_email@email.com',
                 company=self.company,
+                administrative_unit=self.au,
                 is_primary=True,
-
-        )
-        self.au = mommy.make(
-                'aklub.AdministrativeUnit',
-                id=1,
-                name='test_unit',
         )
         self.event = mommy.make(
                 'aklub.Event',
@@ -297,7 +297,7 @@ class InteractionsImportExportTests(CreateSuperUserMixin, TransactionTestCase):
         self.assertEqual(int2.next_step, 'call_soon')
 
         int3 = Interaction.objects.get(subject='test_subject3_company')
-        self.assertEqual(int3.user.get_email_str(), 'test_email@email.com')
+        self.assertEqual(int3.user.get_email_str(int3.administrative_unit), 'test_email@email.com')
         self.assertEqual(int3.user, self.company)
         self.assertEqual(int3.event, self.event)
         self.assertEqual(int3.created_by, self.user)
