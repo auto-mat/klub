@@ -25,7 +25,7 @@ def login_mixin():
         token='foo',
         application=app,
         expires=datetime.datetime.now() + datetime.timedelta(days=999),
-        scope='read write',
+        scope='read write can_create_profiles',
     )
 
 
