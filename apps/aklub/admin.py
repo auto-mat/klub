@@ -1648,13 +1648,15 @@ class TaxConfirmationAdmin(
 
     batch_download.short_description = _("generate download links for pdf files")
 
-    list_display = ('get_name',
-                    'get_email',
-                    'year',
-                    'amount',
-                    'get_pdf',
-                    'get_administrative_unit',
-                    'pdf_type')
+    list_display = (
+        'get_name',
+        'get_email',
+        'year',
+        'amount',
+        'get_pdf',
+        'get_administrative_unit',
+        'pdf_type'
+    )
     ordering = (
         'user_profile__userprofile__last_name',
         'user_profile__userprofile__first_name',
@@ -1691,19 +1693,35 @@ class TaxConfirmationAdmin(
         prefetch_related and select_related in normal way!
         Then we want to avoid hitting DB in every list_row
         """
-        primary_email = ProfileEmail.objects.filter(user=OuterRef('user_profile_id'), is_primary=True)
-        qs = super().get_queryset(request).select_related(
-                'pdf_type__pdfsandwichtypeconnector__administrative_unit'
-        ).annotate(
+        primary_email_user = ProfileEmail.objects.filter(user=OuterRef('user_profile_id'), is_primary=True)
+        primary_email_company = CompanyContact.objects.filter(
+            company=OuterRef('user_profile_id'),
+            administrative_unit=OuterRef('pdf_type__pdfsandwichtypeconnector__administrative_unit'),
+            is_primary=True,
+        )
+
+        qs = super().get_queryset(request)\
+            .select_related(
+                'pdf_type__pdfsandwichtypeconnector__administrative_unit',
+                'user_profile__companyprofile',
+                'user_profile__userprofile',
+                'pdf_type__pdfsandwichtypeconnector',
+            )\
+            .annotate(
                 last_name=F("user_profile__userprofile__last_name"),
                 first_name=F("user_profile__userprofile__first_name"),
                 company_name=F("user_profile__companyprofile__name"),
-                email_address=Subquery(primary_email.values('email')),
+                email_address_user=Subquery(primary_email_user.values('email')),
+                email_address_company=Subquery(primary_email_company.values('email')),
         )
         return qs
 
     def get_email(self, obj):
-        return obj.email_address
+
+        if obj.user_profile.is_userprofile():
+            return obj.email_address_user
+        else:
+            return obj.email_address_company
 
     def get_administrative_unit(self, obj):
         try:
