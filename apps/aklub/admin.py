@@ -2189,18 +2189,24 @@ class CompanyProfileAdmin(
     )
 
     def get_company_email(self, obj):
+        cont = obj.companycontact_set.all()
         if self.request.user.has_perm('aklub.can_edit_all_units'):
-            return sweet_text(((res.email,) for res in obj.companycontact_set.filter(is_primary=True)))
+            return sweet_text(((res.email,) for res in cont if res.is_primary))
         else:
-            return obj.companycontact_set.get(is_primary=True, administrative_unit=self.request.user.administrated_units.first()).email
+            return sweet_text(
+                ((res.email,) for res in cont if (res.is_primary and res.administrative_unit_id in self.user_administrated_units_ids))
+            )
 
     get_company_email.short_description = _("Main email")
 
     def get_company_telephone(self, obj):
+        cont = obj.companycontact_set.all()
         if self.request.user.has_perm('aklub.can_edit_all_units'):
-            return sweet_text(((res.telephone,) for res in obj.companycontact_set.filter(is_primary=True)))
+            return sweet_text(((res.telephone,) for res in cont if res.is_primary))
         else:
-            return obj.companycontact_set.get(is_primary=True, administrative_unit=self.request.user.administrated_units.first()).telephone
+            return sweet_text(
+                ((res.telephone,) for res in cont if (res.is_primary and res.administrative_unit_id in self.user_administrated_units_ids))
+            )
 
     get_company_telephone.short_description = _("Main telephone")
 
@@ -2253,6 +2259,7 @@ class CompanyProfileAdmin(
     def get_queryset(self, request, *args, **kwargs):
         # save request user's adminsitratived_unit here, so we dont have to peek in every loop
         self.user_administrated_units = request.user.administrated_units.all()
+        self.user_administrated_units_ids = request.user.administrated_units.all().values_list('id', flat=True)
 
         if request.user.has_perm('aklub.can_edit_all_units'):
             queryset = super().get_queryset(request, *args, **kwargs).prefetch_related(
