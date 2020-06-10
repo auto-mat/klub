@@ -1019,6 +1019,12 @@ class UserProfile(Profile, AbstractUserProfile):
 
 class CompanyContact(models.Model):
 
+    class Meta:
+        unique_together = (
+            ('is_primary', 'administrative_unit', 'email'),
+            ('is_primary', 'administrative_unit', 'company'),
+            # ('company', 'administrative_unit', 'email'), # TODO: telephone number.. wont save?
+        )
     BOOL_CHOICES = (
         (None, "No"),
         (True, "Yes")
