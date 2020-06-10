@@ -78,9 +78,5 @@ class CreateDpchCompanyProfileView(APIView):
                 telephone=serializer.validated_data.get('telephone'),
                 administrative_unit=unit,
             )
-            # if we created first companycontact => we make it primary
-            if company.companycontact_set.filter(administrative_unit=unit).count() == 1:
-                contact.is_primary = True
-                contact.save()
             VS = get_or_create_dpch(serializer, company)
             return Response({'VS': VS}, status=status.HTTP_200_OK)

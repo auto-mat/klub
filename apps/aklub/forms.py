@@ -266,7 +266,7 @@ class CompanyProfileAddForm(forms.ModelForm):
                     email=email,
                     telephone=self.cleaned_data['telephone'],
                     company=user,
-                    is_primary=True,
+                    is_primary=False,
                     administrative_unit=unit,
                     contact_first_name=user.contact_first_name if user.contact_first_name else '',
                     contact_last_name=user.contact_last_name if user.contact_last_name else '',
