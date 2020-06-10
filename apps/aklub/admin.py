@@ -1051,10 +1051,8 @@ class DonorPaymetChannelAdmin(
     nested_admin.NestedModelAdmin,
 ):
     list_display = (
-        'person_name',
-        'user__email',
-        # 'user__telephone_url',
-        # 'source',
+        'get_name',
+        'get_email',
         'event',
         'VS',
         'SS',
@@ -1066,19 +1064,11 @@ class DonorPaymetChannelAdmin(
         'last_payment_date',
         'extra_payments',
         'user__is_active',
-        # 'registered_support_date',
-        # 'regular_payments_info',
-        # 'total_contrib_string',
-        # 'next_communication_date',
-        # 'next_communication_method',
-        # 'email_confirmed',
     )
     advanced_filter_fields = (
         'user__userprofile__first_name',
         'user__userprofile__last_name',
         'user__email',
-        # 'user__telephone',
-        # 'source',
         ('campaign__name', _("Campaign name")),
         'VS',
         'SS',
@@ -1088,8 +1078,6 @@ class DonorPaymetChannelAdmin(
         'number_of_payments',
         'payment_total',
         'regular_amount',
-        # 'next_communication_date',
-        # 'next_communication_method',
         'user__is_active',
         'last_payment__date',
     )
@@ -1099,10 +1087,7 @@ class DonorPaymetChannelAdmin(
         'regular_payments',
         'user__language',
         'user__is_active',
-        # 'wished_information',
         'old_account',
-        # 'email_confirmed',
-        # 'source',
         ('event', RelatedFieldCheckBoxFilter),
         ('registered_support', DateRangeFilter),
     ]
@@ -1115,7 +1100,6 @@ class DonorPaymetChannelAdmin(
         'VS',
         'SS',
         'user__email',
-        # 'user__telephone',
     ]
     ordering = ('user__userprofile__last_name', 'user__companyprofile__name')
     actions = (
@@ -1128,10 +1112,8 @@ class DonorPaymetChannelAdmin(
     list_per_page = 100
     raw_id_fields = (
         'user',
-        # 'recruiter',
     )
     readonly_fields = (
-        # 'verified_by',
         'user_telephone_url',
         'user_note',
     )
@@ -1158,11 +1140,49 @@ class DonorPaymetChannelAdmin(
         }),
     ]
 
+    def get_queryset(self, request):
+        """
+        The annotate hacking in this query is because django-polymorphic doesnt support
+        prefetch_related and select_related in normal way!
+        Then we want to avoid hitting DB in every list_row
+        """
+        primary_email_user = ProfileEmail.objects.filter(user=OuterRef('user'), is_primary=True)
+        primary_email_company = CompanyContact.objects.filter(
+            company=OuterRef('user'),
+            administrative_unit=OuterRef('money_account__administrative_unit'),
+            is_primary=True,
+        )
+
+        qs = super().get_queryset(request)\
+            .annotate(
+                last_name=F("user__userprofile__last_name"),
+                first_name=F("user__userprofile__first_name"),
+                company_name=F("user__companyprofile__name"),
+                # TODO: profile_type shoud not be there, but dpch returns user parent model instead of child...
+                # and we are not able to recognize child without hitting db.
+                profile_type=F("user__userprofile__polymorphic_ctype__model"),
+                email_address_user=Subquery(primary_email_user.values('email')),
+                email_address_company=Subquery(primary_email_company.values('email')),
+        )
+        return qs
+
     def user_note(self, obj):
         return obj.user.note
 
     def user_telephone_url(self, obj):
         return obj.user.telephone_url()
+
+    def get_email(self, obj):
+        if obj.profile_type == UserProfile._meta.model_name:
+            return obj.email_address_user
+        else:
+            return obj.email_address_company
+
+    def get_name(self, obj):
+        if obj.profile_type == UserProfile._meta.model_name:
+            return f"{obj.first_name} {obj.last_name}"
+        else:
+            return obj.company_name
 
 
 def add_user_bank_acc_to_dpch(self, request, queryset):
