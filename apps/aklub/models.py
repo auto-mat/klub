@@ -923,13 +923,13 @@ class CompanyProfile(Profile):
     )
 
     contact_first_name = models.CharField(
-        verbose_name=_("Contact first name"),
+        verbose_name=_("Owner first name"),
         max_length=256,
         blank=True,
         null=True,
     )
     contact_last_name = models.CharField(
-        verbose_name=_("Contact last name"),
+        verbose_name=_("Owner last name"),
         max_length=256,
         blank=True,
         null=True,
