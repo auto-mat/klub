@@ -2847,19 +2847,19 @@ class TaxConfirmation(models.Model):
     get_pdf.short_description = _("PDF")
 
     def get_user_name(self):
-        return "%s %s" % (self.user_profile.first_name, self.user_profile.last_name)
+        return "%s %s" % (self.user_profile.first_name or "", self.user_profile.last_name or "")
 
     def get_street(self):
-        return"%s" % (self.user_profile.street)
+        return"%s" % (self.user_profile.street or "",)
 
     def get_addr_city(self):
-        return "%s" % (self.user_profile.city)
+        return "%s" % (self.user_profile.city or "",)
 
     def get_zip_code(self):
-        return "%s" % (self.user_profile.zip_code,)
+        return "%s" % (self.user_profile.zip_code or "",)
 
     def get_country(self):
-        return "%s" % (self.user_profile.country,)
+        return "%s" % (self.user_profile.country or "",)
 
     sandwich_model = TaxConfirmationPdf
 
@@ -2870,19 +2870,19 @@ class TaxConfirmation(models.Model):
         return Payment.objects.filter(user_profile=self.user_profile).exclude(type='expected').filter(date__year=self.year)
 
     def get_administrative_unit(self):
-        return self.pdf_type.pdfsandwichtypeconnector.administrative_unit.name
+        return "%s" % (self.pdf_type.pdfsandwichtypeconnector.administrative_unit.name or "",)
 
     def get_company_name(self):
-        return self.user_profile.name
+        return "%s" % (self.user_profile.name or "")
 
     def get_company_contact_name(self):
-        return f'{self.user_profile.contact_first_name} {self.user_profile.contact_last_name}'
+        return "%s %s" % (self.user_profile.contact_first_name or "", self.user_profile.contact_last_name or "")
 
     def get_company_tin(self):
-        return self.user_profile.tin
+        return "%s" % (self.user_profile.tin or "",)
 
     def get_company_crn(self):
-        return self.user_profile.crn
+        return "%s" % (self.user_profile.crn or "",)
 
     class Meta:
         verbose_name = _("Tax confirmation")
