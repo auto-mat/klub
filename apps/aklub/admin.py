@@ -1735,17 +1735,20 @@ class TaxConfirmationAdmin(
                 last_name=F("user_profile__userprofile__last_name"),
                 first_name=F("user_profile__userprofile__first_name"),
                 company_name=F("user_profile__companyprofile__name"),
+                # TODO: profile_type shoud not be there, but dpch returns user parent model instead of child...
+                # and we are not able to recognize child without hitting db.
+                profile_type=F("user_profile__polymorphic_ctype__model"),
                 email_address_user=Subquery(primary_email_user.values('email')),
                 email_address_company=Subquery(primary_email_company.values('email')),
         )
         return qs
 
     def get_email(self, obj):
-
-        if obj.user_profile.is_userprofile():
+        if obj.profile_type == UserProfile._meta.model_name:
             return obj.email_address_user
         else:
             return obj.email_address_company
+    get_email.short_description = _("Main email")
 
     def get_administrative_unit(self, obj):
         try:
@@ -1753,12 +1756,17 @@ class TaxConfirmationAdmin(
         except AttributeError:
             au = None
         return au
+    get_administrative_unit.short_description = _("Administrative Unit")
 
     def get_name(self, obj):
         if obj.company_name:
-            return obj.company_name
+            return obj.company_name or '-'
         else:
-            return f"{obj.first_name} {obj.last_name}"
+            if obj.first_name or obj.last_name:
+                return f"{obj.first_name} {obj.last_name}"
+            else:
+                return "-"
+    get_name.short_description = _("Name")
 
 
 @admin.register(AdministrativeUnit)
