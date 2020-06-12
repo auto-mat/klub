@@ -2071,7 +2071,7 @@ class CompanyProfileAdmin(
         'name',
         'crn',
         'tin',
-        'full_contact_name',
+        'get_contact_name',
         'get_company_email',
         'get_company_telephone',
         'get_administrative_units',
@@ -2189,26 +2189,32 @@ class CompanyProfileAdmin(
     )
 
     def get_company_email(self, obj):
-        cont = obj.companycontact_set.all()
-        if self.request.user.has_perm('aklub.can_edit_all_units'):
-            return sweet_text(((res.email,) for res in cont if res.is_primary))
-        else:
-            return sweet_text(
-                ((res.email,) for res in cont if (res.is_primary and res.administrative_unit_id in self.user_administrated_units_ids))
-            )
 
+        if self.request.user.has_perm('aklub.can_edit_all_units'):
+            return obj.get_email()
+        else:
+            com = [c for c in obj.companycontact_set.all() if c.administrative_unit_id in self.user_administrated_units_ids]
+            return obj.get_email(com)
     get_company_email.short_description = _("Main email")
 
     def get_company_telephone(self, obj):
-        cont = obj.companycontact_set.all()
+
         if self.request.user.has_perm('aklub.can_edit_all_units'):
-            return sweet_text(((res.telephone,) for res in cont if res.is_primary))
+            return obj.get_main_telephone()
         else:
-            return sweet_text(
-                ((res.telephone,) for res in cont if (res.is_primary and res.administrative_unit_id in self.user_administrated_units_ids))
-            )
+            com = [c for c in obj.companycontact_set.all() if c.administrative_unit_id in self.user_administrated_units_ids]
+            return obj.get_main_telephone(com)
 
     get_company_telephone.short_description = _("Main telephone")
+
+    def get_contact_name(self, obj):
+        if self.request.user.has_perm('aklub.can_edit_all_units'):
+            return obj.get_main_contact_name()
+        else:
+            com = [c for c in obj.companycontact_set.all() if c.administrative_unit_id in self.user_administrated_units_ids]
+            return obj.get_main_contact_name(com)
+
+    get_contact_name.short_description = _("Contact Name")
 
     def get_form(self, request, obj=None, **kwargs):
         if obj:

@@ -822,11 +822,14 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
         donors = ','.join(donor.VS for donor in self.userchannels.all() if donor.VS is not None)
         return donors
 
-    def get_main_telephone(self):
-        if self.is_userprofile():
-            active_numbers = self.telephone_set.all()
+    def get_main_telephone(self, edited_query=None):
+        if edited_query:
+            active_numbers = edited_query
         else:
-            active_numbers = self.companycontact_set.all()
+            if self.is_userprofile():
+                active_numbers = self.telephone_set.all()
+            else:
+                active_numbers = self.companycontact_set.all()
         numbers = list(map(lambda number: number.create_link(), active_numbers))
         return mark_safe('\n'.join(numbers))
 
@@ -870,6 +873,7 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
     def get_administrative_units(self):
         administrative_units = ', '.join(administrative_unit.name for administrative_unit in self.administrative_units.all())
         return administrative_units
+    get_administrative_units.short_description = _("Administrative units")
 
     def can_administer_profile(self, profile):
         if self.has_perm('aklub.can_edit_all_units'):
@@ -887,18 +891,21 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
         else:
             return False
 
-    def get_email(self):
-        if self.is_userprofile():
-            emails = self.profileemail_set.all()
+    def get_email(self, edited_query=None):
+        if edited_query:
+            emails = edited_query
         else:
-            emails = self.companycontact_set.all()
+            if self.is_userprofile():
+                emails = self.profileemail_set.all()
+            else:
+                emails = self.companycontact_set.all()
         result = list(
             map(
                 lambda email:
                 format_html('<b>{}</b>'.format(email.email))
                 if email.is_primary
                 else
-                format_html('{}'.format(email.email)),
+                format_html('{}'.format(email.email or "")),
                 emails,
             ),
         )
@@ -961,6 +968,24 @@ class CompanyProfile(Profile):
 
     full_contact_name.short_description = _("Contact name")
     full_contact_name.admin_order_field = 'full_contact_name'
+
+    def get_main_contact_name(self, edited_query=None):
+        if edited_query:
+            com = edited_query
+        else:
+            com = self.companycontact_set.all()
+        result = list(
+            map(
+                lambda contact:
+                format_html('<nobr><b>{}</b></nobr>'.format(f'{contact.contact_first_name} {contact.contact_last_name}'))
+                if contact.is_primary
+                else
+                format_html('<nobr>{}</nobr>'.format(f'{contact.contact_first_name} {contact.contact_last_name}')),
+                com,
+            ),
+        )
+        result.sort(key=lambda item: -1 if '<b>' in item else 0)
+        return mark_safe('\n'.join(result))
 
 
 class UserProfile(Profile, AbstractUserProfile):
@@ -1080,12 +1105,14 @@ class CompanyContact(models.Model):
     )
 
     def format_number(self):
-        if hasattr(self, "telephone") and self.telephone != "":
+        if hasattr(self, "telephone") and self.telephone:
             removed_space_tel = self.telephone.replace(" ", "")
             if len(removed_space_tel) > 9:
                 return '+' + removed_space_tel[-12:]
             else:
                 return '+420' + removed_space_tel[-9:]
+        else:
+            return ""
 
     def create_link(self):
         if hasattr(self, "telephone"):
