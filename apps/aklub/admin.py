@@ -813,7 +813,11 @@ class ProfileAdminMixin:
 
     make_tax_confirmation.short_description = _("Make Tax Confirmation")
 
-    actions = (make_tax_confirmation,)
+    actions = (
+        make_tax_confirmation,
+        create_export_job_action,
+        send_mass_communication_action,
+        )
 
     def change_view(self, request, object_id, extra_context=None, **kwargs):
         from helpdesk.query import query_to_base64
@@ -1840,8 +1844,7 @@ class UserProfileAdmin(
     )
 
     actions = (
-        create_export_job_action,
-        send_mass_communication_action,
+
     ) + ProfileAdminMixin.actions
 
     advanced_filter_fields = (
