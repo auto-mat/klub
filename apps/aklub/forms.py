@@ -5,6 +5,7 @@ from django import forms
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import ReadOnlyPasswordHashField, UserChangeForm, UserCreationForm, UsernameField
+from django.db import IntegrityError, transaction
 from django.urls import reverse_lazy
 
 from smmapdfs.models import PdfSandwichType
@@ -262,15 +263,20 @@ class CompanyProfileAddForm(forms.ModelForm):
         user.save()
         if email or self.cleaned_data['telephone']:
             for unit in self.cleaned_data['administrative_units']:
-                CompanyContact.objects.create(
+                contact = CompanyContact.objects.create(
                     email=email,
                     telephone=self.cleaned_data['telephone'],
                     company=user,
-                    is_primary=False,
                     administrative_unit=unit,
                     contact_first_name=user.contact_first_name if user.contact_first_name else '',
                     contact_last_name=user.contact_last_name if user.contact_last_name else '',
                 )
+                try:
+                    contact.is_primary = True
+                    with transaction.atomic():
+                        contact.save()
+                except IntegrityError:
+                    pass
         return user
 
 
