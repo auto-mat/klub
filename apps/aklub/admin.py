@@ -1184,9 +1184,12 @@ class DonorPaymetChannelAdmin(
 
     def get_name(self, obj):
         if obj.profile_type == UserProfile._meta.model_name:
-            return f"{obj.first_name} {obj.last_name}"
+            if obj.first_name or obj.last_name:
+                return f"{obj.first_name} {obj.last_name}"
+            else:
+                return '-'
         else:
-            return obj.company_name
+            return obj.company_name or '-'
 
 
 def add_user_bank_acc_to_dpch(self, request, queryset):
