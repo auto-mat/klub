@@ -59,8 +59,13 @@ class InteractionResource(ModelResource):
 
     def before_import_row(self, row, **kwargs):
         user = None
+        # TODO: can be removed in companycontact update
+        row['email'] = row['email'].lower()
         if row.get('email'):
             try:
+                # TODO: remove after companycontactact is merger
+                if ProfileEmail.objects.filter(email=row['email']).count() != 1:
+                    raise ValidationError({"email": "This email is duplicated in user/company profile and import is not allowed now "})
                 user = ProfileEmail.objects.get(email=row['email']).user
             except ProfileEmail.DoesNotExist:
                 pass

@@ -1132,6 +1132,9 @@ class DonorPaymentChannelResource(ModelResource):
     def before_import_row(self, row, **kwargs):
         try:
             row['email'] = row['email'].lower()
+            # TODO: can be removed in companycontact update
+            if ProfileEmail.objects.filter(email=row['email']).count() != 1:
+                raise ValidationError({"email": "This email is duplicated in user/company profile and import is not allowed now "})
             row['user'] = ProfileEmail.objects.get(email=row['email']).user.id
         except ProfileEmail.DoesNotExist:
             raise ValidationError({"email": "User with this email doesn't exist"})
