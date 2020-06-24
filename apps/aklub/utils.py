@@ -2,6 +2,21 @@
 
 from django.db import models
 from django.urls import reverse
+from django.utils.html import format_html_join, mark_safe
+
+
+def sweet_text(generator):
+    """
+    breakto diff lines
+    accepts generator:
+    example:
+    (str(pay.ammount),) for pay in payments))
+    return :
+    1000,
+    2000,
+    3000
+    """
+    return format_html_join(mark_safe(',<br/>'), "<nobr>{}</nobr>", generator)
 
 
 def create_model(

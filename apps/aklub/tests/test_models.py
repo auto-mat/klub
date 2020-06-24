@@ -21,7 +21,6 @@
 import datetime
 
 from django.core import mail
-from django.core.management import call_command
 from django.test import TestCase
 
 from freezegun import freeze_time
@@ -39,7 +38,6 @@ class ModelTests(TestCase):
     fixtures = ['conditions', 'users']
 
     def setUp(self):
-        call_command('denorm_init')
         self.u = DonorPaymentChannel.objects.get(pk=2979)
         self.u1 = DonorPaymentChannel.objects.get(pk=2978)
         self.u2 = DonorPaymentChannel.objects.get(pk=3)
@@ -50,7 +48,6 @@ class ModelTests(TestCase):
         self.p2 = Payment.objects.get(pk=3)
         self.p1.BIC = 101
         self.p1.save()
-        call_command('denorm_flush')
         self.u1 = DonorPaymentChannel.objects.get(pk=2978)
 
     def test_user_model(self):

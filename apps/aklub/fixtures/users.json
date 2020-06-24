@@ -355,8 +355,7 @@
         "fields": {
             "user_profile": 2978,
             "year": "2014",
-            "amount": "2014",
-            "administrative_unit": 1
+            "amount": "2014"
         },
         "model": "aklub.taxconfirmation",
         "pk": 1

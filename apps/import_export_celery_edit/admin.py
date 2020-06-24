@@ -29,6 +29,8 @@ class ImportAdminInline(InlineMixin, nested_admin.NestedStackedInline):
 
 
 admin.site.unregister(ImportJob)
+
+
 @admin.register(ImportJob)
 class _ImportJobAdmin(
     unit_admin_mixin_generator('importconnector__administrative_unit'),
@@ -47,6 +49,8 @@ class ExportAdminInline(InlineMixin, nested_admin.NestedStackedInline):
 
 
 admin.site.unregister(ExportJob)
+
+
 @admin.register(ExportJob)
 class _ExportJobAdmin(
     unit_admin_mixin_generator('exportconnector__administrative_unit'),

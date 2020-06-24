@@ -1,0 +1,197 @@
+[
+    {
+        "model": "django_celery_beat.crontabschedule",
+        "pk": 1,
+        "fields": {
+            "minute": "0",
+            "hour": "4",
+            "day_of_week": "*",
+            "day_of_month": "*",
+            "month_of_year": "*",
+            "timezone": "UTC"
+        }
+    },
+    {
+        "model": "django_celery_beat.crontabschedule",
+        "pk": 2,
+        "fields": {
+            "minute": "*/1",
+            "hour": "*",
+            "day_of_week": "*",
+            "day_of_month": "*",
+            "month_of_year": "*",
+            "timezone": "UTC"
+        }
+    },
+    {
+        "model": "django_celery_beat.crontabschedule",
+        "pk": 3,
+        "fields": {
+            "minute": "*",
+            "hour": "1",
+            "day_of_week": "*",
+            "day_of_month": "*",
+            "month_of_year": "*",
+            "timezone": "UTC"
+        }
+    },
+    {
+        "model": "django_celery_beat.crontabschedule",
+        "pk": 4,
+        "fields": {
+            "minute": "28",
+            "hour": "3",
+            "day_of_week": "*",
+            "day_of_month": "*",
+            "month_of_year": "*",
+            "timezone": "UTC"
+        }
+    },
+    {
+        "model": "django_celery_beat.periodictasks",
+        "pk": 1,
+        "fields": {
+            "last_update": "2020-03-31T21:55:40.492Z"
+        }
+    },
+    {
+        "model": "django_celery_beat.periodictask",
+        "pk": 1,
+        "fields": {
+            "name": "celery.backend_cleanup",
+            "task": "celery.backend_cleanup",
+            "interval": null,
+            "crontab": 1,
+            "solar": null,
+            "clocked": null,
+            "args": "[]",
+            "kwargs": "{}",
+            "queue": null,
+            "exchange": null,
+            "routing_key": null,
+            "headers": "{}",
+            "priority": null,
+            "expires": null,
+            "expire_seconds": 43200,
+            "one_off": false,
+            "start_time": null,
+            "enabled": true,
+            "last_run_at": "2020-04-01T04:00:00.000Z",
+            "total_run_count": 208,
+            "date_changed": "2020-04-01T04:02:20.042Z",
+            "description": ""
+        }
+    },
+    {
+        "model": "django_celery_beat.periodictask",
+        "pk": 2,
+        "fields": {
+            "name": "Send emails",
+            "task": "aklub.tasks.post_office_send_mail",
+            "interval": null,
+            "crontab": 2,
+            "solar": null,
+            "clocked": null,
+            "args": "[]",
+            "kwargs": "{}",
+            "queue": null,
+            "exchange": null,
+            "routing_key": null,
+            "headers": "{}",
+            "priority": null,
+            "expires": null,
+            "expire_seconds": null,
+            "one_off": false,
+            "start_time": null,
+            "enabled": true,
+            "last_run_at": "2020-04-01T16:51:00.001Z",
+            "total_run_count": 203118,
+            "date_changed": "2020-04-01T16:51:50.084Z",
+            "description": ""
+        }
+    },
+    {
+        "model": "django_celery_beat.periodictask",
+        "pk": 3,
+        "fields": {
+            "name": "Autocom",
+            "task": "aklub.tasks.check_autocom_daily",
+            "interval": null,
+            "crontab": 3,
+            "solar": null,
+            "clocked": null,
+            "args": "[]",
+            "kwargs": "{}",
+            "queue": null,
+            "exchange": null,
+            "routing_key": null,
+            "headers": "{}",
+            "priority": null,
+            "expires": null,
+            "expire_seconds": null,
+            "one_off": false,
+            "start_time": null,
+            "enabled": true,
+            "last_run_at": "2020-04-01T01:59:00.009Z",
+            "total_run_count": 8453,
+            "date_changed": "2020-04-01T01:59:05.058Z",
+            "description": ""
+        }
+    },
+    {
+        "model": "django_celery_beat.periodictask",
+        "pk": 4,
+        "fields": {
+            "name": "Check for helpdesk emails",
+            "task": "helpdesk.tasks.helpdesk_process_email",
+            "interval": null,
+            "crontab": 2,
+            "solar": null,
+            "clocked": null,
+            "args": "[]",
+            "kwargs": "{}",
+            "queue": null,
+            "exchange": null,
+            "routing_key": null,
+            "headers": "{}",
+            "priority": null,
+            "expires": null,
+            "expire_seconds": null,
+            "one_off": false,
+            "start_time": null,
+            "enabled": true,
+            "last_run_at": "2020-04-01T16:51:00.005Z",
+            "total_run_count": 203160,
+            "date_changed": "2020-04-01T16:51:50.074Z",
+            "description": ""
+        }
+    },
+    {
+        "model": "django_celery_beat.periodictask",
+        "pk": 5,
+        "fields": {
+            "name": "Darujme",
+            "task": "aklub.tasks.check_darujme",
+            "interval": null,
+            "crontab": 4,
+            "solar": null,
+            "clocked": null,
+            "args": "[]",
+            "kwargs": "{}",
+            "queue": null,
+            "exchange": null,
+            "routing_key": null,
+            "headers": "{}",
+            "priority": null,
+            "expires": null,
+            "expire_seconds": null,
+            "one_off": false,
+            "start_time": null,
+            "enabled": true,
+            "last_run_at": "2020-04-01T03:28:00.001Z",
+            "total_run_count": 141,
+            "date_changed": "2020-04-01T03:28:25.089Z",
+            "description": ""
+        }
+    }
+]
