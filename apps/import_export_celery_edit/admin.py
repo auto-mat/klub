@@ -1,6 +1,7 @@
 from aklub.filters import unit_admin_mixin_generator
 
 from django.contrib import admin
+from django.forms.models import ModelForm
 
 from import_export_celery.admin import ExportJobAdmin, ImportJobAdmin
 from import_export_celery.models import ExportJob, ImportJob
@@ -12,8 +13,16 @@ from related_admin import RelatedFieldAdmin
 from .models import ExportConnector, ImportConnector
 
 
+class InlineMixinForm(ModelForm):
+    def has_changed(self):
+        """ Must return True if we want to save unchanged inlines
+            or raise validation errors """
+        return True
+
+
 class InlineMixin(object):
     can_delete = False
+    form = InlineMixinForm
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if not request.user.has_perm('aklub.can_edit_all_units'):

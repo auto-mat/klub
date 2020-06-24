@@ -119,8 +119,6 @@ def import_obj(self, obj, data, dry_run):  # noqa
         if data.get("public") is not None:
             check['preference'].public = data['public']
 
-        check['preference'].save()
-
     if data.get('event') and data.get('bank_account') and data.get('donor') == 'x':
         SS = data.get('SS', None)
         try:
@@ -145,8 +143,9 @@ def import_obj(self, obj, data, dry_run):  # noqa
             check['user_bank_account'], _ = UserBankAccount.objects.get_or_create(bank_account_number=data['user_bank_account'])
             check['donors'].user_bank_account = check['user_bank_account']
             check['donors'].save()
-
     new_objects_validations(check)
+    if check.get('preference'):
+        check['preference'].save()
     super(ModelResource, self).import_obj(obj, data, dry_run)
 
 
@@ -191,6 +190,8 @@ def before_import_row(self, row, **kwargs):
     row['email'] = row['email'].lower() if row.get('email') else ''
     if row.get('username') == "":
         row["username"] = None
+    if not row['administrative_units']:
+        raise ValidationError({'administrative_units': 'This field must be set'})
 
 
 def import_field(self, field, obj, data, is_m2m=False):

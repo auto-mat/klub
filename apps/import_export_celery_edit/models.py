@@ -15,7 +15,6 @@ class ImportConnector(models.Model):
         AdministrativeUnit,
         on_delete=models.CASCADE,
         null=True,
-        blank=True,
     )
 
 
