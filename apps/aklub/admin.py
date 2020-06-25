@@ -79,7 +79,7 @@ from smmapdfs.actions import make_pdfsandwich
 from . import darujme, filters, mailing, tasks
 from .filters import ProfileTypeFilter, unit_admin_mixin_generator
 from .forms import (
-    CompanyProfileAddForm, CompanyProfileChangeForm, TaxConfirmationForm, UnitUserProfileAddForm,
+    CompanyProfileAddForm, CompanyProfileChangeForm, EventForm, TaxConfirmationForm, UnitUserProfileAddForm,
     UnitUserProfileChangeForm, UserCreateForm, UserUpdateForm,
 )
 from .models import (
@@ -1716,6 +1716,7 @@ download_darujme_statement.short_description = _("Download darujme statements")
 
 
 class EventAdmin(unit_admin_mixin_generator('administrative_units'), admin.ModelAdmin):
+    form = EventForm
     list_display = (
         'name',
         'id',
@@ -1866,7 +1867,6 @@ class BaseProfileChildAdmin(PolymorphicChildModelAdmin,):
         if issubclass(formset.model, DonorPaymentChannel):
             for f in formset.forms:
                 obj = f.instance
-                obj.generate_VS()
 
         if issubclass(formset.model, Interaction):
             for f in formset.forms:

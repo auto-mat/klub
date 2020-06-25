@@ -18,7 +18,6 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 # Create your views here.
-import datetime
 import json
 from collections import OrderedDict
 
@@ -30,7 +29,7 @@ from django.contrib import messages
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.core.mail import mail_managers
-from django.core.validators import MinLengthValidator, RegexValidator
+from django.core.validators import MinLengthValidator, RegexValidator, ValidationError
 from django.db.models import Case, CharField, Count, IntegerField, Q, Sum, Value, When
 from django.db.models.functions import TruncMonth
 from django.http import JsonResponse
@@ -341,18 +340,49 @@ def get_unique_username(email):
     return username
 
 
-def generate_variable_symbol(max_variable_symbol=9999):
-    now = datetime.datetime.now()
-    reg_n_today = len(DonorPaymentChannel.objects.filter(registered_support__gt=(now - datetime.timedelta(days=1))))
-
-    for i in range(reg_n_today + 1, max_variable_symbol):
-        variable_symbol = '%s%02d%02d%04d' % (
-            str(now.year)[-2:], now.month, now.day, i)
-        if len(DonorPaymentChannel.objects.filter(VS=variable_symbol)) == 0:
-            break
+def generate_variable_symbol(dpch):
+    # TODO: must be more effective!
+    vs_prefix = dpch.event.variable_symbol_prefix
+    unit = dpch.money_account.administrative_unit
+    if not vs_prefix:
+        vs_prefix = '0'
+        dpchs_VS = DonorPaymentChannel.objects.filter(
+            money_account__administrative_unit=unit,
+            VS__startswith=str(vs_prefix),
+        ).order_by('-VS').values_list('VS', flat=True)
+        if not dpchs_VS:
+            # first number
+            return '0000000001'
+        # first shoud be free.. but just in case we loop over it
+        # this is more faster than loop with prefix
+        for VS in dpchs_VS:
+            new_VS = '%0*d' % (10, int(VS)+1)
+            exist = DonorPaymentChannel.objects.filter(
+                        money_account__administrative_unit=unit,
+                        VS=new_VS,
+                        ).exists()
+            if not exist:
+                return new_VS
     else:
-        assert 0, "Out of free variable symbols, date %s, reg_n_today=%d" % (now, reg_n_today)
-    return variable_symbol
+        dpchs_VS = DonorPaymentChannel.objects.filter(
+            money_account__administrative_unit=unit,
+            VS__startswith=str(vs_prefix),
+        ).order_by('VS').values_list('VS', flat=True)
+        if not dpchs_VS:
+            # first number
+            return str(vs_prefix) + '00001'
+        for vs in dpchs_VS:
+            # we can retype to int because prefix doesnt start with zero
+            if str(int(vs)+1) not in dpchs_VS:
+                # is it really free?
+                exist = DonorPaymentChannel.objects.filter(
+                            money_account__administrative_unit=unit,
+                            VS=str(int(vs)+1),
+                            ).exists()
+                if not exist:
+                    return str(int(vs)+1)
+        else:
+            raise ValidationError('OUT OF VS')
 
 
 def create_new_user_profile(form, regular):
@@ -372,7 +402,6 @@ def create_new_user_profile(form, regular):
 
 
 def create_new_payment_channel(form, source_type, new_user_profile, regular, source_slug='web'):
-    variable_symbol = generate_variable_symbol()
     if source_type == 'regular':
         new_user_objects = form.save(commit=False)
         payment_channel = new_user_objects['userincampaign']
@@ -380,7 +409,6 @@ def create_new_payment_channel(form, source_type, new_user_profile, regular, sou
         data = form.clean()
         payment_channel, _ = DonorPaymentChannel.objects.get_or_create(
                                                     user=new_user_profile,
-                                                    VS=variable_symbol,
                                                     regular_payments='',
                                                     money_account=data['userincampaign'].get('money_account'),
                                                     event=data['userincampaign'].get('campaign'),
@@ -389,7 +417,6 @@ def create_new_payment_channel(form, source_type, new_user_profile, regular, sou
         "payment_channel shoud be DonnorPaymentChannel, but is %s" % type(payment_channel)
     if regular:
         payment_channel.regular_payments = regular
-    payment_channel.variable_symbol = variable_symbol
     payment_channel.source = Source.objects.get(slug=source_slug)
     payment_channel.user = new_user_profile
     payment_channel.save()
