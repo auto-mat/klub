@@ -1625,8 +1625,20 @@ class MassCommunicationAdmin(large_initial.LargeInitialMixin, admin.ModelAdmin):
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         if db_field.name == "send_to_users":
-            kwargs["queryset"] = Profile.objects.filter(is_active=True, preference__send_mailing_lists=True).distinct()
-        return super().formfield_for_manytomany(db_field, request, **kwargs)
+            # lets make it a little easier for superadmin (if he has administrated_units)
+            if not request.user.has_perm('aklub.can_edit_all_units'):
+                users_ids = Preference.objects.filter(
+                                            administrative_unit=request.user.administrated_units.first(),
+                                            send_mailing_lists=True,
+                            ).values_list('user__id', flat=True)
+
+                kwargs["queryset"] = Profile.objects.filter(
+                                            is_active=True,
+                                            id__in=users_ids,
+                                     ).distinct()
+            else:
+                kwargs["queryset"] = Profile.objects.filter(is_active=True).distinct()
+            return super().formfield_for_manytomany(db_field, request, **kwargs)
 
     def save_form(self, request, form, change):
         super(MassCommunicationAdmin, self).save_form(request, form, change)
