@@ -43,6 +43,10 @@ class TestNoUpgrade(TestCase):
             'aklub.BankAccount',
             administrative_unit=self.administrative_unit,
         )
+        self.event = mommy.make(
+            'aklub.Event',
+            administrative_units=[self.administrative_unit, ],
+        )
 
     def test_not_regular(self):
         """ Test DonorPaymentChannel with regular_payments=False returns False """
@@ -57,6 +61,8 @@ class TestNoUpgrade(TestCase):
                 campaign__name="Foo campaign",
                 user=profile,
                 money_account=self.bank_account,
+                event=self.event
+
             )
             self.assertEqual(
                 donor_payment_channel.no_upgrade,
@@ -77,6 +83,7 @@ class TestNoUpgrade(TestCase):
                 regular_payments="regular",
                 user=profile,
                 money_account=self.bank_account,
+                event=self.event
             )
             self.assertEqual(
                 donor_payment_channel.no_upgrade,
@@ -100,6 +107,7 @@ class TestNoUpgrade(TestCase):
                 ],
                 user=profile,
                 money_account=self.bank_account,
+                event=self.event
             )
             donor_payment_channel.save()
             self.assertEqual(
@@ -125,6 +133,7 @@ class TestNoUpgrade(TestCase):
                 ],
                 user=profile,
                 money_account=self.bank_account,
+                event=self.event
             )
             donor_payment_channel.save()
             self.assertEqual(
@@ -150,6 +159,7 @@ class TestNoUpgrade(TestCase):
                 ],
                 user=profile,
                 money_account=self.bank_account,
+                event=self.event
             )
             donor_payment_channel.save()
             self.assertEqual(
@@ -171,11 +181,16 @@ class TestExtraMoney(TestCase):
             'aklub.BankAccount',
             administrative_unit=administrative_unit,
         )
+        self.event = mommy.make(
+            'aklub.event',
+            administrative_units=[administrative_unit, ],
+        )
         self.donor_payment_channel = Recipe(
             "aklub.DonorPaymentChannel",
             campaign__name="Foo campaign",
             user__first_name="Foo user",
             money_account=self.bank_account,
+            event=self.event,
         )
 
     def test_extra_payment(self):
@@ -348,6 +363,7 @@ class TestDenormalizedFields(TestCase):
     def setUp(self):
         unit = mommy.make('aklub.AdministrativeUnit', name='test')
         self.money_acc = mommy.make('aklub.BankAccount', administrative_unit=unit, bank_account_number='12345')
+        self.event = mommy.make('aklub.Event', name='name', administrative_units=[unit, ])
         self.dpch = mommy.make(
             'aklub.DonorPaymentChannel',
             id=10,
@@ -355,6 +371,7 @@ class TestDenormalizedFields(TestCase):
             regular_frequency='monthly',
             regular_amount=100,
             expected_date_of_first_payment=datetime.date(year=2022, month=1, day=19),
+            event=self.event,
 
         )
 

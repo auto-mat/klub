@@ -31,16 +31,25 @@ class TestPersonName(TestCase):
     """ Test Result.person_name """
 
     def test_result_str(self):
+        au = mommy.make(
+            'aklub.AdministrativeUnit'
+        )
         user_profile = mommy.make(
             "aklub.UserProfile",
             first_name="Foo",
             last_name="Name",
+        )
+        event = mommy.make(
+            'aklub.Event',
+            id=22,
+            administrative_units=[au, ],
         )
         result = mommy.make(
             "aklub.Payment",
             campaign__name="Foo campaign",
             user_donor_payment_channel__user=user_profile,
             user_donor_payment_channel__bank_account__id=1,
+            user_donor_payment_channel__event__id=22,
         )
         self.assertEqual(result.person_name(), 'Name Foo')
 
@@ -74,11 +83,16 @@ class TestUserBankAccountRewrite(TestCase):
             "aklub.UserBankAccount",
             bank_account_number="2332222/2222",
         )
+        event = mommy.make(
+            'aklub.Event',
+            administrative_units=[au, ],
+        )
         self.donor_payment_channel = mommy.make(
             "aklub.DonorPaymentChannel",
             user=self.user_profile,
             user_bank_account=user_bank_acc,
             money_account=money_acc,
+            event=event,
         )
 
         self.request = RequestFactory().post("/aklub/payments")

@@ -478,9 +478,10 @@ class UserProfileAdminTests(TestCase):
 
         u1 = mommy.make('UserProfile', administrative_units=[au1], first_name="Foo")
         mommy.make('UserProfile', administrative_units=[au2], first_name="Bar")
+        event = mommy.make('aklub.event', administrative_units=[au1,])
         channel = mommy.make(
             'DonorPaymentChannel', user=u1, money_account__administrative_unit=au1,
-            regular_payments="regular", regular_amount=120,
+            regular_payments="regular", regular_amount=120, event=event,
         )
         mommy.make('Payment', user_donor_payment_channel=channel, amount=100)
         user.user_permissions.add(Permission.objects.get(codename='view_userprofile'))
