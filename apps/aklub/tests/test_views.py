@@ -34,8 +34,7 @@ from model_mommy import mommy
 
 from .test_admin import CreateSuperUserMixin
 from .utils import print_response  # noqa
-from .. import views
-from ..models import AdministrativeUnit, BankAccount, DonorPaymentChannel, ProfileEmail, UserProfile
+from ..models import DonorPaymentChannel, ProfileEmail, UserProfile
 
 
 class ClearCacheMixin(object):
@@ -673,7 +672,7 @@ class VariableSymbolTests(TestCase):
         event = mommy.make(
             "aklub.event",
             administrative_units=[self.au, ],
-            variable_symbol_prefix='12345'
+            variable_symbol_prefix='12345',
         )
 
         dpch1_1 = mommy.make(
@@ -689,7 +688,7 @@ class VariableSymbolTests(TestCase):
         event2 = mommy.make(
             "aklub.event",
             administrative_units=[self.au, ],
-            variable_symbol_prefix='54321'
+            variable_symbol_prefix='54321',
         )
         dpch2_1 = mommy.make(
             'aklub.donorpaymentchannel',

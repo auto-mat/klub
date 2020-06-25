@@ -61,7 +61,7 @@ class TestNoUpgrade(TestCase):
                 campaign__name="Foo campaign",
                 user=profile,
                 money_account=self.bank_account,
-                event=self.event
+                event=self.event,
 
             )
             self.assertEqual(
@@ -83,7 +83,7 @@ class TestNoUpgrade(TestCase):
                 regular_payments="regular",
                 user=profile,
                 money_account=self.bank_account,
-                event=self.event
+                event=self.event,
             )
             self.assertEqual(
                 donor_payment_channel.no_upgrade,
@@ -107,7 +107,7 @@ class TestNoUpgrade(TestCase):
                 ],
                 user=profile,
                 money_account=self.bank_account,
-                event=self.event
+                event=self.event,
             )
             donor_payment_channel.save()
             self.assertEqual(
@@ -133,7 +133,7 @@ class TestNoUpgrade(TestCase):
                 ],
                 user=profile,
                 money_account=self.bank_account,
-                event=self.event
+                event=self.event,
             )
             donor_payment_channel.save()
             self.assertEqual(
@@ -159,7 +159,7 @@ class TestNoUpgrade(TestCase):
                 ],
                 user=profile,
                 money_account=self.bank_account,
-                event=self.event
+                event=self.event,
             )
             donor_payment_channel.save()
             self.assertEqual(

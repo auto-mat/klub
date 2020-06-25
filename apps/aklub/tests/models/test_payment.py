@@ -39,7 +39,7 @@ class TestPersonName(TestCase):
             first_name="Foo",
             last_name="Name",
         )
-        event = mommy.make(
+        mommy.make(
             'aklub.Event',
             id=22,
             administrative_units=[au, ],
