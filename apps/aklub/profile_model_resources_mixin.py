@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
+import datetime
+
 from django.core.exceptions import ValidationError
+from django.utils.timezone import make_aware
 
 from import_export import fields
 from import_export.resources import ModelResource
@@ -69,8 +72,7 @@ def save_email(email, obj):
     return email
 
 
-def new_objects_validations(check):
-    errors = {}
+def new_objects_validations(check, errors):
     for key in check.keys():
         try:
             check[key].full_clean()
@@ -82,6 +84,7 @@ def new_objects_validations(check):
 
 def import_obj(self, obj, data, dry_run):  # noqa
     check = {}
+    errors = {}
     # Call this method only in the ProfileResource model resource subclass
     if hasattr(self, '_set_child_model_field_value'):
         self._set_child_model_field_value(obj=obj, data=data)
@@ -89,6 +92,14 @@ def import_obj(self, obj, data, dry_run):  # noqa
     # we add dry_run to obj and solve it in signal to avoid it
     obj.dry_run = dry_run
     obj.save()
+    if data.get('date_joined'):
+        # firstly to datetime then to timezone
+        try:
+            local_time = datetime.datetime.strptime(data.get('date_joined'), '%Y-%m-%d %H:%M:%S')
+            obj.date_joined = make_aware(local_time)
+        except Exception as e:
+            errors['date_joined'] = e
+
     if data.get('telephone'):
         check['telephone'], _ = Telephone.objects.get_or_create(
             telephone=data['telephone'],
@@ -120,30 +131,36 @@ def import_obj(self, obj, data, dry_run):  # noqa
             check['preference'].public = data['public']
 
     if data.get('event') and data.get('bank_account') and data.get('donor') == 'x':
+        can_create_dpch = True
         SS = data.get('SS', None)
         try:
             check['bank_account'] = BankAccount.objects.get(bank_account_number=data['bank_account'])
+        except Exception as e:
+            errors['bank_account'] = e
+            can_create_dpch = False
+        try:
             check['event'] = Event.objects.get(id=data['event'])
         except Exception as e:
-            raise ValidationError(e)
+            errors['event'] = e
+            can_create_dpch = False
+        if can_create_dpch:
+            check['donors'], _ = DonorPaymentChannel.objects.get_or_create(
+                    user=obj,
+                    event=check['event'],
+                    defaults={'SS': SS, 'money_account': check['bank_account']},
+                )
+            if data.get('VS') != "" and _:
+                check['donors'].VS = data.get('VS')
 
-        check['donors'], _ = DonorPaymentChannel.objects.get_or_create(
-                user=obj,
-                event=check['event'],
-                defaults={'SS': SS, 'money_account': check['bank_account']},
-            )
-        if data.get('VS') != "" and _:
-            check['donors'].VS = data.get('VS')
-
-        check['donors'].money_account = check['bank_account']
-        check['donors'].full_clean()
-        check['donors'].save()
-
-        if data.get('user_bank_account'):
-            check['user_bank_account'], _ = UserBankAccount.objects.get_or_create(bank_account_number=data['user_bank_account'])
-            check['donors'].user_bank_account = check['user_bank_account']
+            check['donors'].money_account = check['bank_account']
+            check['donors'].full_clean()
             check['donors'].save()
-    new_objects_validations(check)
+
+            if data.get('user_bank_account'):
+                check['user_bank_account'], _ = UserBankAccount.objects.get_or_create(bank_account_number=data['user_bank_account'])
+                check['donors'].user_bank_account = check['user_bank_account']
+                check['donors'].save()
+    new_objects_validations(check, errors)
     if check.get('preference'):
         check['preference'].save()
     super(ModelResource, self).import_obj(obj, data, dry_run)
