@@ -1541,6 +1541,11 @@ class AccountStatements(ParseAccountStatement, models.Model):
         blank=True,
         null=True,
     )
+    pair_log = models.TextField(
+        verbose_name=_("Payment pairing log"),
+        help_text=_("Why Payment was not paired"),
+        blank=True,
+    )
     administrative_unit = models.ForeignKey(
         AdministrativeUnit,
         verbose_name=_("administrative unit"),
@@ -1561,6 +1566,7 @@ class AccountStatements(ParseAccountStatement, models.Model):
 
     def payment_pair(self, payment):
         # Variable symbols and user bank account Payments pairing
+        log_message = ""
         try:
             donor_with_bank_account = DonorPaymentChannel.objects.get(
                                 user_bank_account__bank_account_number=str(payment.account) + '/' + str(payment.bank_code),
@@ -1569,8 +1575,10 @@ class AccountStatements(ParseAccountStatement, models.Model):
             payment.user_donor_payment_channel = donor_with_bank_account
             payment.save()
             return True
-        except (DonorPaymentChannel.DoesNotExist, DonorPaymentChannel.MultipleObjectsReturned):
-            pass
+        except DonorPaymentChannel.DoesNotExist:
+            log_message = str(_("dpch with user_bank_account doesnt_exist // "))
+        except DonorPaymentChannel.MultipleObjectsReturned:
+            log_message = str(_('multiple dpch with user_bank_account // '))
 
         if payment.VS != '':
             try:
@@ -1581,8 +1589,13 @@ class AccountStatements(ParseAccountStatement, models.Model):
                 payment.user_donor_payment_channel = donor_with_vs
                 payment.save()
                 return True
-            except (DonorPaymentChannel.DoesNotExist, DonorPaymentChannel.MultipleObjectsReturned):
-                pass
+            except DonorPaymentChannel.DoesNotExist:
+                log_message = log_message + str(_("dpch with VS doesnt_exist"))
+            except DonorPaymentChannel.MultipleObjectsReturned:
+                log_message = log_message + str(_("multiple dpch with VS"))
+        else:
+            log_message = log_message + str(_("VS not set"))
+        self.pair_log = f'{self.pair_log} {payment.account_name}  => {log_message}\n'
         return False
 
     def __str__(self):

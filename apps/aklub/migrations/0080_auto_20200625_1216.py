@@ -8,7 +8,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aklub', '0078_remove_taxconfirmation_administrative_unit'),
+        ('aklub', '0079_accountstatements_pair_log'),
     ]
 
     operations = [
