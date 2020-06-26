@@ -32,10 +32,10 @@ class Query(__Query__):
                 events.append({
                     'group': _('Events'),
                     'start_date': self.mk_timeline_date(
-                        profile.created,
+                        profile.date_joined,
                     ),
                     'text': {
-                        'headline': _("Profile created"),
+                        'headline': _("Profile joined"),
                         'text': "",
                     },
                 })
