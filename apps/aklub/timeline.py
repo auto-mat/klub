@@ -2,6 +2,7 @@ import datetime
 
 from aklub.models import Payment, Profile
 
+from django.utils.timezone import localtime
 from django.utils.translation import ugettext as _
 
 from helpdesk.query import __Query__
@@ -32,7 +33,7 @@ class Query(__Query__):
                 events.append({
                     'group': _('Events'),
                     'start_date': self.mk_timeline_date(
-                        profile.date_joined,
+                        localtime(profile.date_joined),
                     ),
                     'text': {
                         'headline': _("Profile joined"),
@@ -44,8 +45,8 @@ class Query(__Query__):
                     if interaction.type.category.display:
                         events.append({
                             'group': _(interaction.type.category.category),
-                            'start_date': self.mk_timeline_date(interaction.date_from),
-                            'end_date': self.mk_timeline_date(is_period(interaction)),
+                            'start_date': self.mk_timeline_date(localtime(interaction.date_from)),
+                            'end_date': self.mk_timeline_date(localtime(is_period(interaction))),
                             'text': {
                                 'headline': get_unit_color(
                                                     interaction.subject,
