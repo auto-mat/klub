@@ -2,6 +2,7 @@ import datetime
 
 from aklub.models import Payment, Profile
 
+from django.utils import timezone
 from django.utils.timezone import localtime
 from django.utils.translation import ugettext as _
 
@@ -17,7 +18,7 @@ def is_period(interaction):
         if interaction.date_to:
             date = interaction.date_to
         else:
-            date = datetime.datetime.now()
+            date = timezone.now()
     else:
         date = interaction.date_from
     return date
@@ -59,7 +60,6 @@ class Query(__Query__):
                                 ),
                             },
                         }
-
                         )
                 for payment in Payment.objects.select_related(
                                                 'user_donor_payment_channel__money_account__administrative_unit',
