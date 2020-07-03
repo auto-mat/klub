@@ -365,6 +365,7 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
             'regular_payments': 'promise',
             'campaign': '1',
             'verified': 1,
+            'event': 1,
             'communications-TOTAL_FORMS': 1,
             'communications-INITIAL_FORMS': 0,
             'payment_set-TOTAL_FORMS': 0,
@@ -478,9 +479,10 @@ class UserProfileAdminTests(TestCase):
 
         u1 = mommy.make('UserProfile', administrative_units=[au1], first_name="Foo")
         mommy.make('UserProfile', administrative_units=[au2], first_name="Bar")
+        event = mommy.make('aklub.event', administrative_units=[au1, ])
         channel = mommy.make(
             'DonorPaymentChannel', user=u1, money_account__administrative_unit=au1,
-            regular_payments="regular", regular_amount=120,
+            regular_payments="regular", regular_amount=120, event=event,
         )
         mommy.make('Payment', user_donor_payment_channel=channel, amount=100)
         user.user_permissions.add(Permission.objects.get(codename='view_userprofile'))

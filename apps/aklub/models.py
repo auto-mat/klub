@@ -34,9 +34,8 @@ from django.contrib.auth.models import (
 )
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.humanize.templatetags.humanize import intcomma
-from django.core.exceptions import ValidationError
 from django.core.files.storage import FileSystemStorage
-from django.core.validators import RegexValidator
+from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator, ValidationError
 from django.db import models, transaction
 from django.db.models import Count, Q, Sum, signals
 from django.dispatch import receiver
@@ -222,7 +221,13 @@ class Event(models.Model):
         verbose_name=_("Name"),
         help_text=_("Choose some unique name for this campaign"),
         max_length=100,
-
+    )
+    variable_symbol_prefix = models.PositiveIntegerField(
+        validators=[MinValueValidator(10000), MaxValueValidator(99999)],
+        verbose_name=_("Variable_symbol_prefix"),
+        help_text=_("Number between 10000-99999"),
+        blank=True,
+        null=True,
     )
     description = models.TextField(
         verbose_name=_("Description"),
@@ -1471,11 +1476,6 @@ class UserInCampaign(models.Model):
             insert = True
         else:
             insert = False
-        """
-        if not self.variable_symbol:  # and not self.id:
-            from .views import generate_variable_symbol
-            self.variable_symbol = generate_variable_symbol()
-        """
         super().save(*args, **kwargs)
         from .autocom import check as autocom_check
         autocom_check(users=UserProfile.objects.filter(userchannels__pk=self.pk, event=self.event), action=(insert and 'new-user' or None))
@@ -1812,8 +1812,6 @@ class DonorPaymentChannel(ComputedFieldsModel):
         MoneyAccount,
         related_name='moneyaccounts',
         on_delete=models.CASCADE,
-        null=False,
-        blank=False,
     )
     user_bank_account = models.ForeignKey(
         UserBankAccount,
@@ -1827,7 +1825,6 @@ class DonorPaymentChannel(ComputedFieldsModel):
         Event,
         help_text=("Event"),
         verbose_name=("Event"),
-        blank=True,
         on_delete=models.CASCADE,
         null=True,
     )
@@ -1843,7 +1840,7 @@ class DonorPaymentChannel(ComputedFieldsModel):
     def generate_VS(self):
         if self.VS == "" or self.VS is None:
             from .views import generate_variable_symbol
-            VS = generate_variable_symbol()
+            VS = generate_variable_symbol(dpch=self)
             self.VS = VS
 
     def requires_action(self):
@@ -2103,6 +2100,7 @@ class DonorPaymentChannel(ComputedFieldsModel):
         return super().clean(*args, **kwargs)
 
     def save(self, *args, **kwargs):
+        self.clean()  # run twice if saved in admin
         if self.pk is None:
             insert = True
         else:

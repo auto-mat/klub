@@ -6,7 +6,6 @@ from aklub.models import (
             DonorPaymentChannel, Event, Payment, ProfileEmail, Telephone, UserBankAccount,
             UserProfile,
             )
-from aklub.views import generate_variable_symbol
 
 from django.core.management.base import BaseCommand
 
@@ -32,7 +31,6 @@ class Command(BaseCommand):
             money_account = unit.moneyaccount_set.first()
             # for every unit we generate donor payment channel
             amount = randint(1, 10)*100
-            vs = generate_variable_symbol()
             dpch = DonorPaymentChannel.objects.create(
                                         user=user,
                                         money_account=money_account,
@@ -40,7 +38,6 @@ class Command(BaseCommand):
                                         user_bank_account=user_bank_account,
                                         regular_amount=amount,
                                         regular_frequency='monthly',
-                                        VS=vs,
                                         )
             # add payments and match with dpch!
             payments = []
@@ -51,7 +48,7 @@ class Command(BaseCommand):
                         recipient_account=money_account,
                         amount=amount,
                         user_donor_payment_channel=dpch,
-                        VS=vs,
+                        VS=dpch.VS,
                         date=date,
                         )
                 payments.append(pay)
@@ -96,7 +93,7 @@ class Command(BaseCommand):
             # create events
             event, _ = Event.objects.get_or_create(
                             administrative_units__id=unit.id,
-                            defaults={'name': f'Event -> {unit.name}'},
+                            defaults={'name': f'Event -> {unit.name}', 'variable_symbol_prefix': str(randint(10001, 88888))},
             )
             if _:
                 event.administrative_units.add(unit)

@@ -5,11 +5,12 @@ from django import forms
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import ReadOnlyPasswordHashField, UserChangeForm, UserCreationForm, UsernameField
+from django.core.exceptions import ValidationError
 from django.urls import reverse_lazy
 
 from smmapdfs.models import PdfSandwichType
 
-from .models import AdministrativeUnit, ProfileEmail, Telephone
+from .models import AdministrativeUnit, Event, ProfileEmail, Telephone
 
 Profile = get_user_model()
 
@@ -282,3 +283,14 @@ class CompanyProfileChangeForm(CompanyProfileAddForm):
 
     def is_valid(self):
         return super(CompanyProfileAddForm, self).is_valid()
+
+
+class EventForm(forms.ModelForm):
+    class Meta:
+        model = Event
+        fields = '__all__'
+
+    def clean(self):
+        if self.is_valid():
+            if self.cleaned_data['administrative_units'].count() != 1:
+                raise ValidationError({"administrative_units": "you can't select more than one adminstrative_unit"})

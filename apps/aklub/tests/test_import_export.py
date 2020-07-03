@@ -30,7 +30,10 @@ class PaymentsImportExportTests(CreateSuperUserMixin, TransactionTestCase):
                     "aklub.administrativeunit",
                     name='test_unit',
                     )
-
+        event = mommy.make(
+            "aklub.event",
+            administrative_units=[au, ],
+        )
         self.bank_account = mommy.make(
                             'aklub.BankAccount',
                             id=11,
@@ -41,6 +44,7 @@ class PaymentsImportExportTests(CreateSuperUserMixin, TransactionTestCase):
                             'aklub.donorpaymentchannel',
                             money_account=self.bank_account,
                             id=11,
+                            event=event,
         )
 
     def test_payments_import(self):
