@@ -61,10 +61,19 @@ class Query(__Query__):
                             },
                         }
                         )
-                for payment in Payment.objects.select_related(
-                                                'user_donor_payment_channel__money_account__administrative_unit',
-                                ).filter(user_donor_payment_channel__user=profile.pk):
+                if self.huser.user.has_perm('aklub.can_edit_all_units'):
+                    payments = Payment.objects\
+                         .select_related('user_donor_payment_channel__money_account__administrative_unit',)\
+                         .filter(user_donor_payment_channel__user=profile.pk,)
+                else:
+                    payments = Payment.objects\
+                        .select_related('user_donor_payment_channel__money_account__administrative_unit',)\
+                        .filter(
+                            user_donor_payment_channel__user=profile.pk,
+                            user_donor_payment_channel__money_account__administrative_unit__in=self.huser.user.administrated_units.all(),
+                        )
 
+                for payment in payments:
                     events.append({
                         'group': _('Payments'),
                         'start_date': self.mk_timeline_date(
