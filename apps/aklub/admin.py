@@ -19,7 +19,6 @@
 
 """Definition of administration interface for club management application"""
 
-import copy
 import datetime
 
 from adminactions import actions, merge
@@ -79,7 +78,7 @@ from smmapdfs.actions import make_pdfsandwich
 from . import darujme, filters, mailing, tasks
 from .filters import ProfileTypeFilter, unit_admin_mixin_generator
 from .forms import (
-    CompanyProfileAddForm, CompanyProfileChangeForm, TaxConfirmationForm, UnitUserProfileAddForm,
+    CompanyProfileAddForm, CompanyProfileChangeForm, EventForm, TaxConfirmationForm, UnitUserProfileAddForm,
     UnitUserProfileChangeForm, UserCreateForm, UserUpdateForm,
 )
 from .models import (
@@ -673,7 +672,7 @@ class BankAccountAdmin(
     """ bank account polymorphic admin model child class """
     base_model = BankAccount
     show_in_index = True
-    list_display = ('__str__', 'bank_account', 'bank_account_number', 'administrative_unit')
+    list_display = ('__str__', 'id', 'bank_account', 'bank_account_number', 'administrative_unit')
 
 
 @admin.register(MoneyAccount)
@@ -1526,8 +1525,20 @@ class MassCommunicationAdmin(large_initial.LargeInitialMixin, admin.ModelAdmin):
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         if db_field.name == "send_to_users":
-            kwargs["queryset"] = Profile.objects.filter(is_active=True, preference__send_mailing_lists=True).distinct()
-        return super().formfield_for_manytomany(db_field, request, **kwargs)
+            # lets make it a little easier for superadmin (if he has administrated_units)
+            if not request.user.has_perm('aklub.can_edit_all_units'):
+                users_ids = Preference.objects.filter(
+                                            administrative_unit=request.user.administrated_units.first(),
+                                            send_mailing_lists=True,
+                            ).values_list('user__id', flat=True)
+
+                kwargs["queryset"] = Profile.objects.filter(
+                                            is_active=True,
+                                            id__in=users_ids,
+                                     ).distinct()
+            else:
+                kwargs["queryset"] = Profile.objects.filter(is_active=True).distinct()
+            return super().formfield_for_manytomany(db_field, request, **kwargs)
 
     def save_form(self, request, form, change):
         super(MassCommunicationAdmin, self).save_form(request, form, change)
@@ -1571,8 +1582,7 @@ class AccountStatementsAdmin(unit_admin_mixin_generator('administrative_unit'), 
     list_display = ('type', 'import_date', 'payments_count', 'paired_payments', 'csv_file', 'administrative_unit', 'date_from', 'date_to')
     list_filter = ('type',)
     inlines = [PaymentsInlineNoExtra]
-    readonly_fields = ('import_date', 'payments_count', 'paired_payments')
-    fields = copy.copy(list_display)
+    readonly_fields = ('import_date', 'payments_count', 'paired_payments', 'pair_log')
     actions = (
         pair_payment_with_dpch,
         parse_statement,
@@ -1617,6 +1627,7 @@ download_darujme_statement.short_description = _("Download darujme statements")
 
 
 class EventAdmin(unit_admin_mixin_generator('administrative_units'), admin.ModelAdmin):
+    form = EventForm
     list_display = (
         'name',
         'id',
@@ -1793,7 +1804,6 @@ class BaseProfileChildAdmin(PolymorphicChildModelAdmin,):
         if issubclass(formset.model, DonorPaymentChannel):
             for f in formset.forms:
                 obj = f.instance
-                obj.generate_VS()
 
         if issubclass(formset.model, Interaction):
             for f in formset.forms:

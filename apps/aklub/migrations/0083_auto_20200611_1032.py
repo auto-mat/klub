@@ -8,7 +8,7 @@ from aklub.models import CompanyProfile
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aklub', '0079_auto_20200611_1000'),
+        ('aklub', '0082_auto_20200611_1000'),
     ]
 
     def migrate_company_data(apps, schema_editor):

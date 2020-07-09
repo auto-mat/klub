@@ -465,6 +465,8 @@ class TestPairPayments(TestCase):
         self.assertEqual(payment.user_donor_payment_channel, self.donor_payment_channel_1)
         self.assertEqual(return_value, True)
 
+        self.assertTrue(account_statement.pair_log == "")
+
     def test_pairing_user_bank_acc(self):
         """ Prefer pair with DPCH with unique user bank account in administrative unit """
         account_statement = mommy.make(
@@ -478,6 +480,8 @@ class TestPairPayments(TestCase):
 
         self.assertEqual(payment.user_donor_payment_channel, self.donor_payment_channel_2)
         self.assertEqual(return_value, True)
+
+        self.assertTrue(account_statement.pair_log == "")
 
     def test_pairing_multiple_user_bank_acc_false(self):
         """ Test if Variable symbol not exist and multiple user_bank_acc exist in one administrative unit """
@@ -494,6 +498,8 @@ class TestPairPayments(TestCase):
         self.assertEqual(payment.user_donor_payment_channel, None)
         self.assertEqual(return_value, False)
 
+        self.assertTrue("multiple dpch with user_bank_account // dpch with VS doesnt_exist" in account_statement.pair_log)
+
     def test_pairing_no_dpch_false(self):
         """ Test if donor_payment_channel is not found """
         payment = mommy.make("aklub.Payment", VS=12345, id=3)
@@ -508,3 +514,5 @@ class TestPairPayments(TestCase):
 
         self.assertEqual(payment.user_donor_payment_channel, None)
         self.assertEqual(return_value, False)
+
+        self.assertTrue("dpch with user_bank_account doesnt_exist // dpch with VS doesnt_exist" in account_statement.pair_log)

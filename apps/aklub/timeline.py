@@ -2,6 +2,8 @@ import datetime
 
 from aklub.models import Payment, Profile
 
+from django.utils import timezone
+from django.utils.timezone import localtime
 from django.utils.translation import ugettext as _
 
 from helpdesk.query import __Query__
@@ -16,7 +18,7 @@ def is_period(interaction):
         if interaction.date_to:
             date = interaction.date_to
         else:
-            date = datetime.datetime.now()
+            date = timezone.now()
     else:
         date = interaction.date_from
     return date
@@ -32,10 +34,10 @@ class Query(__Query__):
                 events.append({
                     'group': _('Events'),
                     'start_date': self.mk_timeline_date(
-                        profile.created,
+                        localtime(profile.date_joined),
                     ),
                     'text': {
-                        'headline': _("Profile created"),
+                        'headline': _("Profile joined"),
                         'text': "",
                     },
                 })
@@ -44,8 +46,8 @@ class Query(__Query__):
                     if interaction.type.category.display:
                         events.append({
                             'group': _(interaction.type.category.category),
-                            'start_date': self.mk_timeline_date(interaction.date_from),
-                            'end_date': self.mk_timeline_date(is_period(interaction)),
+                            'start_date': self.mk_timeline_date(localtime(interaction.date_from)),
+                            'end_date': self.mk_timeline_date(localtime(is_period(interaction))),
                             'text': {
                                 'headline': get_unit_color(
                                                     interaction.subject,
@@ -58,12 +60,20 @@ class Query(__Query__):
                                 ),
                             },
                         }
-
                         )
-                for payment in Payment.objects.select_related(
-                                                'user_donor_payment_channel__money_account__administrative_unit',
-                                ).filter(user_donor_payment_channel__user=profile.pk):
+                if self.huser.user.has_perm('aklub.can_edit_all_units'):
+                    payments = Payment.objects\
+                         .select_related('user_donor_payment_channel__money_account__administrative_unit',)\
+                         .filter(user_donor_payment_channel__user=profile.pk,)
+                else:
+                    payments = Payment.objects\
+                        .select_related('user_donor_payment_channel__money_account__administrative_unit',)\
+                        .filter(
+                            user_donor_payment_channel__user=profile.pk,
+                            user_donor_payment_channel__money_account__administrative_unit__in=self.huser.user.administrated_units.all(),
+                        )
 
+                for payment in payments:
                     events.append({
                         'group': _('Payments'),
                         'start_date': self.mk_timeline_date(

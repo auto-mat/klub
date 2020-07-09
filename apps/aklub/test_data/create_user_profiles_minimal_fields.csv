@@ -1,5 +1,5 @@
-email,sex
-,male
-,female
-,female
-,male
+email,sex,administrative_units
+,male,1
+,female,1
+,female,1
+,male,1

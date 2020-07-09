@@ -34,8 +34,7 @@ from model_mommy import mommy
 
 from .test_admin import CreateSuperUserMixin
 from .utils import print_response  # noqa
-from .. import views
-from ..models import AdministrativeUnit, BankAccount, DonorPaymentChannel, ProfileEmail, UserProfile
+from ..models import DonorPaymentChannel, ProfileEmail, UserProfile
 
 
 class ClearCacheMixin(object):
@@ -633,13 +632,77 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
 
 
 class VariableSymbolTests(TestCase):
-    fixtures = ['users']
+    # TODO ... add test if there is no more VS available for event
+    def setUp(self):
+        self.au = mommy.make(
+            "aklub.administrativeunit",
+            name='test_unit',
+        )
+        self.bank_account = mommy.make(
+            'aklub.BankAccount',
+            bank_account_number='111111/1111',
+            administrative_unit=self.au,
+        )
 
-    def test_out_of_vs(self):
-        au = AdministrativeUnit.objects.create(name='test')
-        bank_acc = BankAccount.objects.create(bank_account_number=1111, administrative_unit=au)
-        with self.assertRaises(AssertionError):
-            for i in range(1, 400):
-                vs = views.generate_variable_symbol(99)
-                userprofile = UserProfile.objects.create(username=vs, email="test%s@test.cz" % i)
-                DonorPaymentChannel.objects.create(VS=vs, event_id=1, user=userprofile, money_account=bank_acc)
+    def test_vs_generate_without_prefix(self):
+        event = mommy.make(
+            "aklub.event",
+            administrative_units=[self.au, ],
+        )
+
+        dpch = mommy.make(
+            'aklub.donorpaymentchannel',
+            money_account=self.bank_account,
+            event=event,
+        )
+        event2 = mommy.make(
+            "aklub.event",
+            administrative_units=[self.au, ],
+        )
+        dpch2 = mommy.make(
+            'aklub.donorpaymentchannel',
+            money_account=self.bank_account,
+            event=event2,
+        )
+        # fist dpch without prefix
+        self.assertEqual(dpch.VS, "0000000001")
+        self.assertEqual(dpch2.VS, "0000000002")
+
+    def test_vs_generate_witprefix(self):
+        event = mommy.make(
+            "aklub.event",
+            administrative_units=[self.au, ],
+            variable_symbol_prefix='12345',
+        )
+
+        dpch1_1 = mommy.make(
+            'aklub.donorpaymentchannel',
+            money_account=self.bank_account,
+            event=event,
+        )
+        dpch1_2 = mommy.make(
+            'aklub.donorpaymentchannel',
+            money_account=self.bank_account,
+            event=event,
+        )
+        event2 = mommy.make(
+            "aklub.event",
+            administrative_units=[self.au, ],
+            variable_symbol_prefix='54321',
+        )
+        dpch2_1 = mommy.make(
+            'aklub.donorpaymentchannel',
+            money_account=self.bank_account,
+            event=event2,
+        )
+        dpch2_2 = mommy.make(
+            'aklub.donorpaymentchannel',
+            money_account=self.bank_account,
+            event=event2,
+        )
+        # dpch with prefix
+        self.assertEqual(dpch1_1.VS, "1234500001")
+        self.assertEqual(dpch1_2.VS, "1234500002")
+
+        self.assertEqual(dpch2_1.VS, "5432100001")
+        self.assertEqual(dpch2_2.VS, "5432100002")

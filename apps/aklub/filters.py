@@ -7,8 +7,8 @@ from functools import reduce
 from django.contrib import messages
 from django.contrib.admin import SimpleListFilter
 from django.contrib.admin.filters import RelatedFieldListFilter
-from django.db.models import Count, Q
-from django.db.models.functions import Lower
+from django.db.models import Count, Q, Value
+from django.db.models.functions import Lower, Replace, Right
 from django.utils.translation import ugettext as _
 
 from .models import (
@@ -274,24 +274,24 @@ class TelephoneFilter(SimpleListFilter):
             else:
                 queryset = queryset.exclude(blank_filter)
             if self.value() == 'duplicate':
+                # TODO: shoud be nicer
                 if queryset.first().is_userprofile():
-                    duplicates = Telephone.objects.\
-                        values('telephone').\
-                        annotate(Count('id')).\
-                        values('telephone').\
-                        order_by().\
-                        filter(id__count__gt=1).\
-                        values_list('telephone', flat=True)
-                    return queryset.filter(telephone__telephone__in=duplicates)
+                    duplicate = Telephone.objects.\
+                        annotate(clean_telephone=Right(Replace('telephone', Value(' '), Value('')), 9, ))\
+                        .values('clean_telephone')\
+                        .annotate(total_clean=Count('clean_telephone'))\
+                        .filter(total_clean__gt=1)\
+                        .values_list('clean_telephone', flat=True)
+
+                    users_ids = Telephone.objects.\
+                        annotate(clean_telephone=Right(Replace('telephone', Value(' '), Value('')), 9, ))\
+                        .filter(clean_telephone__in=duplicate)\
+                        .order_by('clean_telephone')\
+                        .values_list('user', flat=True)
+                    return queryset.filter(id__in=users_ids).distinct()
                 else:
-                    duplicates = CompanyContact.objects.\
-                        values('telephone').\
-                        annotate(Count('id')).\
-                        values('telephone').\
-                        order_by().\
-                        filter(id__count__gt=1).\
-                        values_list('telephone', flat=True)
-                    return queryset.filter(companycontact__telephone__in=duplicates)
+                    # TODO: companycontact almost similar as ^
+                    pass
 
             if self.value() == 'bad-format':
                 if queryset.first().is_userprofile():

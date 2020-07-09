@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aklub', '0078_remove_taxconfirmation_administrative_unit'),
+        ('aklub', '0081_auto_20200611_1159'),
     ]
 
     operations = [

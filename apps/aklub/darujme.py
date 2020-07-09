@@ -11,7 +11,7 @@ from aklub.models import (
     AccountStatements, ApiAccount, DonorPaymentChannel, Payment, ProfileEmail, Telephone, UserProfile, str_to_datetime,
     str_to_datetime_xml,
 )
-from aklub.views import generate_variable_symbol, get_unique_username
+from aklub.views import get_unique_username
 
 import xlrd
 
@@ -240,7 +240,6 @@ def create_payment(data, payments, skipped_payments):  # noqa
         event=campaign.event,
         money_account=campaign,
         defaults={
-            'VS': generate_variable_symbol(),
             'regular_frequency': cetnost,
             'regular_payments': regular_payments,
             'regular_amount': amount if cetnost else None,

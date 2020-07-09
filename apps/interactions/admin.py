@@ -59,6 +59,7 @@ class InteractionResource(ModelResource):
         if not row.get('profile_type') and row.get('email'):
             raise ValidationError({'profile_type': 'Insert "c" or "u" (company/user)'})
         if row.get('email'):
+            row['email'] = row['email'].lower()
             try:
                 if row.get('profile_type') == 'u':
                     user = ProfileEmail.objects.get(email=row['email']).user
