@@ -2493,6 +2493,11 @@ class AutomaticCommunication(models.Model):
     def __str__(self):
         return str(self.name)
 
+    def clean(self):
+        # TODO: remove after fixing
+        # How shoud this work?
+        raise ValidationError('Cant create new automatic communication because its under development!')
+
 
 gender_strings_validator = autocom.gendrify_text
 variable_validator = RegexValidator(r'^([^$]*(\$(%s)\b)?)*$' % '|'.join(autocom.KNOWN_VARIABLES), _("Unknown variable"))
