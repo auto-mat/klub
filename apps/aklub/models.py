@@ -934,18 +934,6 @@ class CompanyProfile(Profile):
         null=True,
     )
 
-    contact_first_name = models.CharField(
-        verbose_name=_("Owner first name"),
-        max_length=256,
-        blank=True,
-        null=True,
-    )
-    contact_last_name = models.CharField(
-        verbose_name=_("Owner last name"),
-        max_length=256,
-        blank=True,
-        null=True,
-    )
     crn = StdNumField(
         'cz.dic',
         default=None,
@@ -966,14 +954,6 @@ class CompanyProfile(Profile):
         null=True,
     )
 
-    def full_contact_name(self):
-        """Return complete name"""
-        if self.contact_first_name and self.contact_last_name:
-            return f'{self.contact_first_name} {self.contact_last_name}'
-
-    full_contact_name.short_description = _("Contact name")
-    full_contact_name.admin_order_field = 'full_contact_name'
-
     def get_main_contact_name(self, edited_query=None):
         if edited_query:
             com = edited_query
@@ -991,6 +971,8 @@ class CompanyProfile(Profile):
         )
         result.sort(key=lambda item: -1 if '<b>' in item else 0)
         return mark_safe('\n'.join(result))
+    get_main_contact_name.short_description = _("Contact name")
+    get_main_contact_name.admin_order_field = 'full_contact_name'
 
 
 class UserProfile(Profile, AbstractUserProfile):
