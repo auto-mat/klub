@@ -42,7 +42,7 @@ from .utils import RunCommitHooksMixin
 from .utils import print_response  # noqa
 from .. import admin
 from .. models import (
-    AccountStatements, AutomaticCommunication, DonorPaymentChannel, MassCommunication,
+    AccountStatements, DonorPaymentChannel, MassCommunication,
     Profile, Telephone, UserProfile,
 )
 
@@ -288,7 +288,8 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
         obj = MassCommunication.objects.get(name="test communication")
         self.assertEqual(obj.subject, "Subject")
         self.assertEqual(response.url, "/aklub/masscommunication/%s/change/" % obj.id)
-
+    """
+    # WORK IN PROGRESS
     def test_automatic_communication_changelist_post(self):
         unit = mommy.make("aklub.AdministrativeUnit", name="test1")
         inter_category = mommy.make('interactions.interactioncategory', category='testcategory')
@@ -314,7 +315,7 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
         obj = AutomaticCommunication.objects.get(name="test communication")
         self.assertEqual(obj.subject, "Subject")
         self.assertEqual(response.url, "/aklub/automaticcommunication/%s/change/" % obj.id)
-
+    """
     def test_communication_changelist_post(self):
         user_profile = mommy.make('aklub.UserProfile')
         unit = mommy.make('aklub.AdministrativeUnit')

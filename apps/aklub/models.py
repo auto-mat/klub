@@ -2496,6 +2496,7 @@ class AutomaticCommunication(models.Model):
     def clean(self):
         # TODO: remove after fixing
         # How shoud this work?
+        # dont forget to uncomment/remove test_automatic_communication_changelist_post in test_admin
         raise ValidationError('Cant create new automatic communication because its under development!')
 
 
