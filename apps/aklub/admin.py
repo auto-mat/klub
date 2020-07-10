@@ -55,7 +55,7 @@ from import_export import fields
 from import_export.admin import ImportExportMixin
 from import_export.instance_loaders import BaseInstanceLoader
 from import_export.resources import ModelResource
-from import_export.widgets import ForeignKeyWidget
+from import_export.widgets import ForeignKeyWidget, CharWidget
 
 from import_export_celery.admin_actions import create_export_job_action
 
@@ -415,6 +415,9 @@ class CompanyProfileLoaderClass(BaseInstanceLoader):
 
 
 class CompanyProfileResource(ProfileModelResourceMixin):
+    contact_first_name = fields.Field(widget=CharWidget())
+    contact_last_name = fields.Field(widget=CharWidget())
+
     class Meta:
         model = CompanyProfile
         exclude = get_profile_admin_model_import_export_exclude_fields()
@@ -429,9 +432,33 @@ class CompanyProfileResource(ProfileModelResourceMixin):
         instance_loader_class = CompanyProfileLoaderClass
         clean_model_instances = True
 
+    def dehydrate_telephone(self, profile):
+        contacts = profile.companycontact_set.order_by('id')
+        if contacts:
+            return ',\n'.join(contact.telephone if contact.telephone else "-" for contact in contacts)
+        else:
+            return "-"
+
     def dehydrate_email(self, profile):
-        emails = CompanyContact.objects.get(company=profile)
-        return ',\n'.join(email.email for email in emails)
+        contacts = profile.companycontact_set.order_by('id')
+        if contacts:
+            return ',\n'.join(contact.email if contact.email else "-" for contact in contacts)
+        else:
+            return "-"
+
+    def dehydrate_contact_first_name(self, profile):
+        contacts = profile.companycontact_set.order_by('id')
+        if contacts:
+            return ',\n'.join(contact.contact_first_name if contact.contact_first_name else "-" for contact in contacts)
+        else:
+            return "-"
+
+    def dehydrate_contact_last_name(self, profile):
+        contacts = profile.companycontact_set.order_by('id')
+        if contacts:
+            return ',\n'.join(contact.contact_last_name if contact.contact_last_name else "-" for contact in contacts)
+        else:
+            return "-"
 
     def export_dehydrate_email(self, profile):
         try:
