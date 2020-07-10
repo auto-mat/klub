@@ -381,20 +381,26 @@ class TestTaxConfirmation(CreateSuperUserMixin, TestCase):
         """ Test, that test tax_configurate task which create TaxConfiguration and generate pdf"""
         unit = mommy.make("aklub.AdministrativeUnit", name='unit_test1')
         company = mommy.make(
-                "aklub.CompanyProfile",
-                id=2222,
-                name='company_name',
-                contact_first_name='contact_first',
-                contact_last_name='contact_last',
-                street='street_address',
-                city='city_name_com',
-                zip_code='111 00',
-                country="Test_country_xx",
-                crn='22670319',
-                tin='CZ22670319',
-                administrative_units=[unit],
+            "aklub.CompanyProfile",
+            id=2222,
+            name='company_name',
+            street='street_address',
+            city='city_name_com',
+            zip_code='111 00',
+            country="Test_country_xx",
+            crn='22670319',
+            tin='CZ22670319',
+            administrative_units=[unit],
         )
 
+        mommy.make(
+            "aklub.CompanyContact",
+            contact_first_name='contact_first',
+            contact_last_name='contact_last',
+            company=company,
+            is_primary=True,
+            administrative_unit=unit,
+        )
         bank_acc = mommy.make(
             "aklub.BankAccount",
             bank_account_number='1111',
@@ -471,6 +477,7 @@ class TestTaxConfirmation(CreateSuperUserMixin, TestCase):
         read_pdf = PyPDF2.PdfFileReader(pdf)
         page = read_pdf.getPage(0)
         page_content = page.extractText()
+
         self.assertTrue("2016" in page_content)
         self.assertTrue("350 K" in page_content)
         self.assertTrue("street_address" in page_content)

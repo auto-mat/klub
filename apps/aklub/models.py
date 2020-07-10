@@ -2869,7 +2869,14 @@ class TaxConfirmation(models.Model):
         return "%s" % (self.user_profile.name or "")
 
     def get_company_contact_name(self):
-        return "%s %s" % (self.user_profile.contact_first_name or "", self.user_profile.contact_last_name or "")
+        try:
+            main_contact = self.user_profile.companycontact_set.get(
+                is_primary=True,
+                administrative_unit=self.pdf_type.pdfsandwichtypeconnector.administrative_unit,
+            )
+            return "%s %s" % (main_contact.contact_first_name, main_contact.contact_last_name)
+        except CompanyContact.DoesNotExist:
+            return ""
 
     def get_company_tin(self):
         return "%s" % (self.user_profile.tin or "",)
