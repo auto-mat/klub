@@ -646,7 +646,7 @@ class AdminImportExportTests(CreateSuperUserMixin, TransactionTestCase):
             response,
             ''.join(
                 [
-                    '1,test.companyprofile@companyprofile.test,,',
+                    '1,test.companyprofile@companyprofile.test,-,',
                     '"VS:150157010\nevent:Klub přátel Auto*Matu\nbank_accout:\nuser_bank_account:\n\n",',
                     'test.companyprofile,2016-09-16 16:22:30,,,en,,Praha 4,Česká republika,,1,,,Česká republika,',
                     ',,False,,False,True,True,True,True,Company,11223344,55667788',
