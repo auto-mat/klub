@@ -55,7 +55,7 @@ from import_export import fields
 from import_export.admin import ImportExportMixin
 from import_export.instance_loaders import BaseInstanceLoader
 from import_export.resources import ModelResource
-from import_export.widgets import ForeignKeyWidget, CharWidget
+from import_export.widgets import CharWidget, ForeignKeyWidget
 
 from import_export_celery.admin_actions import create_export_job_action
 
