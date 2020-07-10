@@ -226,6 +226,8 @@ class CompanyProfileAddForm(forms.ModelForm):
     )
     hidden_lock_change = forms.CharField(widget=forms.HiddenInput(), initial='locked', required=False)
     telephone = forms.CharField(required=False)
+    contact_first_name = forms.CharField(required=False, max_length=256)
+    contact_last_name = forms.CharField(required=False, max_length=256)
 
     class Meta:
         model = Profile
@@ -262,15 +264,15 @@ class CompanyProfileAddForm(forms.ModelForm):
         email = user.email
         user.email = None
         user.save()
-        if email or self.cleaned_data['telephone']:
+        if email or self.cleaned_data['telephone'] or self.cleaned_data['contact_first_name'] or self.cleaned_data['contact_last_name']:
             for unit in self.cleaned_data['administrative_units']:
                 contact = CompanyContact.objects.create(
                     email=email,
                     telephone=self.cleaned_data['telephone'],
                     company=user,
                     administrative_unit=unit,
-                    contact_first_name=user.contact_first_name if user.contact_first_name else '',
-                    contact_last_name=user.contact_last_name if user.contact_last_name else '',
+                    contact_first_name=self.cleaned_data['contact_first_name'],
+                    contact_last_name=self.cleaned_data['contact_last_name'],
                 )
                 try:
                     contact.is_primary = True
