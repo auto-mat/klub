@@ -260,7 +260,7 @@ class TelephoneFilter(SimpleListFilter):
             ('blank', _('Blank')),
         )
 
-    def queryset(self, request, queryset):
+    def queryset(self, request, queryset): # noqa
         if self.value():
             if not queryset:
                 return queryset
@@ -274,11 +274,16 @@ class TelephoneFilter(SimpleListFilter):
             else:
                 queryset = queryset.exclude(blank_filter)
             if self.value() == 'duplicate':
-                # TODO: shoud be nicer
+                filter_kwargs = {}
+                # check what perm admin has
                 if queryset.first().is_userprofile():
+                    if not request.user.has_perm('aklub.can_edit_all_units'):
+                        filter_kwargs = {'user__administrative_units__in': request.user.administrated_units.all()}
+                    # TODO: shoud be nicer
                     duplicate = Telephone.objects.\
                         annotate(clean_telephone=Right(Replace('telephone', Value(' '), Value('')), 9, ))\
                         .values('clean_telephone')\
+                        .filter(**filter_kwargs)\
                         .annotate(total_clean=Count('clean_telephone'))\
                         .filter(total_clean__gt=1)\
                         .values_list('clean_telephone', flat=True)
@@ -287,11 +292,28 @@ class TelephoneFilter(SimpleListFilter):
                         annotate(clean_telephone=Right(Replace('telephone', Value(' '), Value('')), 9, ))\
                         .filter(clean_telephone__in=duplicate)\
                         .order_by('clean_telephone')\
-                        .values_list('user', flat=True)
+                        .values_list('user', flat=True)\
+                        .order_by('clean_telephone')
                     return queryset.filter(id__in=users_ids).distinct()
                 else:
-                    # TODO: companycontact almost similar as ^
-                    pass
+                    if not request.user.has_perm('aklub.can_edit_all_units'):
+                        filter_kwargs = {'company__administrative_units__in': request.user.administrated_units.all()}
+                    # TODO: shoud be nicer
+                    duplicate = CompanyContact.objects.\
+                        annotate(clean_telephone=Right(Replace('telephone', Value(' '), Value('')), 9, ))\
+                        .values('clean_telephone')\
+                        .filter(**filter_kwargs)\
+                        .annotate(total_clean=Count('clean_telephone'))\
+                        .filter(total_clean__gt=1)\
+                        .values_list('clean_telephone', flat=True)
+
+                    companies_ids = CompanyContact.objects.\
+                        annotate(clean_telephone=Right(Replace('telephone', Value(' '), Value('')), 9, ))\
+                        .filter(clean_telephone__in=duplicate)\
+                        .order_by('clean_telephone')\
+                        .values_list('company', flat=True)\
+                        .order_by('clean_telephone')
+                    return queryset.filter(id__in=companies_ids).distinct()
 
             if self.value() == 'bad-format':
                 if queryset.first().is_userprofile():
