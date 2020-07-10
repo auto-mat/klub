@@ -35,6 +35,7 @@ class FilterTestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
         self.request = self.factory.get("")
+        self.request.user = mommy.make("aklub.UserProfile", is_superuser=True)
 
 
 class FilterTests(FilterTestCase):
