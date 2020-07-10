@@ -907,7 +907,7 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
         result = list(
             map(
                 lambda email:
-                format_html('<b>{}</b>'.format(email.email))
+                format_html('<b>{}</b>'.format(email.email or ""))
                 if email.is_primary
                 else
                 format_html('{}'.format(email.email or "")),
