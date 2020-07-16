@@ -1,5 +1,6 @@
 #!/bin/bash
 npm install bower && python manage.py bower install
 python manage.py migrate
+python manage.py build_contenttools
 python manage.py collectstatic --noinput
 python3 manage.py compilemessages
