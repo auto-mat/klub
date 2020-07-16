@@ -242,6 +242,7 @@ INSTALLED_APPS = (
     'colorfield',
     'flexible_filter_conditions.apps.FlexibleFilterConditionsConfig',
     'rest_framework',
+    'drf_yasg',
     'oauth2_provider',
 )
 
@@ -250,9 +251,11 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
         'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
-        ]
+    ],
 }
 OAUTH2_PROVIDER = {
+    # sec * minutes * 24 =  24 hours * 1 year
+    'ACCESS_TOKEN_EXPIRE_SECONDS': 60 * 60 * 24 * 365,
     # this is the list of available scopes
     # TODO: shoud be added by each application
     'SCOPES': {'read': 'Read scope', 'write': 'Write scope', 'can_create_profiles': 'Can create profiles by API'},

@@ -1,17 +1,42 @@
-from aklub.models import CompanyProfile, ProfileEmail, Telephone,  UserProfile
+import datetime
+
+from aklub.models import CompanyProfile, DonorPaymentChannel, Event, MoneyAccount, ProfileEmail, Telephone, UserProfile
+
+from django.utils import timezone
 
 from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope
 
-from rest_framework import status
+from rest_framework import generics, status
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
-from .serializers import GetDpchCompanyProfileSerializer, GetDpchUserProfileSerializer
+from .exceptions import DonorPaymentChannelDoesntExist
+from .serializers import (
+    DonorPaymetChannelSerializer, EventCheckSerializer, GetDpchCompanyProfileSerializer, GetDpchUserProfileSerializer,
+    MoneyAccountCheckSerializer, PaymentSerializer,
+)
 from .utils import get_or_create_dpch
 
 
-class CreateDpchUserProfileView(APIView):
-    """ accepts email and so... create DPCH or find existed and return VS"""
+class CheckMoneyAccountView(generics.RetrieveAPIView):
+    """ Check if MoneyAccount  Bank/Api with this slug exists"""
+    permission_classes = [TokenHasReadWriteScope]
+    required_scopes = ['can_create_profiles']
+    queryset = MoneyAccount.objects.all()
+    lookup_field = 'slug'
+    serializer_class = MoneyAccountCheckSerializer
+
+
+class CheckEventView(generics.RetrieveAPIView):
+    """ Check if Event with this slug exists"""
+    permission_classes = [TokenHasReadWriteScope]
+    required_scopes = ['can_create_profiles']
+    queryset = Event.objects.all()
+    lookup_field = 'slug'
+    serializer_class = EventCheckSerializer
+
+
+class CreateDpchUserProfileView(generics.GenericAPIView):
+    """ Creates or GET DonorPaymentChannel and return VS"""
     permission_classes = [TokenHasReadWriteScope]
     required_scopes = ['can_create_profiles']
 
@@ -48,8 +73,8 @@ class CreateDpchUserProfileView(APIView):
             return Response({'VS': VS}, status=status.HTTP_200_OK)
 
 
-class CreateDpchCompanyProfileView(APIView):
-    """ accepts crn and so... create DPCH or find existed and return VS"""
+class CreateDpchCompanyProfileView(generics.GenericAPIView):
+    """ Creates or GET DonorPaymentChannel and return VS"""
     permission_classes = [TokenHasReadWriteScope]
     required_scopes = ['can_create_profiles']
 
@@ -80,3 +105,70 @@ class CreateDpchCompanyProfileView(APIView):
 
             VS = get_or_create_dpch(serializer, company)
             return Response({'VS': VS}, status=status.HTTP_200_OK)
+
+
+class CheckPaymentView(generics.GenericAPIView):
+    """ Check last assigned payment"""
+    permission_classes = [TokenHasReadWriteScope]
+    required_scopes = ['can_create_profiles']
+
+    def post(self, request):
+        serializer = DonorPaymetChannelSerializer(data=self.request.data)
+        if serializer.is_valid(raise_exception=True):
+            try:
+                dpch = DonorPaymentChannel.objects.get(
+                    money_account=serializer.validated_data['money_account'],
+                    event=serializer.validated_data['event'],
+                    VS=serializer.validated_data['VS'],
+                )
+            except DonorPaymentChannel.DoesNotExist:
+                raise DonorPaymentChannelDoesntExist()
+
+            payments = dpch.payment_set\
+                .all()\
+                .order_by('date')\
+                .filter(
+                    date__gte=timezone.now() - datetime.timedelta(weeks=8),
+                    date__lte=timezone.now(),
+                )
+            return Response(PaymentSerializer(payments, many=True).data)
+
+
+class CreateInteraction(generics.GenericAPIView):
+    """
+        Accepts same data as 'Check last assigned payment endpoint'
+        Call this one if succesed
+    """
+    permission_classes = [TokenHasReadWriteScope]
+    required_scopes = ['can_create_profiles']
+
+    def post(self, request):
+        serializer = DonorPaymetChannelSerializer(data=self.request.data)
+        if serializer.is_valid(raise_exception=True):
+            try:
+                user = DonorPaymentChannel.objects.get(
+                    money_account=serializer.validated_data['money_account'],
+                    event=serializer.validated_data['event'],
+                    VS=serializer.validated_data['VS'],
+                ).user
+            except DonorPaymentChannel.DoesNotExist:
+                raise DonorPaymentChannelDoesntExist()
+            # TOD: shoud be somewhere else but this one is only for one purpose
+            from interactions.models import Interaction, InteractionType, InteractionCategory
+            category, created = InteractionCategory.objects.get_or_create(category='emails')
+            int_type, created = InteractionType.objects.get_or_create(
+                slug='email-vizus',
+                category=category,
+                defaults={'name': 'email-vizus', 'summary_bool': True},
+            )
+
+            Interaction.objects.create(
+                user=user,
+                type=int_type,
+                date_from=timezone.now(),
+                event=serializer.validated_data['event'],
+                administrative_unit=serializer.validated_data['money_account'].administrative_unit,
+                subject="vizus-crm-email",
+                summary="email send by vizus crm, because payment was paired",
+            )
+            return Response(status=status.HTTP_200_OK)
