@@ -48,3 +48,5 @@ CORS_ORIGIN_REGEX_WHITELIST = (
 )
 
 django_heroku.settings(locals())
+
+STATICFILES_STORAGE = 'project.settings.custom_storage.CustomStaticFilesStorage'
