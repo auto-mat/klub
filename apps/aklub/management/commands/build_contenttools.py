@@ -280,8 +280,8 @@ class Command(BaseCommand):
 
         def raise_command_error(stream):
             raise CommandError(
-                f'Error executing command {program} '
-                f'{package}\n{stream}'
+                f"Error executing command {program} "
+                f"{package}\n{stream}"
             )
 
         # Install package

@@ -208,7 +208,7 @@ class CompanySocialMedia(models.Model):
         )()
 
     def __str__(self):
-        return f'{self.icon_name} : {self.url}'
+        return f"{self.icon_name} : {self.url}"
 
 
 class TemplateFooter(models.Model):
