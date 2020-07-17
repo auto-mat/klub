@@ -21,17 +21,10 @@ python:
 before_install:
   - sudo apt-get install -y python-gdal
 install:
-<<<<<<< HEAD
   - pip install pipenv
   - pipenv install --dev --ignore-pipfile --python=python$TRAVIS_PYTHON_VERSION
   - pipenv run python --version
-  - pipenv run pip install flake8-strict  # not installable with pipenv, move ther when repaired
-=======
-  -
-  - pip install pipenv
-  - pipenv install --dev --ignore-pipfile
   - pipenv run pip install flake8-strict # not installable with pipenv, move ther when repaired
->>>>>>> set official Django 2.2.x release into the Travis config file
   - pipenv run pip install -q $DJANGO_VERSION
 before_script:
   - npm install -g bower sass
@@ -50,6 +43,6 @@ after_script:
 addons:
   postgresql: "9.6"
 matrix:
-   allow_failures:
-      - env: DJANGO_VERSION='https://github.com/django/django/archive/master.tar.gz'
-      - env: DJANGO_VERSION="Django>=3.0,<3.1"
+  allow_failures:
+    - env: DJANGO_VERSION='https://github.com/django/django/archive/master.tar.gz'
+    - env: DJANGO_VERSION="Django>=3.0,<3.1"
