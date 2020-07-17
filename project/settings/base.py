@@ -259,6 +259,8 @@ OAUTH2_PROVIDER = {
     # this is the list of available scopes
     # TODO: shoud be added by each application
     'SCOPES': {'read': 'Read scope', 'write': 'Write scope', 'can_create_profiles': 'Can create profiles by API'},
+    'OAUTH2_BACKEND_CLASS': 'oauth2_provider.oauth2_backends.JSONOAuthLibCore',
+
 }
 
 FLEXIBLE_FILTER_CONDITIONS_FIELD_MAP = {
