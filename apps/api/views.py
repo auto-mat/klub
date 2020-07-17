@@ -2,17 +2,15 @@ import datetime
 
 from aklub.models import CompanyProfile, DonorPaymentChannel, Event, MoneyAccount, ProfileEmail, Telephone, UserProfile
 
-from django.utils import timezone
-
 from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope
 
 from rest_framework import generics, status
 from rest_framework.response import Response
 
-from .exceptions import DonorPaymentChannelDoesntExist
+from .exceptions import DonorPaymentChannelDoesntExist, PaymentsDoesntExist
 from .serializers import (
     DonorPaymetChannelSerializer, EventCheckSerializer, GetDpchCompanyProfileSerializer, GetDpchUserProfileSerializer,
-    MoneyAccountCheckSerializer, PaymentSerializer,
+    InteractionSerizer, MoneyAccountCheckSerializer, PaymentSerializer,
 )
 from .utils import get_or_create_dpch
 
@@ -39,9 +37,10 @@ class CreateDpchUserProfileView(generics.GenericAPIView):
     """ Creates or GET DonorPaymentChannel and return VS"""
     permission_classes = [TokenHasReadWriteScope]
     required_scopes = ['can_create_profiles']
+    serializer_class = GetDpchUserProfileSerializer
 
     def post(self, request):
-        serializer = GetDpchUserProfileSerializer(data=self.request.data)
+        serializer = self.serializer_class(data=self.request.data)
         if serializer.is_valid(raise_exception=True):
             # check profile data
             user, created = UserProfile.objects.get_or_create(
@@ -77,9 +76,10 @@ class CreateDpchCompanyProfileView(generics.GenericAPIView):
     """ Creates or GET DonorPaymentChannel and return VS"""
     permission_classes = [TokenHasReadWriteScope]
     required_scopes = ['can_create_profiles']
+    serializer_class = GetDpchCompanyProfileSerializer
 
     def post(self, request):
-        serializer = GetDpchCompanyProfileSerializer(data=self.request.data)
+        serializer = self.serializer_class(data=self.request.data)
         if serializer.is_valid(raise_exception=True):
             # check profile data
             if serializer.validated_data.get('crn'):
@@ -111,9 +111,10 @@ class CheckPaymentView(generics.GenericAPIView):
     """ Check last assigned payment"""
     permission_classes = [TokenHasReadWriteScope]
     required_scopes = ['can_create_profiles']
+    serializer_class = DonorPaymetChannelSerializer
 
     def post(self, request):
-        serializer = DonorPaymetChannelSerializer(data=self.request.data)
+        serializer = self.serializer_class(data=self.request.data)
         if serializer.is_valid(raise_exception=True):
             try:
                 dpch = DonorPaymentChannel.objects.get(
@@ -124,51 +125,46 @@ class CheckPaymentView(generics.GenericAPIView):
             except DonorPaymentChannel.DoesNotExist:
                 raise DonorPaymentChannelDoesntExist()
 
+            # there we filter payments which arrived between date of register in form + 14 days
             payments = dpch.payment_set\
-                .all()\
                 .order_by('date')\
                 .filter(
-                    date__gte=timezone.now() - datetime.timedelta(weeks=8),
-                    date__lte=timezone.now(),
+                    amount=serializer.validated_data['amount'],
+                    date__gte=serializer.validated_data['date'],
+                    date__lte=serializer.validated_data['date'] + datetime.timedelta(days=14),
                 )
-            return Response(PaymentSerializer(payments, many=True).data)
+            if payments:
+                return Response(PaymentSerializer(payments, many=True).data)
+            else:
+                raise PaymentsDoesntExist()
 
 
 class CreateInteraction(generics.GenericAPIView):
     """
-        Accepts same data as 'Check last assigned payment endpoint'
-        Call this one if succesed
+        Create Interaction based on choice
     """
     permission_classes = [TokenHasReadWriteScope]
     required_scopes = ['can_create_profiles']
+    serializer_class = InteractionSerizer
 
     def post(self, request):
-        serializer = DonorPaymetChannelSerializer(data=self.request.data)
+        serializer = self.serializer_class(data=self.request.data)
         if serializer.is_valid(raise_exception=True):
-            try:
-                user = DonorPaymentChannel.objects.get(
-                    money_account=serializer.validated_data['money_account'],
-                    event=serializer.validated_data['event'],
-                    VS=serializer.validated_data['VS'],
-                ).user
-            except DonorPaymentChannel.DoesNotExist:
-                raise DonorPaymentChannelDoesntExist()
-            # TOD: shoud be somewhere else but this one is only for one purpose
             from interactions.models import Interaction, InteractionType, InteractionCategory
             category, created = InteractionCategory.objects.get_or_create(category='emails')
             int_type, created = InteractionType.objects.get_or_create(
-                slug='email-vizus',
+                slug=serializer.validated_data['interaction_type'],
                 category=category,
-                defaults={'name': 'email-vizus', 'summary_bool': True},
+                defaults={'name': serializer.validated_data['interaction_type'], 'summary_bool': True},
             )
 
             Interaction.objects.create(
-                user=user,
+                user_id=serializer.validated_data['profile_id'],
                 type=int_type,
-                date_from=timezone.now(),
+                date_from=serializer.validated_data['date'],
                 event=serializer.validated_data['event'],
-                administrative_unit=serializer.validated_data['money_account'].administrative_unit,
-                subject="vizus-crm-email",
-                summary="email send by vizus crm, because payment was paired",
+                administrative_unit=serializer.validated_data['event'].administrative_units.first(),
+                subject=f"vizus-{serializer.validated_data['interaction_type']}",
+                summary=serializer.validated_data['text'],
             )
             return Response(status=status.HTTP_200_OK)
