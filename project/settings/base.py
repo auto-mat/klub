@@ -258,7 +258,14 @@ OAUTH2_PROVIDER = {
     'ACCESS_TOKEN_EXPIRE_SECONDS': 60 * 60 * 24 * 365,
     # this is the list of available scopes
     # TODO: shoud be added by each application
-    'SCOPES': {'read': 'Read scope', 'write': 'Write scope', 'can_create_profiles': 'Can create profiles by API'},
+    'SCOPES': {
+        'read': 'Read scope',
+        'write': 'Write scope',
+        'can_create_profiles': 'Can create profiles by API',
+        'can_check_if_exist': 'Can check slugs',
+        'can_create_interactions': 'Can create interactions by API',
+        'can_check_last_payments': 'Can check payments in dpch',
+    },
     'OAUTH2_BACKEND_CLASS': 'oauth2_provider.oauth2_backends.JSONOAuthLibCore',
 
 }
