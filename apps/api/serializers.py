@@ -17,6 +17,13 @@ class RelatedFieldsMixin(serializers.Serializer):
     regular = serializers.BooleanField(initial=False)
 
 
+class VSReturnSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = DonorPaymentChannel
+        fields = ['VS', ]
+
+
 class GetDpchUserProfileSerializer(serializers.ModelSerializer, RelatedFieldsMixin):
 
     class Meta:

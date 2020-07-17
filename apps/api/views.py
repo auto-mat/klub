@@ -2,6 +2,8 @@ import datetime
 
 from aklub.models import CompanyProfile, DonorPaymentChannel, Event, MoneyAccount, ProfileEmail, Telephone, UserProfile
 
+from drf_yasg.utils import swagger_auto_schema
+
 from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope
 
 from rest_framework import generics, status
@@ -10,7 +12,7 @@ from rest_framework.response import Response
 from .exceptions import DonorPaymentChannelDoesntExist, PaymentsDoesntExist
 from .serializers import (
     DonorPaymetChannelSerializer, EventCheckSerializer, GetDpchCompanyProfileSerializer, GetDpchUserProfileSerializer,
-    InteractionSerizer, MoneyAccountCheckSerializer, PaymentSerializer,
+    InteractionSerizer, MoneyAccountCheckSerializer, PaymentSerializer, VSReturnSerializer,
 )
 from .utils import get_or_create_dpch
 
@@ -39,6 +41,7 @@ class CreateDpchUserProfileView(generics.GenericAPIView):
     required_scopes = ['can_create_profiles']
     serializer_class = GetDpchUserProfileSerializer
 
+    @swagger_auto_schema(responses={200: VSReturnSerializer()})
     def post(self, request):
         serializer = self.serializer_class(data=self.request.data)
         if serializer.is_valid(raise_exception=True):
@@ -68,8 +71,8 @@ class CreateDpchUserProfileView(generics.GenericAPIView):
 
             Telephone.objects.get_or_create(telephone=serializer.validated_data['telephone'], user=user)
 
-            VS = get_or_create_dpch(serializer, user)
-            return Response({'VS': VS}, status=status.HTTP_200_OK)
+            dpch = get_or_create_dpch(serializer, user)
+            return Response(VSReturnSerializer(dpch).data, status=status.HTTP_200_OK)
 
 
 class CreateDpchCompanyProfileView(generics.GenericAPIView):
@@ -78,6 +81,7 @@ class CreateDpchCompanyProfileView(generics.GenericAPIView):
     required_scopes = ['can_create_profiles']
     serializer_class = GetDpchCompanyProfileSerializer
 
+    @swagger_auto_schema(responses={200: VSReturnSerializer()})
     def post(self, request):
         serializer = self.serializer_class(data=self.request.data)
         if serializer.is_valid(raise_exception=True):
@@ -103,8 +107,8 @@ class CreateDpchCompanyProfileView(generics.GenericAPIView):
             ProfileEmail.objects.get_or_create(email=serializer.validated_data.get('email'), user=company)
             Telephone.objects.get_or_create(telephone=serializer.validated_data.get('telephone'), user=company)
 
-            VS = get_or_create_dpch(serializer, company)
-            return Response({'VS': VS}, status=status.HTTP_200_OK)
+            dpch = get_or_create_dpch(serializer, company)
+            return Response(VSReturnSerializer(dpch).data, status=status.HTTP_200_OK)
 
 
 class CheckPaymentView(generics.GenericAPIView):
@@ -113,6 +117,7 @@ class CheckPaymentView(generics.GenericAPIView):
     required_scopes = ['can_create_profiles']
     serializer_class = DonorPaymetChannelSerializer
 
+    @swagger_auto_schema(responses={200: PaymentSerializer(many=True)})
     def post(self, request):
         serializer = self.serializer_class(data=self.request.data)
         if serializer.is_valid(raise_exception=True):
@@ -147,6 +152,7 @@ class CreateInteraction(generics.GenericAPIView):
     required_scopes = ['can_create_profiles']
     serializer_class = InteractionSerizer
 
+    @swagger_auto_schema(responses={200: 'returns empty json'})
     def post(self, request):
         serializer = self.serializer_class(data=self.request.data)
         if serializer.is_valid(raise_exception=True):
