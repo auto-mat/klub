@@ -155,7 +155,7 @@ class CompanyUrl(models.Model):
     )
 
     def __str__(self):
-        return self.url
+        return self.url or ''
 
 
 class CompanyPhone(models.Model):
@@ -187,7 +187,7 @@ class CompanyEmail(models.Model):
     )
 
     def __str__(self):
-        return self.email
+        return self.email or ''
 
 
 class CompanySocialMedia(models.Model):
@@ -374,4 +374,4 @@ class TemplateHeader(models.Model):
     )
 
     def __str__(self):
-        return self.name
+        return self.name or ''
