@@ -1,18 +1,26 @@
 # -*- coding: utf-8 -*-
 
 import uuid
+from enum import Enum
 
 from django.conf import settings
 from django.contrib.postgres.fields import JSONField
 from django.db import models
-from django.utils.functional import lazy
 from django.utils.html import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
 from phonenumber_field.modelfields import PhoneNumberField
 
-from .utils import get_social_media_icons_names
 from .validators import validate_logo_image
+
+
+class SocialMedia(Enum):
+    facebook = 'facebook'
+    google = 'google'
+    instagram = 'instagram'
+    twitter = 'twitter'
+    vimeo = 'vimeo'
+    youtube = 'youtube'
 
 
 class TemplateContent(models.Model):
@@ -190,7 +198,7 @@ class CompanySocialMedia(models.Model):
 
     icon_name = models.CharField(
         verbose_name=_("Icon name"),
-        choices=(),
+        choices=((tag.name, tag.value) for tag in SocialMedia),
         max_length=20,
         null=True,
         blank=True,
@@ -200,12 +208,6 @@ class CompanySocialMedia(models.Model):
         null=True,
         blank=True,
     )
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._meta.get_field('icon_name').choices = lazy(
-            get_social_media_icons_names,
-        )()
 
     def __str__(self):
         return f"{self.icon_name} : {self.url}"
