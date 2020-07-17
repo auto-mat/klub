@@ -1,22 +1,49 @@
-from aklub.models import CompanyProfile, ProfileEmail, Telephone,  UserProfile
+import datetime
+
+from aklub.models import CompanyProfile, DonorPaymentChannel, Event, MoneyAccount, ProfileEmail, Telephone, UserProfile
+
+from drf_yasg.utils import swagger_auto_schema
 
 from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope
 
-from rest_framework import status
+from rest_framework import generics, status
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
-from .serializers import GetDpchCompanyProfileSerializer, GetDpchUserProfileSerializer
+from .exceptions import DonorPaymentChannelDoesntExist, PaymentsDoesntExist
+from .serializers import (
+    DonorPaymetChannelSerializer, EventCheckSerializer, GetDpchCompanyProfileSerializer, GetDpchUserProfileSerializer,
+    InteractionSerizer, MoneyAccountCheckSerializer, PaymentSerializer, VSReturnSerializer,
+)
 from .utils import get_or_create_dpch
 
 
-class CreateDpchUserProfileView(APIView):
-    """ accepts email and so... create DPCH or find existed and return VS"""
+class CheckMoneyAccountView(generics.RetrieveAPIView):
+    """ Check if MoneyAccount  Bank/Api with this slug exists"""
     permission_classes = [TokenHasReadWriteScope]
     required_scopes = ['can_create_profiles']
+    queryset = MoneyAccount.objects.all()
+    lookup_field = 'slug'
+    serializer_class = MoneyAccountCheckSerializer
 
+
+class CheckEventView(generics.RetrieveAPIView):
+    """ Check if Event with this slug exists"""
+    permission_classes = [TokenHasReadWriteScope]
+    required_scopes = ['can_create_profiles']
+    queryset = Event.objects.all()
+    lookup_field = 'slug'
+    serializer_class = EventCheckSerializer
+
+
+class CreateDpchUserProfileView(generics.GenericAPIView):
+    """ Creates or GET DonorPaymentChannel and return VS"""
+    permission_classes = [TokenHasReadWriteScope]
+    required_scopes = ['can_create_profiles']
+    serializer_class = GetDpchUserProfileSerializer
+
+    @swagger_auto_schema(responses={200: VSReturnSerializer()})
     def post(self, request):
-        serializer = GetDpchUserProfileSerializer(data=self.request.data)
+        serializer = self.serializer_class(data=self.request.data)
         if serializer.is_valid(raise_exception=True):
             # check profile data
             user, created = UserProfile.objects.get_or_create(
@@ -44,17 +71,19 @@ class CreateDpchUserProfileView(APIView):
 
             Telephone.objects.get_or_create(telephone=serializer.validated_data['telephone'], user=user)
 
-            VS = get_or_create_dpch(serializer, user)
-            return Response({'VS': VS}, status=status.HTTP_200_OK)
+            dpch = get_or_create_dpch(serializer, user)
+            return Response(VSReturnSerializer(dpch).data, status=status.HTTP_200_OK)
 
 
-class CreateDpchCompanyProfileView(APIView):
-    """ accepts crn and so... create DPCH or find existed and return VS"""
+class CreateDpchCompanyProfileView(generics.GenericAPIView):
+    """ Creates or GET DonorPaymentChannel and return VS"""
     permission_classes = [TokenHasReadWriteScope]
     required_scopes = ['can_create_profiles']
+    serializer_class = GetDpchCompanyProfileSerializer
 
+    @swagger_auto_schema(responses={200: VSReturnSerializer()})
     def post(self, request):
-        serializer = GetDpchCompanyProfileSerializer(data=self.request.data)
+        serializer = self.serializer_class(data=self.request.data)
         if serializer.is_valid(raise_exception=True):
             # check profile data
             if serializer.validated_data.get('crn'):
@@ -78,5 +107,70 @@ class CreateDpchCompanyProfileView(APIView):
             ProfileEmail.objects.get_or_create(email=serializer.validated_data.get('email'), user=company)
             Telephone.objects.get_or_create(telephone=serializer.validated_data.get('telephone'), user=company)
 
-            VS = get_or_create_dpch(serializer, company)
-            return Response({'VS': VS}, status=status.HTTP_200_OK)
+            dpch = get_or_create_dpch(serializer, company)
+            return Response(VSReturnSerializer(dpch).data, status=status.HTTP_200_OK)
+
+
+class CheckPaymentView(generics.GenericAPIView):
+    """ Check last assigned payment"""
+    permission_classes = [TokenHasReadWriteScope]
+    required_scopes = ['can_create_profiles']
+    serializer_class = DonorPaymetChannelSerializer
+
+    @swagger_auto_schema(responses={200: PaymentSerializer(many=True)})
+    def post(self, request):
+        serializer = self.serializer_class(data=self.request.data)
+        if serializer.is_valid(raise_exception=True):
+            try:
+                dpch = DonorPaymentChannel.objects.get(
+                    money_account=serializer.validated_data['money_account'],
+                    event=serializer.validated_data['event'],
+                    VS=serializer.validated_data['VS'],
+                )
+            except DonorPaymentChannel.DoesNotExist:
+                raise DonorPaymentChannelDoesntExist()
+
+            # there we filter payments which arrived between date of register in form + 14 days
+            payments = dpch.payment_set\
+                .order_by('date')\
+                .filter(
+                    amount=serializer.validated_data['amount'],
+                    date__gte=serializer.validated_data['date'],
+                    date__lte=serializer.validated_data['date'] + datetime.timedelta(days=14),
+                )
+            if payments:
+                return Response(PaymentSerializer(payments, many=True).data)
+            else:
+                raise PaymentsDoesntExist()
+
+
+class CreateInteraction(generics.GenericAPIView):
+    """
+        Create Interaction based on choice
+    """
+    permission_classes = [TokenHasReadWriteScope]
+    required_scopes = ['can_create_profiles']
+    serializer_class = InteractionSerizer
+
+    @swagger_auto_schema(responses={200: 'returns empty json'})
+    def post(self, request):
+        serializer = self.serializer_class(data=self.request.data)
+        if serializer.is_valid(raise_exception=True):
+            from interactions.models import Interaction, InteractionType, InteractionCategory
+            category, created = InteractionCategory.objects.get_or_create(category='emails')
+            int_type, created = InteractionType.objects.get_or_create(
+                slug=serializer.validated_data['interaction_type'],
+                category=category,
+                defaults={'name': serializer.validated_data['interaction_type'], 'summary_bool': True},
+            )
+
+            Interaction.objects.create(
+                user_id=serializer.validated_data['profile_id'],
+                type=int_type,
+                date_from=serializer.validated_data['date'],
+                event=serializer.validated_data['event'],
+                administrative_unit=serializer.validated_data['event'].administrative_units.first(),
+                subject=f"vizus-{serializer.validated_data['interaction_type']}",
+                summary=serializer.validated_data['text'],
+            )
+            return Response({}, status=status.HTTP_200_OK)

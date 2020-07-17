@@ -41,6 +41,7 @@ django-bulk-update = "*"
 django-extra-views = "*"
 django-sesame = "==1.4"
 django-ses = "*"
+drf-yasg = "*"
 vokativ = "*"
 Django = ">=2,<3"
 "PyPDF2" = "*"
@@ -82,7 +83,8 @@ django-flexible-filter-conditions = "*"
 tablib = "==0.14"
 django-dbbackup = "*"
 faker = "*"
-django-computedfields = "*"
+# TODO: fix computedfields error in version 0.1.0 (syntax changed in models)
+django-computedfields = "==0.0.23"
 django-oauth-toolkit = "*"
 
 
