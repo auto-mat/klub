@@ -7,6 +7,8 @@ from django.urls import reverse
 
 from freezegun import freeze_time
 
+from interactions.models import Interaction
+
 from model_mommy import mommy
 
 from oauth2_provider.models import Application
@@ -156,3 +158,104 @@ class CreateDpchCompanyProfileViewTest(TestCase):
         self.assertEqual(user.city, 'city_name')
         self.assertEqual(user.zip_code, '111 22')
         self.assertCountEqual(user.telephone_set.values_list('telephone', flat=True), ['111222333', '333222111'])
+
+
+class CheckEventViewTest(TestCase):
+    def setUp(self):
+        login_mixin()
+
+    def test_check_if_event_exist(self):
+        unit = mommy.make('aklub.AdministrativeUnit', name='test_unit')
+        event = mommy.make('aklub.Event', slug='event_slug', administrative_units=[unit, ])
+
+        url = reverse('check_event', kwargs={'slug': 'event_slug'})
+        header = {'Authorization': 'Bearer foo'}
+        response = self.client.get(url, **header)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['slug'], event.slug)
+
+
+class CheckMoneyAccountViewTest(TestCase):
+    def setUp(self):
+        login_mixin()
+
+    def test_check_if_event_exist(self):
+        unit = mommy.make('aklub.administrativeunit', name='test_unit')
+        money_account = mommy.make('aklub.MoneyAccount', slug='money_account_slug', administrative_unit=unit)
+
+        url = reverse('check_moneyaccount', kwargs={'slug': 'money_account_slug'})
+        header = {'Authorization': 'Bearer foo'}
+        response = self.client.get(url, **header)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['slug'], money_account.slug)
+
+
+@freeze_time("2015-5-1")
+class CheckLastPaymentsViewTest(TestCase):
+    def setUp(self):
+        login_mixin()
+
+    def test_check_last_payments(self):
+        user = mommy.make('aklub.Profile', id=22)
+        unit = mommy.make('aklub.AdministrativeUnit', name='test_unit')
+        money_account = mommy.make('aklub.MoneyAccount', slug='money_account_slug', administrative_unit=unit)
+        event = mommy.make('aklub.Event', slug='event_slug', administrative_units=[unit, ])
+        dpch = mommy.make('aklub.DonorPaymentChannel', event=event, money_account=money_account, VS=1111, user=user)
+
+        mommy.make('aklub.Payment', date='2015-04-3', amount=100, user_donor_payment_channel=dpch)  # out of 14 days range
+        payment_2 = mommy.make('aklub.Payment', date='2015-04-18', amount=100, user_donor_payment_channel=dpch)
+        payment_3 = mommy.make('aklub.Payment', date='2015-04-22', amount=100, user_donor_payment_channel=dpch)
+
+        url = reverse('check_last_payments')
+        header = {'Authorization': 'Bearer foo'}
+        data = {
+            'event': event.slug,
+            'money_account': money_account.slug,
+            'VS': dpch.VS,
+            'amount': '100',
+            'date': '2015-4-10',
+        }
+        response = self.client.post(url, data=data, **header)
+        self.assertEqual(response.status_code, 200)
+
+        self.assertEqual(len(response.json()), 2)
+        resp_data = sorted(response.json(), key=lambda k: k['date'])
+
+        self.assertEqual(resp_data[0]['amount'], payment_2.amount)
+        self.assertEqual(resp_data[0]['date'], payment_2.date)
+        self.assertEqual(resp_data[0]['profile_id'], user.id)
+
+        self.assertEqual(resp_data[1]['amount'], payment_3.amount)
+        self.assertEqual(resp_data[1]['date'], payment_3.date)
+        self.assertEqual(resp_data[1]['profile_id'],  user.id)
+
+
+class CreateInteractionTest(TestCase):
+    def setUp(self):
+        login_mixin()
+
+    def test_create_interaction(self):
+        user = mommy.make('aklub.Profile', id=22)
+        unit = mommy.make('aklub.AdministrativeUnit', name='test_unit')
+        event = mommy.make('aklub.Event', slug='event_slug', administrative_units=[unit, ])
+
+        url = reverse('create_interaction')
+        header = {'Authorization': 'Bearer foo'}
+        data = {
+            'date': '2015-4-10T15:15',
+            'event': event.slug,
+            'profile_id': user.id,
+            'interaction_type': 'certificate',
+            'text': 'hello world',
+        }
+        response = self.client.post(url, data=data, **header)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {})
+
+        interaction = Interaction.objects.get(user_id=user, date_from='2015-4-10T15:15')
+        self.assertEqual(interaction.event, event)
+        self.assertEqual(interaction.administrative_unit, unit)
+        self.assertEqual(interaction.summary, data['text'])
+        self.assertEqual(interaction.subject, 'vizus-certificate')
