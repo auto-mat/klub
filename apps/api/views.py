@@ -167,4 +167,4 @@ class CreateInteraction(generics.GenericAPIView):
                 subject=f"vizus-{serializer.validated_data['interaction_type']}",
                 summary=serializer.validated_data['text'],
             )
-            return Response(status=status.HTTP_200_OK)
+            return Response({}, status=status.HTTP_200_OK)
