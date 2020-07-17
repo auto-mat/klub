@@ -21,7 +21,7 @@ urlpatterns = [
     path('o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
 
     path('check_event/<slug:slug>/', views.CheckEventView.as_view(), name='check_event'),
-    path('check_moneyaccount/<slug:slug>/', views.CheckMoneyAccountView.as_view(), name='check_event'),
+    path('check_moneyaccount/<slug:slug>/', views.CheckMoneyAccountView.as_view(), name='check_moneyaccount'),
     path('check_last_payments/', views.CheckPaymentView.as_view(), name='check_last_payments'),
     path('interaction/', views.CreateInteraction.as_view(), name='create_interaciton'),
 
