@@ -17,4 +17,4 @@ def get_or_create_dpch(serializer, profile):
             dpch.regular_payments = 'onetime'
         dpch.regular_amount = serializer.validated_data['amount']
         dpch.save()
-    return dpch.VS
+    return dpch
