@@ -270,8 +270,10 @@ class Command(BaseCommand):
 
                     target_write_trans_f.seek(0)
                     target_write_trans_f.truncate(0)
-                    json.dump(target_trans, target_write_trans_f, indent=4,
-                              ensure_ascii=False, sort_keys=True)
+                    json.dump(
+                        target_trans, target_write_trans_f,
+                        indent=4, ensure_ascii=False, sort_keys=True,
+                    )
 
     def __install(self, command, program, package='install'):
         """Install/build package"""
