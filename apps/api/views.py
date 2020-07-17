@@ -20,7 +20,7 @@ from .utils import get_or_create_dpch
 class CheckMoneyAccountView(generics.RetrieveAPIView):
     """ Check if MoneyAccount  Bank/Api with this slug exists"""
     permission_classes = [TokenHasReadWriteScope]
-    required_scopes = ['can_create_profiles']
+    required_scopes = ['can_check_if_exist']
     queryset = MoneyAccount.objects.all()
     lookup_field = 'slug'
     serializer_class = MoneyAccountCheckSerializer
@@ -29,7 +29,7 @@ class CheckMoneyAccountView(generics.RetrieveAPIView):
 class CheckEventView(generics.RetrieveAPIView):
     """ Check if Event with this slug exists"""
     permission_classes = [TokenHasReadWriteScope]
-    required_scopes = ['can_create_profiles']
+    required_scopes = ['can_check_if_exist']
     queryset = Event.objects.all()
     lookup_field = 'slug'
     serializer_class = EventCheckSerializer
@@ -115,7 +115,7 @@ class CreateDpchCompanyProfileView(generics.GenericAPIView):
 class CheckPaymentView(generics.GenericAPIView):
     """ Check last assigned payment"""
     permission_classes = [TokenHasReadWriteScope]
-    required_scopes = ['can_create_profiles']
+    required_scopes = ['can_check_last_payments']
     serializer_class = DonorPaymetChannelSerializer
 
     @swagger_auto_schema(responses={200: PaymentSerializer(many=True)})
@@ -150,7 +150,7 @@ class CreateInteraction(generics.GenericAPIView):
         Create Interaction based on choice
     """
     permission_classes = [TokenHasReadWriteScope]
-    required_scopes = ['can_create_profiles']
+    required_scopes = ['can_create_interactions']
     serializer_class = InteractionSerizer
 
     @swagger_auto_schema(responses={200: 'returns empty json'})
