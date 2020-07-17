@@ -107,6 +107,8 @@ class CreateDpchCompanyProfileView(generics.GenericAPIView):
                 email=serializer.validated_data.get('email'),
                 telephone=serializer.validated_data.get('telephone'),
                 administrative_unit=unit,
+                contact_first_name=serializer.validated_data.get('contact_first_name', ''),
+                contact_last_name=serializer.validated_data.get('contact_last_name', ''),
             )
             dpch = get_or_create_dpch(serializer, company)
             return Response(VSReturnSerializer(dpch).data, status=status.HTTP_200_OK)
