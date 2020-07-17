@@ -5,5 +5,4 @@ pip3 install jsonfield2
 npm install bower && python manage.py bower install
 python manage.py migrate
 python manage.py collectstatic --noinput
-python3 manage.py compilemessages
-
+cd apps/aklub/ && pipenv run env DJANGO_SETTINGS_MODULE="" django-admin compilemessages
