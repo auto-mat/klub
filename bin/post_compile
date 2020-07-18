@@ -3,6 +3,7 @@ pip3 uninstall django-jsonfield -y
 pip3 uninstall jsonfield2 -y
 pip3 install jsonfield2
 npm install bower && python manage.py bower install
+npm install -g bower sass && python manage.py bower install
 python manage.py migrate
 python manage.py build_contenttools
 python manage.py collectstatic --noinput
