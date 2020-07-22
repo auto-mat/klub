@@ -633,6 +633,23 @@ class ProfileEmailInline(admin.TabularInline):
     can_delete = True
     show_change_link = True
     form = ProfileEmailAdminForm
+    fields = (
+        'email', 'is_email_in_companyprofile', 'is_primary', 'note',
+    )
+    readonly_fields = ('is_email_in_companyprofile',)
+
+    def is_email_in_companyprofile(self, obj):
+        filter_kwargs = {'email': obj.email}
+        if not self.form.request.user.has_perm('can_edit_all_units'):
+            filter_kwargs['company__administrative_units__in'] = self.form.request.user.administrated_units.all()
+            filter_kwargs['administrative_unit__in'] = self.form.request.user.administrated_units.all()
+
+        if CompanyContact.objects.filter(**filter_kwargs).exists():
+            return _boolean_icon(True)
+        else:
+            return _boolean_icon(False)
+
+    is_email_in_companyprofile.short_description = _("Is email in CompanyProfile")
 
 
 class RedirectMixin(object):
@@ -2085,6 +2102,21 @@ class CompanyContactInline(admin.TabularInline):
     extra = 0
     can_delete = True
     show_change_link = True
+    fields = (
+        'contact_first_name', 'contact_last_name', 'email', 'is_email_in_userprofile', 'telephone',
+        'is_primary', 'note', 'administrative_unit',
+    )
+    readonly_fields = ('is_email_in_userprofile',)
+
+    def is_email_in_userprofile(self, obj):
+        filter_kwargs = {'email': obj.email}
+        if not self.form.request.user.has_perm('can_edit_all_units'):
+            filter_kwargs['user__administrative_units__in'] = self.form.request.user.administrated_units.all()
+        if ProfileEmail.objects.filter(**filter_kwargs).exists():
+            return _boolean_icon(True)
+        else:
+            return _boolean_icon(False)
+    is_email_in_userprofile.short_description = _("Is email in userprofile")
 
     def get_queryset(self, request):
         if not request.user.has_perm('aklub.can_edit_all_units'):
