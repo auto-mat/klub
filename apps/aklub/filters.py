@@ -166,7 +166,7 @@ class EmailFilter(SimpleListFilter):
             ('blank', _(u'Blank')),
         )
 
-    def queryset(self, request, queryset):
+    def queryset(self, request, queryset): # noqa
         if self.value():
             if not queryset:
                 return queryset
@@ -182,7 +182,8 @@ class EmailFilter(SimpleListFilter):
 
             if self.value() == 'duplicate':
                 if queryset.first().is_userprofile():
-                    duplicates = ProfileEmail.objects.filter(email__isnull=False).\
+                    # right now.. this shoud never ever return smth cuz of model definition.
+                    duplicates = ProfileEmail.objects.filter(email__isnull=False, user__isnull=False).\
                         exclude(email__exact='').\
                         annotate(email_lower=Lower('email')).\
                         values('email_lower').\
@@ -194,15 +195,19 @@ class EmailFilter(SimpleListFilter):
                     duplicates = ProfileEmail.objects.annotate(email_lower=Lower('email')).filter(email_lower__in=duplicates)
                     return queryset.filter(profileemail__in=duplicates)
                 else:
-                    duplicates = CompanyContact.objects.filter(email__isnull=False).\
-                        exclude(email__exact='').\
-                        annotate(email_lower=Lower('email')).\
-                        values('email_lower').\
-                        annotate(Count('id')).\
-                        values('email_lower').\
-                        order_by().\
-                        filter(id__count__gt=1).\
-                        values_list('email_lower', flat=True)
+                    if request.user.has_perm('can_edit_all_units'):
+                        filter_kwargs = {}
+                    else:
+                        filter_kwargs = {'administrative_unit__in': request.user.administrated_units.all()}
+
+                    duplicates = CompanyContact.objects.filter(email__isnull=False)\
+                        .filter(**filter_kwargs)\
+                        .exclude(email__exact='')\
+                        .annotate(email_lower=Lower('email'))\
+                        .values('email_lower')\
+                        .annotate(Count('company', distinct=True))\
+                        .filter(company__count__gt=1)\
+                        .values_list('email_lower', flat=True)
                     duplicates = CompanyContact.objects.annotate(email_lower=Lower('email')).filter(email_lower__in=duplicates)
                     return queryset.filter(companycontact__in=duplicates)
 
@@ -299,16 +304,16 @@ class TelephoneFilter(SimpleListFilter):
                     if not request.user.has_perm('aklub.can_edit_all_units'):
                         filter_kwargs = {'company__administrative_units__in': request.user.administrated_units.all()}
                     # TODO: shoud be nicer
-                    duplicate = CompanyContact.objects.\
-                        annotate(clean_telephone=Right(Replace('telephone', Value(' '), Value('')), 9, ))\
-                        .values('clean_telephone')\
+                    duplicate = CompanyContact.objects\
                         .filter(**filter_kwargs)\
+                        .annotate(clean_telephone=Right(Replace('telephone', Value(' '), Value('')), 9, ))\
+                        .values('clean_telephone')\
                         .annotate(total_clean=Count('clean_telephone'))\
                         .filter(total_clean__gt=1)\
                         .values_list('clean_telephone', flat=True)
 
-                    companies_ids = CompanyContact.objects.\
-                        annotate(clean_telephone=Right(Replace('telephone', Value(' '), Value('')), 9, ))\
+                    companies_ids = CompanyContact.objects\
+                        .annotate(clean_telephone=Right(Replace('telephone', Value(' '), Value('')), 9, ))\
                         .filter(clean_telephone__in=duplicate)\
                         .order_by('clean_telephone')\
                         .values_list('company', flat=True)\
