@@ -84,6 +84,7 @@ class CustomUserQueryset(PolymorphicQuerySet):
 
 class CustomUserManager(PolymorphicManager, UserManager):
     queryset_class = PolymorphicQuerySet
+    use_in_migrations = False
 
     def get_queryset(self):
         """
