@@ -2182,9 +2182,11 @@ class CompanyProfileAdmin(
         ('userchannels__event__name', _("Jméno kampaně")),
     )
     search_fields = (
-        'email',
         'name',
         'companycontact__telephone',
+        'companycontact__email',
+        'companycontact__contact_first_name',
+        'companycontact__contact_last_name',
     )
     list_filter = (
         filters.PreferenceMailingListAllowed,
