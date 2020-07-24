@@ -172,6 +172,7 @@ def create_payment(data, payments, skipped_payments):  # noqa
         "type": 'darujme',
         "SS": data['id'],
         "date": data['datum_prichozi_platby'] or data['datum_daru'],
+        "recipient_account": campaign,
     }
     if id_platby:
         filter_kwarg["operation_id"] = id_platby
@@ -226,15 +227,15 @@ def create_payment(data, payments, skipped_payments):  # noqa
     else:
         log.info("Duplicate email %s" % email.email)
         userprofile = email.user
-    try:
-        data['telefon'] = int(str(data['telefon']).replace(" ", ""))
-        if 100000000 <= data['telefon'] <= 999999999:
-            telephone, telephone_created = Telephone.objects.get_or_create(
-                telephone=data['telefon'],
-                user=userprofile,
-            )
-    except ValueError:
-        log.info('%s is not valid phone number ' % data['telefon'])
+    userprofile.administrative_units.add(campaign.administrative_unit)
+    if data.get('telephone'):
+        telephone, tel_created = Telephone.objects.get_or_create(
+            telephone=data['telefon'],
+            user=userprofile,
+        )
+        if tel_created:
+            log.info(f"Duplicate telephone for email: {email.email}")
+
     donorpaymentchannel, donorpaymentchannel_created = DonorPaymentChannel.objects.get_or_create(
         user=userprofile,
         event=campaign.event,
