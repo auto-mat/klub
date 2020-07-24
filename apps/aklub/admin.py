@@ -2232,7 +2232,6 @@ class CompanyProfileAdmin(
             'fields': (
                 'username', ('name'),
                 'is_active',
-                ('contact_first_name', 'contact_last_name',),
                 'get_company_email',
                 'get_company_telephone',
                 'note',
