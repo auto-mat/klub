@@ -174,7 +174,9 @@ def create_payment(data, payments, skipped_payments):  # noqa
         "type": 'darujme',
         "SS": data['id'],
         "date": data['datum_prichozi_platby'] or data['datum_daru'],
-        "recipient_account": campaign,
+        # TODO:
+        # "recipient_account": campaign, # this cant be done because  this wont find old payments without recipient account
+        # we need to set recipient_account to all payments first!
     }
     if id_platby:
         filter_kwarg["operation_id"] = id_platby
