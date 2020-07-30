@@ -205,7 +205,6 @@ INSTALLED_APPS = (
     'django_wysiwyg',
     'tinymce',
     'chart_tools',
-    'massadmin',
     'markdown_deux',
     'post_office',
     'raven.contrib.django.raven_compat',
