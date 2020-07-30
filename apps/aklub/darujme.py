@@ -113,6 +113,9 @@ def create_statement_from_file(xmlfile):
 
 
 def create_statement_from_API(campaign):
+    # TODO: limit it somehow ...
+    # get current celery task and look for payments with last_run + time_delay
+    # right now.. we are getting all payments ... again and again
     url = 'https://www.darujme.cz/dar/api/darujme_api.php?api_id=%s&api_secret=%s&typ_dotazu=1' % (
         campaign.api_id,
         campaign.api_secret,
