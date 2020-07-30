@@ -180,7 +180,14 @@ def create_payment(data, payments, skipped_payments):  # noqa
     }
     if id_platby:
         filter_kwarg["operation_id"] = id_platby
-    if Payment.objects.filter(**filter_kwarg).exists():
+    existed_payments = Payment.objects.filter(**filter_kwarg)
+    if existed_payments.exists():
+        # TODO: this can be removed after all payments in db has updated recipient_account
+        for pay in existed_payments:
+            if not pay.recipient_account:
+                pay.recipient_account = campaign
+                pay.save()
+
         skipped_payments.append(
             OrderedDict(
                 [
