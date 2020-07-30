@@ -13,6 +13,8 @@ from aklub.models import (
 )
 from aklub.views import get_unique_username
 
+from django.core.exceptions import ValidationError
+
 import xlrd
 
 
@@ -228,13 +230,20 @@ def create_payment(data, payments, skipped_payments):  # noqa
         log.info("Duplicate email %s" % email.email)
         userprofile = email.user
     userprofile.administrative_units.add(campaign.administrative_unit)
-    if data.get('telephone'):
-        telephone, tel_created = Telephone.objects.get_or_create(
-            telephone=data['telefon'],
-            user=userprofile,
-        )
-        if tel_created:
+    if data.get('telefon'):
+
+        try:
+            Telephone(telephone=str(data['telefon']).replace(" ", "")).full_clean()
+
+        except ValidationError:
             log.info(f"Duplicate telephone for email: {email.email}")
+        else:
+            telephone, tel_created = Telephone.objects.get_or_create(
+                telephone=str(data['telefon']).replace(" ", ""),
+                user=userprofile,
+            )
+            if tel_created:
+                log.info(f"Duplicate telephone for email: {email.email}")
 
     donorpaymentchannel, donorpaymentchannel_created = DonorPaymentChannel.objects.get_or_create(
         user=userprofile,
