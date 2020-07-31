@@ -31,6 +31,37 @@ def login_mixin():
     )
 
 
+"""
+class GetTokenTest(TestCase):
+    def test_get_client_credentials_token(self):
+        app = mommy.make(
+             'oauth2_provider.application',
+             client_type=Application.CLIENT_CONFIDENTIAL,
+             authorization_grant_type=Application.GRANT_CLIENT_CREDENTIALS,
+             skip_authorization=False,
+             client_id='xxx',
+             client_secret='xxx',
+        )
+
+        data = {
+            "grant_type": "client_credentials",
+            "client_id": "xxx",
+            "client_secret": "xxx",
+        }
+        url = reverse('oauth2_provider:token')
+
+        response = self.client.post(url, data=data)
+        print(response.json())
+        # TODO: cleint_type error .... make it works!
+        # this test work in postman,.. uh?
+        self.assertEqual(response.status_code, 200)
+
+    def test_get_password_token(self):
+        pass
+
+"""
+
+
 @freeze_time("2015-5-1")
 class CreateDpchUserProfileViewTest(TestCase):
 
