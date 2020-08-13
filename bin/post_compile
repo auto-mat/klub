@@ -1,8 +1,9 @@
 #!/bin/bash
+pip3 uninstall django-jsonfield -y
+pip3 uninstall jsonfield2 -y
+pip3 install jsonfield2 -y
 npm install bower && python manage.py bower install
 python manage.py migrate
 python manage.py collectstatic --noinput
 python3 manage.py compilemessages
-pip3 uninstall django-jsonfield -y
-pip3 uninstall jsonfield2 -y
-pip3 install jsonfield2 -y
+
