@@ -875,12 +875,6 @@
             ],
             "version": "==2.23.0"
         },
-        "requires": {
-            "hashes": [
-                "sha256:bd48cb2deeb69fdffa9b016f18d7a8675a55867cbfcb8335430166779ee20279"
-            ],
-            "version": "==0.0.3"
-        },
         "s3transfer": {
             "hashes": [
                 "sha256:2482b4259524933a022d59da830f51bd746db62f047d6eb213f2f8855dcb8a13",
