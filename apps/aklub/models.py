@@ -2847,7 +2847,12 @@ class TaxConfirmation(models.Model):
     get_pdf.short_description = _("PDF")
 
     def get_user_name(self):
-        return "%s %s" % (self.user_profile.first_name or "", self.user_profile.last_name or "")
+        return "%s %s %s %s" % (
+            self.user_profile.title_before or "",
+            self.user_profile.first_name or "",
+            self.user_profile.last_name or "",
+            self.user_profile.title_after or "",
+        )
 
     def get_street(self):
         return"%s" % (self.user_profile.street or "",)
