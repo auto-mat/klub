@@ -483,3 +483,7 @@ WIKI_ACCOUNT_SIGNUP_ALLOWED = False
 WIKI_ACCOUNT_HANDLING = False
 WIKI_ANONYMOUS = False
 WIKI_CAN_READ = lambda _, user: user.is_staff  # noqa
+
+# django server variables
+WEB_URL = os.environ.get('WEB_URL', '')
+SITE_NAME = os.environ.get('SITE_NAME', '')
