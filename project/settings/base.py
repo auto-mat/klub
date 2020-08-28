@@ -223,6 +223,7 @@ INSTALLED_APPS = (
     'aklub',
     'interactions',
     'helpdesk',
+    'pdf_storage',
     'django_celery_beat',
     'django_celery_monitor',
     'djcelery_email',
@@ -244,7 +245,6 @@ INSTALLED_APPS = (
     'drf_yasg',
     'oauth2_provider',
 )
-
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [ # noqa
         'rest_framework.authentication.SessionAuthentication',

@@ -14,7 +14,7 @@ from model_mommy import mommy
 from oauth2_provider.models import Application
 
 
-def login_mixin():
+def app_login_mixin():
     app = mommy.make(
          'oauth2_provider.application',
          name="Test Application",
@@ -28,6 +28,24 @@ def login_mixin():
         application=app,
         expires=datetime.datetime.now() + datetime.timedelta(days=999),
         scope='read write can_create_profiles can_check_if_exist can_create_interactions can_check_last_payments',
+    )
+
+
+def user_login_mixin():
+    user = mommy.make("aklub.UserProfile", username='user_can_access')
+    app = mommy.make(
+         'oauth2_provider.application',
+         name="Test Application",
+         client_type=Application.CLIENT_CONFIDENTIAL,
+         authorization_grant_type=Application.GRANT_PASSWORD,
+    )
+
+    mommy.make(
+        'oauth2_provider.accesstoken',
+        token='foo',
+        application=app,
+        expires=datetime.datetime.now() + datetime.timedelta(days=999),
+        user=user,
     )
 
 
@@ -66,7 +84,7 @@ class GetTokenTest(TestCase):
 class CreateDpchUserProfileViewTest(TestCase):
 
     def setUp(self):
-        login_mixin()
+        app_login_mixin()
 
         unit = mommy.make('aklub.administrativeunit', name='test_unit')
         self.event = mommy.make('aklub.event', slug='event_slug', administrative_units=[unit, ])
@@ -134,7 +152,7 @@ class CreateDpchUserProfileViewTest(TestCase):
 @freeze_time("2015-5-1")
 class CreateDpchCompanyProfileViewTest(TestCase):
     def setUp(self):
-        login_mixin()
+        app_login_mixin()
         unit = mommy.make('aklub.administrativeunit', name='test_unit')
         self.event = mommy.make('aklub.event', slug='event_slug', administrative_units=[unit, ])
         self.bank_acc = mommy.make('aklub.bankaccount', bank_account='11122/111', slug='bank_slug', administrative_unit=unit)
@@ -194,7 +212,7 @@ class CreateDpchCompanyProfileViewTest(TestCase):
 
 class CheckEventViewTest(TestCase):
     def setUp(self):
-        login_mixin()
+        app_login_mixin()
 
     def test_check_if_event_exist(self):
         unit = mommy.make('aklub.AdministrativeUnit', name='test_unit')
@@ -210,7 +228,7 @@ class CheckEventViewTest(TestCase):
 
 class CheckMoneyAccountViewTest(TestCase):
     def setUp(self):
-        login_mixin()
+        app_login_mixin()
 
     def test_check_if_event_exist(self):
         unit = mommy.make('aklub.administrativeunit', name='test_unit')
@@ -227,7 +245,7 @@ class CheckMoneyAccountViewTest(TestCase):
 @freeze_time("2015-5-1")
 class CheckLastPaymentsViewTest(TestCase):
     def setUp(self):
-        login_mixin()
+        app_login_mixin()
 
     def test_check_last_payments(self):
         user = mommy.make('aklub.Profile', id=22)
@@ -266,7 +284,7 @@ class CheckLastPaymentsViewTest(TestCase):
 
 class CreateInteractionTest(TestCase):
     def setUp(self):
-        login_mixin()
+        app_login_mixin()
 
     def test_create_interaction(self):
         user = mommy.make('aklub.Profile', id=22)
