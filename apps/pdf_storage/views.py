@@ -60,7 +60,7 @@ class PaidPdfDownloadView(generics.RetrieveAPIView):
                 pdf = PdfStorage.objects.get(id=self.kwargs['id'])
             except PdfStorage.DoesNotExist:
                 raise PdfDoNotExist()
-            with open(pdf.pdf_file.path, "rb") as f:
+            with open(pdf.pdf_file.name, "rb") as f:
                 return HttpResponse(f.read(), content_type='application/pdf')
         else:
             raise HasNoPayment()
