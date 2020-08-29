@@ -3,6 +3,7 @@ from xml.dom import minidom
 
 from aklub.models import ApiAccount
 
+from django.core.files.storage import default_storage as storage
 from django.http import HttpResponse
 from django.utils import timezone
 
@@ -60,7 +61,7 @@ class PaidPdfDownloadView(generics.RetrieveAPIView):
                 pdf = PdfStorage.objects.get(id=self.kwargs['id'])
             except PdfStorage.DoesNotExist:
                 raise PdfDoNotExist()
-            with open(pdf.pdf_file.name, "rb") as f:
+            with storage.open(pdf.pdf_file.name, "rb") as f:
                 return HttpResponse(f.read(), content_type='application/pdf')
         else:
             raise HasNoPayment()
