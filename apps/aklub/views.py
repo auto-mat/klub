@@ -55,8 +55,7 @@ from sesame.backends import ModelBackend
 
 from . import autocom
 from .models import (
-    BankAccount,
-    DonorPaymentChannel, Event, Payment,
+    DonorPaymentChannel, Event, MoneyAccount, Payment,
     Profile, ProfileEmail, Source, Telephone, UserInCampaign,
     UserProfile,
 )
@@ -131,7 +130,7 @@ class CampaignMixin(forms.ModelForm):
 
 class BankAccountMixin(forms.ModelForm):
     money_account = forms.ModelChoiceField(
-            queryset=BankAccount.objects.filter(slug__isnull=False).exclude(slug=""),
+            queryset=MoneyAccount.objects.filter(slug__isnull=False).exclude(slug=""),
             to_field_name="slug",
     )
 
