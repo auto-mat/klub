@@ -260,12 +260,12 @@ def create_payment(data, payments, skipped_payments):  # noqa
     donorpaymentchannel, donorpaymentchannel_created = DonorPaymentChannel.objects.get_or_create(
         user=userprofile,
         event=campaign.event,
-        money_account=campaign,
         defaults={
             'regular_frequency': cetnost,
             'regular_payments': regular_payments,
             'regular_amount': amount if cetnost else None,
             'end_of_regular_payments': cetnost_konec,
+            'money_account': campaign,
         },
     )
     if donorpaymentchannel_created:
