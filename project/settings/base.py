@@ -244,6 +244,10 @@ INSTALLED_APPS = (
     'rest_framework',
     'drf_yasg',
     'oauth2_provider',
+    "account",
+    "pinax.invitations",
+    "pinax.teams",
+    "reversion",
 )
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [ # noqa

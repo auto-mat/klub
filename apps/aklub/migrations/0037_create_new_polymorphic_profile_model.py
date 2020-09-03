@@ -17,6 +17,9 @@ class Migration(migrations.Migration):
         ('contenttypes', '0002_remove_content_type_name'),
         ('aklub', '0036_auto_20190826_1927'),
     ]
+    run_before = [
+        ('account', '0001_initial'),
+    ]
 
     operations = [
         # Get user data
