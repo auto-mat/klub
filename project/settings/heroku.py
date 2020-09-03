@@ -31,13 +31,6 @@ if AWS_ACCESS_KEY_ID:
     AWS_SES_REGION_ENDPOINT = 'email.eu-west-1.amazonaws.com'
     AWS_S3_FILE_OVERWRITE = False
 
-    DBBACKUP_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
-    DBBACKUP_STORAGE_OPTIONS = {
-        'access_key': AWS_ACCESS_KEY_ID,
-        'secret_key': AWS_SECRET_ACCESS_KEY,
-        'bucket_name': 'klub-dbbackup',
-    }
-
     DBBACKUP_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
     DBBACKUP_STORAGE_OPTIONS = {
         'access_key': os.environ.get('AWS_ACCESS_KEY_ID'),
