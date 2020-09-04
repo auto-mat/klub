@@ -19,6 +19,7 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path('o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
+    path('pdf_storage/', include('pdf_storage.urls')),
 
     path('check_event/<slug:slug>/', views.CheckEventView.as_view(), name='check_event'),
     path('check_moneyaccount/<slug:slug>/', views.CheckMoneyAccountView.as_view(), name='check_moneyaccount'),

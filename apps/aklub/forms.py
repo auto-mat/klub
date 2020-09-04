@@ -6,11 +6,12 @@ from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import ReadOnlyPasswordHashField, UserChangeForm, UserCreationForm, UsernameField
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError, transaction
 from django.urls import reverse_lazy
 
 from smmapdfs.models import PdfSandwichType
 
-from .models import AdministrativeUnit, Event, ProfileEmail, Telephone
+from .models import AdministrativeUnit, CompanyContact, Event, ProfileEmail, Telephone
 
 Profile = get_user_model()
 
@@ -225,6 +226,8 @@ class CompanyProfileAddForm(forms.ModelForm):
     )
     hidden_lock_change = forms.CharField(widget=forms.HiddenInput(), initial='locked', required=False)
     telephone = forms.CharField(required=False)
+    contact_first_name = forms.CharField(required=False, max_length=256)
+    contact_last_name = forms.CharField(required=False, max_length=256)
 
     class Meta:
         model = Profile
@@ -261,10 +264,22 @@ class CompanyProfileAddForm(forms.ModelForm):
         email = user.email
         user.email = None
         user.save()
-        if self.cleaned_data['email'] is not None:
-            ProfileEmail.objects.create(email=email, user=user, is_primary=True)
-        if self.cleaned_data['telephone']:
-            Telephone.objects.create(telephone=self.cleaned_data['telephone'], user=user, is_primary=True)
+        if email or self.cleaned_data['telephone'] or self.cleaned_data['contact_first_name'] or self.cleaned_data['contact_last_name']:
+            for unit in self.cleaned_data['administrative_units']:
+                contact = CompanyContact.objects.create(
+                    email=email,
+                    telephone=self.cleaned_data['telephone'],
+                    company=user,
+                    administrative_unit=unit,
+                    contact_first_name=self.cleaned_data['contact_first_name'],
+                    contact_last_name=self.cleaned_data['contact_last_name'],
+                )
+                try:
+                    contact.is_primary = True
+                    with transaction.atomic():
+                        contact.save()
+                except IntegrityError:
+                    pass
         return user
 
 

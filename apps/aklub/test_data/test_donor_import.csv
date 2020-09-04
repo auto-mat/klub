@@ -1,3 +1,4 @@
-email,VS,SS,regular_frequency,expected_date_of_first_payment,regular_amount,regular_payments,money_account,user_bank_account,event,end_of_regular_payments
-test1@test.com,1234,222,monthly,2016-09-16,1000,regular,1111/111,9999/999,test,2017-09-16
-test1@test.com,1111,333,monthly,2016-01-11,100,regular,1111/111,9999/999,test_old,2017-01-11
+profile_type,email,VS,SS,regular_frequency,expected_date_of_first_payment,regular_amount,regular_payments,money_account,user_bank_account,event,end_of_regular_payments
+u,test1@test.com,1234,222,monthly,2016-09-16,1000,regular,1111/111,9999/999,test,2017-09-16
+u,test1@test.com,1111,333,monthly,2016-01-11,100,regular,1111/111,9999/999,test_old,2017-01-11
+c,test1@test.com,4332,4442,monthly,2016-01-12,987,regular,1111/111,9999/9992,test,2017-01-11

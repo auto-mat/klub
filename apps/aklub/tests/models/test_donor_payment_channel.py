@@ -317,9 +317,9 @@ class TestNameFunctions(TestCase):
             email="test@test.com",
         )
         mommy.make(
-            'aklub.ProfileEmail',
+            'aklub.CompanyContact',
             email="test@test.com",
-            user=company_profile,
+            company=company_profile,
             is_primary=True,
         )
         administrative_unit = mommy.make(

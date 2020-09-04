@@ -19,7 +19,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 import PyPDF2
 
-from aklub.models import TaxConfirmation
+from aklub.models import Profile, TaxConfirmation
 
 from django.core.files import File
 from django.test import RequestFactory, TestCase
@@ -32,6 +32,16 @@ from freezegun import freeze_time
 from model_mommy import mommy
 
 from ..test_admin import CreateSuperUserMixin
+
+
+class ProfileMethods(TestCase):
+    """ test rewrited .delete method in model Profile"""
+    def test_delete_method(self):
+        mommy.make("aklub.UserProfile")
+        mommy.make("aklub.CompanyProfile")
+        self.assertEqual(Profile.objects.all().count(), 2)
+        Profile.objects.all().delete()
+        self.assertEqual(Profile.objects.all().count(), 0)
 
 
 class TestStr(TestCase):
@@ -180,14 +190,17 @@ class TestStr(TestCase):
         t = mommy.make(
             "aklub.UserProfile",
         )
-        mommy.make("ProfileEmail", user=t, email="  test@test.cz", is_primary=True)
+        mommy.make("ProfileEmail", user=t, email="test@test.cz", is_primary=True)
         self.assertEqual(t.get_email_str(), "test@test.cz")
 
+        unit1 = mommy.make('aklub.administrativeunit', name='unit1')
+        unit2 = mommy.make('aklub.administrativeunit', name='unit1')
         c = mommy.make(
             "aklub.CompanyProfile",
         )
-        mommy.make("ProfileEmail", user=c, email="  test@test.cz", is_primary=True)
-        self.assertEqual(c.get_email_str(), "test@test.cz")
+        mommy.make("CompanyContact", company=c, email="test_yes@test.cz", is_primary=True, administrative_unit=unit1)
+        mommy.make("CompanyContact", company=c, email="test_no@test.cz", is_primary=True, administrative_unit=unit2)
+        self.assertEqual(c.get_email_str(unit1), "test_yes@test.cz")
 
     def test_clean_email(self):
         """ Test, that clean function cleanes the email """
@@ -368,20 +381,26 @@ class TestTaxConfirmation(CreateSuperUserMixin, TestCase):
         """ Test, that test tax_configurate task which create TaxConfiguration and generate pdf"""
         unit = mommy.make("aklub.AdministrativeUnit", name='unit_test1')
         company = mommy.make(
-                "aklub.CompanyProfile",
-                id=2222,
-                name='company_name',
-                contact_first_name='contact_first',
-                contact_last_name='contact_last',
-                street='street_address',
-                city='city_name_com',
-                zip_code='111 00',
-                country="Test_country_xx",
-                crn='22670319',
-                tin='CZ22670319',
-                administrative_units=[unit],
+            "aklub.CompanyProfile",
+            id=2222,
+            name='company_name',
+            street='street_address',
+            city='city_name_com',
+            zip_code='111 00',
+            country="Test_country_xx",
+            crn='22670319',
+            tin='CZ22670319',
+            administrative_units=[unit],
         )
 
+        mommy.make(
+            "aklub.CompanyContact",
+            contact_first_name='contact_first',
+            contact_last_name='contact_last',
+            company=company,
+            is_primary=True,
+            administrative_unit=unit,
+        )
         bank_acc = mommy.make(
             "aklub.BankAccount",
             bank_account_number='1111',
@@ -458,6 +477,7 @@ class TestTaxConfirmation(CreateSuperUserMixin, TestCase):
         read_pdf = PyPDF2.PdfFileReader(pdf)
         page = read_pdf.getPage(0)
         page_content = page.extractText()
+
         self.assertTrue("2016" in page_content)
         self.assertTrue("350 K" in page_content)
         self.assertTrue("street_address" in page_content)

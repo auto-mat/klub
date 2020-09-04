@@ -35,13 +35,14 @@ class FilterTestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
         self.request = self.factory.get("")
+        self.request.user = mommy.make("aklub.UserProfile", is_superuser=True)
 
 
 class FilterTests(FilterTestCase):
     def test_email_filter_blank(self):
         mommy.make("UserProfile", email="", first_name="Foo", last_name="")
         f = filters.EmailFilter(self.request, {"email": "blank"}, UserProfile, None)
-        q = f.queryset(self.request, UserProfile.objects.all())
+        q = f.queryset(self.request, UserProfile.objects.all().exclude(is_superuser=True))
         self.assertQuerysetEqual(q, ["<UserProfile: Foo>"])
 
         mommy.make("CompanyProfile", email="", name="Company")
@@ -53,11 +54,11 @@ class FilterTests(FilterTestCase):
         profile = mommy.make("UserProfile", first_name="Foo", last_name="")
         mommy.make("ProfileEmail", email='foo', user=profile)
         f = filters.EmailFilter(self.request, {"email": "email-format"}, UserProfile, None)
-        q = f.queryset(self.request, UserProfile.objects.all())
+        q = f.queryset(self.request, UserProfile.objects.all().exclude(is_superuser=True))
         self.assertQuerysetEqual(q, ["<UserProfile: Foo>"])
 
         company_profile = mommy.make("CompanyProfile", email='foo', name="Company")
-        mommy.make("ProfileEmail", email='foo', user=company_profile)
+        mommy.make("CompanyContact", email='foo', company=company_profile)
         f = filters.EmailFilter(self.request, {"email": "email-format"}, CompanyProfile, None)
         q = f.queryset(self.request, CompanyProfile.objects.all())
         self.assertQuerysetEqual(q, ["<CompanyProfile: Company>"])
@@ -68,7 +69,7 @@ class FilterTests(FilterTestCase):
         user_profile2 = mommy.make('UserProfile', first_name="Bar", last_name="")
         mommy.make('ProfileEmail', email='f@b.cz', user=user_profile2)
         f = filters.EmailFilter(self.request, {"email": "duplicate"}, UserProfile, None)
-        q = f.queryset(self.request, UserProfile.objects.all())
+        q = f.queryset(self.request, UserProfile.objects.all().exclude(is_superuser=True))
         self.assertQuerysetEqual(
             q,
             [
@@ -79,9 +80,9 @@ class FilterTests(FilterTestCase):
         )
 
         company_profile1 = mommy.make('CompanyProfile', name="Company1")
-        mommy.make('ProfileEmail', email='g@b.cz', user=company_profile1)
+        mommy.make('CompanyContact', email='g@b.cz', company=company_profile1)
         company_profile2 = mommy.make('CompanyProfile', name="Company2")
-        mommy.make('ProfileEmail', email='g@b.cz', user=company_profile2)
+        mommy.make('CompanyContact', email='g@b.cz', company=company_profile2)
         f = filters.EmailFilter(self.request, {"email": "duplicate"}, CompanyProfile, None)
         q = f.queryset(self.request, CompanyProfile.objects.all())
         self.assertQuerysetEqual(
@@ -93,18 +94,13 @@ class FilterTests(FilterTestCase):
             ordered=False,
         )
 
-    def test_telephone_filter_duplicate_blank(self):
-        f = filters.TelephoneFilter(self.request, {"telephone": "duplicate"}, Profile, None)
-        q = f.queryset(self.request, Profile.objects.all())
-        self.assertQuerysetEqual(q, [], ordered=False)
-
     def test_telephone_filter_duplicate(self):
-        user_profile1 = mommy.make('UserProfile', telephone='123456', first_name="Foo", last_name="")
+        user_profile1 = mommy.make('UserProfile', first_name="Foo", last_name="")
         mommy.make('Telephone', telephone='123456', user=user_profile1)
-        user_profile2 = mommy.make('UserProfile', telephone='123456', first_name="Bar", last_name="")
+        user_profile2 = mommy.make('UserProfile', first_name="Bar", last_name="")
         mommy.make('Telephone', telephone='123456', user=user_profile2)
         f = filters.TelephoneFilter(self.request, {"telephone": "duplicate"}, UserProfile, None)
-        q = f.queryset(self.request, UserProfile.objects.all())
+        q = f.queryset(self.request, UserProfile.objects.all().exclude(is_superuser=True))
         self.assertQuerysetEqual(
             q,
             [
@@ -114,10 +110,10 @@ class FilterTests(FilterTestCase):
             ordered=False,
         )
 
-        company_profile1 = mommy.make('CompanyProfile', telephone='123456', name="Company1")
-        mommy.make('Telephone', telephone='123456', user=company_profile1)
-        company_profile2 = mommy.make('CompanyProfile', telephone='123456', name="Company2")
-        mommy.make('Telephone', telephone='123456', user=company_profile2)
+        company_profile1 = mommy.make('CompanyProfile', name="Company1")
+        mommy.make('CompanyContact', telephone='123456', company=company_profile1)
+        company_profile2 = mommy.make('CompanyProfile', name="Company2")
+        mommy.make('CompanyContact', telephone='123456', company=company_profile2)
         f = filters.TelephoneFilter(self.request, {"telephone": "duplicate"}, CompanyProfile, None)
         q = f.queryset(self.request, CompanyProfile.objects.all())
         self.assertQuerysetEqual(
@@ -130,12 +126,12 @@ class FilterTests(FilterTestCase):
         )
 
     def test_telephone_filter_blank(self):
-        mommy.make('UserProfile', telephone=None, first_name="Foo", last_name="")
+        mommy.make('UserProfile', first_name="Foo", last_name="")
         f = filters.TelephoneFilter(self.request, {"telephone": "blank"}, UserProfile, None)
-        q = f.queryset(self.request, UserProfile.objects.all())
+        q = f.queryset(self.request, UserProfile.objects.all().exclude(is_superuser=True))
         self.assertQuerysetEqual(q, ["<UserProfile: Foo>"])
 
-        mommy.make('CompanyProfile', telephone=None, name="Company")
+        mommy.make('CompanyProfile', name="Company")
         f = filters.TelephoneFilter(self.request, {"telephone": "blank"}, UserProfile, None)
         q = f.queryset(self.request, CompanyProfile.objects.all())
         self.assertQuerysetEqual(q, ["<CompanyProfile: Company>"])
@@ -144,11 +140,11 @@ class FilterTests(FilterTestCase):
         user_profile = mommy.make("UserProfile", first_name="Foo", last_name="")
         mommy.make('Telephone', user=user_profile, telephone='')
         f = filters.TelephoneFilter(self.request, {"telephone": "blank"}, Profile, None)
-        q = f.queryset(self.request, UserProfile.objects.all())
+        q = f.queryset(self.request, UserProfile.objects.all().exclude(is_superuser=True))
         self.assertQuerysetEqual(q, ["<UserProfile: Foo>"])
 
         company_profile = mommy.make("CompanyProfile", name="Company")
-        mommy.make('Telephone', user=company_profile, telephone='')
+        mommy.make('companycontact', company=company_profile, telephone='')
         f = filters.TelephoneFilter(self.request, {"telephone": "blank"}, Profile, None)
         q = f.queryset(self.request, CompanyProfile.objects.all())
         self.assertQuerysetEqual(q, ["<CompanyProfile: Company>"])
@@ -164,8 +160,8 @@ class FilterTests(FilterTestCase):
         q = f.queryset(self.request, UserProfile.objects.all())
         self.assertQuerysetEqual(q, ["<UserProfile: Foo>"])
 
-        company = mommy.make("CompanyProfile", telephone__telephone='1111', name="Company")
-        mommy.make("Telephone", telephone='1111', user=company)
+        company = mommy.make("CompanyProfile", name="Company")
+        mommy.make("companycontact", telephone='1111', company=company)
         f = filters.TelephoneFilter(self.request, {"telephone": "bad-format"}, CompanyProfile, None)
         q = f.queryset(self.request, CompanyProfile.objects.all())
         self.assertQuerysetEqual(q, ["<CompanyProfile: Company>"])
@@ -174,11 +170,11 @@ class FilterTests(FilterTestCase):
         user_profile = mommy.make("UserProfile", first_name="Foo", last_name="")
         mommy.make("Telephone", telephone='1111', user=user_profile)
         f = filters.TelephoneFilter(self.request, {}, UserProfile, None)
-        q = f.queryset(self.request, UserProfile.objects.all())
+        q = f.queryset(self.request, UserProfile.objects.all().exclude(is_superuser=True))
         self.assertQuerysetEqual(q, ["<UserProfile: Foo>"])
 
         company = mommy.make("CompanyProfile", name="Company")
-        mommy.make("Telephone", telephone='1111', user=company)
+        mommy.make("companycontact", telephone='1111', company=company)
         f = filters.TelephoneFilter(self.request, {}, CompanyProfile, None)
         q = f.queryset(self.request, CompanyProfile.objects.all())
         self.assertQuerysetEqual(q, ["<CompanyProfile: Company>"])
@@ -213,7 +209,7 @@ class FilterTests(FilterTestCase):
     def test_name_filter_blank(self):
         mommy.make("UserProfile", first_name="", last_name="", username="foo_username")
         f = filters.NameFilter(self.request, {"name": "blank"}, UserProfile, None)
-        q = f.queryset(self.request, UserProfile.objects.all())
+        q = f.queryset(self.request, UserProfile.objects.all().exclude(is_superuser=True))
         self.assertQuerysetEqual(q, ["<UserProfile: foo_username>"])
 
         mommy.make("CompanyProfile", name="", username="company_username")
@@ -224,7 +220,7 @@ class FilterTests(FilterTestCase):
     def test_name_filter_without_query(self):
         mommy.make("UserProfile", first_name="", last_name="", username="foo_username")
         f = filters.NameFilter(self.request, {}, UserProfile, None)
-        q = f.queryset(self.request, UserProfile.objects.all())
+        q = f.queryset(self.request, UserProfile.objects.all().exclude(is_superuser=True))
         self.assertQuerysetEqual(q, ["<UserProfile: foo_username>"])
 
         mommy.make("CompanyProfile", name="", username="company_username")
@@ -268,5 +264,5 @@ class FixtureFilterTests(FilterTestCase):
 
     def test_email_filter(self):
         f = filters.EmailFilter(self.request, {}, Profile, None)
-        q = f.queryset(self.request, Profile.objects.all())
+        q = f.queryset(self.request, Profile.objects.all().exclude(is_superuser=True))
         self.assertEqual(q.count(), 3)

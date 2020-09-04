@@ -12,7 +12,7 @@ from django.db.models.functions import Lower, Replace, Right
 from django.utils.translation import ugettext as _
 
 from .models import (
-    CompanyProfile, Event, ProfileEmail, Telephone,
+    CompanyContact, CompanyProfile, Event, ProfileEmail, Telephone,
     UserProfile,
 )
 
@@ -166,28 +166,56 @@ class EmailFilter(SimpleListFilter):
             ('blank', _(u'Blank')),
         )
 
-    def queryset(self, request, queryset):
+    def queryset(self, request, queryset): # noqa
         if self.value():
-            blank_filter = Q(profileemail__email__exact='') | Q(profileemail__email__isnull=True)
+            if not queryset:
+                return queryset
+            if queryset.first().is_userprofile():
+                blank_filter = Q(profileemail__email__exact='') | Q(profileemail__email__isnull=True)
+            else:
+                blank_filter = Q(companycontact__email__exact='') | Q(companycontact__email__isnull=True)
+
             if self.value() == 'blank':
                 return queryset.filter(blank_filter)
             else:
                 queryset = queryset.exclude(blank_filter)
 
             if self.value() == 'duplicate':
-                duplicates = ProfileEmail.objects.filter(email__isnull=False).\
-                    exclude(email__exact='').\
-                    annotate(email_lower=Lower('email')).\
-                    values('email_lower').\
-                    annotate(Count('id')).\
-                    values('email_lower').\
-                    order_by().\
-                    filter(id__count__gt=1).\
-                    values_list('email_lower', flat=True)
-                duplicates = ProfileEmail.objects.annotate(email_lower=Lower('email')).filter(email_lower__in=duplicates)
-                return queryset.filter(profileemail__in=duplicates)
+                if queryset.first().is_userprofile():
+                    # right now.. this shoud never ever return smth cuz of model definition.
+                    duplicates = ProfileEmail.objects.filter(email__isnull=False, user__isnull=False).\
+                        exclude(email__exact='').\
+                        annotate(email_lower=Lower('email')).\
+                        values('email_lower').\
+                        annotate(Count('id')).\
+                        values('email_lower').\
+                        order_by().\
+                        filter(id__count__gt=1).\
+                        values_list('email_lower', flat=True)
+                    duplicates = ProfileEmail.objects.annotate(email_lower=Lower('email')).filter(email_lower__in=duplicates)
+                    return queryset.filter(profileemail__in=duplicates)
+                else:
+                    if request.user.has_perm('can_edit_all_units'):
+                        filter_kwargs = {}
+                    else:
+                        filter_kwargs = {'administrative_unit__in': request.user.administrated_units.all()}
+
+                    duplicates = CompanyContact.objects.filter(email__isnull=False)\
+                        .filter(**filter_kwargs)\
+                        .exclude(email__exact='')\
+                        .annotate(email_lower=Lower('email'))\
+                        .values('email_lower')\
+                        .annotate(Count('company', distinct=True))\
+                        .filter(company__count__gt=1)\
+                        .values_list('email_lower', flat=True)
+                    duplicates = CompanyContact.objects.annotate(email_lower=Lower('email')).filter(email_lower__in=duplicates)
+                    return queryset.filter(companycontact__in=duplicates)
+
             if self.value() == 'email-format':
-                return queryset.exclude(email__iregex=r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9.-]+$)")
+                if queryset.first().is_userprofile():
+                    return queryset.exclude(profileemail__email__iregex=r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9.-]+$)")
+                else:
+                    return queryset.exclude(companycontact__email__iregex=r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9.-]+$)")
         return queryset
 
 
@@ -237,31 +265,67 @@ class TelephoneFilter(SimpleListFilter):
             ('blank', _('Blank')),
         )
 
-    def queryset(self, request, queryset):
+    def queryset(self, request, queryset): # noqa
         if self.value():
-            blank_filter = Q(telephone__telephone__exact='') | Q(telephone__telephone__isnull=True)
+            if not queryset:
+                return queryset
+            if queryset.first().is_userprofile():
+                blank_filter = Q(telephone__telephone__exact='') | Q(telephone__telephone__isnull=True)
+            else:
+                blank_filter = Q(companycontact__telephone__exact='') | Q(companycontact__telephone__isnull=True)
+
             if self.value() == 'blank':
                 return queryset.filter(blank_filter)
             else:
                 queryset = queryset.exclude(blank_filter)
             if self.value() == 'duplicate':
-                # TODO: shoud be nicer
-                duplicate = Telephone.objects.\
-                    annotate(clean_telephone=Right(Replace('telephone', Value(' '), Value('')), 9, ))\
-                    .values('clean_telephone')\
-                    .annotate(total_clean=Count('clean_telephone'))\
-                    .filter(total_clean__gt=1)\
-                    .values_list('clean_telephone', flat=True)
+                filter_kwargs = {}
+                # check what perm admin has
+                if queryset.first().is_userprofile():
+                    if not request.user.has_perm('aklub.can_edit_all_units'):
+                        filter_kwargs = {'user__administrative_units__in': request.user.administrated_units.all()}
+                    # TODO: shoud be nicer
+                    duplicate = Telephone.objects.\
+                        annotate(clean_telephone=Right(Replace('telephone', Value(' '), Value('')), 9, ))\
+                        .values('clean_telephone')\
+                        .filter(**filter_kwargs)\
+                        .annotate(total_clean=Count('clean_telephone'))\
+                        .filter(total_clean__gt=1)\
+                        .values_list('clean_telephone', flat=True)
 
-                users_ids = Telephone.objects.\
-                    annotate(clean_telephone=Right(Replace('telephone', Value(' '), Value('')), 9, ))\
-                    .filter(clean_telephone__in=duplicate)\
-                    .order_by('clean_telephone')\
-                    .values_list('user', flat=True)
-                return queryset.filter(id__in=users_ids).distinct()
+                    users_ids = Telephone.objects.\
+                        annotate(clean_telephone=Right(Replace('telephone', Value(' '), Value('')), 9, ))\
+                        .filter(clean_telephone__in=duplicate)\
+                        .order_by('clean_telephone')\
+                        .values_list('user', flat=True)\
+                        .order_by('clean_telephone')
+                    return queryset.filter(id__in=users_ids).distinct()
+                else:
+                    if not request.user.has_perm('aklub.can_edit_all_units'):
+                        filter_kwargs = {'company__administrative_units__in': request.user.administrated_units.all()}
+                    # TODO: shoud be nicer
+                    duplicate = CompanyContact.objects\
+                        .filter(**filter_kwargs)\
+                        .annotate(clean_telephone=Right(Replace('telephone', Value(' '), Value('')), 9, ))\
+                        .values('clean_telephone')\
+                        .annotate(total_clean=Count('clean_telephone'))\
+                        .filter(total_clean__gt=1)\
+                        .values_list('clean_telephone', flat=True)
+
+                    companies_ids = CompanyContact.objects\
+                        .annotate(clean_telephone=Right(Replace('telephone', Value(' '), Value('')), 9, ))\
+                        .filter(clean_telephone__in=duplicate)\
+                        .order_by('clean_telephone')\
+                        .values_list('company', flat=True)\
+                        .order_by('clean_telephone')
+                    return queryset.filter(id__in=companies_ids).distinct()
 
             if self.value() == 'bad-format':
-                return queryset.exclude(telephone__telephone__iregex=r'^\+?([0-9] *){9,}$')
+                if queryset.first().is_userprofile():
+                    return queryset.exclude(telephone__telephone__iregex=r'^\+?([0-9] *){9,}$')
+                else:
+                    return queryset.exclude(companycontact__telephone__iregex=r'^\+?([0-9] *){9,}$')
+
         return queryset
 
 

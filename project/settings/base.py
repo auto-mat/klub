@@ -205,7 +205,6 @@ INSTALLED_APPS = (
     'django_wysiwyg',
     'tinymce',
     'chart_tools',
-    'massadmin',
     'markdown_deux',
     'post_office',
     'raven.contrib.django.raven_compat',
@@ -224,6 +223,7 @@ INSTALLED_APPS = (
     'aklub',
     'interactions',
     'helpdesk',
+    'pdf_storage',
     'django_celery_beat',
     'django_celery_monitor',
     'djcelery_email',
@@ -244,8 +244,11 @@ INSTALLED_APPS = (
     'rest_framework',
     'drf_yasg',
     'oauth2_provider',
+    "account",
+    "pinax.invitations",
+    "pinax.teams",
+    "reversion",
 )
-
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [ # noqa
         'rest_framework.authentication.SessionAuthentication',
@@ -258,7 +261,16 @@ OAUTH2_PROVIDER = {
     'ACCESS_TOKEN_EXPIRE_SECONDS': 60 * 60 * 24 * 365,
     # this is the list of available scopes
     # TODO: shoud be added by each application
-    'SCOPES': {'read': 'Read scope', 'write': 'Write scope', 'can_create_profiles': 'Can create profiles by API'},
+    'SCOPES': {
+        'read': 'Read scope',
+        'write': 'Write scope',
+        'can_create_profiles': 'Can create profiles by API',
+        'can_check_if_exist': 'Can check slugs',
+        'can_create_interactions': 'Can create interactions by API',
+        'can_check_last_payments': 'Can check payments in dpch',
+    },
+    'OAUTH2_BACKEND_CLASS': 'oauth2_provider.oauth2_backends.JSONOAuthLibCore',
+
 }
 
 FLEXIBLE_FILTER_CONDITIONS_FIELD_MAP = {
@@ -276,6 +288,22 @@ BOWER_INSTALLED_APPS = (
     'd3#3.3.13',
     'nvd3#1.7.1',
 )
+
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+]
 
 EMAIL_BACKEND = 'post_office.EmailBackend'
 
@@ -475,3 +503,7 @@ WIKI_ACCOUNT_SIGNUP_ALLOWED = False
 WIKI_ACCOUNT_HANDLING = False
 WIKI_ANONYMOUS = False
 WIKI_CAN_READ = lambda _, user: user.is_staff  # noqa
+
+# django server variables
+WEB_URL = os.environ.get('WEB_URL', '')
+SITE_NAME = os.environ.get('SITE_NAME', '')

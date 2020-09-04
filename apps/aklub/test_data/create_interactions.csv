@@ -1,3 +1,4 @@
-email,user,event,created,updated,type,administrative_unit,subject,date_from,date_to,settlement,note,summary,status,result,rating,next_step,next_communication_date,created_by,handled_by,communication_type,dispatched
-test_email@email.com,,1,2020-02-19 13:08:42,2020-02-19 13:08:42,11,1,test_subject1,2020-02-19 13:08:40,,,test_note1,happy_day_summary1,,,1,call_soon,2020-02-19 13:08:42,1,1,individual,0
-,test_username,1,2020-02-19 10:25:38,2020-02-19 11:00:08,11,1,test_subject2,2020-02-19 10:25:35,2021-02-19 10:25:35,,test_note2,happy_day_summary2,,,5,call_soon,,1,1,individual,1
+profile_type,email,user,event,created,updated,type,administrative_unit,subject,date_from,date_to,settlement,note,summary,status,result,rating,next_step,next_communication_date,created_by,handled_by,communication_type,dispatched
+u,test_email@email.com,,1,2020-02-19 13:08:42,2020-02-19 13:08:42,11,1,test_subject1,2020-02-19 13:08:40,,,test_note1,happy_day_summary1,,,1,call_soon,2020-02-19 13:08:42,1,1,individual,0
+c,test_email@email.com,,1,2020-02-19 13:08:42,2020-02-19 13:08:42,11,1,test_subject3_company,2020-02-19 13:08:40,,,test_note3_company,happy_day_summary_company_3,,,1,call_soon,2020-02-19 13:08:42,1,1,individual,0
+,,test_username,1,2020-02-19 10:25:38,2020-02-19 11:00:08,11,1,test_subject2,2020-02-19 10:25:35,2021-02-19 10:25:35,,test_note2,happy_day_summary2,,,5,call_soon,,1,1,individual,1

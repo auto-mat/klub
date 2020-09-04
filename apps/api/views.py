@@ -1,6 +1,6 @@
 import datetime
 
-from aklub.models import CompanyProfile, DonorPaymentChannel, Event, MoneyAccount, ProfileEmail, Telephone, UserProfile
+from aklub.models import CompanyContact, CompanyProfile, DonorPaymentChannel, Event, MoneyAccount, ProfileEmail, Telephone, UserProfile
 
 from drf_yasg.utils import swagger_auto_schema
 
@@ -20,7 +20,7 @@ from .utils import get_or_create_dpch
 class CheckMoneyAccountView(generics.RetrieveAPIView):
     """ Check if MoneyAccount  Bank/Api with this slug exists"""
     permission_classes = [TokenHasReadWriteScope]
-    required_scopes = ['can_create_profiles']
+    required_scopes = ['can_check_if_exist']
     queryset = MoneyAccount.objects.all()
     lookup_field = 'slug'
     serializer_class = MoneyAccountCheckSerializer
@@ -29,7 +29,7 @@ class CheckMoneyAccountView(generics.RetrieveAPIView):
 class CheckEventView(generics.RetrieveAPIView):
     """ Check if Event with this slug exists"""
     permission_classes = [TokenHasReadWriteScope]
-    required_scopes = ['can_create_profiles']
+    required_scopes = ['can_check_if_exist']
     queryset = Event.objects.all()
     lookup_field = 'slug'
     serializer_class = EventCheckSerializer
@@ -47,7 +47,7 @@ class CreateDpchUserProfileView(generics.GenericAPIView):
         if serializer.is_valid(raise_exception=True):
             # check profile data
             user, created = UserProfile.objects.get_or_create(
-                                    profileemail__email=serializer.validated_data.get('email'),
+                profileemail__email=serializer.validated_data.get('email'),
             )
             user.administrative_units.add(serializer.validated_data.get('money_account').administrative_unit)
             if not user.first_name:
@@ -88,13 +88,12 @@ class CreateDpchCompanyProfileView(generics.GenericAPIView):
             # check profile data
             if serializer.validated_data.get('crn'):
                 company, created = CompanyProfile.objects.get_or_create(
-                                        crn=serializer.validated_data.get('crn'),
-
+                    crn=serializer.validated_data.get('crn'),
                 )
             else:
                 company = CompanyProfile.objects.create()
-
-            company.administrative_units.add(serializer.validated_data['money_account'].administrative_unit)
+            unit = serializer.validated_data['money_account'].administrative_unit
+            company.administrative_units.add(unit)
             if not company.name:
                 company.name = serializer.validated_data.get('name')
             if not company.street and not company.city and not company.zip_code:
@@ -103,10 +102,14 @@ class CreateDpchCompanyProfileView(generics.GenericAPIView):
                 company.zip_code = serializer.validated_data.get('zip_code', '')
             company.save()
 
-            # TODO: will change in future version
-            ProfileEmail.objects.get_or_create(email=serializer.validated_data.get('email'), user=company)
-            Telephone.objects.get_or_create(telephone=serializer.validated_data.get('telephone'), user=company)
-
+            contact, created = CompanyContact.objects.get_or_create(
+                company=company,
+                email=serializer.validated_data.get('email'),
+                telephone=serializer.validated_data.get('telephone'),
+                administrative_unit=unit,
+                contact_first_name=serializer.validated_data.get('contact_first_name', ''),
+                contact_last_name=serializer.validated_data.get('contact_last_name', ''),
+            )
             dpch = get_or_create_dpch(serializer, company)
             return Response(VSReturnSerializer(dpch).data, status=status.HTTP_200_OK)
 
@@ -114,7 +117,7 @@ class CreateDpchCompanyProfileView(generics.GenericAPIView):
 class CheckPaymentView(generics.GenericAPIView):
     """ Check last assigned payment"""
     permission_classes = [TokenHasReadWriteScope]
-    required_scopes = ['can_create_profiles']
+    required_scopes = ['can_check_last_payments']
     serializer_class = DonorPaymetChannelSerializer
 
     @swagger_auto_schema(responses={200: PaymentSerializer(many=True)})
@@ -149,7 +152,7 @@ class CreateInteraction(generics.GenericAPIView):
         Create Interaction based on choice
     """
     permission_classes = [TokenHasReadWriteScope]
-    required_scopes = ['can_create_profiles']
+    required_scopes = ['can_create_interactions']
     serializer_class = InteractionSerizer
 
     @swagger_auto_schema(responses={200: 'returns empty json'})

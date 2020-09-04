@@ -55,7 +55,7 @@ from import_export import fields
 from import_export.admin import ImportExportMixin
 from import_export.instance_loaders import BaseInstanceLoader
 from import_export.resources import ModelResource
-from import_export.widgets import ForeignKeyWidget
+from import_export.widgets import CharWidget, ForeignKeyWidget
 
 from import_export_celery.admin_actions import create_export_job_action
 
@@ -83,7 +83,7 @@ from .forms import (
 )
 from .models import (
     AccountStatements, AdministrativeUnit, ApiAccount, AutomaticCommunication, BankAccount,
-    CompanyProfile, DonorPaymentChannel, Event, Expense,
+    CompanyContact, CompanyProfile, DonorPaymentChannel, Event, Expense,
     MassCommunication, MoneyAccount, NewUser, Payment, Preference, Profile, ProfileEmail, Recruiter,
     Source, TaxConfirmation, Telephone, UserBankAccount,
     UserProfile,
@@ -415,6 +415,9 @@ class CompanyProfileLoaderClass(BaseInstanceLoader):
 
 
 class CompanyProfileResource(ProfileModelResourceMixin):
+    contact_first_name = fields.Field(widget=CharWidget())
+    contact_last_name = fields.Field(widget=CharWidget())
+
     class Meta:
         model = CompanyProfile
         exclude = get_profile_admin_model_import_export_exclude_fields()
@@ -429,15 +432,39 @@ class CompanyProfileResource(ProfileModelResourceMixin):
         instance_loader_class = CompanyProfileLoaderClass
         clean_model_instances = True
 
+    def dehydrate_telephone(self, profile):
+        contacts = profile.companycontact_set.order_by('id')
+        if contacts:
+            return ',\n'.join(contact.telephone if contact.telephone else "-" for contact in contacts)
+        else:
+            return "-"
+
     def dehydrate_email(self, profile):
-        emails = ProfileEmail.objects.filter(user=profile)
-        return ',\n'.join(email.email for email in emails)
+        contacts = profile.companycontact_set.order_by('id')
+        if contacts:
+            return ',\n'.join(contact.email if contact.email else "-" for contact in contacts)
+        else:
+            return "-"
+
+    def dehydrate_contact_first_name(self, profile):
+        contacts = profile.companycontact_set.order_by('id')
+        if contacts:
+            return ',\n'.join(contact.contact_first_name if contact.contact_first_name else "-" for contact in contacts)
+        else:
+            return "-"
+
+    def dehydrate_contact_last_name(self, profile):
+        contacts = profile.companycontact_set.order_by('id')
+        if contacts:
+            return ',\n'.join(contact.contact_last_name if contact.contact_last_name else "-" for contact in contacts)
+        else:
+            return "-"
 
     def export_dehydrate_email(self, profile):
         try:
-            email = ProfileEmail.objects.get(user=profile, is_primary=True)
-        except ProfileEmail.DoesNotExist:
-            email = ProfileEmail.objects.filter(user=profile).first()
+            email = CompanyContact.objects.get(company=profile, is_primary=True)
+        except CompanyContact.DoesNotExist:
+            email = CompanyContact.objects.filter(company=profile).first()
         if email:
             return email.email
         return None
@@ -606,6 +633,23 @@ class ProfileEmailInline(admin.TabularInline):
     can_delete = True
     show_change_link = True
     form = ProfileEmailAdminForm
+    fields = (
+        'email', 'is_email_in_companyprofile', 'is_primary', 'note',
+    )
+    readonly_fields = ('is_email_in_companyprofile',)
+
+    def is_email_in_companyprofile(self, obj):
+        filter_kwargs = {'email': obj.email}
+        if not self.form.request.user.has_perm('can_edit_all_units'):
+            filter_kwargs['company__administrative_units__in'] = self.form.request.user.administrated_units.all()
+            filter_kwargs['administrative_unit__in'] = self.form.request.user.administrated_units.all()
+
+        if CompanyContact.objects.filter(**filter_kwargs).exists():
+            return _boolean_icon(True)
+        else:
+            return _boolean_icon(False)
+
+    is_email_in_companyprofile.short_description = _("Is email in CompanyProfile")
 
 
 class RedirectMixin(object):
@@ -806,44 +850,17 @@ class ProfileAdminMixin:
     get_event.admin_order_field = 'events'
     get_event.short_description = _("Events")
 
-    def get_queryset(self, *args, **kwargs):
-        # save request user's adminsitratived_unit here, so we dont have to peek in every loop
-        self.user_administrated_units = self.request.user.administrated_units.all()
-
-        if self.request.user.has_perm('aklub.can_edit_all_units'):
-            queryset = super().get_queryset(*args, **kwargs).prefetch_related(
-                    'telephone_set',
-                    'profileemail_set',
-                    'administrative_units',
-                    'userchannels__event',
-                ).annotate(
-                    sum_amount=Sum('userchannels__payment__amount'),
-                    payment_count=Count('userchannels__payment'),
-                    last_payment_date=Max('userchannels__payment__date'),
-                )
-        else:
-            units = Q(userchannels__money_account__administrative_unit=self.user_administrated_units.first())
-            queryset = super().get_queryset(*args, **kwargs).prefetch_related(
-                    'telephone_set',
-                    'profileemail_set',
-                    'administrative_units',
-                    'userchannels__event',
-                    'userchannels__money_account__administrative_unit',
-                ).annotate(
-                    sum_amount=Sum('userchannels__payment__amount', filter=units),
-                    payment_count=Count('userchannels__payment', filter=units),
-                    last_payment_date=Max('userchannels__payment__date', filter=units),
-                )
-
-        return queryset
-
     def make_tax_confirmation(self, request, queryset):
         request.method = None
         return ProfileAdmin.taxform(self, request, profiles=queryset)
 
     make_tax_confirmation.short_description = _("Make Tax Confirmation")
 
-    actions = (make_tax_confirmation,)
+    actions = (
+        make_tax_confirmation,
+        create_export_job_action,
+        send_mass_communication_action,
+        )
 
     def change_view(self, request, object_id, extra_context=None, **kwargs):
         from helpdesk.query import query_to_base64
@@ -883,110 +900,7 @@ class ProfileAdmin(
     base_model = Profile
     child_models = (UserProfile, CompanyProfile)
 
-    list_display = (
-        'person_name',
-        'get_email',
-        'get_administrative_units',
-        'addressment',
-        'get_addressment',
-        'get_last_name_vokativ',
-        'get_main_telephone',
-        'title_before',
-        'title_after',
-        'is_active',
-        'sex',
-        'crn',
-        'tin',
-        'is_staff',
-        'registered_support_date',
-        'get_event',
-        'regular_amount',
-        'date_joined',
-        'last_login',
-    )
-
-    advanced_filter_fields = (
-        'email',
-        'addressment',
-        'telephone__telephone',
-        'userprofile__title_before',
-        'userprofile__first_name',
-        'userprofile__last_name',
-        'userprofile__title_after',
-        'userprofile__sex',
-        'companyprofile__crn',
-        'companyprofile__tin',
-        'companyprofile__name',
-        'is_staff',
-        'date_joined',
-        'last_login',
-        ('userchannels__event__name', _("Jméno kampaně")),
-    )
-    list_editable = (
-        'addressment',
-    )
-    search_fields = (
-        'email',
-        'userprofile__title_before',
-        'userprofile__first_name',
-        'userprofile__last_name',
-        'userprofile__title_after',
-        'companyprofile__name',
-        'telephone__telephone',
-    )
-    list_filter = (
-        'is_staff',
-        'is_superuser',
-        'is_active',
-        'groups',
-        'language',
-        'userchannels__event',
-        filters.RegularPaymentsFilter,
-        filters.EmailFilter,
-        filters.TelephoneFilter,
-        filters.NameFilter,
-    )
-
-    ordering = ('email',)
-    filter_horizontal = ('groups', 'user_permissions',)
-
-    def event(self, obj):
-        result = Profile.objects.get(id=obj.id)
-        donors = result.userchannels.select_related().all()
-        return [e.event for e in donors]
-
-    event.short_description = _("Event")
-    event.admin_order_field = 'event'
-
-    def sex(self, obj):
-        return self.sex if hasattr(obj, 'sex') else None
-
-    sex.short_description = _("Gender")
-    sex.admin_order_field = 'userprofile__sex'
-
-    def crn(self, obj):
-        return self.crn if hasattr(obj, 'crn') else None
-
-    crn.short_description = _("Company Registration Number")
-    crn.admin_order_field = 'companyprofile__crn'
-
-    def tin(self, obj):
-        return self.tin if hasattr(obj, 'tin') else None
-
-    tin.short_description = _("Tax Identification Number")
-    tin.admin_order_field = 'companyprofile__tin'
-
-    def title_before(self, obj):
-        return self.title_before if hasattr(obj, 'title_before') else None
-
-    title_before.short_description = _("Title before")
-    title_before.admin_order_field = 'userprofile__title_before'
-
-    def title_after(self, obj):
-        return self.title_after if hasattr(obj, 'title_after') else None
-
-    title_after.short_description = _("Title after")
-    title_after.admin_order_field = 'userprofile__title_after'
+    list_display = ()
 
     def delete_queryset(self, request, queryset):
         """
@@ -1083,12 +997,12 @@ class ProfileAdmin(
 
 class DonorPaymentChannelLoaderClass(BaseInstanceLoader):
     def get_instance(self, row):
-        user = ProfileEmail.objects.get(email=row['email']).user
         try:
             event = Event.objects.get(name=row.get('event'))
             money_account = BankAccount.objects.get(bank_account_number=row.get('money_account'))
+
             obj = DonorPaymentChannel.objects.get(
-                                            user=user,
+                                            user_id=row.get('user'),
                                             event=event,
                                             money_account=money_account,
             )
@@ -1099,11 +1013,11 @@ class DonorPaymentChannelLoaderClass(BaseInstanceLoader):
 
         except DonorPaymentChannel.DoesNotExist:
             return None
-
         return obj
 
 
 class DonorPaymentChannelResource(ModelResource):
+    profile_type = fields.Field()
     email = fields.Field()
     user_bank_account = fields.Field()
     event = fields.Field(
@@ -1129,21 +1043,23 @@ class DonorPaymentChannelResource(ModelResource):
         instance_loader_class = DonorPaymentChannelLoaderClass
 
     def before_import_row(self, row, **kwargs):
+        if not row.get('profile_type'):
+            raise ValidationError({'profile_type': 'Insert "c" or "u" (company/user)'})
+        row['email'] = row['email'].lower()
         try:
-            row['email'] = row['email'].lower()
-            # TODO: can be removed in companycontact update
-            if ProfileEmail.objects.filter(email=row['email']).count() != 1:
-                raise ValidationError({"email": "This email is duplicated in user/company profile and import is not allowed now "})
-            row['user'] = ProfileEmail.objects.get(email=row['email']).user.id
-        except ProfileEmail.DoesNotExist:
-            raise ValidationError({"email": "User with this email doesn't exist"})
+            if row.get('profile_type') == 'u':
+                row['user'] = ProfileEmail.objects.get(email=row['email']).user.id
+            else:
+                row['user'] = CompanyContact.objects.get(email=row['email']).company.id
+        except (ProfileEmail.DoesNotExist, CompanyContact.DoesNotExist):
+            raise ValidationError({"email": "Company/User with this email doesn't exist"})
 
     def import_obj(self, obj, data, dry_run):
         super(ModelResource, self).import_obj(obj, data, dry_run)
         if data.get('user_bank_account'):
             user_bank_acc, _ = UserBankAccount.objects.get_or_create(bank_account_number=data.get('user_bank_account'))
             obj.user_bank_account = user_bank_acc
-        obj.user = ProfileEmail.objects.get(email=data['email']).user
+            obj.save()
         return obj
 
     def dehydrate_user_bank_account(self, donor):
@@ -1155,10 +1071,16 @@ class DonorPaymentChannelResource(ModelResource):
 
     def dehydrate_email(self, donor):
         if hasattr(donor, 'user'):
-            try:
-                email = ProfileEmail.objects.get(user=donor.user, is_primary=True)
-            except ProfileEmail.DoesNotExist:
-                email = ProfileEmail.objects.filter(user=donor.user).first()
+            if donor.user.polymorphic_ctype.model == UserProfile._meta.model_name:
+                try:
+                    email = donor.user.userprofile.profileemail_set.get(is_primary=True)
+                except ProfileEmail.DoesNotExist:
+                    email = donor.user.userprofile.profileemail_set.first()
+            else:
+                try:
+                    email = donor.user.companyprofile.companycontact_set.get(is_primary=True)
+                except CompanyContact.DoesNotExist:
+                    email = donor.user.companyprofile.companycontact_set.first()
             return email.email
         return ''
 
@@ -1176,10 +1098,8 @@ class DonorPaymetChannelAdmin(
     nested_admin.NestedModelAdmin,
 ):
     list_display = (
-        'person_name',
-        'user__email',
-        # 'user__telephone_url',
-        # 'source',
+        'get_name',
+        'get_email',
         'event',
         'VS',
         'SS',
@@ -1191,19 +1111,11 @@ class DonorPaymetChannelAdmin(
         'last_payment_date',
         'extra_payments',
         'user__is_active',
-        # 'registered_support_date',
-        # 'regular_payments_info',
-        # 'total_contrib_string',
-        # 'next_communication_date',
-        # 'next_communication_method',
-        # 'email_confirmed',
     )
     advanced_filter_fields = (
         'user__userprofile__first_name',
         'user__userprofile__last_name',
         'user__email',
-        # 'user__telephone',
-        # 'source',
         ('campaign__name', _("Campaign name")),
         'VS',
         'SS',
@@ -1213,8 +1125,6 @@ class DonorPaymetChannelAdmin(
         'number_of_payments',
         'payment_total',
         'regular_amount',
-        # 'next_communication_date',
-        # 'next_communication_method',
         'user__is_active',
         'last_payment__date',
     )
@@ -1224,10 +1134,7 @@ class DonorPaymetChannelAdmin(
         'regular_payments',
         'user__language',
         'user__is_active',
-        # 'wished_information',
         'old_account',
-        # 'email_confirmed',
-        # 'source',
         ('event', RelatedFieldCheckBoxFilter),
         ('registered_support', DateRangeFilter),
     ]
@@ -1240,7 +1147,6 @@ class DonorPaymetChannelAdmin(
         'VS',
         'SS',
         'user__email',
-        # 'user__telephone',
     ]
     ordering = ('user__userprofile__last_name', 'user__companyprofile__name')
     actions = (
@@ -1253,10 +1159,8 @@ class DonorPaymetChannelAdmin(
     list_per_page = 100
     raw_id_fields = (
         'user',
-        # 'recruiter',
     )
     readonly_fields = (
-        # 'verified_by',
         'user_telephone_url',
         'user_note',
     )
@@ -1283,11 +1187,52 @@ class DonorPaymetChannelAdmin(
         }),
     ]
 
+    def get_queryset(self, request):
+        """
+        The annotate hacking in this query is because django-polymorphic doesnt support
+        prefetch_related and select_related in normal way!
+        Then we want to avoid hitting DB in every list_row
+        """
+        primary_email_user = ProfileEmail.objects.filter(user=OuterRef('user'), is_primary=True)
+        primary_email_company = CompanyContact.objects.filter(
+            company=OuterRef('user'),
+            administrative_unit=OuterRef('money_account__administrative_unit'),
+            is_primary=True,
+        )
+
+        qs = super().get_queryset(request)\
+            .annotate(
+                last_name=F("user__userprofile__last_name"),
+                first_name=F("user__userprofile__first_name"),
+                company_name=F("user__companyprofile__name"),
+                # TODO: profile_type shoud not be there, but dpch returns user parent model instead of child...
+                # and we are not able to recognize child without hitting db.
+                profile_type=F("user__userprofile__polymorphic_ctype__model"),
+                email_address_user=Subquery(primary_email_user.values('email')),
+                email_address_company=Subquery(primary_email_company.values('email')),
+        )
+        return qs
+
     def user_note(self, obj):
         return obj.user.note
 
     def user_telephone_url(self, obj):
         return obj.user.telephone_url()
+
+    def get_email(self, obj):
+        if obj.profile_type == UserProfile._meta.model_name:
+            return obj.email_address_user
+        else:
+            return obj.email_address_company
+
+    def get_name(self, obj):
+        if obj.profile_type == UserProfile._meta.model_name:
+            if obj.first_name or obj.last_name:
+                return f"{obj.first_name} {obj.last_name}"
+            else:
+                return '-'
+        else:
+            return obj.company_name or '-'
 
 
 def add_user_bank_acc_to_dpch(self, request, queryset):
@@ -1785,13 +1730,15 @@ class TaxConfirmationAdmin(
 
     batch_download.short_description = _("generate download links for pdf files")
 
-    list_display = ('get_name',
-                    'get_email',
-                    'year',
-                    'amount',
-                    'get_pdf',
-                    'get_administrative_unit',
-                    'pdf_type')
+    list_display = (
+        'get_name',
+        'get_email',
+        'year',
+        'amount',
+        'get_pdf',
+        'get_administrative_unit',
+        'pdf_type'
+    )
     ordering = (
         'user_profile__userprofile__last_name',
         'user_profile__userprofile__first_name',
@@ -1828,19 +1775,38 @@ class TaxConfirmationAdmin(
         prefetch_related and select_related in normal way!
         Then we want to avoid hitting DB in every list_row
         """
-        primary_email = ProfileEmail.objects.filter(user=OuterRef('user_profile_id'), is_primary=True)
-        qs = super().get_queryset(request).select_related(
-                'pdf_type__pdfsandwichtypeconnector__administrative_unit'
-        ).annotate(
+        primary_email_user = ProfileEmail.objects.filter(user=OuterRef('user_profile_id'), is_primary=True)
+        primary_email_company = CompanyContact.objects.filter(
+            company=OuterRef('user_profile_id'),
+            administrative_unit=OuterRef('pdf_type__pdfsandwichtypeconnector__administrative_unit'),
+            is_primary=True,
+        )
+
+        qs = super().get_queryset(request)\
+            .select_related(
+                'pdf_type__pdfsandwichtypeconnector__administrative_unit',
+                'user_profile__companyprofile',
+                'user_profile__userprofile',
+                'pdf_type__pdfsandwichtypeconnector',
+            )\
+            .annotate(
                 last_name=F("user_profile__userprofile__last_name"),
                 first_name=F("user_profile__userprofile__first_name"),
                 company_name=F("user_profile__companyprofile__name"),
-                email_address=Subquery(primary_email.values('email')),
+                # TODO: profile_type shoud not be there, but dpch returns user parent model instead of child...
+                # and we are not able to recognize child without hitting db.
+                profile_type=F("user_profile__polymorphic_ctype__model"),
+                email_address_user=Subquery(primary_email_user.values('email')),
+                email_address_company=Subquery(primary_email_company.values('email')),
         )
         return qs
 
     def get_email(self, obj):
-        return obj.email_address
+        if obj.profile_type == UserProfile._meta.model_name:
+            return obj.email_address_user
+        else:
+            return obj.email_address_company
+    get_email.short_description = _("Main email")
 
     def get_administrative_unit(self, obj):
         try:
@@ -1848,12 +1814,17 @@ class TaxConfirmationAdmin(
         except AttributeError:
             au = None
         return au
+    get_administrative_unit.short_description = _("Administrative Unit")
 
     def get_name(self, obj):
         if obj.company_name:
-            return obj.company_name
+            return obj.company_name or '-'
         else:
-            return f"{obj.first_name} {obj.last_name}"
+            if obj.first_name or obj.last_name:
+                return f"{obj.first_name} {obj.last_name}"
+            else:
+                return "-"
+    get_name.short_description = _("Name")
 
 
 @admin.register(AdministrativeUnit)
@@ -1904,11 +1875,6 @@ class BaseProfileChildAdmin(PolymorphicChildModelAdmin,):
             inlines = []
         return inlines
 
-    inlines = [
-        PreferenceInline, ProfileEmailInline, TelephoneInline,
-        DonorPaymentChannelInline, InteractionInline,
-    ]
-
 
 @admin.register(UserProfile)
 class UserProfileAdmin(
@@ -1922,6 +1888,10 @@ class UserProfileAdmin(
     resource_class = UserProfileResource
     import_template_name = "admin/import_export/userprofile_import.html"
     change_form_template = "admin/aklub/profile_changeform.html"
+    inlines = [
+        PreferenceInline, ProfileEmailInline, TelephoneInline,
+        DonorPaymentChannelInline, InteractionInline,
+    ]
     list_display = (
         'person_name',
         'username',
@@ -1939,8 +1909,7 @@ class UserProfileAdmin(
     )
 
     actions = (
-        create_export_job_action,
-        send_mass_communication_action,
+
     ) + ProfileAdminMixin.actions
 
     advanced_filter_fields = (
@@ -2096,6 +2065,74 @@ class UserProfileAdmin(
 
         return super().add_view(request)
 
+    def get_queryset(self, request, *args, **kwargs):
+        # save request user's adminsitratived_unit here, so we dont have to peek in every loop
+        self.user_administrated_units = request.user.administrated_units.all()
+
+        if request.user.has_perm('aklub.can_edit_all_units'):
+            queryset = super().get_queryset(request, *args, **kwargs).prefetch_related(
+                    'telephone_set',
+                    'profileemail_set',
+                    'administrative_units',
+                    'userchannels__event',
+                ).annotate(
+                    sum_amount=Sum('userchannels__payment__amount'),
+                    payment_count=Count('userchannels__payment'),
+                    last_payment_date=Max('userchannels__payment__date'),
+                )
+        else:
+            units = Q(userchannels__money_account__administrative_unit=self.user_administrated_units.first())
+            queryset = super().get_queryset(request, *args, **kwargs).prefetch_related(
+                    'telephone_set',
+                    'profileemail_set',
+                    'administrative_units',
+                    'userchannels__event',
+                    'userchannels__money_account__administrative_unit',
+                ).annotate(
+                    sum_amount=Sum('userchannels__payment__amount', filter=units),
+                    payment_count=Count('userchannels__payment', filter=units),
+                    last_payment_date=Max('userchannels__payment__date', filter=units),
+                )
+
+        return queryset
+
+
+class CompanyContactInline(admin.TabularInline):
+    model = CompanyContact
+    extra = 0
+    can_delete = True
+    show_change_link = True
+    fields = (
+        'contact_first_name', 'contact_last_name', 'email', 'is_email_in_userprofile', 'telephone',
+        'is_primary', 'note', 'administrative_unit',
+    )
+    readonly_fields = ('is_email_in_userprofile',)
+
+    def is_email_in_userprofile(self, obj):
+        filter_kwargs = {'email': obj.email}
+        if not self.form.request.user.has_perm('can_edit_all_units'):
+            filter_kwargs['user__administrative_units__in'] = self.form.request.user.administrated_units.all()
+        if ProfileEmail.objects.filter(**filter_kwargs).exists():
+            return _boolean_icon(True)
+        else:
+            return _boolean_icon(False)
+    is_email_in_userprofile.short_description = _("Is email in userprofile")
+
+    def get_queryset(self, request):
+        if not request.user.has_perm('aklub.can_edit_all_units'):
+            queryset = CompanyContact.objects.filter(administrative_unit__in=request.user.administrated_units.all())
+        else:
+            queryset = super().get_queryset(request)
+        return queryset
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "administrative_unit":
+            if not request.user.has_perm('aklub.can_edit_all_units'):
+                kwargs['queryset'] = request.user.administrated_units.all()
+            else:
+                kwargs['queryset'] = AdministrativeUnit.objects.all()
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
 
 @admin.register(CompanyProfile)
 class CompanyProfileAdmin(
@@ -2109,14 +2146,17 @@ class CompanyProfileAdmin(
     resource_class = CompanyProfileResource
     import_template_name = "admin/import_export/userprofile_import.html"
     change_form_template = "admin/aklub/profile_changeform.html"
-
+    inlines = [
+        PreferenceInline, CompanyContactInline,
+        DonorPaymentChannelInline, InteractionInline,
+    ]
     list_display = (
         'name',
         'crn',
         'tin',
-        'full_contact_name',
-        'get_email',
-        'get_main_telephone',
+        'get_contact_name',
+        'get_company_email',
+        'get_company_telephone',
         'get_administrative_units',
         'get_event',
         'date_joined',
@@ -2129,10 +2169,10 @@ class CompanyProfileAdmin(
     )
 
     actions = () + ProfileAdminMixin.actions
-
+    readonly_fields = BaseProfileChildAdmin.readonly_fields + ('get_company_email', 'get_company_telephone')
     advanced_filter_fields = (
         'email',
-        'telephone__telephone',
+        'companycontact__telephone',
         'name',
         'crn',
         'tin',
@@ -2142,9 +2182,11 @@ class CompanyProfileAdmin(
         ('userchannels__event__name', _("Jméno kampaně")),
     )
     search_fields = (
-        'email',
         'name',
-        'telephone__telephone',
+        'companycontact__telephone',
+        'companycontact__email',
+        'companycontact__contact_first_name',
+        'companycontact__contact_last_name',
     )
     list_filter = (
         filters.PreferenceMailingListAllowed,
@@ -2192,9 +2234,8 @@ class CompanyProfileAdmin(
             'fields': (
                 'username', ('name'),
                 'is_active',
-                ('contact_first_name', 'contact_last_name',),
-                'get_email',
-                'get_main_telephone',
+                'get_company_email',
+                'get_company_telephone',
                 'note',
                 'administrative_units',
                 'crn',
@@ -2230,6 +2271,34 @@ class CompanyProfileAdmin(
         }
         ),
     )
+
+    def get_company_email(self, obj):
+
+        if self.request.user.has_perm('aklub.can_edit_all_units'):
+            return obj.get_email()
+        else:
+            com = [c for c in obj.companycontact_set.all() if c.administrative_unit_id in self.user_administrated_units_ids]
+            return obj.get_email(com)
+    get_company_email.short_description = _("Main email")
+
+    def get_company_telephone(self, obj):
+
+        if self.request.user.has_perm('aklub.can_edit_all_units'):
+            return obj.get_main_telephone()
+        else:
+            com = [c for c in obj.companycontact_set.all() if c.administrative_unit_id in self.user_administrated_units_ids]
+            return obj.get_main_telephone(com)
+
+    get_company_telephone.short_description = _("Main telephone")
+
+    def get_contact_name(self, obj):
+        if self.request.user.has_perm('aklub.can_edit_all_units'):
+            return obj.get_main_contact_name()
+        else:
+            com = [c for c in obj.companycontact_set.all() if c.administrative_unit_id in self.user_administrated_units_ids]
+            return obj.get_main_contact_name(com)
+
+    get_contact_name.short_description = _("Contact Name")
 
     def get_form(self, request, obj=None, **kwargs):
         if obj:
@@ -2276,6 +2345,36 @@ class CompanyProfileAdmin(
                 pass
 
         return super().add_view(request)
+
+    def get_queryset(self, request, *args, **kwargs):
+        # save request user's adminsitratived_unit here, so we dont have to peek in every loop
+        self.user_administrated_units = request.user.administrated_units.all()
+        self.user_administrated_units_ids = request.user.administrated_units.all().values_list('id', flat=True)
+
+        if request.user.has_perm('aklub.can_edit_all_units'):
+            queryset = super().get_queryset(request, *args, **kwargs).prefetch_related(
+                    'companycontact_set',
+                    'administrative_units',
+                    'userchannels__event',
+                ).annotate(
+                    sum_amount=Sum('userchannels__payment__amount'),
+                    payment_count=Count('userchannels__payment'),
+                    last_payment_date=Max('userchannels__payment__date'),
+                )
+        else:
+            units = Q(userchannels__money_account__administrative_unit=self.user_administrated_units.first())
+            queryset = super().get_queryset(request, *args, **kwargs).prefetch_related(
+                    'companycontact_set',
+                    'administrative_units',
+                    'userchannels__event',
+                    'userchannels__money_account__administrative_unit',
+                ).annotate(
+                    sum_amount=Sum('userchannels__payment__amount', filter=units),
+                    payment_count=Count('userchannels__payment', filter=units),
+                    last_payment_date=Max('userchannels__payment__date', filter=units),
+                )
+
+        return queryset
 
 
 admin.site.register(DonorPaymentChannel, DonorPaymetChannelAdmin)

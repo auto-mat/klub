@@ -23,9 +23,11 @@ from collections import OrderedDict
 
 from betterforms.multiform import MultiModelForm
 
-
 from django import forms, http
+from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth.forms import PasswordResetForm
+from django.contrib.auth.tokens import default_token_generator
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.core.mail import mail_managers
@@ -33,9 +35,12 @@ from django.core.validators import MinLengthValidator, RegexValidator, Validatio
 from django.db.models import Case, CharField, Count, IntegerField, Q, Sum, Value, When
 from django.db.models.functions import TruncMonth
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render_to_response
+from django.shortcuts import get_object_or_404, redirect, render, render_to_response
+from django.template.loader import render_to_string
 from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.cache import cache_page, never_cache
 from django.views.decorators.csrf import csrf_exempt
@@ -50,8 +55,7 @@ from sesame.backends import ModelBackend
 
 from . import autocom
 from .models import (
-    BankAccount,
-    DonorPaymentChannel, Event, Payment,
+    DonorPaymentChannel, Event, MoneyAccount, Payment,
     Profile, ProfileEmail, Source, Telephone, UserInCampaign,
     UserProfile,
 )
@@ -126,7 +130,7 @@ class CampaignMixin(forms.ModelForm):
 
 class BankAccountMixin(forms.ModelForm):
     money_account = forms.ModelChoiceField(
-            queryset=BankAccount.objects.filter(slug__isnull=False).exclude(slug=""),
+            queryset=MoneyAccount.objects.filter(slug__isnull=False).exclude(slug=""),
             to_field_name="slug",
     )
 
@@ -390,7 +394,7 @@ def create_new_user_profile(form, regular):
     new_user_profile = new_user_objects['userprofile']
     # Save new user instance
     if hasattr(form.forms['userprofile'], 'email_used') and form.forms['userprofile'].email_used:
-        new_user_profile = Profile.objects.get(profileemail__email=form.forms['userprofile'].email_used)
+        new_user_profile = UserProfile.objects.get(profileemail__email=form.forms['userprofile'].email_used)
     else:
         new_user_profile.save()
         ProfileEmail.objects.create(email=form.forms['userprofile'].cleaned_data['email'], user=new_user_profile, is_primary=True)
@@ -813,3 +817,56 @@ class ConfirmEmailView(SesameUserMixin, View):
         user_in_campaign.save()
         cache.clear()
         return redirect(user_in_campaign.campaign.email_confirmation_redirect, permanent=False)
+
+
+class PasswordResetView(View):
+    template_name = "password/password_reset.html"
+
+    def post(self, request, *args, **kwargs):
+        form = PasswordResetForm(request.POST)
+        if form.is_valid():
+            data = form.cleaned_data['email']
+            email = ProfileEmail.objects.filter(email=data)
+            if email.exists():
+                email = email.first()
+                user = email.user
+                email_template_name = "password/password_reset_email.txt"
+
+                if not user.password:
+                    # password muset be set or token is not generated
+                    user.set_password(UserProfile.objects.make_random_password())
+                    user.save()
+                    user.refresh_from_db()
+
+                variables = {
+                    "email": email.email,
+                    'domain': settings.WEB_URL,
+                    'site_name': settings.SITE_NAME,
+                    "username": user.username,
+                    "uid": urlsafe_base64_encode(force_bytes(user.pk)),
+                    "user": user,
+                    'token': default_token_generator.make_token(user),
+                    'protocol': 'http',
+                }
+                template = render_to_string(email_template_name, variables)
+
+                from django.core.mail import EmailMultiAlternatives
+                from .models import AdministrativeUnit
+                administrative_unit = AdministrativeUnit.objects.first()
+
+                email = EmailMultiAlternatives(
+                    subject="password reset",
+                    body=template,
+                    from_email=administrative_unit.from_email_str if administrative_unit else 'Klub pratel Auto*Matu <kp@auto-mat.cz>',
+                    to=[email.email],
+                )
+                email.send(fail_silently=False)
+        return redirect("password_reset_done")
+
+    def get(self, request, *args, **kwargs):
+        password_reset_form = PasswordResetForm()
+        return render(
+            request=request,
+            template_name="password/password_reset.html",
+            context={"password_reset_form": password_reset_form},
+        )

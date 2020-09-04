@@ -14,7 +14,7 @@ from model_mommy import mommy
 from oauth2_provider.models import Application
 
 
-def login_mixin():
+def app_login_mixin():
     app = mommy.make(
          'oauth2_provider.application',
          name="Test Application",
@@ -27,15 +27,64 @@ def login_mixin():
         token='foo',
         application=app,
         expires=datetime.datetime.now() + datetime.timedelta(days=999),
-        scope='read write can_create_profiles',
+        scope='read write can_create_profiles can_check_if_exist can_create_interactions can_check_last_payments',
     )
+
+
+def user_login_mixin():
+    user = mommy.make("aklub.UserProfile", username='user_can_access')
+    app = mommy.make(
+         'oauth2_provider.application',
+         name="Test Application",
+         client_type=Application.CLIENT_CONFIDENTIAL,
+         authorization_grant_type=Application.GRANT_PASSWORD,
+    )
+
+    mommy.make(
+        'oauth2_provider.accesstoken',
+        token='foo',
+        application=app,
+        expires=datetime.datetime.now() + datetime.timedelta(days=999),
+        user=user,
+    )
+
+
+"""
+class GetTokenTest(TestCase):
+    def test_get_client_credentials_token(self):
+        app = mommy.make(
+             'oauth2_provider.application',
+             client_type=Application.CLIENT_CONFIDENTIAL,
+             authorization_grant_type=Application.GRANT_CLIENT_CREDENTIALS,
+             skip_authorization=False,
+             client_id='xxx',
+             client_secret='xxx',
+        )
+
+        data = {
+            "grant_type": "client_credentials",
+            "client_id": "xxx",
+            "client_secret": "xxx",
+        }
+        url = reverse('oauth2_provider:token')
+
+        response = self.client.post(url, data=data)
+        print(response.json())
+        # TODO: cleint_type error .... make it works!
+        # this test work in postman,.. uh?
+        self.assertEqual(response.status_code, 200)
+
+    def test_get_password_token(self):
+        pass
+
+"""
 
 
 @freeze_time("2015-5-1")
 class CreateDpchUserProfileViewTest(TestCase):
 
     def setUp(self):
-        login_mixin()
+        app_login_mixin()
 
         unit = mommy.make('aklub.administrativeunit', name='test_unit')
         self.event = mommy.make('aklub.event', slug='event_slug', administrative_units=[unit, ])
@@ -103,7 +152,7 @@ class CreateDpchUserProfileViewTest(TestCase):
 @freeze_time("2015-5-1")
 class CreateDpchCompanyProfileViewTest(TestCase):
     def setUp(self):
-        login_mixin()
+        app_login_mixin()
         unit = mommy.make('aklub.administrativeunit', name='test_unit')
         self.event = mommy.make('aklub.event', slug='event_slug', administrative_units=[unit, ])
         self.bank_acc = mommy.make('aklub.bankaccount', bank_account='11122/111', slug='bank_slug', administrative_unit=unit)
@@ -137,8 +186,8 @@ class CreateDpchCompanyProfileViewTest(TestCase):
         self.assertEqual(dpch.money_account, self.bank_acc)
 
         self.assertEqual(user.name, 'company_name')
-        self.assertEqual(user.profileemail_set.first().email, 'company@test.com')
-        self.assertEqual(user.telephone_set.first().telephone, '111222333')
+        self.assertEqual(user.companycontact_set.first().email, 'company@test.com')
+        self.assertEqual(user.companycontact_set.first().telephone, '111222333')
         # update fields
         data_update = {
             'street': 'street_name',
@@ -157,12 +206,13 @@ class CreateDpchCompanyProfileViewTest(TestCase):
         self.assertEqual(user.street, 'street_name')
         self.assertEqual(user.city, 'city_name')
         self.assertEqual(user.zip_code, '111 22')
-        self.assertCountEqual(user.telephone_set.values_list('telephone', flat=True), ['111222333', '333222111'])
+        self.assertCountEqual(user.companycontact_set.values_list('telephone', flat=True), ['111222333', '333222111'])
+        self.assertCountEqual(user.companycontact_set.values_list('email', flat=True), ['company_new@test.com', 'company@test.com'])
 
 
 class CheckEventViewTest(TestCase):
     def setUp(self):
-        login_mixin()
+        app_login_mixin()
 
     def test_check_if_event_exist(self):
         unit = mommy.make('aklub.AdministrativeUnit', name='test_unit')
@@ -178,7 +228,7 @@ class CheckEventViewTest(TestCase):
 
 class CheckMoneyAccountViewTest(TestCase):
     def setUp(self):
-        login_mixin()
+        app_login_mixin()
 
     def test_check_if_event_exist(self):
         unit = mommy.make('aklub.administrativeunit', name='test_unit')
@@ -195,7 +245,7 @@ class CheckMoneyAccountViewTest(TestCase):
 @freeze_time("2015-5-1")
 class CheckLastPaymentsViewTest(TestCase):
     def setUp(self):
-        login_mixin()
+        app_login_mixin()
 
     def test_check_last_payments(self):
         user = mommy.make('aklub.Profile', id=22)
@@ -234,7 +284,7 @@ class CheckLastPaymentsViewTest(TestCase):
 
 class CreateInteractionTest(TestCase):
     def setUp(self):
-        login_mixin()
+        app_login_mixin()
 
     def test_create_interaction(self):
         user = mommy.make('aklub.Profile', id=22)

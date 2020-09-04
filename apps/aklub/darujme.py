@@ -13,6 +13,8 @@ from aklub.models import (
 )
 from aklub.views import get_unique_username
 
+from django.core.exceptions import ValidationError
+
 import xlrd
 
 
@@ -111,6 +113,9 @@ def create_statement_from_file(xmlfile):
 
 
 def create_statement_from_API(campaign):
+    # TODO: limit it somehow ...
+    # get current celery task and look for payments with last_run + time_delay
+    # right now.. we are getting all payments ... again and again
     url = 'https://www.darujme.cz/dar/api/darujme_api.php?api_id=%s&api_secret=%s&typ_dotazu=1' % (
         campaign.api_id,
         campaign.api_secret,
@@ -172,10 +177,20 @@ def create_payment(data, payments, skipped_payments):  # noqa
         "type": 'darujme',
         "SS": data['id'],
         "date": data['datum_prichozi_platby'] or data['datum_daru'],
+        # TODO:
+        # "recipient_account": campaign, # this cant be done because  this wont find old payments without recipient account
+        # we need to set recipient_account to all payments first!
     }
     if id_platby:
         filter_kwarg["operation_id"] = id_platby
-    if Payment.objects.filter(**filter_kwarg).exists():
+    existed_payments = Payment.objects.filter(**filter_kwarg)
+    if existed_payments.exists():
+        # TODO: this can be removed after all payments in db has updated recipient_account
+        for pay in existed_payments:
+            if not pay.recipient_account:
+                pay.recipient_account = campaign
+                pay.save()
+
         skipped_payments.append(
             OrderedDict(
                 [
@@ -226,24 +241,31 @@ def create_payment(data, payments, skipped_payments):  # noqa
     else:
         log.info("Duplicate email %s" % email.email)
         userprofile = email.user
-    try:
-        data['telefon'] = int(str(data['telefon']).replace(" ", ""))
-        if 100000000 <= data['telefon'] <= 999999999:
-            telephone, telephone_created = Telephone.objects.get_or_create(
-                telephone=data['telefon'],
+    userprofile.administrative_units.add(campaign.administrative_unit)
+    if data.get('telefon'):
+
+        try:
+            Telephone(telephone=str(data['telefon']).replace(" ", "")).full_clean()
+
+        except ValidationError:
+            log.info(f"Duplicate telephone for email: {email.email}")
+        else:
+            telephone, tel_created = Telephone.objects.get_or_create(
+                telephone=str(data['telefon']).replace(" ", ""),
                 user=userprofile,
             )
-    except ValueError:
-        log.info('%s is not valid phone number ' % data['telefon'])
+            if tel_created:
+                log.info(f"Duplicate telephone for email: {email.email}")
+
     donorpaymentchannel, donorpaymentchannel_created = DonorPaymentChannel.objects.get_or_create(
         user=userprofile,
         event=campaign.event,
-        money_account=campaign,
         defaults={
             'regular_frequency': cetnost,
             'regular_payments': regular_payments,
             'regular_amount': amount if cetnost else None,
             'end_of_regular_payments': cetnost_konec,
+            'money_account': campaign,
         },
     )
     if donorpaymentchannel_created:

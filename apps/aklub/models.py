@@ -26,7 +26,6 @@ from colorfield.fields import ColorField
 
 from computedfields.models import ComputedFieldsModel, computed
 
-from django.conf import settings
 from django.contrib.admin.templatetags.admin_list import _boolean_icon
 from django.contrib.auth.models import (
     AbstractBaseUser, AbstractUser, PermissionsMixin,
@@ -48,6 +47,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from polymorphic.managers import PolymorphicManager
 from polymorphic.models import PolymorphicModel, PolymorphicTypeUndefined
+from polymorphic.query import PolymorphicQuerySet
 
 from smmapdfs.model_abcs import PdfSandwichABC, PdfSandwichFieldABC
 
@@ -72,7 +72,30 @@ COMMUNICATION_METHOD = (
 )
 
 
+class CustomUserQueryset(PolymorphicQuerySet):
+    """
+    Rewriting  base delete method to separatly delete UserProfile/CompanyProfile by calling parent delete method
+    Bug is raised by diff FK for child model
+    """
+    def delete(self):
+        UserProfile.objects.filter(id__in=self.instance_of(UserProfile).values_list('id', flat=True)).delete()
+        CompanyProfile.objects.filter(id__in=self.instance_of(CompanyProfile).values_list('id', flat=True)).delete()
+
+
 class CustomUserManager(PolymorphicManager, UserManager):
+    queryset_class = PolymorphicQuerySet
+    use_in_migrations = False
+
+    def get_queryset(self):
+        """
+        we call diff Manager for Polymorphic parent and chill
+        """
+        if self.model == Profile:
+            self.queryset_class = CustomUserQueryset
+        qs = self.queryset_class(self.model, using=self._db, hints=self._hints)
+        if self.model._meta.proxy:
+            qs = qs.instance_of(self.model)
+        return qs
 
     def create_user(self, email, password, **extra_fields):
         if extra_fields.get('polymorphic_ctype_id', None):
@@ -712,10 +735,13 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
     get_addressment.short_description = _("Addressment")
     get_addressment.admin_order_field = 'addressment'
 
-    def get_email_str(self):
+    def get_email_str(self, administrative_unit=None):
         try:
-            return self.profileemail_set.get(is_primary=True).email
-        except ProfileEmail.DoesNotExist:
+            if self.is_userprofile():
+                return self.profileemail_set.get(is_primary=True).email
+            else:
+                return self.companycontact_set.get(is_primary=True, administrative_unit=administrative_unit).email
+        except (ProfileEmail.DoesNotExist, CompanyContact.DoesNotExist):
             return ""
 
     def mail_communications_count(self):
@@ -792,15 +818,24 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
         super().save(*args, **kwargs)
 
     def get_telephone(self):
-        numbers = ','.join(number.telephone for number in self.telephone_set.all())
+        if self.is_userprofile():
+            numbers = ','.join(number.telephone for number in self.telephone_set.all())
+        else:
+            numbers = ','.join(number.telephone for number in self.companycontact_set.all())
         return numbers
 
     def get_donor(self):
         donors = ','.join(donor.VS for donor in self.userchannels.all() if donor.VS is not None)
         return donors
 
-    def get_main_telephone(self):
-        active_numbers = self.telephone_set.all()
+    def get_main_telephone(self, edited_query=None):
+        if edited_query:
+            active_numbers = edited_query
+        else:
+            if self.is_userprofile():
+                active_numbers = self.telephone_set.all()
+            else:
+                active_numbers = self.companycontact_set.all()
         numbers = list(map(lambda number: number.create_link(), active_numbers))
         return mark_safe('\n'.join(numbers))
 
@@ -844,6 +879,7 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
     def get_administrative_units(self):
         administrative_units = ', '.join(administrative_unit.name for administrative_unit in self.administrative_units.all())
         return administrative_units
+    get_administrative_units.short_description = _("Administrative units")
 
     def can_administer_profile(self, profile):
         if self.has_perm('aklub.can_edit_all_units'):
@@ -855,15 +891,27 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
         else:
             return False
 
-    def get_email(self):
-        emails = self.profileemail_set.all()
+    def is_userprofile(self):
+        if self._meta.model_name == UserProfile._meta.model_name:
+            return True
+        else:
+            return False
+
+    def get_email(self, edited_query=None):
+        if edited_query:
+            emails = edited_query
+        else:
+            if self.is_userprofile():
+                emails = self.profileemail_set.all()
+            else:
+                emails = self.companycontact_set.all()
         result = list(
             map(
                 lambda email:
-                format_html('<b>{}</b>'.format(email.email))
+                format_html('<b>{}</b>'.format(email.email or ""))
                 if email.is_primary
                 else
-                format_html('{}'.format(email.email)),
+                format_html('{}'.format(email.email or "")),
                 emails,
             ),
         )
@@ -887,18 +935,6 @@ class CompanyProfile(Profile):
         null=True,
     )
 
-    contact_first_name = models.CharField(
-        verbose_name=_("Contact first name"),
-        max_length=256,
-        blank=True,
-        null=True,
-    )
-    contact_last_name = models.CharField(
-        verbose_name=_("Contact last name"),
-        max_length=256,
-        blank=True,
-        null=True,
-    )
     crn = StdNumField(
         'cz.dic',
         default=None,
@@ -919,13 +955,25 @@ class CompanyProfile(Profile):
         null=True,
     )
 
-    def full_contact_name(self):
-        """Return complete name"""
-        if self.contact_first_name and self.contact_last_name:
-            return f'{self.contact_first_name} {self.contact_last_name}'
-
-    full_contact_name.short_description = _("Contact name")
-    full_contact_name.admin_order_field = 'full_contact_name'
+    def get_main_contact_name(self, edited_query=None):
+        if edited_query:
+            com = edited_query
+        else:
+            com = self.companycontact_set.all()
+        result = list(
+            map(
+                lambda contact:
+                format_html('<nobr><b>{}</b></nobr>'.format(f'{contact.contact_first_name} {contact.contact_last_name}'))
+                if contact.is_primary
+                else
+                format_html('<nobr>{}</nobr>'.format(f'{contact.contact_first_name} {contact.contact_last_name}')),
+                com,
+            ),
+        )
+        result.sort(key=lambda item: -1 if '<b>' in item else 0)
+        return mark_safe('\n'.join(result))
+    get_main_contact_name.short_description = _("Contact name")
+    get_main_contact_name.admin_order_field = 'full_contact_name'
 
 
 class UserProfile(Profile, AbstractUserProfile):
@@ -982,6 +1030,87 @@ class UserProfile(Profile, AbstractUserProfile):
         }
 
 
+class CompanyContact(models.Model):
+
+    class Meta:
+        unique_together = (
+            ('is_primary', 'administrative_unit', 'email'),
+            ('is_primary', 'administrative_unit', 'company'),
+            # ('company', 'administrative_unit', 'email'), # TODO: telephone number.. wont save?
+        )
+    BOOL_CHOICES = (
+        (None, "No"),
+        (True, "Yes")
+    )
+
+    contact_first_name = models.CharField(
+        verbose_name=_("Contact first name"),
+        max_length=256,
+        blank=True,
+    )
+    contact_last_name = models.CharField(
+        verbose_name=_("Contact last name"),
+        max_length=256,
+        blank=True,
+    )
+    email = models.EmailField(
+        _('email address'),
+        blank=True,
+        null=True,
+    )
+    telephone = models.CharField(
+        verbose_name=_("Telephone number"),
+        max_length=100,
+        blank=True,
+        validators=[
+            RegexValidator(
+                r'^\+?(42(0|1){1})?\s?\d{3}\s?\d{3}\s?\d{3}$',
+                _("Telephone must consist of numbers, spaces and + sign or maximum number count is higher."),
+            ),
+        ],
+    )
+    is_primary = models.NullBooleanField(
+        verbose_name=_("Primary contact"),
+        blank=True,
+        default=None,
+        choices=BOOL_CHOICES,
+    )
+    note = models.CharField(
+        verbose_name=_("Note"),
+        max_length=70,
+        blank=True,
+    )
+    company = models.ForeignKey(
+        CompanyProfile,
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+    )
+    administrative_unit = models.ForeignKey(
+        AdministrativeUnit,
+        verbose_name=_("administrative unit"),
+        on_delete=models.CASCADE,
+    )
+
+    def format_number(self):
+        if hasattr(self, "telephone") and self.telephone:
+            removed_space_tel = self.telephone.replace(" ", "")
+            if len(removed_space_tel) > 9:
+                return '+' + removed_space_tel[-12:]
+            else:
+                return '+420' + removed_space_tel[-9:]
+        else:
+            return ""
+
+    def create_link(self):
+        if hasattr(self, "telephone"):
+            formated_telephone = self.format_number()
+            if self.is_primary is True:
+                return format_html("<b><a href='sip:{}'>{}</a></b>", formated_telephone, formated_telephone)
+            else:
+                return format_html("<a href='sip:{}'>{}</a>", formated_telephone, formated_telephone)
+
+
 class ProfileEmail(models.Model):
     class Meta:
         verbose_name = _("Email")
@@ -1010,7 +1139,7 @@ class ProfileEmail(models.Model):
         null=True,
     )
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+        UserProfile,
         blank=True,
         null=True,
         on_delete=models.CASCADE,
@@ -1148,7 +1277,7 @@ class Telephone(models.Model):
         blank=True,
     )
     user = models.ForeignKey(
-        Profile,
+        UserProfile,
         blank=True,
         null=True,
         on_delete=models.SET_NULL,
@@ -2726,16 +2855,16 @@ class TaxConfirmation(models.Model):
         )
 
     def get_street(self):
-        return"%s" % (self.user_profile.street)
+        return"%s" % (self.user_profile.street or "",)
 
     def get_addr_city(self):
-        return "%s" % (self.user_profile.city)
+        return "%s" % (self.user_profile.city or "",)
 
     def get_zip_code(self):
-        return "%s" % (self.user_profile.zip_code,)
+        return "%s" % (self.user_profile.zip_code or "",)
 
     def get_country(self):
-        return "%s" % (self.user_profile.country,)
+        return "%s" % (self.user_profile.country or "",)
 
     sandwich_model = TaxConfirmationPdf
 
@@ -2746,19 +2875,26 @@ class TaxConfirmation(models.Model):
         return Payment.objects.filter(user_profile=self.user_profile).exclude(type='expected').filter(date__year=self.year)
 
     def get_administrative_unit(self):
-        return self.pdf_type.pdfsandwichtypeconnector.administrative_unit.name
+        return "%s" % (self.pdf_type.pdfsandwichtypeconnector.administrative_unit.name or "",)
 
     def get_company_name(self):
-        return self.user_profile.name
+        return "%s" % (self.user_profile.name or "")
 
     def get_company_contact_name(self):
-        return f'{self.user_profile.contact_first_name} {self.user_profile.contact_last_name}'
+        try:
+            main_contact = self.user_profile.companycontact_set.get(
+                is_primary=True,
+                administrative_unit=self.pdf_type.pdfsandwichtypeconnector.administrative_unit,
+            )
+            return "%s %s" % (main_contact.contact_first_name, main_contact.contact_last_name)
+        except CompanyContact.DoesNotExist:
+            return ""
 
     def get_company_tin(self):
-        return self.user_profile.tin
+        return "%s" % (self.user_profile.tin or "",)
 
     def get_company_crn(self):
-        return self.user_profile.crn
+        return "%s" % (self.user_profile.crn or "",)
 
     class Meta:
         verbose_name = _("Tax confirmation")

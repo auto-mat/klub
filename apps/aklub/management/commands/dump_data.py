@@ -2,7 +2,7 @@ import datetime
 from random import randint
 
 from aklub.models import (
-            AdministrativeUnit, BankAccount, CompanyProfile,
+            AdministrativeUnit, BankAccount, CompanyContact, CompanyProfile,
             DonorPaymentChannel, Event, Payment, ProfileEmail, Telephone, UserBankAccount,
             UserProfile,
             )
@@ -135,8 +135,6 @@ class Command(BaseCommand):
             profile = fake.profile()
             company = CompanyProfile.objects.create(
                         name=profile['company'],
-                        contact_first_name=profile['name'].split(' ')[0],
-                        contact_last_name=profile['name'].split(' ')[1],
                         street=f'{fake.street_name()} {randint(1,500)}',
                         city=fake.city_name(),
                         zip_code=fake.postcode(),
@@ -144,19 +142,21 @@ class Command(BaseCommand):
 
             company.administrative_units.set(administrative_units[:randint(1, 3)])
 
-            ProfileEmail.objects.get_or_create(
+            for unit in company.administrative_units.all():
+                profile = fake.profile()
+                CompanyContact.objects.get_or_create(
                     is_primary=True,
                     email=unidecode.unidecode(
-                                company.contact_first_name + company.contact_last_name +
+                                profile['name'].split(' ')[0] + profile['name'].split(' ')[1] +
                                 str(randint(1, 5)) + '@' + fake.email().split('@')[1],
                                 ).lower(),
-                    defaults={'user': company},
-                    )
-            Telephone.objects.get_or_create(
-                    is_primary=True,
                     telephone=fake.phone_number().replace(' ', ''),
-                    defaults={'user': company},
-                    )
+                    contact_first_name=profile['name'].split(' ')[0],
+                    contact_last_name=profile['name'].split(' ')[1],
+                    administrative_unit=unit,
+                    defaults={'company': company},
+
+                )
             user_bank_account = UserBankAccount.objects.create(bank_account_number=get_bank_acc_number())
             for unit in company.administrative_units.all():
                 generate_dpch_with_payments(unit, company, user_bank_account, max_payments_to_dpch)

@@ -180,6 +180,11 @@ class InteractionsImportExportTests(CreateSuperUserMixin, TransactionTestCase):
         self.factory = RequestFactory()
         self.client.force_login(self.superuser)
 
+        self.au = mommy.make(
+                'aklub.AdministrativeUnit',
+                id=1,
+                name='test_unit',
+        )
         self.user = mommy.make(
                     'aklub.UserProfile',
                     id=1,
@@ -193,10 +198,17 @@ class InteractionsImportExportTests(CreateSuperUserMixin, TransactionTestCase):
                 is_primary=True,
 
         )
-        self.au = mommy.make(
-                'aklub.AdministrativeUnit',
-                id=1,
-                name='test_unit',
+        self.company = mommy.make(
+                'aklub.CompanyProfile',
+                id=3,
+                username='test_companyname',
+        )
+        mommy.make(
+                'aklub.CompanyContact',
+                email='test_email@email.com',
+                company=self.company,
+                administrative_unit=self.au,
+                is_primary=True,
         )
         self.event = mommy.make(
                 'aklub.Event',
@@ -256,6 +268,7 @@ class InteractionsImportExportTests(CreateSuperUserMixin, TransactionTestCase):
         # check new interactions
         int1 = Interaction.objects.get(subject='test_subject1')
         self.assertEqual(int1.user.get_email_str(), 'test_email@email.com')
+        self.assertEqual(int1.user, self.user)
         self.assertEqual(int1.event, self.event)
         self.assertEqual(int1.created_by, self.user)
         self.assertEqual(int1.handled_by, self.user)
@@ -287,6 +300,24 @@ class InteractionsImportExportTests(CreateSuperUserMixin, TransactionTestCase):
         self.assertEqual(int2.rating, '5')
         self.assertEqual(int2.next_step, 'call_soon')
 
+        int3 = Interaction.objects.get(subject='test_subject3_company')
+        self.assertEqual(int3.user.get_email_str(int3.administrative_unit), 'test_email@email.com')
+        self.assertEqual(int3.user, self.company)
+        self.assertEqual(int3.event, self.event)
+        self.assertEqual(int3.created_by, self.user)
+        self.assertEqual(int3.handled_by, self.user)
+        self.assertEqual(int3.administrative_unit, self.au)
+        self.assertEqual(int3.date_from.isoformat(), '2020-02-19T12:08:40+00:00')
+        self.assertEqual(int3.date_to, None)
+        self.assertEqual(int1.next_communication_date.isoformat(), '2020-02-19T12:08:42+00:00')
+        self.assertEqual(int3.type, self.int_type)
+        self.assertEqual(int3.communication_type, 'individual')
+        self.assertEqual(int3.summary, 'happy_day_summary_company_3')
+        self.assertEqual(int3.note, 'test_note3_company')
+        self.assertEqual(int3.dispatched, 0)
+        self.assertEqual(int3.rating, '1')
+        self.assertEqual(int3.next_step, 'call_soon')
+
 
 class DonorImportExportTests(CreateSuperUserMixin, TransactionTestCase):
     def setUp(self):
@@ -311,19 +342,28 @@ class DonorImportExportTests(CreateSuperUserMixin, TransactionTestCase):
                     'aklub.Event',
                     name='test_old',
         )
-        user = mommy.make(
+        self.user = mommy.make(
                     'aklub.UserProfile',
                     username='test1',
         )
         mommy.make(
                     'aklub.ProfileEmail',
                     email='test1@test.com',
-                    user=user,
+                    user=self.user,
+        )
+        self.company = company = mommy.make(
+                    'aklub.CompanyProfile',
+                    username='test_company1',
+        )
+        mommy.make(
+                    'aklub.CompanyContact',
+                    email='test1@test.com',
+                    company=company,
         )
         mommy.make(
                     'aklub.DonorPaymentChannel',
                     id=101,
-                    user=user,
+                    user=self.user,
                     VS=9999,
                     SS=111,
                     regular_frequency='quaterly',
@@ -372,9 +412,8 @@ class DonorImportExportTests(CreateSuperUserMixin, TransactionTestCase):
         response = self.client.post(address, post_data)
         self.assertRedirects(response, expected_url=reverse('admin:aklub_donorpaymentchannel_changelist'))
 
-        # check new DonorPaymentChannel data
-        email = ProfileEmail.objects.get(email='test1@test.com')
-        new_dpch = DonorPaymentChannel.objects.get(user=email.user, event=self.event1)
+        # check new DonorPaymentChannel data (UserProfile)
+        new_dpch = DonorPaymentChannel.objects.get(user=self.user, event=self.event1)
 
         self.assertEqual(new_dpch.money_account, self.bank_acc)
         self.assertEqual(new_dpch.event, self.event1)
@@ -386,6 +425,19 @@ class DonorImportExportTests(CreateSuperUserMixin, TransactionTestCase):
         self.assertEqual(new_dpch.regular_payments, 'regular')
         self.assertEqual(new_dpch.user_bank_account.bank_account_number, '9999/999')
         self.assertEqual(new_dpch.end_of_regular_payments, datetime.date(2017, 9, 16))
+        # CompanyProfile
+        new_dpch2 = DonorPaymentChannel.objects.get(user=self.company, event=self.event1)
+
+        self.assertEqual(new_dpch2.money_account, self.bank_acc)
+        self.assertEqual(new_dpch2.event, self.event1)
+        self.assertEqual(new_dpch2.VS, '4332')
+        self.assertEqual(new_dpch2.SS, '4442')
+        self.assertEqual(new_dpch2.regular_frequency, 'monthly')
+        self.assertEqual(new_dpch2.expected_date_of_first_payment, datetime.date(2016, 1, 12))
+        self.assertEqual(new_dpch2.regular_amount, 987)
+        self.assertEqual(new_dpch2.regular_payments, 'regular')
+        self.assertEqual(new_dpch2.user_bank_account.bank_account_number, '9999/9992')
+        self.assertEqual(new_dpch2.end_of_regular_payments, datetime.date(2017, 1, 11))
 
         # check updated  DonorPaymentChannel data
         dpch_update = DonorPaymentChannel.objects.get(id=101)
@@ -548,44 +600,18 @@ class AdminImportExportTests(CreateSuperUserMixin, TransactionTestCase):
                 administrative_unit=administrative_unit,
                 bank_account_number='2233445566/0100',
             )
-            mommy.make(
-                'aklub.ProfileEmail',
-                email=user.email,
-                user=user,
-            )
-
-    def test_profile_export(self):
-        """ Test ProfileAdmin admin model export """
-        self.create_profiles()
-        address = reverse('admin:aklub_profile_export')
-
-        post_data = {
-            'file_format': 0,
-        }
-        response = self.client.post(address, post_data)
-
-        self.assertContains(
-            response,
-            ''.join(
-                [
-                    '0,test.userprofile@userprofile.test,,',
-                    '"VS:140147010\nevent:Klub přátel Auto*Matu\nbank_accout:\nuser_bank_account:\n\n",',
-                    'test.userprofile,2016-09-16 16:22:30,,,en,,Praha 4,Česká republika,,1,,,Česká republika,',
-                    ',,False,,False,True,True,True,True,,,,male,Phdr.,Foo,Bar,Ing.,,,userprofile,',
-                ],
-            ),
-        )
-        self.assertContains(
-            response,
-            ''.join(
-                [
-                    '1,test.companyprofile@companyprofile.test,,',
-                    '"VS:150157010\nevent:Klub přátel Auto*Matu\nbank_accout:\nuser_bank_account:\n\n",',
-                    'test.companyprofile,2016-09-16 16:22:30,,,en,,Praha 4,Česká republika,,1,,,Česká republika,',
-                    ',,False,,False,True,True,True,True,Company,11223344,55667788,,,,,,,,companyprofile,',
-                ],
-            ),
-        )
+            if user.is_userprofile():
+                mommy.make(
+                    'aklub.ProfileEmail',
+                    email=user.email,
+                    user=user,
+                )
+            else:
+                mommy.make(
+                    'aklub.CompanyContact',
+                    email=user.email,
+                    company=user,
+                    )
 
     def test_user_profile_export(self):
         """ Test UserProfileAdmin admin model export """
@@ -620,239 +646,13 @@ class AdminImportExportTests(CreateSuperUserMixin, TransactionTestCase):
             response,
             ''.join(
                 [
-                    '1,test.companyprofile@companyprofile.test,,',
+                    '1,test.companyprofile@companyprofile.test,-,',
                     '"VS:150157010\nevent:Klub přátel Auto*Matu\nbank_accout:\nuser_bank_account:\n\n",',
                     'test.companyprofile,2016-09-16 16:22:30,,,en,,Praha 4,Česká republika,,1,,,Česká republika,',
                     ',,False,,False,True,True,True,True,Company,11223344,55667788',
                 ],
             ),
         )
-
-    def test_profile_import(self):
-        """ Test Profile admin model import """
-        administrative_units = ['AU1', 'AU2']
-        for index, au in enumerate(administrative_units, 1):
-            mommy.make(
-                'aklub.AdministrativeUnit',
-                id=index,
-                name=administrative_units[index - 1],
-            )
-
-        p = pathlib.PurePath(__file__)
-        csv_file_create_profiles = p.parents[1] / 'test_data' / 'create_profiles.csv'
-        address = reverse('admin:aklub_profile_import')
-        profiles_count_before = Profile.objects.count()
-        with open(csv_file_create_profiles) as fp:
-            post_data = {
-                'import_file': fp,
-                'input_format': 0,
-            }
-            response = self.client.post(address, post_data)
-        self.assertEqual(response.status_code, 200)
-        profiles_count_after = Profile.objects.count()
-        # checking that new profiles were not created during dry import
-        self.assertEqual(profiles_count_before, profiles_count_after)
-        self.assertContains(
-            response,
-            'test.companyprofile@companyprofile.test',
-            html=True,
-        )
-        self.assertContains(
-            response,
-            'test.userprofile@userprofile.test',
-            html=True,
-        )
-        self.assertContains(
-            response,
-            'male',
-            html=True,
-        )
-        self.assertContains(
-            response,
-            '22670319',
-            html=True,
-        )
-        self.assertContains(
-            response,
-            'Company',
-            html=True,
-        )
-
-        # Create model
-        result = re.search(
-            r'<input type="hidden" name="import_file_name".*?>',
-            response.rendered_content,
-        )
-        file_name = [val.split('=')[-1].replace('"', '') for val in result.group(0).split(' ') if 'value' in val][0]
-        post_data = {
-            'import_file_name': file_name,
-            'original_file_name': csv_file_create_profiles.name,
-            'input_format': post_data['input_format'],
-        }
-        address = reverse('admin:aklub_profile_process_import')
-        response = self.client.post(address, post_data)
-        self.assertRedirects(response, expected_url=reverse('admin:aklub_profile_changelist'))
-
-        user_profile = Profile.objects.filter(email='test.userprofile@userprofile.test')
-        self.assertEqual(user_profile.count(), 1)
-        self.assertEqual(user_profile[0].sex, 'male')
-        donor = DonorPaymentChannel.objects.filter(user=user_profile[0])
-        self.assertEqual(donor.count(), 1)
-        self.assertEqual(donor[0].VS, '150157010')
-        self.assertEqual(donor[0].event.name, 'Zažít město jinak')
-        bank_account = BankAccount.objects.filter(bank_account_number='2233445566/0100')
-        self.assertEqual(bank_account.count(), 1)
-        self.assertEqual(donor[0].money_account, bank_account[0])
-        user_bank_account = UserBankAccount.objects.filter(bank_account_number='9988776655/0100')
-        self.assertEqual(user_bank_account.count(), 1)
-        self.assertEqual(donor[0].user_bank_account, user_bank_account[0])
-        self.assertEqual(user_profile[0].polymorphic_ctype, ContentType.objects.get(model='userprofile'))
-        self.assertEqual(user_profile[0].username, 'test.userprofile')
-        self.assertEqual(user_profile[0].title_before, 'Ing.')
-        self.assertEqual(user_profile[0].title_after, 'Phdr.')
-        self.assertEqual(user_profile[0].first_name, 'First_name_userprofile')
-        self.assertEqual(user_profile[0].last_name, 'Last_name_userprofile')
-        preference = Preference.objects.filter(user=user_profile[0])
-        self.assertEqual(preference.count(), 1)
-        self.assertEqual(preference[0].send_mailing_lists, True)
-        self.assertEqual(preference[0].letter_on, True)
-
-        company_profile = Profile.objects.filter(email='test.companyprofile@companyprofile.test')
-        self.assertEqual(company_profile.count(), 1)
-        self.assertEqual(company_profile[0].crn, '22670319')
-        self.assertEqual(company_profile[0].tin, 'CZ22670319')
-        self.assertEqual(company_profile[0].name, 'Company')
-        donor = DonorPaymentChannel.objects.filter(user=company_profile[0])
-        self.assertEqual(donor.count(), 1)
-        self.assertEqual(donor[0].VS, '1960243939')
-        self.assertEqual(donor[0].event.name, 'Zažít město jinak')
-        bank_account = BankAccount.objects.filter(bank_account_number='2233445566/0100')
-        self.assertEqual(bank_account.count(), 1)
-        self.assertEqual(donor[0].money_account, bank_account[0])
-        user_bank_account = UserBankAccount.objects.filter(bank_account_number='5554443331/0900')
-        self.assertEqual(user_bank_account.count(), 1)
-        self.assertEqual(donor[0].user_bank_account, user_bank_account[0])
-        self.assertEqual(company_profile[0].polymorphic_ctype, ContentType.objects.get(model='companyprofile'))
-        self.assertEqual(company_profile[0].username, 'test.companyprofile')
-        preference = Preference.objects.filter(user=user_profile[0])
-        self.assertEqual(preference.count(), 1)
-        self.assertEqual(preference[0].send_mailing_lists, True)
-        self.assertEqual(preference[0].letter_on, True)
-
-        # Update model
-        p = pathlib.PurePath(__file__)
-        csv_file_update_profiles = p.parents[1] / 'test_data' / 'update_profiles.csv'
-        address = reverse('admin:aklub_profile_import')
-        profiles_count_before = Profile.objects.count()
-        with open(csv_file_update_profiles) as fp:
-            post_data = {
-                'import_file': fp,
-                'input_format': 0,
-            }
-            response = self.client.post(address, post_data)
-        profiles_count_after = Profile.objects.count()
-        # checking that new profiles were not created during dry import
-        self.assertEqual(profiles_count_before, profiles_count_after)
-        result = re.search(
-            r'<input type="hidden" name="import_file_name".*?>',
-            response.rendered_content,
-        )
-        file_name = [val.split("=")[-1].replace('"', '') for val in result.group(0).split(" ") if "value" in val][0]
-        post_data = {
-            'import_file_name': file_name,
-            'original_file_name': csv_file_create_profiles.name,
-            'input_format': post_data['input_format'],
-        }
-        address = reverse('admin:aklub_profile_process_import')
-        response = self.client.post(address, post_data)
-        self.assertRedirects(response, expected_url=reverse('admin:aklub_profile_changelist'))
-
-        user_profile = Profile.objects.filter(email='test.userprofile@userprofile.test')
-        self.assertEqual(user_profile.count(), 1)
-        self.assertEqual(user_profile[0].sex, 'female')
-        donor = DonorPaymentChannel.objects.filter(user=user_profile[0])
-        self.assertEqual(donor.count(), 1)
-        self.assertEqual(donor[0].VS, '150157010')
-        self.assertEqual(donor[0].event.name, 'Zažít město jinak')
-        bank_account = BankAccount.objects.filter(bank_account_number='2233445566/0100')
-        self.assertEqual(bank_account.count(), 1)
-        self.assertEqual(donor[0].money_account, bank_account[0])
-        user_bank_account = UserBankAccount.objects.filter(bank_account_number='1111111111/0100')
-        self.assertEqual(user_bank_account.count(), 1)
-        self.assertEqual(user_profile[0].polymorphic_ctype, ContentType.objects.get(model='userprofile'))
-        self.assertEqual(user_profile[0].username, 'test.userprofile')
-        self.assertEqual(user_profile[0].title_before, 'Mgr.')
-        preference = Preference.objects.filter(user=user_profile[0])
-        self.assertEqual(preference.count(), 1)
-        self.assertEqual(preference[0].send_mailing_lists, False)
-        self.assertEqual(preference[0].letter_on, False)
-
-        company_profile = Profile.objects.filter(email='test.companyprofile@companyprofile.test')
-        self.assertEqual(company_profile.count(), 1)
-        self.assertEqual(company_profile[0].crn, '22670319')
-        self.assertEqual(company_profile[0].tin, 'CZ22670319')
-        self.assertEqual(company_profile[0].name, 'Update Company')
-        donor = DonorPaymentChannel.objects.filter(user=company_profile[0])
-        self.assertEqual(donor.count(), 1)
-        self.assertEqual(donor[0].event.name, 'Zažít město jinak')
-        bank_account = BankAccount.objects.filter(bank_account_number='3333333333/0300')
-        self.assertEqual(bank_account.count(), 1)
-        self.assertEqual(donor[0].money_account, bank_account[0])
-        user_bank_account = UserBankAccount.objects.filter(bank_account_number='5554443331/0900')
-        self.assertEqual(user_bank_account.count(), 1)
-        self.assertEqual(donor[0].user_bank_account, user_bank_account[0])
-        self.assertEqual(company_profile[0].polymorphic_ctype, ContentType.objects.get(model='companyprofile'))
-        self.assertEqual(company_profile[0].username, 'test.companyprofile')
-        preference = Preference.objects.filter(user=company_profile[0])
-        self.assertEqual(preference.count(), 1)
-        self.assertEqual(preference[0].send_mailing_lists, False)
-        self.assertEqual(preference[0].letter_on, False)
-
-    def test_profile_minimal_fields_import(self):
-        """ Test Profile admin model minimal fields import """
-        p = pathlib.PurePath(__file__)
-        csv_file = 'create_profiles_minimal_fields.csv'
-        csv_file_create_profiles = p.parents[1] / 'test_data' / csv_file
-        address = reverse('admin:aklub_profile_import')
-        profiles_count_before = Profile.objects.count()
-        with open(csv_file_create_profiles) as fp:
-            post_data = {
-                'import_file': fp,
-                'input_format': 0,
-            }
-            response = self.client.post(address, post_data)
-        self.assertEqual(response.status_code, 200)
-        profiles_count_after = Profile.objects.count()
-        # checking that new profiles were not created during dry import
-        self.assertEqual(profiles_count_before, profiles_count_after)
-        self.assertContains(
-            response,
-            '22670319',
-            html=True,
-        )
-        self.assertContains(
-            response,
-            'male',
-            html=True,
-        )
-
-        # Create model
-        result = re.search(
-            r'<input type="hidden" name="import_file_name".*?>',
-            response.rendered_content,
-        )
-        file_name = [val.split('=')[-1].replace('"', '') for val in result.group(0).split(' ') if 'value' in val][0]
-        post_data = {
-            'import_file_name': file_name,
-            'original_file_name': csv_file_create_profiles.name,
-            'input_format': post_data['input_format'],
-        }
-        address = reverse('admin:aklub_profile_process_import')
-        number_of_new_profiles = 2
-        profile_count = Profile.objects.count() + number_of_new_profiles
-        response = self.client.post(address, post_data)
-        self.assertRedirects(response, expected_url=reverse('admin:aklub_profile_changelist'))
-        self.assertEqual(profile_count, Profile.objects.count())
 
     def test_userprofile_import(self):
         """ Test UserProfile admin model import """
@@ -1112,10 +912,14 @@ class AdminImportExportTests(CreateSuperUserMixin, TransactionTestCase):
         )
         self.assertContains(
             response,
+            '111222333',
+            html=True,
+        )
+        self.assertContains(
+            response,
             'Company',
             html=True,
         )
-
         # Create model
         result = re.search(
             r'<input type="hidden" name="import_file_name".*?>',
@@ -1153,6 +957,13 @@ class AdminImportExportTests(CreateSuperUserMixin, TransactionTestCase):
         self.assertEqual(preference[0].send_mailing_lists, True)
         self.assertEqual(preference[0].letter_on, True)
         self.assertEqual(company_profile[0].administrative_units.all().values_list('name')[0], ('AU2',))
+        company_contact = company_profile[0].companycontact_set.first()
+        self.assertEqual(company_contact.email, 'test.companyprofile@companyprofile.test')
+        self.assertEqual(company_contact.telephone, '111222333')
+        self.assertEqual(company_contact.is_primary, None)
+        self.assertEqual(company_contact.contact_first_name, "")
+        self.assertEqual(company_contact.contact_last_name, "")
+
         # Update model (shoud not update)
         p = pathlib.PurePath(__file__)
         csv_file = 'update_company_profiles.csv'
