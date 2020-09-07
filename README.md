@@ -33,6 +33,12 @@ Instalace (Docker compose)
     $ python3 manage.py compilemessages -l "cs\_CZ"
     $ django-admin.py migrate
     $ django-admin.py createsuperuser
+    # Set django Site object domain name
+    $ python manage.py shell
+    # 'localhost' if app will run on localhost
+    >>> from django.contrib.sites.models import Site
+    >>> Site.objects.create(name='localhost', domain='localhost')
+    >>> exit()
 
 Spuštění
 ============
