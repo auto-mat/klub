@@ -34,6 +34,12 @@ Instalace (Docker compose)
     $ cd apps/aklub && django-admin.py compilemessages -l cs_CZ
     $ django-admin.py migrate
     $ django-admin.py createsuperuser
+    # Set django Site object domain name
+    $ python manage.py shell
+    # 'localhost' if app will run on localhost
+    >>> from django.contrib.sites.models import Site
+    >>> Site.objects.create(name='localhost', domain='localhost')
+    >>> exit()
 
 Spuštění
 ============
