@@ -507,3 +507,17 @@ WIKI_CAN_READ = lambda _, user: user.is_staff  # noqa
 # django server variables
 WEB_URL = os.environ.get('WEB_URL', '')
 SITE_NAME = os.environ.get('SITE_NAME', '')
+
+# django admin action ignored_fields
+UPDATE_ACTION_IGNORED_FIELDS = {
+    'aklub': {
+            'userprofile': ['is_staff', 'is_superuser', 'user_permissions', 'groups'],
+            'companyprofile': ['is_staff', 'is_superuser', 'user_permissions', 'groups'],
+    },
+}
+MERGE_ACTION_IGNORED_FIELDS = {
+    'aklub': {
+            'userprofile': ['is_staff', 'is_superuser', 'user_permissions', 'groups'],
+            'companyprofile': ['is_staff', 'is_superuser', 'user_permissions', 'groups'],
+    },
+}
