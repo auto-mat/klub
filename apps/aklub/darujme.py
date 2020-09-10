@@ -226,6 +226,7 @@ def create_payment(data, payments, skipped_payments):  # noqa
     username = get_unique_username(data['email'])
     email, email_created = ProfileEmail.objects.get_or_create(
                 email=data['email'],
+                defaults={'is_primary': True},
             )
     if email_created:
         userprofile = UserProfile.objects.create(
