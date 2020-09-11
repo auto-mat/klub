@@ -1149,7 +1149,7 @@ class ProfileEmail(models.Model):
         return self.email
 
     def save(self, *args, **kwargs):
-        if self.is_primary:
+        if self.user and self.is_primary:
             profile = Profile.objects.get(username=self.user.username)
             profile.email = self.email
             profile.save()
