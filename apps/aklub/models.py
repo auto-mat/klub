@@ -1652,10 +1652,11 @@ class AccountStatements(ParseAccountStatement, models.Model):
         ('account_kb', 'Account statement - Komerční Banka'),
         ('account_csob', 'Account statement - ČSOB'),
         ('account_sberbank', 'Account statement - Sberbank'),
+        ('account_raiffeisenbank', 'Account statement - Raiffeisenbank '),
         ('darujme', 'Darujme.cz'),
     )
 
-    type = models.CharField(max_length=20, choices=TYPE_OF_STATEMENT)  # noqa
+    type = models.CharField(max_length=30, choices=TYPE_OF_STATEMENT)  # noqa
     import_date = models.DateTimeField(auto_now=True)
     csv_file = models.FileField(
         upload_to='account-statements',

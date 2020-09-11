@@ -305,3 +305,48 @@ class ParseAccountStatement(object):
 
             payments.append(register_payment(p_sort, self))
         return payments
+
+    def parse_bank_csv_raiffeisenbank(self):
+        payments_reader = csv.DictReader(
+            codecs.iterdecode(self.csv_file, 'cp1250'),
+            delimiter=';',
+            fieldnames=[
+                'datum_provedeni', 'datum_zauctovani', 'cislo_uctu', 'nazev_uctu', 'kategorie_transakce',
+                'cislo_protiuctu', 'nazev_protiuctu', 'typ_transakce', 'zprava', 'poznamka', 'VS', 'KS', 'SS', 'zauctovana_castka',
+                'mena_uctu', 'puvodni_castka_a_mena', 'puvodni_castka_a_mena_2', 'poplatek', 'id_transakce', 'vlastni_poznamka',
+                'nazev_obchodnika', 'mesto',
+            ],
+
+        )
+        payments = []
+        recipient_account = None
+        for payment in payments_reader:
+            if payment[payments_reader.fieldnames[0]] == 'Datum provedení':
+                continue
+
+            if not recipient_account:
+                try:
+                    recipient_account = models.BankAccount.objects.get(
+                        bank_account_number=payment['cislo_uctu'],
+                    )
+                except models.BankAccount.DoesNotExist:
+                    self.pair_log = 'Missing Bank account, add it in BankAccounts'
+            p_sort = {
+                        'account': payment['cislo_protiuctu'].split('/')[0],
+                        'bank_code': payment['cislo_protiuctu'].split('/')[1],
+                        'VS': payment['VS'],
+                        'KS': payment['KS'],
+                        'SS': payment['SS'],
+                        'amount': amount_to_int(payment['zauctovana_castka']),
+                        'currency': payment['mena_uctu'],
+                        'account_name': payment['nazev_protiuctu'],
+                        'recipient_message': payment['zprava'],
+                        'transfer_note': payment['poznamka'],
+                        'date': models.str_to_datetime(payment['datum_zauctovani'].split(' ')[0]),
+                        'recipient_account': recipient_account,
+                        'operation_id': payment['id_transakce'],
+                         }
+            if payment['typ_transakce'] != "Příchozí úhrada":
+                continue
+            payments.append(register_payment(p_sort, self))
+        return payments
