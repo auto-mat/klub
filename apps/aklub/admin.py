@@ -1043,7 +1043,7 @@ class DonorPaymentChannelResource(ModelResource):
         instance_loader_class = DonorPaymentChannelLoaderClass
 
     def before_import_row(self, row, **kwargs):
-        if not row.get('profile_type'):
+        if not row.get('profile_type') or row.get('profile_type') not in ['u', 'c']:
             raise ValidationError({'profile_type': 'Insert "c" or "u" (company/user)'})
         row['email'] = row['email'].lower()
         try:
