@@ -379,13 +379,13 @@ AKLUB_CORS_ORIGIN_REGEX_WHITELIST = os.environ.get('AKLUB_CORS_ORIGIN_REGEX_WHIT
 TEST_RUNNER = 'aklub.tests.AklubTestSuiteRunner'
 
 MIGRATION_MODULES = {
-    'auth': 'migrations_auth',
-    'admin': 'migrations_admin',
-    'advanced_filters': 'migrations_advanced_filters',
-    'menu': 'migrations_admin_tools.menu',
-    'dashboard': 'migrations_admin_tools.dashboard',
-    'helpdesk': 'migrations_helpdesk',
-    'import_export_celery': 'migrations_import_export_celery',
+    'auth': 'local_migrations.migrations_auth',
+    'admin': 'local_migrations.migrations_admin',
+    'advanced_filters': 'local_migrations.migrations_advanced_filters',
+    'menu': 'local_migrations.migrations_admin_tools.menu',
+    'dashboard': 'local_migrations.migrations_admin_tools.dashboard',
+    'helpdesk': 'local_migrations.migrations_helpdesk',
+    'import_export_celery': 'local_migrations.migrations_import_export_celery',
 }
 
 AUTH_USER_MODEL = "aklub.Profile"
