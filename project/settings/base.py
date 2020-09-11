@@ -8,6 +8,7 @@ import raven
 def normpath(*args):
     return os.path.normpath(os.path.abspath(os.path.join(*args)))
 
+
 PROJECT_ROOT = normpath(__file__, "..", "..", "..")
 BASE_DIR = PROJECT_ROOT
 
