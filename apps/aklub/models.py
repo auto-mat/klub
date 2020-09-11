@@ -829,15 +829,15 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
         return donors
 
     def get_main_telephone(self, edited_query=None):
-        if edited_query:
+        if edited_query is not None:
             active_numbers = edited_query
         else:
             if self.is_userprofile():
                 active_numbers = self.telephone_set.all()
             else:
                 active_numbers = self.companycontact_set.all()
-        numbers = list(map(lambda number: number.create_link(), active_numbers))
-        return mark_safe('\n'.join(numbers))
+        numbers = list(map(lambda number: number.create_link() if number.telephone else '-', active_numbers))
+        return mark_safe('<br>'.join(numbers))
 
     get_main_telephone.short_description = _("Telephone")
     get_main_telephone.admin_order_field = "telephone"
@@ -898,7 +898,7 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
             return False
 
     def get_email(self, edited_query=None):
-        if edited_query:
+        if edited_query is not None:
             emails = edited_query
         else:
             if self.is_userprofile():
@@ -908,16 +908,15 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
         result = list(
             map(
                 lambda email:
-                format_html('<b>{}</b>'.format(email.email or ""))
+                format_html('<b>{}</b>'.format(email.email or "-"))
                 if email.is_primary
                 else
-                format_html('{}'.format(email.email or "")),
+                format_html('{}'.format(email.email or "-")),
                 emails,
             ),
         )
         result.sort(key=lambda item: -1 if '<b>' in item else 0)
-
-        return mark_safe('\n'.join(result))
+        return mark_safe('<br>'.join(result))
 
     get_email.short_description = _("Email")
     get_email.admin_order_field = "email"
@@ -956,7 +955,7 @@ class CompanyProfile(Profile):
     )
 
     def get_main_contact_name(self, edited_query=None):
-        if edited_query:
+        if edited_query is not None:
             com = edited_query
         else:
             com = self.companycontact_set.all()
@@ -966,12 +965,16 @@ class CompanyProfile(Profile):
                 format_html('<nobr><b>{}</b></nobr>'.format(f'{contact.contact_first_name} {contact.contact_last_name}'))
                 if contact.is_primary
                 else
-                format_html('<nobr>{}</nobr>'.format(f'{contact.contact_first_name} {contact.contact_last_name}')),
+                format_html(
+                    '<nobr>{}</nobr>'.format(f'{contact.contact_first_name} {contact.contact_last_name}') # noqa
+                )
+                if contact.contact_first_name or contact.contact_last_name else '-',
                 com,
             ),
         )
         result.sort(key=lambda item: -1 if '<b>' in item else 0)
-        return mark_safe('\n'.join(result))
+        return mark_safe('<br>'.join(result))
+
     get_main_contact_name.short_description = _("Contact name")
     get_main_contact_name.admin_order_field = 'full_contact_name'
 
