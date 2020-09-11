@@ -1,0 +1,6 @@
+Datum provedení;Datum zaúètování;Èíslo úètu;Název úètu;Kategorie transakce;Èíslo protiúètu;Název protiúètu;Typ transakce;Zpráva;Poznámka;VS;KS;SS;Zaúètovaná èástka;Mìna úètu;Pùvodní èástka a mìna;Pùvodní èástka a mìna;Poplatek;Id transakce;Vlastní poznámka;Název obchodníka;Mìsto
+"01.02.2018";"01.02.2018 04:51";"233223/12";"who is there?";"Platba";"23/23";"Mr. Test";"Pøíchozí úhrada";"message";"note";"120127010";"23322";"";"102,00";"CZK";"";"";"0,00";"1";"";"";""
+"03.02.2018";"03.02.2018 01:12";"233223/12";"who is there?";"Platba";"2332/222";"Mr. Who";"Pøíchozí úhrada";"";"";"323232";"22";"";"1 222,20";"CZK";"";"";"3,00";"2";"";"";""
+"10.02.2018";"10.02.2018 03:21";"233223/12";"who is there?";"Platba";"22-3232/3232";"Test";"Pøíchozí úhrada";"";"mm";"32";"";"";"1111,00";"CZK";"";"";"3,00";"3";"";"";""
+"11.02.2018";"11.02.2018 09:03";"233223/12";"who is there?";"Platba";"233223/2332";"Nobody";"odchozí úhrada";"";"";"";"22";"";"10,00";"CZK";"";"";"0,00";"4";"";"";""
+
