@@ -306,7 +306,6 @@ class ParseAccountStatement(object):
             payments.append(register_payment(p_sort, self))
         return payments
 
-
     def parse_bank_csv_raiffeisenbank(self):
         payments_reader = csv.DictReader(
             codecs.iterdecode(self.csv_file, 'cp1250'),
@@ -315,7 +314,7 @@ class ParseAccountStatement(object):
                 'datum_provedeni', 'datum_zauctovani', 'cislo_uctu', 'nazev_uctu', 'kategorie_transakce',
                 'cislo_protiuctu', 'nazev_protiuctu', 'typ_transakce', 'zprava', 'poznamka', 'VS', 'KS', 'SS', 'zauctovana_castka',
                 'mena_uctu', 'puvodni_castka_a_mena', 'puvodni_castka_a_mena_2', 'poplatek', 'id_transakce', 'vlastni_poznamka',
-                'nazev_obchodnika', 'mesto', ''
+                'nazev_obchodnika', 'mesto',
             ],
 
         )
