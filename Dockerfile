@@ -6,4 +6,4 @@ RUN pip3 install pipenv
 RUN useradd test
 RUN chsh test -s /bin/bash
 RUN mkdir /home/test ; chown test /home/test ; chgrp test /home/test
-RUN su test ; cd /home/test ; pipenv install --dev --python python3
+RUN su test -c 'cd /home/test ; pipenv install --dev --python python3'
