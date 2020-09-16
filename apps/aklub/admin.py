@@ -891,13 +891,10 @@ class ProfileAdmin(
     polymorphic_list = True
     resource_class = ProfileResource
     import_template_name = "admin/import_export/userprofile_import.html"
-    # merge_form = UserMergeForm
-    # add_form = UserCreateForm
-    # form = UserUpdateForm
     base_model = Profile
     child_models = (UserProfile, CompanyProfile)
-
     list_display = ()
+    change_list_template = "admin/aklub/profile_redirect.html"
 
     def delete_queryset(self, request, queryset):
         """
