@@ -1885,6 +1885,7 @@ class UserProfileAdmin(
     """ User profile polymorphic admin model child class """
     base_model = UserProfile
     show_in_index = True
+    save_on_top = True
     resource_class = UserProfileResource
     import_template_name = "admin/import_export/userprofile_import.html"
     change_form_template = "admin/aklub/profile_changeform.html"
@@ -2143,6 +2144,7 @@ class CompanyProfileAdmin(
     """ Company profile polymorphic admin model child class """
     base_model = CompanyProfile
     show_in_index = True
+    save_on_top = True
     resource_class = CompanyProfileResource
     import_template_name = "admin/import_export/userprofile_import.html"
     change_form_template = "admin/aklub/profile_changeform.html"
