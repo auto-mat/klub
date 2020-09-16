@@ -41,6 +41,7 @@ from django.core.validators import EmailValidator
 from django.db.models import CharField, Count, F, Max, OuterRef, Q, Subquery, Sum
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect
+from django.urls import resolve
 from django.utils.html import format_html, format_html_join, mark_safe
 from django.utils.translation import ugettext as _
 
@@ -48,6 +49,7 @@ try:
     from django.urls import reverse
 except ImportError:  # Django<2.0
     from django.core.urlresolvers import reverse
+
 
 from flexible_filter_conditions.admin_filters import UserConditionFilter, UserConditionFilter1
 
@@ -820,11 +822,6 @@ class ProfileAdminMixin:
 
     total_payment.short_description = _("Total payment")
     total_payment.admin_order_field = 'Total payment'
-
-    def email_anchor(self, obj):
-        return ''
-
-    email_anchor.short_description = _(mark_safe('<a href="#profileemail_set-group">Details</a>'))
 
     def get_sum_amount(self, obj):
         return obj.sum_amount
@@ -1866,7 +1863,7 @@ class BaseProfileChildAdmin(PolymorphicChildModelAdmin,):
     readonly_fields = (
         'userattendance_links', 'date_joined', 'last_login', 'get_main_telephone',
         'get_email', 'regular_amount', 'donor_delay', 'registered_support_date',
-        'donor_frequency', 'total_payment', 'donor_extra_money', 'email_anchor',
+        'donor_frequency', 'total_payment', 'donor_extra_money',
     )
 
     def get_inline_instances(self, request, obj=None):
@@ -1979,7 +1976,7 @@ class UserProfileAdmin(
                 'username', ('first_name', 'last_name'), ('title_before', 'title_after'), 'sex',
                 'is_active',
                 ('birth_day', 'birth_month', 'age_group'),
-                ('get_email', 'email_anchor'),
+                ('get_email',),
                 'get_main_telephone',
                 'note',
                 'administrative_units',
@@ -2018,6 +2015,14 @@ class UserProfileAdmin(
         }
         ),
     )
+
+    def get_email(self, obj):
+        emails = obj.get_email()
+        if resolve(self.request.path_info).url_name == 'aklub_userprofile_change':
+            # add anchor in changeform
+            emails = mark_safe('<a href="#profileemail_set-group">%(detail)s</a><br>' % {'detail': _('Details')}) + emails
+        return emails
+    get_email.short_description = _("Emails")
 
     def get_form(self, request, obj=None, **kwargs):
         if request.user.is_superuser:
@@ -2239,9 +2244,11 @@ class CompanyProfileAdmin(
                 'get_company_email',
                 'get_company_telephone',
                 'note',
-                'administrative_units',
                 'crn',
                 'tin',
+                'administrative_units',
+                'total_payment',
+                ('registered_support_date', 'regular_amount', 'donor_frequency', 'donor_delay', 'donor_extra_money'),
             ),
         }),
         (_('Contact data'), {
@@ -2275,13 +2282,16 @@ class CompanyProfileAdmin(
     )
 
     def get_company_email(self, obj):
-
         if self.request.user.has_perm('aklub.can_edit_all_units'):
-            return obj.get_email()
+            emails = obj.get_email()
         else:
             com = [c for c in obj.companycontact_set.all() if c.administrative_unit_id in self.user_administrated_units_ids]
-            return obj.get_email(com)
-    get_company_email.short_description = _("Main email")
+            emails = obj.get_email(com)
+        # if in edit form add anchor to inlines
+        if resolve(self.request.path_info).url_name == 'aklub_companyprofile_change':
+            emails = mark_safe('<a href="#companycontact_set-group">%(detail)s</a><br>' % {'detail': _('Details')}) + emails
+        return emails
+    get_company_email.short_description = _("Emails")
 
     def get_company_telephone(self, obj):
 
