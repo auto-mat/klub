@@ -1,8 +1,13 @@
 # -*- coding: utf-8 -*-
+import datetime
 
+from django.contrib import messages
 from django.db import models
 from django.urls import reverse
 from django.utils.html import format_html_join, mark_safe
+from django.utils.translation import ugettext_lazy as _
+
+from . import models as aklub_models
 
 
 def sweet_text(generator):
@@ -41,6 +46,37 @@ def create_model(
     model = type(name, parent_class, attrs)
 
     return model
+
+
+def check_annotate_filters(list_display, request, filter_kwargs):
+    """
+    Create additional annotate to queryset if specific list order is active
+    """
+    if request.GET.get('o'):
+        # check ordering fields (-1 cuz of list indexing)
+        order_filter_fields = [list_display[int(index)-1] for index in request.GET.get('o').replace('-', "").split('.')]
+        if 'donor_delay' in order_filter_fields:
+            filter_kwargs = {'order_payment_delay': models.Value(None, models.DurationField())}
+            if not request.GET.get('profile_dpch_event'):
+                messages.warning(request, _('Please select event before sort by donor delay'))
+            else:
+
+                donor_channels = aklub_models.DonorPaymentChannel.objects.filter(
+                    event_id=request.GET.get('profile_dpch_event'),
+                    user=models.OuterRef('id'),
+                ).annotate(
+                    duration_sort=models.Case( # noqa
+                        models.When(
+                            ~models.Q(expected_regular_payment_date=None),
+                            then=models.F("expected_regular_payment_date") - datetime.date.today(),
+                        ),
+                        default=None,
+                        output_field=models.DurationField(),
+                    )
+                )
+                filter_kwargs.update({'order_payment_delay': models.Subquery(donor_channels.values('duration_sort'))})
+                return filter_kwargs
+    return filter_kwargs
 
 
 class WithAdminUrl:

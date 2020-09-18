@@ -94,7 +94,7 @@ from .profile_model_resources import (
     ProfileModelResource, get_polymorphic_parent_child_fields,
 )
 from .profile_model_resources_mixin import ProfileModelResourceMixin
-from .utils import sweet_text
+from .utils import check_annotate_filters, sweet_text
 
 
 def admin_links(args_generator):
@@ -789,21 +789,20 @@ class ProfileAdminMixin:
         return result
 
     donor_delay.short_description = _("Payment delay")
-    donor_delay.admin_order_field = 'donor_delay'
+    donor_delay.admin_order_field = 'order_payment_delay'
 
     def donor_extra_money(self, obj):
         result = self.get_donor_details(obj)
         return sweet_text(((str(d.extra_money),) if d.extra_money else '-' for d in result))
 
     donor_extra_money.short_description = _("Extra money")
-    donor_extra_money.admin_order_field = 'donor_extra_money'
+    donor_extra_money.admin_order_field = 'userchannels__extra_money'
 
     def donor_frequency(self, obj):
         result = self.get_donor_details(obj)
         return ',\n'.join(str(d.regular_frequency) for d in result)
 
     donor_frequency.short_description = _("Donor frequency")
-    donor_frequency.admin_order_field = 'donor_frequency'
 
     def total_payment(self, obj):
         if self.request.user.has_perm('aklub.can_edit_all_units'):
@@ -1204,6 +1203,7 @@ class DonorPaymetChannelAdmin(
                 profile_type=F("user__userprofile__polymorphic_ctype__model"),
                 email_address_user=Subquery(primary_email_user.values('email')),
                 email_address_company=Subquery(primary_email_company.values('email')),
+
         )
         return qs
 
@@ -1903,9 +1903,7 @@ class UserProfileAdmin(
         'donor_extra_money',
     )
 
-    actions = (
-
-    ) + ProfileAdminMixin.actions
+    actions = () + ProfileAdminMixin.actions
 
     advanced_filter_fields = (
         'profileemail__email',
@@ -1937,6 +1935,7 @@ class UserProfileAdmin(
         'userchannels__extra_money',
         'userchannels__regular_amount',
         'userchannels__regular_frequency',
+        'userchannels__regular_payments',
         ('userchannels__registered_support', DateRangeFilter),
         'is_staff',
         'is_superuser',
@@ -2072,6 +2071,9 @@ class UserProfileAdmin(
         # save request user's adminsitratived_unit here, so we dont have to peek in every loop
         self.user_administrated_units = request.user.administrated_units.all()
 
+        filter_kwargs = {}
+        filter_kwargs = check_annotate_filters(self.list_display, request, filter_kwargs)
+
         if request.user.has_perm('aklub.can_edit_all_units'):
             queryset = super().get_queryset(request, *args, **kwargs).prefetch_related(
                     'telephone_set',
@@ -2082,6 +2084,7 @@ class UserProfileAdmin(
                     sum_amount=Sum('userchannels__payment__amount'),
                     payment_count=Count('userchannels__payment'),
                     last_payment_date=Max('userchannels__payment__date'),
+                    **filter_kwargs,
                 )
         else:
             units = Q(userchannels__money_account__administrative_unit=self.user_administrated_units.first())
@@ -2095,6 +2098,7 @@ class UserProfileAdmin(
                     sum_amount=Sum('userchannels__payment__amount', filter=units),
                     payment_count=Count('userchannels__payment', filter=units),
                     last_payment_date=Max('userchannels__payment__date', filter=units),
+                    **filter_kwargs,
                 )
 
         return queryset
@@ -2198,6 +2202,7 @@ class CompanyProfileAdmin(
         'userchannels__extra_money',
         'userchannels__regular_amount',
         'userchannels__regular_frequency',
+        'userchannels__regular_payments',
         ('userchannels__registered_support', DateRangeFilter),
         'is_staff',
         'is_superuser',
@@ -2360,6 +2365,9 @@ class CompanyProfileAdmin(
         self.user_administrated_units = request.user.administrated_units.all()
         self.user_administrated_units_ids = request.user.administrated_units.all().values_list('id', flat=True)
 
+        filter_kwargs = {}
+        filter_kwargs = check_annotate_filters(self.list_display, request, filter_kwargs)
+
         if request.user.has_perm('aklub.can_edit_all_units'):
             queryset = super().get_queryset(request, *args, **kwargs).prefetch_related(
                     'companycontact_set',
@@ -2369,6 +2377,7 @@ class CompanyProfileAdmin(
                     sum_amount=Sum('userchannels__payment__amount'),
                     payment_count=Count('userchannels__payment'),
                     last_payment_date=Max('userchannels__payment__date'),
+                    **filter_kwargs,
                 )
         else:
             units = Q(userchannels__money_account__administrative_unit=self.user_administrated_units.first())
@@ -2381,6 +2390,7 @@ class CompanyProfileAdmin(
                     sum_amount=Sum('userchannels__payment__amount', filter=units),
                     payment_count=Count('userchannels__payment', filter=units),
                     last_payment_date=Max('userchannels__payment__date', filter=units),
+                    **filter_kwargs,
                 )
 
         return queryset
