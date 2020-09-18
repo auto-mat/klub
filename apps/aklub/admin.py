@@ -1948,6 +1948,7 @@ class UserProfileAdmin(
         'groups',
         'language',
         ('userchannels__last_payment__date', DateRangeFilter),
+        filters.IsUserInCompanyProfile,
         filters.ProfileDonorEvent,
         filters.RegularPaymentsFilter,
         filters.EmailFilter,
