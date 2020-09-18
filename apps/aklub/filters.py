@@ -45,6 +45,33 @@ class PreferenceMailingListAllowed(SimpleListFilter):
         return queryset
 
 
+class IsUserInCompanyProfile(SimpleListFilter):
+    title = _("Is UserProfile in CompanyContact?")
+    parameter_name = 'us_userprofile_in_companycontact'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('yes', _('Yes')),
+            ('no', _('No')),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value():
+            emails = ProfileEmail.objects.filter(user_id__in=queryset.values_list('id', flat=True))
+            filter_kwargs = {'email__in': emails.values_list('email', flat=True)}
+            if not request.user.has_perm('can_edit_all_units'):
+                filter_kwargs['company__administrative_units__in'] = request.user.administrated_units.all()
+                filter_kwargs['administrative_unit__in'] = request.user.administrated_units.all()
+            # duplicate emails
+            contacts = CompanyContact.objects.filter(**filter_kwargs)
+            profile_emails = ProfileEmail.objects.filter(email__in=contacts.values_list('email', flat=True))
+            if self.value() == 'yes':
+                queryset = queryset.filter(id__in=profile_emails.values_list('user_id'))
+            elif self.value() == 'no':
+                queryset = queryset.exclude(id__in=profile_emails.values_list('user_id'))
+            return queryset
+
+
 class ProfileDonorEvent(SimpleListFilter):
     title = _("Event")
     parameter_name = 'profile_dpch_event'
