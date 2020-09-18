@@ -724,6 +724,8 @@ class AdminImportExportTests(CreateSuperUserMixin, TransactionTestCase):
         self.assertEqual(user_profile[0].title_after, 'Phdr.')
         self.assertEqual(user_profile[0].first_name, 'First_name_userprofile')
         self.assertEqual(user_profile[0].last_name, 'Last_name_userprofile')
+        self.assertEqual(user_profile[0].country, 'Česká republika')
+        self.assertEqual(user_profile[0].correspondence_country, 'Slovakia')
         preference = Preference.objects.filter(user=user_profile[0])
         self.assertEqual(preference.count(), 1)
         self.assertEqual(preference[0].send_mailing_lists, True)

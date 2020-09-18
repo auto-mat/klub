@@ -146,6 +146,11 @@ def import_obj(self, obj, data, dry_run):  # noqa
         if data.get("public") is not None:
             check['preference'].public = data['public']
 
+        if data.get('country'):
+            obj.country = data['country']
+        if data.get('correspondence_country'):
+            obj.correspondence_country = data['correspondence_country']
+
     if data.get('event') and data.get('bank_account') and data.get('donor') == 'x':
         can_create_dpch = True
         SS = data.get('SS', None)
