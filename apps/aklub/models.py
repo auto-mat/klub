@@ -1883,11 +1883,11 @@ class DonorPaymentChannel(ComputedFieldsModel):
         blank=True,
     )
     REGULAR_PAYMENT_FREQUENCIES = (
+        (None, ('---')),
         ('monthly', _('Monthly')),
         ('quaterly', _('Quaterly')),
         ('biannually', _('Bianually')),
         ('annually', _('Anually')),
-        (None, _('Onetime')),
     )
     REGULAR_PAYMENT_FREQUENCIES_MAP = dict(REGULAR_PAYMENT_FREQUENCIES)
     REGULAR_PAYMENT_CHOICES = (
