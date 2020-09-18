@@ -646,8 +646,13 @@ class ProfileEmailInline(admin.TabularInline):
             filter_kwargs['company__administrative_units__in'] = self.form.request.user.administrated_units.all()
             filter_kwargs['administrative_unit__in'] = self.form.request.user.administrated_units.all()
 
-        if CompanyContact.objects.filter(**filter_kwargs).exists():
-            return _boolean_icon(True)
+        contact = CompanyContact.objects.filter(**filter_kwargs)
+        if contact.exists():
+            company = contact.first().company
+            url = reverse('admin:aklub_companyprofile_change', args=(company.pk,))
+            icon = _boolean_icon(True)
+            details = company.name or _("Details")
+            return mark_safe(f'<a href="{url}">{icon} {details}</a>')
         else:
             return _boolean_icon(False)
 
@@ -2119,8 +2124,13 @@ class CompanyContactInline(admin.TabularInline):
         filter_kwargs = {'email': obj.email}
         if not self.form.request.user.has_perm('can_edit_all_units'):
             filter_kwargs['user__administrative_units__in'] = self.form.request.user.administrated_units.all()
-        if ProfileEmail.objects.filter(**filter_kwargs).exists():
-            return _boolean_icon(True)
+        email = ProfileEmail.objects.filter(**filter_kwargs)
+        if email.exists():
+            email = email.first()
+            url = reverse('admin:aklub_userprofile_change', args=(email.user.pk,))
+            icon = _boolean_icon(True)
+            details = _("Details")
+            return mark_safe(f'<a href="{url}">{icon} {details}</a>')
         else:
             return _boolean_icon(False)
     is_email_in_userprofile.short_description = _("Is email in userprofile")
