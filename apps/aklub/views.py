@@ -846,7 +846,7 @@ class PasswordResetView(View):
                     "uid": urlsafe_base64_encode(force_bytes(user.pk)),
                     "user": user,
                     'token': default_token_generator.make_token(user),
-                    'protocol': 'http',
+                    'protocol': 'https',
                 }
                 template = render_to_string(email_template_name, variables)
 
