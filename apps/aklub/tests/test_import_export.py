@@ -478,11 +478,13 @@ class AdminImportExportTests(CreateSuperUserMixin, TransactionTestCase):
         )
         mommy.make(
             'aklub.BankAccount',
+            id=32,
             administrative_unit=au,
             bank_account_number='2233445566/0100',
         )
         mommy.make(
             'aklub.BankAccount',
+            id=33,
             administrative_unit=au,
             bank_account_number='3333333333/0300',
         )
@@ -747,7 +749,6 @@ class AdminImportExportTests(CreateSuperUserMixin, TransactionTestCase):
         profiles_count_after = Profile.objects.count()
         # checking that new profiles were not created during dry import
         self.assertEqual(profiles_count_before, profiles_count_after)
-
         result = re.search(
             r'<input type="hidden" name="import_file_name".*?>',
             response.rendered_content,
