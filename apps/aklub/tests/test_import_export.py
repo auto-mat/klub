@@ -331,15 +331,18 @@ class DonorImportExportTests(CreateSuperUserMixin, TransactionTestCase):
         )
         self.bank_acc = mommy.make(
                     'aklub.BankAccount',
+                    id=21,
                     administrative_unit=au,
                     bank_account_number='1111/111',
         )
         self.event1 = mommy.make(
                     'aklub.Event',
+                    id=11,
                     name='test',
         )
         self.event2 = mommy.make(
                     'aklub.Event',
+                    id=12,
                     name='test_old',
         )
         self.user = mommy.make(
@@ -460,7 +463,7 @@ class DonorImportExportTests(CreateSuperUserMixin, TransactionTestCase):
         response = self.client.post(address, post_data)
         self.assertContains(
             response,
-            'test1@test.com,,test_old,1111/111,9999,111,test1,quaterly,2010-02-11,1000,regular,2011-02-11',
+            'test1@test.com,,12,21,9999,111,test1,quaterly,2010-02-11,1000,regular,2011-02-11',
         )
 
 
