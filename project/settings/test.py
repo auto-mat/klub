@@ -45,6 +45,8 @@ if os.environ.get('AKLUB_DEBUG_TOOLBAR', False):
 EMAIL_FILE_PATH = '/tmp/aklub-emails'
 
 LOGGING['handlers']['logfile']['filename'] = "aklub.log"
+WEB_URL = "https://www.test_url.com"
+SITE_NAME = "site_name"
 
 CORS_ORIGIN_ALLOW_ALL = True
 
