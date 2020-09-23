@@ -19,6 +19,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import django
+from django.conf import settings
 from django.core import mail
 from django.core.cache import cache
 try:
@@ -706,3 +707,31 @@ class VariableSymbolTests(TestCase):
 
         self.assertEqual(dpch2_1.VS, "5432100001")
         self.assertEqual(dpch2_2.VS, "5432100002")
+
+
+class ResetPasswordTest(TestCase):
+    def setUp(self):
+        au = mommy.make('aklub.administrativeunit', name='au_1')
+        self.user = mommy.make('aklub.userprofile', username='username_1', administrative_units=[au, ])
+        mommy.make('aklub.profileemail', user=self.user, email='username_1@auto-mat.com', is_primary=True)
+
+    def test_reset_password(self):
+        url = reverse("password_reset")
+        data = {'email': self.user.get_email_str()}
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(mail.outbox[0].to[0], self.user.get_email_str())
+        self.assertEqual(mail.outbox[0].subject, "password reset")
+        # parse reset url
+        reset_url = [te for te in mail.outbox[0].body.split(' ') if '/reset/' in te][0].replace('\n', '').replace(settings.WEB_URL, '')
+        new_pw = 'super_hard_pw123_DSD'
+        # page is firstly redirected
+        self.client.get(reset_url, follow=True)
+        # then fill up redirected url
+        split_url = reset_url.split('/')
+        split_url[-2] = "set-password"
+        new_url = "/".join(split_url)
+        data = {'new_password1': new_pw, 'new_password2': new_pw}
+        response = self.client.post(new_url, data)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.check_password(new_pw), True)
