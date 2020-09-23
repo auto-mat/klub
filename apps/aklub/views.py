@@ -30,7 +30,7 @@ from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.tokens import default_token_generator
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
-from django.core.mail import mail_managers
+from django.core.mail import EmailMultiAlternatives, mail_managers
 from django.core.validators import MinLengthValidator, RegexValidator, ValidationError
 from django.db.models import Case, CharField, Count, IntegerField, Q, Sum, Value, When
 from django.db.models.functions import TruncMonth
@@ -55,7 +55,7 @@ from sesame.backends import ModelBackend
 
 from . import autocom
 from .models import (
-    DonorPaymentChannel, Event, MoneyAccount, Payment,
+    AdministrativeUnit, DonorPaymentChannel, Event, MoneyAccount, Payment,
     Profile, ProfileEmail, Source, Telephone, UserInCampaign,
     UserProfile,
 )
@@ -846,12 +846,8 @@ class PasswordResetView(View):
                     "uid": urlsafe_base64_encode(force_bytes(user.pk)),
                     "user": user,
                     'token': default_token_generator.make_token(user),
-                    'protocol': 'https',
                 }
                 template = render_to_string(email_template_name, variables)
-
-                from django.core.mail import EmailMultiAlternatives
-                from .models import AdministrativeUnit
                 administrative_unit = AdministrativeUnit.objects.first()
 
                 email = EmailMultiAlternatives(
