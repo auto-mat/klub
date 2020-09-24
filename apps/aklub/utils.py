@@ -79,6 +79,28 @@ def check_annotate_filters(list_display, request, filter_kwargs):
     return filter_kwargs
 
 
+def check_annotate_subqueries(self, request):
+    """
+    working around bug
+    allow make aggregation from multiple tables
+    https://code.djangoproject.com/ticket/10060?fbclid=IwAR3bRzdagRmDsNtyMPIwsRTPVDr-4VkHZlkdAtHDKXFEN00ufJnY1TBSGqc
+    this cant be done like : next_communication_date=Max('interaction__next_communication_date'), in queryset
+    """
+    from interactions.models import Interaction
+    if request.user.has_perm('aklub.can_edit_all_units'):
+        unit_filter = {}
+    else:
+        unit_filter = {'administrative_unit__in': self.user_administrated_units}
+
+    next_com = Interaction.objects\
+        .filter(user=models.OuterRef('pk'), **unit_filter)\
+        .order_by("-next_communication_date")
+    annotate_kwargs = {
+        'next_communication_date': models.Subquery(next_com.values('next_communication_date')[:1], output_field=models.DateTimeField()),
+    }
+    return annotate_kwargs
+
+
 class WithAdminUrl:
     def get_admin_url(self):
         return reverse(
