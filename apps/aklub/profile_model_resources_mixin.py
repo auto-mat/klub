@@ -155,7 +155,7 @@ def import_obj(self, obj, data, dry_run):  # noqa
         can_create_dpch = True
         SS = data.get('SS', None)
         try:
-            check['bank_account'] = BankAccount.objects.get(bank_account_number=data['bank_account'])
+            check['bank_account'] = BankAccount.objects.get(id=data['bank_account'])
         except Exception as e:
             errors['bank_account'] = e
             can_create_dpch = False

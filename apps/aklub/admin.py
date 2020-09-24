@@ -996,8 +996,8 @@ class ProfileAdmin(
 class DonorPaymentChannelLoaderClass(BaseInstanceLoader):
     def get_instance(self, row):
         try:
-            event = Event.objects.get(name=row.get('event'))
-            money_account = BankAccount.objects.get(bank_account_number=row.get('money_account'))
+            event = Event.objects.get(id=row.get('event'))
+            money_account = BankAccount.objects.get(id=row.get('money_account'))
 
             obj = DonorPaymentChannel.objects.get(
                                             user_id=row.get('user'),
@@ -1014,21 +1014,22 @@ class DonorPaymentChannelLoaderClass(BaseInstanceLoader):
         return obj
 
 
+class DonorPaymentChannelWidget(ForeignKeyWidget):
+    """ Handle ForeignKey no exist error """
+    def get_queryset(self, value, row):
+        values = self.model.objects.filter(id=value)
+        if values:
+            return values
+        else:
+            raise ValueError(" This id doesn't exist")
+
+
 class DonorPaymentChannelResource(ModelResource):
     profile_type = fields.Field()
     email = fields.Field()
     user_bank_account = fields.Field()
-    event = fields.Field(
-                    column_name='event',
-                    attribute='event',
-                    widget=ForeignKeyWidget(Event, 'name'),
-    )
-
-    money_account = fields.Field(
-                    column_name='money_account',
-                    attribute='money_account',
-                    widget=ForeignKeyWidget(MoneyAccount, 'bankaccount__bank_account_number'),
-    )
+    event = fields.Field(attribute='event', widget=DonorPaymentChannelWidget(Event))
+    money_account = fields.Field(attribute='money_account', widget=DonorPaymentChannelWidget(MoneyAccount))
 
     class Meta:
         model = DonorPaymentChannel
