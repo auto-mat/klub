@@ -847,9 +847,13 @@ class ProfileAdminMixin:
             ', ', "<nobr>{}) {}</nobr>", ((d.event.id, d.event.name) for d in self.get_donor_details(obj) if d.event is not None),
             )
         return event
-
     get_event.admin_order_field = 'events'
     get_event.short_description = _("Events")
+
+    def get_next_communication_date(self, obj):
+        return obj.next_communication_date
+    get_next_communication_date.short_description = _("Next Communication")
+    get_next_communication_date.admin_order_field = 'next_communication_date'
 
     def make_tax_confirmation(self, request, queryset):
         request.method = None
@@ -1900,12 +1904,14 @@ class UserProfileAdmin(
         'get_administrative_units',
         'get_event',
         'date_joined',
+        'get_next_communication_date',
         'get_sum_amount',
         'get_payment_count',
         'get_last_payment_date',
         'regular_amount',
         'donor_delay',
         'donor_extra_money',
+
     )
 
     actions = () + ProfileAdminMixin.actions
@@ -2086,24 +2092,29 @@ class UserProfileAdmin(
                     'profileemail_set',
                     'administrative_units',
                     'userchannels__event',
+                    'interaction_set',
                 ).annotate(
                     sum_amount=Sum('userchannels__payment__amount'),
                     payment_count=Count('userchannels__payment'),
                     last_payment_date=Max('userchannels__payment__date'),
+                    next_communication_date=Max('interaction__next_communication_date'),
                     **filter_kwargs,
                 )
         else:
-            units = Q(userchannels__money_account__administrative_unit=self.user_administrated_units.first())
+            donor_units = Q(userchannels__money_account__administrative_unit=self.user_administrated_units.first())
+            interaction_units = Q(interaction__administrative_unit=self.user_administrated_units.first())
             queryset = super().get_queryset(request, *args, **kwargs).prefetch_related(
                     'telephone_set',
                     'profileemail_set',
                     'administrative_units',
                     'userchannels__event',
                     'userchannels__money_account__administrative_unit',
+                    'interaction_set',
                 ).annotate(
-                    sum_amount=Sum('userchannels__payment__amount', filter=units),
-                    payment_count=Count('userchannels__payment', filter=units),
-                    last_payment_date=Max('userchannels__payment__date', filter=units),
+                    sum_amount=Sum('userchannels__payment__amount', filter=donor_units),
+                    payment_count=Count('userchannels__payment', filter=donor_units),
+                    last_payment_date=Max('userchannels__payment__date', filter=donor_units),
+                    next_communication_date=Max('interaction__next_communication_date', filter=interaction_units),
                     **filter_kwargs,
                 )
 
@@ -2179,6 +2190,7 @@ class CompanyProfileAdmin(
         'get_administrative_units',
         'get_event',
         'date_joined',
+        'get_next_communication_date',
         'get_sum_amount',
         'get_payment_count',
         'get_last_payment_date',
@@ -2388,19 +2400,22 @@ class CompanyProfileAdmin(
                     sum_amount=Sum('userchannels__payment__amount'),
                     payment_count=Count('userchannels__payment'),
                     last_payment_date=Max('userchannels__payment__date'),
+                    next_communication_date=Max('interaction__next_communication_date'),
                     **filter_kwargs,
                 )
         else:
-            units = Q(userchannels__money_account__administrative_unit=self.user_administrated_units.first())
+            donor_units = Q(userchannels__money_account__administrative_unit=self.user_administrated_units.first())
+            interaction_units = Q(interaction__administrative_unit=self.user_administrated_units.first())
             queryset = super().get_queryset(request, *args, **kwargs).prefetch_related(
                     'companycontact_set',
                     'administrative_units',
                     'userchannels__event',
                     'userchannels__money_account__administrative_unit',
                 ).annotate(
-                    sum_amount=Sum('userchannels__payment__amount', filter=units),
-                    payment_count=Count('userchannels__payment', filter=units),
-                    last_payment_date=Max('userchannels__payment__date', filter=units),
+                    sum_amount=Sum('userchannels__payment__amount', filter=donor_units),
+                    payment_count=Count('userchannels__payment', filter=donor_units),
+                    last_payment_date=Max('userchannels__payment__date', filter=donor_units),
+                    next_communication_date=Max('interaction__next_communication_date', filter=interaction_units),
                     **filter_kwargs,
                 )
 
