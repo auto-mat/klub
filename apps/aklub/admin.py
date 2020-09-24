@@ -38,7 +38,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core import serializers
 from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator
-from django.db.models import CharField, Count, F, Max, OuterRef, Q, Subquery, Sum
+from django.db.models import CharField, Count, F, Max, Min, OuterRef, Q, Subquery, Sum
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect
 from django.urls import resolve
@@ -841,6 +841,11 @@ class ProfileAdminMixin:
         return obj.last_payment_date
     get_last_payment_date.admin_order_field = 'last_payment_date'
     get_last_payment_date.short_description = _("Date of last payment")
+
+    def get_first_payment_date(self, obj):
+        return obj.first_payment_date
+    get_first_payment_date.admin_order_field = 'first_payment_date'
+    get_first_payment_date.short_description = _("Date of first payment")
 
     def get_event(self, obj):
         event = format_html_join(
@@ -1907,6 +1912,7 @@ class UserProfileAdmin(
         'get_next_communication_date',
         'get_sum_amount',
         'get_payment_count',
+        'get_first_payment_date',
         'get_last_payment_date',
         'regular_amount',
         'donor_delay',
@@ -2097,6 +2103,7 @@ class UserProfileAdmin(
                     sum_amount=Sum('userchannels__payment__amount'),
                     payment_count=Count('userchannels__payment'),
                     last_payment_date=Max('userchannels__payment__date'),
+                    first_payment_date=Min('userchannels__payment__date'),
                     next_communication_date=Max('interaction__next_communication_date'),
                     **filter_kwargs,
                 )
@@ -2114,6 +2121,7 @@ class UserProfileAdmin(
                     sum_amount=Sum('userchannels__payment__amount', filter=donor_units),
                     payment_count=Count('userchannels__payment', filter=donor_units),
                     last_payment_date=Max('userchannels__payment__date', filter=donor_units),
+                    first_payment_date=Min('userchannels__payment__date', filter=donor_units),
                     next_communication_date=Max('interaction__next_communication_date', filter=interaction_units),
                     **filter_kwargs,
                 )
@@ -2193,6 +2201,7 @@ class CompanyProfileAdmin(
         'get_next_communication_date',
         'get_sum_amount',
         'get_payment_count',
+        'get_first_payment_date',
         'get_last_payment_date',
         'regular_amount',
         'donor_delay',
@@ -2400,6 +2409,7 @@ class CompanyProfileAdmin(
                     sum_amount=Sum('userchannels__payment__amount'),
                     payment_count=Count('userchannels__payment'),
                     last_payment_date=Max('userchannels__payment__date'),
+                    first_payment_date=Min('userchannels__payment__date'),
                     next_communication_date=Max('interaction__next_communication_date'),
                     **filter_kwargs,
                 )
@@ -2415,6 +2425,7 @@ class CompanyProfileAdmin(
                     sum_amount=Sum('userchannels__payment__amount', filter=donor_units),
                     payment_count=Count('userchannels__payment', filter=donor_units),
                     last_payment_date=Max('userchannels__payment__date', filter=donor_units),
+                    first_payment_date=Min('userchannels__payment__date', filter=donor_units),
                     next_communication_date=Max('interaction__next_communication_date', filter=interaction_units),
                     **filter_kwargs,
                 )
