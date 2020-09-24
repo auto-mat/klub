@@ -56,8 +56,10 @@ class InteractionResource(ModelResource):
 
     def before_import_row(self, row, **kwargs): # noqa
         user = None
-        if not row.get('profile_type') and row.get('email'):
+        if row.get('profile_type') not in ['u', 'c']:
             raise ValidationError({'profile_type': 'Insert "c" or "u" (company/user)'})
+        if not row.get('email') and not row.get('user'):
+            raise ValidationError({'email': 'Email or Username must be set'})
         if row.get('email'):
             row['email'] = row['email'].lower()
             try:
