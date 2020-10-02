@@ -324,6 +324,9 @@ class ParseAccountStatement(object):
             if payment[payments_reader.fieldnames[0]] == 'Datum provedení':
                 continue
 
+            if check_incomming(amount_to_int(payment['zauctovana_castka'])):
+                continue
+
             if not recipient_account:
                 try:
                     recipient_account = models.BankAccount.objects.get(
@@ -346,7 +349,5 @@ class ParseAccountStatement(object):
                         'recipient_account': recipient_account,
                         'operation_id': payment['id_transakce'],
                          }
-            if payment['typ_transakce'] != "Příchozí úhrada":
-                continue
             payments.append(register_payment(p_sort, self))
         return payments
