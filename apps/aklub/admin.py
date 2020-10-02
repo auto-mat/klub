@@ -94,7 +94,7 @@ from .profile_model_resources import (
     ProfileModelResource, get_polymorphic_parent_child_fields,
 )
 from .profile_model_resources_mixin import ProfileModelResourceMixin
-from .utils import check_annotate_filters, check_annotate_subqueries, sweet_text
+from .utils import check_annotate_filters, sweet_text
 
 
 def admin_links(args_generator):
@@ -1910,7 +1910,7 @@ class UserProfileAdmin(
         'get_administrative_units',
         'get_event',
         'date_joined',
-        'get_next_communication_date',
+        # 'get_next_communication_date',
         'get_sum_amount',
         'get_payment_count',
         'get_first_payment_date',
@@ -2092,7 +2092,7 @@ class UserProfileAdmin(
 
         filter_kwargs = {}
         filter_kwargs = check_annotate_filters(self.list_display, request, filter_kwargs)
-        annotate_kwargs = check_annotate_subqueries(self, request)
+        # annotate_kwargs = check_annotate_subqueries(self, request)
         if request.user.has_perm('aklub.can_edit_all_units'):
             queryset = super().get_queryset(request, *args, **kwargs).prefetch_related(
                     'telephone_set',
@@ -2105,7 +2105,7 @@ class UserProfileAdmin(
                     payment_count=Count('userchannels__payment'),
                     last_payment_date=Max('userchannels__payment__date'),
                     first_payment_date=Min('userchannels__payment__date'),
-                    **annotate_kwargs,
+                    # **annotate_kwargs,
                     **filter_kwargs,
                 )
         else:
@@ -2122,7 +2122,7 @@ class UserProfileAdmin(
                     payment_count=Count('userchannels__payment', filter=donor_units),
                     last_payment_date=Max('userchannels__payment__date', filter=donor_units),
                     first_payment_date=Min('userchannels__payment__date', filter=donor_units),
-                    **annotate_kwargs,
+                    # **annotate_kwargs,
                     **filter_kwargs,
                 )
 
@@ -2198,7 +2198,7 @@ class CompanyProfileAdmin(
         'get_administrative_units',
         'get_event',
         'date_joined',
-        'get_next_communication_date',
+        # 'get_next_communication_date',
         'get_sum_amount',
         'get_payment_count',
         'get_first_payment_date',
@@ -2399,7 +2399,7 @@ class CompanyProfileAdmin(
 
         filter_kwargs = {}
         filter_kwargs = check_annotate_filters(self.list_display, request, filter_kwargs)
-        annotate_kwargs = check_annotate_subqueries(self, request)
+        # annotate_kwargs = check_annotate_subqueries(self, request)
         if request.user.has_perm('aklub.can_edit_all_units'):
             queryset = super().get_queryset(request, *args, **kwargs).prefetch_related(
                     'companycontact_set',
@@ -2410,7 +2410,7 @@ class CompanyProfileAdmin(
                     payment_count=Count('userchannels__payment'),
                     last_payment_date=Max('userchannels__payment__date'),
                     first_payment_date=Min('userchannels__payment__date'),
-                    **annotate_kwargs,
+                    # **annotate_kwargs,
                     **filter_kwargs,
                 )
         else:
@@ -2425,7 +2425,7 @@ class CompanyProfileAdmin(
                     payment_count=Count('userchannels__payment', filter=donor_units),
                     last_payment_date=Max('userchannels__payment__date', filter=donor_units),
                     first_payment_date=Min('userchannels__payment__date', filter=donor_units),
-                    **annotate_kwargs,
+                    # **annotate_kwargs,
                     **filter_kwargs,
                 )
 
