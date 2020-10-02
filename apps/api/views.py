@@ -141,6 +141,7 @@ class CheckPaymentView(generics.GenericAPIView):
                 .order_by('date')\
                 .filter(
                     amount=serializer.validated_data['amount'],
+                    type='bank-transfer',
                     date__gte=serializer.validated_data['date'],
                     date__lte=serializer.validated_data['date'] + datetime.timedelta(days=14),
                 )
