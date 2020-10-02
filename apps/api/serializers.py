@@ -1,4 +1,4 @@
-from aklub.models import CompanyProfile, DonorPaymentChannel, Event, MoneyAccount, Payment, ProfileEmail, UserProfile
+from aklub.models import CompanyProfile, DonorPaymentChannel, Event, MoneyAccount, Payment, UserProfile
 
 from django.core.validators import MinLengthValidator, RegexValidator
 from django.utils.translation import ugettext_lazy as _

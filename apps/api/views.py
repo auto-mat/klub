@@ -1,7 +1,7 @@
 import datetime
 
 from aklub.models import (
-    CompanyContact, CompanyProfile, DonorPaymentChannel, Event, MoneyAccount, Payment, ProfileEmail, Telephone, UserProfile
+    CompanyContact, CompanyProfile, DonorPaymentChannel, Event, MoneyAccount, ProfileEmail, Telephone, UserProfile,
 )
 
 from drf_yasg.utils import swagger_auto_schema
