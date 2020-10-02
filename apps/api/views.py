@@ -151,7 +151,7 @@ class CheckPaymentView(generics.GenericAPIView):
                 raise PaymentsDoesntExist()
 
 
-class CreateInteraction(generics.GenericAPIView):
+class CreateInteractionView(generics.GenericAPIView):
     """
         Create Interaction based on choice
     """
