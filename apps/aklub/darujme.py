@@ -101,10 +101,10 @@ def parse_darujme_xml(xmlfile):
     return payments, skipped_payments
 
 
-def create_statement_from_file(xmlfile):
+def create_statement_from_file(xmlfile, administrative_unit):
     payments, skipped_payments = parse_darujme_xml(xmlfile)
     if len(payments) > 0:
-        a = AccountStatements(type="darujme")
+        a = AccountStatements(type="darujme", administrative_unit=administrative_unit)
         a.payments = payments
         a.save()
     else:
@@ -122,7 +122,7 @@ def create_statement_from_API(campaign):
     )
     response = urllib.request.urlopen(url)
     try:
-        return create_statement_from_file(response)
+        return create_statement_from_file(response, campaign.administrative_unit)
     except xml.parsers.expat.ExpatError as e:
         print("Error while parsing url: %s" % url)
         raise e
