@@ -27,7 +27,8 @@ def app_login_mixin():
         token='foo',
         application=app,
         expires=datetime.datetime.now() + datetime.timedelta(days=999),
-        scope='read write can_create_profiles can_check_if_exist can_create_interactions can_check_last_payments',
+        scope="""read write can_create_profiles can_check_if_exist can_create_interactions can_check_last_payments
+            can_create_credit_card_payment""",
     )
 
 
@@ -253,10 +254,13 @@ class CheckLastPaymentsViewTest(TestCase):
         money_account = mommy.make('aklub.MoneyAccount', slug='money_account_slug', administrative_unit=unit)
         event = mommy.make('aklub.Event', slug='event_slug', administrative_units=[unit, ])
         dpch = mommy.make('aklub.DonorPaymentChannel', event=event, money_account=money_account, VS=1111, user=user)
-
-        mommy.make('aklub.Payment', date='2015-04-3', amount=100, user_donor_payment_channel=dpch)  # out of 14 days range
-        payment_2 = mommy.make('aklub.Payment', date='2015-04-18', amount=100, user_donor_payment_channel=dpch)
-        payment_3 = mommy.make('aklub.Payment', date='2015-04-22', amount=100, user_donor_payment_channel=dpch)
+        # out of 14 days range payment
+        mommy.make('aklub.Payment', date='2015-04-3', amount=100, user_donor_payment_channel=dpch, type='bank-transfer')
+        # credit card payment
+        mommy.make('aklub.Payment', date='2015-04-18', amount=100, user_donor_payment_channel=dpch, type='creadit_card')
+        # correct payments
+        payment_2 = mommy.make('aklub.Payment', date='2015-04-18', amount=100, user_donor_payment_channel=dpch, type='bank-transfer')
+        payment_3 = mommy.make('aklub.Payment', date='2015-04-22', amount=100, user_donor_payment_channel=dpch, type='bank-transfer')
 
         url = reverse('check_last_payments')
         header = {'Authorization': 'Bearer foo'}
@@ -309,3 +313,63 @@ class CreateInteractionTest(TestCase):
         self.assertEqual(interaction.administrative_unit, unit)
         self.assertEqual(interaction.summary, data['text'])
         self.assertEqual(interaction.subject, 'vizus-certificate')
+
+
+class CreateCreditCardPaymentTest(TestCase):
+    def setUp(self):
+        app_login_mixin()
+        unit = mommy.make('aklub.administrativeunit', name='test_unit')
+        self.event = mommy.make('aklub.event', slug='event_slug', administrative_units=[unit, ])
+        self.bank_acc = mommy.make('aklub.bankaccount', bank_account='11122/111', slug='bank_slug', administrative_unit=unit)
+
+    def test_create_payment_userprofile(self):
+        user = mommy.make('aklub.UserProfile')
+        email = mommy.make('aklub.ProfileEmail', email='test@test.com', user=user)
+        donor_channel = mommy.make('aklub.DonorPaymentChannel', user=user, event=self.event, money_account=self.bank_acc)
+        url = reverse('create_credit_card_payment')
+        header = {'Authorization': 'Bearer foo'}
+        data = {
+            'date': '2015-04-10',
+            'event': self.event.slug,
+            'recipient_account': self.bank_acc.slug,
+            'email': email.email,
+            'amount': 123456,
+            'profile_type': 'user',
+            'VS': '332211',
+        }
+        response = self.client.post(url, data=data, **header)
+        self.assertEqual(response.status_code, 200)
+
+        payments = donor_channel.payment_set.all()
+        self.assertEqual(len(payments), 1)
+        payment = payments.first()
+        self.assertEqual(str(payment.date), data['date'])
+        self.assertEqual(payment.recipient_account, self.bank_acc)
+        self.assertEqual(payment.amount, data['amount'])
+        self.assertEqual(payment.VS, data['VS'])
+
+    def test_create_payment_companyprofile(self):
+        company = mommy.make('aklub.CompanyProfile')
+        company_contact = mommy.make('aklub.CompanyContact', email='test@test.com', company=company)
+        donor_channel = mommy.make('aklub.DonorPaymentChannel', user=company, event=self.event, money_account=self.bank_acc)
+        url = reverse('create_credit_card_payment')
+        header = {'Authorization': 'Bearer foo'}
+        data = {
+            'date': '2021-04-10',
+            'event': self.event.slug,
+            'recipient_account': self.bank_acc.slug,
+            'email': company_contact.email,
+            'amount': 654321,
+            'profile_type': 'company',
+            'VS': '111',
+        }
+        response = self.client.post(url, data=data, **header)
+        self.assertEqual(response.status_code, 200)
+
+        payments = donor_channel.payment_set.all()
+        self.assertEqual(len(payments), 1)
+        payment = payments.first()
+        self.assertEqual(str(payment.date), data['date'])
+        self.assertEqual(payment.recipient_account, self.bank_acc)
+        self.assertEqual(payment.amount, data['amount'])
+        self.assertEqual(payment.VS, data['VS'])
