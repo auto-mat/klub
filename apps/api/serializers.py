@@ -1,4 +1,4 @@
-from aklub.models import CompanyProfile, DonorPaymentChannel, Event, MoneyAccount, Payment, UserProfile
+from aklub.models import CompanyProfile, DonorPaymentChannel, Event, MoneyAccount, Payment, ProfileEmail, UserProfile
 
 from django.core.validators import MinLengthValidator, RegexValidator
 from django.utils.translation import ugettext_lazy as _
@@ -102,3 +102,24 @@ class InteractionSerizer(serializers.Serializer):
     profile_id = serializers.IntegerField(required=True)
     interaction_type = serializers.ChoiceField(choices=("certificate", "confirmation"))
     text = serializers.CharField()
+
+
+class CreditCardPaymentSerializer(serializers.ModelSerializer):
+    profile_type = serializers.ChoiceField(choices=[('company', 'Company profile'), ('user', 'User Profile')], write_only=True)
+    recipient_account = serializers.SlugRelatedField(queryset=MoneyAccount.objects.filter(slug__isnull=False), slug_field='slug')
+    event = serializers.SlugRelatedField(queryset=Event.objects.filter(slug__isnull=False), slug_field='slug', write_only=True)
+    email = serializers.EmailField(write_only=True)
+
+    class Meta:
+        model = Payment
+        fields = (
+            'profile_type', 'recipient_account', 'date', 'amount', 'event', 'email', 'account', 'bank_code', 'VS', 'VS2',
+            'SS', 'KS', 'BIC', 'user_identification', 'done_by', 'account_name', 'bank_name', 'transfer_type',
+            'specification', 'order_id',
+        )
+
+    def create(self, validated_data):
+        obj = super().create(validated_data)
+        obj.type = 'creadit_card'
+        obj.save()
+        return obj

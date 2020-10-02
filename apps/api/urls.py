@@ -25,6 +25,7 @@ urlpatterns = [
     path('check_moneyaccount/<slug:slug>/', views.CheckMoneyAccountView.as_view(), name='check_moneyaccount'),
     path('check_last_payments/', views.CheckPaymentView.as_view(), name='check_last_payments'),
     path('interaction/', views.CreateInteraction.as_view(), name='create_interaction'),
+    path('create_credit_card_payment/', views.CreateCreditCardPaymentView.as_view(), name='create_credit_card_payment'),
 
     path('userprofile/vs/', views.CreateDpchUserProfileView.as_view(), name='userprofile_vs'),
     path('companyprofile/vs/', views.CreateDpchCompanyProfileView.as_view(), name='companyprofile_vs'),

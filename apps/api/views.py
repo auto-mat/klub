@@ -1,6 +1,8 @@
 import datetime
 
-from aklub.models import CompanyContact, CompanyProfile, DonorPaymentChannel, Event, MoneyAccount, ProfileEmail, Telephone, UserProfile
+from aklub.models import (
+    CompanyContact, CompanyProfile, DonorPaymentChannel, Event, MoneyAccount, Payment, ProfileEmail, Telephone, UserProfile
+)
 
 from drf_yasg.utils import swagger_auto_schema
 
@@ -9,8 +11,9 @@ from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope
 from rest_framework import generics, status
 from rest_framework.response import Response
 
-from .exceptions import DonorPaymentChannelDoesntExist, PaymentsDoesntExist
+from .exceptions import DonorPaymentChannelDoesntExist, EmailDoesntExist, PaymentsDoesntExist
 from .serializers import (
+    CreditCardPaymentSerializer,
     DonorPaymetChannelSerializer, EventCheckSerializer, GetDpchCompanyProfileSerializer, GetDpchUserProfileSerializer,
     InteractionSerizer, MoneyAccountCheckSerializer, PaymentSerializer, VSReturnSerializer,
 )
@@ -177,3 +180,32 @@ class CreateInteraction(generics.GenericAPIView):
                 summary=serializer.validated_data['text'],
             )
             return Response({}, status=status.HTTP_200_OK)
+
+
+class CreateCreditCardPaymentView(generics.CreateAPIView):
+    permission_classes = [TokenHasReadWriteScope]
+    required_scopes = ['can_create_credit_card_payment']
+    serializer_class = CreditCardPaymentSerializer
+
+    def post(self, request):
+        serializer = self.serializer_class(data=self.request.data)
+        if serializer.is_valid(raise_exception=True):
+            if serializer.validated_data.pop('profile_type') == 'user':
+                email = ProfileEmail.objects.filter(email=serializer.validated_data.pop('email'))
+            else:
+                email = CompanyContact.objects.filter(email=serializer.validated_data.pop('email'))
+            if email.exists():
+                email = email.first()
+                user_channel = email.user.userchannels.filter(
+                    event=serializer.validated_data.pop('event'),
+                    money_account=serializer.validated_data['recipient_account'],
+                )
+                if user_channel.exists():
+                    payment = serializer.create(serializer.validated_data)
+                    payment.user_donor_payment_channel = user_channel.first()
+                    payment.save()
+                    return Response(self.serializer_class(payment).data)
+                else:
+                    raise DonorPaymentChannelDoesntExist()
+            else:
+                raise EmailDoesntExist()
