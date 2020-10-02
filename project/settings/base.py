@@ -268,6 +268,7 @@ OAUTH2_PROVIDER = {
         'can_check_if_exist': 'Can check slugs',
         'can_create_interactions': 'Can create interactions by API',
         'can_check_last_payments': 'Can check payments in dpch',
+        'can_create_credit_card_payment': 'Can create credit card payment',
     },
     'OAUTH2_BACKEND_CLASS': 'oauth2_provider.oauth2_backends.JSONOAuthLibCore',
 
