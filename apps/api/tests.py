@@ -255,12 +255,40 @@ class CheckLastPaymentsViewTest(TestCase):
         event = mommy.make('aklub.Event', slug='event_slug', administrative_units=[unit, ])
         dpch = mommy.make('aklub.DonorPaymentChannel', event=event, money_account=money_account, VS=1111, user=user)
         # out of 14 days range payment
-        mommy.make('aklub.Payment', date='2015-04-3', amount=100, user_donor_payment_channel=dpch, type='bank-transfer')
-        # credit card payment
-        mommy.make('aklub.Payment', date='2015-04-18', amount=100, user_donor_payment_channel=dpch, type='creadit_card')
+        mommy.make(
+            'aklub.Payment',
+            date='2015-04-3',
+            amount=100,
+            user_donor_payment_channel=dpch,
+            type='bank-transfer',
+            operation_id='32'
+        )
+        # credit card payment (DO NOT SHOW)
+        mommy.make(
+            'aklub.Payment',
+            date='2015-04-18',
+            amount=100,
+            user_donor_payment_channel=dpch,
+            type='creadit_card',
+            operation_id='123'
+        )
         # correct payments
-        payment_2 = mommy.make('aklub.Payment', date='2015-04-18', amount=100, user_donor_payment_channel=dpch, type='bank-transfer')
-        payment_3 = mommy.make('aklub.Payment', date='2015-04-22', amount=100, user_donor_payment_channel=dpch, type='bank-transfer')
+        payment_2 = mommy.make(
+            'aklub.Payment',
+            date='2015-04-18',
+            amount=100,
+            user_donor_payment_channel=dpch,
+            type='bank-transfer',
+            operation_id='3244',
+        )
+        payment_3 = mommy.make(
+            'aklub.Payment',
+            date='2015-04-22',
+            amount=100,
+            user_donor_payment_channel=dpch,
+            type='bank-transfer',
+            operation_id='1234',
+        )
 
         url = reverse('check_last_payments')
         header = {'Authorization': 'Bearer foo'}
@@ -279,10 +307,12 @@ class CheckLastPaymentsViewTest(TestCase):
 
         self.assertEqual(resp_data[0]['amount'], payment_2.amount)
         self.assertEqual(resp_data[0]['date'], payment_2.date)
+        self.assertEqual(resp_data[0]['operation_id'], payment_2.operation_id)
         self.assertEqual(resp_data[0]['profile_id'], user.id)
 
         self.assertEqual(resp_data[1]['amount'], payment_3.amount)
         self.assertEqual(resp_data[1]['date'], payment_3.date)
+        self.assertEqual(resp_data[1]['operation_id'], payment_3.operation_id)
         self.assertEqual(resp_data[1]['profile_id'],  user.id)
 
 

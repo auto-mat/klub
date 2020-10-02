@@ -93,7 +93,7 @@ class PaymentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Payment
-        fields = ['amount', 'date', 'profile_id']
+        fields = ['amount', 'date', 'operation_id', 'profile_id']
 
 
 class InteractionSerizer(serializers.Serializer):
