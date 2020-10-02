@@ -193,11 +193,13 @@ class CreateCreditCardPaymentView(generics.CreateAPIView):
         if serializer.is_valid(raise_exception=True):
             if serializer.validated_data.pop('profile_type') == 'user':
                 email = ProfileEmail.objects.filter(email=serializer.validated_data.pop('email'))
+                profile = 'user'
             else:
                 email = CompanyContact.objects.filter(email=serializer.validated_data.pop('email'))
+                profile = 'company'
             if email.exists():
                 email = email.first()
-                user_channel = email.user.userchannels.filter(
+                user_channel = getattr(email, profile).userchannels.filter(
                     event=serializer.validated_data.pop('event'),
                     money_account=serializer.validated_data['recipient_account'],
                 )
