@@ -379,7 +379,7 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
         self.check_account_statement_data()
 
     def test_darujme_xml_statement(self):
-        a, skipped = darujme.create_statement_from_file("apps/aklub/test_data/darujme.xml")
+        a, skipped = darujme.create_statement_from_file("apps/aklub/test_data/darujme.xml", self.unit)
         a1 = self.check_account_statement_data()
 
         self.assertEqual(a, a1)
@@ -400,7 +400,7 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
 
     def test_darujme_xml_file_skipped(self):
         count_before = AccountStatements.objects.count()
-        a, skipped = darujme.create_statement_from_file("apps/aklub/test_data/darujme_skip.xml")
+        a, skipped = darujme.create_statement_from_file("apps/aklub/test_data/darujme_skip.xml", self.unit)
         self.assertEqual(AccountStatements.objects.count(), count_before)
         self.assertEqual(a, None)
         self.assertListEqual(
@@ -419,7 +419,7 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
         )
 
     def test_darujme_xml_file_no_duplicates(self):
-        a, skipped = darujme.create_statement_from_file("apps/aklub/test_data/darujme_duplicate.xml")
+        a, skipped = darujme.create_statement_from_file("apps/aklub/test_data/darujme_duplicate.xml", self.unit)
         self.assertEqual(a.payment_set.count(), 1)
         self.assertListEqual(
             skipped,

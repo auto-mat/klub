@@ -120,3 +120,33 @@ class PaidPdfDownloadViewTest(TestCase):
         # required fields
         response = self.client.get(url, **header)
         self.assertEqual(response.status_code, 404)
+
+
+class AllRelatedIdsViewTest(TestCase):
+    def setUp(self):
+        user_login_mixin()
+        unit = mommy.make("aklub.AdministrativeUnit", name='test_unit')
+        self.pdf_1 = mommy.make(
+            'pdf_storage.PdfStorage',
+            name='test_pdf',
+            topic="test_topic",
+            related_ids=[1, 2, 3],
+            pdf_file=File(open("apps/aklub/test_data/empty_pdf.pdf", "rb")),
+            administrative_unit=unit,
+            )
+        self.pdf_2 = mommy.make(
+            'pdf_storage.PdfStorage',
+            name='test_pdf',
+            topic="test_topic",
+            related_ids=[3, 2, 99, 110],
+            pdf_file=File(open("apps/aklub/test_data/empty_pdf.pdf", "rb")),
+            administrative_unit=unit,
+            )
+
+    def test_get_all_related_ids(self):
+        url = reverse('pdf_storage_all_related_ids')
+        header = {'Authorization': 'Bearer foo'}
+        response = self.client.get(url, **header)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(sorted(response.json()['ids']), sorted(set(self.pdf_1.related_ids + self.pdf_2.related_ids)))
