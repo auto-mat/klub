@@ -7,12 +7,13 @@ from django.core.files.storage import default_storage as storage
 from django.http import HttpResponse
 from django.utils import timezone
 
-from rest_framework import generics
+from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 from .exceptions import HasNoPayment, PdfDoNotExist
 from .models import PdfStorage
-from .serializers import PaidPdfDownloadLinkSerialiser, PdfStorageListSerializer
+from .serializers import AllRelatedIdsSerializer, PaidPdfDownloadLinkSerializer, PdfStorageListSerializer
 
 
 class RelatedPdfListView(generics.ListAPIView):
@@ -24,7 +25,7 @@ class RelatedPdfListView(generics.ListAPIView):
 
 
 class PaidPdfDownloadView(generics.RetrieveAPIView):
-    serializer_class = PaidPdfDownloadLinkSerialiser
+    serializer_class = PaidPdfDownloadLinkSerializer
     model_class = PdfStorage
     permission_classes = [IsAuthenticated]
 
@@ -65,3 +66,11 @@ class PaidPdfDownloadView(generics.RetrieveAPIView):
                 return HttpResponse(f.read(), content_type='application/pdf')
         else:
             raise HasNoPayment()
+
+
+class AllRelatedIdsView(generics.RetrieveAPIView):
+    serializer_class = AllRelatedIdsSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        return Response(self.serializer_class({}).data, status=status.HTTP_200_OK)
