@@ -201,7 +201,6 @@ class CreateCreditCardPaymentView(generics.CreateAPIView):
                 email = email.first()
                 user_channel = getattr(email, profile).userchannels.filter(
                     event=serializer.validated_data.pop('event'),
-                    money_account=serializer.validated_data['recipient_account'],
                 )
                 if user_channel.exists():
                     payment = serializer.create(serializer.validated_data)
