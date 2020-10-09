@@ -21,7 +21,10 @@
 
 import datetime
 
+from admin_numeric_filter.admin import NumericFilterModelAdmin, RangeNumericFilter
+
 from adminactions import actions, merge
+
 
 from adminfilters.filters import RelatedFieldCheckBoxFilter
 
@@ -49,6 +52,7 @@ try:
     from django.urls import reverse
 except ImportError:  # Django<2.0
     from django.core.urlresolvers import reverse
+
 
 
 from flexible_filter_conditions.admin_filters import UserConditionFilter, UserConditionFilter1
@@ -1889,7 +1893,7 @@ class BaseProfileChildAdmin(PolymorphicChildModelAdmin,):
 class UserProfileAdmin(
         child_redirect_mixin('userprofile'), filters.AdministrativeUnitAdminMixin,
         ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFiltersMixin, ProfileAdminMixin,
-        BaseProfileChildAdmin,
+        BaseProfileChildAdmin, NumericFilterModelAdmin,
 ):
     """ User profile polymorphic admin model child class """
     base_model = UserProfile
@@ -1947,11 +1951,12 @@ class UserProfileAdmin(
         'telephone__telephone',
         'profileemail__email',
     )
+
     list_filter = (
         filters.PreferenceMailingListAllowed,
         isnull_filter('userchannels__payment', _('Has any payment'), negate=True),
-        'userchannels__extra_money',
-        'userchannels__regular_amount',
+        ('userchannels__extra_money', RangeNumericFilter),
+        ('userchannels__regular_amount', RangeNumericFilter),
         'userchannels__regular_frequency',
         'userchannels__regular_payments',
         ('userchannels__registered_support', DateRangeFilter),
@@ -2175,7 +2180,7 @@ class CompanyContactInline(admin.TabularInline):
 class CompanyProfileAdmin(
         child_redirect_mixin('companyprofile'), filters.AdministrativeUnitAdminMixin,
         ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFiltersMixin,
-        ProfileAdminMixin, BaseProfileChildAdmin,
+        ProfileAdminMixin, BaseProfileChildAdmin, NumericFilterModelAdmin,
 ):
     """ Company profile polymorphic admin model child class """
     base_model = CompanyProfile
@@ -2231,8 +2236,8 @@ class CompanyProfileAdmin(
     list_filter = (
         filters.PreferenceMailingListAllowed,
         isnull_filter('userchannels__payment', _('Has any payment'), negate=True),
-        'userchannels__extra_money',
-        'userchannels__regular_amount',
+        ('userchannels__extra_money', RangeNumericFilter),
+        ('userchannels__regular_amount', RangeNumericFilter),
         'userchannels__regular_frequency',
         'userchannels__regular_payments',
         ('userchannels__registered_support', DateRangeFilter),

@@ -213,6 +213,7 @@ INSTALLED_APPS = (
     'import_export_celery_edit',
     'corsheaders',
     'daterange_filter',
+    'admin_numeric_filter',
     'computedfields',
     'related_admin',
     'adminactions',
