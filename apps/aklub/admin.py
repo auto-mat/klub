@@ -1637,7 +1637,10 @@ parse_statement.short_description = _("Reparse CSV file")
 
 class AccountStatementsAdmin(unit_admin_mixin_generator('administrative_unit'), nested_admin.NestedModelAdmin):
     list_display = ('type', 'import_date', 'payments_count', 'paired_payments', 'csv_file', 'administrative_unit', 'date_from', 'date_to')
-    list_filter = ('type',)
+    list_filter = (
+        'type',
+        ('payment__date', DateRangeFilter),
+    )
     inlines = [PaymentsInlineNoExtra]
     readonly_fields = ('import_date', 'payments_count', 'paired_payments', 'pair_log')
     actions = (
