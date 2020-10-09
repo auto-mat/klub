@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "a52bdb3c3db1b620ec2d472dece84fa08958ce3db4b427325f713f3d40e848bc"
+            "sha256": "c4a7ad695122bfeed52a7b920b25d4f6c54ea09ecc098a9017ea7bef3da31e94"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -574,11 +574,11 @@
         },
         "djangorestframework": {
             "hashes": [
-                "sha256:5c5071fcbad6dce16f566d492015c829ddb0df42965d488b878594aabc3aed21",
-                "sha256:d54452aedebb4b650254ca092f9f4f5df947cb1de6ab245d817b08b4f4156249"
+                "sha256:5cc724dc4b076463497837269107e1995b1fbc917468d1b92d188fd1af9ea789",
+                "sha256:a5967b68a04e0d97d10f4df228e30f5a2d82ba63b9d03e1759f84993b7bf1b53"
             ],
             "index": "pypi",
-            "version": "==3.12.1"
+            "version": "==3.11.2"
         },
         "djcacheutils": {
             "hashes": [
