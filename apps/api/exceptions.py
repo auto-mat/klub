@@ -1,6 +1,12 @@
 from rest_framework.exceptions import APIException
 
 
+class EmailDoesntExist(APIException):
+    status_code = 404
+    default_detail = 'Email Does not exist'
+    default_code = 'email_doesnt_exist'
+
+
 class DonorPaymentChannelDoesntExist(APIException):
     status_code = 404
     default_detail = 'Donor payment Channel with this event/money_account/VS doesnt exist'
