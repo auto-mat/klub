@@ -261,7 +261,7 @@ class CheckLastPaymentsViewTest(TestCase):
             amount=100,
             user_donor_payment_channel=dpch,
             type='bank-transfer',
-            operation_id='32'
+            operation_id='32',
         )
         # credit card payment (DO NOT SHOW)
         mommy.make(
@@ -270,7 +270,7 @@ class CheckLastPaymentsViewTest(TestCase):
             amount=100,
             user_donor_payment_channel=dpch,
             type='creadit_card',
-            operation_id='123'
+            operation_id='123',
         )
         # correct payments
         payment_2 = mommy.make(
