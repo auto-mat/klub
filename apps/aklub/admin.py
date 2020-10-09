@@ -53,8 +53,6 @@ try:
 except ImportError:  # Django<2.0
     from django.core.urlresolvers import reverse
 
-
-
 from flexible_filter_conditions.admin_filters import UserConditionFilter, UserConditionFilter1
 
 from import_export import fields
