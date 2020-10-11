@@ -2,8 +2,9 @@
 {% load filters %}
 
 <div class="article__footer">
-  <table 
-    align="center" 
+  {% if footer.social_media.all %}
+  <table
+    align="center"
     class="article__footer__social-media">
     <tbody>
       <!-- Social media -->
@@ -11,11 +12,11 @@
         <td style="border:none;" align="center">
           <table
             {% comment %} 1 space width = icon width (32px) {% endcomment %}
-            {% if footer.social_media.all.count == 2 %}
+            {% if footer.social_media.all.count <= 2 %}
               {% comment %} 1 space * 2 icons {% endcomment %}
               width="96"
             {% elif footer.social_media.all.count == 3 %}
-              {% comment %} 2 spaces * 3 icons {% endcomment %} 
+              {% comment %} 2 spaces * 3 icons {% endcomment %}
               width="160"
             {% elif footer.social_media.all.count == 4 %}
               {% comment %} 3 spaces * 4 icons {% endcomment %}
@@ -26,10 +27,10 @@
             {% elif footer.social_media.all.count == 6 %}
               {% comment %} 5 spaces * 6 icons {% endcomment %}
               width="352"
-            {% endif %} 
+            {% endif %}
           >
             <tbody>
-              <tr style="border:none;" height="20"></tr>
+              <tr style="border:none;" height="32"></tr>
               <tr style="border:none;">
                 {% for social_media in footer.social_media.all %}
                  <td align="center" style="border:none;">
@@ -46,17 +47,18 @@
       </tr>
     </tbody>
   </table>
+  {% endif %}
 
   <!-- Info -->
-  <table 
+  <table
     border="0"
-    align="left" 
-    width="100%" 
+    align="left"
+    width="100%"
     class="article__footer__info">
     <tbody>
       <tr style="border:none;" height="20">
-        <td style="border:none;"></td>   
-      </tr> 
+        <td style="border:none;"></td>
+      </tr>
       <!-- Company name -->
       <tr style="border:none;">
         <td style="border:none;">
@@ -64,39 +66,45 @@
         </td>
       </tr>
       <!-- Urls -->
-      <tr style="border:none;">
-        <td style="border:none;">
-          {% if footer.url.all.count > 1 %}
-            {{ footer.url.all|get_link_element:"list"|join:", " }}
-          {% else %}
-            {{ footer.url.all.0|get_link_element:"str" }}
-          {% endif %}
-        </td>
-      </tr>
+      {% if footer.url.all %}
+        <tr style="border:none;">
+          <td style="border:none;">
+            {% if footer.url.all.count > 1 %}
+              {{ footer.url.all|get_link_element:"list"|join:", " }}
+            {% else %}
+              {{ footer.url.all.0|get_link_element:"str" }}
+            {% endif %}
+          </td>
+        </tr>
+      {% endif %}
       <!-- Email address -->
-      <tr style="border:none;">
-        <td style="border:none;">
-          {% if footer.email.all.count > 1 %}
-            {{ footer.email.all|join:", " }}
-          {% else %}
-            {{ footer.email.all.0 }}
-          {% endif %}
-        </td>
-      </tr>
+      {% if footer.email.all %}
+        <tr style="border:none;">
+          <td style="border:none;">
+            {% if footer.email.all.count > 1 %}
+              {{ footer.email.all|join:", " }}
+            {% else %}
+              {{ footer.email.all.0 }}
+            {% endif %}
+          </td>
+        </tr>
+      {% endif %}
       <!-- Telephone -->
-      <tr style="border:none;">
-        <td style="border:none;">
-          {% if footer.phone.all.count > 1 %}
-            {{ footer.phone.all|join:", " }}
-          {% else %}
-            {{ footer.phone.all.0 }}
-          {% endif %}
-        </td>
-      </tr>
+      {% if footer.phone.all %}
+        <tr style="border:none;">
+          <td style="border:none;">
+            {% if footer.phone.all.count > 1 %}
+              {{ footer.phone.all|join:", " }}
+            {% else %}
+              {{ footer.phone.all.0 }}
+            {% endif %}
+          </td>
+        </tr>
+      {% endif %}
       <!-- Address -->
       <tr style="border:none;">
         <td style="border:none;">{{ footer.address }}</td>
       </tr>
-    </tbody>    
+    </tbody>
   </table>
 </div>
