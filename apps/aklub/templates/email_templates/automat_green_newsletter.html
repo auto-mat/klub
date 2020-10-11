@@ -7,12 +7,13 @@
     cellpadding="0"
     border="0"
     bgcolor="ffffff"
-    style="padding:0"
+    style="padding: 0"
     align="center"
   >
     <tbody>
       <tr>
-        <td style="border:none;">
+        <td style="border: none">
+          {% with default_width="600" default_height="auto" %}
           <table
             class="content-table"
             cellspacing="0"
@@ -20,15 +21,16 @@
             border="0"
             bgcolor="ffffff"
             align="center"
-            style="background-image: url('{% if bg_img %}{{ bg_img }}{% else %}{% static 'aklub/images/automat_green_newsletter.jpeg'%}{% endif %}')"
-            height="{% if bg_img %}{{ bg_img_height }}{% else %}auto{% endif %}"
-            width="{% if bg_img %}{{ bg_img_width }}{% else %}600{% endif %}"
+            style="{% if bg_img %}background-image: url('{{ bg_img }}');{% endif %}
+                   width: {% if bg_img %}{{ bg_img_width }}{% else %}{{ default_width }}{% endif %}px;
+                   height: {% if bg_img %}{{ bg_img_height }}px{% else %}{{ default_height }}{% endif %};"
           >
+            {% endwith %}
             <tbody>
               <tr>
-                <td style="border:none;padding:0" valign="top">
+                <td style="border: none; padding: 0" valign="top">
                   <section
-                    class="[ article__content ]  [ editable ]"
+                    class="[ article__content ] [ editable ]"
                     data-name="article"
                   >
                     {% if article %} {{ article | safe }} {% else %}
@@ -40,7 +42,7 @@
                       border="0"
                     >
                       <tr>
-                        <td height="150" style="border:none;padding:0"></td>
+                        <td height="150" style="border: none; padding: 0"></td>
                       </tr>
                     </table>
 
@@ -73,7 +75,7 @@
                       border="0"
                     >
                       <tr>
-                        <td height="50" style="border:none;padding:0"></td>
+                        <td height="50" style="border: none; padding: 0"></td>
                       </tr>
                     </table>
 
@@ -98,7 +100,7 @@
                       border="0"
                     >
                       <tr border="0">
-                        <td height="50" style="border:none;padding:0"></td>
+                        <td height="50" style="border: none; padding: 0"></td>
                       </tr>
                     </table>
 

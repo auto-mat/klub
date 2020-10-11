@@ -6,7 +6,11 @@ import os
 import pathlib
 from operator import itemgetter
 
+from PIL import Image
+
 from django.contrib import messages
+from django.contrib.staticfiles import finders
+from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.db import models
 from django.template import loader
 from django.urls import reverse
@@ -18,10 +22,6 @@ from html_template_editor.models import (
 )
 
 from . import models as aklub_models
-
-from html_template_editor.models import (
-    Images, TemplateContent, TemplateFooter, TemplateHeader,
-)
 
 
 def sweet_text(generator):
@@ -178,6 +178,14 @@ def get_email_templates_names():
 def get_email_template_context(template_path, template_url):
     """ Get email template context """
 
+    templates_in_dir = {
+        'automat_green_newsletter': 'automat_green_newsletter.jpeg',
+        'automat_red_newsletter': 'automat_red_newsletter.jpeg',
+        'automat_purple_newsletter': 'automat_purple_newsletter.jpeg',
+    }
+
+    _finders = finders.AppDirectoriesFinder()
+
     template = loader.get_template(str(template_path))
     template_obj = TemplateContent.objects.filter(page=template_url)
     if (template_obj):
@@ -200,6 +208,7 @@ def get_email_template_context(template_path, template_url):
     if header:
         context['header'] = header
 
+    # Templates in db
     background_image = Images.objects.filter(
             template_url=template_url,
             edited_crop__isnull=False,
@@ -208,5 +217,21 @@ def get_email_template_context(template_path, template_url):
         context['bg_img'] = background_image.image.url
         context['bg_img_width'] = background_image.image.width
         context['bg_img_height'] = background_image.image.height
+    else:
+        # Templates in dir
+        for template_name in templates_in_dir.keys():
+            if template_name in template_url:
+                img_name = templates_in_dir.get(template_name)
+                static_imgs_dir = _finders.find_in_app(
+                    app='aklub',
+                    path='aklub/images',
+                )
+                img = Image.open(
+                    pathlib.Path(static_imgs_dir) / img_name,
+                )
+
+                context['bg_img'] = static(f"aklub/images/{img_name}")
+                context['bg_img_width'] = img.width
+                context['bg_img_height'] = img.height
 
     return template, context
