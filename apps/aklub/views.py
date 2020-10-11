@@ -885,7 +885,9 @@ def get_email_template(request, template_name):
         kwargs={'template_name': _template_name},
     )
 
-    template, context = get_email_template_context(template_path, template_url)
+    template, context = get_email_template_context(
+        template_path, template_url,
+    )
 
     return HttpResponse(template.render(context))
 
@@ -902,7 +904,9 @@ def get_email_template_from_db(request, template_name):
         kwargs={'template_name': template_name},
     )
 
-    template, context = get_email_template_context(template_path, template_url)
+    template, context = get_email_template_context(
+        template_path, template_url,
+    )
 
     return HttpResponse(template.render(context))
 

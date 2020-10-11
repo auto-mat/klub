@@ -171,17 +171,22 @@ def get_email_templates_names():
         ]
     ]
     # Db templates
-    db_templates_obj = TemplateContent.objects.filter(page__contains='new_empty_template')
+    db_templates_obj = TemplateContent.objects.filter(
+        page__contains='new_empty_template',
+    )
     db_templates = set(db_templates_obj.values_list('page', flat=True))
 
     value = 'new_empty_template:{}'
     db_templates_names = [
-        (value.format(pathlib.Path(t).name), pathlib.Path(t).name) for t in db_templates
+        (value.format(pathlib.Path(t).name), pathlib.Path(t).name)
+        for t in db_templates
     ]
     file_templates_names.extend(db_templates_names)
 
     sorted_templates = sorted(file_templates_names, key=itemgetter(1))
-    sorted_templates.insert(0, ('new_empty_template', 'new_empty_template'))
+    sorted_templates.insert(
+        0, ('new_empty_template', 'new_empty_template'),
+    )
     sorted_templates.insert(0, ('', '---------'))
 
     return sorted_templates

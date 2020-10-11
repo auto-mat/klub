@@ -16,7 +16,9 @@ def get_automat_fonts():
     )
     automat_font_dir_content = pathlib.Path(automat_font_dir).glob('**/*')
 
-    font_files = [(f.stem, f.name) for f in automat_font_dir_content if f.is_file()]
+    font_files = [
+        (f.stem, f.name) for f in automat_font_dir_content if f.is_file()
+    ]
     for font_name, font_file_name in font_files:
         fonts.append((f'AutoMat-{font_name}', font_file_name))
 
