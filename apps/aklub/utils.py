@@ -2,7 +2,6 @@
 
 import datetime
 import json
-import os
 import pathlib
 from operator import itemgetter
 
@@ -22,6 +21,14 @@ from html_template_editor.models import (
 )
 
 from . import models as aklub_models
+
+EMAIL_TEMPLATES_DENYLIST = [
+    'base.html',
+    'new_empty_template.html',
+    'footer.html',
+    'automat_fonts.html',
+    'header.html',
+]
 
 
 def sweet_text(generator):
@@ -136,26 +143,31 @@ class WithAdminUrl:
         )
 
 
-def get_email_templates_names():
-    """ Get email templates names """
+def get_templates_files():
+    """ Get email templates files
 
-    templates_blacklist = [
-        'base.html',
-        'new_empty_template.html',
-        'footer.html',
-        'automat_fonts.html',
-        'header.html',
+    :return list: email templates files list
+    """
+    path = pathlib.Path(__file__).parents[0] / 'templates' \
+        / 'email_templates'
+
+    return [
+        f.name for f in path.glob('*.html') if f.is_file()
     ]
 
-    def get_templates_files():
-        path = pathlib.Path(__file__).parents[0] / 'templates' / 'email_templates'
-        return os.listdir(path)
 
-    # File template
+def get_email_templates_names():
+    """ Get email templates names
+
+    :return list: sorted list of email templates files tuples
+    (code, value)
+    """
+
+    # File templates
     file_templates_names = [
         (template, template) for template in [
             template.split('.')[0] for template in get_templates_files()
-            if template not in templates_blacklist
+            if template not in EMAIL_TEMPLATES_DENYLIST
         ]
     ]
     # Db templates
@@ -178,10 +190,12 @@ def get_email_templates_names():
 def get_email_template_context(template_path, template_url):
     """ Get email template context """
 
-    templates_in_dir = {
-        'automat_green_newsletter': 'automat_green_newsletter.jpeg',
-        'automat_red_newsletter': 'automat_red_newsletter.jpeg',
-        'automat_purple_newsletter': 'automat_purple_newsletter.jpeg',
+    # File templates
+    file_templates = {
+        template: f"{template}.jpeg" for template in [
+            template.split('.')[0] for template in get_templates_files()
+            if template not in EMAIL_TEMPLATES_DENYLIST
+        ]
     }
 
     _finders = finders.AppDirectoriesFinder()
@@ -219,9 +233,9 @@ def get_email_template_context(template_path, template_url):
         context['bg_img_height'] = background_image.image.height
     else:
         # Templates in dir
-        for template_name in templates_in_dir.keys():
+        for template_name in file_templates.keys():
             if template_name in template_url:
-                img_name = templates_in_dir.get(template_name)
+                img_name = file_templates.get(template_name)
                 static_imgs_dir = _finders.find_in_app(
                     app='aklub',
                     path='aklub/images',
