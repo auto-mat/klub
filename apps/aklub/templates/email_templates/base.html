@@ -8,8 +8,10 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <meta name="page-id" content="{{page.id}}"/>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+      {% if page %}
+      <meta name="page-id" content="{{ page.id }}"/>
+      {% endif %}
         <title>ContentTools sandbox</title>
         <link rel="stylesheet" type="text/css" href={% static "ContentTools/sandbox/sandbox.min.css" %}>
         <link rel="stylesheet" type="text/css" href={% static "ContentTools/build/content-tools.min.css" %}>

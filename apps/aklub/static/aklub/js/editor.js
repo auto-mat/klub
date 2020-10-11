@@ -107,7 +107,9 @@
         }
       };
       element = document.querySelector('meta[name="page-id"]');
-      pageId = element.getAttribute("content");
+      if (element != null) {
+        pageId = element.getAttribute("content");
+      }
       editHtmlTemplate.call(
         "post",
         window.reverse("html_template_editor:add"),
