@@ -15,7 +15,7 @@ from .exceptions import DonorPaymentChannelDoesntExist, EmailDoesntExist, Paymen
 from .serializers import (
     CreditCardPaymentSerializer,
     DonorPaymetChannelSerializer, EventCheckSerializer, GetDpchCompanyProfileSerializer, GetDpchUserProfileSerializer,
-    InteractionSerizer, MoneyAccountCheckSerializer, PaymentSerializer, VSReturnSerializer,
+    InteractionSerizer, MoneyAccountCheckSerializer, PaymentSerializer, ProfileSerializer, VSReturnSerializer,
 )
 from .utils import get_or_create_dpch
 
@@ -188,6 +188,7 @@ class CreateCreditCardPaymentView(generics.CreateAPIView):
     required_scopes = ['can_create_credit_card_payment']
     serializer_class = CreditCardPaymentSerializer
 
+    @swagger_auto_schema(responses={200: ProfileSerializer()})
     def post(self, request):
         serializer = self.serializer_class(data=self.request.data)
         if serializer.is_valid(raise_exception=True):
@@ -199,14 +200,15 @@ class CreateCreditCardPaymentView(generics.CreateAPIView):
                 profile = 'company'
             if email.exists():
                 email = email.first()
-                user_channel = getattr(email, profile).userchannels.filter(
+                user_channels = getattr(email, profile).userchannels.filter(
                     event=serializer.validated_data.pop('event'),
                 )
-                if user_channel.exists():
+                if user_channels.exists():
+                    user_channel = user_channels.first()
                     payment = serializer.create(serializer.validated_data)
-                    payment.user_donor_payment_channel = user_channel.first()
+                    payment.user_donor_payment_channel = user_channel
                     payment.save()
-                    return Response(self.serializer_class(payment).data)
+                    return Response(ProfileSerializer(user_channel.user).data, status=status.HTTP_200_OK)
                 else:
                     raise DonorPaymentChannelDoesntExist()
             else:

@@ -369,6 +369,7 @@ class CreateCreditCardPaymentTest(TestCase):
         }
         response = self.client.post(url, data=data, **header)
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['profile_id'], user.id)
 
         payments = donor_channel.payment_set.all()
         self.assertEqual(len(payments), 1)
@@ -395,6 +396,7 @@ class CreateCreditCardPaymentTest(TestCase):
         }
         response = self.client.post(url, data=data, **header)
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['profile_id'], company.id)
 
         payments = donor_channel.payment_set.all()
         self.assertEqual(len(payments), 1)
