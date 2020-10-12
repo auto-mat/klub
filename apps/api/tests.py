@@ -261,7 +261,7 @@ class CheckLastPaymentsViewTest(TestCase):
             amount=100,
             user_donor_payment_channel=dpch,
             type='bank-transfer',
-            operation_id='32'
+            operation_id='32',
         )
         # credit card payment (DO NOT SHOW)
         mommy.make(
@@ -270,7 +270,7 @@ class CheckLastPaymentsViewTest(TestCase):
             amount=100,
             user_donor_payment_channel=dpch,
             type='creadit_card',
-            operation_id='123'
+            operation_id='123',
         )
         # correct payments
         payment_2 = mommy.make(
@@ -369,6 +369,7 @@ class CreateCreditCardPaymentTest(TestCase):
         }
         response = self.client.post(url, data=data, **header)
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['profile_id'], user.id)
 
         payments = donor_channel.payment_set.all()
         self.assertEqual(len(payments), 1)
@@ -395,6 +396,7 @@ class CreateCreditCardPaymentTest(TestCase):
         }
         response = self.client.post(url, data=data, **header)
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['profile_id'], company.id)
 
         payments = donor_channel.payment_set.all()
         self.assertEqual(len(payments), 1)

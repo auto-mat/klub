@@ -1,4 +1,4 @@
-from aklub.models import CompanyProfile, DonorPaymentChannel, Event, MoneyAccount, Payment, UserProfile
+from aklub.models import CompanyProfile, DonorPaymentChannel, Event, MoneyAccount, Payment, Profile, UserProfile
 
 from django.core.validators import MinLengthValidator, RegexValidator
 from django.utils.translation import ugettext_lazy as _
@@ -123,3 +123,11 @@ class CreditCardPaymentSerializer(serializers.ModelSerializer):
         obj.type = 'creadit_card'
         obj.save()
         return obj
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+    profile_id = serializers.IntegerField(source='id')
+
+    class Meta:
+        model = Profile
+        fields = ['profile_id']
