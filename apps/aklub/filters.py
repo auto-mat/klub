@@ -6,15 +6,90 @@ from functools import reduce
 
 from django.contrib import messages
 from django.contrib.admin import SimpleListFilter
-from django.contrib.admin.filters import RelatedFieldListFilter
+from django.contrib.admin.filters import FieldListFilter, RelatedFieldListFilter
+from django.contrib.admin.utils import reverse_field_path
 from django.db.models import Count, Q, Value
 from django.db.models.functions import Lower, Replace, Right
 from django.utils.translation import ugettext as _
 
 from .models import (
-    CompanyContact, CompanyProfile, Event, ProfileEmail, Telephone,
+    CompanyContact, CompanyProfile, ProfileEmail, Telephone,
     UserProfile,
 )
+
+
+class ProfileMultiSelectDonorEvent(FieldListFilter):
+    """
+    allowe to multiple events from filters
+    """
+    def __init__(self, field, request, params, model, model_admin, field_path):
+        self.lookup_kwarg = field_path + '__in'
+        self.lookup_kwarg_isnull = field_path + '__isnull'
+
+        super().__init__(field, request, params, model, model_admin, field_path)
+        self.title = _("Donor's event")
+
+        self.lookup_val = self.used_parameters.get(self.lookup_kwarg, [])
+        if len(self.lookup_val) == 1 and self.lookup_val[0] == '':
+            self.lookup_val = []
+        self.lookup_val_isnull = self.used_parameters.get(self.lookup_kwarg_isnull)
+
+        self.empty_value_display = model_admin.get_empty_value_display()
+        parent_model, reverse_path = reverse_field_path(model, field_path)
+
+        if model == parent_model:
+            queryset = model_admin.get_queryset(request)
+        else:
+            queryset = parent_model._default_manager.all()
+
+        if request.user.has_perm('can_edit_all_units'):
+            look_up = queryset.distinct().order_by(field.name)
+        else:
+            look_up = queryset.filter(administrative_units__in=request.user.administrated_units.all())\
+                .distinct()\
+                .order_by(field.name)
+        self.lookup_choices = [(event.id, event.name) for event in look_up]
+
+    def expected_parameters(self):
+        return [self.lookup_kwarg, self.lookup_kwarg_isnull]
+
+    def choices(self, changelist):
+        yield {
+            'selected': not self.lookup_val and self.lookup_val_isnull is None,
+            'query_string': changelist.get_query_string(remove=[self.lookup_kwarg, self.lookup_kwarg_isnull]),
+            'display': _('All'),
+        }
+        include_none = False
+        for lookup, title in self.lookup_choices:
+            if lookup is None:
+                include_none = True
+                continue
+            lookup = str(lookup)
+
+            if lookup in self.lookup_val:
+                values = [v for v in self.lookup_val if v != lookup]
+            else:
+                values = self.lookup_val + [lookup]
+
+            if values:
+                yield {
+                    'selected': lookup in self.lookup_val,
+                    'query_string': changelist.get_query_string({self.lookup_kwarg: ','.join(values)}, [self.lookup_kwarg_isnull]),
+                    'display': title,
+                }
+            else:
+                yield {
+                    'selected': lookup in self.lookup_val,
+                    'query_string': changelist.get_query_string(remove=[self.lookup_kwarg]),
+                    'display': title,
+                }
+
+        if include_none:
+            yield {
+                'selected': bool(self.lookup_val_isnull),
+                'query_string': changelist.get_query_string({self.lookup_kwarg_isnull: 'True'}, [self.lookup_kwarg]),
+                'display': self.empty_value_display,
+            }
 
 
 class PreferenceMailingListAllowed(SimpleListFilter):
@@ -70,23 +145,6 @@ class IsUserInCompanyProfile(SimpleListFilter):
             elif self.value() == 'no':
                 queryset = queryset.exclude(id__in=profile_emails.values_list('user_id'))
             return queryset
-
-
-class ProfileDonorEvent(SimpleListFilter):
-    title = _("Event")
-    parameter_name = 'profile_dpch_event'
-
-    def lookups(self, request, model_admin):
-        if request.user.has_perm('aklub.can_edit_all_units'):
-            data = Event.objects.order_by('name')
-        else:
-            data = Event.objects.filter(administrative_units__in=request.user.administrated_units.all())
-        return [(event.id, event.name) for event in data]
-
-    def queryset(self, request, queryset):
-        if self.value():
-            queryset = queryset.filter(userchannels__event__id=self.value())
-        return queryset
 
 
 class ProfileHasFullAdress(SimpleListFilter):
