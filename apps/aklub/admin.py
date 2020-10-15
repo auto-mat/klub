@@ -131,7 +131,12 @@ class DonorPaymentChannelInlineForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['user_bank_account_char'].initial = self.instance.user_bank_account
+        if self.instance.id:
+            self.fields['user_bank_account_char'].initial = self.instance.user_bank_account
+        else:
+            user_bank_accs = self.parent.userchannels
+            if user_bank_accs.values_list('user_bank_account').distinct().count() == 1:
+                self.fields['user_bank_account_char'].initial = user_bank_accs.first().user_bank_account.bank_account_number
 
     def save(self, commit=False):
         donor = super().save()
@@ -1870,6 +1875,7 @@ class BaseProfileChildAdmin(PolymorphicChildModelAdmin,):
     def get_formsets_with_inlines(self, request, obj=None):
         for inline in self.get_inline_instances(request, obj):
             inline.form.request = request
+            inline.form.parent = obj
             yield inline.get_formset(request, obj), inline
 
     readonly_fields = (
