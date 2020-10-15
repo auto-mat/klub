@@ -23,6 +23,8 @@ from django.test import TestCase
 
 from freezegun import freeze_time
 
+from interactions.models import InteractionType
+
 from model_mommy import mommy
 from model_mommy.recipe import Recipe
 
@@ -416,3 +418,25 @@ class TestDenormalizedFields(TestCase):
         self.assertEqual(dpch.payment_total, 400)
         self.assertEqual(dpch.extra_money, 300)
         self.assertEqual(dpch.no_upgrade, False)
+
+
+class TestDpchSave(TestCase):
+    """
+    testing if interaction is created during donor_payment_channel save method
+    """
+
+    def test_interaction_created(self):
+        unit = mommy.make('aklub.AdministrativeUnit', name='test')
+        money_acc = mommy.make('aklub.BankAccount', administrative_unit=unit, bank_account_number='12345')
+        event = mommy.make('aklub.Event', name='name', administrative_units=[unit, ])
+        user = mommy.make('aklub.UserProfile', username='tester')
+        self.dpch = DonorPaymentChannel(
+            money_account=money_acc,
+            regular_frequency='monthly',
+            event=event,
+            user=user,
+        )
+        self.dpch.save()
+        int_type = InteractionType.objects.get(slug='donor_payment_channel_added')
+        self.assertEqual(user.interaction_set.count(), 1)
+        self.assertEqual(user.interaction_set.first().type, int_type)

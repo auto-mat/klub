@@ -2255,6 +2255,15 @@ class DonorPaymentChannel(ComputedFieldsModel):
         self.clean()  # run twice if saved in admin
         if self.pk is None:
             insert = True
+            # create interaction everytime DPCH is created
+            from interactions.models import Interaction, InteractionType
+            Interaction.objects.create(
+                type=InteractionType.objects.get(slug='donor_payment_channel_added'),
+                user=self.user,
+                administrative_unit_id=self.money_account.administrative_unit_id,
+                subject=_('Donor Payment Channel was created'),
+                date_from=timezone.now(),
+            )
         else:
             insert = False
         super().save(*args, **kwargs)

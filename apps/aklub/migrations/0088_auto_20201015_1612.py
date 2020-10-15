@@ -12,6 +12,8 @@ class Migration(migrations.Migration):
         InteractionType.objects.get_or_create(name='Administrative unit was added', slug='administrative_unit_added', category=int_cat)
         InteractionType.objects.get_or_create(name='Administrative unit was removed', slug='administrative_unit_removed', category=int_cat)
 
+        InteractionType.objects.get_or_create(name='DPCH was created', slug='donor_payment_channel_added', category=int_cat)
+
 
     dependencies = [
         ('aklub', '0087_auto_20200918_1159'),
