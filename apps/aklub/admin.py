@@ -21,13 +21,14 @@
 
 import datetime
 
+from admin_numeric_filter.admin import NumericFilterModelAdmin, RangeNumericFilter
+
 from adminactions import actions, merge
+
 
 from adminfilters.filters import RelatedFieldCheckBoxFilter
 
 from advanced_filters.admin import AdminAdvancedFiltersMixin
-
-from daterange_filter.filter import DateRangeFilter
 
 from django import forms
 from django.contrib import admin, messages
@@ -50,7 +51,6 @@ try:
 except ImportError:  # Django<2.0
     from django.core.urlresolvers import reverse
 
-
 from flexible_filter_conditions.admin_filters import UserConditionFilter, UserConditionFilter1
 
 from import_export import fields
@@ -71,6 +71,8 @@ import large_initial
 import nested_admin
 
 from polymorphic.admin import PolymorphicChildModelAdmin, PolymorphicParentModelAdmin
+
+from rangefilter.filter import DateRangeFilter
 
 from related_admin import RelatedFieldAdmin
 
@@ -94,7 +96,7 @@ from .profile_model_resources import (
     ProfileModelResource, get_polymorphic_parent_child_fields,
 )
 from .profile_model_resources_mixin import ProfileModelResourceMixin
-from .utils import check_annotate_filters, sweet_text
+from .utils import check_annotate_filters, edit_donor_annotate_filter, sweet_text
 
 
 def admin_links(args_generator):
@@ -763,6 +765,10 @@ class ProfileAdminMixin:
         results = []
         for channel in channels:
             if channel.regular_payments == 'regular':
+
+                if self.filtered_events and str(channel.event.id) not in self.filtered_events:
+                    continue
+
                 if self.request.user.has_perm('aklub.can_edit_all_units'):
                     results.append(channel)
                 # self.user_administrated_units is defined in queryset below
@@ -1633,7 +1639,10 @@ parse_statement.short_description = _("Reparse CSV file")
 
 class AccountStatementsAdmin(unit_admin_mixin_generator('administrative_unit'), nested_admin.NestedModelAdmin):
     list_display = ('type', 'import_date', 'payments_count', 'paired_payments', 'csv_file', 'administrative_unit', 'date_from', 'date_to')
-    list_filter = ('type',)
+    list_filter = (
+        'type',
+        ('payment__date', DateRangeFilter),
+    )
     inlines = [PaymentsInlineNoExtra]
     readonly_fields = ('import_date', 'payments_count', 'paired_payments', 'pair_log')
     actions = (
@@ -1889,7 +1898,7 @@ class BaseProfileChildAdmin(PolymorphicChildModelAdmin,):
 class UserProfileAdmin(
         child_redirect_mixin('userprofile'), filters.AdministrativeUnitAdminMixin,
         ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFiltersMixin, ProfileAdminMixin,
-        BaseProfileChildAdmin,
+        BaseProfileChildAdmin, NumericFilterModelAdmin,
 ):
     """ User profile polymorphic admin model child class """
     base_model = UserProfile
@@ -1947,11 +1956,12 @@ class UserProfileAdmin(
         'telephone__telephone',
         'profileemail__email',
     )
+
     list_filter = (
         filters.PreferenceMailingListAllowed,
         isnull_filter('userchannels__payment', _('Has any payment'), negate=True),
-        'userchannels__extra_money',
-        'userchannels__regular_amount',
+        ('userchannels__extra_money', RangeNumericFilter),
+        ('userchannels__regular_amount', RangeNumericFilter),
         'userchannels__regular_frequency',
         'userchannels__regular_payments',
         ('userchannels__registered_support', DateRangeFilter),
@@ -1962,7 +1972,7 @@ class UserProfileAdmin(
         'language',
         ('userchannels__last_payment__date', DateRangeFilter),
         filters.IsUserInCompanyProfile,
-        filters.ProfileDonorEvent,
+        ('userchannels__event__id', filters.ProfileMultiSelectDonorEvent),
         filters.RegularPaymentsFilter,
         filters.EmailFilter,
         filters.TelephoneFilter,
@@ -2090,6 +2100,8 @@ class UserProfileAdmin(
         # save request user's adminsitratived_unit here, so we dont have to peek in every loop
         self.user_administrated_units = request.user.administrated_units.all()
 
+        donor_filter = edit_donor_annotate_filter(self, request)
+
         filter_kwargs = {}
         filter_kwargs = check_annotate_filters(self.list_display, request, filter_kwargs)
         # annotate_kwargs = check_annotate_subqueries(self, request)
@@ -2101,15 +2113,15 @@ class UserProfileAdmin(
                     'userchannels__event',
                     'interaction_set',
                 ).annotate(
-                    sum_amount=Sum('userchannels__payment__amount'),
-                    payment_count=Count('userchannels__payment'),
-                    last_payment_date=Max('userchannels__payment__date'),
-                    first_payment_date=Min('userchannels__payment__date'),
+                    sum_amount=Sum('userchannels__payment__amount', filter=Q(**donor_filter)),
+                    payment_count=Count('userchannels__payment', filter=Q(**donor_filter)),
+                    last_payment_date=Max('userchannels__payment__date', filter=Q(**donor_filter)),
+                    first_payment_date=Min('userchannels__payment__date', filter=Q(**donor_filter)),
                     # **annotate_kwargs,
                     **filter_kwargs,
                 )
         else:
-            donor_units = Q(userchannels__money_account__administrative_unit=self.user_administrated_units.first())
+            donor_filter['userchannels__money_account__administrative_unit'] = self.user_administrated_units.first()
             queryset = super().get_queryset(request, *args, **kwargs).prefetch_related(
                     'telephone_set',
                     'profileemail_set',
@@ -2118,10 +2130,10 @@ class UserProfileAdmin(
                     'userchannels__money_account__administrative_unit',
                     'interaction_set',
                 ).annotate(
-                    sum_amount=Sum('userchannels__payment__amount', filter=donor_units),
-                    payment_count=Count('userchannels__payment', filter=donor_units),
-                    last_payment_date=Max('userchannels__payment__date', filter=donor_units),
-                    first_payment_date=Min('userchannels__payment__date', filter=donor_units),
+                    sum_amount=Sum('userchannels__payment__amount', filter=Q(**donor_filter)),
+                    payment_count=Count('userchannels__payment', filter=Q(**donor_filter)),
+                    last_payment_date=Max('userchannels__payment__date', filter=Q(**donor_filter)),
+                    first_payment_date=Min('userchannels__payment__date', filter=Q(**donor_filter)),
                     # **annotate_kwargs,
                     **filter_kwargs,
                 )
@@ -2175,7 +2187,7 @@ class CompanyContactInline(admin.TabularInline):
 class CompanyProfileAdmin(
         child_redirect_mixin('companyprofile'), filters.AdministrativeUnitAdminMixin,
         ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFiltersMixin,
-        ProfileAdminMixin, BaseProfileChildAdmin,
+        ProfileAdminMixin, BaseProfileChildAdmin, NumericFilterModelAdmin,
 ):
     """ Company profile polymorphic admin model child class """
     base_model = CompanyProfile
@@ -2231,8 +2243,8 @@ class CompanyProfileAdmin(
     list_filter = (
         filters.PreferenceMailingListAllowed,
         isnull_filter('userchannels__payment', _('Has any payment'), negate=True),
-        'userchannels__extra_money',
-        'userchannels__regular_amount',
+        ('userchannels__extra_money', RangeNumericFilter),
+        ('userchannels__regular_amount', RangeNumericFilter),
         'userchannels__regular_frequency',
         'userchannels__regular_payments',
         ('userchannels__registered_support', DateRangeFilter),
@@ -2242,7 +2254,7 @@ class CompanyProfileAdmin(
         'groups',
         'language',
         ('userchannels__last_payment__date', DateRangeFilter),
-        filters.ProfileDonorEvent,
+        ('userchannels__event__id', filters.ProfileMultiSelectDonorEvent),
         filters.RegularPaymentsFilter,
         filters.EmailFilter,
         filters.TelephoneFilter,
@@ -2397,6 +2409,8 @@ class CompanyProfileAdmin(
         self.user_administrated_units = request.user.administrated_units.all()
         self.user_administrated_units_ids = request.user.administrated_units.all().values_list('id', flat=True)
 
+        donor_filter = edit_donor_annotate_filter(self, request)
+
         filter_kwargs = {}
         filter_kwargs = check_annotate_filters(self.list_display, request, filter_kwargs)
         # annotate_kwargs = check_annotate_subqueries(self, request)
@@ -2406,25 +2420,25 @@ class CompanyProfileAdmin(
                     'administrative_units',
                     'userchannels__event',
                 ).annotate(
-                    sum_amount=Sum('userchannels__payment__amount'),
-                    payment_count=Count('userchannels__payment'),
-                    last_payment_date=Max('userchannels__payment__date'),
-                    first_payment_date=Min('userchannels__payment__date'),
+                    sum_amount=Sum('userchannels__payment__amount', filter=Q(**donor_filter)),
+                    payment_count=Count('userchannels__payment', filter=Q(**donor_filter)),
+                    last_payment_date=Max('userchannels__payment__date', filter=Q(**donor_filter)),
+                    first_payment_date=Min('userchannels__payment__date', filter=Q(**donor_filter)),
                     # **annotate_kwargs,
                     **filter_kwargs,
                 )
         else:
-            donor_units = Q(userchannels__money_account__administrative_unit=self.user_administrated_units.first())
+            donor_filter['userchannels__money_account__administrative_unit'] = self.user_administrated_units.first()
             queryset = super().get_queryset(request, *args, **kwargs).prefetch_related(
                     'companycontact_set',
                     'administrative_units',
                     'userchannels__event',
                     'userchannels__money_account__administrative_unit',
                 ).annotate(
-                    sum_amount=Sum('userchannels__payment__amount', filter=donor_units),
-                    payment_count=Count('userchannels__payment', filter=donor_units),
-                    last_payment_date=Max('userchannels__payment__date', filter=donor_units),
-                    first_payment_date=Min('userchannels__payment__date', filter=donor_units),
+                    sum_amount=Sum('userchannels__payment__amount', filter=Q(**donor_filter)),
+                    payment_count=Count('userchannels__payment', filter=Q(**donor_filter)),
+                    last_payment_date=Max('userchannels__payment__date', filter=Q(**donor_filter)),
+                    first_payment_date=Min('userchannels__payment__date', filter=Q(**donor_filter)),
                     # **annotate_kwargs,
                     **filter_kwargs,
                 )

@@ -48,6 +48,19 @@ def create_model(
     return model
 
 
+def edit_donor_annotate_filter(self, request):
+    """
+    additional info for annotate filters
+    """
+    donor_filter = {}
+    if request.GET.get('userchannels__event__id__in'):
+        self.filtered_events = request.GET['userchannels__event__id__in'].split(',')
+        donor_filter['userchannels__event_id__in'] = self.filtered_events
+    else:
+        self.filtered_events = []
+    return donor_filter
+
+
 def check_annotate_filters(list_display, request, filter_kwargs):
     """
     Create additional annotate to queryset if specific list order is active
@@ -57,12 +70,12 @@ def check_annotate_filters(list_display, request, filter_kwargs):
         order_filter_fields = [list_display[int(index)-1] for index in request.GET.get('o').replace('-', "").split('.')]
         if 'donor_delay' in order_filter_fields:
             filter_kwargs = {'order_payment_delay': models.Value(None, models.DurationField())}
-            if not request.GET.get('profile_dpch_event'):
+            if not request.GET.get('userchannels__event__id__in'):
                 messages.warning(request, _('Please select event before sort by donor delay'))
             else:
-
+                event_id = request.GET['userchannels__event__id__in'].split(',')[0]
                 donor_channels = aklub_models.DonorPaymentChannel.objects.filter(
-                    event_id=request.GET.get('profile_dpch_event'),
+                    event_id=event_id,
                     user=models.OuterRef('id'),
                 ).annotate(
                     duration_sort=models.Case( # noqa

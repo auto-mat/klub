@@ -24,15 +24,19 @@ django-qsstats-magic = "*"
 python-dateutil = "*"
 "html2text" = "*"
 xlrd = "*"
-django-daterange-filter = "*"
+django-admin-rangefilter = "*"
 django-cors-headers = "*"
 django-related-admin = "*"
 gunicorn = "*"
 django-betterforms = "*"
+# waiting for new version >3.12.1 => bug fix
 django-adminactions = {editable = true, git = "https://github.com/PetrKudy/django-adminactions", ref = "ignored_fields"}
+# waiting for new version > 0.1.6  => related fields lookup
+django-admin-numeric-filter = {editable = true, git = "https://github.com/PetrKudy/django-admin-numeric-filter", ref = "related_fields_fix"}
 django-helpdesk = {editable = true,git = "https://github.com/auto-mat/django-helpdesk.git",ref = "teams"}
 django-admin-large-initial-data = "*"
 django-admin-charts = { version = ">=0.12.0", override = ["django-nvd3"] }
+# waiting for new version > 3 0.9.7
 django-nvd3 = {editable = true, git = "https://github.com/PetrKudy/django-nvd3", ref = "booster_python_nvd3"}
 django-bower = "*"
 djcacheutils = "*"
@@ -64,7 +68,8 @@ lxml = "*"
 simplejson = "*"
 pytz = "*"
 six = "*"
-djangorestframework = "*"
+# newest version is uncompable with drf-yasg 1.17.1 => wait for fix, because we need the doc
+djangorestframework = "==3.11.2"
 django-model-utils = "*"
 django_celery_beat = "*"
 email_reply_parser = "*"
