@@ -30,8 +30,6 @@ from adminfilters.filters import RelatedFieldCheckBoxFilter
 
 from advanced_filters.admin import AdminAdvancedFiltersMixin
 
-from daterange_filter.filter import DateRangeFilter
-
 from django import forms
 from django.contrib import admin, messages
 from django.contrib.admin import site
@@ -73,6 +71,8 @@ import large_initial
 import nested_admin
 
 from polymorphic.admin import PolymorphicChildModelAdmin, PolymorphicParentModelAdmin
+
+from rangefilter.filter import DateRangeFilter
 
 from related_admin import RelatedFieldAdmin
 
