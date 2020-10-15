@@ -48,6 +48,19 @@ def create_model(
     return model
 
 
+def edit_donor_annotate_filter(self, request):
+    """
+    additional info for annotate filters
+    """
+    donor_filter = {}
+    if request.GET.get('userchannels__event__id__in'):
+        self.filtered_events = request.GET['userchannels__event__id__in'].split(',')
+        donor_filter['userchannels__event_id__in'] = self.filtered_events
+    else:
+        self.filtered_events = []
+    return donor_filter
+
+
 def check_annotate_filters(list_display, request, filter_kwargs):
     """
     Create additional annotate to queryset if specific list order is active
