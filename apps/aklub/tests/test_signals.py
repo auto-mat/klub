@@ -1,35 +1,61 @@
 from django.test import TransactionTestCase
 
-from model_mommy import mommy
+from interactions.models import InteractionType
 
-from ..models import UserProfile
+from model_mommy import mommy
 
 
 class AdministrativeUnitChangeSignalTest(TransactionTestCase):
-    def test_if_preference_is_changed(self):
+    def setUp(self):
+        self.unit1 = mommy.make('aklub.administrativeunit', name='unit1')
+        self.unit2 = mommy.make('aklub.administrativeunit', name='unit2')
+
+        self.user = mommy.make("aklub.userprofile")
+
+    def test_preference_change_post_save(self):
         """
         Test signal if preference is created/removed after unit is added/removed to profile
         """
-        unit1 = mommy.make('aklub.administrativeunit', name='unit1')
-        unit2 = mommy.make('aklub.administrativeunit', name='unit2')
-        mommy.make("aklub.userprofile", id=11, administrative_units=[unit1, ])
+        self.assertEqual(self.user.preference_set.count(), 0)
 
-        user = UserProfile.objects.get(id=11)
-        self.assertEqual(user.preference_set.count(), 1)
-        self.assertCountEqual(list(user.preference_set.values_list('administrative_unit__name', flat=True)), ['unit1', ])
-        self.assertEqual(user.is_active, True)
+        self.user.administrative_units.add(self.unit1)
 
-        user.administrative_units.add(unit2)
+        self.assertEqual(self.user.preference_set.count(), 1)
+        self.assertCountEqual(list(self.user.preference_set.values_list('administrative_unit__name', flat=True)), ['unit1', ])
+        self.assertEqual(self.user.is_active, True)
 
-        self.assertEqual(user.preference_set.count(), 2)
-        self.assertCountEqual(list(user.preference_set.values_list('administrative_unit__name', flat=True)), ['unit1', 'unit2'])
-        self.assertEqual(user.is_active, True)
-        user.administrative_units.remove(unit1)
+        self.user.administrative_units.add(self.unit2)
 
-        self.assertEqual(user.preference_set.count(), 1)
-        self.assertCountEqual(list(user.preference_set.values_list('administrative_unit__name', flat=True)), ['unit2', ])
-        self.assertEqual(user.is_active, True)
+        self.assertEqual(self.user.preference_set.count(), 2)
+        self.assertCountEqual(list(self.user.preference_set.values_list('administrative_unit__name', flat=True)), ['unit1', 'unit2'])
+        self.assertEqual(self.user.is_active, True)
+        self.user.administrative_units.remove(self.unit1)
 
-        user.administrative_units.remove(unit2)
-        self.assertEqual(user.preference_set.count(), 0)
-        self.assertEqual(user.is_active, False)
+        self.assertEqual(self.user.preference_set.count(), 1)
+        self.assertCountEqual(list(self.user.preference_set.values_list('administrative_unit__name', flat=True)), ['unit2', ])
+        self.assertEqual(self.user.is_active, True)
+
+        self.user.administrative_units.remove(self.unit2)
+        self.assertEqual(self.user.preference_set.count(), 0)
+        self.assertEqual(self.user.is_active, False)
+
+    def test_interaciton_change_post_save(self):
+        """
+        Test signal if preference is created/removed after unit is added/removed to profile
+        """
+        self.inter_add = InteractionType.objects.get(slug='administrative_unit_added')
+        self.inter_remove = InteractionType.objects.get(slug='administrative_unit_removed')
+
+        self.assertEqual(self.user.interaction_set.count(), 0)
+
+        self.user.administrative_units.add(self.unit1)
+
+        self.assertEqual(self.user.interaction_set.count(), 1)
+        self.assertEqual(self.user.interaction_set.first().type, self.inter_add)
+        self.assertEqual(self.user.interaction_set.first().administrative_unit, self.unit1)
+
+        self.user.administrative_units.remove(self.unit1)
+
+        self.assertEqual(self.user.interaction_set.count(), 2)
+        self.assertEqual(self.user.interaction_set.last().type, self.inter_remove)
+        self.assertEqual(self.user.interaction_set.last().administrative_unit, self.unit1)

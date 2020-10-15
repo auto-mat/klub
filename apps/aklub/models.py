@@ -1181,19 +1181,38 @@ def Userprofile_administrative_unit_changed(sender, **kwargs):
     # dry_run is defined during importing..
     # we want to call signal only if dry_run => false or doesnt exist
     if not hasattr(user, 'dry_run') or not user.dry_run:
+        from interactions.models import Interaction, InteractionType
         if action == 'post_add':
             # if user has 0 administrative units we set him as active because he was inactive before
             choose_if_active(True)
+            int_type = InteractionType.objects.get(slug='administrative_unit_added')
             for unit in units:
                 Preference.objects.get_or_create(
                     user=user,
                     administrative_unit_id=unit,
                 )
+                Interaction.objects.create(
+                    type=int_type,
+                    user=user,
+                    administrative_unit_id=unit,
+                    subject=_('administrative unit was added'),
+                    date_from=timezone.now(),
+                )
 
         elif action == 'post_remove':
+            int_type = InteractionType.objects.get(slug='administrative_unit_removed')
             user.preference_set.filter(administrative_unit__id__in=units).delete()
             # if user has 0 administrative units we set him as inactive
             choose_if_active(False)
+
+            for unit in units:
+                Interaction.objects.create(
+                    type=int_type,
+                    user=user,
+                    administrative_unit_id=unit,
+                    subject=_('administrative unit was added'),
+                    date_from=timezone.now(),
+                )
 
 
 class Preference(models.Model):
