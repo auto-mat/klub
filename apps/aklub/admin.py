@@ -137,7 +137,7 @@ class DonorPaymentChannelInlineForm(forms.ModelForm):
             self.fields['user_bank_account_char'].initial = self.instance.user_bank_account
         else:
             user_bank_accs = self.parent.userchannels
-            if user_bank_accs.values_list('user_bank_account').distinct().count() == 1:
+            if user_bank_accs.exclude(user_bank_account=None).values_list('user_bank_account').distinct().count() == 1:
                 self.fields['user_bank_account_char'].initial = user_bank_accs.first().user_bank_account.bank_account_number
 
     def save(self, commit=False):
