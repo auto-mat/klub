@@ -101,9 +101,7 @@ class PaidPdfDownloadViewTest(TestCase):
         # required fields
         response = self.client.get(url, **header)
         self.assertEqual(response.status_code, 200)
-        with open(self.pdf.pdf_file.path, "rb") as f:
-            # is it same pdf?
-            self.assertEqual(f.read(), response.content)
+        self.assertEqual(self.pdf.pdf_file.url, response.json()['download_url'])
 
     @freeze_time("2015-5-1")
     def test_get_request_fail(self):

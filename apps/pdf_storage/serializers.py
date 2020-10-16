@@ -19,9 +19,14 @@ class PdfStorageListSerializer(serializers.ModelSerializer):
 
 
 class PaidPdfDownloadLinkSerializer(serializers.ModelSerializer):
+    download_url = serializers.SerializerMethodField()
+
     class Meta:
         model = PdfStorage
-        fields = ['pdf_file']
+        fields = ['download_url']
+
+    def get_download_url(self, obj):
+        return obj.pdf_file.url
 
 
 class AllRelatedIdsSerializer(serializers.Serializer):
