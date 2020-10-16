@@ -42,16 +42,16 @@ class TimelineTest(CreateSuperUserMixin, TestCase):
         })
         address = reverse('helpdesk:timeline_ticket_list', args=[urlsafe_query])
         response = self.client.get(address)
-        self.assertEqual(response.json()['events'][1]['text']['headline'], '<p style="color:#000000;">interaction subject</p>')
-        self.assertEqual(response.json()['events'][2]['text']['headline'], '<p style="color:#000000;">350 Kč</p>')
+        self.assertEqual(response.json()['events'][2]['text']['headline'], '<p style="color:#000000;">interaction subject</p>')
+        self.assertEqual(response.json()['events'][3]['text']['headline'], '<p style="color:#000000;">350 Kč</p>')
         # Search by pk
         urlsafe_query = query_to_base64({
             'search_profile_pks': [foo_user.pk],
         })
         address = reverse('helpdesk:timeline_ticket_list', args=[urlsafe_query])
         response = self.client.get(address)
-        self.assertEqual(response.json()['events'][1]['text']['headline'], '<p style="color:#000000;">interaction subject</p>')
-        self.assertEqual(response.json()['events'][2]['text']['headline'], '<p style="color:#000000;">350 Kč</p>')
+        self.assertEqual(response.json()['events'][2]['text']['headline'], '<p style="color:#000000;">interaction subject</p>')
+        self.assertEqual(response.json()['events'][3]['text']['headline'], '<p style="color:#000000;">350 Kč</p>')
 
     def test_timeline_companyprofile(self):
         company = mommy.make('aklub.companyprofile', id=999, name='company_name', email="foo@bar.cz")
@@ -77,13 +77,13 @@ class TimelineTest(CreateSuperUserMixin, TestCase):
         })
         address = reverse('helpdesk:timeline_ticket_list', args=[urlsafe_query])
         response = self.client.get(address)
-        self.assertEqual(response.json()['events'][1]['text']['headline'], '<p style="color:#000000;">interaction company subject</p>')
-        self.assertEqual(response.json()['events'][2]['text']['headline'], '<p style="color:#000000;">958 Kč</p>')
+        self.assertEqual(response.json()['events'][2]['text']['headline'], '<p style="color:#000000;">interaction company subject</p>')
+        self.assertEqual(response.json()['events'][3]['text']['headline'], '<p style="color:#000000;">958 Kč</p>')
         # Search by pk
         urlsafe_query = query_to_base64({
             'search_profile_pks': [company.pk],
         })
         address = reverse('helpdesk:timeline_ticket_list', args=[urlsafe_query])
         response = self.client.get(address)
-        self.assertEqual(response.json()['events'][1]['text']['headline'], '<p style="color:#000000;">interaction company subject</p>')
-        self.assertEqual(response.json()['events'][2]['text']['headline'], '<p style="color:#000000;">958 Kč</p>')
+        self.assertEqual(response.json()['events'][2]['text']['headline'], '<p style="color:#000000;">interaction company subject</p>')
+        self.assertEqual(response.json()['events'][3]['text']['headline'], '<p style="color:#000000;">958 Kč</p>')
