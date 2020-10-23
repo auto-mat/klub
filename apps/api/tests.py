@@ -405,3 +405,54 @@ class CreateCreditCardPaymentTest(TestCase):
         self.assertEqual(payment.recipient_account, self.bank_acc)
         self.assertEqual(payment.amount, data['amount'])
         self.assertEqual(payment.VS, data['VS'])
+
+
+class RegisterUserProfileTest(TestCase):
+    def setUp(self):
+        app_login_mixin()
+        unit = mommy.make('aklub.administrativeunit', name='test_unit')
+        self.event = mommy.make('aklub.event', slug='event_slug', administrative_units=[unit, ])
+        self.bank_acc = mommy.make('aklub.bankaccount', bank_account='11122/111', slug='bank_slug', administrative_unit=unit)
+
+    def test_create_payment_userprofile(self):
+        url = reverse('register_userprofile')
+        header = {'Authorization': 'Bearer foo', "content_type": "application/json"}
+        data = {
+
+            'email': 'tester@gmai.com',
+            'telephone': '123456789',
+            'first_name': 'tester',
+            'last_name': 'dunnot',
+            'password': 'super_ultra_7853_hard',
+            "userchannels": [
+                {
+                    'event': self.event.slug,
+                    'money_account': self.bank_acc.slug,
+                    'regular_amount': 123456,
+                    'regular_frequency': 'monthly',
+                },
+            ],
+        }
+        response = self.client.post(url, data=data, **header)
+        self.assertEqual(response.status_code, 201)
+        response_data = response.json()
+        email = ProfileEmail.objects.get(email=data['email'])
+        user = email.user
+        dpch = user.userchannels.first()
+        telephone = user.telephone_set.first()
+        # response VS (cuz its read_only)
+        self.assertEqual(response_data['userchannels'][0]['VS'], dpch.VS)
+
+        self.assertEqual(email.is_primary, True)
+
+        self.assertEqual(user.first_name, data['first_name'])
+        self.assertEqual(user.last_name, data['last_name'])
+        self.assertEqual(user.check_password(data['password']), True)
+
+        self.assertEqual(telephone.is_primary, True)
+        self.assertEqual(telephone.telephone, data['telephone'])
+
+        self.assertEqual(dpch.event, self.event)
+        self.assertEqual(dpch.money_account, self.bank_acc)
+        self.assertEqual(dpch.regular_amount, data['userchannels'][0]['regular_amount'])
+        self.assertEqual(dpch.regular_frequency, data['userchannels'][0]['regular_frequency'])

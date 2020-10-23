@@ -13,7 +13,7 @@ from rest_framework.response import Response
 
 from .exceptions import DonorPaymentChannelDoesntExist, EmailDoesntExist, PaymentsDoesntExist
 from .serializers import (
-    CreditCardPaymentSerializer,
+    CreateUserProfileSerializer, CreditCardPaymentSerializer,
     DonorPaymetChannelSerializer, EventCheckSerializer, GetDpchCompanyProfileSerializer, GetDpchUserProfileSerializer,
     InteractionSerizer, MoneyAccountCheckSerializer, PaymentSerializer, ProfileSerializer, VSReturnSerializer,
 )
@@ -21,7 +21,10 @@ from .utils import get_or_create_dpch
 
 
 class CheckMoneyAccountView(generics.RetrieveAPIView):
-    """ Check if MoneyAccount  Bank/Api with this slug exists"""
+    """
+     Check if MoneyAccount  Bank/Api with this slug exists
+     -- is used to communicate with 3rd aplication
+    """
     permission_classes = [TokenHasReadWriteScope]
     required_scopes = ['can_check_if_exist']
     queryset = MoneyAccount.objects.all()
@@ -30,7 +33,11 @@ class CheckMoneyAccountView(generics.RetrieveAPIView):
 
 
 class CheckEventView(generics.RetrieveAPIView):
-    """ Check if Event with this slug exists"""
+    """
+    Check if Event with this slug exists
+    -- is used to communicate with 3rd aplication
+    """
+
     permission_classes = [TokenHasReadWriteScope]
     required_scopes = ['can_check_if_exist']
     queryset = Event.objects.all()
@@ -39,7 +46,10 @@ class CheckEventView(generics.RetrieveAPIView):
 
 
 class CreateDpchUserProfileView(generics.GenericAPIView):
-    """ Creates or GET DonorPaymentChannel and return VS"""
+    """
+    Creates or GET DonorPaymentChannel and return VS
+    -- is used to communicate with 3rd aplication
+    """
     permission_classes = [TokenHasReadWriteScope]
     required_scopes = ['can_create_profiles']
     serializer_class = GetDpchUserProfileSerializer
@@ -79,7 +89,10 @@ class CreateDpchUserProfileView(generics.GenericAPIView):
 
 
 class CreateDpchCompanyProfileView(generics.GenericAPIView):
-    """ Creates or GET DonorPaymentChannel and return VS"""
+    """
+    Creates or GET DonorPaymentChannel and return VS
+    -- is used to communicate with 3rd aplication
+    """
     permission_classes = [TokenHasReadWriteScope]
     required_scopes = ['can_create_profiles']
     serializer_class = GetDpchCompanyProfileSerializer
@@ -118,7 +131,10 @@ class CreateDpchCompanyProfileView(generics.GenericAPIView):
 
 
 class CheckPaymentView(generics.GenericAPIView):
-    """ Check last assigned payment"""
+    """
+    Check last assigned payment
+    -- is used to communicate with 3rd aplication
+    """
     permission_classes = [TokenHasReadWriteScope]
     required_scopes = ['can_check_last_payments']
     serializer_class = DonorPaymetChannelSerializer
@@ -153,7 +169,8 @@ class CheckPaymentView(generics.GenericAPIView):
 
 class CreateInteractionView(generics.GenericAPIView):
     """
-        Create Interaction based on choice
+    Create Interaction based on choice
+    -- is used to communicate with 3rd aplication
     """
     permission_classes = [TokenHasReadWriteScope]
     required_scopes = ['can_create_interactions']
@@ -184,6 +201,10 @@ class CreateInteractionView(generics.GenericAPIView):
 
 
 class CreateCreditCardPaymentView(generics.CreateAPIView):
+    """
+    creates credit card payment in crm
+    -- is used to communicate with 3rd aplication
+    """
     permission_classes = [TokenHasReadWriteScope]
     required_scopes = ['can_create_credit_card_payment']
     serializer_class = CreditCardPaymentSerializer
@@ -213,3 +234,12 @@ class CreateCreditCardPaymentView(generics.CreateAPIView):
                     raise DonorPaymentChannelDoesntExist()
             else:
                 raise EmailDoesntExist()
+
+
+class CreateUserProfileView(generics.CreateAPIView):
+    """
+    Create new userprofile with PW to has acces to paid section
+    """
+    permission_classes = [TokenHasReadWriteScope]
+    required_scopes = ['can_create_profiles']
+    serializer_class = CreateUserProfileSerializer

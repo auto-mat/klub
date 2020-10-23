@@ -29,6 +29,7 @@ urlpatterns = [
 
     path('userprofile/vs/', views.CreateDpchUserProfileView.as_view(), name='userprofile_vs'),
     path('companyprofile/vs/', views.CreateDpchCompanyProfileView.as_view(), name='companyprofile_vs'),
+    path('register_userprofile/', views.CreateUserProfileView.as_view(), name='register_userprofile'),
 
     path('docs/', schema_view.with_ui('swagger', cache_timeout=None), name='schema-swagger-ui'),
 
