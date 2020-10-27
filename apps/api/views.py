@@ -9,15 +9,17 @@ from drf_yasg.utils import swagger_auto_schema
 from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope
 
 from rest_framework import generics, status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from aklub.models import Payment
 from .exceptions import DonorPaymentChannelDoesntExist, EmailDoesntExist, PaymentsDoesntExist
 from .serializers import (
     CreateUserProfileSerializer, CreditCardPaymentSerializer,
     DonorPaymetChannelSerializer, EventCheckSerializer, GetDpchCompanyProfileSerializer, GetDpchUserProfileSerializer,
     InteractionSerizer, MoneyAccountCheckSerializer, PaymentSerializer, ProfileSerializer, VSReturnSerializer,
 )
-from .utils import get_or_create_dpch
+from .utils import get_or_create_dpch, check_last_month_payment
 
 
 class CheckMoneyAccountView(generics.RetrieveAPIView):
@@ -240,6 +242,19 @@ class CreateUserProfileView(generics.CreateAPIView):
     """
     Create new userprofile with PW to has acces to paid section
     """
-    permission_classes = [TokenHasReadWriteScope]
-    required_scopes = ['can_create_profiles']
     serializer_class = CreateUserProfileSerializer
+
+
+class CheckLastPaymentView(generics.GenericAPIView):
+    """
+    check if payment exist in CRM or on darujme
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = self.request.user
+        has_payment = check_last_month_payment(user)
+        if has_payment:
+            return Response(status=status.HTTP_200_OK)
+        else:
+            return Response(status=status.HTTP_404_NOT_FOUND)

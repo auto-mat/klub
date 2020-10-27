@@ -409,14 +409,13 @@ class CreateCreditCardPaymentTest(TestCase):
 
 class RegisterUserProfileTest(TestCase):
     def setUp(self):
-        app_login_mixin()
         unit = mommy.make('aklub.administrativeunit', name='test_unit')
         self.event = mommy.make('aklub.event', slug='event_slug', administrative_units=[unit, ])
         self.bank_acc = mommy.make('aklub.bankaccount', bank_account='11122/111', slug='bank_slug', administrative_unit=unit)
 
     def test_create_payment_userprofile(self):
         url = reverse('register_userprofile')
-        header = {'Authorization': 'Bearer foo', "content_type": "application/json"}
+        header = {"content_type": "application/json"}
         data = {
 
             'email': 'tester@gmai.com',
