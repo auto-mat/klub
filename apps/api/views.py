@@ -1,8 +1,15 @@
 import datetime
 
 from aklub.models import (
-    CompanyContact, CompanyProfile, DonorPaymentChannel, Event, MoneyAccount, ProfileEmail, Telephone, UserProfile,
+    AdministrativeUnit, CompanyContact, CompanyProfile, DonorPaymentChannel, Event, MoneyAccount, ProfileEmail, Telephone, UserProfile,
 )
+
+from django.conf import settings
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import EmailMultiAlternatives
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+from django.utils.translation import ugettext_lazy as _
 
 from drf_yasg.utils import swagger_auto_schema
 
@@ -12,14 +19,14 @@ from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from aklub.models import Payment
 from .exceptions import DonorPaymentChannelDoesntExist, EmailDoesntExist, PaymentsDoesntExist
 from .serializers import (
     CreateUserProfileSerializer, CreditCardPaymentSerializer,
     DonorPaymetChannelSerializer, EventCheckSerializer, GetDpchCompanyProfileSerializer, GetDpchUserProfileSerializer,
-    InteractionSerizer, MoneyAccountCheckSerializer, PaymentSerializer, ProfileSerializer, VSReturnSerializer,
+    InteractionSerizer, MoneyAccountCheckSerializer, PaymentSerializer, ProfileSerializer, ResetPasswordbyEmailConfirmSerializer,
+    ResetPasswordbyEmailSerializer, VSReturnSerializer,
 )
-from .utils import get_or_create_dpch, check_last_month_payment
+from .utils import check_last_month_payment, get_or_create_dpch
 
 
 class CheckMoneyAccountView(generics.RetrieveAPIView):
@@ -258,3 +265,70 @@ class CheckLastPaymentView(generics.GenericAPIView):
             return Response(status=status.HTTP_200_OK)
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+class ResetPasswordbyEmailView(generics.GenericAPIView):
+    serializer_class = ResetPasswordbyEmailSerializer
+
+    def post(self, request):
+        serializer = self.serializer_class(data=self.request.data)
+        serializer.is_valid(raise_exception=True)
+        emails = ProfileEmail.objects.filter(email=serializer.validated_data['email'])
+        if emails.exists():
+            email = emails.first()
+            user = email.user
+            if not user.password:
+                # password muset be set or token is not generated
+                user.set_password(UserProfile.objects.make_random_password())
+                user.save()
+                user.refresh_from_db()
+            administrative_unit = AdministrativeUnit.objects.filter(from_email_str__isnull=False).first()
+            user_uid = urlsafe_base64_encode(force_bytes(user.pk))
+            token = default_token_generator.make_token(user)
+            template = _("""
+                Hello,\n
+
+                We received a request to reset the password for your account for this email address.
+                To initiate the password reset process for your account, click the link below.\n\n
+                You login Username is : %(username)s\n
+                %(url)s\n
+                This link can only be used once.\n
+
+                If you did not make this request, you can simply ignore this email.\n
+
+                Sincerely,\n
+                The %(site_name)s Team\n
+            """) % {
+                "url": settings.WEB_URL + '?u=' + user_uid + "&t=" + token,
+                "domain": settings.WEB_URL,
+                "username": user.username,
+                "site_name": settings.SITE_NAME,
+                }
+            email = EmailMultiAlternatives(
+                subject=_("password reset"),
+                body=template,
+                from_email=administrative_unit.from_email_str,
+                to=[email.email],
+            )
+            email.send(fail_silently=False)
+
+        return Response(status=status.HTTP_200_OK)
+
+
+class ResetPasswordbyEmailConfirmView(generics.GenericAPIView):
+    serializer_class = ResetPasswordbyEmailConfirmSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=self.request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            user = UserProfile.objects.get(id=urlsafe_base64_decode(kwargs['uid']).decode())
+        except (UserProfile.DoesNotExist, UserProfile.MultipleObjectsReturned):
+            return Response(status=status.HTTP_403_FORBIDDEN)
+        valid_token = default_token_generator.check_token(user, kwargs['token'])
+        if valid_token:
+            user.set_password(serializer.validated_data['password_1'])
+            user.save()
+            return Response(status=status.HTTP_200_OK)
+        else:
+            return Response(status=status.HTTP_403_FORBIDDEN)

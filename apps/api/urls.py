@@ -33,6 +33,13 @@ urlpatterns = [
 
     path('check_last_payment/', views.CheckLastPaymentView.as_view(), name='check_last_payment'),
 
+    path('reset_password_email/', views.ResetPasswordbyEmailView.as_view(), name='reset_password_email'),
+    path(
+        'reset_password_email_confirm/<slug:uid>/<slug:token>/',
+        views.ResetPasswordbyEmailConfirmView.as_view(),
+        name='reset_password_email_confirm',
+    ),
+
     path('docs/', schema_view.with_ui('swagger', cache_timeout=None), name='schema-swagger-ui'),
 
 ]

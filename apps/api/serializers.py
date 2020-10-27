@@ -8,6 +8,8 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
+from .exceptions import PasswordsDoNotMatch
+
 
 class RelatedFieldsMixin(serializers.Serializer):
     money_account = serializers.SlugRelatedField(queryset=MoneyAccount.objects.filter(slug__isnull=False), slug_field='slug')
@@ -184,3 +186,18 @@ class CreateUserProfileSerializer(serializers.ModelSerializer, RelatedFieldsMixi
 
         DonorPaymentChannel.objects.create(**dpch_data, user=user, expected_date_of_first_payment=timezone.now())
         return user
+
+
+class ResetPasswordbyEmailSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
+class ResetPasswordbyEmailConfirmSerializer(serializers.Serializer):
+    password_1 = serializers.CharField(write_only=True, validators=[validate_password])
+    password_2 = serializers.CharField(write_only=True)
+
+    def validate(self, data):
+        if data['password_1'] == data['password_2']:
+            return data
+        else:
+            raise PasswordsDoNotMatch()
