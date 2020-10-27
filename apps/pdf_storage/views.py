@@ -1,9 +1,4 @@
-import urllib
-from xml.dom import minidom
-
-from aklub.models import ApiAccount
-
-from django.utils import timezone
+from api.utils import check_last_month_payment
 
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
@@ -29,32 +24,7 @@ class PaidPdfDownloadView(generics.RetrieveAPIView):
 
     def get(self, *args, **kwargs): # noqa
         user = self.request.user
-        found_payment = False
-        for dpch in user.userchannels.all():
-            if found_payment:
-                break
-            # check if some donor payment channel has some payment for last mouth
-            if dpch.last_payment and dpch.last_payment.date >= timezone.now().date() - timezone.timedelta(days=40):
-                found_payment = True
-            else:
-                api = dpch.money_account
-                if isinstance(api, ApiAccount) and dpch.payment_total == 0:
-                    # it can be first payment so we check if user confirmed it on darujme
-                    url = "https://www.darujme.cz/dar/api/darujme_api.php/?api_id=%s&api_secret=%s&od_data_daru=%s&typ_dotazu=1" % (
-                        api.api_id,
-                        api.api_secret,
-                        dpch.registered_support.date()
-                    )
-                    xmlfile = urllib.request.urlopen(url)
-                    xmldoc = minidom.parse(xmlfile)
-                    darujme_api = xmldoc.getElementsByTagName('darujme_api')[0]
-                    for data in darujme_api.getElementsByTagName('record'):
-                        for val in data.getElementsByTagName('uzivatelska_pole')[0].getElementsByTagName('hodnota'):
-                            if val.attributes['nazev'].value == 'email' and val.firstChild.nodeValue == user.get_email_str():
-                                status = data.getElementsByTagName('stav')[0].firstChild.nodeValue
-                                if status == 'OK':
-                                    found_payment = True
-                                    break
+        found_payment = check_last_month_payment(user)
         if found_payment:
             try:
                 pdf = PdfStorage.objects.get(id=self.kwargs['id'])

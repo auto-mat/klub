@@ -17,3 +17,9 @@ class PaymentsDoesntExist(APIException):
     status_code = 404
     default_detail = 'Payment since registered payment + 14 days doesnt exist '
     default_code = 'payment_doesnt_exist'
+
+
+class PasswordsDoNotMatch(APIException):
+    status_code = 404
+    default_detail = 'Passoword 1 and 2 doesnt match'
+    default_code = 'password_no_match'

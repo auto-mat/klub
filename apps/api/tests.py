@@ -2,6 +2,7 @@ import datetime
 
 from aklub.models import CompanyProfile, ProfileEmail
 
+from django.core import mail
 from django.test import TestCase
 from django.urls import reverse
 
@@ -409,14 +410,13 @@ class CreateCreditCardPaymentTest(TestCase):
 
 class RegisterUserProfileTest(TestCase):
     def setUp(self):
-        app_login_mixin()
         unit = mommy.make('aklub.administrativeunit', name='test_unit')
         self.event = mommy.make('aklub.event', slug='event_slug', administrative_units=[unit, ])
         self.bank_acc = mommy.make('aklub.bankaccount', bank_account='11122/111', slug='bank_slug', administrative_unit=unit)
 
     def test_create_payment_userprofile(self):
         url = reverse('register_userprofile')
-        header = {'Authorization': 'Bearer foo', "content_type": "application/json"}
+        header = {"content_type": "application/json"}
         data = {
 
             'email': 'tester@gmai.com',
@@ -456,3 +456,32 @@ class RegisterUserProfileTest(TestCase):
         self.assertEqual(dpch.money_account, self.bank_acc)
         self.assertEqual(dpch.regular_amount, data['userchannels'][0]['regular_amount'])
         self.assertEqual(dpch.regular_frequency, data['userchannels'][0]['regular_frequency'])
+
+
+class ResetPasswordTest(TestCase):
+
+    def test_reset_password(self):
+        user = mommy.make('aklub.UserProfile', username="John_van_test")
+        email = mommy.make('aklub.ProfileEmail', email="John@van.test", user=user)
+        mommy.make('aklub.AdministrativeUnit', from_email_str="unit@test.test")
+        url = reverse('reset_password_email')
+        data = {'email': email.email}
+        response = self.client.post(url, data=data)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(mail.outbox), 1)
+        received_email = mail.outbox[0]
+        self.assertEqual(received_email.to[0], email.email)
+        self.assertEqual(received_email.subject, 'password reset')
+        # get reset link
+        link = [string for string in received_email.body.split(" ") if "?u=" in string]
+        link_splitted = link[0].replace("&", "=").split("=")
+        user_uid = link_splitted[1]
+        token = link_splitted[3].replace("\n", "")
+        # confirm reset password
+        url = reverse('reset_password_email_confirm', kwargs={'uid': user_uid, "token": token})
+        password = "new_strong_password96"
+        data = {'password_1': password, 'password_2': password}
+        response = self.client.post(url, data=data)
+        self.assertEqual(response.status_code, 200)
+        user.refresh_from_db()
+        self.assertEqual(user.check_password(password), True)
