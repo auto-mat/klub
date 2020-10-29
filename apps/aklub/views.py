@@ -37,7 +37,6 @@ from django.db.models import Case, CharField, Count, IntegerField, Q, Sum, Value
 from django.db.models.functions import TruncMonth
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render, render_to_response
-from django.template import loader
 from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator

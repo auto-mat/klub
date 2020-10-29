@@ -98,10 +98,9 @@ from .profile_model_resources import (
 )
 from .profile_model_resources_mixin import ProfileModelResourceMixin
 from .utils import (
-    check_annotate_filters, edit_donor_annotate_filter, 
+    check_annotate_filters, edit_donor_annotate_filter,
     get_email_templates_names, sweet_text,
 )
-
 
 
 def admin_links(args_generator):
