@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: AKlub\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-09-09 18:30+0200\n"
+"POT-Creation-Date: 2020-10-29 14:21+0100\n"
 "PO-Revision-Date: 2019-08-02 08:42+0000\n"
 "Last-Translator: Hynek Hanke <hanke@brailcom.org>\n"
 "Language-Team: No linguistic content\n"
@@ -18,615 +18,777 @@ msgstr ""
 "X-Loco-Parser: loco_parse_po\n"
 "X-Generator: Loco https://localise.biz/\n"
 
-#: admin.py:213 admin.py:1243
+#: apps/aklub/admin.py:180 apps/aklub/admin.py:661 apps/aklub/admin.py:1377
+#: apps/aklub/admin.py:2054 apps/aklub/admin.py:2170 apps/aklub/admin.py:2344
 msgid "Details"
 msgstr "Detaily"
 
-#: admin.py:227
+#: apps/aklub/admin.py:201
+#, fuzzy
+#| msgid "# payments"
+msgid "All payments"
+msgstr "Všechny platby"
+
+#: apps/aklub/admin.py:205
 #, fuzzy
 #| msgid "amount"
 msgid "Total amount"
 msgstr "částka"
 
-#: admin.py:231
+#: apps/aklub/admin.py:209
 #, fuzzy
 #| msgid "Last payment type"
 msgid "Total payment count"
-msgstr "Poslední typ platby"
+msgstr "Počet plateb"
 
-#: admin.py:235
+#: apps/aklub/admin.py:213 apps/aklub/models.py:2036
 #, fuzzy
 #| msgid "Last payment type"
 msgid "Last payment date"
-msgstr "Poslední typ platby"
+msgstr "Poslední datum platby"
 
-#: admin.py:246
+#: apps/aklub/admin.py:224
 #, fuzzy
-#| msgid "Payment delay"
-msgid "Payment Details"
-msgstr "Zpoždění platby"
+#| msgid "Details"
+msgid "DPCH details"
+msgstr "Detaily platebního kanálu"
 
-#: admin.py:376
+#: apps/aklub/admin.py:297
 #, python-format
 msgid "TOT.: %s"
 msgstr "TOT.: %s"
 
-#: admin.py:380
+#: apps/aklub/admin.py:301
 msgid "Show payments by year"
 msgstr "Ukázat součty plateb po rocích"
 
-#: admin.py:403
+#: apps/aklub/admin.py:324
 msgid "Send mass communication"
 msgstr "Odeslat hromadnou komunikaci"
 
-#: admin.py:410
-msgid "Send mass communication withoud duplicities"
-msgstr "Odeslat neduplicitní hromadnou komunikaci"
-
-#: admin.py:665 tests/test_forms.py:48
+#: apps/aklub/admin.py:600 apps/aklub/tests/test_forms.py:48
 msgid "Duplicate email address for this user"
-msgstr ""
+msgstr "Tento email je již používán"
 
-#: admin.py:682 tests/test_forms.py:57
+#: apps/aklub/admin.py:619 apps/aklub/tests/test_forms.py:57
 #, fuzzy
 #| msgid "email address"
 msgid "Email address exist"
-msgstr "e-mailová adresa"
+msgstr "e-mailová adresa existuje"
 
-#: admin.py:782
-#, python-brace-format
-msgid ""
-"<a href=\"{url}\">User with this email already exist in database and is "
-"available now, click here to edit</a>"
-msgstr ""
-"<a href=\"{url}\">Uživatel s tímto e-mailem už existuje v databázi jiné OJ "
-"Diakonie, klikněte zde pro úpravu jeho kontaktů. Pozor, ovlivníte zápis u "
-"všech OJ</a>"
+#: apps/aklub/admin.py:666
+#, fuzzy
+#| msgid "Company profile"
+msgid "Is email in CompanyProfile"
+msgstr "Je tento email veden ve firmách?"
 
-#: admin.py:861
-msgid "Jméno kampaně"
-msgstr ""
-
-#: admin.py:914 models.py:1896
+#: apps/aklub/admin.py:788 apps/aklub/models.py:870 apps/aklub/models.py:2054
 msgid "Registration"
 msgstr "Registrace"
 
-#: admin.py:922 models.py:218 models.py:2348
-msgid "Event"
-msgstr "Událost"
-
-#: admin.py:928 models.py:1716
-msgid "VS"
-msgstr "VS"
-
-#: admin.py:934
-#, fuzzy
-msgid "Regular payment info"
-msgstr "Pravidelné platby"
-
-#: admin.py:940
+#: apps/aklub/admin.py:794 apps/aklub/models.py:863
 #, fuzzy
 msgid "Regular amount"
 msgstr "Částka pravidelné platby"
 
-#: admin.py:946 models.py:957
-msgid "Gender"
-msgstr "Pohlaví"
+#: apps/aklub/admin.py:807 apps/aklub/models.py:2168
+msgid "Payment delay"
+msgstr "Zpoždění platby"
 
-#: admin.py:952 models.py:906
+#: apps/aklub/admin.py:814 apps/aklub/models.py:2178
+msgid "Extra money"
+msgstr "Extra platby"
+
+#: apps/aklub/admin.py:821
 #, fuzzy
-#| msgid "Registration"
-msgid "Company Registration Number"
-msgstr "Identifikační číslo organizace"
+#| msgid "Regular frequency"
+msgid "Donor frequency"
+msgstr "Frekvence pravidelné platby"
 
-#: admin.py:958 models.py:911
+#: apps/aklub/admin.py:838
 #, fuzzy
-#| msgid "Sender identification"
-msgid "Tax Identification Number"
-msgstr "Daňové identifikační číslo"
+#| msgid "Last payment type"
+msgid "Total payment"
+msgstr "Poslední typ platby"
 
-#: admin.py:964
+#: apps/aklub/admin.py:844
 #, fuzzy
-#| msgid "Title before name"
-msgid "Title before"
-msgstr "Titul před jménem"
+#| msgid "Promise of regular payments"
+msgid "Sum of all payments"
+msgstr "Příslib pravidelných plateb"
 
-#: admin.py:970
+#: apps/aklub/admin.py:849
 #, fuzzy
-#| msgid "Title after name"
-msgid "Title after"
-msgstr "Titul za jménem"
+#| msgid "Last payment type"
+msgid "Payments count"
+msgstr "Poslední typ platby"
 
-#: admin.py:1091
+#: apps/aklub/admin.py:854
+#, fuzzy
+#| msgid "Date of payment"
+msgid "Date of last payment"
+msgstr "Datum poslední platby"
+
+#: apps/aklub/admin.py:859
+#, fuzzy
+#| msgid "Date of payment"
+msgid "Date of first payment"
+msgstr "Datum první platby"
+
+#: apps/aklub/admin.py:867 apps/aklub/models.py:231 apps/aklub/timeline.py:35
+msgid "Events"
+msgstr "Události"
+
+#: apps/aklub/admin.py:871
+#, fuzzy
+#| msgid "Communications"
+msgid "Next Communication"
+msgstr "Komunikace"
+
+#: apps/aklub/admin.py:878
+#, fuzzy
+#| msgid "Tax confirmation"
+msgid "Make Tax Confirmation"
+msgstr "Vytvoř daňové potvrzení"
+
+#: apps/aklub/admin.py:956
+#, fuzzy
+#| msgid "Tax confirmations"
+msgid "TaxConfirmations created"
+msgstr "Daňová potvrzení vytvořena"
+
+#: apps/aklub/admin.py:972
+msgid "You can not remove administrative unit from your own profile"
+msgstr "Nemůžete si odstranit organizační jednotku!"
+
+#: apps/aklub/admin.py:975
+#, python-brace-format
+msgid "Profile with ID \"{pk}\" was removed from your administrative unit"
+msgstr "Profil s ID \"{pk}\" byl odstraněn z vaší organizační jednotky"
+
+#: apps/aklub/admin.py:986
+#, python-brace-format
+msgid "profile with ID '{pk}' doesn't exist. Perhaps it was deleted?"
+msgstr "Profil s ID '{pk}' neexistuje. Možná byl odstraněn?"
+
+#: apps/aklub/admin.py:989
+msgid "If you confirm, you wonˇt see this profile anymore "
+msgstr "Po potvrzení již tento profil neuvidíte"
+
+#: apps/aklub/admin.py:1138
 msgid "Campaign name"
 msgstr "Jméno kampaně"
 
-#: admin.py:1145
+#: apps/aklub/admin.py:1187
 msgid "Basic personal"
 msgstr "Základní informace"
 
-#: admin.py:1152
+#: apps/aklub/admin.py:1194
 msgid "Support"
 msgstr "Podpora"
 
-#: admin.py:1237
+#: apps/aklub/admin.py:1267
+#, fuzzy
+#| msgid "User bank accounts"
+msgid "User bank accounts were updated."
+msgstr "Účty uživatelů byly aktulizovány"
+
+#: apps/aklub/admin.py:1270
+msgid "add user bank account  to current donor payment channel (rewrite)"
+msgstr "přiřadit uživatelův bankovní účet k darovacímu kanálu (přepsat)"
+
+#: apps/aklub/admin.py:1277
+msgid "Payments succesfully paired with donor payment channels."
+msgstr " Platba úspěšně přiřazena"
+
+#: apps/aklub/admin.py:1280
+msgid "pair payments from account statement with donor payment channels"
+msgstr "Přiřadit platby z výpisu k platebním kanálům"
+
+#: apps/aklub/admin.py:1290
+msgid ""
+"Payments succesfully paired with donor payment channels which are under your "
+"administrative unit."
+msgstr "Platby úspěšně přiřazeny k platebním kanálům vedeným pod vaší administrativní jednotkou"
+
+#: apps/aklub/admin.py:1292
+msgid "Your administrated unit have to be set to pair payments."
+msgstr "Pro párování plateb musíte mít přiřazenou administrativní jednotku"
+
+#: apps/aklub/admin.py:1295
+msgid ""
+"pair payments without account statement (need to be admin of administrative "
+"unit)"
+msgstr "Párování platev bez výpisu z účtu (musíte být admin organizační jednotky)"
+
+#: apps/aklub/admin.py:1338
+#, fuzzy
+#| msgid "Surname"
+msgid "name"
+msgstr "Příjmení"
+
+#: apps/aklub/admin.py:1369
 msgid "Basic"
 msgstr "Základní"
 
-#: admin.py:1372
-msgid "Header"
-msgstr "Hlavička"
-
-#: admin.py:1378
-msgid "Content"
-msgstr "Obsah"
-
-#: admin.py:1387
-msgid "Sending"
-msgstr "Odesílání"
-
-#: admin.py:1440
+#: apps/aklub/admin.py:1550
 #, python-format
 msgid "Invalid email '%(email)s' of user %(user)s: %(exception)s"
 msgstr "Chybný formát e-mailu '%(email)s' uživatele %(user)s: %(exception)s"
 
-#: admin.py:1490
+#: apps/aklub/admin.py:1617
 #, python-format
 msgid "While sending e-mails the problem occurred: %s"
 msgstr "Nastal problém během rozesílání e-mailů: %s"
 
-#: admin.py:1514 models.py:265
-msgid "Description"
-msgstr "Popis"
-
-#: admin.py:1517
-msgid "Operator"
-msgstr "Operátor"
-
-#: admin.py:1520
-msgid "Logical conditions operands"
-msgstr "Hodnoty pro logické podmínky"
-
-#: admin.py:1523
-msgid "Usage"
-msgstr "Použití"
-
-#: admin.py:1536
-msgid "Variable symbols succesfully paired."
+#: apps/aklub/admin.py:1630
+#, fuzzy
+#| msgid "Variable symbols succesfully paired."
+msgid "Payments succesfully paired."
 msgstr "Variabilní symboly úspěšně spárovány."
 
-#: admin.py:1539
-msgid "Pair payments with users based on variable symboles"
+#: apps/aklub/admin.py:1633
+#, fuzzy
+#| msgid "Pair payments with users based on variable symboles"
+msgid ""
+"Pair payments with users based on variable symboles or user bank account"
 msgstr "Spárovat platby s uživateli na základě jejich variabilních symbolů"
 
-#: admin.py:1548
-msgid "Reparse account statement"
-msgstr "Znovu spárovat výpis z účtu"
+#: apps/aklub/admin.py:1642
+msgid "Reparse CSV file"
+msgstr "Znovu zpracovat CSV"
 
-#: admin.py:1594
+#: apps/aklub/admin.py:1693
 msgid "Download darujme statements"
 msgstr "Stáhnout výpisy z Darujme.cz"
 
-#: admin.py:1713
-msgid "Rights and permissions"
-msgstr "Práva a přístupy"
+#: apps/aklub/admin.py:1754
+msgid "generate download links for pdf files"
+msgstr "Vygenerovat link na stáhnutí PDF"
 
-#: admin.py:1783 admin.py:1794 admin.py:1825 admin.py:1836
+#: apps/aklub/admin.py:1832
+#, fuzzy
+#| msgid "Primary phone"
+msgid "Main email"
+msgstr "Hlavní telefon"
+
+#: apps/aklub/admin.py:1840
+#, fuzzy
+#| msgid "administrative unit"
+msgid "Administrative Unit"
+msgstr "Organizační jednotka"
+
+#: apps/aklub/admin.py:1850 apps/aklub/filters.py:434 apps/aklub/models.py:186
+#: apps/aklub/models.py:244 apps/aklub/models.py:484 apps/aklub/models.py:501
+#: apps/aklub/models.py:1785 apps/aklub/models.py:2536
+#: apps/aklub/models.py:2648
+msgid "Name"
+msgstr "Jméno"
+
+#: apps/aklub/admin.py:1953 apps/aklub/admin.py:2240
+msgid "Jméno kampaně"
+msgstr ""
+
+#: apps/aklub/admin.py:1968 apps/aklub/admin.py:2251
+#, fuzzy
+#| msgid "Last payment"
+msgid "Has any payment"
+msgstr "Poslední platba"
+
+#: apps/aklub/admin.py:1992 apps/aklub/admin.py:2004 apps/aklub/admin.py:2274
+#: apps/aklub/admin.py:2291
 msgid "Personal data"
 msgstr "Osobní údaje"
 
-#: admin.py:1805 admin.py:1848
+#: apps/aklub/admin.py:2018 apps/aklub/admin.py:2306
 msgid "Contact data"
 msgstr "Kontaktní údaje"
 
-#: dashboard.py:73
+#: apps/aklub/admin.py:2028 apps/aklub/admin.py:2317
+#, fuzzy
+#| msgid "Different correspondence address"
+msgid "Correspondence address"
+msgstr "Jiná korespondenční adresa"
+
+#: apps/aklub/admin.py:2038 apps/aklub/admin.py:2327
+msgid "Rights and permissions"
+msgstr "Práva a přístupy"
+
+#: apps/aklub/admin.py:2056 apps/aklub/admin.py:2346 apps/aklub/models.py:1120
+#, fuzzy
+#| msgid "Email"
+msgid "Emails"
+msgstr "E-mail"
+
+#: apps/aklub/admin.py:2174
+msgid "Is email in userprofile"
+msgstr "Je tento email u usera?"
+
+#: apps/aklub/admin.py:2356
+#, fuzzy
+#| msgid "Telephone"
+msgid "Main telephone"
+msgstr "Telefon"
+
+#: apps/aklub/admin.py:2365
+#, fuzzy
+#| msgid "Contact data"
+msgid "Contact Name"
+msgstr "Kontaktní údaje"
+
+#: apps/aklub/dashboard.py:70
 msgid "Quick links"
 msgstr "Rychlé odkazy"
 
-#: dashboard.py:79
+#: apps/aklub/dashboard.py:76
 msgid "Return to site"
 msgstr "Zpět na stránku"
 
-#: dashboard.py:81
+#: apps/aklub/dashboard.py:78
 msgid "Change password"
 msgstr "Změnit heslo"
 
-#: dashboard.py:84
+#: apps/aklub/dashboard.py:81
 msgid "Log out"
 msgstr "Odhlásit"
 
-#: dashboard.py:85
+#: apps/aklub/dashboard.py:82
 msgid "Helpdesk"
 msgstr ""
 
-#: dashboard.py:93
+#: apps/aklub/dashboard.py:90
 msgid "Applications"
 msgstr "Aplikace"
 
-#: dashboard.py:101
+#: apps/aklub/dashboard.py:98
 msgid "Administration"
 msgstr "Administrace"
 
-#: dashboard.py:111
+#: apps/aklub/dashboard.py:104 apps/aklub/dashboard.py:223
+#, fuzzy
+#| msgid "Interactions"
+msgid "Recent Actions"
+msgstr "Interakce"
+
+#: apps/aklub/dashboard.py:108
 msgid "Statistics"
 msgstr "Statistiky"
 
-#: dashboard.py:114 templates/admin/aklub/campaign/change_form.html:8
+#: apps/aklub/dashboard.py:111
+#: apps/aklub/templates/admin/aklub/campaign/change_form.html:8
 msgid "Members"
 msgstr "Členové"
 
-#: dashboard.py:119 models.py:2137
+#: apps/aklub/dashboard.py:116 apps/aklub/models.py:2295
+#: apps/aklub/timeline.py:78
 msgid "Payments"
 msgstr "Platby"
 
-#: dashboard.py:132
+#: apps/aklub/dashboard.py:129
 #, python-format
 msgid "Days from last bill upload: %(days)s days"
 msgstr "Počet dní od posledního nahrání výpisu z účtu: %(days)s dní"
 
-#: dashboard.py:143
+#: apps/aklub/dashboard.py:140
 #, python-format
 msgid "Days from last mass communication: %(days)s days"
 msgstr "Počet dní od poslední hromadné komunikace: %(days)s dní"
 
-#: dashboard.py:152
+#: apps/aklub/dashboard.py:149
 #, python-format
 msgid "%(name)s: %(items)s items"
 msgstr "%(name)s: %(items)s položek"
 
-#: dashboard.py:162 models.py:2619 models.py:2644
+#: apps/aklub/dashboard.py:159
 msgid "Conditions"
 msgstr "Podmínky"
 
-#: dashboard.py:183
+#: apps/aklub/dashboard.py:180
 #, python-format
 msgid "Total number of items: %i"
 msgstr "Celkový počet položek: %i"
 
-#: dashboard.py:190
+#: apps/aklub/dashboard.py:187
 msgid "Dashboard Stats Settings"
 msgstr "Nastavení statistiky na palubní desce"
 
-#: dashboard_charts.py:47
-msgid "By Day"
-msgstr "Denní"
+#: apps/aklub/filters.py:30
+msgid "Donor's event"
+msgstr "Dárcova událost"
 
-#: dashboard_charts.py:48
-msgid "By Week"
-msgstr "Týdenní"
+#: apps/aklub/filters.py:60
+#, fuzzy
+#| msgid "Anually"
+msgid "All"
+msgstr "Ročně"
 
-#: dashboard_charts.py:49
-msgid "By Month"
-msgstr "Měsíční"
+#: apps/aklub/filters.py:96
+#, fuzzy
+#| msgid "Sending of mailing lists allowed"
+msgid "Mailing list allowed"
+msgstr "Povolit odesílání mailing listů"
 
-#: dashboard_charts.py:50
-msgid "By Year"
-msgstr "Roční"
-
-#: filters.py:33
-msgid "Filled-in"
-msgstr "Vyplněné"
-
-#: filters.py:34
-msgid "Empty"
-msgstr "Prázdné"
-
-#: filters.py:44
-msgid "User assignment"
-msgstr "Přiřazení uživatele"
-
-#: filters.py:51 models.py:2618
-msgid "Condition"
-msgstr "Podmínka"
-
-#: filters.py:76
+#: apps/aklub/filters.py:101 apps/aklub/filters.py:129
+#: apps/aklub/filters.py:185 apps/aklub/filters.py:231
 msgid "Yes"
 msgstr "Ano"
 
-#: filters.py:77
+#: apps/aklub/filters.py:102 apps/aklub/filters.py:130
+#: apps/aklub/filters.py:186 apps/aklub/filters.py:232
 msgid "No"
 msgstr "Ne"
 
-#: filters.py:89 models.py:75 models.py:451 models.py:890 models.py:966
+#: apps/aklub/filters.py:103 apps/aklub/models.py:529 apps/aklub/models.py:990
+#: apps/aklub/models.py:1353
+msgid "Unknown"
+msgstr "Neznámé"
+
+#: apps/aklub/filters.py:124
+msgid "Is UserProfile in CompanyContact?"
+msgstr "Je user veden u firmy?"
+
+#: apps/aklub/filters.py:151
+#, fuzzy
+#| msgid "Full name"
+msgid "Full adress"
+msgstr "Celé jméno"
+
+#: apps/aklub/filters.py:156
+#, fuzzy
+#| msgid "email address"
+msgid "Complete address"
+msgstr "e-mailová adresa"
+
+#: apps/aklub/filters.py:157
+#, fuzzy
+#| msgid "email address"
+msgid "Not complete address"
+msgstr "e-mailová adresa"
+
+#: apps/aklub/filters.py:180
+#, fuzzy
+#| msgid "Primary phone"
+msgid "Has primary email"
+msgstr "Hlavní telefon"
+
+#: apps/aklub/filters.py:210
+msgid "Filled-in"
+msgstr "Vyplněné"
+
+#: apps/aklub/filters.py:211
+msgid "Empty"
+msgstr "Prázdné"
+
+#: apps/aklub/filters.py:221
+msgid "User assignment"
+msgstr "Přiřazení uživatele"
+
+#: apps/aklub/filters.py:244 apps/aklub/models.py:67 apps/aklub/models.py:441
+#: apps/aklub/models.py:921 apps/aklub/models.py:1119
 msgid "Email"
 msgstr "E-mail"
 
-#: filters.py:94 filters.py:146 filters.py:179
+#: apps/aklub/filters.py:249 apps/aklub/filters.py:348
+#: apps/aklub/filters.py:439
 msgid "Duplicate"
 msgstr "Duplicitní"
 
-#: filters.py:95
+#: apps/aklub/filters.py:250
 msgid "Not in e-mail format"
 msgstr "Nesprávný formát e-mailu"
 
-#: filters.py:96 filters.py:148 filters.py:180
+#: apps/aklub/filters.py:251 apps/aklub/filters.py:350
+#: apps/aklub/filters.py:440
 msgid "Blank"
 msgstr "Prázdný"
 
-#: filters.py:119
+#: apps/aklub/filters.py:308
 #, fuzzy
-msgid "Regular payments (of any user in campaign)"
-msgstr "Konec pravidelných plateb (pro platby kartou)"
+msgid "Regular payments in time"
+msgstr "Pravidelné platby"
 
-#: filters.py:124
-msgid "Not dealyed"
-msgstr ""
+#: apps/aklub/filters.py:313
+msgid "Not delayed"
+msgstr "nezpožděná"
 
-#: filters.py:125
-msgid "Delayed or none"
-msgstr ""
+#: apps/aklub/filters.py:314
+msgid "Delayed"
+msgstr "zpožděná"
 
-#: filters.py:141 models.py:456 models.py:863 models.py:1105
+#: apps/aklub/filters.py:338
+msgid "You cant check payments delay if event is not selected"
+msgstr "Prvně vyberte událost"
+
+#: apps/aklub/filters.py:343 apps/aklub/models.py:446 apps/aklub/models.py:842
+#: apps/aklub/models.py:1290
 msgid "Telephone"
 msgstr "Telefon"
 
-#: filters.py:147
+#: apps/aklub/filters.py:349
 msgid "Not in telephone format"
 msgstr "Nesprávný formát telefonu"
 
-#: filters.py:174 models.py:193 models.py:232 models.py:494 models.py:511
-#: models.py:2859 models.py:2948
-msgid "Name"
-msgstr "Jméno"
+#: apps/aklub/filters.py:418
+#, fuzzy
+#| msgid "Profile picture"
+msgid "Profile type"
+msgstr "Profilová fotografie"
 
-#: forms.py:46
-#, fuzzy, python-brace-format
-#| msgid ""
-#| "<a href=\"{url}\">User with this email already exist in database and is "
-#| "available now, click here to edit</a>"
-msgid ""
-"<a href=\"{url}\">User with this email already exist in database, click here "
-"to edit</a>"
-msgstr ""
-"<a href=\"{url}\">Uživatel s tímto e-mailem už existuje v databázi jiné OJ "
-"Diakonie, klikněte zde pro úpravu jeho kontaktů. Pozor, ovlivníte zápis u "
-"všech OJ</a>"
+#: apps/aklub/filters.py:423
+#, fuzzy
+#| msgid "Campaign name"
+msgid "Company"
+msgstr "Název"
 
-#: mailing.py:62
+#: apps/aklub/filters.py:424 apps/aklub/models.py:1873
+msgid "User"
+msgstr "Uživatel"
+
+#: apps/aklub/mailing.py:64
 msgid "Testing communication sending was queued"
 msgstr "Testovací komunikace byla naplánována"
 
-#: mailing.py:68
+#: apps/aklub/mailing.py:70
 #, python-format
 msgid "Communication sending was queued for %s users"
 msgstr "Odesílání komunikace bylo naplánováno pro %s uživatelů"
 
-#: mailing.py:119
+#: apps/aklub/mailing.py:137
 #, python-format
 msgid "Prepared by auto*mated mass communications at %s"
 msgstr "Připraveno auto*matickým hromadným rozesílačem, %s"
 
-#: models.py:76
+#: apps/aklub/models.py:68
 msgid "Phonecall"
 msgstr "Telefonní hovor"
 
-#: models.py:77
+#: apps/aklub/models.py:69
 msgid "Mail"
 msgstr "Pošta"
 
-#: models.py:78
+#: apps/aklub/models.py:70
 msgid "Personal"
 msgstr "Osobní"
 
-#: models.py:79
+#: apps/aklub/models.py:71
 msgid "Internal"
 msgstr "Interní"
 
-#: models.py:92
+#: apps/aklub/models.py:105
 msgid "The Email must be set"
-msgstr ""
+msgstr "Emailová adresa musí být zadána"
 
-#: models.py:111
+#: apps/aklub/models.py:124
 msgid "Superuser must have is_staff=True."
-msgstr ""
+msgstr "Superuživatel musí mít nastaveno is_staff=True"
 
-#: models.py:113
+#: apps/aklub/models.py:126
 msgid "Superuser must have is_superuser=True."
-msgstr ""
+msgstr "Superuživatel musí mít is_superuser=True"
 
-#: models.py:166
-msgid "Promise"
-msgstr "Příslib"
-
-#: models.py:167
-msgid "Ongoing communication"
-msgstr "Probíhající komunikace"
-
-#: models.py:168
-msgid "Don't contact again"
-msgstr "Uživatel si nepřeje být nadále kontaktován"
-
-#: models.py:172
-msgid "Name of result"
-msgstr "Název výsledku"
-
-#: models.py:178
-msgid "Sort of result"
-msgstr "Druh výsledku"
-
-#: models.py:188
+#: apps/aklub/models.py:181
 msgid ""
 "IČO není zadáno ve správném formátu. Zkontrolujte že číslo má osm číslic a "
 "případně ho doplňte nulami zleva."
 msgstr ""
 
-#: models.py:201
+#: apps/aklub/models.py:194 apps/aklub/models.py:940
+#: apps/aklub/templates/admin/import_export/userprofile_import.html:46
 msgid "IČO"
 msgstr ""
 
-#: models.py:202
+#: apps/aklub/models.py:195 apps/aklub/models.py:941
 msgid "IČO musí být číslo"
 msgstr ""
 
-#: models.py:219
-msgid "Events"
-msgstr "Události"
+#: apps/aklub/models.py:201
+#, fuzzy
+#| msgid "email address"
+msgid "E-mail from address"
+msgstr "e-mailová adresa"
 
-#: models.py:222
+#: apps/aklub/models.py:202
+msgid "Every new address has to be set up by system administrator"
+msgstr "Nová adresa musí být nastavená administratorem"
+
+#: apps/aklub/models.py:208
+msgid "E-mail from identifier"
+msgstr "email z identifikátoru"
+
+#: apps/aklub/models.py:217
+msgid "Choose color to help discern Administrative unit in app"
+msgstr "Vyberte barvu pro rozlišení organizační jednotky"
+
+#: apps/aklub/models.py:230
+msgid "Event"
+msgstr "Událost"
+
+#: apps/aklub/models.py:234
 msgid "Created"
 msgstr "Vytvořeno"
 
-#: models.py:227
+#: apps/aklub/models.py:239
 msgid "Terminated"
 msgstr "Ukončeno"
 
-#: models.py:233
+#: apps/aklub/models.py:245
 msgid "Choose some unique name for this campaign"
 msgstr "Vyberte pro tuto kampaň nějaké unikátní jméno"
 
-#: models.py:238
-msgid "Name in Darujme.cz"
-msgstr "Jméno v Darujme.cz"
+#: apps/aklub/models.py:250
+#, fuzzy
+#| msgid "Variable symbol"
+msgid "Variable_symbol_prefix"
+msgstr "Variabilní symbol"
 
-#: models.py:246
-msgid "Darujme.cz project ID"
-msgstr "Darujme.cz ID projektu"
+#: apps/aklub/models.py:251
+msgid "Number between 10000-99999"
+msgstr "číslo mezi 10000-99999 "
 
-#: models.py:252
-msgid "Darujme.cz API ID"
-msgstr "Darujme.cz API ID"
+#: apps/aklub/models.py:256
+msgid "Description"
+msgstr "Popis"
 
-#: models.py:258
-msgid "Darujme.cz API secret"
-msgstr "Darujme.cz API secret"
-
-#: models.py:266
+#: apps/aklub/models.py:257
 msgid "Description of this campaign"
 msgstr "Popis kampaně"
 
-#: models.py:271
+#: apps/aklub/models.py:262
 msgid "Acquisition campaign"
 msgstr "Akviziční kampaň"
 
-#: models.py:275
+#: apps/aklub/models.py:266
 msgid "Real yield"
 msgstr "Reálné výnosy"
 
-#: models.py:276
+#: apps/aklub/models.py:267
 msgid "Use if yield differs from counted value"
 msgstr "Použijte pokud se reálné výnosy liší od vypočítané hodnoty."
 
-#: models.py:282
+#: apps/aklub/models.py:273
 msgid "Acceptable results of communication"
 msgstr "Přípustné výsledky komunikací"
 
-#: models.py:286 models.py:505
+#: apps/aklub/models.py:277 apps/aklub/models.py:495 apps/aklub/models.py:1752
+#: apps/interactions/models.py:311
 msgid "Slug"
 msgstr "Identifikátor"
 
-#: models.py:287
+#: apps/aklub/models.py:278
 msgid "Identifier of the campaign"
 msgstr "Identifikátor kampaně"
 
-#: models.py:295
+#: apps/aklub/models.py:286
 msgid "Enable registration through petition/mailing list forms"
 msgstr "Povolit registraci skrz petiční nebo přihlašovací formulář"
 
-#: models.py:299
+#: apps/aklub/models.py:290
 msgid "Enable registration through donation forms"
 msgstr "Povolit registraci přes darovací formulář"
 
-#: models.py:303
+#: apps/aklub/models.py:294
 msgid "Allow statistics exports"
 msgstr "Povolit exporty statistik kampaně"
 
-#: models.py:312 models.py:720 models.py:2469
+#: apps/aklub/models.py:303 apps/aklub/models.py:686
 msgid "administrative units"
 msgstr "Organizační jednotky"
 
-#: models.py:319
+#: apps/aklub/models.py:309
 msgid "number of members"
 msgstr "počet členů"
 
-#: models.py:340
+#: apps/aklub/models.py:330
 msgid "recruiters"
 msgstr "verbíři"
 
-#: models.py:345
+#: apps/aklub/models.py:335
 msgid "number of recruiters"
 msgstr "počet verbířů"
 
-#: models.py:354
+#: apps/aklub/models.py:344
 msgid "total yield"
 msgstr "Celkové výnosy"
 
-#: models.py:363
+#: apps/aklub/models.py:353
 msgid "expected yearly income"
 msgstr "předpokládaný roční příjem"
 
-#: models.py:368
+#: apps/aklub/models.py:358
 msgid "expected monthly income"
 msgstr "předpokládaný měsíční příjem"
 
-#: models.py:374
+#: apps/aklub/models.py:364
 msgid "return of investmensts"
 msgstr "návratnost investic"
 
-#: models.py:379
+#: apps/aklub/models.py:369
 msgid "total expenses"
 msgstr "celkové výdaje"
 
-#: models.py:385
+#: apps/aklub/models.py:375
 msgid "average expense"
 msgstr "průměrný výdaj"
 
-#: models.py:391
+#: apps/aklub/models.py:381
 msgid "average yield"
 msgstr "průměrný výnos"
 
-#: models.py:401
+#: apps/aklub/models.py:391
 msgid "expense"
 msgstr "výdaj"
 
-#: models.py:402
+#: apps/aklub/models.py:392
 msgid "expenses"
 msgstr "výdaje"
 
-#: models.py:405
+#: apps/aklub/models.py:395
 msgid "amount"
 msgstr "částka"
 
-#: models.py:410
+#: apps/aklub/models.py:400
 msgid "item"
 msgstr "položka"
 
-#: models.py:416
+#: apps/aklub/models.py:406
 msgid "campaign"
 msgstr "kampaň"
 
-#: models.py:428
+#: apps/aklub/models.py:418
 msgid "Recruiter"
 msgstr "Verbíř"
 
-#: models.py:429 templates/admin/aklub/campaign/change_form.html:7
+#: apps/aklub/models.py:419
+#: apps/aklub/templates/admin/aklub/campaign/change_form.html:7
 msgid "Recruiters"
 msgstr "Verbíři"
 
-#: models.py:432
+#: apps/aklub/models.py:422
 msgid "Registered"
 msgstr "Zaregistrován"
 
-#: models.py:436
+#: apps/aklub/models.py:426
 msgid "Recruiter ID"
 msgstr "ID verbíře"
 
-#: models.py:441
+#: apps/aklub/models.py:431
 msgid "First name"
 msgstr "Jméno"
 
-#: models.py:446
+#: apps/aklub/models.py:436
 msgid "Surname"
 msgstr "Příjmení"
 
-#: models.py:461 models.py:986 models.py:1092 models.py:3025
+#: apps/aklub/models.py:451 apps/aklub/models.py:1082 apps/aklub/models.py:1139
+#: apps/aklub/models.py:1277 apps/aklub/models.py:2738
 msgid "Note"
 msgstr "Poznámka"
 
-#: models.py:466
+#: apps/aklub/models.py:456
 msgid "Problem"
 msgstr "Problém"
 
-#: models.py:467
+#: apps/aklub/models.py:457
 msgid ""
 "Check this field if there is a problem with this recruiter which only be "
 "resolved later or by somebody else. Uncheck as soon as the problem is "
@@ -639,11 +801,11 @@ msgstr ""
 "další akce z naší strany, nechte políčko nezaškrtnuté a příslušným způsobem "
 "verbíři upravte hodnocení níže."
 
-#: models.py:474
+#: apps/aklub/models.py:464
 msgid "Rating"
 msgstr "Hodnocení"
 
-#: models.py:475
+#: apps/aklub/models.py:465
 msgid ""
 "5 = ordinary (modestly good), 0 = hopelessly bad 10 = excelent much above "
 "average"
@@ -651,87 +813,93 @@ msgstr ""
 "5 = běžný (běžně dobrý), 0 = beznadějně špatný, 10 = výtečný, velmi "
 "nadprůměrný"
 
-#: models.py:483 models.py:556
+#: apps/aklub/models.py:473 apps/aklub/models.py:554
 msgid "Associated campaigns"
 msgstr "Přidružené kampaně"
 
-#: models.py:501 models.py:1221
+#: apps/aklub/models.py:491 apps/aklub/models.py:1406
 msgid "Source"
 msgstr "Zdroj"
 
-#: models.py:502
+#: apps/aklub/models.py:492
 msgid "Sources"
 msgstr "Zdroje"
 
-#: models.py:506
+#: apps/aklub/models.py:496
 msgid "Identifier of the source"
 msgstr "Identifikátor zdroje"
 
-#: models.py:512
+#: apps/aklub/models.py:502
 msgid "Name of the source"
 msgstr "Název zdroje"
 
-#: models.py:517
+#: apps/aklub/models.py:507
 msgid "Is from Direct Dialogue"
 msgstr "Pochází z Direct dialogu"
 
-#: models.py:527
+#: apps/aklub/models.py:517
 #, fuzzy
 #| msgid "PDF file"
 msgid "Profile"
 msgstr "PDF soubor"
 
-#: models.py:528
+#: apps/aklub/models.py:518
 #, fuzzy
 #| msgid "User profiles"
 msgid "Profiles"
 msgstr "Uživatelské profily"
 
-#: models.py:531
+#: apps/aklub/models.py:521
 msgid "Může editovat všechno ve všech administrativních jednotkách"
 msgstr ""
 
-#: models.py:536 models.py:923 models.py:1166
+#: apps/aklub/models.py:522
+msgid "Can remove contact from his administrative unit"
+msgstr "Může odstranit kontakt z jeho organizační jednotky"
+
+#: apps/aklub/models.py:527 apps/aklub/models.py:988 apps/aklub/models.py:1351
 msgid "Male"
 msgstr "Muž"
 
-#: models.py:537 models.py:924 models.py:1167
+#: apps/aklub/models.py:528 apps/aklub/models.py:989 apps/aklub/models.py:1352
 msgid "Female"
 msgstr "Žena"
 
-#: models.py:538 models.py:925 models.py:1168
-msgid "Unknown"
-msgstr "Neznámé"
-
-#: models.py:541
+#: apps/aklub/models.py:532
 msgid "Czech"
 msgstr "Čeština"
 
-#: models.py:542
+#: apps/aklub/models.py:533
 msgid "English"
 msgstr "Angličtina"
 
-#: models.py:544
+#: apps/aklub/models.py:535
+#, fuzzy
+#| msgid "Surname"
+msgid "user name"
+msgstr "Příjmení"
+
+#: apps/aklub/models.py:542
 msgid "password"
 msgstr "heslo"
 
-#: models.py:550 models.py:975
+#: apps/aklub/models.py:548 apps/aklub/models.py:1060 apps/aklub/models.py:1128
 msgid "email address"
 msgstr "e-mailová adresa"
 
-#: models.py:562
+#: apps/aklub/models.py:560
 msgid "Addressment in letter"
 msgstr "Oslovení v dopise"
 
-#: models.py:566
+#: apps/aklub/models.py:564
 msgid "Addressment on envelope"
 msgstr "Oslovení na obálku"
 
-#: models.py:570
+#: apps/aklub/models.py:568
 msgid "Language"
 msgstr "Jazyk"
 
-#: models.py:571
+#: apps/aklub/models.py:569
 msgid ""
 "This is the language which will be used to communicate with this user. The "
 "system will send emails in this language and administrators will use this "
@@ -741,275 +909,326 @@ msgstr ""
 "jazyce posílat emaily a administrátoři budou tento jazyk používat při "
 "telefonních hovorech a osobním kontaktu."
 
-#: models.py:581 models.py:608
+#: apps/aklub/models.py:579 apps/aklub/models.py:606
 msgid "Street and number"
 msgstr "Ulice a číslo domu (č.p./č.o.)"
 
-#: models.py:586 models.py:613
+#: apps/aklub/models.py:584 apps/aklub/models.py:611
 msgid "City/City part"
 msgstr "Město/Městská část"
 
-#: models.py:590 models.py:617
+#: apps/aklub/models.py:588 apps/aklub/models.py:615
 msgid "Country"
 msgstr "Země"
 
-#: models.py:597 models.py:624
+#: apps/aklub/models.py:595 apps/aklub/models.py:622
 msgid "ZIP Code"
 msgstr "PSČ"
 
-#: models.py:602
+#: apps/aklub/models.py:600
 msgid "Different correspondence address"
 msgstr "Jiná korespondenční adresa"
 
-#: models.py:603
+#: apps/aklub/models.py:601
 msgid "User has different correspondence address"
 msgstr "Uživatel má jinou korespondenční adresu"
 
-#: models.py:630 models.py:1292 models.py:1790
+#: apps/aklub/models.py:628 apps/aklub/models.py:1477 apps/aklub/models.py:1939
 msgid "Other support"
 msgstr "Jiná podpora"
 
-#: models.py:632 models.py:1294 models.py:1791
+#: apps/aklub/models.py:630 apps/aklub/models.py:1479 apps/aklub/models.py:1940
 msgid "If the user supports us in other ways, please specify here."
 msgstr "Pokud nás klient podporuje jinak, uveďte zde."
 
-#: models.py:637 models.py:691 models.py:695 models.py:701 models.py:707
-#: models.py:713
-msgid "DEPRECATED FIELD"
-msgstr ""
-
-#: models.py:641
+#: apps/aklub/models.py:635
 msgid "What is your reason?"
 msgstr "A jaký je Tvůj důvod?"
 
-#: models.py:642
+#: apps/aklub/models.py:636
 msgid "Tell others why you support Auto*Mat"
 msgstr "Řekni ostatním, proč podporuješ Diakonii"
 
-#: models.py:648
+#: apps/aklub/models.py:642
 msgid "Profile picture"
 msgstr "Profilová fotografie"
 
-#: models.py:649
+#: apps/aklub/models.py:643
 msgid "Your profile picture, which others will see."
 msgstr "Fotka, kterou uvidí ostatní."
 
-#: models.py:660
+#: apps/aklub/models.py:654
 msgid "Club card available"
 msgstr "Nárok na klubovou kartu"
 
-#: models.py:661
+#: apps/aklub/models.py:655
 msgid "Is he entitled to posses a club card?"
 msgstr "Má nárok na klubovou kartu?"
 
-#: models.py:664
+#: apps/aklub/models.py:658
 msgid "Club card dispatched?"
 msgstr "Klubová karta odeslána?"
 
-#: models.py:665
+#: apps/aklub/models.py:659
 msgid "Did we send him the club card already?"
 msgstr "Již jsme mu klubovou kartu zaslali?"
 
-#: models.py:669
+#: apps/aklub/models.py:663
 msgid "Other benefits"
 msgstr "Další benefity"
 
-#: models.py:670
+#: apps/aklub/models.py:664
 msgid "Did he receive some other benefits?"
 msgstr "Získal nějaké další benefity?"
 
-#: models.py:676 models.py:1301
+#: apps/aklub/models.py:670 apps/aklub/models.py:1486
 msgid "Note for making a boring form more lively"
 msgstr "Poznámky"
 
-#: models.py:681 models.py:1368 models.py:2287 models.py:2359
+#: apps/aklub/models.py:675 apps/aklub/models.py:1553 apps/aklub/models.py:2460
+#: apps/interactions/models.py:66 apps/pdf_storage/models.py:25
 msgid "Date of creation"
 msgstr "Datum vytvoření"
 
-#: models.py:686 models.py:1329 models.py:1373 models.py:2292 models.py:2364
+#: apps/aklub/models.py:680 apps/aklub/models.py:1514 apps/aklub/models.py:1558
+#: apps/aklub/models.py:2465 apps/interactions/models.py:71
 msgid "Date of last change"
 msgstr "Datum poslední změny"
 
-#: models.py:725
+#: apps/aklub/models.py:691
 msgid "administrated units"
 msgstr "Má přístup k OJ"
 
-#: models.py:747
+#: apps/aklub/models.py:713
 msgid "Last name vokativ"
 msgstr "Oslovení"
 
-#: models.py:769
+#: apps/aklub/models.py:735
 msgid "Addressment"
 msgstr "Oslovení"
 
-#: models.py:803 models.py:1395 models.py:2071
+#: apps/aklub/models.py:771 apps/aklub/models.py:1580 apps/aklub/models.py:2225
 msgid "Full name"
 msgstr "Celé jméno"
 
-#: models.py:816 models.py:1157
+#: apps/aklub/models.py:784 apps/aklub/models.py:1342
 msgid "Users in campaign"
 msgstr "Uživatelé v kampani"
 
-#: models.py:896
+#: apps/aklub/models.py:857
+#, fuzzy
+msgid "Regular payment info"
+msgstr "Pravidelné platby"
+
+#: apps/aklub/models.py:876 apps/aklub/models.py:1858
+msgid "VS"
+msgstr "VS"
+
+#: apps/aklub/models.py:882
+#, fuzzy
+#| msgid "administrative units"
+msgid "Administrative units"
+msgstr "Organizační jednotky"
+
+#: apps/aklub/models.py:927 apps/smmapdfs_edit/models.py:11
 msgid "Company profile"
 msgstr "Profil společnosti"
 
-#: models.py:897
+#: apps/aklub/models.py:928
 #, fuzzy
 #| msgid "User profiles"
 msgid "Company profiles"
 msgstr "Profily společností"
 
-#: models.py:900
+#: apps/aklub/models.py:931
 #, fuzzy
 #| msgid "Campaign name"
 msgid "Company name"
 msgstr "Název"
 
-#: models.py:919
+#: apps/aklub/models.py:943
+msgid "only for Czech companies"
+msgstr "Jen pro české firmy"
+
+#: apps/aklub/models.py:951
+#: apps/aklub/templates/admin/import_export/userprofile_import.html:43
+msgid "DIČ"
+msgstr ""
+
+#: apps/aklub/models.py:952
+msgid "Czech and European companies, must be in valid formate"
+msgstr "české a evropské firmy musí být ve správném formátu"
+
+#: apps/aklub/models.py:978
+#, fuzzy
+#| msgid "Contact data"
+msgid "Contact name"
+msgstr "Kontaktní údaje"
+
+#: apps/aklub/models.py:984 apps/smmapdfs_edit/models.py:12
 msgid "User profile"
 msgstr "Uživatelský profil"
 
-#: models.py:920
+#: apps/aklub/models.py:985
 msgid "User profiles"
 msgstr "Uživatelské profily"
 
-#: models.py:927
+#: apps/aklub/models.py:992
 msgid "Title after name"
 msgstr "Titul za jménem"
 
-#: models.py:933
+#: apps/aklub/models.py:998
 msgid "Title before name"
 msgstr "Titul před jménem"
 
-#: models.py:939
+#: apps/aklub/models.py:1004
 msgid "Birth year"
 msgstr "Ročník narození"
 
-#: models.py:945
+#: apps/aklub/models.py:1010
 msgid "Month of birth"
 msgstr "Měsíc narození"
 
-#: models.py:951
+#: apps/aklub/models.py:1016
 msgid "Day of birth"
 msgstr "Den narození"
 
-#: models.py:967
+#: apps/aklub/models.py:1022
+msgid "Gender"
+msgstr "Pohlaví"
+
+#: apps/aklub/models.py:1050
 #, fuzzy
-#| msgid "Email"
-msgid "Emails"
-msgstr "E-mail"
+#| msgid "Contact data"
+msgid "Contact first name"
+msgstr "Jméno"
 
-#: models.py:980
+#: apps/aklub/models.py:1055
 #, fuzzy
-#| msgid "Primary phone"
-msgid "Primary email"
-msgstr "Hlavní telefon"
+#| msgid "Contact data"
+msgid "Contact last name"
+msgstr "Příjmení"
 
-#: models.py:1024
-msgid "newsletter_on"
-msgstr "Zasílat newsletter"
-
-#: models.py:1030
-msgid "call_on"
-msgstr "Volat"
-
-#: models.py:1036
-msgid "challenge_on"
-msgstr "Žádat o dar"
-
-#: models.py:1042
-msgid "letter_on"
-msgstr "Zasílat dopisy"
-
-#: models.py:1048
-msgid "Sending of mailing lists allowed"
-msgstr "Povolit odesílání mailing listů"
-
-#: models.py:1052
-msgid "Publish my name in the list of supporters"
-msgstr "Zveřejnit mé jméno v seznamu podporovatelů"
-
-#: models.py:1058 models.py:1534 models.py:1673
-msgid "administrative unit"
-msgstr "Organizační jednotka"
-
-#: models.py:1075
+#: apps/aklub/models.py:1065 apps/aklub/models.py:1260
 msgid "Telephone number"
 msgstr "Telefon"
 
-#: models.py:1081
+#: apps/aklub/models.py:1071 apps/aklub/models.py:1266
 msgid ""
 "Telephone must consist of numbers, spaces and + sign or maximum number count "
 "is higher."
 msgstr "Chybný formát telefonu"
 
-#: models.py:1086
+#: apps/aklub/models.py:1076
+#, fuzzy
+#| msgid "Primary phone"
+msgid "Primary contact"
+msgstr "Hlavní telefon"
+
+#: apps/aklub/models.py:1094 apps/aklub/models.py:1243
+#: apps/aklub/models.py:1684 apps/aklub/models.py:1746
+#: apps/aklub/models.py:2620 apps/aklub/models.py:2745
+#: apps/pdf_storage/models.py:37
+msgid "administrative unit"
+msgstr "Organizační jednotka"
+
+#: apps/aklub/models.py:1133
+#, fuzzy
+#| msgid "Primary phone"
+msgid "Primary email"
+msgstr "Hlavní telefon"
+
+#: apps/aklub/models.py:1207
+msgid "newsletter_on"
+msgstr "Zasílat newsletter"
+
+#: apps/aklub/models.py:1213
+msgid "call_on"
+msgstr "Volat"
+
+#: apps/aklub/models.py:1219
+msgid "challenge_on"
+msgstr "Žádat o dar"
+
+#: apps/aklub/models.py:1225
+msgid "letter_on"
+msgstr "Zasílat dopisy"
+
+#: apps/aklub/models.py:1231
+msgid "Sending of mailing lists allowed"
+msgstr "Povolit odesílání mailing listů"
+
+#: apps/aklub/models.py:1236
+msgid "Publish my name in the list of supporters"
+msgstr "Zveřejnit mé jméno v seznamu podporovatelů"
+
+#: apps/aklub/models.py:1271
 msgid "Primary phone"
 msgstr "Hlavní telefon"
 
-#: models.py:1093
+#: apps/aklub/models.py:1278
 msgid "e.g. do not call during a workweek"
 msgstr "Např. nevolat v pracovní době"
 
-#: models.py:1106
+#: apps/aklub/models.py:1291
 msgid "Telephones"
 msgstr "Telefony"
 
-#: models.py:1156
+#: apps/aklub/models.py:1341
 msgid "User in campaign"
 msgstr "Uživatel v kampani"
 
-#: models.py:1170 models.py:1737 views.py:207
+#: apps/aklub/models.py:1355 apps/aklub/models.py:1887 apps/aklub/views.py:233
 msgid "Monthly"
 msgstr "Měsíčně"
 
-#: models.py:1171 models.py:1738
+#: apps/aklub/models.py:1356 apps/aklub/models.py:1888
 msgid "Quaterly"
 msgstr "Čtvrtletně"
 
-#: models.py:1172 models.py:1739
+#: apps/aklub/models.py:1357 apps/aklub/models.py:1889
 msgid "Bianually"
 msgstr "Půlročně"
 
-#: models.py:1173 models.py:1740 views.py:208
+#: apps/aklub/models.py:1358 apps/aklub/models.py:1890 apps/aklub/views.py:234
 msgid "Anually"
 msgstr "Ročně"
 
-#: models.py:1174 models.py:1741
+#: apps/aklub/models.py:1359
 msgid "Onetime"
 msgstr "Jednorázově"
 
-#: models.py:1179 models.py:1260 models.py:1745 models.py:1778 views.py:126
-#: views.py:131 views.py:212
+#: apps/aklub/models.py:1364 apps/aklub/models.py:1445
+#: apps/aklub/models.py:1894 apps/aklub/models.py:1927 apps/aklub/views.py:142
+#: apps/aklub/views.py:147 apps/aklub/views.py:238
 msgid "Regular payments"
 msgstr "Pravidelné platby"
 
-#: models.py:1180 models.py:1746
+#: apps/aklub/models.py:1365 apps/aklub/models.py:1895
 msgid "No regular payments"
 msgstr "Nemá pravidelné platby"
 
-#: models.py:1181 models.py:1747
+#: apps/aklub/models.py:1366 apps/aklub/models.py:1896
 msgid "Promise of regular payments"
 msgstr "Příslib pravidelných plateb"
 
-#: models.py:1195
+#: apps/aklub/models.py:1380
 msgid "Campaign"
 msgstr "Kampaň"
 
-#: models.py:1204
+#: apps/aklub/models.py:1389
 msgid "Where does he/she know us from?"
 msgstr "Odkud nás zná?"
 
-#: models.py:1209
+#: apps/aklub/models.py:1394
 msgid "Why does he/she support us?"
 msgstr "Proč nás podporuje?"
 
-#: models.py:1214
+#: apps/aklub/models.py:1399
 msgid "Field of work"
 msgstr "Pracovní oblast"
 
-#: models.py:1222
+#: apps/aklub/models.py:1407
 msgid ""
 "How did he contact us / became a member? In direct dialog, please "
 "distinguish between partial form (he still needs to send a permanent order "
@@ -1021,27 +1240,27 @@ msgstr ""
 "ve své bance) a plným formulářem (jeho formulář doneseme bance sami, on sám "
 "již nemusí nic dělat)"
 
-#: models.py:1233
+#: apps/aklub/models.py:1418
 msgid "Additional information"
 msgstr "Rozšiřující informace"
 
-#: models.py:1239 models.py:1717
+#: apps/aklub/models.py:1424 apps/aklub/models.py:1859
 msgid "Variable symbol"
 msgstr "Variabilní symbol"
 
-#: models.py:1247 models.py:1731
+#: apps/aklub/models.py:1432 apps/aklub/models.py:1880
 msgid "Registered support"
 msgstr "Registrace podpory"
 
-#: models.py:1248 models.py:1732
+#: apps/aklub/models.py:1433 apps/aklub/models.py:1881
 msgid "When did this user register to support us"
 msgstr "Kdy se tento uživatel zaregistroval k naší podpoře"
 
-#: models.py:1253 models.py:1771
+#: apps/aklub/models.py:1438 apps/aklub/models.py:1920
 msgid "Exceptional membership"
 msgstr "Výjimečné členství"
 
-#: models.py:1254 models.py:1772
+#: apps/aklub/models.py:1439 apps/aklub/models.py:1921
 msgid ""
 "In special cases, people can become members of the club even if they do not "
 "pay any money. This should be justified in the note."
@@ -1049,273 +1268,328 @@ msgstr ""
 "Ve výjimečných případech se mohou lidé stát členy klubu i když neplatí žádné "
 "peníze. Zdůvodnění může být uvedeno v poznámce."
 
-#: models.py:1261 models.py:1779
+#: apps/aklub/models.py:1446 apps/aklub/models.py:1928
 msgid "Is this user registered for regular payments?"
 msgstr "Je tento uživatel zaregistrován pro pravidelné platby?"
 
-#: models.py:1266 models.py:1785
+#: apps/aklub/models.py:1451 apps/aklub/models.py:1934
 msgid "Old account"
 msgstr "Starý účet"
 
-#: models.py:1267 models.py:1786
+#: apps/aklub/models.py:1452 apps/aklub/models.py:1935
 msgid "User has old account"
 msgstr "Uživatel má starý účet"
 
-#: models.py:1273 models.py:1765 views.py:137
+#: apps/aklub/models.py:1458 apps/aklub/models.py:1914 apps/aklub/views.py:153
 msgid "Regularly (amount)"
 msgstr "Částka pravidelné platby"
 
-#: models.py:1274 models.py:1766 views.py:138
+#: apps/aklub/models.py:1459 apps/aklub/models.py:1915 apps/aklub/views.py:154
 msgid "Minimum yearly payment is 1800 Kč"
 msgstr ""
 "Jsme rádi za jakýkoli dar, plné členství s výhodami však začíná od 1800 Kč "
 "ročně."
 
-#: models.py:1279 models.py:1752
+#: apps/aklub/models.py:1464 apps/aklub/models.py:1901
 msgid "Frequency of regular payments"
 msgstr "Frekvence pravidelných plateb"
 
-#: models.py:1286 models.py:1759
+#: apps/aklub/models.py:1471 apps/aklub/models.py:1908
 msgid "Expected date of first payment"
 msgstr "Očekávané datum první platby"
 
-#: models.py:1306
+#: apps/aklub/models.py:1491
 msgid "Verified"
 msgstr "Ověřen"
 
-#: models.py:1307
+#: apps/aklub/models.py:1492
 msgid "Was the the user information verified by a club administrator?"
 msgstr "Byly uživatelské údaje ověřeny správcem klubu?"
 
-#: models.py:1311 models.py:2535
+#: apps/aklub/models.py:1496 apps/interactions/models.py:287
 msgid "GDPR consent"
 msgstr "GDPR souhlas"
 
-#: models.py:1316
+#: apps/aklub/models.py:1501
 msgid "Verified by"
 msgstr "Ověřil"
 
-#: models.py:1323
+#: apps/aklub/models.py:1508
 msgid "Activity points"
 msgstr "Body za aktivitu"
 
-#: models.py:1324
+#: apps/aklub/models.py:1509
 msgid "Points for users activity"
 msgstr "Body za uživatelskou aktivitu"
 
-#: models.py:1340
+#: apps/aklub/models.py:1525
 msgid "Send tax confirmation"
 msgstr "Zaslat daňové potvrzení (na konci roku)"
 
-#: models.py:1344
+#: apps/aklub/models.py:1529
 msgid "Send welcome letter"
 msgstr "Odeslat uvítací dopis s členskou kartou"
 
-#: models.py:1348
+#: apps/aklub/models.py:1533
 msgid "Send regular news via email"
 msgstr "Zasílat pravidelné informace emailem"
 
-#: models.py:1352
+#: apps/aklub/models.py:1537
 msgid "Date of next communication"
 msgstr "Datum příští komunikace"
 
-#: models.py:1357
+#: apps/aklub/models.py:1542
 msgid "Method of next communication"
 msgstr "Metoda příští komunikace"
 
-#: models.py:1364 models.py:2539
+#: apps/aklub/models.py:1549 apps/interactions/models.py:291
 msgid "Publish my name in the list of supporters/petitents of this campaign"
 msgstr "Zveřejnit mé jméno v seznamu podporovatelů/petentů této kampaně"
 
-#: models.py:1378 models.py:2531
+#: apps/aklub/models.py:1563 apps/interactions/models.py:283
 msgid "Is confirmed via e-mail"
 msgstr "Je potvrzeno e-mailem"
 
-#: models.py:1507
+#: apps/aklub/models.py:1648
 msgid "Account Statement"
 msgstr "Výpis z účtu"
 
-#: models.py:1508
+#: apps/aklub/models.py:1649
 msgid "Account Statements"
 msgstr "Výpisy z účtů"
 
-#: models.py:1652
-msgid "Bank account"
-msgstr "Název bankovního účtu"
+#: apps/aklub/models.py:1678
+#, fuzzy
+#| msgid "Payment delay"
+msgid "Payment pairing log"
+msgstr "Záznam z přiřazování plateb"
 
-#: models.py:1653
-msgid "Bank accounts"
-msgstr "Bankovní účty"
+#: apps/aklub/models.py:1679
+msgid "Why Payment was not paired"
+msgstr "Proč platba nebyla přiřazena"
 
-#: models.py:1661 models.py:1694
-msgid "Bank account number"
-msgstr "Číslo účtu"
+#: apps/aklub/models.py:1712
+msgid "dpch with user_bank_account doesnt_exist // "
+msgstr "Platební kanál s tímto uživatelským bankovním účtem neexistuje"
 
-#: models.py:1667 models.py:1700
+#: apps/aklub/models.py:1714
+msgid "multiple dpch with user_bank_account // "
+msgstr "Vícero platebních kanálu s tímto uživatelským bankovním účtem"
+
+#: apps/aklub/models.py:1726
+msgid "dpch with VS doesnt_exist"
+msgstr "Platební kanál s tímto VS neexistuje"
+
+#: apps/aklub/models.py:1728
+msgid "multiple dpch with VS"
+msgstr "Vícero platebních kanálu s tímto VS"
+
+#: apps/aklub/models.py:1730
+msgid "VS not set"
+msgstr "VS neni zadán"
+
+#: apps/aklub/models.py:1740 apps/aklub/models.py:1839
 msgid "Bank account note"
 msgstr "Poznámka k bankovnímu účtu"
 
-#: models.py:1685
+#: apps/aklub/models.py:1753
+#, fuzzy
+#| msgid "Identifier of the source"
+msgid "Identifier of the Account"
+msgstr "Identifikátor zdroje"
+
+#: apps/aklub/models.py:1764
+msgid "Bank account"
+msgstr "Název bankovního účtu"
+
+#: apps/aklub/models.py:1765
+msgid "Bank accounts"
+msgstr "Bankovní účty"
+
+#: apps/aklub/models.py:1773 apps/aklub/models.py:1833
+msgid "Bank account number"
+msgstr "Číslo účtu"
+
+#: apps/aklub/models.py:1793
+#, fuzzy
+#| msgid "Darujme.cz project ID"
+msgid "project ID"
+msgstr "Darujme.cz ID projektu"
+
+#: apps/aklub/models.py:1799
+msgid "API ID"
+msgstr ""
+
+#: apps/aklub/models.py:1805
+#, fuzzy
+#| msgid "Darujme.cz API secret"
+msgid "API secret"
+msgstr "Darujme.cz API secret"
+
+#: apps/aklub/models.py:1824
 msgid "User bank account"
 msgstr "Účet uživatele"
 
-#: models.py:1686
+#: apps/aklub/models.py:1825
 msgid "User bank accounts"
 msgstr "Účty uživatelů"
 
-#: models.py:1711
+#: apps/aklub/models.py:1850
 msgid "Donor payment channel"
 msgstr "Platební kanál"
 
-#: models.py:1712
+#: apps/aklub/models.py:1851
 msgid "Donor payment channels"
 msgstr "Platební kanály"
 
-#: models.py:1724 models.py:2342
-msgid "User"
-msgstr "Uživatel"
-
-#: models.py:1820
-msgid "End of regular payments (for payments by card)"
-msgstr "Konec pravidelných plateb (pro platby kartou)"
-
-#: models.py:1862
-msgid "# payments"
-msgstr "Plateb"
-
-#: models.py:1890
-msgid "Last payment"
-msgstr "Poslední platba"
-
-#: models.py:1911
-msgid "Last payment type"
-msgstr "Poslední typ platby"
-
-#: models.py:1961
-msgid "Total"
-msgstr "Celkem"
-
-#: models.py:2003 models.py:2143
-msgid "Expected payment"
-msgstr "Očekávaná platba"
-
-#: models.py:2013
-msgid "Payment delay"
-msgstr "Zpoždění platby"
-
-#: models.py:2023
-msgid "Extra money"
-msgstr "Extra platby"
-
-#: models.py:2100
-msgid "Payment for users in time period"
-msgstr "Platba za uživatele v daném období"
-
-#: models.py:2101
-msgid "Payments for users in time periods"
-msgstr "Platby za uživatele v daném období"
-
-#: models.py:2114
-msgid "new user"
-msgstr "nový uživatel"
-
-#: models.py:2115
-msgid "new users"
-msgstr "noví uživatelé"
-
-#: models.py:2136
-msgid "Payment"
-msgstr "Platba"
-
-#: models.py:2141
-msgid "Bank transfer"
-msgstr "Bankovní převod"
-
-#: models.py:2142
-msgid "In cash"
-msgstr "V hotovosti"
-
-#: models.py:2148
-msgid "Date of payment"
-msgstr "Datum platby"
-
-#: models.py:2151
-msgid "Amount"
-msgstr "Částka"
-
-#: models.py:2152
-msgid "Amount of money in the main used curency"
-msgstr "Částka v hlavní používané měně"
-
-#: models.py:2156
-msgid "Bank account from which money was received"
-msgstr "Bankovní účet, ze kterého peníze přišly"
-
-#: models.py:2161
-msgid "Bank code"
-msgstr "Kód banky"
-
-#: models.py:2162
-msgid "Code of bank from which money was received"
-msgstr "Kód banky ze které peníze přišly"
-
-#: models.py:2167
-msgid "VS 1"
-msgstr ""
-
-#: models.py:2168
-msgid "Variable symbol 1"
-msgstr "Variabilní symbol 1"
-
-#: models.py:2174
-msgid "VS 2"
-msgstr ""
-
-#: models.py:2175
-msgid "Variable symbol 2"
-msgstr "Variabilní symbol 2"
-
-#: models.py:2181
+#: apps/aklub/models.py:1865 apps/aklub/models.py:2354
 msgid "SS"
 msgstr "SS"
 
-#: models.py:2182
+#: apps/aklub/models.py:1866 apps/aklub/models.py:2355
+#: apps/aklub/templates/admin/import_export/userprofile_import.html:32
 msgid "Specific symbol"
 msgstr "Specifický symbol"
 
-#: models.py:2187
+#: apps/aklub/models.py:1965
+msgid "End of regular payments (for payments by card)"
+msgstr "Konec pravidelných plateb (pro platby kartou)"
+
+#: apps/aklub/models.py:2006
+msgid "# payments"
+msgstr "Plateb"
+
+#: apps/aklub/models.py:2048
+#, fuzzy
+#| msgid "Last payment type"
+msgid "Last payment amount"
+msgstr "Poslední částka platby"
+
+#: apps/aklub/models.py:2069
+msgid "Last payment type"
+msgstr "Poslední typ platby"
+
+#: apps/aklub/models.py:2117
+msgid "Total"
+msgstr "Celkem"
+
+#: apps/aklub/models.py:2158 apps/aklub/models.py:2301
+msgid "Expected payment"
+msgstr "Očekávaná platba"
+
+#: apps/aklub/models.py:2265
+msgid "new user"
+msgstr "nový uživatel"
+
+#: apps/aklub/models.py:2266
+msgid "new users"
+msgstr "noví uživatelé"
+
+#: apps/aklub/models.py:2294
+msgid "Payment"
+msgstr "Platba"
+
+#: apps/aklub/models.py:2299
+msgid "Bank transfer"
+msgstr "Bankovní převod"
+
+#: apps/aklub/models.py:2300
+msgid "In cash"
+msgstr "V hotovosti"
+
+#: apps/aklub/models.py:2302
+msgid "Credit card"
+msgstr "Kreditní karta"
+
+#: apps/aklub/models.py:2303
+msgid "Material gift"
+msgstr "Hmotný dar"
+
+#: apps/aklub/models.py:2308
+#, fuzzy
+#| msgid "Date of payment"
+msgid "Little note to payment"
+msgstr "Malá poznámka k platbě"
+
+#: apps/aklub/models.py:2316
+#, fuzzy
+#| msgid "Bank account number"
+msgid "Recipient bank account number"
+msgstr "Číslo účtu příjemce"
+
+#: apps/aklub/models.py:2321
+msgid "Date of payment"
+msgstr "Datum platby"
+
+#: apps/aklub/models.py:2324
+msgid "Amount"
+msgstr "Částka"
+
+#: apps/aklub/models.py:2325
+msgid "Amount of money in the main used curency"
+msgstr "Částka v hlavní používané měně"
+
+#: apps/aklub/models.py:2329
+msgid "Bank account from which money was received"
+msgstr "Bankovní účet, ze kterého peníze přišly"
+
+#: apps/aklub/models.py:2334
+msgid "Bank code"
+msgstr "Kód banky"
+
+#: apps/aklub/models.py:2335
+msgid "Code of bank from which money was received"
+msgstr "Kód banky ze které peníze přišly"
+
+#: apps/aklub/models.py:2340
+msgid "VS 1"
+msgstr ""
+
+#: apps/aklub/models.py:2341
+msgid "Variable symbol 1"
+msgstr "Variabilní symbol 1"
+
+#: apps/aklub/models.py:2347
+msgid "VS 2"
+msgstr ""
+
+#: apps/aklub/models.py:2348
+msgid "Variable symbol 2"
+msgstr "Variabilní symbol 2"
+
+#: apps/aklub/models.py:2360
 msgid "CS"
 msgstr "KS"
 
-#: models.py:2188
+#: apps/aklub/models.py:2361
 msgid "Constant symbol"
 msgstr "Konstantní symbol"
 
-#: models.py:2193 models.py:2194
+#: apps/aklub/models.py:2366 apps/aklub/models.py:2367
 msgid "BIC"
 msgstr "BIC"
 
-#: models.py:2200
+#: apps/aklub/models.py:2373
 msgid "Sender identification"
 msgstr "Identifikace odesílatele"
 
-#: models.py:2201
+#: apps/aklub/models.py:2374
 msgid "Sender identification string on the account statement"
 msgstr "Identifikace odesílatele z bankovního výpisu"
 
-#: models.py:2206
+#: apps/aklub/models.py:2379
 msgid "Type"
 msgstr "Typ"
 
-#: models.py:2207
+#: apps/aklub/models.py:2380
 msgid "Type of payment"
 msgstr "Typ platby"
 
-#: models.py:2213
+#: apps/aklub/models.py:2386
 msgid "Done by"
 msgstr "Provedl"
 
-#: models.py:2214
+#: apps/aklub/models.py:2387
 msgid ""
 "This is a column imported from the account statements. It's purpose is not "
 "clear. It has been usually blank on the account statement we have received "
@@ -1324,235 +1598,80 @@ msgstr ""
 "Toto je kolonka importovaná z výpisů z účtu. Její účel není jasný. Na všech "
 "dosavadních výpisech bývala obyčejně prázdná."
 
-#: models.py:2221
+#: apps/aklub/models.py:2394
 msgid "Account name"
 msgstr "Jméno účtu"
 
-#: models.py:2226
+#: apps/aklub/models.py:2399
 msgid "Bank name"
 msgstr "Jméno banky"
 
-#: models.py:2231
+#: apps/aklub/models.py:2404
 msgid "Transfer note"
 msgstr "Poznámka k převodu"
 
-#: models.py:2237
+#: apps/aklub/models.py:2410
 msgid "Currency"
 msgstr "Měna"
 
-#: models.py:2243
+#: apps/aklub/models.py:2416
 msgid "Recipient message"
 msgstr "Zpráva pro příjemce"
 
-#: models.py:2249
+#: apps/aklub/models.py:2422
 msgid "Operation ID"
 msgstr "ID Operace"
 
-#: models.py:2255
+#: apps/aklub/models.py:2428
 msgid "Transfer type"
 msgstr "Typ převodu"
 
-#: models.py:2261
+#: apps/aklub/models.py:2434
 msgid "Specification"
 msgstr "Specifikace"
 
-#: models.py:2267
+#: apps/aklub/models.py:2440
 msgid "Order ID"
 msgstr "ID objednávky"
 
-#: models.py:2355
-msgid "Date and time of the communication"
-msgstr "Datum a čas komunikace"
-
-#: models.py:2379
+#: apps/aklub/models.py:2516 apps/interactions/models.py:96
 msgid "Mass"
 msgstr "Hromadná"
 
-#: models.py:2380
+#: apps/aklub/models.py:2517 apps/interactions/models.py:84
+#: apps/interactions/models.py:97
 msgid "Automatic"
 msgstr "Automatická"
 
-#: models.py:2381
+#: apps/aklub/models.py:2518 apps/interactions/models.py:98
 msgid "Individual"
 msgstr "Individuální"
 
-#: models.py:2396
-msgid "Interaction"
-msgstr "Interakce"
-
-#: models.py:2397
-msgid "Interactions"
-msgstr "Interakce"
-
-#: models.py:2401 models.py:2870 models.py:2960
-msgid "Method"
-msgstr "Metoda"
-
-#: models.py:2406
-msgid "Type of communication"
-msgstr "Typ komunikace"
-
-#: models.py:2411 models.py:2875 models.py:2965
-msgid "Subject"
-msgstr "Předmět"
-
-#: models.py:2412
-msgid "The topic of this communication"
-msgstr "Téma této komunikace"
-
-#: models.py:2416
-msgid "Text"
-msgstr "Text"
-
-#: models.py:2417
-msgid "Text or summary of this communication"
-msgstr "Text nebo shrnutí této komunikace"
-
-#: models.py:2421 models.py:3000
-msgid "Attachment"
-msgstr "Příloha"
-
-#: models.py:2427
-msgid "Notes"
-msgstr "Poznámky"
-
-#: models.py:2428
-msgid "Internal notes about this communication"
-msgstr "Interní poznámky o této komunikaci"
-
-#: models.py:2434
-msgid "Created by"
-msgstr "Vytvořil"
-
-#: models.py:2442
-msgid "Last handled by"
-msgstr "Naposledy vyřizoval"
-
-#: models.py:2450
-msgid "Result of communication"
-msgstr "Výsledek komunikace"
-
-#: models.py:2456
-msgid "Send / Handle"
-msgstr "Odeslat / Vyřídit"
-
-#: models.py:2457
-msgid ""
-"Request sending or resolving this communication. For emails, this means that "
-"the email will be immediatelly sent to the user. In other types of "
-"communications, someone must handle this manually."
-msgstr ""
-"Požadavek na odeslání nebo vyřešení této komunikace.  U emailů to znamená, "
-"že bude zpráva okamžitě odeslána. U jiných druhů komunikací to bude muset "
-"někdo zařídit ručně."
-
-#: models.py:2463
-msgid "Dispatched / Done"
-msgstr "Odesláno / Hotovo"
-
-#: models.py:2464
-msgid "Was this message already sent, communicated and/or resolved?"
-msgstr "Byla již tato zpráva odeslána, komunikována a/nebo vyřešena?"
-
-#: models.py:2559
-msgid "Action"
-msgstr "Akce"
-
-#: models.py:2623
-msgid "and"
-msgstr "a zároveň (and)"
-
-#: models.py:2624
-msgid "or"
-msgstr "nebo (or)"
-
-#: models.py:2625
-msgid "nor"
-msgstr "ani (nor)"
-
-#: models.py:2629
-msgid "Name of condition"
-msgstr "Jméno podmínky"
-
-#: models.py:2636 models.py:2745
-msgid "Operation"
-msgstr "Operace"
-
-#: models.py:2648
-msgid "Display as filter?"
-msgstr "Zobrazit jako filtr?"
-
-#: models.py:2649
-msgid ""
-"Determines whether this condition is available as a filterin the table of "
-"Users"
-msgstr "Určuje zda se tato podmínka objevuje jako filtr v tabulce uživatelů"
-
-#: models.py:2654
-msgid "Display on dashboard?"
-msgstr "Zobrazit na palubní desce?"
-
-#: models.py:2655
-msgid "Determines whether this condition is available on dashboard"
-msgstr "Určuje zda se tato podmínka objevuje na palubní desce"
-
-#: models.py:2722
-msgid "Terminal condition"
-msgstr "Konečná podmínka"
-
-#: models.py:2723
-msgid "Terminal conditions"
-msgstr "Konečné podmínky"
-
-#: models.py:2732
-msgid "contains"
-msgstr "obsahuje"
-
-#: models.py:2733
-msgid "contains (case insensitive)"
-msgstr "obsahuje (nezávisle na velikosti písmen)"
-
-#: models.py:2737
-msgid "Variable"
-msgstr "Proměnná"
-
-#: models.py:2739
-msgid "Value or variable on left-hand side"
-msgstr "Hodnota nebo proměnná na levé straně"
-
-#: models.py:2751
-msgid "Value"
-msgstr "Hodnota"
-
-#: models.py:2753
-msgid ""
-"Value or variable on right-hand side. <br/>\n"
-"action: daily, new-user<br/>\n"
-"DateField: month_ago, one_day, one_week, two_weeks, one_month<br/>\n"
-"BooleanField: True, False"
-msgstr ""
-"Hodnota nebo proměná na pravé straně rovnice. <br/>\n"
-"hodnoty akcí: daily, new-user<br/>\n"
-"DateField: month_ago, one_day, one_week, two_weeks, one_month<br/>\n"
-"BooleanField: True, False"
-
-#: models.py:2855
+#: apps/aklub/models.py:2532
 msgid "Automatic Communication"
 msgstr "Automatická komunikace"
 
-#: models.py:2856
+#: apps/aklub/models.py:2533
 msgid "Automatic Communications"
 msgstr "Automatické komunikace"
 
-#: models.py:2879 models.py:2971
+#: apps/aklub/models.py:2548 apps/aklub/models.py:2661
+msgid "Interaction type with allowed sending"
+msgstr "Typ interakce s povoleným odesíláním"
+
+#: apps/aklub/models.py:2554 apps/aklub/models.py:2666
+msgid "Subject"
+msgstr "Předmět"
+
+#: apps/aklub/models.py:2558 apps/aklub/models.py:2672
 msgid "English subject"
 msgstr "Anglický předmět"
 
-#: models.py:2885 models.py:2983
+#: apps/aklub/models.py:2572 apps/aklub/models.py:2684
 msgid "Template"
 msgstr "Šablona"
 
-#: models.py:2887
+#: apps/aklub/models.py:2574
 msgid ""
 "Template can contain following variable substitutions: $addressment  "
 "$last_name_vokativ  $name  $firstname  $surname  $street  $city  $zipcode  "
@@ -1564,24 +1683,24 @@ msgstr ""
 "$email  $telephone  $regular_amount  $regular_frequency  $var_symbol  "
 "$last_payment_amount  $auth_token  "
 
-#: models.py:2907 models.py:2992
+#: apps/aklub/models.py:2594 apps/aklub/models.py:2693
 msgid "English template"
 msgstr "Anglická šablona"
 
-#: models.py:2913
+#: apps/aklub/models.py:2600
 msgid "Only once"
 msgstr "Pouze jednou"
 
-#: models.py:2914
+#: apps/aklub/models.py:2601
 msgid "If checked, never send this communication twice to one user"
 msgstr ""
 "Pokud je zaškrtnuto, nikdy neposílat tuto komunikaci témuž uživateli dvakrát"
 
-#: models.py:2918
+#: apps/aklub/models.py:2605
 msgid "Dispatch auto"
 msgstr "Odeslat automaticky"
 
-#: models.py:2919
+#: apps/aklub/models.py:2606
 msgid ""
 "If checked, the communication might be dispatched by the system (e.g. an "
 "email sent) as soon as condition becomes true, without any further action "
@@ -1593,31 +1712,32 @@ msgstr ""
 "administrátora. Jinak je komunikace založena, ale administrátor ji musí "
 "odeslat ručně."
 
-#: models.py:2928
+#: apps/aklub/models.py:2615
 msgid "List of users to whom this communication was already sent"
 msgstr "Seznam uživatelů, kterým již byla tato komunikace odeslána"
 
-#: models.py:2937
+#: apps/aklub/models.py:2637
 msgid "Unknown variable"
 msgstr "Neznámá proměnná"
 
-#: models.py:2944
+#: apps/aklub/models.py:2644
 msgid "Mass Communication"
 msgstr "Hromadná komunikace"
 
-#: models.py:2945
+#: apps/aklub/models.py:2645
 msgid "Mass Communications"
 msgstr "Hromadné komunikace"
 
-#: models.py:2954
+#: apps/aklub/models.py:2654
 msgid "Date"
 msgstr "Datum"
 
-#: models.py:2967 models.py:2975 models.py:2996
+#: apps/aklub/models.py:2668 apps/aklub/models.py:2676
+#: apps/aklub/models.py:2697
 msgid "Same variables as in template can be used"
 msgstr "Některé proměnné nemohou být v šabloně použity"
 
-#: models.py:2974
+#: apps/aklub/models.py:2675
 msgid ""
 "English version of the subject. If empty, English speaking users will not "
 "receive this communication."
@@ -1625,115 +1745,298 @@ msgstr ""
 "Anglická verze předmětu. Ponecháte-li prázdné, anglicky mluvící uživatelé "
 "tuto komunikaci nedostanou."
 
-#: models.py:2984
+#: apps/aklub/models.py:2685
 msgid "Template can contain following variable substitutions: <br/>"
 msgstr "Šablona může obsahovat následující proměnné: <br/>"
 
-#: models.py:3006
+#: apps/aklub/models.py:2701
+msgid "Attachment"
+msgstr "Příloha"
+
+#: apps/aklub/models.py:2707
 msgid "Attach tax confirmation"
 msgstr "Připojit daňové potvrzení"
 
-#: models.py:3007
-msgid ""
-"If this field is checked, the tax confirmation for last year is appended to "
-"the message."
+#: apps/aklub/models.py:2708
+#, fuzzy
+#| msgid ""
+#| "If this field is checked, the tax confirmation for last year is appended "
+#| "to the message."
+msgid "If this field is checked, select year and type of pdf to send"
 msgstr ""
 "Pokud je toto políčko zaškrtnuto, bude ke zprávě připojeno daňové potvrzení "
 "za minulý rok."
 
-#: models.py:3013
+#: apps/aklub/models.py:2712
+#, fuzzy
+#| msgid "By Year"
+msgid "Year"
+msgstr "Roční"
+
+#: apps/aklub/models.py:2719
+#, fuzzy
+#| msgid "Type of payment"
+msgid "Type of PDF"
+msgstr "Typ PDB"
+
+#: apps/aklub/models.py:2726
 msgid "send to users"
 msgstr "uživatelé k obeslání"
 
-#: models.py:3015
+#: apps/aklub/models.py:2728
 msgid "All users who should receive the communication"
 msgstr "Všichni uživatelé, kteří by měli tuto komunikaci obdržet"
 
-#: models.py:3024
+#: apps/aklub/models.py:2737
 msgid "note"
 msgstr "poznámka"
 
-#: models.py:3093
+#: apps/aklub/models.py:2847
 msgid "PDF file"
 msgstr "PDF soubor"
 
-#: models.py:3097
+#: apps/aklub/models.py:2851
 msgid "PDF"
 msgstr ""
 
-#: models.py:3117
+#: apps/aklub/models.py:2904
 msgid "Tax confirmation"
 msgstr "Daňové potvrzení"
 
-#: models.py:3118
+#: apps/aklub/models.py:2905
 msgid "Tax confirmations"
 msgstr "Daňová potvrzení"
 
-#: templates/admin/aklub/automaticcommunication/change_form.html:10
-#: templates/admin/aklub/masscommunication/change_form.html:10
+#: apps/aklub/templates/admin/aklub/automaticcommunication/change_form.html:10
+#: apps/aklub/templates/admin/aklub/masscommunication/change_form.html:10
 msgid "Save and send testing email"
 msgstr "Uložit a odeslat testovací email"
 
-#: templates/admin/aklub/campaign/change_form.html:9
-#: templates/admin/aklub/recruiter/change_form.html:8
+#: apps/aklub/templates/admin/aklub/campaign/change_form.html:9
+#: apps/aklub/templates/admin/aklub/recruiter/change_form.html:8
 msgid "History"
 msgstr "Historie"
 
-#: templates/admin/aklub/masscommunication/change_form.html:11
+#: apps/aklub/templates/admin/aklub/masscommunication/change_form.html:11
 msgid "Save and send emails"
 msgstr "Uložit a odeslat emaily"
 
-#: templates/admin/aklub/recruiter/change_form.html:7
+#: apps/aklub/templates/admin/aklub/profile_changeform.html:18
+#: apps/aklub/templates/admin/aklub/profile_changeform.html:107
+msgid "Show timeline"
+msgstr "Ukaž časovou osu"
+
+#: apps/aklub/templates/admin/aklub/profile_changeform.html:21
+msgid "Hide timeline"
+msgstr "schovej časovou osu"
+
+#: apps/aklub/templates/admin/aklub/profile_changeform.html:124
+msgid "Remove contact"
+msgstr "Odstranit kontakt"
+
+#: apps/aklub/templates/admin/aklub/profile_redirect.html:4
+msgid "Select type of profile you want to pick"
+msgstr "Vyber typ profilu"
+
+#: apps/aklub/templates/admin/aklub/profile_redirect.html:6
+#, fuzzy
+#| msgid "User profile"
+msgid "UserProfile"
+msgstr "Uživatelský profil"
+
+#: apps/aklub/templates/admin/aklub/profile_redirect.html:7
+#, fuzzy
+#| msgid "Company profile"
+msgid "CompanyProfile"
+msgstr "Profil společnosti"
+
+#: apps/aklub/templates/admin/aklub/profile_remove_contact_from_unit.html:5
+#, fuzzy
+#| msgid "administrative unit"
+msgid "Remove contact from administrative unit"
+msgstr "Odstran kontakt z Organizační jednotky"
+
+#: apps/aklub/templates/admin/aklub/profile_remove_contact_from_unit.html:10
+msgid "Confirm"
+msgstr "Potvrdit"
+
+#: apps/aklub/templates/admin/aklub/profile_taxconfirmation.html:5
+#, fuzzy
+#| msgid "Tax confirmation"
+msgid "Tax Confirmation"
+msgstr "Daňové potvrzení"
+
+#: apps/aklub/templates/admin/aklub/profile_taxconfirmation.html:26
+msgid "Submit"
+msgstr "Odeslat"
+
+#: apps/aklub/templates/admin/aklub/recruiter/change_form.html:7
 msgid "Recruited users"
 msgstr "Naverbovaní uživatelé"
 
-#: templates/admin/aklub/taxconfirmation/change_list.html:6
-msgid "Generate"
-msgstr "Generuj"
+#: apps/aklub/templates/admin/import_export/userprofile_import.html:14
+msgid ""
+"It is recommended upload phone contact in format <strong>420/1</strong>, "
+"<strong>+420/1</strong> or <strong>without prefix</strong>."
+msgstr ""
 
-#: templates/helpdesk/dashboard.html:2
+#: apps/aklub/templates/admin/import_export/userprofile_import.html:20
+msgid ""
+"If you want to upload donor payment channels, add x to donor column. Only x "
+"columns will be imported."
+msgstr "Pro založení/aktulizaci platebního kanálu vyplnte 'x' ve sloupečku donor"
+
+#: apps/aklub/templates/admin/import_export/userprofile_import.html:26
+msgid ""
+"You can add only one unique VS to the specific bank account. If variable "
+"symbol is empty, is generated by the system."
+msgstr "Můžete přiřadit pouze unikátní VS, pokud' je prázdný, tak je vygenerován systémem"
+
+#: apps/aklub/templates/admin/import_export/userprofile_import.html:38
+msgid ""
+"You can setup bank account (company, organization unit) or user bank account "
+"of the specific user."
+msgstr ""
+
+#: apps/aklub/templates/admin/import_export/userprofile_import.html:39
+msgid "Set bank accounts in format number/bank_code (123456789/0800)"
+msgstr ""
+
+#: apps/aklub/templates/helpdesk/dashboard.html:2
 msgid "Helpdesk Dashboard"
 msgstr ""
 
-#: templates/helpdesk/dashboard.html:12
+#: apps/aklub/templates/helpdesk/dashboard.html:12
 msgid "Open Tickets assigned to you (you are working on this ticket)"
 msgstr ""
 
-#: templates/helpdesk/dashboard.html:13
+#: apps/aklub/templates/helpdesk/dashboard.html:13
 msgid "You have no tickets assigned to you."
 msgstr ""
 
-#: templates/helpdesk/dashboard.html:25
+#: apps/aklub/templates/helpdesk/dashboard.html:25
 msgid "Tickets"
 msgstr ""
 
-#: templates/helpdesk/dashboard.html:25
+#: apps/aklub/templates/helpdesk/dashboard.html:25
 msgid "Pull requests"
 msgstr ""
 
-#: templates/helpdesk/dashboard.html:32
+#: apps/aklub/templates/helpdesk/dashboard.html:32
 msgid "All Tickets submitted by you"
 msgstr ""
 
-#: templates/helpdesk/dashboard.html:37
+#: apps/aklub/templates/helpdesk/dashboard.html:37
 msgid "Closed & resolved Tickets you used to work on"
 msgstr ""
 
-#: templates/helpdesk/kb_category.html:6
+#: apps/aklub/templates/helpdesk/kb_category.html:6
 msgid "Knowledgebase"
 msgstr "Návody"
 
-#: templates/helpdesk/kb_category.html:8 templates/helpdesk/kb_category.html:12
+#: apps/aklub/templates/helpdesk/kb_category.html:8
+#: apps/aklub/templates/helpdesk/kb_category.html:12
 #, python-format
 msgid "%(kbcat)s"
 msgstr ""
 
-#: templates/helpdesk/kb_category.html:17
+#: apps/aklub/templates/helpdesk/kb_category.html:17
 #, python-format
 msgid "You are viewing all items in the %(kbcat)s category."
 msgstr ""
 
-#: templates/regular-dpnk.html:8
+#: apps/aklub/templates/password/password_reset.html:8
+msgid ""
+"Forgotten your password? Enter your email address below, and we'll email "
+"instructions for setting a new one."
+msgstr "Pro reset hesla zadejte emailovou adresu a postupujte dle instrukcí"
+
+#: apps/aklub/templates/password/password_reset.html:13
+#, fuzzy
+#| msgid "Save and send emails"
+msgid "Send email"
+msgstr "Odeslat email"
+
+#: apps/aklub/templates/password/password_reset_complete.html:6
+msgid "Password reset complete"
+msgstr "Změna hesla dokončena"
+
+#: apps/aklub/templates/password/password_reset_complete.html:8
+msgid "Your password has been set. You may go ahead and log in now."
+msgstr "Heslo nastaveno, nyní se můžete přihlásit "
+
+#: apps/aklub/templates/password/password_reset_confirm.html:6
+msgid "Password Reset Confirm"
+msgstr "Potvrzení změny hesla"
+
+#: apps/aklub/templates/password/password_reset_confirm.html:8
+msgid "Please enter your new password."
+msgstr "PRosím, zadejte nové heslo"
+
+#: apps/aklub/templates/password/password_reset_confirm.html:12
+#, fuzzy
+#| msgid "password"
+msgid "Reset password"
+msgstr "Vyresetovat heslo"
+
+#: apps/aklub/templates/password/password_reset_done.html:7
+msgid "Password reset sent"
+msgstr "Email s instrukcemi odeslán"
+
+#: apps/aklub/templates/password/password_reset_done.html:9
+msgid ""
+"We've emailed you instructions for setting your password, if an account "
+"exists with the email you entered. You should receive them shortly.<br>If "
+"you don't receive an email, please make sure you've entered the address you "
+"registered with, and check your spam folder."
+msgstr ""
+"Odeslaly jsme email s instrukcemi pro změnu hesla."
+""
+"poku'd email neobržíte, ujistěte se, že jste zadal správný email"
+"a zkontrolujte si složku se spamy."
+
+#: apps/aklub/templates/password/password_reset_email.txt:5
+#, python-format
+msgid ""
+"\n"
+"    Hello,\n"
+"\n"
+"    We received a request to reset the password for your account for this "
+"email address. To initiate the password reset process for your account, "
+"click the link below.\n"
+"\n"
+"    You login Username is : %(username)s\n"
+"    %(domain)s%(password_reset_confirm)s\n"
+"\n"
+"    This link can only be used once. If you need to reset your password "
+"again, please visit %(domain)s%(password_reset)s and request another reset.\n"
+"\n"
+"    If you did not make this request, you can simply ignore this email.\n"
+"\n"
+"    Sincerely,\n"
+"    The %(site_name)s Team\n"
+"  "
+msgstr ""
+"\n"
+"Dobrý den,\n"
+"\n"
+"Obdržely jsme žádost o změnu hesla k vašemu účtu."
+"Pro zahájení procesu"
+"prosím klikněte na odkaz níže.\n"
+"\n"
+" Vaše přihlašovací jméno je: %(username)s\n"
+"    %(domain)s%(password_reset_confirm)s\n"
+"\n"
+"Tento link může být použit pouze jednou."
+"Pro znovu obnovení hesla navštivte  %(domain)s%(password_reset)s a zadejte požadavek znovu.\n"
+"\n"
+"Jestliže jste tuto akci nevyžádal, prosím ignorujte tento email\n"
+"\n"
+"S pozdravem,\n"
+"%(site_name)s \n"
+"  "
+
+#: apps/aklub/templates/regular-dpnk.html:8
 msgid ""
 "\n"
 "  Do you prefer to live in cities, where cycling to work is a pleasure?\n"
@@ -1754,7 +2057,7 @@ msgstr ""
 "na nulový účastnický poplatek pro soutěž Do práce na kole je třeba, aby se "
 "váš první dar připsal na náš účet do konce dubna.<br/>"
 
-#: templates/regular-dpnk.html:19
+#: apps/aklub/templates/regular-dpnk.html:19
 msgid ""
 "\n"
 "  By sending this form, you aggree with <a target=\"_blank\" href=\"http://"
@@ -1765,27 +2068,49 @@ msgstr ""
 "Odesláním tohoto formuláře souhlasím se <a target=\"_blank\" href=\"http://"
 "www.auto-mat.cz/zasady\">Zásadami ochrany osobních údajů Auto*Matu</a>."
 
-#: views.py:102
+#: apps/aklub/timeline.py:40
+#, fuzzy
+#| msgid "Profile picture"
+msgid "Profilová fotka"
+msgstr "Profilová fotka "
+
+#: apps/aklub/timeline.py:59
+#, fuzzy
+#| msgid "Interaction"
+msgid "View interaction "
+msgstr "Interakce"
+
+#: apps/aklub/timeline.py:90
+#, fuzzy
+#| msgid "Onetime payment"
+msgid "View payment"
+msgstr "Jednorázová platba"
+
+#: apps/aklub/utils.py:74
+msgid "Please select event before sort by donor delay"
+msgstr "Prosím vyberte event, než začnete řadit dle zpoždění platby"
+
+#: apps/aklub/views.py:111
 msgid "Telefon"
 msgstr "Telefon"
 
-#: views.py:103
+#: apps/aklub/views.py:112 apps/api/serializers.py:19
 msgid "Telephone must consist of numbers, spaces and plus sign"
 msgstr "Telefon musí být složen s čísel, mezer a znaku plus."
 
-#: views.py:209
+#: apps/aklub/views.py:235
 msgid "Onetime payment"
 msgstr "Jednorázová platba"
 
-#: views.py:218 views.py:244
+#: apps/aklub/views.py:244 apps/aklub/views.py:270
 msgid "Regular frequency"
 msgstr "Frekvence pravidelné platby"
 
-#: views.py:250
+#: apps/aklub/views.py:276
 msgid "Amount of monthly donation"
 msgstr "Částka pravidelné měsíční platby"
 
-#: views.py:251
+#: apps/aklub/views.py:277
 msgid ""
 "We are happy for any donation. However, full membership with advantages, "
 "starts from CZK 150 per month."
@@ -1793,36 +2118,399 @@ msgstr ""
 "Jsme rádi za jakýkoliv dar. Plné členství s výhodami však začíná od 150 Kč "
 "měsíčně"
 
-#: views.py:442
+#: apps/aklub/views.py:507
 msgid "Repeated registration"
 msgstr "Opakovaná registrace"
 
-#: views.py:567
+#: apps/aklub/views.py:631
 msgid "Member statistics"
 msgstr "Statistiky členů"
 
-#: views.py:589
+#: apps/aklub/views.py:653
 msgid "Payments statistics"
 msgstr "Statistiky plateb"
+
+#: apps/api/views.py:288
+#, python-format
+msgid ""
+"\n"
+"                Hello,\n"
+"\n"
+"\n"
+"                We received a request to reset the password for your account "
+"for this email address.\n"
+"                To initiate the password reset process for your account, "
+"click the link below.\n"
+"\n"
+"\n"
+"                You login Username is : %(username)s\n"
+"\n"
+"                %(url)s\n"
+"\n"
+"                This link can only be used once.\n"
+"\n"
+"\n"
+"                If you did not make this request, you can simply ignore this "
+"email.\n"
+"\n"
+"\n"
+"                Sincerely,\n"
+"\n"
+"                The %(site_name)s Team\n"
+"\n"
+"            "
+msgstr ""
+"\n"
+"Dobrý den,\n"
+"\n"
+"\n"
+"Obdržely jsme žádost o obnovení hesla k vašemu účtu."
+"\n"
+"K zahájeni procesu obnovy hesla klikněte na odkaz níže."
+"\n"
+"\n"
+"\n"
+"Vaše přihlašovací jméno: %(username)s\n"
+"\n"
+"%(url)s\n"
+"\n"
+"Tento odkaz může být použit pouze jednou.\n"
+"\n"
+"\n"
+"Jestliže jste nezažádal o obnovení hesla, prosím ignorujte tento email."
+"\n"
+"\n"
+"\n"
+"S pozdravem\n"
+"\n"
+"   %(site_name)s \n"
+"\n"
+"            "
+
+#: apps/api/views.py:308
+#, fuzzy
+#| msgid "password"
+msgid "password reset"
+msgstr "obnovení hesla"
+
+#: apps/interactions/models.py:15
+msgid "Promise"
+msgstr "slib"
+
+#: apps/interactions/models.py:16
+msgid "Ongoing communication"
+msgstr "Probíhající komunikace"
+
+#: apps/interactions/models.py:17
+msgid "Don't contact again"
+msgstr "Uživatel si nepřeje být nadále kontaktován"
+
+#: apps/interactions/models.py:21
+msgid "Name of result"
+msgstr "Název výsledku"
+
+#: apps/interactions/models.py:25
+msgid "Sort of result"
+msgstr "Druh výsledku"
+
+#: apps/interactions/models.py:41
+msgid "Show on timeline"
+msgstr "Ukaž na časové ose"
+
+#: apps/interactions/models.py:43
+msgid "Interactions under this category will show on timeline"
+msgstr "Interakce pod touto kategorii bude ukázána na časové ose."
+
+#: apps/interactions/models.py:85
+#, fuzzy
+#| msgid "Bianually"
+msgid "Manual"
+msgstr "ručně"
+
+#: apps/interactions/models.py:163
+msgid "Result of communication"
+msgstr "Výsledek komunikace"
+
+#: apps/interactions/models.py:169
+#, fuzzy
+#| msgid "Ongoing communication"
+msgid "rating communication"
+msgstr "hodnocení komunikace"
+
+#: apps/interactions/models.py:191
+msgid "Created by"
+msgstr "Vytvořil"
+
+#: apps/interactions/models.py:199
+msgid "Last handled by"
+msgstr "Naposledy vyřizoval"
+
+#: apps/interactions/models.py:206
+msgid "Type of communication"
+msgstr "Typ komunikace"
+
+#: apps/interactions/models.py:213
+msgid "Dispatched / Done"
+msgstr "Odesláno / Hotovo"
+
+#: apps/interactions/models.py:214
+msgid "Was this message already sent, communicated and/or resolved?"
+msgstr "Byla již tato zpráva odeslána, komunikována a/nebo vyřešena?"
+
+#: apps/interactions/models.py:295
+#, fuzzy
+#| msgid "Date of payment"
+msgid "Date of signature"
+msgstr "Datum podpisu"
+
+#: apps/interactions/models.py:312
+#, fuzzy
+#| msgid "Identifier of the source"
+msgid "Identifier of the Interaction Type"
+msgstr "Identifikátor typu interakce"
+
+#: apps/interactions/models.py:319
+msgid "the email will be immediatelly sent to the user"
+msgstr "Tento email bude okamžite poslán"
+
+#: apps/interactions/models.py:325
+msgid "the sms will be immediatelly send to the use"
+msgstr "Tato sms bude okamžitě poslána"
+
+#: apps/interactions/models.py:341
+#, python-brace-format
+msgid "choose if {field.name} is visible in specific type of interaction "
+msgstr ""
+
+#: apps/pdf_storage/models.py:10
+#, fuzzy
+#| msgid "Name of result"
+msgid "Name of file"
+msgstr "Název výsledku"
+
+#: apps/pdf_storage/models.py:14
+msgid "Topic of file"
+msgstr "Téma souboru"
+
+#: apps/pdf_storage/models.py:19
+msgid "Author of file"
+msgstr "Autor souboru"
+
+#: apps/repolinks/models.py:7
+msgid "Repo name"
+msgstr ""
+
+#: apps/repolinks/models.py:11
+msgid "Account"
+msgstr "Účet"
+
+#: apps/repolinks/models.py:15
+msgid "Repo host"
+msgstr ""
+
+#: local_migrations/migrations_helpdesk/0009_migrate_queuemembership.py:28
+msgid "Permission for queue: "
+msgstr ""
+
+#~ msgid "Send mass communication withoud duplicities"
+#~ msgstr "Odeslat neduplicitní hromadnou komunikaci"
+
+#~ msgid ""
+#~ "<a href=\"{url}\">User with this email already exist in database and is "
+#~ "available now, click here to edit</a>"
+#~ msgstr ""
+#~ "<a href=\"{url}\">Uživatel s tímto e-mailem už existuje v databázi jiné "
+#~ "OJ Diakonie, klikněte zde pro úpravu jeho kontaktů. Pozor, ovlivníte "
+#~ "zápis u všech OJ</a>"
+
+#, fuzzy
+#~| msgid "Registration"
+#~ msgid "Company Registration Number"
+#~ msgstr "Identifikační číslo organizace"
+
+#, fuzzy
+#~| msgid "Sender identification"
+#~ msgid "Tax Identification Number"
+#~ msgstr "Daňové identifikační číslo"
+
+#, fuzzy
+#~| msgid "Title before name"
+#~ msgid "Title before"
+#~ msgstr "Titul před jménem"
+
+#, fuzzy
+#~| msgid "Title after name"
+#~ msgid "Title after"
+#~ msgstr "Titul za jménem"
+
+#~ msgid "Header"
+#~ msgstr "Hlavička"
+
+#~ msgid "Content"
+#~ msgstr "Obsah"
+
+#~ msgid "Sending"
+#~ msgstr "Odesílání"
+
+#~ msgid "Operator"
+#~ msgstr "Operátor"
+
+#~ msgid "Logical conditions operands"
+#~ msgstr "Hodnoty pro logické podmínky"
+
+#~ msgid "Usage"
+#~ msgstr "Použití"
+
+#~ msgid "Reparse account statement"
+#~ msgstr "Znovu spárovat výpis z účtu"
+
+#~ msgid "By Day"
+#~ msgstr "Denní"
+
+#~ msgid "By Week"
+#~ msgstr "Týdenní"
+
+#~ msgid "By Month"
+#~ msgstr "Měsíční"
+
+#~ msgid "Condition"
+#~ msgstr "Podmínka"
+
+#, fuzzy
+#~ msgid "Regular payments (of any user in campaign)"
+#~ msgstr "Konec pravidelných plateb (pro platby kartou)"
+
+#, fuzzy
+#~| msgid ""
+#~| "<a href=\"{url}\">User with this email already exist in database and is "
+#~| "available now, click here to edit</a>"
+#~ msgid ""
+#~ "<a href=\"{url}\">User with this email already exist in database, click "
+#~ "here to edit</a>"
+#~ msgstr ""
+#~ "<a href=\"{url}\">Uživatel s tímto e-mailem už existuje v databázi jiné "
+#~ "OJ Diakonie, klikněte zde pro úpravu jeho kontaktů. Pozor, ovlivníte "
+#~ "zápis u všech OJ</a>"
+
+#~ msgid "Name in Darujme.cz"
+#~ msgstr "Jméno v Darujme.cz"
+
+#~ msgid "Darujme.cz API ID"
+#~ msgstr "Darujme.cz API ID"
+
+#~ msgid "Payment for users in time period"
+#~ msgstr "Platba za uživatele v daném období"
+
+#~ msgid "Payments for users in time periods"
+#~ msgstr "Platby za uživatele v daném období"
+
+#~ msgid "Date and time of the communication"
+#~ msgstr "Datum a čas komunikace"
+
+#~ msgid "Method"
+#~ msgstr "Metoda"
+
+#~ msgid "The topic of this communication"
+#~ msgstr "Téma této komunikace"
+
+#~ msgid "Text"
+#~ msgstr "Text"
+
+#~ msgid "Text or summary of this communication"
+#~ msgstr "Text nebo shrnutí této komunikace"
+
+#~ msgid "Notes"
+#~ msgstr "Poznámky"
+
+#~ msgid "Internal notes about this communication"
+#~ msgstr "Interní poznámky o této komunikaci"
+
+#~ msgid "Send / Handle"
+#~ msgstr "Odeslat / Vyřídit"
+
+#~ msgid ""
+#~ "Request sending or resolving this communication. For emails, this means "
+#~ "that the email will be immediatelly sent to the user. In other types of "
+#~ "communications, someone must handle this manually."
+#~ msgstr ""
+#~ "Požadavek na odeslání nebo vyřešení této komunikace.  U emailů to "
+#~ "znamená, že bude zpráva okamžitě odeslána. U jiných druhů komunikací to "
+#~ "bude muset někdo zařídit ručně."
+
+#~ msgid "Action"
+#~ msgstr "Akce"
+
+#~ msgid "and"
+#~ msgstr "a zároveň (and)"
+
+#~ msgid "or"
+#~ msgstr "nebo (or)"
+
+#~ msgid "nor"
+#~ msgstr "ani (nor)"
+
+#~ msgid "Name of condition"
+#~ msgstr "Jméno podmínky"
+
+#~ msgid "Operation"
+#~ msgstr "Operace"
+
+#~ msgid "Display as filter?"
+#~ msgstr "Zobrazit jako filtr?"
+
+#~ msgid ""
+#~ "Determines whether this condition is available as a filterin the table of "
+#~ "Users"
+#~ msgstr "Určuje zda se tato podmínka objevuje jako filtr v tabulce uživatelů"
+
+#~ msgid "Display on dashboard?"
+#~ msgstr "Zobrazit na palubní desce?"
+
+#~ msgid "Determines whether this condition is available on dashboard"
+#~ msgstr "Určuje zda se tato podmínka objevuje na palubní desce"
+
+#~ msgid "Terminal condition"
+#~ msgstr "Konečná podmínka"
+
+#~ msgid "Terminal conditions"
+#~ msgstr "Konečné podmínky"
+
+#~ msgid "contains"
+#~ msgstr "obsahuje"
+
+#~ msgid "contains (case insensitive)"
+#~ msgstr "obsahuje (nezávisle na velikosti písmen)"
+
+#~ msgid "Variable"
+#~ msgstr "Proměnná"
+
+#~ msgid "Value or variable on left-hand side"
+#~ msgstr "Hodnota nebo proměnná na levé straně"
+
+#~ msgid "Value"
+#~ msgstr "Hodnota"
+
+#~ msgid ""
+#~ "Value or variable on right-hand side. <br/>\n"
+#~ "action: daily, new-user<br/>\n"
+#~ "DateField: month_ago, one_day, one_week, two_weeks, one_month<br/>\n"
+#~ "BooleanField: True, False"
+#~ msgstr ""
+#~ "Hodnota nebo proměná na pravé straně rovnice. <br/>\n"
+#~ "hodnoty akcí: daily, new-user<br/>\n"
+#~ "DateField: month_ago, one_day, one_week, two_weeks, one_month<br/>\n"
+#~ "BooleanField: True, False"
+
+#~ msgid "Generate"
+#~ msgstr "Generuj"
 
 #, fuzzy
 #~| msgid "Last payment type"
 #~ msgid "Total last payment date"
 #~ msgstr "Poslední typ platby"
 
-#, fuzzy
-#~| msgid "Different correspondence address"
-#~ msgid "correspondence_address"
-#~ msgstr "Jiná korespondenční adresa"
-
 #~ msgid "Additional"
 #~ msgstr "Doplňkové informace"
-
-#~ msgid "Communications"
-#~ msgstr "Komunikace"
-
-#~ msgid "Account"
-#~ msgstr "Účet"
 
 #~ msgid ""
 #~ "</span><span class=\"strut\">&nbsp;</span></p>\n"
