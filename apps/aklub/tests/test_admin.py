@@ -614,7 +614,7 @@ class AdminRemoveAdministrativeUnitTests(CreateSuperUserMixin, TransactionTestCa
         address = reverse('admin:aklub_remove_contact_from_unit', args=(self.superuser.id,))
         response = self.client.post(address, follow=True)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'You can not remove administrative unit from your own profile', html=True)
+        self.assertContains(response, 'Nemůžete si odstranit organizační jednotku!', html=True)
 
         profile = Profile.objects.get(pk=self.superuser.id)
         self.assertEqual(profile.administrative_units.first(), self.unit)
