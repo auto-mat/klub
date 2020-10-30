@@ -300,12 +300,11 @@ class ResetPasswordbyEmailView(generics.GenericAPIView):
                 The %(site_name)s Team\n
             """) % {
                 "url": settings.WEB_URL + '?u=' + user_uid + "&t=" + token,
-                "domain": settings.WEB_URL,
                 "username": user.username,
                 "site_name": settings.SITE_NAME,
                 }
             email = EmailMultiAlternatives(
-                subject=_("password reset"),
+                subject=_("Password reset"),
                 body=template,
                 from_email=administrative_unit.from_email_str,
                 to=[email.email],

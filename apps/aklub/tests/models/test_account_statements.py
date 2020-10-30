@@ -537,8 +537,10 @@ class TestPairPayments(TestCase):
 
         self.assertEqual(payment.user_donor_payment_channel, None)
         self.assertEqual(return_value, False)
-
-        self.assertTrue("multiple dpch with user_bank_account // dpch with VS doesnt_exist" in account_statement.pair_log)
+        self.assertTrue(
+            "Vícero platebních kanálu s tímto uživatelským bankovním účtem //Platební kanál s tímto VS neexistuje\n"
+            in account_statement.pair_log,
+        )
 
     def test_pairing_no_dpch_false(self):
         """ Test if donor_payment_channel is not found """
@@ -554,5 +556,7 @@ class TestPairPayments(TestCase):
 
         self.assertEqual(payment.user_donor_payment_channel, None)
         self.assertEqual(return_value, False)
-
-        self.assertTrue("dpch with user_bank_account doesnt_exist // dpch with VS doesnt_exist" in account_statement.pair_log)
+        self.assertTrue(
+            "Platební kanál s tímto uživatelským bankovním účtem neexistuje //Platební kanál s tímto VS neexistuje\n"
+            in account_statement.pair_log,
+        )

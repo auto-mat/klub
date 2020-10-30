@@ -733,5 +733,6 @@ class ResetPasswordTest(TestCase):
         new_url = "/".join(split_url)
         data = {'new_password1': new_pw, 'new_password2': new_pw}
         response = self.client.post(new_url, data)
+        self.assertEqual(response.status_code, 302)
         self.user.refresh_from_db()
         self.assertEqual(self.user.check_password(new_pw), True)
