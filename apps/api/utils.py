@@ -26,6 +26,7 @@ def get_or_create_dpch(serializer, profile):
 
 def check_last_month_payment(user):
     found_payment = False
+    user = user.get_real_instance()
     for dpch in user.userchannels.all():
         if found_payment:
             break
