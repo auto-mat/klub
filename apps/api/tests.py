@@ -471,12 +471,12 @@ class ResetPasswordTest(TestCase):
         self.assertEqual(len(mail.outbox), 1)
         received_email = mail.outbox[0]
         self.assertEqual(received_email.to[0], email.email)
-        self.assertEqual(received_email.subject, 'password reset')
+        self.assertEqual(received_email.subject, 'Obnovení hesla')
         # get reset link
         link = [string for string in received_email.body.split(" ") if "?u=" in string]
-        link_splitted = link[0].replace("&", "=").split("=")
-        user_uid = link_splitted[1]
-        token = link_splitted[3].replace("\n", "")
+        link_splitted = link[0].replace("&", "=").replace("\n", "=").split("=")
+        user_uid = link_splitted[3]
+        token = link_splitted[5]
         # confirm reset password
         url = reverse('reset_password_email_confirm', kwargs={'uid': user_uid, "token": token})
         password = "new_strong_password96"
