@@ -334,9 +334,11 @@ class ParseAccountStatement(object):
                     )
                 except models.BankAccount.DoesNotExist:
                     self.pair_log = 'Missing Bank account, add it in BankAccounts'
+
+            account = payment['cislo_protiuctu'].split('/')
             p_sort = {
-                        'account': payment['cislo_protiuctu'].split('/')[0],
-                        'bank_code': payment['cislo_protiuctu'].split('/')[1],
+                        'account': account[0],
+                        'bank_code': account[1] if len(account) > 1 else "",
                         'VS': payment['VS'],
                         'KS': payment['KS'],
                         'SS': payment['SS'],
