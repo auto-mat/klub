@@ -26,7 +26,7 @@ from .serializers import (
     InteractionSerizer, MoneyAccountCheckSerializer, PaymentSerializer, ProfileSerializer, ResetPasswordbyEmailConfirmSerializer,
     ResetPasswordbyEmailSerializer, VSReturnSerializer,
 )
-from .utils import check_last_month_payment, get_or_create_dpch
+from .utils import check_last_month_year_payment, get_or_create_dpch
 
 
 class CheckMoneyAccountView(generics.RetrieveAPIView):
@@ -260,7 +260,7 @@ class CheckLastPaymentView(generics.GenericAPIView):
 
     def get(self, request):
         user = self.request.user
-        has_payment = check_last_month_payment(user)
+        has_payment = check_last_month_year_payment(user)
         if has_payment:
             return Response(status=status.HTTP_200_OK)
         else:

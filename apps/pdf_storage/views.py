@@ -1,4 +1,4 @@
-from api.utils import check_last_month_payment
+from api.utils import check_last_month_year_payment
 
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
@@ -24,7 +24,7 @@ class PaidPdfDownloadView(generics.RetrieveAPIView):
 
     def get(self, *args, **kwargs): # noqa
         user = self.request.user
-        found_payment = check_last_month_payment(user)
+        found_payment = check_last_month_year_payment(user)
         if found_payment:
             try:
                 pdf = PdfStorage.objects.get(id=self.kwargs['id'])

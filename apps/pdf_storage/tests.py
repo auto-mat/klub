@@ -1,9 +1,9 @@
 from aklub.models import UserProfile
 
-from api.tests import user_login_mixin
+from api.tests.utils import user_login_mixin
 
 from django.core.files import File
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils.dateparse import parse_datetime
 
@@ -55,6 +55,7 @@ class RelatedPdfListViewViewTest(TestCase):
         self.assertEqual(parse_datetime(obj['created']), parse_datetime(str(self.pdf.created)))
 
 
+@override_settings(SUM_LAST_YEAR_PAYMENTS=3000, SUM_LAST_MONTH_PAYMENTS=100)
 class PaidPdfDownloadViewTest(TestCase):
     def setUp(self):
         user_login_mixin()
@@ -105,10 +106,9 @@ class PaidPdfDownloadViewTest(TestCase):
 
     @freeze_time("2015-5-1")
     def test_get_request_fail(self):
-        last_payment_date = "2015-3-5"
         mommy.make(
             "aklub.payment",
-            date=last_payment_date,
+            date="2015-3-5",
             amount=200,
             recipient_account=self.api_acc,
             user_donor_payment_channel=self.dpch,
