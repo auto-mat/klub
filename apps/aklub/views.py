@@ -161,7 +161,10 @@ class RegularUserForm_DonorPaymentChannel(BankAccountMixin, CampaignMixin, forms
         self.fields['event'].widget = forms.HiddenInput()
 
     def clean_regular_payments(self):
-        return 'regular'
+        if self.cleaned_data['regular_frequency']:
+            return 'regular'
+        else:
+            return 'onetime'
 
     def clean(self):
         if self.cleaned_data.get('campaign'):
@@ -487,38 +490,31 @@ class RegularView(FormView):
     def post(self, request, *args, **kwargs):
         email = self.get_post_param(request, 'userprofile-email', 'payment_data____email')
         event = self.get_post_param(request, 'userincampaign-campaign', 'campaign')
-        if email:
-            user_profiles = UserProfile.objects.filter(profileemail__email=email)
-            if user_profiles.exists():
-                payment_channels = user_profiles.get().userchannels.filter(event__slug=event)
-                if user_profiles.exists() and payment_channels.exists():
-                    autocom.check(user_profiles=user_profiles, event=Event.objects.get(slug=event), action='resend-data')
-                    user_data = {}
-                    if 'recurringfrequency' in request.POST:
-                        user_data['frequency'] = REGULAR_FREQUENCY_MAP[request.POST.get('recurringfrequency')]
-                    else:
-                        user_data['frequency'] = request.POST.get('userincampaign-regular_frequency')
-                    user_data['name'] = self.get_post_param(request, 'userprofile-first_name', 'payment_data____jmeno')
-                    user_data['surname'] = self.get_post_param(request, 'userprofile-last_name', 'payment_data____prijmeni')
-                    user_data['amount'] = self.get_post_param(request, 'userincampaign-regular_amount', 'ammount')
-                    user_data['telephone'] = self.get_post_param(request, 'userprofile-telephone', 'payment_data____telefon')
-                    user_data['email'] = email
-                    mail_managers(
-                        _("Repeated registration"),
-                        "Repeated registration for email %(email)s\n"
-                        "name: %(name)s\n"
-                        "surname: %(surname)s\n"
-                        "frequency: %(frequency)s\n"
-                        "telephone: %(telephone)s\n"
-                        "amount: %(amount)s" % user_data,
-                    )
-                    return self.success_page(
-                        payment_channels.get(),
-                        user_data['amount'],
-                        user_data['frequency'],
-                        True,
-                    )
-        return super().post(request, *args, **kwargs)
+        user_profiles = UserProfile.objects.filter(profileemail__email=email)
+        if user_profiles.exists():
+            payment_channels = user_profiles.get().userchannels.filter(event__slug=event)
+            if user_profiles.exists() and payment_channels.exists():
+                autocom.check(user_profiles=user_profiles, action='resent-data')
+                user_data = {}
+                if 'recurringfrequency' in request.POST:
+                    user_data['frequency'] = REGULAR_FREQUENCY_MAP[request.POST.get('recurringfrequency')]
+                else:
+                    user_data['frequency'] = request.POST.get('userincampaign-regular_frequency')
+                user_data['name'] = self.get_post_param(request, 'userprofile-first_name', 'payment_data____jmeno')
+                user_data['surname'] = self.get_post_param(request, 'userprofile-last_name', 'payment_data____prijmeni')
+                user_data['amount'] = self.get_post_param(request, 'userincampaign-regular_amount', 'ammount')
+                user_data['telephone'] = self.get_post_param(request, 'userprofile-telephone', 'payment_data____telefon')
+                user_data['email'] = email
+                return self.success_page(
+                    payment_channels.get(),
+                    user_data['amount'],
+                    user_data['frequency'],
+                    True,
+                )
+        new_user_response = super().post(request, *args, **kwargs)
+        user_profiles = UserProfile.objects.filter(profileemail__email=email)
+        autocom.check(user_profiles=user_profiles, action='new-user')
+        return new_user_response
 
     def get_initial(self):
         initial = super().get_initial()
