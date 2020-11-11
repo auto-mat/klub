@@ -57,6 +57,7 @@ class AutocomTest(TestCase):
         AutomaticCommunication.objects.create(
             method_type=inter_type,
             condition=nc,
+            event=self.event,
             template="Vazen{y|a} {pane|pani} $addressment $regular_frequency testovací šablona",
             template_en="Dear {sir|miss} $addressment $regular_frequency test template",
             subject="Testovací komunikace",
@@ -65,7 +66,7 @@ class AutocomTest(TestCase):
         )
 
     def test_autocom(self):
-        autocom.check(event=self.event, action="test-autocomm")
+        autocom.check(action="test-autocomm")
         interaction = Interaction.objects.get(user=self.userprofile)
         self.assertTrue("testovací šablona" in interaction.summary)
         self.assertTrue("příteli Auto*Matu" in interaction.summary)
@@ -74,7 +75,7 @@ class AutocomTest(TestCase):
     def test_autocom_female(self):
         self.userprofile.sex = 'female'
         self.userprofile.save()
-        autocom.check(event=self.event, action="test-autocomm")
+        autocom.check(action="test-autocomm")
         interaction = Interaction.objects.get(user=self.userprofile)
         self.assertIn("testovací šablona", interaction.summary)
         self.assertIn("přítelkyně Auto*Matu", interaction.summary)
@@ -83,7 +84,7 @@ class AutocomTest(TestCase):
     def test_autocom_unknown(self):
         self.userprofile.sex = 'unknown'
         self.userprofile.save()
-        autocom.check(event=self.event, action="test-autocomm")
+        autocom.check(action="test-autocomm")
         interaction = Interaction.objects.get(user=self.userprofile)
         self.assertIn("testovací šablona", interaction.summary)
         self.assertIn("příteli/kyně Auto*Matu", interaction.summary)
@@ -93,7 +94,7 @@ class AutocomTest(TestCase):
         self.userprofile.sex = 'male'
         self.userprofile.addressment = 'own addressment'
         self.userprofile.save()
-        autocom.check(event=self.event, action="test-autocomm")
+        autocom.check(action="test-autocomm")
         interaction = Interaction.objects.get(user=self.userprofile)
         self.assertIn("testovací šablona", interaction.summary)
         self.assertIn("own addressment", interaction.summary)
@@ -103,7 +104,7 @@ class AutocomTest(TestCase):
         self.userprofile.sex = 'unknown'
         self.userprofile.language = 'en'
         self.userprofile.save()
-        autocom.check(event=self.event, action="test-autocomm")
+        autocom.check(action="test-autocomm")
         interaction = Interaction.objects.get(user=self.userprofile)
         self.assertIn("test template", interaction.summary)
         self.assertIn("Auto*Mat friend", interaction.summary)

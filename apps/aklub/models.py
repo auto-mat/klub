@@ -2232,25 +2232,6 @@ class DonorPaymentChannel(ComputedFieldsModel):
         self.check_duplicate()
         return super().clean(*args, **kwargs)
 
-    def save(self, *args, **kwargs):
-        self.clean()  # run twice if saved in admin
-        if self.pk is None:
-            insert = True
-        else:
-            insert = False
-        super().save(*args, **kwargs)
-        if self.user:
-            # Evaluate autocom immediatelly only when the affected
-            # user is known, otherwise the bellow check would be too
-            # time-consuming (relying on Cron performing it in regular
-            # intervals anyway)
-            from .autocom import check as autocom_check
-            autocom_check(
-                user_profiles=UserProfile.objects.filter(userchannels__pk=self.pk),
-                event=self.event,
-                action=(insert and 'new-user' or None),
-            )
-
 
 class NewUserManager(models.Manager):
     def get_queryset(self):
@@ -2490,24 +2471,6 @@ class Payment(WithAdminUrl, models.Model):
         else:
             return False
 
-    def save(self, *args, **kwargs):
-        if self.pk is None:
-            insert = True
-        else:
-            insert = False
-        super().save(*args, **kwargs)
-        if self.user_donor_payment_channel:
-            # Evaluate autocom immediatelly only when the affected
-            # user is known, otherwise the bellow check would be too
-            # time-consuming (relying on Cron performing it in regular
-            # intervals anyway)
-            from .autocom import check as autocom_check
-            autocom_check(
-                event=self.user_donor_payment_channel.event,
-                user_profiles=UserProfile.objects.filter(userchannels__pk=self.user_donor_payment_channel.pk),
-                action=(insert and 'new-payment' or None),
-                )
-
     def __str__(self):
         return str(self.amount)
 
@@ -2610,7 +2573,7 @@ class AutomaticCommunication(models.Model):
         default=False,
     )
     sent_to_users = models.ManyToManyField(
-        DonorPaymentChannel,
+        Profile,
         help_text=_(
             "List of users to whom this communication was already sent"),
         blank=True,
@@ -2625,12 +2588,6 @@ class AutomaticCommunication(models.Model):
 
     def __str__(self):
         return str(self.name)
-
-    def clean(self):
-        # TODO: remove after fixing
-        # How shoud this work?
-        # dont forget to uncomment/remove test_automatic_communication_changelist_post in test_admin
-        raise ValidationError('Cant create new automatic communication because its under development!')
 
 
 gender_strings_validator = autocom.gendrify_text

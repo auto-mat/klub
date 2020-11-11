@@ -125,7 +125,7 @@ def process_template(template_string, user, payment_channel):
     return gendrify_text(text, user.sex if hasattr(user, 'sex') else '')
 
 
-def check(event, user_profiles=None, action=None):  # noqa
+def check(user_profiles=None, action=None):  # noqa
     from .models import AutomaticCommunication, DonorPaymentChannel, UserProfile
     from interactions.models import Interaction
     if not user_profiles:
@@ -139,15 +139,18 @@ def check(event, user_profiles=None, action=None):  # noqa
                 action,
             ),
         )
-
         filtered_user_profiles = auto_comm.condition.filter_queryset(user_profiles, action)
         for user in filtered_user_profiles:
             try:
-                payment_channel = user.userchannels.get(event=event)
+                if auto_comm.event:
+                    payment_channel = user.userchannels.get(event=auto_comm.event)
+                else:
+                    payment_channel = None
             except DonorPaymentChannel.DoesNotExist:
                 payment_channel = None
             if auto_comm.only_once and auto_comm.sent_to_users.filter(pk=user.pk).exists():
                 continue
+
             if user.language == 'cs':
                 template = auto_comm.template
                 subject = auto_comm.subject
@@ -166,6 +169,5 @@ def check(event, user_profiles=None, action=None):  # noqa
                     settlement='a',
                     administrative_unit=auto_comm.administrative_unit,
                 )
-                if payment_channel:
-                    auto_comm.sent_to_users.add(payment_channel)
+                auto_comm.sent_to_users.add(user)
                 c.save()
