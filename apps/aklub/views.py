@@ -581,6 +581,19 @@ class RegularDarujmeView(RegularView):
     success_template = 'thanks-darujme.html'
 
 
+class RegisterWithoutPaymentView(FormView):
+    template_name = 'regular.html'
+    form_class = PetitionUserForm_UserProfile
+    success_template = 'thanks-darujme.html'
+    success_url = 'petition-signatures'
+
+    def form_valid(self, form):
+        unit = get_object_or_404(AdministrativeUnit, slug=self.kwargs['unit'])
+        user = form.save(commit=True)
+        user.administrative_units.add(unit)
+        return http.HttpResponse(_("Thanks for register!"))
+
+
 @method_decorator(csrf_exempt, name='dispatch')
 class PetitionView(FormView):
     template_name = 'regular.html'

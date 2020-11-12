@@ -12,6 +12,8 @@ urlpatterns = [
     url(r'^regular-dpnk/', views.RegularDPNKView.as_view(), name="regular-dpnk"),
     url(r'^regular-darujme/', views.RegularDarujmeView.as_view(), name="regular-darujme"),
 
+    path('register-without-payment/<slug:unit>/', views.RegisterWithoutPaymentView.as_view(), name='register-withou-payment'),
+
     url(r'^sign-petition/', views.PetitionView.as_view(), name="petition"),
     url(r'^sing-petition-confirm/(?P<campaign_slug>[^&]+)/$', views.PetitionConfirmEmailView.as_view(), name="sing-petition-confirm"),
     url(r'^petition-signatures/(?P<campaign_slug>[^&]+)/', views.PetitionSignatures.as_view(), name="petition-signatures"),

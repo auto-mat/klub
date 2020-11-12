@@ -224,7 +224,7 @@ class AdministrativeUnit(models.Model, ParseAccountStatement):
         max_length=100,
         unique=True,
         blank=True,
-        null=True
+        null=True,
     )
 
     def __str__(self):
