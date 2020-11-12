@@ -11,13 +11,18 @@ urlpatterns = [
     url(r'^regular-wp/', views.RegularWPView.as_view(), name="regular-wp"),
     url(r'^regular-dpnk/', views.RegularDPNKView.as_view(), name="regular-dpnk"),
     url(r'^regular-darujme/', views.RegularDarujmeView.as_view(), name="regular-darujme"),
+
     url(r'^sign-petition/', views.PetitionView.as_view(), name="petition"),
+    url(r'^sing-petition-confirm/(?P<campaign_slug>[^&]+)/$', views.PetitionConfirmEmailView.as_view(), name="sing-petition-confirm"),
     url(r'^petition-signatures/(?P<campaign_slug>[^&]+)/', views.PetitionSignatures.as_view(), name="petition-signatures"),
+
+    path('send-mailing-lists/<slug:unit>/<slug:unsubscribe>/', views.SendMailingListView.as_view(), name="send-mailing-list"),
+
     url(r'^campaign-statistics/(?P<campaign_slug>[^&]+)/$', views.CampaignStatistics.as_view(), name="campaign-statistics"),
     url(r'^donators/', views.donators, name="donators"),
     url(r'^profiles/', views.profiles, name="profiles"),
     url(r'^mailing/', views.MailingFormSetView.as_view(), name="mailing-configuration"),
-    url(r'^email_confirmation/(?P<campaign_slug>[^&]+)/$', views.ConfirmEmailView.as_view(), name="email-confirmation"),
+
 
     # userfriendly password reset
     path("password_reset/", views.PasswordResetView.as_view(), name="password_reset"),

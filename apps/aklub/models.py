@@ -217,6 +217,16 @@ class AdministrativeUnit(models.Model, ParseAccountStatement):
         help_text=_("Choose color to help discern Administrative unit in app"),
     )
 
+    slug = models.SlugField(
+        verbose_name=_("Slug"),
+        help_text=_("Identifier of the administrative unit"),
+        default=None,
+        max_length=100,
+        unique=True,
+        blank=True,
+        null=True
+    )
+
     def __str__(self):
         return str(self.name)
 

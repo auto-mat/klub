@@ -30,8 +30,9 @@ from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.tokens import default_token_generator
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
-from django.core.mail import EmailMultiAlternatives, mail_managers
+from django.core.mail import EmailMultiAlternatives
 from django.core.validators import MinLengthValidator, RegexValidator, ValidationError
+from django.db import IntegrityError
 from django.db.models import Case, CharField, Count, IntegerField, Q, Sum, Value, When
 from django.db.models.functions import TruncMonth
 from django.http import JsonResponse
@@ -49,7 +50,7 @@ from django.views.generic.edit import FormView
 
 from extra_views import InlineFormSet, UpdateWithInlinesView
 
-from interactions.models import PetitionSignature  # TODO: Not sure if it works (model moved from aklub to interaction app)
+from interactions.models import PetitionSignature
 
 from sesame.backends import ModelBackend
 
@@ -93,7 +94,7 @@ class RegularUserForm_UserProfile(forms.ModelForm):
         return ret_val
 
     def _post_clean(self):
-        email = self.cleaned_data['email']
+        email = self.cleaned_data['email'].lower()
         r = super()._post_clean()
         if self._errors.get('email') == ['This e-mail is already used.']:
             del self._errors['email']
@@ -130,8 +131,8 @@ class CampaignMixin(forms.ModelForm):
 
 class BankAccountMixin(forms.ModelForm):
     money_account = forms.ModelChoiceField(
-            queryset=MoneyAccount.objects.filter(slug__isnull=False).exclude(slug=""),
-            to_field_name="slug",
+        queryset=MoneyAccount.objects.filter(slug__isnull=False).exclude(slug=""),
+        to_field_name="slug",
     )
 
 
@@ -154,6 +155,11 @@ class RegularUserForm_DonorPaymentChannel(BankAccountMixin, CampaignMixin, forms
         help_text=_(u"Minimum yearly payment is 1800 Kč"),
         min_value=1,
     )
+    payment_type = forms.ChoiceField(
+        label=_("payment_type"),
+        choices=(('credit-card', _('Credit Card')), ('bank-transfer', _('Bank transfer'))),
+        initial='bank-transfer',
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -173,7 +179,7 @@ class RegularUserForm_DonorPaymentChannel(BankAccountMixin, CampaignMixin, forms
 
     class Meta:
         model = DonorPaymentChannel
-        fields = ('regular_frequency', 'regular_amount', 'regular_payments', 'campaign', 'event', 'money_account')
+        fields = ('regular_frequency', 'regular_amount', 'regular_payments', 'campaign', 'event', 'money_account', 'payment_type')
 
 
 class RegularUserForm(MultiModelForm):
@@ -205,7 +211,6 @@ class RegularDarujmeUserForm_UserProfile(FieldNameMappingMixin, RegularUserForm_
 
 
 class PetitionUserForm_UserProfile(RegularUserForm_UserProfile):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['sex'].required = False
@@ -289,19 +294,27 @@ class RegularUserForm_DonorPaymentChannelDPNK(RegularUserForm_DonorPaymentChanne
         return 'monthly'
 
 
-class PetitionUserForm_PetitionSignature(FieldNameMappingMixin, CampaignMixin, BankAccountMixin, forms.ModelForm):
+class PetitionUserForm_PetitionSignature(FieldNameMappingMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['event'].queryset = Event.objects.filter(slug__isnull=False, enable_signing_petitions=True).exclude(slug="")
+        self.fields['event'].required = True
         self.fields['gdpr_consent'].required = True
 
     class Meta:
         model = PetitionSignature
-        fields = ('event', 'public', 'gdpr_consent', 'money_account')
+        fields = ('event', 'public', 'gdpr_consent')
 
     FIELD_NAME_MAPPING = {
         'gdpr_consent': 'gdpr',
     }
+
+    def save(self, commit=True):
+        signature = super().save(commit=False)
+        signature.administrative_unit = signature.event.administrative_units.first()
+        if commit:
+            signature.save()
+        return signature
 
 
 class PetitionUserForm_DonorPaymentChannel(CampaignMixin, forms.ModelForm):
@@ -331,7 +344,7 @@ class RegularDarujmeUserForm(RegularUserForm):
 class PetitionUserForm(RegularUserForm):
     form_classes = OrderedDict([
         ('userprofile', PetitionUserForm_UserProfile),
-        ('userincampaign', PetitionUserForm_PetitionSignature),
+        ('petitionsignature', PetitionUserForm_PetitionSignature),
     ])
 
 
@@ -392,13 +405,12 @@ def generate_variable_symbol(dpch):
             raise ValidationError('OUT OF VS')
 
 
-def create_new_user_profile(form, regular):
-    new_user_objects = form.save(commit=False)
-    new_user_profile = new_user_objects['userprofile']
-    # Save new user instance
+def get_or_create_new_user_profile(form, regular):
     if hasattr(form.forms['userprofile'], 'email_used') and form.forms['userprofile'].email_used:
-        new_user_profile = UserProfile.objects.get(profileemail__email=form.forms['userprofile'].email_used)
+        new_user_profile = UserProfile.objects.get(profileemail__email=form.forms['userprofile'].cleaned_data['email'])
     else:
+        new_user_objects = form.save(commit=False)
+        new_user_profile = new_user_objects['userprofile']
         new_user_profile.save()
         ProfileEmail.objects.create(email=form.forms['userprofile'].cleaned_data['email'], user=new_user_profile, is_primary=True)
     if form.forms['userprofile'].cleaned_data['telephone']:
@@ -415,10 +427,10 @@ def create_new_payment_channel(form, source_type, new_user_profile, regular, sou
     else:
         data = form.clean()
         payment_channel, _ = DonorPaymentChannel.objects.get_or_create(
-                                                    user=new_user_profile,
-                                                    regular_payments='',
-                                                    money_account=data['userincampaign'].get('money_account'),
-                                                    event=data['userincampaign'].get('campaign'),
+            user=new_user_profile,
+            regular_payments='',
+            money_account=data['userincampaign'].get('money_account'),
+            event=data['userincampaign'].get('campaign'),
         )
     assert isinstance(payment_channel, DonorPaymentChannel), \
         "payment_channel shoud be DonnorPaymentChannel, but is %s" % type(payment_channel)
@@ -432,16 +444,15 @@ def create_new_payment_channel(form, source_type, new_user_profile, regular, sou
     return payment_channel
 
 
-def create_new_petition_signature(form, new_user_profile, regular):
-    new_user_objects = form.save(commit=False)
-    petition_signature = new_user_objects['userincampaign']
-    assert isinstance(petition_signature, PetitionSignature), \
-        "petition_signature shoud be PetitionSignature, but is %s" % type(petition_signature)
-    petition_signature.user = new_user_profile
-    petition_signature.save()
-
+def get_or_create_new_petition_signature(form, user):
+    new_petition_signature = form.save(commit=False)['petitionsignature']
+    new_petition_signature.user = user
+    try:
+        new_petition_signature.save()
+    except IntegrityError:
+        new_petition_signature = None
     cache.clear()
-    return petition_signature
+    return new_petition_signature
 
 
 class RegularView(FormView):
@@ -494,7 +505,7 @@ class RegularView(FormView):
         if user_profiles.exists():
             payment_channels = user_profiles.get().userchannels.filter(event__slug=event)
             if user_profiles.exists() and payment_channels.exists():
-                autocom.check(user_profiles=user_profiles, action='resent-data')
+                autocom.check(user_profiles=user_profiles, action='resent-data-' + self.request.POST['userincampaign-payment_type'])
                 user_data = {}
                 if 'recurringfrequency' in request.POST:
                     user_data['frequency'] = REGULAR_FREQUENCY_MAP[request.POST.get('recurringfrequency')]
@@ -513,7 +524,7 @@ class RegularView(FormView):
                 )
         new_user_response = super().post(request, *args, **kwargs)
         user_profiles = UserProfile.objects.filter(profileemail__email=email)
-        autocom.check(user_profiles=user_profiles, action='new-user')
+        autocom.check(user_profiles=user_profiles, action='new-user' + self.request.POST['userincampaign-payment_type'])
         return new_user_response
 
     def get_initial(self):
@@ -531,8 +542,9 @@ class RegularView(FormView):
         return initial
 
     def form_valid(self, form):
-        new_user_profile = create_new_user_profile(form, regular=None)
+        new_user_profile = get_or_create_new_user_profile(form, regular=None)
         payment_channel = create_new_payment_channel(form, 'regular', new_user_profile, regular=None, source_slug=self.source_slug)
+        new_user_profile.administrative_units.add(payment_channel.money_account.administrative_unit)
         return self.success_page(payment_channel)
 
     def form_invalid(self, form):
@@ -570,17 +582,23 @@ class RegularDarujmeView(RegularView):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class PetitionView(RegularView):
+class PetitionView(FormView):
     template_name = 'regular.html'
     form_class = PetitionUserForm
     success_template = 'thanks-darujme.html'
     success_url = 'petition-signatures'
+    source_slug = 'web'
 
     def form_valid(self, form):
-        new_user_profile = create_new_user_profile(form, regular=None)
-        create_new_petition_signature(form, new_user_profile, regular=None)
-        payment_channel = create_new_payment_channel(form, 'petition', new_user_profile, regular=None, source_slug=self.source_slug)
-        return self.success_page(payment_channel)
+        user = get_or_create_new_user_profile(form, regular=None)
+        petition_signature = get_or_create_new_petition_signature(form, user)
+        if petition_signature:
+            user.administrative_units.add(petition_signature.administrative_unit)
+            action = 'user-signature'
+        else:
+            action = 'user-signature-again'
+        autocom.check(UserProfile.objects.filter(id=user.id), action=action)
+        return super().form_valid(form)
 
 
 def donators(request):
@@ -713,7 +731,7 @@ class PetitionSignatures(View):
 
     def get(self, request, *args, **kwargs):
         event = get_object_or_404(Event, slug=kwargs['campaign_slug'], allow_statistics=True, enable_signing_petitions=True)
-        signatures = PetitionSignature.objects.filter(event=event, email_confirmed=True)
+        signatures = PetitionSignature.objects.filter(event=event, email_confirmed=True, public=True)
         signatures = signatures.order_by('-date')
         signatures = signatures.annotate(
             userprofile_first_name=Case(
@@ -805,14 +823,24 @@ class MailingFormSetView(SuccessMessageMixin, SesameUserMixin, UpdateWithInlines
     fields = ('send_mailing_lists',)
 
 
-class ConfirmEmailView(SesameUserMixin, View):
-
+class PetitionConfirmEmailView(SesameUserMixin, View):
     def get(self, *args, **kwargs):
-        user_in_campaign = UserInCampaign.objects.get(campaign__slug=kwargs['campaign_slug'], userprofile=self.get_object())
-        user_in_campaign.email_confirmed = True
-        user_in_campaign.save()
+        event = Event.objects.get(slug=kwargs['campaign_slug'])
+        signature = PetitionSignature.objects.get(event=event, user=self.get_object())
+        signature.email_confirmed = True
+        signature.save()
         cache.clear()
-        return redirect(user_in_campaign.campaign.email_confirmation_redirect, permanent=False)
+        return redirect(event.email_confirmation_redirect, permanent=False)
+
+
+class SendMailingListView(SesameUserMixin, View):
+    def get(self, request, *args, **kwargs):
+        unit = get_object_or_404(AdministrativeUnit, slug=kwargs['unit'])
+        user = self.get_object()
+        preference = user.preference_set.get(administrative_unit=unit)
+        preference.send_mailing_lists = False if kwargs['unsubscribe'] == 'unsubscribe' else True
+        preference.save()
+        return http.HttpResponse(f"{kwargs['unsubscribe']} was done")
 
 
 class PasswordResetView(View):

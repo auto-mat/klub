@@ -62,6 +62,11 @@ class BaseInteraction2(models.Model):
         null=True,
         blank=True,
     )
+    administrative_unit = models.ForeignKey(
+        AdministrativeUnit,
+        verbose_name=("administrative units"),
+        on_delete=models.CASCADE,
+    )
     created = models.DateTimeField(
         verbose_name=_("Date of creation"),
         auto_now_add=True,
@@ -102,12 +107,6 @@ class Interaction(WithAdminUrl, BaseInteraction2):
         help_text=("Type of interaction"),
         on_delete=models.CASCADE,
     )
-
-    administrative_unit = models.ForeignKey(
-        AdministrativeUnit,
-        verbose_name=("administrative units"),
-        on_delete=models.CASCADE,
-        )
     subject = models.CharField(
         verbose_name=("Subject"),
         help_text=("The topic of this communication"),
@@ -279,6 +278,9 @@ class Interaction(WithAdminUrl, BaseInteraction2):
 
 
 class PetitionSignature(BaseInteraction2):
+    class Meta:
+        unique_together = ('user', 'event')
+
     email_confirmed = models.BooleanField(
         verbose_name=_("Is confirmed via e-mail"),
         default=False,
@@ -290,10 +292,6 @@ class PetitionSignature(BaseInteraction2):
     public = models.BooleanField(
         verbose_name=_("Publish my name in the list of supporters/petitents of this campaign"),
         default=False,
-    )
-    date = models.DateTimeField(
-        verbose_name=_("Date of signature"),
-        null=True,
     )
 
 

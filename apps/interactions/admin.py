@@ -12,7 +12,7 @@ from import_export.widgets import ForeignKeyWidget
 from related_admin import RelatedFieldAdmin
 
 from .forms import InteractionInlineForm, InteractionInlineFormset
-from .models import Interaction, InteractionCategory, InteractionType, Result
+from .models import Interaction, InteractionCategory, InteractionType, PetitionSignature, Result
 
 
 @admin.register(InteractionType)
@@ -185,6 +185,11 @@ class InteractionAdmin(ImportExportMixin, RelatedFieldAdmin, admin.ModelAdmin):
 @admin.register(InteractionCategory)
 class InteractionCategoryAdmin(admin.ModelAdmin):
     pass
+
+
+@admin.register(PetitionSignature)
+class PetitionSignatureAdmin(admin.ModelAdmin):
+    list_display = ('user', 'event', 'created', 'email_confirmed', 'gdpr_consent')
 
 
 @admin.register(Result)
