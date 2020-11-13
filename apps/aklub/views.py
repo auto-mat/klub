@@ -33,7 +33,7 @@ from django.core.exceptions import PermissionDenied
 from django.core.mail import EmailMultiAlternatives
 from django.core.validators import MinLengthValidator, RegexValidator, ValidationError
 from django.db import IntegrityError
-from django.db.models import Case, CharField, Count, IntegerField, Q, Sum, Value, When
+from django.db.models import Case, Count, IntegerField, Q, Sum, When
 from django.db.models.functions import TruncMonth
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render, render_to_response
