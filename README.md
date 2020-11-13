@@ -53,7 +53,7 @@ Heroku
 ======
 
 ````
-heroku config:set BUILD_WITH_GEO_LIBRARIES=1
+heroku config:set BUILD_WITH_GEO_LIBRARIES=1 (DEPRICATED duben 2020) => nadále neni třeba
 ````
 
 Nejdřív musíš [povolit heroku.yml](https://devcenter.heroku.com/articles/buildpack-builds-heroku-yml)
