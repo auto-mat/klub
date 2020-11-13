@@ -2242,6 +2242,10 @@ class DonorPaymentChannel(ComputedFieldsModel):
         self.check_duplicate()
         return super().clean(*args, **kwargs)
 
+    def save(self, *args, **kwargs):
+        self.clean()  # run twice if save in admin (sadly)
+        super().save(*args, **kwargs)
+
 
 class NewUserManager(models.Manager):
     def get_queryset(self):
