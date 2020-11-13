@@ -504,7 +504,7 @@ class RegularView(FormView):
         user_profiles = UserProfile.objects.filter(profileemail__email=email)
         if user_profiles.exists():
             payment_channels = user_profiles.get().userchannels.filter(event__slug=event)
-            if user_profiles.exists() and payment_channels.exists():
+            if payment_channels.exists():
                 autocom.check(user_profiles=user_profiles, action='resent-data-' + self.request.POST['userincampaign-payment_type'])
                 user_data = {}
                 if 'recurringfrequency' in request.POST:
@@ -522,10 +522,16 @@ class RegularView(FormView):
                     user_data['frequency'],
                     True,
                 )
-        new_user_response = super().post(request, *args, **kwargs)
+        super().post(request, *args, **kwargs)
         user_profiles = UserProfile.objects.filter(profileemail__email=email)
         autocom.check(user_profiles=user_profiles, action='new-user' + self.request.POST['userincampaign-payment_type'])
-        return new_user_response
+        dpch = user_profiles.get().userchannels.filter(event__slug=event).first()
+        return self.success_page(
+            dpch,
+            dpch.regular_amount,
+            dpch.regular_frequency,
+            False,
+        )
 
     def get_initial(self):
         initial = super().get_initial()
