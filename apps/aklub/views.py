@@ -843,12 +843,16 @@ class MailingFormSetView(SuccessMessageMixin, SesameUserMixin, UpdateWithInlines
 
 class PetitionConfirmEmailView(SesameUserMixin, View):
     def get(self, *args, **kwargs):
-        event = Event.objects.get(slug=kwargs['campaign_slug'])
-        signature = PetitionSignature.objects.get(event=event, user=self.get_object())
-        signature.email_confirmed = True
-        signature.save()
-        cache.clear()
-        return redirect(event.email_confirmation_redirect, permanent=False)
+        event = get_object_or_404(Event, slug=kwargs['campaign_slug'])
+        user = self.get_object()
+        if user:
+            signature = PetitionSignature.objects.get(event=event, user=user)
+            signature.email_confirmed = True
+            signature.save()
+            cache.clear()
+            return redirect(event.email_confirmation_redirect, permanent=False)
+        else:
+            raise http.Http404
 
 
 class SendMailingListView(SesameUserMixin, View):
