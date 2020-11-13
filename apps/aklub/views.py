@@ -591,6 +591,7 @@ class RegisterWithoutPaymentView(FormView):
         unit = get_object_or_404(AdministrativeUnit, slug=self.kwargs['unit'])
         user = form.save(commit=True)
         user.administrative_units.add(unit)
+        autocom.check(UserProfile.objects.filter(id=user.id), action='new-user')
         return http.HttpResponse(_("Thanks for register!"))
 
 
@@ -743,35 +744,33 @@ class PetitionSignatures(View):
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
-        event = get_object_or_404(Event, slug=kwargs['campaign_slug'], allow_statistics=True, enable_signing_petitions=True)
-        signatures = PetitionSignature.objects.filter(event=event, email_confirmed=True, public=True)
-        signatures = signatures.order_by('-date')
-        signatures = signatures.annotate(
-            userprofile_first_name=Case(
-                When(public=True, then='user__userprofile__first_name'),
-                default=Value('------'),
-                output_field=CharField(),
-            ),
-            userprofile_last_name=Case(
-                When(public=True, then='user__userprofile__last_name'),
-                default=Value('------'),
-                output_field=CharField(),
-            ),
-            companyprofile_name=Case(
-                When(public=True, then='user__companyprofile__name'),
-                default=Value('------'),
-                output_field=CharField(),
-            ),
-        )
+        event = get_object_or_404(Event, slug=kwargs['campaign_slug'], allow_statistics=True)
+        signatures = PetitionSignature.objects.filter(event=event, email_confirmed=True, public=True).order_by('-created')
+
+        # signatures = signatures.annotate(
+        #     userprofile_first_name=Case(
+        #         When(public=True, then='user__userprofile__first_name'),
+        #         default=Value('------'),
+        #         output_field=CharField(),
+        #     ),
+        #     userprofile_last_name=Case(
+        #         When(public=True, then='user__userprofile__last_name'),
+        #         default=Value('------'),
+        #         output_field=CharField(),
+        #     ),
+        #     companyprofile_name=Case(
+        #         When(public=True, then='user__companyprofile__name'),
+        #         default=Value('------'),
+        #         output_field=CharField(),
+        #     ),
+        # )
+
         signatures = signatures.values(
-            'userprofile_first_name',
-            'userprofile_last_name',
-            'companyprofile_name',
-            'date',
+            'user__userprofile__first_name',
+            'user__userprofile__last_name',
+            'created',
         )
-        signatures = signatures[:100]
-        for signature in signatures:
-            signature['created'] = signature.pop('date')
+
         return JsonResponse(list(signatures), safe=False)
 
 
