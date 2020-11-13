@@ -524,7 +524,7 @@ class RegularView(FormView):
                 )
         super().post(request, *args, **kwargs)
         user_profiles = UserProfile.objects.filter(profileemail__email=email)
-        autocom.check(user_profiles=user_profiles, action='new-user' + self.request.POST['userincampaign-payment_type'])
+        autocom.check(user_profiles=user_profiles, action='new-user-' + self.request.POST['userincampaign-payment_type'])
         dpch = user_profiles.get().userchannels.filter(event__slug=event).first()
         return self.success_page(
             dpch,
