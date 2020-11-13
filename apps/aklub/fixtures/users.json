@@ -421,21 +421,23 @@
     },
     {
         "fields": {
-            "user": 2978,
+            "user": 2979,
             "event": 2,
             "public": true,
             "email_confirmed": true,
-            "date": "2016-12-16T18:22:30.128"
+            "created": "2016-12-16T18:22:30.128",
+            "administrative_unit_id": 1
         },
         "model": "interactions.petitionsignature",
         "pk": 2978
     },
     {
         "fields": {
-            "user": 2978,
+            "user": 3,
             "event": 2,
             "email_confirmed": true,
-            "date": "2015-12-16T18:22:30.128"
+            "created": "2015-12-16T18:22:30.128",
+            "administrative_unit_id": 1
         },
         "model": "interactions.petitionsignature",
         "pk": 2979
@@ -445,7 +447,8 @@
             "user": 2978,
             "event": 2,
             "email_confirmed": true,
-            "date": "2017-12-16T18:22:30.128"
+            "created": "2017-12-16T18:22:30.128",
+            "administrative_unit_id": 1
         },
         "model": "interactions.petitionsignature",
         "pk": 3
