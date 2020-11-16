@@ -511,8 +511,8 @@ WEB_URL = os.environ.get('WEB_URL', '')
 SITE_NAME = os.environ.get('SITE_NAME', '')
 
 # paid content
-SUM_LAST_MONTH_PAYMENTS = os.environ.get('SUM_LAST_MONTH_PAYMENTS', 0)
-SUM_LAST_YEAR_PAYMENTS = os.environ.get('SUM_LAST_YEAR_PAYMENTS', 0)
+SUM_LAST_MONTH_PAYMENTS = int(os.environ.get('SUM_LAST_MONTH_PAYMENTS', 0))
+SUM_LAST_YEAR_PAYMENTS = int(os.environ.get('SUM_LAST_YEAR_PAYMENTS', 0))
 
 
 # django admin action ignored_fields
