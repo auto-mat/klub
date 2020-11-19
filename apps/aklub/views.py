@@ -850,7 +850,10 @@ class PetitionConfirmEmailView(SesameUserMixin, View):
             signature.email_confirmed = True
             signature.save()
             cache.clear()
-            return redirect(event.email_confirmation_redirect, permanent=False)
+            if event.email_confirmation_redirect:
+                return redirect(event.email_confirmation_redirect, permanent=False)
+            else:
+                return http.HttpResponse(_('Signature was confirmed'))
         else:
             raise http.Http404
 
