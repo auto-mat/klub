@@ -48,35 +48,322 @@ class ClearCacheMixin(object):
     MANAGERS=(('Manager', 'manager@test.com'),),
 )
 class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
-    fixtures = ['conditions', 'users', 'communications', 'dashboard_stats']
+    #fixtures = ['conditions', 'users', 'communications', 'dashboard_stats']
 
     def setUp(self):
         super().setUp()
         self.client.force_login(self.superuser)
-
-        au = mommy.make(
+        self.unit = mommy.make(
             "aklub.AdministrativeUnit",
             name='test',
+            slug="test",
         )
-        mommy.make(
+        self.event = mommy.make(
+            'aklub.event',
+            administrative_units=[self.unit, ],
+            slug='klub',
+            enable_registration=True,
+        )
+        self.money = mommy.make(
             'aklub.BankAccount',
-            administrative_unit=au,
+            administrative_unit=self.unit,
             bank_account_number='12345/123',
             bank_account='test',
             slug='12345123',
-
         )
 
-    regular_post_data = {
-        'userprofile-email': 'test@test.cz',
-        'userprofile-first_name': 'Testing',
-        'userprofile-last_name': 'User',
-        'userprofile-telephone': 111222333,
-        'userincampaign-regular_frequency': 'monthly',
-        'userincampaign-regular_amount': '321',
-        'userincampaign-campaign': 'klub',
-        'userincampaign-money_account': '12345123',
-    }
+        # check if autocom is running.
+        inter_category = mommy.make('interactions.interactioncategory', category='emails')
+        inter_type = mommy.make('interactions.interactiontype', category=inter_category, send_email=True)
+
+        named_cond = mommy.make('flexible_filter_conditions.NamedCondition', name="some-random-name")
+        condition = mommy.make('flexible_filter_conditions.Condition', operation="and", negate=False, named_condition=named_cond)
+        self.term_cond = mommy.make(
+            'flexible_filter_conditions.TerminalCondition',
+            variable="action",
+            operation="=",
+            value="some-random-value",
+            condition=condition,
+        )
+        mommy.make(
+            "aklub.AutomaticCommunication",
+            method_type=inter_type,
+            condition=named_cond,
+            event=self.event,
+            template='Template',
+            subject='It works!',
+            only_once=True,
+            dispatch_auto=True,
+            administrative_unit=self.unit,
+        )
+
+        self.regular_post_data = {
+            'userprofile-email': 'test@test.cz',
+            'userprofile-first_name': 'Testing',
+            'userprofile-last_name': 'User',
+            'userprofile-telephone': 111222333,
+            'userincampaign-regular_frequency': 'monthly',
+            'userincampaign-regular_amount': '321',
+            'userincampaign-event': 'klub',
+            'userincampaign-money_account': '12345123',
+            'userincampaign-payment_type': 'bank-transfer',
+        }
+
+        self.post_data_darujme = {
+            "recurringfrequency": "28",  # mothly
+            "ammount": "200",
+            "payment_data____jmeno": "test_name",
+            "payment_data____prijmeni": "test_surname",
+            "payment_data____email": "test@email.cz",
+            "payment_data____telefon": "123456789",
+            "userincampaign-event": 'klub',
+            "userincampaign-money_account": '12345123',
+            "userincampaign-payment_type": "bank-transfer",
+        }
+        self.register_withotu_payment = {
+            "age_group": "2010",
+            "sex": "male",
+            "first_name": "tester",
+            "last_name": "testing",
+            "telephone": "123456789",
+            "email": "test@test.com",
+            "street": "woah",
+            "city": "memer",
+            "zip_code": "987 00",
+        }
+
+    def test_regular_new_user_and_dpch(self):
+        """
+        regular form create new data and sent autocom new-user-bank-transfer
+        """
+        # autocom set up
+        self.term_cond.value = 'new-user-bank-transfer'
+        self.term_cond.save()
+
+        address = reverse('regular')
+        response = self.client.get(address)
+        self.assertContains(
+            response,
+            '<input id="id_userprofile-first_name" maxlength="30" name="userprofile-first_name" type="text" required />',
+            html=True,
+        )
+
+        response = self.client.post(address, self.regular_post_data, follow=True)
+        self.assertContains(response, '<h1>Děkujeme!</h1>', html=True)
+        # created data
+        email = ProfileEmail.objects.get(email="test@test.cz")
+        self.assertEqual(email.user.get_full_name(), "Testing User")
+        self.assertEqual(email.user.username, "test1")
+        self.assertEqual(email.user.telephone_set.get().telephone, '111222333')
+        new_channel = DonorPaymentChannel.objects.get(user=email.user)
+        self.assertEqual(new_channel.regular_amount, 321)
+        self.assertEqual(new_channel.regular_payments, 'regular')
+        self.assertEqual(new_channel.event.slug, self.event.slug)
+        self.assertEqual(new_channel.money_account.slug, self.money.slug)
+        # autocom send!
+        self.assertEqual(len(mail.outbox), 1)
+
+    def test_regular_existing_email_and_dpch(self):
+        """
+        regular form update data and sent autocom resent-data-bank-transfer
+        """
+        # autocom set up
+        self.term_cond.value = 'resent-data-bank-transfer'
+        self.term_cond.save()
+        user = mommy.make('aklub.userprofile')
+        mommy.make('aklub.profileemail', email='test@test.cz', user=user, is_primary=True)
+        dpch = mommy.make('aklub.donorpaymentchannel', event=self.event, money_account=self.money, user=user)
+        address = reverse('regular')
+        response = self.client.post(address, self.regular_post_data, follow=False)
+        self.assertContains(
+            response,
+            '<h1>Děkujeme!</h1>',
+            html=True,
+        )
+        self.assertEqual(len(mail.outbox), 1)
+        dpch.refresh_from_db()
+        self.assertEqual(dpch.regular_amount, int(self.regular_post_data['userincampaign-regular_amount']))
+        self.assertEqual(dpch.regular_payments, 'regular')
+        self.assertEqual(dpch.event, self.event)
+        self.assertEqual(dpch.money_account, self.money)
+
+    def test_regular_darujme_new_user_and_dpch(self):
+        """
+        testing ajax response and saved data
+        """
+        self.term_cond.value = 'new-user-bank-transfer'
+        self.term_cond.save()
+
+        address = reverse('regular-darujme')
+        response = self.client.post(address, self.post_data_darujme)
+        self.assertContains(response, '<tr><th>Jméno: </th><td>test_surname test_name</td></tr>', html=True)
+        self.assertContains(response, '<tr><th>Číslo účtu: </th><td>12345/123</td></tr>', html=True)
+        self.assertContains(response, '<tr><th>Email: </th><td>test@email.cz</td></tr>', html=True)
+        self.assertContains(response, '<tr><th>Částka: </th><td>200 Kč</td></tr>', html=True)
+        self.assertContains(response, '<tr><th>Frekvence: </th><td>Měsíčně</td></tr>', html=True)
+        self.assertContains(response, '<tr><th>Pravidelné platby: </th><td>Pravidelné platby</td></tr>', html=True)
+        email = ProfileEmail.objects.get(email="test@email.cz")
+        new_channel = DonorPaymentChannel.objects.get(user=email.user)
+        self.assertEqual(new_channel.regular_amount, int(self.post_data_darujme['ammount']))
+        self.assertEqual(new_channel.regular_payments, 'regular')
+        self.assertEqual(new_channel.event, self.event)
+        self.assertEqual(new_channel.money_account, self.money)
+
+        self.assertEqual(len(mail.outbox), 1)
+
+    def test_regular_darujme_onetime(self):
+        """
+        testing ajax response in onetime
+        """
+        address = reverse('regular-darujme')
+        post_data_darujme_onetime = self.post_data_darujme.copy()
+        post_data_darujme_onetime["recurringfrequency"] = ""
+        response = self.client.post(address, post_data_darujme_onetime)
+        self.assertContains(response, '<tr><th>Jméno: </th><td>test_surname test_name</td></tr>', html=True)
+        self.assertContains(response, '<tr><th>Číslo účtu: </th><td>12345/123</td></tr>', html=True)
+        self.assertContains(response, '<tr><th>Email: </th><td>test@email.cz</td></tr>', html=True)
+        self.assertContains(response, '<tr><th>Částka: </th><td>200 Kč</td></tr>', html=True)
+        self.assertContains(response, '<tr><th>Frekvence: </th><td>Jednorázově</td></tr>', html=True)
+        self.assertContains(response, '<tr><th>Pravidelné platby: </th><td>Nemá pravidelné platby</td></tr>', html=True)
+
+    def test_regular_darujme_existing_user_and_different_dpch(self):
+        """
+        testing ajax user has different DPCH, he is still able to register to new event """
+        self.term_cond.value = 'new-user-bank-transfer'
+        self.term_cond.save()
+
+        address = reverse('regular-darujme')
+        user = mommy.make('aklub.userprofile', first_name='test_name', last_name='test_surname')
+        mommy.make('aklub.profileemail', email='test@email.cz', user=user, is_primary=True)
+        event = mommy.make('aklub.event', administrative_units=[self.unit, ])
+        mommy.make('aklub.donorpaymentchannel', event=event, money_account=self.money, user=user)
+
+        response = self.client.post(address, self.post_data_darujme)
+
+        self.assertContains(response, '<h1>Děkujeme!</h1>', html=True)
+        self.assertContains(response, '<tr><th>Jméno: </th><td>test_surname test_name</td></tr>', html=True)
+        self.assertContains(response, '<tr><th>Číslo účtu: </th><td>12345/123</td></tr>', html=True)
+        self.assertContains(response, '<tr><th>Email: </th><td>test@email.cz</td></tr>', html=True)
+        self.assertContains(response, '<tr><th>Částka: </th><td>200 Kč</td></tr>', html=True)
+        self.assertContains(response, '<tr><th>Frekvence: </th><td>Měsíčně</td></tr>', html=True)
+        self.assertContains(response, '<tr><th>Pravidelné platby: </th><td>Pravidelné platby</td></tr>', html=True)
+
+        self.assertEqual(user.userchannels.count(), 2)
+        new_channel = user.userchannels.last()
+        self.assertEqual(new_channel.regular_amount, int(self.post_data_darujme['ammount']))
+        self.assertEqual(new_channel.regular_payments, 'regular')
+        self.assertEqual(new_channel.event, self.event)
+        self.assertEqual(new_channel.money_account, self.money)
+
+        self.assertEqual(len(mail.outbox), 1)
+
+    def test_regular_wp(self):
+        """
+        form testing data are saved new user and new dpch
+        """
+        address = reverse('regular-wp')
+        response = self.client.get(address)
+        self.assertContains(
+            response,
+            '<input class=" form-control" id="id_userprofile-first_name" maxlength="30" '
+            'name="userprofile-first_name" type="text" required />',
+            html=True,
+        )
+
+        response = self.client.post(address, self.regular_post_data, follow=True)
+        self.assertContains(response, '<h1>Děkujeme!</h1>', html=True)
+
+        email = ProfileEmail.objects.get(email="test@test.cz")
+        self.assertEqual(email.user.get_full_name(), "Testing User")
+        self.assertEqual(email.user.username, "test1")
+        self.assertEqual(email.user.telephone_set.get().telephone, '111222333')
+        new_channel = DonorPaymentChannel.objects.get(user=email.user)
+
+        self.assertEqual(new_channel.regular_amount, 321)
+        self.assertEqual(new_channel.regular_payments, 'regular')
+        self.assertEqual(new_channel.event.slug, self.event.slug)
+        self.assertEqual(new_channel.money_account.slug, self.money.slug)
+
+    def test_regular_dpnk(self):
+        """
+        register new user => create user and donor payment channel
+        """
+        self.term_cond.value = 'new-user-bank-transfer'
+        self.term_cond.save()
+
+        address = "%s?firstname=Uest&surname=Tser&email=uest.tser@email.cz&telephone=1211221" % reverse('regular-dpnk')
+        response = self.client.get(address)
+        self.assertContains(
+            response,
+            '<input class=" form-control" id="id_userprofile-first_name" maxlength="30" '
+            'name="userprofile-first_name" type="text" required value="Uest" />',
+            html=True,
+        )
+        self.assertContains(
+            response,
+            '<input class=" form-control" id="id_userprofile-last_name" maxlength="%s" '
+            'name="userprofile-last_name" type="text" required value="Tser" />' % (150 if django.VERSION >= (2, 0) else 30),
+            html=True,
+        )
+        self.assertContains(
+            response,
+            '<input class=" form-control" id="id_userprofile-telephone" maxlength="30" '
+            'name="userprofile-telephone" type="text" required value="1211221" />',
+            html=True,
+        )
+        self.assertContains(
+            response,
+            '<input class=" form-control" id="id_userprofile-email" name="userprofile-email" type="email" '
+            'required value="uest.tser@email.cz" />',
+            html=True,
+        )
+
+        response = self.client.post(address, self.regular_post_data, follow=True)
+        self.assertContains(response, '<h5>Děkujeme!</h5>', html=True)
+
+        self.assertEqual(len(mail.outbox), 1)
+
+        email = ProfileEmail.objects.get(email="test@test.cz")
+        self.assertEqual(email.user.get_full_name(), "Testing User")
+        self.assertEqual(email.user.username, "test1")
+        self.assertEqual(email.user.telephone_set.get().telephone, '111222333')
+        new_channel = DonorPaymentChannel.objects.get(user=email.user)
+
+        self.assertEqual(new_channel.regular_amount, 321)
+        self.assertEqual(new_channel.regular_payments, 'regular')
+        self.assertEqual(new_channel.event.slug, self.event.slug)
+        self.assertEqual(new_channel.money_account.slug, self.money.slug)
+
+    def test_register_without_payment(self):
+        """
+        register => to receive new and so (dont want to pay)
+        """
+        address = reverse('register-withou-payment', kwargs={'unit': self.unit.slug})
+        self.register_withotu_payment = {
+            "age_group": "2010",
+            "sex": "male",
+            "first_name": "tester",
+            "last_name": "testing",
+            "telephone": "123456789",
+            "email": "test@test.com",
+            "street": "woah",
+            "city": "memer",
+            "zip_code": "987 00",
+        }
+        response = self.client.post(address, self.register_withotu_payment)
+        self.assertTrue(response.status_code, 200)
+        user = ProfileEmail.objects.get(email="test@test.com").user
+        self.assertEqual(user.first_name, self.register_withotu_payment['first_name'])
+        self.assertEqual(user.last_name, self.register_withotu_payment['last_name'])
+        self.assertEqual(user.age_group, int(self.register_withotu_payment['age_group']))
+        self.assertEqual(user.sex, self.register_withotu_payment['sex'])
+        self.assertEqual(user.street, self.register_withotu_payment['street'])
+        self.assertEqual(user.city, self.register_withotu_payment['city'])
+        self.assertEqual(user.zip_code, self.register_withotu_payment['zip_code'])
+        self.assertEqual(user.telephone_set.get().telephone, self.register_withotu_payment['telephone'])
+
+        self.assertEqual(user.userchannels.count(), 0)
+
 
     def test_campaign_statistics(self):
         address = reverse('campaign-statistics', kwargs={'campaign_slug': 'klub'})
@@ -180,341 +467,12 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
             ],
         )
 
-    def test_regular_existing_email(self):
-        address = reverse('regular')
-        regular_post_data = self.regular_post_data.copy()
-        regular_post_data['userprofile-email'] = 'test.user@email.cz'
-        response = self.client.post(address, regular_post_data, follow=False)
-        self.assertContains(
-            response,
-            '<h1>Děkujeme!</h1>',
-            html=True,
-        )
 
-        self.assertEqual(len(mail.outbox), 2)
-        msg = mail.outbox[0]
-        self.assertEqual(msg.recipients(), ['test.user@email.cz', 'kp@auto-mat.cz'])
-        self.assertEqual(msg.subject, 'Resending data')
-        self.assertEqual(
-            msg.body,
-            'Resending data to Jméno: Test Příjmení: User Ulice:  Město: Praha 4 PSC:  E-mail: test.user@email.cz Telefon: ',
-        )
-        msg1 = mail.outbox[1]
-        self.assertEqual(msg1.recipients(), ['manager@test.com'])
-        self.assertEqual(msg1.subject, '[Django] Opakovaná registrace')
-        self.assertEqual(
-            msg1.body,
-            'Repeated registration for email test.user@email.cz\n'
-            'name: Testing\nsurname: User\nfrequency: monthly\ntelephone: 111222333\namount: 321',
-        )
 
-    def test_darujme_existing_email_different_campaign(self):
-        """ Test, that if the user exists in different campaign, he is able to register """
-        address = reverse('regular-darujme')
-        foo_user = mommy.make(
-            'aklub.UserProfile',
-            first_name="Foo",
-            last_name='Duplabar',
-        )
-        mommy.make(
-            'aklub.ProfileEmail',
-            email='test@email.cz',
-            user=foo_user,
-            is_primary=True,
-        )
-        au = mommy.make(
-            'aklub.AdministrativeUnit',
-            name='test',
-        )
-        bc = mommy.make(
-            'aklub.BankAccount',
-            bank_account="0000",
-            administrative_unit=au,
-        )
-        donor_payment_channel = mommy.make(
-            "aklub.DonorPaymentChannel",
-            money_account=bc,
-            event__id=1,
-            user=foo_user,
-        )
-        response = self.client.post(address, self.post_data_darujme, follow=False)
-        self.assertContains(
-            response,
-            '<h1>Děkujeme!</h1>',
-            html=True,
-        )
-        self.assertEqual(len(mail.outbox), 2)
-        msg = mail.outbox[0]
-        self.assertEqual(msg.recipients(), ['test@email.cz', 'kp@auto-mat.cz'])
-        self.assertEqual(msg.subject, 'New user')
-        self.assertEqual(
-            msg.body,
-            'New user has been created Jméno: Foo Příjmení: Duplabar Ulice:  Město:  PSC:  E-mail: test@email.cz Telefon: ',
-        )
-        self.assertEqual(donor_payment_channel.user.last_name, 'Duplabar')
-        self.assertEqual(donor_payment_channel.user.userchannels.count(), 2)
 
-    def test_regular_dpnk(self):
-        mommy.make("Event", slug="dpnk")
-        address = "%s?firstname=Uest&surname=Tser&email=uest.tser@email.cz&telephone=1211221" % reverse('regular-dpnk')
-        response = self.client.get(address)
-        self.assertContains(
-            response,
-            '<input class=" form-control" id="id_userprofile-first_name" maxlength="30" '
-            'name="userprofile-first_name" type="text" required value="Uest" />',
-            html=True,
-        )
-        self.assertContains(
-            response,
-            '<input class=" form-control" id="id_userprofile-last_name" maxlength="%s" '
-            'name="userprofile-last_name" type="text" required value="Tser" />' % (150 if django.VERSION >= (2, 0) else 30),
-            html=True,
-        )
-        self.assertContains(
-            response,
-            '<input class=" form-control" id="id_userprofile-telephone" maxlength="30" '
-            'name="userprofile-telephone" type="text" required value="1211221" />',
-            html=True,
-        )
-        self.assertContains(
-            response,
-            '<input class=" form-control" id="id_userprofile-email" name="userprofile-email" type="email" '
-            'required value="uest.tser@email.cz" />',
-            html=True,
-        )
 
-        response = self.client.post(address, self.regular_post_data, follow=True)
-        self.assertContains(response, '<h5>Děkujeme!</h5>', html=True)
 
-        self.assertEqual(len(mail.outbox), 1)
-        msg = mail.outbox[0]
-        self.assertEqual(msg.recipients(), ['test@test.cz', 'kp@auto-mat.cz'])
-        self.assertEqual(msg.subject, 'New user')
-        self.assertEqual(
-            msg.body,
-            'New user has been created Jméno: Testing Příjmení: User Ulice:  Město:  PSC:  E-mail: test@test.cz Telefon: 111222333',
-        )
 
-        self.assertEqual(UserProfile.objects.get(email="test@test.cz").get_full_name(), "Testing User")
-        self.assertEqual(UserProfile.objects.get(email="test@test.cz").username, "test4")
-        self.assertEqual(UserProfile.objects.get(email="test@test.cz").telephone_set.get().telephone, '111222333')
-        new_channel = DonorPaymentChannel.objects.get(user__email="test@test.cz")
-        self.assertEqual(new_channel.regular_amount, 321)
-        self.assertEqual(new_channel.regular_payments, 'regular')
-        self.assertEqual(new_channel.regular_frequency, 'monthly')
-
-    def test_regular(self):
-        address = reverse('regular')
-        response = self.client.get(address)
-        self.assertContains(
-            response,
-            '<input id="id_userprofile-first_name" maxlength="30" name="userprofile-first_name" type="text" required />',
-            html=True,
-        )
-        response = self.client.post(address, self.regular_post_data, follow=True)
-        self.assertContains(response, '<h1>Děkujeme!</h1>', html=True)
-        email = ProfileEmail.objects.get(email="test@test.cz")
-        self.assertEqual(email.user.get_full_name(), "Testing User")
-        self.assertEqual(email.user.username, "test4")
-        self.assertEqual(email.user.telephone_set.get().telephone, '111222333')
-        new_channel = DonorPaymentChannel.objects.get(user=email.user)
-        self.assertEqual(new_channel.regular_amount, 321)
-        self.assertEqual(new_channel.regular_payments, 'regular')
-        self.assertEqual(new_channel.event.slug, 'klub')
-        self.assertEqual(new_channel.money_account.administrative_unit.name, 'test')
-
-    post_data_darujme = {
-        "recurringfrequency": "28",
-        "ammount": "200",
-        "payment_data____jmeno": "test_name",
-        "payment_data____prijmeni": "test_surname",
-        "payment_data____email": "test@email.cz",
-        "payment_data____telefon": "123456789",
-        "transaction_type": "2",
-        "userincampaign-campaign": 'klub',
-        "userincampaign-money_account": '12345123',
-    }
-
-    def test_regular_darujme(self):
-        address = reverse('regular-darujme')
-        response = self.client.post(address, self.post_data_darujme)
-        self.assertContains(response, '<tr><th>Jméno: </th><td>test_surname test_name</td></tr>', html=True)
-        self.assertContains(response, '<tr><th>Číslo účtu: </th><td>2400063333 / 2010</td></tr>', html=True)
-        self.assertContains(response, '<tr><th>Email: </th><td>test@email.cz</td></tr>', html=True)
-        self.assertContains(response, '<tr><th>Částka: </th><td>200 Kč</td></tr>', html=True)
-        self.assertContains(response, '<tr><th>Frekvence: </th><td>Měsíčně</td></tr>', html=True)
-        self.assertContains(response, '<tr><th>Pravidelné platby: </th><td>Pravidelné platby</td></tr>', html=True)
-        email = ProfileEmail.objects.get(email="test@email.cz")
-        new_channel = DonorPaymentChannel.objects.get(user=email.user)
-        self.assertEqual(new_channel.regular_amount, 200)
-        self.assertEqual(new_channel.regular_payments, 'regular')
-        self.assertEqual(new_channel.event.slug, 'klub')
-        self.assertEqual(new_channel.money_account.administrative_unit.name, 'test')
-
-    def test_regular_darujme_ajax(self):
-        address = reverse('regular-darujme')
-        response = self.client.post(address, self.post_data_darujme, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-        payment_channel = DonorPaymentChannel.objects.get(user__email="test@email.cz")
-        self.assertJSONEqual(
-            response.content.decode(),
-            {
-                'account_number': '2400063333 / 2010',
-                'variable_symbol': payment_channel.VS,
-                'amount': 200,
-                'email': 'test@email.cz',
-                'frequency': 'monthly',
-                'repeated_registration': False,
-                'valid': True,
-                'addressment': 'Test_Name',
-            },
-        )
-        new_channel = DonorPaymentChannel.objects.get(user__email="test@email.cz")
-        self.assertEqual(new_channel.regular_amount, 200)
-        self.assertEqual(new_channel.regular_payments, 'regular')
-
-    post_data_darujme_onetime = post_data_darujme.copy()
-    post_data_darujme_onetime["recurringfrequency"] = ""
-
-    def test_regular_darujme_onetime(self):
-        address = reverse('regular-darujme')
-        response = self.client.post(address, self.post_data_darujme_onetime)
-        self.assertContains(response, '<tr><th>Jméno: </th><td>test_surname test_name</td></tr>', html=True)
-        self.assertContains(response, '<tr><th>Číslo účtu: </th><td>2400063333 / 2010</td></tr>', html=True)
-        self.assertContains(response, '<tr><th>Email: </th><td>test@email.cz</td></tr>', html=True)
-        self.assertContains(response, '<tr><th>Částka: </th><td>200 Kč</td></tr>', html=True)
-        self.assertContains(response, '<tr><th>Frekvence: </th><td>Jednorázově</td></tr>', html=True)
-        self.assertContains(response, '<tr><th>Pravidelné platby: </th><td>Nemá pravidelné platby</td></tr>', html=True)
-
-    def test_regular_darujme_ajax_onetime(self):
-        address = reverse('regular-darujme')
-        response = self.client.post(address, self.post_data_darujme_onetime, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-        payment_channel = DonorPaymentChannel.objects.get(user__email="test@email.cz")
-        self.assertJSONEqual(
-            response.content.decode(),
-            {
-                'account_number': '2400063333 / 2010',
-                'variable_symbol': payment_channel.VS,
-                'amount': 200,
-                'email': 'test@email.cz',
-                'frequency': None,
-                'repeated_registration': False,
-                'valid': True,
-                'addressment': 'Test_Name',
-            },
-        )
-
-    post_data_darujme_known_email = post_data_darujme.copy()
-    post_data_darujme_known_email["payment_data____email"] = "test.user@email.cz"
-
-    def test_regular_darujme_known_email(self):
-        address = reverse('regular-darujme')
-        response = self.client.post(address, self.post_data_darujme_known_email)
-        self.assertContains(response, '<h1>Děkujeme!</h1>', html=True)
-        self.assertContains(response, '<tr><th>Jméno: </th><td>User Test</td></tr>', html=True)
-        self.assertContains(response, '<tr><th>Číslo účtu: </th><td>2400063333 / 2010</td></tr>', html=True)
-        self.assertContains(response, '<tr><th>Variabilní symbol: </th><td>120127010</td></tr>', html=True)
-        self.assertContains(response, '<tr><th>Email: </th><td>test.user@email.cz</td></tr>', html=True)
-        self.assertContains(response, '<tr><th>Částka: </th><td>100 Kč</td></tr>', html=True)
-        self.assertContains(response, '<tr><th>Frekvence: </th><td>Měsíčně</td></tr>', html=True)
-        self.assertContains(response, '<tr><th>Pravidelné platby: </th><td>Pravidelné platby</td></tr>', html=True)
-        self.assertEqual(len(mail.outbox), 2)
-        msg = mail.outbox[0]
-        self.assertEqual(msg.recipients(), ['test.user@email.cz', 'kp@auto-mat.cz'])
-        self.assertEqual(msg.subject, 'Resending data')
-        self.assertEqual(
-            msg.body,
-            'Resending data to Jméno: Test Příjmení: User Ulice:  Město: Praha 4 PSC:  E-mail: test.user@email.cz Telefon: ',
-        )
-        msg1 = mail.outbox[1]
-        self.assertEqual(msg1.recipients(), ['manager@test.com'])
-        self.assertEqual(msg1.subject, '[Django] Opakovaná registrace')
-        self.assertEqual(
-            msg1.body,
-            'Repeated registration for email test.user@email.cz\nname: test_name\n'
-            'surname: test_surname\nfrequency: monthly\ntelephone: 123456789\namount: 200',
-        )
-
-    def test_regular_darujme_known_email_ajax(self):
-        address = reverse('regular-darujme')
-        response = self.client.post(address, self.post_data_darujme_known_email, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-        self.assertJSONEqual(
-            response.content.decode(),
-            {
-                'account_number': '2400063333 / 2010',
-                'variable_symbol': '120127010',
-                'amount': '200',
-                'email': 'test.user@email.cz',
-                'frequency': 'monthly',
-                'repeated_registration': True,
-                'valid': True,
-                'addressment': 'Zbyněku',
-            },
-        )
-
-        self.assertEqual(len(mail.outbox), 2)
-        msg = mail.outbox[0]
-        self.assertEqual(msg.recipients(), ['test.user@email.cz', 'kp@auto-mat.cz'])
-        self.assertEqual(msg.subject, 'Resending data')
-        self.assertEqual(
-            msg.body,
-            'Resending data to Jméno: Test Příjmení: User Ulice:  Město: Praha 4 PSC:  E-mail: test.user@email.cz Telefon: ',
-        )
-        msg1 = mail.outbox[1]
-        self.assertEqual(msg1.recipients(), ['manager@test.com'])
-        self.assertEqual(msg1.subject, '[Django] Opakovaná registrace')
-        self.assertEqual(
-            msg1.body,
-            'Repeated registration for email test.user@email.cz\nname: test_name\n'
-            'surname: test_surname\nfrequency: monthly\ntelephone: 123456789\namount: 200',
-        )
-
-    post_data_short_telephone = post_data_darujme.copy()
-    post_data_short_telephone["payment_data____telefon"] = "12345"
-
-    def test_regular_darujme_short_telephone(self):
-        address = reverse('regular-darujme')
-        response = self.client.post(address, self.post_data_short_telephone)
-        self.assertContains(response, '<ul class="errorlist"><li>Tato hodnota má mít nejméně 9 znaků (nyní má 5).</li></ul>', html=True)
-        self.assertContains(
-            response,
-            '<li><label for="id_recurringfrequency_0"><input checked="checked" id="id_recurringfrequency_0" '
-            'name="recurringfrequency" type="radio" value="28" /> Měsíčně</label></li>',
-            html=True,
-        )
-        self.assertContains(
-            response,
-            '<input id="id_payment_data____telefon" maxlength="30" name="payment_data____telefon" type="text" value="12345" required>',
-            html=True,
-        )
-
-    def test_regular_darujme_short_telephone_ajax(self):
-        address = reverse('regular-darujme')
-        response = self.client.post(address, self.post_data_short_telephone, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-        self.assertEqual(response.status_code, 400)
-        self.assertJSONEqual(
-            response.content.decode(),
-            {"payment_data____telefon": ["Tato hodnota má mít nejméně 9 znaků (nyní má 5)."]},
-        )
-
-    def test_regular_wp(self):
-        address = reverse('regular-wp')
-        response = self.client.get(address)
-        self.assertContains(
-            response,
-            '<input class=" form-control" id="id_userprofile-first_name" maxlength="30" '
-            'name="userprofile-first_name" type="text" required />',
-            html=True,
-        )
-
-        response = self.client.post(address, self.regular_post_data, follow=True)
-        self.assertContains(response, '<h1>Děkujeme!</h1>', html=True)
-
-        self.assertEqual(UserProfile.objects.get(email="test@test.cz").get_full_name(), "Testing User")
-        self.assertEqual(UserProfile.objects.get(email="test@test.cz").username, "test4")
-        self.assertEqual(UserProfile.objects.get(email="test@test.cz").telephone_set.get().telephone, '111222333')
-        new_channel = DonorPaymentChannel.objects.get(user__email="test@test.cz")
-        self.assertEqual(new_channel.regular_amount, 321)
-        self.assertEqual(new_channel.regular_payments, 'regular')
 
     def test_sign_petition_no_gdpr_consent(self):
         address = reverse('petition')
