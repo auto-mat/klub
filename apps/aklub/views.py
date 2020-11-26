@@ -33,13 +33,11 @@ from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.core.mail import EmailMultiAlternatives
 from django.core.validators import MinLengthValidator, RegexValidator, ValidationError
-from django.db import IntegrityError
 from django.db.models import Case, Count, IntegerField, Q, Sum, When
 from django.db.models.functions import TruncMonth
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render, render_to_response
 from django.template.loader import render_to_string
-from django.urls import reverse_lazy
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.utils.encoding import force_bytes
@@ -50,7 +48,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
 from django.views.generic.edit import FormView
 
-from extra_views import InlineFormSet, UpdateWithInlinesView
+from extra_views import InlineFormSet
 
 from interactions.models import PetitionSignature
 
@@ -58,7 +56,7 @@ from sesame.backends import ModelBackend
 
 from . import autocom
 from .models import (
-    AdministrativeUnit, BankAccount, DonorPaymentChannel, Event, MoneyAccount, Payment,
+    AdministrativeUnit, BankAccount, DonorPaymentChannel, Event, MoneyAccount, Payment, Preference,
     Profile, ProfileEmail, Telephone, UserInCampaign,
     UserProfile,
 )
@@ -300,6 +298,7 @@ class PetitionUserForm_PetitionSignature(FieldNameMappingMixin, forms.ModelForm)
         super().__init__(*args, **kwargs)
         self.fields['event'].queryset = Event.objects.filter(slug__isnull=False, enable_signing_petitions=True).exclude(slug="")
         self.fields['event'].required = True
+        self.fields['event'].to_field_name = "slug"
         self.fields['gdpr_consent'].required = True
 
     class Meta:
@@ -309,13 +308,6 @@ class PetitionUserForm_PetitionSignature(FieldNameMappingMixin, forms.ModelForm)
     FIELD_NAME_MAPPING = {
         'gdpr_consent': 'gdpr',
     }
-
-    def save(self, commit=True):
-        signature = super().save(commit=False)
-        signature.administrative_unit = signature.event.administrative_units.first()
-        if commit:
-            signature.save()
-        return signature
 
 
 class RegularUserFormDPNK(RegularUserFormWithProfile):
@@ -436,14 +428,16 @@ def update_or_create_new_payment_channel(form, new_user_profile):
 
 
 def get_or_create_new_petition_signature(form, user):
-    new_petition_signature = form.save(commit=False)['petitionsignature']
-    new_petition_signature.user = user
+    instance = form['petitionsignature'].instance
+    instance.administrative_unit = instance.event.administrative_units.first()
+    instance.user = user
     try:
-        new_petition_signature.save()
-    except IntegrityError:
-        new_petition_signature = None
-    cache.clear()
-    return new_petition_signature
+        instance.full_clean()
+    except ValidationError:
+        instance = None
+    else:
+        instance.save()
+    return instance
 
 
 class RegularView(FormView):
@@ -614,27 +608,29 @@ class PetitionView(FormView):
         else:
             action = 'user-signature-again'
         autocom.check(UserProfile.objects.filter(id=user.id), action=action)
-        return super().form_valid(form)
+        super().form_valid(form)
+        return http.HttpResponse(_('Petition signed'))
 
 
-def donators(request):
-    payed = Payment.objects.exclude(type='expected')
-    donators = DonorPaymentChannel.objects.filter(
-        user__preference__public=True,
-        payment__in=payed,).distinct().order_by(
-        'user__userprofile__last_name',
-        'user__companyprofile__name',
-    )
-    n_donators = len(donators)
-    n_regular = len(donators.filter(user__is_active=True, regular_payments="regular"))
-    return render_to_response(
-        'donators.html',
-        {
-            'n_donators': n_donators,
-            'n_regular': n_regular,
-            'donators': donators,
-        },
-    )
+class DonatorsView(View):
+    def get(self, request, unit):
+        unit = get_object_or_404(AdministrativeUnit, slug=self.kwargs['unit'])
+        users = Preference.objects.filter(administrative_unit=unit, public=True).values_list('user')
+        donators = DonorPaymentChannel.objects.filter(
+            user__in=users,
+            money_account__administrative_unit=unit,
+            payment_total__gt=0,
+        )
+        n_donators = donators.count()
+        n_regular = donators.filter(user__is_active=True, regular_payments="regular").count()
+        return render_to_response(
+            'donators.html',
+            {
+                'n_donators': n_donators,
+                'n_regular': n_regular,
+                'donators': donators,
+            },
+        )
 
 
 def stat_members(request):
@@ -683,37 +679,6 @@ def stat_payments(request):
             'site_header': _("Payments statistics"),
         },
     )
-
-
-def profiles(request):
-    from_date = request.GET.get('from') or '1970-1-1'
-    paying = request.GET.get('paying')
-
-    users = (
-        DonorPaymentChannel.objects.filter(registered_support__gte=from_date).order_by('-registered_support') |
-        DonorPaymentChannel.objects.filter(id__in=(493, 89, 98, 921, 33, 886, 1181, 842, 954, 25))).\
-        exclude(user__preference__public=False, user__profile_picture__isnull=False).\
-        order_by(
-            "-user__userprofile__last_name",
-            "-user__companyprofile__name",
-            "user__userprofile__first_name",
-        )
-    result = [
-        {
-            'firstname': (
-                (u.user.preference_set.first().public if u.user.preference_set.first() else None)
-                and u.user.first_name or ''
-            ),
-            'surname': (
-                (u.user.preference_set.first().public if u.user.preference_set.first() else None)
-                and u.user.last_name or ''
-                ),
-            'text': u.user.profile_text or '',
-            'picture': u.user.profile_picture and u.user.profile_picture.url or '',
-            'picture_thumbnail': u.user.profile_picture and u.user.profile_picture.thumbnail.url or '',
-        } for u in users if ((not paying) or (u.payment_total > 0))
-    ]
-    return http.HttpResponse(json.dumps(result), content_type='application/json')
 
 
 class CampaignStatistics(View):
@@ -828,15 +793,6 @@ class UserInCampaignInline(InlineFormSet):
     fields = ('wished_information',)
 
 
-class MailingFormSetView(SuccessMessageMixin, SesameUserMixin, UpdateWithInlinesView):
-    model = UserProfile
-    template_name = 'mailing.html'
-    success_message = "Nastavení emailů úspěšně změněno"
-    success_url = reverse_lazy('mailing-configuration')
-    inlines = [UserInCampaignInline, ]
-    fields = ('send_mailing_lists',)
-
-
 class PetitionConfirmEmailView(SesameUserMixin, View):
     def get(self, *args, **kwargs):
         event = get_object_or_404(Event, slug=kwargs['campaign_slug'])
@@ -859,8 +815,11 @@ class SendMailingListView(SesameUserMixin, View):
         unit = get_object_or_404(AdministrativeUnit, slug=kwargs['unit'])
         user = self.get_object()
         preference = user.preference_set.get(administrative_unit=unit)
+
         preference.send_mailing_lists = False if kwargs['unsubscribe'] == 'unsubscribe' else True
         preference.save()
+        user_profiles = UserProfile.objects.filter(id=user.id)
+        autocom.check(user_profiles=user_profiles, action='user-mailing-' + kwargs['unsubscribe'])
         return http.HttpResponse(f"{kwargs['unsubscribe']} was done")
 
 

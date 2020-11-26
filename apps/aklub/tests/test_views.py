@@ -27,15 +27,16 @@ try:
 except ImportError:  # Django<2.0
     from django.core.urlresolvers import reverse
 from django.test import TestCase
-from django.test.utils import override_settings
 
 from interactions.models import PetitionSignature
 
 from model_mommy import mommy
 
+from sesame import utils as sesame_utils
+
 from .test_admin import CreateSuperUserMixin
 from .utils import print_response  # noqa
-from ..models import DonorPaymentChannel, ProfileEmail, UserProfile
+from ..models import DonorPaymentChannel, ProfileEmail
 
 
 class ClearCacheMixin(object):
@@ -44,12 +45,7 @@ class ClearCacheMixin(object):
         cache.clear()
 
 
-@override_settings(
-    MANAGERS=(('Manager', 'manager@test.com'),),
-)
 class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
-    #fixtures = ['conditions', 'users', 'communications', 'dashboard_stats']
-
     def setUp(self):
         super().setUp()
         self.client.force_login(self.superuser)
@@ -63,6 +59,9 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
             administrative_units=[self.unit, ],
             slug='klub',
             enable_registration=True,
+            enable_signing_petitions=True,
+            allow_statistics=True,
+            real_yield=500,
         )
         self.money = mommy.make(
             'aklub.BankAccount',
@@ -131,6 +130,20 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
             "city": "memer",
             "zip_code": "987 00",
         }
+        self.sign_petition = {
+            "userprofile-age_group": 2010,
+            "userprofile-sex": "male",
+            "userprofile-first_name": "test_first",
+            "userprofile-last_name": "test_last",
+            "userprofile-email": "testeros@test.com",
+            "userprofile-telephone": "123456789",
+            "userprofile-street": "test 5005",
+            "userprofile-city": "test 5005",
+            "userprofile-zip_code": "155 00",
+            "petitionsignature-event": "klub",
+            "petitionsignature-public": True,
+            "gdpr": True,
+        }
 
     def test_regular_new_user_and_dpch(self):
         """
@@ -189,7 +202,7 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
 
     def test_regular_darujme_new_user_and_dpch(self):
         """
-        testing ajax response and saved data
+        testing ajax response and saved data sent autocom new-user-bank-transfer
         """
         self.term_cond.value = 'new-user-bank-transfer'
         self.term_cond.save()
@@ -228,7 +241,8 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
 
     def test_regular_darujme_existing_user_and_different_dpch(self):
         """
-        testing ajax user has different DPCH, he is still able to register to new event """
+        testing ajax user has different DPCH, he is still able to register to new event, sent autocom new-user-bank-transfer
+        """
         self.term_cond.value = 'new-user-bank-transfer'
         self.term_cond.save()
 
@@ -286,7 +300,7 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
 
     def test_regular_dpnk(self):
         """
-        register new user => create user and donor payment channel
+        register new user => create user and donor payment channel send autocom new-user-bank-transfer
         """
         self.term_cond.value = 'new-user-bank-transfer'
         self.term_cond.save()
@@ -336,20 +350,12 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
 
     def test_register_without_payment(self):
         """
-        register => to receive new and so (dont want to pay)
+        register => to receive new and so (dont want to pay) autocom sent action new-user
         """
+        self.term_cond.value = 'new-user'
+        self.term_cond.save()
+
         address = reverse('register-withou-payment', kwargs={'unit': self.unit.slug})
-        self.register_withotu_payment = {
-            "age_group": "2010",
-            "sex": "male",
-            "first_name": "tester",
-            "last_name": "testing",
-            "telephone": "123456789",
-            "email": "test@test.com",
-            "street": "woah",
-            "city": "memer",
-            "zip_code": "987 00",
-        }
         response = self.client.post(address, self.register_withotu_payment)
         self.assertTrue(response.status_code, 200)
         user = ProfileEmail.objects.get(email="test@test.com").user
@@ -364,51 +370,242 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
 
         self.assertEqual(user.userchannels.count(), 0)
 
+        self.assertEqual(len(mail.outbox), 1)
 
-    def test_campaign_statistics(self):
-        address = reverse('campaign-statistics', kwargs={'campaign_slug': 'klub'})
-        response = self.client.get(address)
-        self.assertJSONEqual(
-            response.content.decode(),
-            {
-                "total-income": 480,
-                "expected-yearly-income": 1200,
-                "number-of-regular-members": 1,
-                "number-of-onetime-members": 1,
-                "number-of-active-members": 2,
-                "number-of-all-members": 3,
-                'number-of-confirmed-members': 3,
-            },
+    def test_sign_petition(self):
+        """
+        signature success => create user and signature autocom sent 'user-signature'
+        """
+        self.term_cond.value = 'user-signature'
+        self.term_cond.save()
+
+        address = reverse('petition')
+        response = self.client.post(address, self.sign_petition, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content.decode(), 'Petition signed')
+
+        user = ProfileEmail.objects.get(email=self.sign_petition['userprofile-email']).user
+        self.assertEqual(user.age_group, self.sign_petition['userprofile-age_group'])
+        self.assertEqual(user.sex, self.sign_petition['userprofile-sex'])
+        self.assertEqual(user.first_name, self.sign_petition['userprofile-first_name'])
+        self.assertEqual(user.last_name, self.sign_petition['userprofile-last_name'])
+        self.assertEqual(user.street, self.sign_petition['userprofile-street'])
+        self.assertEqual(user.city, self.sign_petition['userprofile-city'])
+        self.assertEqual(user.zip_code, self.sign_petition['userprofile-zip_code'])
+
+        self.assertEqual(user.telephone_set.first().telephone, self.sign_petition['userprofile-telephone'])
+
+        signature = user.petitionsignature_set.first()
+
+        self.assertEqual(signature.event, self.event)
+        self.assertEqual(signature.administrative_unit, self.unit)
+        self.assertEqual(signature.email_confirmed, False)
+        self.assertEqual(signature.gdpr_consent, self.sign_petition['gdpr'])
+        self.assertEqual(signature.public, self.sign_petition['petitionsignature-public'])
+
+        self.assertEqual(len(mail.outbox), 1)
+
+    def test_sign_petition_repeatly(self):
+        """
+        signature success => create user and signature autocom sent 'user-signature'
+        """
+        self.term_cond.value = 'user-signature-again'
+        self.term_cond.save()
+
+        user = mommy.make("aklub.UserProfile")
+        mommy.make("aklub.ProfileEmail", email=self.sign_petition['userprofile-email'], user=user, is_primary=True)
+        mommy.make("interactions.PetitionSignature", administrative_unit=self.unit, user=user, event=self.event)
+        address = reverse('petition')
+        response = self.client.post(address, self.sign_petition, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content.decode(), 'Petition signed')
+
+        self.assertEqual(len(mail.outbox), 1)
+
+    def test_sign_petition_no_gdpr_consent(self):
+        """
+        petition form is filled, but gdpr is not clicked autocom is not sent
+        """
+        self.term_cond.value = 'user-signature'
+        self.term_cond.save()
+
+        address = reverse('petition')
+        post_data = self.sign_petition.copy()
+        post_data['gdpr'] = False
+
+        response = self.client.post(address, post_data)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            '<div class="fieldWrapper">'
+            '<img src="http://www.auto-mat.cz/wp-content/themes/atm/img/odrazka.gif" />'
+            '<strong><label for="id_gdpr">GDPR souhlas:</label><br/></strong>'
+            '<ul class="errorlist"><li>Toto pole je vyžadováno.</li></ul>'
+            '<input type="checkbox" name="gdpr" required id="id_gdpr"></div>',
+            html=True,
         )
+
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_sign_petition_confirmation(self):
+        """
+        confirmation petition signature
+        """
+        user = mommy.make("aklub.UserProfile")
+        mommy.make("aklub.ProfileEmail", email=self.sign_petition['userprofile-email'], user=user, is_primary=True)
+        signature = mommy.make("interactions.PetitionSignature", administrative_unit=self.unit, user=user, event=self.event)
+
+        address = reverse('sing-petition-confirm', kwargs={'campaign_slug': 'klub'})
+        url_hax = sesame_utils.get_query_string(user)
+        address += url_hax
+
+        response = self.client.get(address)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content.decode(), 'Signature was confirmed')
+
+        signature.refresh_from_db()
+        self.assertTrue(signature.email_confirmed)
+
+    def test_petition_signatures_list(self):
+        """
+        list of all signatures
+        """
+        for i in range(0, 3):
+            user = mommy.make('aklub.userprofile', first_name='first_' + str(i), last_name='last_' + str(i))
+            mommy.make(
+                "interactions.PetitionSignature",
+                administrative_unit=self.unit,
+                user=user,
+                event=self.event,
+                public=True,
+                email_confirmed=True,
+            )
+
+        address = reverse('petition-signatures', kwargs={'campaign_slug': self.event.slug})
+        response = self.client.get(address)
         self.assertEqual(response.status_code, 200)
 
-    def test_petition_signatures(self):
-        address = reverse('petition-signatures', kwargs={'campaign_slug': 'klub'})
-        response = self.client.get(address)
-        self.assertJSONEqual(
-            response.content.decode(),
-            [
-                {
-                    "created": "2017-12-16T17:22:30.128Z",
-                    "userprofile_first_name": "------",
-                    "userprofile_last_name": "------",
-                    "companyprofile_name": "------",
-                },
-                {
-                    "created": "2016-12-16T17:22:30.128Z",
-                    "userprofile_first_name": "Test",
-                    "userprofile_last_name": "User",
-                    "companyprofile_name": None,
-                },
-                {
-                    "created": "2015-12-16T17:22:30.128Z",
-                    "userprofile_first_name": "------",
-                    "userprofile_last_name": "------",
-                    "companyprofile_name": "------",
-                },
-            ],
-        )
+        signatures = PetitionSignature.objects.order_by('-created')
+        # response is already ordered by -create
+        sig_json = response.json()
+        from django.utils.dateparse import parse_datetime
+        for i in range(0, signatures.count()):
+            self.assertEqual(sig_json[i]['user__userprofile__first_name'], signatures[i].user.first_name)
+            self.assertEqual(sig_json[i]['user__userprofile__last_name'], signatures[i].user.last_name)
+            self.assertEqual(parse_datetime(sig_json[i]['created']).replace(microsecond=0), signatures[i].created.replace(microsecond=0))
+
+    def test_send_mailing_list_unsubscribe(self):
+        """
+        unsubscribe to mailing list in preference
+        """
+        self.term_cond.value = 'user-mailing-unsubscribe'
+        self.term_cond.save()
+
+        user = mommy.make("aklub.UserProfile")
+        mommy.make("aklub.ProfileEmail", email='harry@test.com', user=user, is_primary=True)
+        preference = mommy.make("aklub.Preference", user=user, administrative_unit=self.unit)
+
+        address = reverse('send-mailing-list', kwargs={'unit': self.unit.slug, 'unsubscribe': 'unsubscribe'})
+        url_hax = sesame_utils.get_query_string(user)
+        address += url_hax
+
+        response = self.client.get(address, follow=True)
         self.assertEqual(response.status_code, 200)
+
+        preference.refresh_from_db()
+        self.assertFalse(preference.send_mailing_lists)
+
+        self.assertEqual(len(mail.outbox), 1)
+
+    def test_send_mailing_list_subscribe(self):
+        """
+        subscribe back to mailing list in preference
+        """
+        self.term_cond.value = 'user-mailing-subscribe'
+        self.term_cond.save()
+
+        user = mommy.make("aklub.UserProfile")
+        mommy.make("aklub.ProfileEmail", email='harry@test.com', user=user, is_primary=True)
+        preference = mommy.make("aklub.Preference", user=user, administrative_unit=self.unit, send_mailing_lists=False)
+
+        address = reverse('send-mailing-list', kwargs={'unit': self.unit.slug, 'unsubscribe': 'subscribe'})
+        url_hax = sesame_utils.get_query_string(user)
+        address += url_hax
+
+        response = self.client.get(address, follow=True)
+        self.assertEqual(response.status_code, 200)
+
+        preference.refresh_from_db()
+        self.assertTrue(preference.send_mailing_lists)
+
+        self.assertEqual(len(mail.outbox), 1)
+
+    def test_event_statistics(self):
+        """
+        some event statistics
+        """
+        for i in range(0, 3):
+            user = mommy.make("aklub.UserProfile")
+            dpch = mommy.make(
+                'aklub.donorpaymentchannel',
+                money_account=self.money,
+                event=self.event,
+                user=user,
+                regular_payments='regular',
+                regular_amount=300,
+                regular_frequency='monthly',
+                )
+            mommy.make('aklub.payment', recipient_account=self.money, amount=250, user_donor_payment_channel=dpch)
+
+        address = reverse('campaign-statistics', kwargs={'campaign_slug': self.event.slug})
+        response = self.client.get(address)
+        self.assertEqual(response.status_code, 200)
+        response = response.json()
+
+        self.assertEqual(response["total-income"], self.event.real_yield)
+        self.assertEqual(response["expected-yearly-income"], 10800)
+        self.assertEqual(response["number-of-regular-members"], 3)
+        self.assertEqual(response["number-of-onetime-members"], 0)
+        self.assertEqual(response["number-of-active-members"], 3)
+        self.assertEqual(response["number-of-all-members"], 3)
+        self.assertEqual(response["number-of-confirmed-members"], 0)
+
+    def test_donators(self):
+        """
+        count users who donating for selected administrative units total/regular
+        """
+        for i in range(0, 3):
+            user = mommy.make("aklub.UserProfile")
+            mommy.make("aklub.preference", user=user, administrative_unit=self.unit)
+            dpch = mommy.make(
+                'aklub.donorpaymentchannel',
+                money_account=self.money,
+                event=self.event,
+                user=user,
+                regular_payments='regular',
+                regular_amount=300,
+                regular_frequency='monthly',
+                )
+            mommy.make('aklub.payment', recipient_account=self.money, amount=250, user_donor_payment_channel=dpch)
+        dpch.regular_payments = 'onetime'
+        dpch.save()  # editing last one to onetime
+
+        address = reverse('donators', kwargs={'unit': self.unit.slug})
+        response = self.client.get(address)
+
+        self.assertContains(
+            response,
+            '<p>Celkem již podpořilo činnost Auto*Matu 3 lidí<br/>Z toho 2 přispívá na jeho činnost pravidelně</p>',
+            html=True,
+        )
+
+
+class AdminViewTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
+    fixtures = ['conditions', 'users', 'communications', 'dashboard_stats']
+
+    def setUp(self):
+        super().setUp()
+        self.client.force_login(self.superuser)
 
     def test_main_admin_page(self):
         address = "/"
@@ -439,155 +636,6 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         response = self.client.get(address)
         self.assertContains(response, "<tr><td>2016</td><td>Bře</td><td>1</td><td>100 Kč</td><td>610 Kč</td></tr>", html=True)
         self.assertContains(response, "<h1>Statistiky plateb</h1>", html=True)
-
-    def test_donators(self):
-        address = reverse('donators')
-        response = self.client.get(address)
-        self.assertContains(
-            response,
-            '<p>Celkem již podpořilo činnost Auto*Matu 2 lidí<br/>Z toho 1 přispívá na jeho činnost pravidelně</p>',
-            html=True,
-        )
-        self.assertContains(
-            response,
-            '<ul><li>Test&nbsp;User</li><li>Test&nbsp;User 1</li></ul>',
-            html=True,
-        )
-
-    def test_profiles(self):
-        address = reverse('profiles')
-        response = self.client.get(address)
-        self.assertJSONEqual(
-            response.content.decode(),
-            [
-                {"firstname": "Test", "text": "", "picture": "", "surname": "User 1", "picture_thumbnail": ""},
-                {"firstname": "Test", "text": "", "picture": "", "surname": "User", "picture_thumbnail": ""},
-                {"firstname": "Without", "text": "", "picture": "", "surname": "Payments", "picture_thumbnail": ""},
-                {"firstname": "Without", "text": "", "picture": "", "surname": "Payments", "picture_thumbnail": ""},
-            ],
-        )
-
-
-
-
-
-
-
-
-    def test_sign_petition_no_gdpr_consent(self):
-        address = reverse('petition')
-        post_data = {
-            'userprofile-email': 'test@email.cz',
-            "userincampaign-campaign": "klub",
-            "userincampaign-money_account": '12345123',
-            "gdpr": False,
-        }
-        response = self.client.post(address, post_data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-        self.assertJSONEqual(
-            response.content.decode(),
-            {
-                'gdpr': ['Toto pole je vyžadováno.'],
-            },
-        )
-
-    def test_sign_petition_ajax_only_required(self):
-        address = reverse('petition')
-        post_data = {
-            'userprofile-email': 'test@email.cz',
-            "userincampaign-campaign": "klub",
-            "userincampaign-money_account": '12345123',
-            "gdpr": True,
-        }
-        response = self.client.post(address, post_data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-        payment_channel = DonorPaymentChannel.objects.get(user__email="test@email.cz")
-        self.assertJSONEqual(
-            response.content.decode(),
-            {
-                'account_number': '2400063333 / 2010',
-                'variable_symbol': payment_channel.VS,
-                'amount': None,
-                'email': 'test@email.cz',
-                'frequency': None,
-                'repeated_registration': False,
-                'valid': True,
-                'addressment': 'příteli/kyně Auto*Matu',
-            },
-        )
-        new_user = DonorPaymentChannel.objects.get(user__email="test@email.cz")
-        self.assertEqual(new_user.regular_amount, None)
-        self.assertEqual(new_user.regular_payments, '')
-        self.assertTrue(PetitionSignature.objects.get(user__email="test@email.cz").gdpr_consent)
-
-    def test_sign_petition_ajax_some_fields(self):
-        address = reverse('petition')
-        post_data = {
-            'userprofile-email': 'test@email.cz',
-            'userprofile-first_name': 'Testing',
-            'userprofile-last_name': 'User',
-            'userprofile-telephone': 111222333,
-            "userincampaign-campaign": "klub",
-            "userincampaign-money_account": '12345123',
-            "gdpr": True,
-        }
-        response = self.client.post(address, post_data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-        self.assertEqual(response.status_code, 200)
-        payment_channel = DonorPaymentChannel.objects.get(user__email="test@email.cz")
-        self.assertJSONEqual(
-            response.content.decode(),
-            {
-                'account_number': '2400063333 / 2010',
-                'variable_symbol': payment_channel.VS,
-                'amount': None,
-                'email': 'test@email.cz',
-                'frequency': None,
-                'repeated_registration': False,
-                'valid': True,
-                'addressment': 'Testingu',
-            },
-        )
-        new_user = DonorPaymentChannel.objects.get(user__email="test@email.cz")
-        self.assertEqual(new_user.regular_amount, None)
-        self.assertEqual(new_user.regular_payments, '')
-        self.assertTrue(PetitionSignature.objects.get(user__email="test@email.cz").gdpr_consent)
-
-    def test_sign_petition_ajax_all(self):
-        address = reverse('petition')
-        post_data = {
-            'userprofile-email': 'test@email.cz',
-            'userprofile-first_name': 'Testing',
-            'userprofile-last_name': 'User',
-            'userprofile-telephone': 111222333,
-            'userprofile-age_group': 1986,
-            'userprofile-sex': 'male',
-            'userprofile-city': 'Some city',
-            'userprofile-street': 'Some street',
-            'userprofile-country': 'Some country',
-            'userprofile-zip_code': 11333,
-            "userincampaign-campaign": "klub",
-            "userincampaign-money_account": '12345123',
-            "gdpr": True,
-        }
-        response = self.client.post(address, post_data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-        payment_channel = DonorPaymentChannel.objects.get(user__email="test@email.cz")
-        self.assertJSONEqual(
-            response.content.decode(),
-            {
-                'account_number': '2400063333 / 2010',
-                'variable_symbol': payment_channel.VS,
-                'amount': None,
-                'email': 'test@email.cz',
-                'frequency': None,
-                'repeated_registration': False,
-                'valid': True,
-                'addressment': 'Testingu',
-            },
-        )
-        new_user = DonorPaymentChannel.objects.get(user__email="test@email.cz")
-        self.assertEqual(new_user.regular_amount, None)
-        self.assertEqual(new_user.regular_payments, '')
-        self.assertEqual(new_user.event.slug, 'klub')
-        self.assertEqual(new_user.money_account.slug, '12345123')
-        self.assertTrue(PetitionSignature.objects.get(user__email="test@email.cz").gdpr_consent)
 
 
 class VariableSymbolTests(TestCase):

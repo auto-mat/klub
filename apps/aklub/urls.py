@@ -21,9 +21,7 @@ urlpatterns = [
     path('send-mailing-lists/<slug:unit>/<slug:unsubscribe>/', views.SendMailingListView.as_view(), name="send-mailing-list"),
 
     url(r'^campaign-statistics/(?P<campaign_slug>[^&]+)/$', views.CampaignStatistics.as_view(), name="campaign-statistics"),
-    url(r'^donators/', views.donators, name="donators"),
-    url(r'^profiles/', views.profiles, name="profiles"),
-    url(r'^mailing/', views.MailingFormSetView.as_view(), name="mailing-configuration"),
+    path('donators/<slug:unit>/', views.DonatorsView.as_view(), name="donators"),
 
 
     # userfriendly password reset
