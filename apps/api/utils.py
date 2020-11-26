@@ -30,8 +30,10 @@ def get_or_create_dpch(serializer, profile):
 def check_last_month_year_payment(user): # noqa
 
     user = user.get_real_instance()
-    # get sum of all payments for last month and last year
+    if user.is_staff:
+        return True
 
+    # get sum of all payments for last month and last year
     payments_sum = Payment.objects.filter(
         user_donor_payment_channel__user=user,
     ).aggregate(
