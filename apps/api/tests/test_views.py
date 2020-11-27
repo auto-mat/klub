@@ -3,7 +3,7 @@ import datetime
 from aklub.models import CompanyProfile, ProfileEmail
 
 from django.core import mail
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from freezegun import freeze_time
@@ -12,7 +12,7 @@ from interactions.models import Interaction
 
 from model_mommy import mommy
 
-from .utils import app_login_mixin
+from .utils import app_login_mixin, user_login_mixin
 
 
 """
@@ -278,6 +278,30 @@ class CheckLastPaymentsViewTest(TestCase):
         self.assertEqual(resp_data[1]['date'], payment_3.date)
         self.assertEqual(resp_data[1]['operation_id'], payment_3.operation_id)
         self.assertEqual(resp_data[1]['profile_id'],  user.id)
+
+
+@override_settings(SUM_LAST_YEAR_PAYMENTS=3000, SUM_LAST_MONTH_PAYMENTS=100)
+class CheckLastPaymentViewTest(TestCase):
+    "check if user has some payment for last_year or last_month"
+    def setUp(self):
+        self.user = user_login_mixin()
+        unit = mommy.make('aklub.AdministrativeUnit')
+        bank_acc = mommy.make('aklub.BankAccount', administrative_unit=unit, bank_account_number="123")
+        event = mommy.make('aklub.Event')
+        self.dpch = mommy.make("aklub.DonorPaymentChannel", money_account=bank_acc, event=event, user=self.user)
+
+    def test_check_last_payment_success(self):
+        mommy.make('aklub.payment', date=datetime.datetime.now().date(), amount=200, user_donor_payment_channel=self.dpch)
+        url = reverse('check_last_payment')
+        header = {'Authorization': 'Bearer foo'}
+        response = self.client.get(url, **header)
+        self.assertEqual(response.status_code, 200)
+
+    def test_check_last_payment_unsuccess(self):
+        url = reverse('check_last_payment')
+        header = {'Authorization': 'Bearer foo'}
+        response = self.client.get(url, **header)
+        self.assertEqual(response.status_code, 404)
 
 
 class CreateInteractionTest(TestCase):
