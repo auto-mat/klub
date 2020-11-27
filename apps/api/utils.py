@@ -13,9 +13,11 @@ from django.utils import timezone
 def get_or_create_dpch(serializer, profile):
     dpch, created = DonorPaymentChannel.objects.get_or_create(
         event=serializer.validated_data['event'],
-        money_account=serializer.validated_data['money_account'],
         user=profile,
-                    )
+        defaults={
+            'money_account': serializer.validated_data['money_account'],
+        },
+    )
     if created:
         dpch.expected_date_of_first_payment = datetime.date.today() + datetime.timedelta(days=3)
         if serializer.validated_data.get('regular'):
