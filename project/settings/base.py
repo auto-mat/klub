@@ -514,6 +514,8 @@ SITE_NAME = os.environ.get('SITE_NAME', '')
 SUM_LAST_MONTH_PAYMENTS = int(os.environ.get('SUM_LAST_MONTH_PAYMENTS', 0))
 SUM_LAST_YEAR_PAYMENTS = int(os.environ.get('SUM_LAST_YEAR_PAYMENTS', 0))
 
+# darujme use email as username
+DARUJME_EMAIL_AS_USERNAME = os.environ.get('DARUJME_EMAIL_AS_USERNAME', False)
 
 # django admin action ignored_fields
 UPDATE_ACTION_IGNORED_FIELDS = {
