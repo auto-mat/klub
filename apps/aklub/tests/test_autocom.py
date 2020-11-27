@@ -261,7 +261,6 @@ class AutocomAddressmentTest(TestCase):
         self.event = mommy.make('aklub.event')
         self.au = mommy.make('aklub.administrativeunit', name='test')
         self.bankacc = mommy.make('aklub.BankAccount', bank_account_number=11111, administrative_unit=self.au)
-        self.payment_channel = mommy.make('aklub.DonorPaymentChannel', user=self.userprofile, event=self.event, money_account=self.bankacc)
         named_condition = mommy.make('flexible_filter_conditions.NamedCondition')
         condition = mommy.make('flexible_filter_conditions.Condition', operation="or", negate=True, named_condition=named_condition)
         mommy.make(
@@ -275,16 +274,63 @@ class AutocomAddressmentTest(TestCase):
         inter_type = mommy.make('interactions.interactiontype', category=inter_category, name='testtype', send_email=True)
         unit = mommy.make('aklub.administrativeunit', name='testAU')
 
-        mommy.make(
+        self.autocom = mommy.make(
             "aklub.AutomaticCommunication",
             method_type=inter_type,
             condition=named_condition,
-            template="Vazen{y|a} {pane|pani} $addressment $regular_frequency testovací šablona",
-            template_en="Dear {sir|miss} $addressment $regular_frequency test template",
+            event=self.event,
+            template="Vazen{y|a} {pane|pani} $addressment testovací šablona",
+            template_en="Dear {sir|miss} $addressment test template",
             subject="Testovací komunikace",
             subject_en="Testing interaction",
             administrative_unit=unit,
         )
+
+    def test_additional_payment_info(self):
+        self.autocom.template += " částka: $regular_amount pravidelnost: $regular_frequency VS: $var_symbol"
+        self.autocom.save()
+
+        self.payment_channel = mommy.make(
+            'aklub.DonorPaymentChannel',
+            user=self.userprofile,
+            event=self.event,
+            money_account=self.bankacc,
+            regular_frequency='monthly',
+            regular_amount=100,
+        )
+        autocom.check(action="test-autocomm")
+        interaction = Interaction.objects.get(user=self.userprofile)
+        self.assertTrue("testovací šablona" in interaction.summary)
+        self.assertTrue("příteli Auto*Matu" in interaction.summary)
+        self.assertTrue("Vazeny pane" in interaction.summary)
+        self.assertTrue("částka: 100" in interaction.summary)
+        self.assertTrue("pravidelnost: měsíčně" in interaction.summary)
+        self.assertTrue("VS: 0000000001" in interaction.summary)
+
+    def test_additional_payment_info_en(self):
+        self.userprofile.language = 'en'
+        self.userprofile.save()
+
+        self.autocom.template_en += " amount: $regular_amount frequency: frequency: $regular_frequency VS: $var_symbol"
+        self.autocom.save()
+
+        self.payment_channel = mommy.make(
+            'aklub.DonorPaymentChannel',
+            user=self.userprofile,
+            event=self.event,
+            money_account=self.bankacc,
+            regular_frequency='monthly',
+            regular_amount=100,
+        )
+        autocom.check(action="test-autocomm")
+        interaction = Interaction.objects.get(user=self.userprofile)
+        self.assertIn("test template", interaction.summary)
+        self.assertIn("Auto*Mat friend", interaction.summary)
+        self.assertIn("Dear sir", interaction.summary)
+
+        self.assertTrue("amount: 100" in interaction.summary)
+        self.assertTrue("frequency: monthly" in interaction.summary)
+        self.assertTrue("VS: 0000000001" in interaction.summary)
 
     def test_autocom(self):
         autocom.check(action="test-autocomm")
