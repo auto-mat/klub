@@ -12,11 +12,12 @@ from interactions.models import Interaction
 
 from model_mommy import mommy
 
+from oauth2_provider.models import Application
+
 from .utils import app_login_mixin, user_login_mixin
 
 
-"""
-class GetTokenTest(TestCase):
+class GetAccessTokenTest(TestCase):
     def test_get_client_credentials_token(self):
         app = mommy.make(
              'oauth2_provider.application',
@@ -33,17 +34,67 @@ class GetTokenTest(TestCase):
             "client_secret": "xxx",
         }
         url = reverse('oauth2_provider:token')
+        headers = {'content_type': 'application/json'}
+        response = self.client.post(url, data=data, **headers)
 
-        response = self.client.post(url, data=data)
-        print(response.json())
-        # TODO: cleint_type error .... make it works!
-        # this test work in postman,.. uh?
         self.assertEqual(response.status_code, 200)
+        tokens = app.accesstoken_set.all()
+        self.assertEqual(tokens.count(), 1)
 
-    def test_get_password_token(self):
-        pass
+        token = tokens.first()
+        resp = response.json()
+        self.assertEqual(resp['access_token'], token.token)
+        self.assertEqual(resp['token_type'], 'Bearer')
+        self.assertEqual(resp['scope'], token.scope)
+        self.assertEqual(resp['access_token'], token.token)
+        delta = token.expires.replace(microsecond=0)-token.created.replace(microsecond=0)
+        self.assertEqual(int(resp['expires_in']), int(delta.total_seconds()))
 
-"""
+    def test_get_user_password_token(self):
+        user = mommy.make('aklub.UserProfile', username='tester69')
+        password = 'super_ultra_7853_hard'
+        user.set_password(password)
+        user.save()
+        app = mommy.make(
+             'oauth2_provider.application',
+             client_type=Application.CLIENT_CONFIDENTIAL,
+             authorization_grant_type=Application.GRANT_PASSWORD,
+             skip_authorization=False,
+             client_id='xxx',
+             client_secret='xxx',
+        )
+
+        data = {
+           "grant_type": "password",
+           "username": user.username,
+           "password": password,
+           "client_id": app.client_id,
+           "client_secret": app.client_secret,
+          }
+
+        url = reverse('oauth2_provider:token')
+        headers = {'content_type': 'application/json'}
+        response = self.client.post(url, data=data, **headers)
+
+        self.assertEqual(response.status_code, 200)
+        tokens = app.accesstoken_set.all()
+        self.assertEqual(tokens.count(), 1)
+        token = tokens.first()
+
+        resp = response.json()
+        self.assertEqual(resp['access_token'], token.token)
+        self.assertEqual(resp['token_type'], 'Bearer')
+        self.assertEqual(resp['scope'], token.scope)
+        self.assertEqual(resp['access_token'], token.token)
+        delta = token.expires.replace(microsecond=0)-token.created.replace(microsecond=0)
+        self.assertTrue(int(resp['expires_in']), int(delta.total_seconds()))
+
+        tokens = app.refreshtoken_set.all()
+        self.assertEqual(tokens.count(), 1)
+        token = tokens.first()
+        self.assertEqual(resp['refresh_token'], token.token)
+
+        self.assertEqual(user, token.user)
 
 
 @freeze_time("2015-5-1")
@@ -446,7 +497,6 @@ class RegisterUserProfileTest(TestCase):
 
 
 class ResetPasswordTest(TestCase):
-
     def test_reset_password(self):
         user = mommy.make('aklub.UserProfile', username="John_van_test")
         email = mommy.make('aklub.ProfileEmail', email="John@van.test", user=user)
