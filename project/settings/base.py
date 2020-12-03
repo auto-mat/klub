@@ -266,7 +266,7 @@ OAUTH2_PROVIDER = {
 }
 # TODO: shoud be added by each application
 # this is the list of available scopes
-SCOPES = os.environ.get('', False)
+SCOPES = os.environ.get('AKLUB_SCOPES', False)
 if SCOPES:
     OAUTH2_PROVIDER['SCOPES'] = {
         'read': 'Read scope',
