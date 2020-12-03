@@ -119,16 +119,16 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
             "userincampaign-money_account": '12345123',
             "userincampaign-payment_type": "bank-transfer",
         }
-        self.register_withotu_payment = {
-            "age_group": "2010",
-            "sex": "male",
-            "first_name": "tester",
-            "last_name": "testing",
-            "telephone": "123456789",
-            "email": "test@test.com",
-            "street": "woah",
-            "city": "memer",
-            "zip_code": "987 00",
+        self.register_without_payment = {
+            "userprofile-age_group": "2010",
+            "userprofile-sex": "male",
+            "userprofile-first_name": "tester",
+            "userprofile-last_name": "testing",
+            "userprofile-telephone": "123456789",
+            "userprofile-email": "test@test.com",
+            "userprofile-street": "woah",
+            "userprofile-city": "memer",
+            "userprofile-zip_code": "987 00",
         }
         self.sign_petition = {
             "userprofile-age_group": 2010,
@@ -356,17 +356,17 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         self.term_cond.save()
 
         address = reverse('register-withou-payment', kwargs={'unit': self.unit.slug})
-        response = self.client.post(address, self.register_withotu_payment)
+        response = self.client.post(address, self.register_without_payment)
         self.assertTrue(response.status_code, 200)
         user = ProfileEmail.objects.get(email="test@test.com").user
-        self.assertEqual(user.first_name, self.register_withotu_payment['first_name'])
-        self.assertEqual(user.last_name, self.register_withotu_payment['last_name'])
-        self.assertEqual(user.age_group, int(self.register_withotu_payment['age_group']))
-        self.assertEqual(user.sex, self.register_withotu_payment['sex'])
-        self.assertEqual(user.street, self.register_withotu_payment['street'])
-        self.assertEqual(user.city, self.register_withotu_payment['city'])
-        self.assertEqual(user.zip_code, self.register_withotu_payment['zip_code'])
-        self.assertEqual(user.telephone_set.get().telephone, self.register_withotu_payment['telephone'])
+        self.assertEqual(user.first_name, self.register_without_payment['userprofile-first_name'])
+        self.assertEqual(user.last_name, self.register_without_payment['userprofile-last_name'])
+        self.assertEqual(user.age_group, int(self.register_without_payment['userprofile-age_group']))
+        self.assertEqual(user.sex, self.register_without_payment['userprofile-sex'])
+        self.assertEqual(user.street, self.register_without_payment['userprofile-street'])
+        self.assertEqual(user.city, self.register_without_payment['userprofile-city'])
+        self.assertEqual(user.zip_code, self.register_without_payment['userprofile-zip_code'])
+        self.assertEqual(user.telephone_set.get().telephone, self.register_without_payment['userprofile-telephone'])
 
         self.assertEqual(user.userchannels.count(), 0)
 

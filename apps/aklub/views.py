@@ -73,40 +73,6 @@ class RegularUserForm_UserProfile(forms.ModelForm):
         "This function is required to overwrite an inherited username clean"
         return self.cleaned_data['username']
 
-    def clean(self):
-        if not self.errors:
-            self.cleaned_data['username'] = get_unique_username(self.cleaned_data['email'])
-        emails = ProfileEmail.objects.filter(email=self.cleaned_data['email'])
-        if emails:
-            self._errors['email'] = self.error_class(['This e-mail is already used.'])
-        super().clean()
-        return self.cleaned_data
-
-    def save(self, commit, *args, **kwargs):
-        ret_val = super().save(commit, *args, **kwargs)
-        if commit:
-            if self.cleaned_data['telephone']:
-                Telephone.objects.get_or_create(
-                    telephone=self.cleaned_data['telephone'],
-                    user=self.instance,
-                    defaults={'is_primary': True},
-                    )
-            if self.cleaned_data['email']:
-                ProfileEmail.objects.get_or_create(
-                    email=self.cleaned_data['email'],
-                    user=self.instance,
-                    defaults={'is_primary': True},
-                    )
-        return ret_val
-
-    def _post_clean(self):
-        email = self.cleaned_data['email'].lower()
-        r = super()._post_clean()
-        if self._errors.get('email') == ['This e-mail is already used.']:
-            del self._errors['email']
-            self.email_used = email
-        return r
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field in self.Meta.required:
@@ -329,6 +295,13 @@ class PetitionUserForm(RegularUserForm):
     ])
 
 
+class RegisterUserForm(RegularUserForm):
+    # TODO: maybe expanse
+    form_classes = OrderedDict([
+        ('userprofile', PetitionUserForm_UserProfile),
+    ])
+
+
 def get_unique_username(email):
     if not email:
         email = ""
@@ -386,18 +359,25 @@ def generate_variable_symbol(dpch):
             raise ValidationError('OUT OF VS')
 
 
-def get_or_create_new_user_profile(form, regular):
-    if hasattr(form.forms['userprofile'], 'email_used') and form.forms['userprofile'].email_used:
-        new_user_profile = UserProfile.objects.get(profileemail__email=form.forms['userprofile'].cleaned_data['email'])
-    else:
+def get_or_create_new_user_profile(form):
+    try:
+        user = UserProfile.objects.get(profileemail__email=form.forms['userprofile'].cleaned_data['email'].lower())
+    except UserProfile.DoesNotExist:
         new_user_objects = form.save(commit=False)
-        new_user_profile = new_user_objects['userprofile']
-        new_user_profile.save()
-        ProfileEmail.objects.create(email=form.forms['userprofile'].cleaned_data['email'], user=new_user_profile, is_primary=True)
-    if form.forms['userprofile'].cleaned_data['telephone']:
-        Telephone.objects.get_or_create(telephone=form.forms['userprofile'].cleaned_data['telephone'], user=new_user_profile)
+        user = new_user_objects['userprofile']
+        user.save()
+        ProfileEmail.objects.get_or_create(
+            email=form.forms['userprofile'].cleaned_data['email'],
+            user=user,
+            defaults={
+                'is_primary': True,
+            },
+        )
 
-    return new_user_profile
+    if form.forms['userprofile'].cleaned_data['telephone']:
+        Telephone.objects.get_or_create(telephone=form.forms['userprofile'].cleaned_data['telephone'], user=user)
+
+    return user
 
 
 def update_or_create_new_payment_channel(form, new_user_profile):
@@ -482,44 +462,51 @@ class RegularView(FormView):
             return request.POST.get(name1)
 
     def post(self, request, *args, **kwargs):
-        email = self.get_post_param(request, 'userprofile-email', 'payment_data____email')
-        event = self.get_post_param(request, 'userincampaign-event')
-        bank_acc = self.get_post_param(request, 'userincampaign-money_account')
-        user_profiles = UserProfile.objects.filter(profileemail__email=email)
-        if user_profiles.exists():
-            payment_channels = user_profiles.get().userchannels.filter(event__slug=event)
-            if payment_channels.exists():
-                super().post(request, *args, **kwargs)
-                autocom.check(user_profiles=user_profiles, action='resent-data-' + self.request.POST['userincampaign-payment_type'])
-                user_data = {}
-                if 'recurringfrequency' in request.POST:
-                    user_data['frequency'] = REGULAR_FREQUENCY_MAP[request.POST.get('recurringfrequency')]
-                else:
-                    user_data['frequency'] = request.POST.get('userincampaign-regular_frequency')
-                user_data['name'] = self.get_post_param(request, 'userprofile-first_name', 'payment_data____jmeno')
-                user_data['surname'] = self.get_post_param(request, 'userprofile-last_name', 'payment_data____prijmeni')
-                user_data['amount'] = self.get_post_param(request, 'userincampaign-regular_amount', 'ammount')
-                user_data['telephone'] = self.get_post_param(request, 'userprofile-telephone', 'payment_data____telefon')
-                user_data['email'] = email
-                return self.success_page(
-                    payment_channels.get(),
-                    bank_acc,
-                    user_data['amount'],
-                    user_data['frequency'],
-                    True,
+        form = self.form_class(request.POST)
+        if form.is_valid():
+            email = self.get_post_param(request, 'userprofile-email', 'payment_data____email')
+            event = self.get_post_param(request, 'userincampaign-event')
+            bank_acc = self.get_post_param(request, 'userincampaign-money_account')
+            user_profiles = UserProfile.objects.filter(profileemail__email=email.lower())
+            if user_profiles.exists():
+                payment_channels = user_profiles.get().userchannels.filter(event__slug=event)
+                if payment_channels.exists():
+                    super().post(request, *args, **kwargs)
+                    autocom.check(user_profiles=user_profiles, action='resent-data-' + self.request.POST['userincampaign-payment_type'])
+                    user_data = {}
+                    if 'recurringfrequency' in request.POST:
+                        user_data['frequency'] = REGULAR_FREQUENCY_MAP[request.POST.get('recurringfrequency')]
+                    else:
+                        user_data['frequency'] = request.POST.get('userincampaign-regular_frequency')
+                    user_data['name'] = self.get_post_param(request, 'userprofile-first_name', 'payment_data____jmeno')
+                    user_data['surname'] = self.get_post_param(request, 'userprofile-last_name', 'payment_data____prijmeni')
+                    user_data['amount'] = self.get_post_param(request, 'userincampaign-regular_amount', 'ammount')
+                    user_data['telephone'] = self.get_post_param(request, 'userprofile-telephone', 'payment_data____telefon')
+                    user_data['email'] = email
+                    return self.success_page(
+                        payment_channels.get(),
+                        bank_acc,
+                        user_data['amount'],
+                        user_data['frequency'],
+                        True,
 
-                )
-        super().post(request, *args, **kwargs)
-        user_profiles = UserProfile.objects.filter(profileemail__email=email)
-        autocom.check(user_profiles=user_profiles, action='new-user-' + self.request.POST['userincampaign-payment_type'])
-        dpch = user_profiles.get().userchannels.filter(event__slug=event).first()
-        return self.success_page(
-            dpch,
-            bank_acc,
-            dpch.regular_amount,
-            dpch.regular_frequency,
-            False,
-        )
+                    )
+            super().post(request, *args, **kwargs)
+            user_profiles = UserProfile.objects.filter(profileemail__email=email.lower())
+            autocom.check(user_profiles=user_profiles, action='new-user-' + self.request.POST['userincampaign-payment_type'])
+            dpchs = user_profiles.get().userchannels.filter(event__slug=event)
+            if dpchs:
+                dpch = dpchs.first()
+            else:
+                dpch = update_or_create_new_payment_channel(form, user_profiles.first())
+            return self.success_page(
+                dpch,
+                bank_acc,
+                dpch.regular_amount,
+                dpch.regular_frequency,
+                False,
+            )
+        return render(request, self.template_name, {'form': form})
 
     def get_initial(self):
         initial = super().get_initial()
@@ -536,7 +523,7 @@ class RegularView(FormView):
         return initial
 
     def form_valid(self, form):
-        new_user_profile = get_or_create_new_user_profile(form, regular=None)
+        new_user_profile = get_or_create_new_user_profile(form)
         payment_channel = update_or_create_new_payment_channel(form, new_user_profile)
         new_user_profile.administrative_units.add(payment_channel.money_account.administrative_unit)
         return self.success_page(payment_channel, form.clean()['userincampaign']['money_account'].slug)
@@ -576,13 +563,17 @@ class RegularDarujmeView(RegularView):
 
 class RegisterWithoutPaymentView(FormView):
     template_name = 'regular.html'
-    form_class = PetitionUserForm_UserProfile
+    form_class = RegisterUserForm
     success_template = 'thanks-darujme.html'
     success_url = 'petition-signatures'
 
+    def get(self, *args, **kwargs):
+        get_object_or_404(AdministrativeUnit, slug=self.kwargs['unit'])
+        return super().get(*args, **kwargs)
+
     def form_valid(self, form):
         unit = get_object_or_404(AdministrativeUnit, slug=self.kwargs['unit'])
-        user = form.save(commit=True)
+        user = get_or_create_new_user_profile(form)
         user.administrative_units.add(unit)
         autocom.check(UserProfile.objects.filter(id=user.id), action='new-user')
         return http.HttpResponse(_("Thanks for register!"))
@@ -596,7 +587,7 @@ class PetitionView(FormView):
     success_url = 'petition-signatures'
 
     def form_valid(self, form):
-        user = get_or_create_new_user_profile(form, regular=None)
+        user = get_or_create_new_user_profile(form)
         petition_signature = get_or_create_new_petition_signature(form, user)
         if petition_signature:
             user.administrative_units.add(petition_signature.administrative_unit)
