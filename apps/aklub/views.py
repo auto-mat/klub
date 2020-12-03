@@ -29,7 +29,6 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.tokens import default_token_generator
-from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.core.mail import EmailMultiAlternatives
 from django.core.validators import MinLengthValidator, RegexValidator, ValidationError
@@ -43,7 +42,6 @@ from django.utils.decorators import method_decorator
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from django.utils.translation import ugettext_lazy as _
-from django.views.decorators.cache import cache_page, never_cache
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
 from django.views.generic.edit import FormView
@@ -399,7 +397,6 @@ def get_or_create_new_user_profile(form, regular):
     if form.forms['userprofile'].cleaned_data['telephone']:
         Telephone.objects.get_or_create(telephone=form.forms['userprofile'].cleaned_data['telephone'], user=new_user_profile)
 
-    cache.clear()
     return new_user_profile
 
 
@@ -423,7 +420,6 @@ def update_or_create_new_payment_channel(form, new_user_profile):
         payment_channel.regular_frequency = data.get('regular_frequency') or None
         payment_channel.save()
 
-    cache.clear()
     return payment_channel
 
 
@@ -682,8 +678,6 @@ def stat_payments(request):
 
 
 class CampaignStatistics(View):
-    @method_decorator(never_cache)
-    @method_decorator(cache_page(60))  # cache in memcached for 1 minute
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
@@ -705,8 +699,6 @@ class CampaignStatistics(View):
 
 
 class PetitionSignatures(View):
-    @method_decorator(never_cache)
-    @method_decorator(cache_page(60))  # cache in memcached for 1 minute
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
@@ -801,7 +793,6 @@ class PetitionConfirmEmailView(SesameUserMixin, View):
             signature = PetitionSignature.objects.get(event=event, user=user)
             signature.email_confirmed = True
             signature.save()
-            cache.clear()
             if event.email_confirmation_redirect:
                 return redirect(event.email_confirmation_redirect, permanent=False)
             else:
