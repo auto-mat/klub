@@ -111,7 +111,7 @@ class CreateDpchUserProfileViewTest(TestCase):
         header = {'Authorization': 'Bearer foo'}
         # required fields
         data = {
-            'email': 'test_user@test.com',
+            'email': 'Test_User@test.coM',
             'first_name': 'test_name',
             'last_name': 'test_last_name',
             'telephone': '111222333',
@@ -180,7 +180,7 @@ class CreateDpchCompanyProfileViewTest(TestCase):
         data = {
             'crn': '63278260',
             'name': 'company_name',
-            'email': 'company@test.com',
+            'email': 'Company@Test.Com',
             'contact_first_name': 'tester',
             'contact_last_name': 'tester_last',
             'telephone': '111222333',
@@ -209,7 +209,7 @@ class CreateDpchCompanyProfileViewTest(TestCase):
             'street': 'street_name',
             'city': 'city_name',
             'zip_code': '111 22',
-            'email': 'company_new@test.com',
+            'email': 'company_neW@test.com',
             'telephone': '333222111',
         }
         data.update(data_update)
@@ -401,7 +401,7 @@ class CreateCreditCardPaymentTest(TestCase):
             'date': '2015-04-10',
             'event': self.event.slug,
             'recipient_account': self.bank_acc.slug,
-            'email': email.email,
+            'email': email.email.upper(),
             'amount': 123456,
             'profile_type': 'user',
             'VS': '332211',
@@ -428,7 +428,7 @@ class CreateCreditCardPaymentTest(TestCase):
             'date': '2021-04-10',
             'event': self.event.slug,
             'recipient_account': self.bank_acc.slug,
-            'email': company_contact.email,
+            'email': company_contact.email.upper(),
             'amount': 654321,
             'profile_type': 'company',
             'VS': '111',
@@ -457,7 +457,7 @@ class RegisterUserProfileTest(TestCase):
         header = {"content_type": "application/json"}
         data = {
 
-            'email': 'tester@gmai.com',
+            'email': 'tester@gmai.coM',
             'telephone': '123456789',
             'first_name': 'tester',
             'last_name': 'dunnot',
@@ -474,7 +474,7 @@ class RegisterUserProfileTest(TestCase):
         response = self.client.post(url, data=data, **header)
         self.assertEqual(response.status_code, 201)
         response_data = response.json()
-        email = ProfileEmail.objects.get(email=data['email'])
+        email = ProfileEmail.objects.get(email=data['email'].lower())
         user = email.user
         dpch = user.userchannels.first()
         telephone = user.telephone_set.first()
@@ -499,7 +499,7 @@ class RegisterUserProfileTest(TestCase):
 class ResetPasswordTest(TestCase):
     def test_reset_password(self):
         user = mommy.make('aklub.UserProfile', username="John_van_test")
-        email = mommy.make('aklub.ProfileEmail', email="John@van.test", user=user)
+        email = mommy.make('aklub.ProfileEmail', email="john@van.test", user=user)
         mommy.make('aklub.AdministrativeUnit', from_email_str="unit@test.test")
         url = reverse('reset_password_email')
         data = {'email': email.email}
