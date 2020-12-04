@@ -588,62 +588,11 @@ class TelephoneInline(admin.TabularInline):
     show_change_link = True
 
 
-class ProfileEmailAdminForm(forms.ModelForm):
-    class Meta:
-        model = ProfileEmail
-        fields = '__all__'
-
-    def check_duplicate(self, *args, **kwargs):
-        cleaned_data = kwargs['cleaned_data']
-        qs = ProfileEmail.objects.filter(
-            email=cleaned_data['email'],
-            user=cleaned_data['user'],
-        )
-        msg = _('Duplicate email address for this user')
-        if cleaned_data.get('email'):
-            cleaned_data['email'] = cleaned_data['email'].lower()
-        if not cleaned_data.get('id'):
-            if qs.filter(email=cleaned_data['email'], user=cleaned_data['user']).exists():
-                self.add_error('email', msg)
-                return True
-        else:
-            if 'email' in self.changed_data:
-                if qs.filter(email=cleaned_data['email'], user=cleaned_data['user']).exists():
-                    self.add_error('email', msg)
-                    return True
-
-    def check_unique(self, *args, **kwargs):
-        cleaned_data = kwargs['cleaned_data']
-        model = cleaned_data['user']._meta.model_name
-        qs = ProfileEmail.objects.filter(
-            user__polymorphic_ctype=ContentType.objects.get(model=model),
-        )
-        msg = _('Email address exist')
-        if cleaned_data.get('email'):
-            cleaned_data['email'] = cleaned_data['email'].lower()
-        if not cleaned_data.get('id'):
-            if qs.filter(email=cleaned_data['email']).exists():
-                self.add_error('email', msg)
-                return True
-        else:
-            if (qs.filter(email=cleaned_data['email']).exclude(user=cleaned_data['user']).exists()):
-                self.add_error('email', msg)
-                return True
-
-    def clean(self):
-        cleaned_data = super().clean()
-        if self.check_duplicate(cleaned_data=cleaned_data):
-            return cleaned_data
-        if self.check_unique(cleaned_data=cleaned_data):
-            return cleaned_data
-
-
 class ProfileEmailInline(admin.TabularInline):
     model = ProfileEmail
     extra = 0
     can_delete = True
     show_change_link = True
-    form = ProfileEmailAdminForm
     fields = (
         'email', 'is_email_in_companyprofile', 'is_primary', 'note',
     )

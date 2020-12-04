@@ -1118,7 +1118,9 @@ class ProfileEmail(models.Model):
     class Meta:
         verbose_name = _("Email")
         verbose_name_plural = _("Emails")
-        unique_together = ("user", "is_primary")
+        unique_together = (
+            ("user", "is_primary"),
+        )
 
     bool_choices = (
         (None, "No"),
@@ -1126,8 +1128,7 @@ class ProfileEmail(models.Model):
     )
     email = models.EmailField(
         _('email address'),
-        blank=False,
-        null=True,
+        unique=True,
     )
     is_primary = models.NullBooleanField(
         verbose_name=_("Primary email"),
