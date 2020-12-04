@@ -599,6 +599,9 @@ class ProfileEmailInline(admin.TabularInline):
     readonly_fields = ('is_email_in_companyprofile',)
 
     def is_email_in_companyprofile(self, obj):
+        if not obj.id:
+            return ''
+
         filter_kwargs = {'email': obj.email}
         if not self.form.request.user.has_perm('can_edit_all_units'):
             filter_kwargs['company__administrative_units__in'] = self.form.request.user.administrated_units.all()
@@ -2110,6 +2113,9 @@ class CompanyContactInline(admin.TabularInline):
     readonly_fields = ('is_email_in_userprofile',)
 
     def is_email_in_userprofile(self, obj):
+        if not obj.id:
+            return ''
+
         filter_kwargs = {'email': obj.email}
         if not self.form.request.user.has_perm('can_edit_all_units'):
             filter_kwargs['user__administrative_units__in'] = self.form.request.user.administrated_units.all()
