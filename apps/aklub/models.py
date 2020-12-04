@@ -182,6 +182,10 @@ ICO_ERROR_MESSAGE = _("IČO není zadáno ve správném formátu. Zkontrolujte �
 
 
 class AdministrativeUnit(models.Model, ParseAccountStatement):
+    class Meta:
+        verbose_name = _("Administrative unit")
+        verbose_name_plural = _("Administrative units")
+
     name = models.CharField(
         verbose_name=_("Name"),
         max_length=255,
@@ -1034,8 +1038,9 @@ class UserProfile(Profile, AbstractUserProfile):
 
 
 class CompanyContact(models.Model):
-
     class Meta:
+        verbose_name = _("Company contact")
+        verbose_name_plural = _("Company contacts")
         unique_together = (
             ('is_primary', 'administrative_unit', 'email'),
             ('is_primary', 'administrative_unit', 'company'),
@@ -1198,6 +1203,9 @@ def Userprofile_administrative_unit_changed(sender, **kwargs):
 
 
 class Preference(models.Model):
+    class Meta:
+        verbose_name = _("Preference")
+        verbose_name_plural = _("Preferences")
     user = models.ForeignKey(
         Profile,
         blank=True,
@@ -1296,10 +1304,9 @@ class Telephone(models.Model):
         super().validate_unique(exclude=exclude)
 
     def check_duplicate(self, *args, **kwargs):
-        qs = Telephone.objects.filter(telephone=self.telephone, user=self.user)
         if self.pk is None:
-            if qs.filter(telephone=self.telephone, user=self.user).exists():
-                raise ValidationError("Duplicate phone number for this user")
+            if Telephone.objects.filter(telephone=self.telephone, user=self.user).exists():
+                raise ValidationError(_("Duplicate phone number for this user"))
 
     def clean(self, *args, **kwargs):
         self.check_duplicate()
@@ -1660,18 +1667,21 @@ class AccountStatements(ParseAccountStatement, models.Model):
         ('darujme', 'Darujme.cz'),
     )
 
-    type = models.CharField(max_length=30, choices=TYPE_OF_STATEMENT)  # noqa
-    import_date = models.DateTimeField(auto_now=True)
+    type = models.CharField(max_length=30, choices=TYPE_OF_STATEMENT, verbose_name=_("Type"))  # noqa
+    import_date = models.DateTimeField(auto_now=True, verbose_name=_("Import date"),)
     csv_file = models.FileField(
+        verbose_name=_("csv file"),
         upload_to='account-statements',
         null=False,
         blank=False,
     )
     date_from = models.DateField(
+        verbose_name=_("Date from"),
         blank=True,
         null=True,
     )
     date_to = models.DateField(
+        verbose_name=_("Date to"),
         blank=True,
         null=True,
     )
@@ -1737,6 +1747,10 @@ class AccountStatements(ParseAccountStatement, models.Model):
 
 
 class MoneyAccount(PolymorphicModel):
+    class Meta:
+        verbose_name = _("Bank/Api account")
+        verbose_name_plural = _("Bank/Api accounts")
+
     note = models.TextField(
         verbose_name=_("Bank account note"),
         blank=True,
@@ -1766,6 +1780,7 @@ class BankAccount(MoneyAccount):
         verbose_name_plural = _("Bank accounts")
 
     bank_account = models.CharField(
+        verbose_name=_("Bank Account"),
         max_length=50,
         blank=True,
         null=True,
@@ -1782,6 +1797,10 @@ class BankAccount(MoneyAccount):
 
 
 class ApiAccount(MoneyAccount):
+    class Meta:
+        verbose_name = _("Api Account")
+        verbose_name_plural = _("Api Accounts")
+
     project_name = models.CharField(
         verbose_name=_("Name"),
         unique=True,
@@ -1944,11 +1963,13 @@ class DonorPaymentChannel(ComputedFieldsModel):
     )
     money_account = models.ForeignKey(
         MoneyAccount,
+        verbose_name=_("Bank/Api account"),
         related_name='moneyaccounts',
         on_delete=models.CASCADE,
     )
     user_bank_account = models.ForeignKey(
         UserBankAccount,
+        verbose_name=_("User bank account"),
         related_name='userbankaccounts',
         on_delete=models.CASCADE,
         default=None,
@@ -1994,7 +2015,7 @@ class DonorPaymentChannel(ComputedFieldsModel):
                 )
             if qs:
                 if qs.first().pk != self.pk:
-                    raise ValidationError("Duplicate VS")
+                    raise ValidationError(_("Duplicate VS"))
         except MoneyAccount.DoesNotExist:
             pass
 
@@ -2004,7 +2025,7 @@ class DonorPaymentChannel(ComputedFieldsModel):
         """
         return self.payment_set.aggregate(count=Count('amount'))['count']
 
-    number_of_payments.short_description = _("# payments")
+    number_of_payments.short_description = _("Number of payments")
     number_of_payments.admin_order_field = 'payments_number'
 
     def last_payment_function(self):
@@ -2109,6 +2130,8 @@ class DonorPaymentChannel(ComputedFieldsModel):
     @computed(models.FloatField(null=True), depends=['payment_set'])
     def payment_total(self):
         return self.payment_set.aggregate(sum=Sum('amount'))['sum'] or 0
+
+    payment_total.short_description = _("Payment total")
 
     def total_contrib_string(self):
         """Return the sum of all money received from this user
@@ -2546,6 +2569,7 @@ class AutomaticCommunication(models.Model):
     )
     method_type = models.ForeignKey(
         "interactions.interactiontype",
+        verbose_name=_('Method/Type of Interaction'),
         help_text=_("Interaction type with allowed sending"),
         on_delete=models.CASCADE,
         limit_choices_to=Q(send_sms=True) | Q(send_email=True),
@@ -2658,6 +2682,7 @@ class MassCommunication(models.Model):
     )
     method_type = models.ForeignKey(
         "interactions.interactiontype",
+        verbose_name=_('Method/Type of Interaction'),
         on_delete=models.CASCADE,
         help_text=_("Interaction type with allowed sending"),
         limit_choices_to=Q(send_sms=True) | Q(send_email=True),
@@ -2755,7 +2780,7 @@ class MassCommunication(models.Model):
     def clean(self):
         if self.attach_tax_confirmation:
             if not self.attached_tax_confirmation_year or not self.attached_tax_confirmation_type:
-                raise ValidationError("YEAR and PDF_TYPE must be set")
+                raise ValidationError(_("YEAR and PDF_TYPE must be set"))
         super().clean()
 
 
@@ -2826,11 +2851,12 @@ class TaxConfirmation(models.Model):
         null=False,
         blank=False,
     )
-    year = models.PositiveIntegerField()
-    amount = models.PositiveIntegerField(default=0)
+    year = models.PositiveIntegerField(verbose_name=_('Year'))
+    amount = models.PositiveIntegerField(default=0, verbose_name=_('Amount'))
     file = models.FileField(storage=OverwriteStorage())  # DEPRICATED!
     pdf_type = models.ForeignKey(
                     'smmapdfs.PdfSandwichType',
+                    verbose_name=_('PDF type'),
                     on_delete=models.SET_NULL,
                     null=True,
                     blank=True,
