@@ -1,0 +1,51 @@
+.text-justify {
+  text-align: justify;
+}
+
+.article {
+  &__content {
+    p {
+      padding: 0px 35px;
+    }
+  }
+  &__automat-poppins-light-font {
+    font-family: AutoMat-Poppins-Light;
+  }
+  &__automat-poppins-thin-font {
+    font-family: AutoMat-Poppins-Thin;
+  }
+  &__automat-poppins-extralight-font {
+    font-family: AutoMat-Poppins-ExtraLight;
+  }
+  &__automat-poppins-bold-font {
+    font-family: AutoMat-Poppins-Bold;
+  }
+  &__automat-poppins-regular-font {
+    font-family: AutoMat-Poppins-Regular;
+  }
+  &__automat-formulacondesed-font {
+    font-family: AutoMat-FormulaCondensed-AutoMat;
+  }
+  &__automat-poppins-semibold-font {
+    font-family: AutoMat-Poppins-SemiBold;
+  }
+  &__automat-poppins-medium-font {
+    font-family: AutoMat-Poppins-Medium;
+  }
+}
+
+.article {
+  &__footer {
+    &__info {
+      font-size: 10px;
+      border-spacing: 5px;
+      border-collapse: separate;
+      & a:link {
+        text-decoration: none;
+        color: white;
+        background-color: red;
+        font-weight: bolder;
+      }
+    }
+  }
+}

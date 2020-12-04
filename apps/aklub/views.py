@@ -19,6 +19,7 @@
 
 # Create your views here.
 import json
+import pathlib
 from collections import OrderedDict
 
 from betterforms.multiform import MultiModelForm
@@ -34,10 +35,10 @@ from django.core.mail import EmailMultiAlternatives, mail_managers
 from django.core.validators import MinLengthValidator, RegexValidator, ValidationError
 from django.db.models import Case, CharField, Count, IntegerField, Q, Sum, Value, When
 from django.db.models.functions import TruncMonth
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render, render_to_response
 from django.template.loader import render_to_string
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
@@ -59,6 +60,7 @@ from .models import (
     Profile, ProfileEmail, Source, Telephone, UserInCampaign,
     UserProfile,
 )
+from .utils import get_email_template_context
 
 
 class RegularUserForm_UserProfile(forms.ModelForm):
@@ -866,3 +868,63 @@ class PasswordResetView(View):
             template_name="password/password_reset.html",
             context={"password_reset_form": password_reset_form},
         )
+
+
+def get_email_template(request, template_name):
+    """ Get email template """
+
+    _template_name = template_name
+
+    template_name = '.'.join([template_name, 'html'])
+    template_dir = pathlib.Path('email_templates')
+    template_path = template_dir / template_name
+
+    template_url = reverse(
+        'aklub:get_email_template',
+        kwargs={'template_name': _template_name},
+    )
+
+    template, context = get_email_template_context(
+        template_path, template_url,
+    )
+
+    return HttpResponse(template.render(context))
+
+
+def get_email_template_from_db(request, template_name):
+    """ Get email template from db """
+
+    new_empty_template = 'new_empty_template'
+
+    template_dir = pathlib.Path('email_templates')
+    template_path = template_dir / '.'.join([new_empty_template, 'html'])
+    template_url = reverse(
+        'aklub:get_email_template_from_db',
+        kwargs={'template_name': template_name},
+    )
+
+    template, context = get_email_template_context(
+        template_path, template_url,
+    )
+
+    return HttpResponse(template.render(context))
+
+
+def get_contenttools_translation(request, language):
+    """ Get ContentTools translation file  """
+
+    cttools_language_file = (
+        pathlib.Path(settings.BASE_DIR) / 'bower_components' /
+        'ContentTools' / 'translations' / f"{language}.json"
+    )
+
+    if not cttools_language_file.exists():
+        message_text = _(
+            "language '%(lang)s.json' translation file doesn't exist",
+        ) % {'lang': language}
+        return JsonResponse({'message': message_text})
+
+    with open(cttools_language_file) as f:
+        translation = json.load(f)
+
+    return JsonResponse(translation)

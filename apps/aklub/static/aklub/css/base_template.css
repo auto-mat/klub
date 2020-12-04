@@ -1,0 +1,13 @@
+.content-table {
+    background-repeat: no-repeat;
+    background-size: contain;
+}
+
+.content-table section {
+    width: 100%;
+    height: 100%;
+}
+
+.content-table section .top-vertical-space {
+    margin-top: 0;
+}

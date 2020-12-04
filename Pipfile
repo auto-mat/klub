@@ -10,7 +10,7 @@ django-stdimage = "*"
 reportlab = "*"
 django-extensions = "*"
 "psycopg2" = "*"
-django-wysiwyg = "*"
+django-wysiwyg = {editable = true,git = "https://github.com/tmszi/django-wysiwyg.git",ref = "enable_editor_for_more_fields"}
 django-tinymce = "*"
 django-admin-tools = "*"
 feedparser = "*"
@@ -48,7 +48,6 @@ django-sesame = "==1.4"
 django-ses = "*"
 drf-yasg = "*"
 vokativ = "*"
-Django = ">=2,<3"
 "PyPDF2" = "*"
 django-post_office = {ref = "jsonfield2",git = "https://github.com/Mogost/django-post_office",editable = true}  # for django-jsonfield2 transition
 raven = "*"
@@ -92,7 +91,14 @@ faker = "*"
 # TODO: fix computedfields error in version 0.1.0 (syntax changed in models)
 django-computedfields = "==0.0.23"
 django-oauth-toolkit = "*"
-
+django-rest-swagger = "*"
+django-filter = "*"
+django-js-urls = "*"
+mkdocs = "*"
+cairosvg = "*"
+django = "<3,>=2"
+django-phonenumber-field = "*"
+phonenumbers = "*"
 
 [dev-packages]
 coverage = "*"

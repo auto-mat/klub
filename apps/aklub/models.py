@@ -2644,6 +2644,11 @@ class MassCommunication(models.Model):
         verbose_name = _("Mass Communication")
         verbose_name_plural = _("Mass Communications")
 
+    EMAIL_BODY_CREATION_CHOICES = (
+        ("new", _("Create new email body")),
+        ('existed', _("Choose email body template")),
+    )
+
     name = models.CharField(
         verbose_name=_("Name"),
         max_length=50,
@@ -2680,14 +2685,42 @@ class MassCommunication(models.Model):
         null=True,
         validators=[gender_strings_validator, variable_validator],
     )
+    template_type = models.CharField(
+        verbose_name=_("Choose how to create an email body"),
+        max_length=350,
+        null=False,
+        blank=True,
+        default="new",
+        choices=EMAIL_BODY_CREATION_CHOICES,
+    )
+    template_name = models.CharField(
+        verbose_name=_("Choose template"),
+        max_length=350,
+        null=True,
+        blank=True,
+    )
     template = models.TextField(
         verbose_name=_("Template"),
         help_text=_("Template can contain following variable substitutions: <br/>") + ("{mr|mrs} or {mr/mrs}, $" + ", $"
                                                                                        .join(autocom.KNOWN_VARIABLES)),
         max_length=50000,
-        blank=False,
+        blank=True,
         null=True,
         validators=[gender_strings_validator, variable_validator],
+    )
+    template_en_type = models.CharField(
+        verbose_name=_("Choose how to create an email body"),
+        max_length=350,
+        null=False,
+        blank=True,
+        default="new",
+        choices=EMAIL_BODY_CREATION_CHOICES,
+    )
+    template_en_name = models.CharField(
+        verbose_name=_("Choose template"),
+        max_length=350,
+        null=True,
+        blank=True,
     )
     template_en = models.TextField(
         verbose_name=_("English template"),

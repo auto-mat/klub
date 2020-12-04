@@ -24,12 +24,13 @@ install:
   - pip install pipenv
   - pipenv install --dev --ignore-pipfile --python=python$TRAVIS_PYTHON_VERSION
   - pipenv run python --version
-  - pipenv run pip install flake8-strict  # not installable with pipenv, move ther when repaired
+  - pipenv run pip install flake8-strict # not installable with pipenv, move ther when repaired
   - pipenv run pip install -q $DJANGO_VERSION
 before_script:
-  - npm install -g bower
+  - npm install -g bower sass
   - pipenv run flake8
   - pipenv run python manage.py bower install
+  - pipenv run python manage.py build_contenttools --npm $(which npm)
   - pipenv run python manage.py collectstatic -v0 --noinput
   - cd apps/aklub/
   - DJANGO_SETTINGS_MODULE="" pipenv run django-admin compilemessages
@@ -42,6 +43,6 @@ after_script:
 addons:
   postgresql: "9.6"
 matrix:
-   allow_failures:
-      - env: DJANGO_VERSION='https://github.com/django/django/archive/master.tar.gz'
-      - env: DJANGO_VERSION="Django>=3.0,<3.1"
+  allow_failures:
+    - env: DJANGO_VERSION='https://github.com/django/django/archive/master.tar.gz'
+    - env: DJANGO_VERSION="Django>=3.0,<3.1"

@@ -80,6 +80,7 @@ from smmapdfs.actions import make_pdfsandwich
 
 
 from . import darujme, filters, mailing, tasks
+from .custom_form_widgets import HtmlTemplateWidget
 from .filters import ProfileTypeFilter, unit_admin_mixin_generator
 from .forms import (
     CompanyProfileAddForm, CompanyProfileChangeForm, EventForm, TaxConfirmationForm, UnitUserProfileAddForm,
@@ -96,7 +97,10 @@ from .profile_model_resources import (
     ProfileModelResource, get_polymorphic_parent_child_fields,
 )
 from .profile_model_resources_mixin import ProfileModelResourceMixin
-from .utils import check_annotate_filters, edit_donor_annotate_filter, sweet_text
+from .utils import (
+    check_annotate_filters, edit_donor_annotate_filter,
+    get_email_templates_names, sweet_text,
+)
 
 
 def admin_links(args_generator):
@@ -1536,9 +1540,58 @@ class AutomaticCommunicationAdmin(admin.ModelAdmin):
 
 
 class MassCommunicationForm(forms.ModelForm):
+    hidden_template = forms.CharField(widget=forms.HiddenInput(), required=False)
+    hidden_template_en = forms.CharField(widget=forms.HiddenInput(), required=False)
+    template_textarea = forms.CharField(widget=forms.Textarea(), required=False)
+    template_en_textarea = forms.CharField(widget=forms.Textarea(), required=False)
+
     class Meta:
         model = MassCommunication
         fields = '__all__'
+        widgets = {
+            'template': HtmlTemplateWidget(
+                attrs={
+                    'class': 'template',
+                },
+            ),
+            'template_en': HtmlTemplateWidget(
+                attrs={
+                    'class': 'template',
+                },
+            ),
+        }
+
+    class Media:
+        js = (
+            'jquery/dist/jquery.min.js',
+            'webui-popover/dist/jquery.webui-popover.min.js',
+            'aklub/js/csrf_token.js',
+            'aklub/js/template_widget.min.js',
+            'jquery-ui/jquery-ui.min.js',
+            'jquery-mdl/dist/mdl-min.js',
+            'jquery.inlineStyler/jquery.inlineStyler.min.js',
+        )
+        css = {
+            'all': (
+                'jquery-ui/themes/base/jquery-ui.min.css',
+                'webui-popover/dist/jquery.webui-popover.min.css',
+                'jquery-mdl/dist/mdl.css',
+                'aklub/css/template.css',
+                'aklub/css/template_name_dialog.css',
+            ),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super(MassCommunicationForm, self).__init__(*args, **kwargs)
+        self.fields['template_type'].empty_label = None
+        self.fields['template_name'] = forms.ChoiceField(
+            choices=get_email_templates_names(),
+            required=False,
+        )
+        self.fields['template_en_name'] = forms.ChoiceField(
+            choices=get_email_templates_names(),
+            required=False,
+        )
 
     def clean_send_to_users(self):
         v = EmailValidator()
@@ -1556,6 +1609,16 @@ class MassCommunicationForm(forms.ModelForm):
                         },
                     )
         return self.cleaned_data['send_to_users']
+
+    def clean(self):
+        super().clean()
+        cleaned_data = self.cleaned_data
+        if self.cleaned_data.get('hidden_template'):
+            cleaned_data['template'] = self.cleaned_data.get('hidden_template')
+        if self.cleaned_data.get('hidden_template_en'):
+            cleaned_data['template_en'] = self.cleaned_data.get('hidden_template_en')
+
+        return cleaned_data
 
 
 class MassCommunicationAdmin(unit_admin_mixin_generator('administrative_unit'), large_initial.LargeInitialMixin, admin.ModelAdmin):
@@ -1622,6 +1685,14 @@ class MassCommunicationAdmin(unit_admin_mixin_generator('administrative_unit'), 
             obj.date = datetime.datetime.now()
             obj.save()
         return obj
+
+    def add_view(self, request, form_url='', extra_context=None):
+        request.POST = request.POST.copy()
+        if request.POST.get('hidden_template'):
+            request.POST['template'] = request.POST.get('hidden_template')
+        if request.POST.get('hidden_template_en'):
+            request.POST['template_en'] = request.POST.get('hidden_template_en')
+        return super(MassCommunicationAdmin, self).add_view(request, form_url=form_url, extra_context=extra_context)
 
 
 def pair_payment_with_dpch(self, request, queryset):

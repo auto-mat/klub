@@ -1,0 +1,5 @@
+{% load i18n %}
+<div name="{{ widget.name }}"{% include "form_field_html_template_widget_attrs.html" %} style="max-width:600px">
+  {% if widget.value %}{{ widget.value|safe }}{% endif %}
+</div>
+<input type="submit" value="{% trans 'Edit template' %}" class="default" name="edit_{{ widget.name }}_btn" data-target="#edit_{{ widget.name }}_dialog">

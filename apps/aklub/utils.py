@@ -1,13 +1,34 @@
 # -*- coding: utf-8 -*-
+
 import datetime
+import json
+import pathlib
+from operator import itemgetter
+
+from PIL import Image
 
 from django.contrib import messages
+from django.contrib.staticfiles import finders
+from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.db import models
+from django.template import loader
 from django.urls import reverse
 from django.utils.html import format_html_join, mark_safe
 from django.utils.translation import ugettext_lazy as _
 
+from html_template_editor.models import (
+    Images, TemplateContent, TemplateFooter, TemplateHeader,
+)
+
 from . import models as aklub_models
+
+EMAIL_TEMPLATES_DENYLIST = [
+    'base.html',
+    'new_empty_template.html',
+    'footer.html',
+    'automat_fonts.html',
+    'header.html',
+]
 
 
 def sweet_text(generator):
@@ -120,3 +141,116 @@ class WithAdminUrl:
             'admin:%s_%s_change' % (self._meta.app_label, self._meta.model_name),
             args=[self.id],
         )
+
+
+def get_templates_files():
+    """ Get email templates files
+
+    :return list: email templates files list
+    """
+    path = pathlib.Path(__file__).parents[0] / 'templates' \
+        / 'email_templates'
+
+    return [
+        f.name for f in path.glob('*.html') if f.is_file()
+    ]
+
+
+def get_email_templates_names():
+    """ Get email templates names
+
+    :return list: sorted list of email templates files tuples
+    (code, value)
+    """
+
+    # File templates
+    file_templates_names = [
+        (template, template) for template in [
+            template.split('.')[0] for template in get_templates_files()
+            if template not in EMAIL_TEMPLATES_DENYLIST
+        ]
+    ]
+    # Db templates
+    db_templates_obj = TemplateContent.objects.filter(
+        page__contains='new_empty_template',
+    )
+    db_templates = set(db_templates_obj.values_list('page', flat=True))
+
+    value = 'new_empty_template:{}'
+    db_templates_names = [
+        (value.format(pathlib.Path(t).name), pathlib.Path(t).name)
+        for t in db_templates
+    ]
+    file_templates_names.extend(db_templates_names)
+
+    sorted_templates = sorted(file_templates_names, key=itemgetter(1))
+    sorted_templates.insert(
+        0, ('new_empty_template', 'new_empty_template'),
+    )
+    sorted_templates.insert(0, ('', '---------'))
+
+    return sorted_templates
+
+
+def get_email_template_context(template_path, template_url):
+    """ Get email template context """
+
+    # File templates
+    file_templates = {
+        template: f"{template}.jpeg" for template in [
+            template.split('.')[0] for template in get_templates_files()
+            if template not in EMAIL_TEMPLATES_DENYLIST
+        ]
+    }
+
+    _finders = finders.AppDirectoriesFinder()
+
+    template = loader.get_template(str(template_path))
+    template_obj = TemplateContent.objects.filter(page=template_url)
+    if (template_obj):
+        content = template_obj.latest('created')
+        context = {
+            'page': content,
+        }
+        regions = json.loads(content.regions)
+        context.update(regions)
+        styles = json.loads(content.styles)
+        context.update({'styles': styles})
+    else:
+        context = {}
+
+    footer = TemplateFooter.objects.filter(show=True).first()
+    if footer:
+        context['footer'] = footer
+
+    header = TemplateHeader.objects.filter(show=True).first()
+    if header:
+        context['header'] = header
+
+    # Templates in db
+    background_image = Images.objects.filter(
+            template_url=template_url,
+            edited_crop__isnull=False,
+        ).order_by('-modified').first()
+    if background_image:
+        context['bg_img'] = background_image.image.url
+        context['bg_img_width'] = background_image.image.width
+        context['bg_img_height'] = background_image.image.height
+    else:
+        # Templates in dir
+        for template_name in file_templates.keys():
+            if template_name in template_url:
+                img_name = file_templates.get(template_name)
+                static_imgs_dir = _finders.find_in_app(
+                    app='aklub',
+                    path='aklub/images',
+                )
+                img = Image.open(
+                    pathlib.Path(static_imgs_dir) / img_name,
+                )
+
+                context['bg_img'] = static(f"aklub/images/{img_name}")
+                context['bg_img_width'] = img.width
+                context['bg_img_height'] = img.height
+
+    return template, context

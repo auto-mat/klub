@@ -173,6 +173,7 @@ CACHES = {
 
 LOCALE_PATHS = [
     normpath(PROJECT_ROOT, 'apps/aklub/locale'),
+    normpath(PROJECT_ROOT, 'apps/html_template_editor/locale'),
 ]
 
 USE_L10N = True
@@ -249,6 +250,10 @@ INSTALLED_APPS = (
     "pinax.invitations",
     "pinax.teams",
     "reversion",
+    'rest_framework_swagger',
+    'rest_framework.authtoken',
+    'js_urls',
+    'html_template_editor',
 )
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [ # noqa
@@ -292,6 +297,11 @@ BOWER_INSTALLED_APPS = (
     'jquery-ui#~1.12.1',
     'd3#3.3.13',
     'nvd3#1.7.1',
+    'ContentTools#1.6.10',
+    'https://github.com/Karl33to/jquery.inlineStyler.git#1.0.1',
+    'webui-popover#2.1.15',
+    'jquery-mdl',
+    'https://github.com/PitPik/colorPicker.git'
 )
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -443,7 +453,7 @@ SECURE_SSL_REDIRECT = True
 SECURE_HSTS_SECONDS = 60
 SECURE_HSTS_PRELOAD = True
 SESSION_COOKIE_SECURE = True
-X_FRAME_OPTIONS = 'DENY'
+X_FRAME_OPTIONS = 'SAMEORIGIN'
 
 BROKER_URL = os.environ.get('REDIS_URL', 'redis://redis')
 SMMAPDFS_CELERY = True
@@ -533,3 +543,38 @@ MERGE_ACTION_IGNORED_FIELDS = {
             'companyprofile': ['is_staff', 'is_superuser', 'user_permissions', 'groups'],
     },
 }
+
+REST_FRAMEWORK = {
+    # Use Django's standard `django.contrib.auth` permissions,
+    # or allow read-only access for unauthenticated users.
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAdminUser',
+    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+    ),
+    'DEFAULT_PARSER_CLASSES': (
+        'rest_framework.parsers.JSONParser',
+        'rest_framework.parsers.FormParser',
+        'rest_framework.parsers.MultiPartParser',
+    ),
+    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
+    }
+
+SWAGGER_SETTINGS = {
+    'is_authenticated': False,
+    'is_superuser': False,
+}
+
+JS_URLS = (
+    'html_template_editor:add',
+    'html_template_editor:images_add',
+    'html_template_editor:images_update',
+    'aklub:get_email_template',
+    'aklub:get_email_template_from_db',
+    'aklub:get_email_template_footer',
+    'aklub:get_contenttools_translation',
+)
+
+STATICFILES_STORAGE = 'project.settings.custom_storage.CustomStaticFilesStorage'
