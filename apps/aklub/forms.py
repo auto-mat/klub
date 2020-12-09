@@ -6,8 +6,10 @@ from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import ReadOnlyPasswordHashField, UserChangeForm, UserCreationForm, UsernameField
 from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
 from django.db import IntegrityError, transaction
 from django.urls import reverse_lazy
+from django.utils.translation import ugettext_lazy as _
 
 from smmapdfs.models import PdfSandwichType
 
@@ -17,7 +19,7 @@ Profile = get_user_model()
 
 
 class TaxConfirmationForm(forms.Form):
-    year = forms.IntegerField(label='Year')
+    year = forms.IntegerField(label=_('Year'))
 
     def __init__(self, *args, **kwargs):
         profiles = kwargs.pop('profiles', None)
@@ -60,7 +62,15 @@ def hidden_fields_switcher(self):
 class UserCreateForm(UserCreationForm):
     password = ReadOnlyPasswordHashField()
     hidden_lock_change = forms.CharField(widget=forms.HiddenInput(), initial='locked', required=False)
-    telephone = forms.CharField(required=False)
+    telephone = forms.CharField(
+        required=False,
+        validators=[
+            RegexValidator(
+                r'^\+?(42(0|1){1})?\s?\d{3}\s?\d{3}\s?\d{3}$',
+                _("Telephone must consist of numbers, spaces and + sign or maximum number count is higher."),
+            ),
+        ],
+    )
 
     class Meta:
         model = Profile
@@ -79,11 +89,12 @@ class UserCreateForm(UserCreationForm):
             hidden_fields_switcher(self)
 
     def clean(self, *args, **kwargs):
-        if self._errors:
+        if self._errors and self.data.get('hidden_lock_change') == 'locked':
             hidden_fields_switcher(self)
         return super().clean()
 
     def is_valid(self):
+        # validation change "locked" and "unlocked" field , which helps to make double form
         if self.data.get('hidden_lock_change') == 'locked' and super().is_valid():
             self.data = self.data.copy()
             self.data['hidden_lock_change'] = 'unlocked'
@@ -134,7 +145,15 @@ class UserUpdateForm(UserChangeForm):
 class UnitUserProfileAddForm(forms.ModelForm):
     username = forms.CharField(required=False)
     hidden_lock_change = forms.CharField(widget=forms.HiddenInput(), initial='locked', required=False)
-    telephone = forms.CharField(required=False)
+    telephone = forms.CharField(
+        required=False,
+        validators=[
+            RegexValidator(
+                r'^\+?(42(0|1){1})?\s?\d{3}\s?\d{3}\s?\d{3}$',
+                _("Telephone must consist of numbers, spaces and + sign or maximum number count is higher."),
+            ),
+        ],
+    )
 
     class Meta:
         model = Profile
@@ -175,7 +194,7 @@ class UnitUserProfileAddForm(forms.ModelForm):
             hidden_fields_switcher(self)
 
     def clean(self):
-        if self._errors:
+        if self._errors and self.data.get('hidden_lock_change') == 'locked':
             hidden_fields_switcher(self)
         return super().clean()
 
@@ -221,11 +240,20 @@ class UnitUserProfileChangeForm(UnitUserProfileAddForm):
 
 class CompanyProfileAddForm(forms.ModelForm):
     no_crn_check = forms.BooleanField(
+                label=_("No crm check"),
                 required=False,
                 initial=False,
     )
     hidden_lock_change = forms.CharField(widget=forms.HiddenInput(), initial='locked', required=False)
-    telephone = forms.CharField(required=False)
+    telephone = forms.CharField(
+        required=False,
+        validators=[
+            RegexValidator(
+                r'^\+?(42(0|1){1})?\s?\d{3}\s?\d{3}\s?\d{3}$',
+                _("Telephone must consist of numbers, spaces and + sign or maximum number count is higher."),
+            ),
+        ],
+    )
     contact_first_name = forms.CharField(required=False, max_length=256)
     contact_last_name = forms.CharField(required=False, max_length=256)
 
@@ -243,13 +271,13 @@ class CompanyProfileAddForm(forms.ModelForm):
             hidden_fields_switcher(self)
 
     def clean(self):
-        if self._errors:
+        if self.cleaned_data.get('crn') is None and self.cleaned_data.get('no_crn_check') is False:
+            self.add_error('no_crn_check', _('Please confirm empty crn number'))
+
+        if self._errors and self.data.get('hidden_lock_change') == 'locked':
             hidden_fields_switcher(self)
             return super().clean()
 
-        if self.cleaned_data.get('crn') is None and self.cleaned_data.get('no_crn_check') is False:
-            self.add_error('no_crn_check', 'Please confirm empty crn number')
-            hidden_fields_switcher(self)
         return super().clean()
 
     def is_valid(self):

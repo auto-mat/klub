@@ -6,6 +6,10 @@ from django.utils.translation import ugettext_lazy as _
 
 
 class PdfStorage(models.Model):
+    class Meta:
+        verbose_name = _("File")
+        verbose_name_plural = _("Files")
+
     name = models.CharField(
         verbose_name=_("Name of file"),
         max_length=200,
@@ -28,8 +32,10 @@ class PdfStorage(models.Model):
     )
     related_ids = ArrayField(
         models.IntegerField(),
+        verbose_name=_("Related ids"),
     )
     pdf_file = models.FileField(
+        verbose_name=_("File"),
         upload_to='pdf_storage',
     )
     administrative_unit = models.ForeignKey(

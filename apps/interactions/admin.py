@@ -3,6 +3,7 @@ from aklub.models import AdministrativeUnit, CompanyContact, Event, Profile, Pro
 from django.contrib import admin
 from django.core import serializers
 from django.core.exceptions import ValidationError
+from django.utils.translation import ugettext_lazy as _
 
 from import_export import fields
 from import_export.admin import ImportExportMixin
@@ -57,9 +58,9 @@ class InteractionResource(ModelResource):
     def before_import_row(self, row, **kwargs): # noqa
         user = None
         if row.get('profile_type') not in ['u', 'c']:
-            raise ValidationError({'profile_type': 'Insert "c" or "u" (company/user)'})
+            raise ValidationError({'profile_type': _('Insert "c" or "u" (company/user)')})
         if not row.get('email') and not row.get('user'):
-            raise ValidationError({'email': 'Email or Username must be set'})
+            raise ValidationError({'email': _('Email or Username must be set')})
         if row.get('email'):
             row['email'] = row['email'].lower()
             try:
@@ -78,7 +79,7 @@ class InteractionResource(ModelResource):
             row['user'] = user.id
             return row
         else:
-            raise ValidationError({'user': 'User with this username or email doesnt exist'})
+            raise ValidationError({'user': _('User with this username or email doesnt exist')})
 
     def dehydrate_user(self, interaction):
         if hasattr(interaction, 'user'):

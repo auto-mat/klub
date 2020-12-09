@@ -63,37 +63,6 @@ class FilterTests(FilterTestCase):
         q = f.queryset(self.request, CompanyProfile.objects.all())
         self.assertQuerysetEqual(q, ["<CompanyProfile: Company>"])
 
-    def test_email_filter_duplicate(self):
-        user_profile1 = mommy.make('UserProfile', first_name="Foo", last_name="")
-        mommy.make('ProfileEmail', email='f@b.cz', user=user_profile1)
-        user_profile2 = mommy.make('UserProfile', first_name="Bar", last_name="")
-        mommy.make('ProfileEmail', email='f@b.cz', user=user_profile2)
-        f = filters.EmailFilter(self.request, {"email": "duplicate"}, UserProfile, None)
-        q = f.queryset(self.request, UserProfile.objects.all().exclude(is_superuser=True))
-        self.assertQuerysetEqual(
-            q,
-            [
-                "<UserProfile: Foo>",
-                "<UserProfile: Bar>",
-            ],
-            ordered=False,
-        )
-
-        company_profile1 = mommy.make('CompanyProfile', name="Company1")
-        mommy.make('CompanyContact', email='g@b.cz', company=company_profile1)
-        company_profile2 = mommy.make('CompanyProfile', name="Company2")
-        mommy.make('CompanyContact', email='g@b.cz', company=company_profile2)
-        f = filters.EmailFilter(self.request, {"email": "duplicate"}, CompanyProfile, None)
-        q = f.queryset(self.request, CompanyProfile.objects.all())
-        self.assertQuerysetEqual(
-            q,
-            [
-                "<CompanyProfile: Company1>",
-                "<CompanyProfile: Company2>",
-            ],
-            ordered=False,
-        )
-
     def test_telephone_filter_duplicate(self):
         user_profile1 = mommy.make('UserProfile', first_name="Foo", last_name="")
         mommy.make('Telephone', telephone='123456', user=user_profile1)

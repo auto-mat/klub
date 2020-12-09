@@ -3,6 +3,7 @@ import datetime
 
 from django.core.exceptions import ValidationError
 from django.utils.timezone import make_aware
+from django.utils.translation import ugettext_lazy as _
 
 from import_export import fields
 from import_export.resources import ModelResource
@@ -229,7 +230,7 @@ def before_import_row(self, row, **kwargs):
     if row.get('username') == "":
         row["username"] = None
     if not row['administrative_units']:
-        raise ValidationError({'administrative_units': 'This field must be set'})
+        raise ValidationError({'administrative_units': _('This field must be set')})
 
 
 def import_field(self, field, obj, data, is_m2m=False):

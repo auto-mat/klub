@@ -107,7 +107,7 @@ pudb = "*"
 "flake8-tidy-imports" = "*"
 "flake8-builtins" = "*"
 coveralls = "*"
-django-admin-smoke-tests = {ref = "merge_all",git = "https://github.com/PetrDlouhy/django-admin-smoke-tests",editable = true}
+django-admin-smoke-tests-2 = {ref = "merge_all",git = "https://github.com/PetrDlouhy/django-admin-smoke-tests",editable = true}
 model_mommy = "*"
 mock = "*"
 flower = "*"
