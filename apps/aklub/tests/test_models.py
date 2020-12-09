@@ -115,7 +115,7 @@ class CommunicationTest(TestCase):
         )
         self.assertEqual(len(mail.outbox), 1)
         msg = mail.outbox[0]
-        self.assertEqual(msg.recipients(), ['test@test.cz', 'kp@auto-mat.cz'])
+        self.assertEqual(msg.recipients(), ['test@test.cz'])
         self.assertEqual(msg.subject, 'Testing email')
         self.assertIn("Testing template", msg.body)
 

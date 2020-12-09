@@ -193,7 +193,7 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
 
         self.assertEqual(len(mail.outbox), 2)
         msg = mail.outbox[0]
-        self.assertEqual(msg.recipients(), ['test.user@email.cz', 'kp@auto-mat.cz'])
+        self.assertEqual(msg.recipients(), ['test.user@email.cz'])
         self.assertEqual(msg.subject, 'Resending data')
         self.assertEqual(
             msg.body,
@@ -245,7 +245,7 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         )
         self.assertEqual(len(mail.outbox), 2)
         msg = mail.outbox[0]
-        self.assertEqual(msg.recipients(), ['test@email.cz', 'kp@auto-mat.cz'])
+        self.assertEqual(msg.recipients(), ['test@email.cz'])
         self.assertEqual(msg.subject, 'New user')
         self.assertEqual(
             msg.body,
@@ -288,7 +288,7 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
 
         self.assertEqual(len(mail.outbox), 1)
         msg = mail.outbox[0]
-        self.assertEqual(msg.recipients(), ['test@test.cz', 'kp@auto-mat.cz'])
+        self.assertEqual(msg.recipients(), ['test@test.cz'])
         self.assertEqual(msg.subject, 'New user')
         self.assertEqual(
             msg.body,
@@ -419,7 +419,7 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         self.assertContains(response, '<tr><th>Pravidelné platby: </th><td>Pravidelné platby</td></tr>', html=True)
         self.assertEqual(len(mail.outbox), 2)
         msg = mail.outbox[0]
-        self.assertEqual(msg.recipients(), ['test.user@email.cz', 'kp@auto-mat.cz'])
+        self.assertEqual(msg.recipients(), ['test.user@email.cz'])
         self.assertEqual(msg.subject, 'Resending data')
         self.assertEqual(
             msg.body,
@@ -453,7 +453,7 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
 
         self.assertEqual(len(mail.outbox), 2)
         msg = mail.outbox[0]
-        self.assertEqual(msg.recipients(), ['test.user@email.cz', 'kp@auto-mat.cz'])
+        self.assertEqual(msg.recipients(), ['test.user@email.cz'])
         self.assertEqual(msg.subject, 'Resending data')
         self.assertEqual(
             msg.body,

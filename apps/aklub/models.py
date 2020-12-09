@@ -204,16 +204,12 @@ class AdministrativeUnit(models.Model, ParseAccountStatement):
     from_email_address = models.EmailField(
         verbose_name=_("E-mail from address"),
         help_text=_("Every new address has to be set up by system administrator"),
-        default="kp@auto-mat.cz",
-        blank=False,
-        null=False,
+        default="example@nothing_will_sent.ex",
     )
     from_email_str = models.CharField(
         verbose_name=_("E-mail from identifier"),
-        default='Klub pratel Auto*Matu <kp@auto-mat.cz>',
+        default='Example <example@nothing_will_sent.ex>',
         max_length=255,
-        blank=False,
-        null=False,
     )
 
     color = ColorField(
