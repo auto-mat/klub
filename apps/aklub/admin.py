@@ -2029,7 +2029,7 @@ class UserProfileAdmin(
         super().get_fieldsets(request, obj)
 
     def add_view(self, request, form_url='', extra_context=None):
-        """ email duplicity handler """
+        """ email duplicity handler (which is used in double form in add form)"""
         data = request.POST
         if data.get('email') and data.get('administrative_units'):
             try:

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: AKlub\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-12-09 11:48+0100\n"
+"POT-Creation-Date: 2020-12-09 13:53+0100\n"
 "PO-Revision-Date: 2019-08-02 08:42+0000\n"
 "Last-Translator: Hynek Hanke <hanke@brailcom.org>\n"
 "Language-Team: No linguistic content\n"
@@ -17,6 +17,18 @@ msgstr ""
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Loco-Parser: loco_parse_po\n"
 "X-Generator: Loco https://localise.biz/\n"
+
+#: apps/adminsite.py:10
+msgid "Basic menu"
+msgstr "Základní menu"
+
+#: apps/adminsite.py:15 apps/interactions/models.py:94
+msgid "Interactions"
+msgstr "Interakce"
+
+#: apps/adminsite.py:20
+msgid "File Storage"
+msgstr "Uložiště souborů"
 
 #: apps/aklub/admin.py:125
 msgid "user bank account"
@@ -506,6 +518,25 @@ msgstr "Společnost"
 #: apps/aklub/filters.py:424 apps/aklub/models.py:1893
 msgid "User"
 msgstr "Uživatel"
+
+#: apps/aklub/forms.py:22 apps/aklub/models.py:2738 apps/aklub/models.py:2854
+msgid "Year"
+msgstr "Rok"
+
+#: apps/aklub/forms.py:70 apps/aklub/forms.py:153 apps/aklub/forms.py:253
+#: apps/aklub/models.py:1076 apps/aklub/models.py:1275
+msgid ""
+"Telephone must consist of numbers, spaces and + sign or maximum number count "
+"is higher."
+msgstr "Chybný formát telefonu"
+
+#: apps/aklub/forms.py:243
+msgid "No crm check"
+msgstr "Potvrzení prázdného IČA"
+
+#: apps/aklub/forms.py:279
+msgid "Please confirm empty crn number"
+msgstr "Potvrďte prázdné IČO"
 
 #: apps/aklub/mailing.py:64
 msgid "Testing communication sending was queued"
@@ -1064,12 +1095,6 @@ msgstr "Příjmení"
 #: apps/aklub/models.py:1070 apps/aklub/models.py:1269
 msgid "Telephone number"
 msgstr "Telefon"
-
-#: apps/aklub/models.py:1076 apps/aklub/models.py:1275
-msgid ""
-"Telephone must consist of numbers, spaces and + sign or maximum number count "
-"is higher."
-msgstr "Chybný formát telefonu"
 
 #: apps/aklub/models.py:1081
 msgid "Primary contact"
@@ -1755,10 +1780,6 @@ msgstr "Připojit daňové potvrzení"
 msgid "If this field is checked, select year and type of pdf to send"
 msgstr "Pokud je toto políčko zaškrtnuto, rok a typ PDFka musí být zvolen."
 
-#: apps/aklub/models.py:2738 apps/aklub/models.py:2854
-msgid "Year"
-msgstr "Rok"
-
 #: apps/aklub/models.py:2745
 msgid "Type of PDF"
 msgstr "Typ PDF"
@@ -2162,18 +2183,6 @@ msgstr ""
 #: apps/api/views.py:306
 msgid "Password reset"
 msgstr "Obnovení hesla"
-
-#: apps/apps.py:10
-msgid "Basic menu"
-msgstr "Základní menu"
-
-#: apps/apps.py:15 apps/interactions/models.py:94
-msgid "Interactions"
-msgstr "Interakce"
-
-#: apps/apps.py:20
-msgid "File Storage"
-msgstr "Uložiště souborů"
 
 #: apps/interactions/admin.py:63
 msgid "Email or Username must be set"
