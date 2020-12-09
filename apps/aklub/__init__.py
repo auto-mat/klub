@@ -1,1 +1,1 @@
-default_app_config = 'apps.apps.InteractionConfig'
+default_app_config = 'apps.adminsite.InteractionConfig'

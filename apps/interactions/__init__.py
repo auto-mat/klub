@@ -1,1 +1,1 @@
-default_app_config = 'apps.apps.AklubConfig'
+default_app_config = 'apps.adminsite.AklubConfig'

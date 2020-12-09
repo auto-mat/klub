@@ -1,1 +1,1 @@
-default_app_config = 'apps.apps.PdfStorageConfig'
+default_app_config = 'apps.adminsite.PdfStorageConfig'
