@@ -259,17 +259,12 @@ class Interaction(WithAdminUrl, BaseInteraction2):
             pass
 
         if self.type.send_email:
-            bcc = [] if self.communication_type == 'mass' else [
-                                                    administrative_unit.from_email_address if administrative_unit else 'kp@auto-mat.cz',
-            ]
             if self.user.get_email_str(self.administrative_unit) != "":
-
                 email = EmailMultiAlternatives(
                     subject=self.subject,
                     body=self.summary_txt(),
-                    from_email=administrative_unit.from_email_str if administrative_unit else 'Klub pratel Auto*Matu <kp@auto-mat.cz>',
+                    from_email=administrative_unit.from_email_str,
                     to=[self.user.get_email_str(self.administrative_unit)],
-                    bcc=bcc,
                 )
                 if self.communication_type != 'individual':
                     email.attach_alternative(self.summary, "text/html")
