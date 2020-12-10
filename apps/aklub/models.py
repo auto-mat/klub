@@ -221,6 +221,27 @@ class AdministrativeUnit(models.Model, ParseAccountStatement):
         return str(self.name)
 
 
+class EventType(models.Model):
+    class Meta:
+        verbose_name = _("Event type")
+        verbose_name_plural = _("Event types")
+
+    name = models.CharField(
+        help_text=_("Name of event type"),
+        verbose_name=_("Name"),
+        max_length=100,
+    )
+    description = models.TextField(
+        verbose_name=_("Description"),
+        help_text=_("Description of this type"),
+        max_length=3000,
+        blank=True,
+    )
+
+    def __str__(self):
+        return self.name
+
+
 class Event(models.Model):
     """Campaign -- abstract event with description
 
@@ -230,16 +251,106 @@ class Event(models.Model):
         verbose_name = _("Event")
         verbose_name_plural = _("Events")
 
-    created = models.DateField(
-        verbose_name=_("Created"),
+    INTENDED_FOR = (
+        ('everyone', _('Everyone')),
+        ('adolescents_and_adults', _('Adolescents and adults')),
+        ('children', _('Children')),
+        ('parents_and_children', _('Parents and children')),
+        ('newcomers', _("Newcomers")),
+    )
+    GRANT = (
+        ('no_grant', _('No Grant')),
+        ('MEYS', _("Ministry of Education, Youth and Sports")),
+        ('others', _('Others')),
+    )
+    PROGRAM = (
+        ("", ('---')),
+        ('education', _('Education')),
+        ('PsB', _('PsB')),
+        ('monuments', _('Monuments')),
+        ('nature', _('Nature')),
+        ('eco_consulting', _('Eco consulting')),
+        ('children_section ', _("Children's Section")),
+    )
+    BASIC_PURPOSE = (
+        ('action', _('Action')),
+        ('petition', _('Petition')),
+        ('camp', _('Camp')),
+
+    )
+    event_type = models.ForeignKey(
+        EventType,
+        verbose_name=_("Event type"),
+        related_name='events',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
+    basic_purpose = models.CharField(
+        verbose_name=_("Basic Purpose"),
+        max_length=128,
+        choices=BASIC_PURPOSE,
+        default='action',
+    )
+    program = models.CharField(
+        verbose_name=_("Program"),
+        max_length=128,
+        choices=PROGRAM,
+        default="",
+        blank=True,
+    )
+    is_internal = models.BooleanField(
+        verbose_name=_("Only for internal members"),
+        default=False,
+    )
+    age_from = models.PositiveIntegerField(
+        verbose_name=_("Age from"),
+        null=True,
+        blank=True,
+    )
+    age_to = models.PositiveIntegerField(
+        verbose_name=_("Age to"),
+        null=True,
+        blank=True,
+    )
+    indended_for = models.CharField(
+        verbose_name=_("Indended for"),
+        max_length=128,
+        choices=INTENDED_FOR,
+        default='everyone',
+    )
+    participation_fee = models.PositiveIntegerField(
+        verbose_name=_("Participation fee"),
+        null=True,
+        blank=True,
+    )
+
+    meeting = models.CharField(
+        verbose_name=_("Meeting at the event"),
+        max_length=128,
+        blank=True,
+    )
+    grant = models.CharField(
+        verbose_name=_("Grant"),
+        max_length=128,
+        choices=GRANT,
+        default='no_grant',
+    )
+    focus_on_members = models.BooleanField(
+        verbose_name=_("Focus on members"),
+        default=False,
+    )
+
+    public_on_web = models.BooleanField(
+        verbose_name=_("Public on webpage"),
+        default=False,
+    )
+    entry_form_url = models.URLField(
+        verbose_name=_("Url address of register form"),
         blank=True,
         null=True,
     )
-    terminated = models.DateField(
-        verbose_name=_("Terminated"),
-        blank=True,
-        null=True,
-    )
+
     name = models.CharField(
         verbose_name=_("Name"),
         help_text=_("Choose some unique name for this campaign"),
@@ -249,7 +360,6 @@ class Event(models.Model):
         validators=[MinValueValidator(10000), MaxValueValidator(99999)],
         verbose_name=_("Variable_symbol_prefix"),
         help_text=_("Number between 10000-99999"),
-        blank=True,
         null=True,
     )
     description = models.TextField(
@@ -258,9 +368,11 @@ class Event(models.Model):
         max_length=3000,
         blank=True,
     )
-    acquisition_campaign = models.BooleanField(
-        verbose_name=_("Acquisition campaign"),
-        default=False,
+    note = models.TextField(
+        verbose_name=_("Note"),
+        help_text=_("Note of this campaign"),
+        max_length=3000,
+        blank=True,
     )
     real_yield = models.FloatField(
         verbose_name=_("Real yield"),
@@ -295,6 +407,18 @@ class Event(models.Model):
         default=False,
     )
     email_confirmation_redirect = models.URLField(
+        verbose_name=_("Redirect to url after email confirmation"),
+        blank=True,
+        null=True,
+    )
+
+    date_from = models.DateField(
+        verbose_name=_("Date from"),
+        null=True,
+        blank=True,
+    )
+    date_to = models.DateField(
+        verbose_name=_("Date to"),
         blank=True,
         null=True,
     )
@@ -335,7 +459,7 @@ class Event(models.Model):
     number_of_recruiters.short_description = _("number of recruiters")
 
     def yield_total(self):
-        if self.acquisition_campaign:
+        if self.indended_for == 'newcomers':
             return DonorPaymentChannel.objects.filter(event=self).aggregate(yield_total=Sum('payment__amount'))[
                 'yield_total']
         else:

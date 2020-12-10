@@ -87,7 +87,7 @@ from .forms import (
 )
 from .models import (
     AccountStatements, AdministrativeUnit, ApiAccount, AutomaticCommunication, BankAccount,
-    CompanyContact, CompanyProfile, DonorPaymentChannel, Event, Expense,
+    CompanyContact, CompanyProfile, DonorPaymentChannel, Event, EventType,
     MassCommunication, MoneyAccount, NewUser, Payment, Preference, Profile, ProfileEmail, Recruiter,
     Source, TaxConfirmation, Telephone, UserBankAccount,
     UserProfile,
@@ -284,10 +284,6 @@ class PaymentsInlineNoExtra(PaymentsInline):
 
     def user__campaign(self, obj):
         return obj.user.campaign
-
-
-class ExpenseInline(admin.TabularInline):
-    model = Expense
 
 
 def show_payments_by_year(self, request, queryset):
@@ -1638,17 +1634,21 @@ def download_darujme_statement(self, request, queryset):
 download_darujme_statement.short_description = _("Download darujme statements")
 
 
+@admin.register(EventType)
+class EventTypeAdmin(unit_admin_mixin_generator('event__administrative_units'), admin.ModelAdmin):
+    pass
+
+
 class EventAdmin(unit_admin_mixin_generator('administrative_units'), admin.ModelAdmin):
     form = EventForm
     list_display = (
         'name',
         'id',
         'slug',
-        'created',
-        'terminated',
+        'date_from',
+        'date_to',
         'number_of_members',
         'number_of_recruiters',
-        'acquisition_campaign',
         'yield_total',
         'total_expenses',
         'expected_monthly_income',
@@ -1666,11 +1666,51 @@ class EventAdmin(unit_admin_mixin_generator('administrative_units'), admin.Model
         'average_yield',
         'average_expense',
     )
-    list_filter = ('acquisition_campaign', filters.ActiveCampaignFilter)
     search_fields = ('name', )
-    inlines = (ExpenseInline,)
     actions = (download_darujme_statement,)
     save_as = True
+
+    fieldsets = (
+        (None, {
+            'fields': (
+                'name',
+                'slug',
+                'basic_purpose',
+                'grant',
+                ('date_from', 'date_to'),
+                'variable_symbol_prefix',
+                'description',
+                'result',
+                'administrative_units',
+
+
+            ),
+        }),
+        (_('Detail information'), {
+            'classes': ('collapse',),
+            'fields': (
+                ('age_from', 'age_to'),
+                'event_type', 'program', 'indended_for',
+                'participation_fee', 'meeting', 'is_internal', 'focus_on_members',
+                'note',
+            ),
+        }),
+        (_('Web setting'), {
+            'classes': ('collapse',),
+            'fields': (
+                'enable_signing_petitions', 'enable_registration', 'allow_statistics', 'public_on_web',
+                'email_confirmation_redirect', 'entry_form_url'
+            ),
+        }),
+        (_('Statistics'), {
+            'classes': ('collapse',),
+            'fields': (
+                'number_of_members', 'number_of_recruiters', 'yield_total',
+                'total_expenses', 'expected_monthly_income', 'return_of_investmensts',
+                'average_yield', 'average_expense',
+            ),
+        }),
+    )
 
 
 class RecruiterAdmin(admin.ModelAdmin):
