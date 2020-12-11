@@ -23,11 +23,6 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterField(
             model_name='event',
-            name='variable_symbol_prefix',
-            field=models.PositiveIntegerField(help_text='Number between 10000-99999', null=True, validators=[django.core.validators.MinValueValidator(10000), django.core.validators.MaxValueValidator(99999)], verbose_name='Variable_symbol_prefix'),
-        ),
-        migrations.AlterField(
-            model_name='event',
             name='date_from',
             field=models.DateField(blank=True, null=True, verbose_name='Date from'),
         ),

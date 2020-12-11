@@ -361,6 +361,7 @@ class Event(models.Model):
         verbose_name=_("Variable_symbol_prefix"),
         help_text=_("Number between 10000-99999"),
         null=True,
+        blank=True
     )
     description = models.TextField(
         verbose_name=_("Description"),
