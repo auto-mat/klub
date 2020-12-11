@@ -6,11 +6,11 @@
     },
 	"buildpacks": [
 		{"url": "heroku/nodejs"},
+    {"url": "https://github.com/heroku/heroku-geo-buildpack.git" }
 		{"url": "heroku/python"}
 	],
     "env": {
         "SECRET_KEY": {"generator": "secret"},
-		"BUILD_WITH_GEO_LIBRARIES": {"value": "1"},
 		"DISABLE_COLLECTSTATIC": {"value": "1"},
 		"DJANGO_SETTINGS_MODULE": {"value": "project.settings.heroku"},
 		"GUNICORN_TIMEOUT": {"value": "30"},

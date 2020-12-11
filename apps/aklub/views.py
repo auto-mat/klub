@@ -18,6 +18,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 # Create your views here.
+import datetime
 import json
 from collections import OrderedDict
 
@@ -28,35 +29,33 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.tokens import default_token_generator
-from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
-from django.core.mail import EmailMultiAlternatives, mail_managers
+from django.core.mail import EmailMultiAlternatives
 from django.core.validators import MinLengthValidator, RegexValidator, ValidationError
-from django.db.models import Case, CharField, Count, IntegerField, Q, Sum, Value, When
+from django.db.models import Case, Count, IntegerField, Q, Sum, When
 from django.db.models.functions import TruncMonth
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render, render_to_response
 from django.template.loader import render_to_string
-from django.urls import reverse_lazy
+from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from django.utils.translation import ugettext_lazy as _
-from django.views.decorators.cache import cache_page, never_cache
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
 from django.views.generic.edit import FormView
 
-from extra_views import InlineFormSet, UpdateWithInlinesView
+from extra_views import InlineFormSet
 
-from interactions.models import PetitionSignature  # TODO: Not sure if it works (model moved from aklub to interaction app)
+from interactions.models import PetitionSignature
 
 from sesame.backends import ModelBackend
 
 from . import autocom
 from .models import (
-    AdministrativeUnit, DonorPaymentChannel, Event, MoneyAccount, Payment,
-    Profile, ProfileEmail, Source, Telephone, UserInCampaign,
+    AdministrativeUnit, BankAccount, DonorPaymentChannel, Event, MoneyAccount, Payment, Preference,
+    Profile, ProfileEmail, Telephone, UserInCampaign,
     UserProfile,
 )
 
@@ -73,32 +72,6 @@ class RegularUserForm_UserProfile(forms.ModelForm):
     def clean_username(self):
         "This function is required to overwrite an inherited username clean"
         return self.cleaned_data['username']
-
-    def clean(self):
-        if not self.errors:
-            self.cleaned_data['username'] = get_unique_username(self.cleaned_data['email'])
-        emails = ProfileEmail.objects.filter(email=self.cleaned_data['email'])
-        if emails:
-            self._errors['email'] = self.error_class(['This e-mail is already used.'])
-        super().clean()
-        return self.cleaned_data
-
-    def save(self, commit, *args, **kwargs):
-        ret_val = super().save(commit, *args, **kwargs)
-        if commit:
-            if self.cleaned_data['telephone']:
-                Telephone.objects.create(telephone=self.cleaned_data['telephone'], user=self.instance)
-
-            ProfileEmail.objects.create(email=self.cleaned_data['email'], user=self.instance)
-        return ret_val
-
-    def _post_clean(self):
-        email = self.cleaned_data['email']
-        r = super()._post_clean()
-        if self._errors.get('email') == ['This e-mail is already used.']:
-            del self._errors['email']
-            self.email_used = email
-        return r
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -121,8 +94,8 @@ class RegularUserForm_UserProfile(forms.ModelForm):
                     'email', 'telephone',)
 
 
-class CampaignMixin(forms.ModelForm):
-    campaign = forms.ModelChoiceField(
+class EventMixin(forms.ModelForm):
+    Event = forms.ModelChoiceField(
         queryset=Event.objects.filter(slug__isnull=False, enable_registration=True).exclude(slug=""),
         to_field_name="slug",
     )
@@ -130,12 +103,12 @@ class CampaignMixin(forms.ModelForm):
 
 class BankAccountMixin(forms.ModelForm):
     money_account = forms.ModelChoiceField(
-            queryset=MoneyAccount.objects.filter(slug__isnull=False).exclude(slug=""),
-            to_field_name="slug",
+        queryset=MoneyAccount.objects.filter(slug__isnull=False).exclude(slug=""),
+        to_field_name="slug",
     )
 
 
-class RegularUserForm_DonorPaymentChannel(BankAccountMixin, CampaignMixin, forms.ModelForm):
+class RegularUserForm_DonorPaymentChannel(BankAccountMixin, forms.ModelForm):
     required_css_class = 'required'
 
     regular_payments = forms.CharField(
@@ -154,23 +127,26 @@ class RegularUserForm_DonorPaymentChannel(BankAccountMixin, CampaignMixin, forms
         help_text=_(u"Minimum yearly payment is 1800 Kč"),
         min_value=1,
     )
+    payment_type = forms.ChoiceField(
+        label=_("payment_type"),
+        choices=(('credit-card', _('Credit Card')), ('bank-transfer', _('Bank transfer'))),
+        initial='bank-transfer',
+    )
+
+    def clean_regular_payments(self):
+        if self.cleaned_data['regular_frequency']:
+            return 'regular'
+        else:
+            return 'onetime'
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['event'].required = False
-        self.fields['event'].widget = forms.HiddenInput()
-
-    def clean_regular_payments(self):
-        return 'regular'
-
-    def clean(self):
-        if self.cleaned_data.get('campaign'):
-            self.cleaned_data['event'] = self.cleaned_data['campaign']
-        return self.cleaned_data
+        self.fields['event'].queryset = Event.objects.filter(slug__isnull=False, enable_registration=True).exclude(slug="")
+        self.fields['event'].to_field_name = "slug"
 
     class Meta:
         model = DonorPaymentChannel
-        fields = ('regular_frequency', 'regular_amount', 'regular_payments', 'campaign', 'event', 'money_account')
+        fields = ('regular_frequency', 'regular_amount', 'regular_payments', 'event', 'money_account', 'payment_type')
 
 
 class RegularUserForm(MultiModelForm):
@@ -202,7 +178,6 @@ class RegularDarujmeUserForm_UserProfile(FieldNameMappingMixin, RegularUserForm_
 
 
 class PetitionUserForm_UserProfile(RegularUserForm_UserProfile):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['sex'].required = False
@@ -261,7 +236,7 @@ class RegularDarujmeUserForm_DonorPaymentChannel(FieldNameMappingMixin, RegularU
 
     class Meta:
         model = DonorPaymentChannel
-        fields = ('regular_frequency', 'regular_payments', 'regular_amount', 'campaign', 'money_account', 'event')
+        fields = ('regular_frequency', 'regular_payments', 'regular_amount', 'money_account', 'event')
 
 
 class RegularUserForm_DonorPaymentChannelDPNK(RegularUserForm_DonorPaymentChannel):
@@ -277,38 +252,26 @@ class RegularUserForm_DonorPaymentChannelDPNK(RegularUserForm_DonorPaymentChanne
         help_text=_("We are happy for any donation. However, full membership with advantages, starts from CZK 150 per month."),
         min_value=1,
     )
-    campaign = forms.CharField(widget=forms.HiddenInput, required=False)
-
-    def clean_campaign(self):
-        return Event.objects.get(slug="dpnk")
 
     def clean_regular_frequency(self):
         return 'monthly'
 
 
-class PetitionUserForm_PetitionSignature(FieldNameMappingMixin, CampaignMixin, BankAccountMixin, forms.ModelForm):
+class PetitionUserForm_PetitionSignature(FieldNameMappingMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['event'].queryset = Event.objects.filter(slug__isnull=False, enable_signing_petitions=True).exclude(slug="")
+        self.fields['event'].required = True
+        self.fields['event'].to_field_name = "slug"
         self.fields['gdpr_consent'].required = True
 
     class Meta:
         model = PetitionSignature
-        fields = ('event', 'public', 'gdpr_consent', 'money_account')
+        fields = ('event', 'public', 'gdpr_consent')
 
     FIELD_NAME_MAPPING = {
         'gdpr_consent': 'gdpr',
     }
-
-
-class PetitionUserForm_DonorPaymentChannel(CampaignMixin, forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['event'].queryset = Event.objects.filter(slug__isnull=False, enable_signing_petitions=True).exclude(slug="")
-
-    class Meta:
-        model = DonorPaymentChannel
-        fields = ('event',)
 
 
 class RegularUserFormDPNK(RegularUserFormWithProfile):
@@ -328,7 +291,14 @@ class RegularDarujmeUserForm(RegularUserForm):
 class PetitionUserForm(RegularUserForm):
     form_classes = OrderedDict([
         ('userprofile', PetitionUserForm_UserProfile),
-        ('userincampaign', PetitionUserForm_PetitionSignature),
+        ('petitionsignature', PetitionUserForm_PetitionSignature),
+    ])
+
+
+class RegisterUserForm(RegularUserForm):
+    # TODO: maybe expanse
+    form_classes = OrderedDict([
+        ('userprofile', PetitionUserForm_UserProfile),
     ])
 
 
@@ -389,74 +359,80 @@ def generate_variable_symbol(dpch):
             raise ValidationError('OUT OF VS')
 
 
-def create_new_user_profile(form, regular):
-    new_user_objects = form.save(commit=False)
-    new_user_profile = new_user_objects['userprofile']
-    # Save new user instance
-    if hasattr(form.forms['userprofile'], 'email_used') and form.forms['userprofile'].email_used:
-        new_user_profile = UserProfile.objects.get(profileemail__email=form.forms['userprofile'].email_used)
-    else:
-        new_user_profile.save()
-        ProfileEmail.objects.create(email=form.forms['userprofile'].cleaned_data['email'], user=new_user_profile, is_primary=True)
-    if form.forms['userprofile'].cleaned_data['telephone']:
-        Telephone.objects.create(telephone=form.forms['userprofile'].cleaned_data['telephone'], user=new_user_profile)
-
-    cache.clear()
-    return new_user_profile
-
-
-def create_new_payment_channel(form, source_type, new_user_profile, regular, source_slug='web'):
-    if source_type == 'regular':
+def get_or_create_new_user_profile(form):
+    try:
+        user = UserProfile.objects.get(profileemail__email=form.forms['userprofile'].cleaned_data['email'].lower())
+    except UserProfile.DoesNotExist:
         new_user_objects = form.save(commit=False)
-        payment_channel = new_user_objects['userincampaign']
-    else:
-        data = form.clean()
-        payment_channel, _ = DonorPaymentChannel.objects.get_or_create(
-                                                    user=new_user_profile,
-                                                    regular_payments='',
-                                                    money_account=data['userincampaign'].get('money_account'),
-                                                    event=data['userincampaign'].get('campaign'),
+        user = new_user_objects['userprofile']
+        user.save()
+        ProfileEmail.objects.get_or_create(
+            email=form.forms['userprofile'].cleaned_data['email'],
+            user=user,
+            defaults={
+                'is_primary': True,
+            },
         )
-    assert isinstance(payment_channel, DonorPaymentChannel), \
-        "payment_channel shoud be DonnorPaymentChannel, but is %s" % type(payment_channel)
-    if regular:
-        payment_channel.regular_payments = regular
-    payment_channel.source = Source.objects.get(slug=source_slug)
-    payment_channel.user = new_user_profile
-    payment_channel.save()
 
-    cache.clear()
+    if form.forms['userprofile'].cleaned_data['telephone']:
+        Telephone.objects.get_or_create(telephone=form.forms['userprofile'].cleaned_data['telephone'], user=user)
+
+    return user
+
+
+def update_or_create_new_payment_channel(form, new_user_profile):
+    data = form.clean()['userincampaign']
+    payment_channel, created = DonorPaymentChannel.objects.get_or_create(
+        user=new_user_profile,
+        event=data.get('event'),
+        defaults={
+            'money_account': data.get('money_account'),
+            'regular_payments': data.get('regular_payments'),
+            'regular_amount': data.get('regular_amount'),
+            'regular_frequency': data.get('regular_frequency') or None,
+            'expected_date_of_first_payment': timezone.now().date() + datetime.timedelta(days=3),
+        },
+    )
+    if not created:
+        # update data!
+        payment_channel.regular_amount = data.get('regular_amount')
+        payment_channel.regular_payments = data.get('regular_payments')
+        payment_channel.regular_frequency = data.get('regular_frequency') or None
+        payment_channel.save()
+
     return payment_channel
 
 
-def create_new_petition_signature(form, new_user_profile, regular):
-    new_user_objects = form.save(commit=False)
-    petition_signature = new_user_objects['userincampaign']
-    assert isinstance(petition_signature, PetitionSignature), \
-        "petition_signature shoud be PetitionSignature, but is %s" % type(petition_signature)
-    petition_signature.user = new_user_profile
-    petition_signature.save()
-
-    cache.clear()
-    return petition_signature
+def get_or_create_new_petition_signature(form, user):
+    instance = form['petitionsignature'].instance
+    instance.administrative_unit = instance.event.administrative_units.first()
+    instance.user = user
+    try:
+        instance.full_clean()
+    except ValidationError:
+        instance = None
+    else:
+        instance.save()
+    return instance
 
 
 class RegularView(FormView):
     template_name = 'regular.html'
     form_class = RegularUserForm
     success_template = 'thanks.html'
-    source_slug = 'web'
 
-    def success_page(self, payment_channel, amount=None, frequency=None, repeated_registration=False):
+    def success_page(self, payment_channel, bank_acc, amount=None, frequency=None, repeated_registration=False):
         if not amount:
             amount = payment_channel.regular_amount
         if not frequency:
             frequency = payment_channel.regular_frequency
+        bank_acc = BankAccount.objects.filter(slug=bank_acc)
         response = render_to_response(
             self.success_template,
             {
                 'amount': amount,
                 'frequency': UserInCampaign.REGULAR_PAYMENT_FREQUENCIES_MAP[frequency],
+                'account_number': bank_acc.first().bank_account_number if bank_acc else "",
                 'user_id': payment_channel.id,
                 'payment_channel': payment_channel,
                 'user_profile': payment_channel.user,
@@ -465,9 +441,10 @@ class RegularView(FormView):
             },
         )
         if self.request.is_ajax():
+
             data = {
                 'valid': True,
-                'account_number': "2400063333 / 2010",
+                'account_number': bank_acc.first().bank_account_number if bank_acc else "",
                 'variable_symbol': payment_channel.VS,
                 'email': payment_channel.user.email,
                 'amount': amount,
@@ -478,21 +455,24 @@ class RegularView(FormView):
             return JsonResponse(data)
         return response
 
-    def get_post_param(self, request, name, name1):
+    def get_post_param(self, request, name, name1=None):
         if request.POST.get(name):
             return request.POST.get(name)
         if request.POST.get(name1):
             return request.POST.get(name1)
 
     def post(self, request, *args, **kwargs):
-        email = self.get_post_param(request, 'userprofile-email', 'payment_data____email')
-        event = self.get_post_param(request, 'userincampaign-campaign', 'campaign')
-        if email:
-            user_profiles = UserProfile.objects.filter(profileemail__email=email)
+        form = self.form_class(request.POST)
+        if form.is_valid():
+            email = self.get_post_param(request, 'userprofile-email', 'payment_data____email')
+            event = self.get_post_param(request, 'userincampaign-event')
+            bank_acc = self.get_post_param(request, 'userincampaign-money_account')
+            user_profiles = UserProfile.objects.filter(profileemail__email=email.lower())
             if user_profiles.exists():
                 payment_channels = user_profiles.get().userchannels.filter(event__slug=event)
-                if user_profiles.exists() and payment_channels.exists():
-                    autocom.check(user_profiles=user_profiles, event=Event.objects.get(slug=event), action='resend-data')
+                if payment_channels.exists():
+                    super().post(request, *args, **kwargs)
+                    autocom.check(user_profiles=user_profiles, action='resent-data-' + self.request.POST['userincampaign-payment_type'])
                     user_data = {}
                     if 'recurringfrequency' in request.POST:
                         user_data['frequency'] = REGULAR_FREQUENCY_MAP[request.POST.get('recurringfrequency')]
@@ -503,22 +483,30 @@ class RegularView(FormView):
                     user_data['amount'] = self.get_post_param(request, 'userincampaign-regular_amount', 'ammount')
                     user_data['telephone'] = self.get_post_param(request, 'userprofile-telephone', 'payment_data____telefon')
                     user_data['email'] = email
-                    mail_managers(
-                        _("Repeated registration"),
-                        "Repeated registration for email %(email)s\n"
-                        "name: %(name)s\n"
-                        "surname: %(surname)s\n"
-                        "frequency: %(frequency)s\n"
-                        "telephone: %(telephone)s\n"
-                        "amount: %(amount)s" % user_data,
-                    )
                     return self.success_page(
                         payment_channels.get(),
+                        bank_acc,
                         user_data['amount'],
                         user_data['frequency'],
                         True,
+
                     )
-        return super().post(request, *args, **kwargs)
+            super().post(request, *args, **kwargs)
+            user_profiles = UserProfile.objects.filter(profileemail__email=email.lower())
+            autocom.check(user_profiles=user_profiles, action='new-user-' + self.request.POST['userincampaign-payment_type'])
+            dpchs = user_profiles.get().userchannels.filter(event__slug=event)
+            if dpchs:
+                dpch = dpchs.first()
+            else:
+                dpch = update_or_create_new_payment_channel(form, user_profiles.first())
+            return self.success_page(
+                dpch,
+                bank_acc,
+                dpch.regular_amount,
+                dpch.regular_frequency,
+                False,
+            )
+        return render(request, self.template_name, {'form': form})
 
     def get_initial(self):
         initial = super().get_initial()
@@ -535,9 +523,10 @@ class RegularView(FormView):
         return initial
 
     def form_valid(self, form):
-        new_user_profile = create_new_user_profile(form, regular=None)
-        payment_channel = create_new_payment_channel(form, 'regular', new_user_profile, regular=None, source_slug=self.source_slug)
-        return self.success_page(payment_channel)
+        new_user_profile = get_or_create_new_user_profile(form)
+        payment_channel = update_or_create_new_payment_channel(form, new_user_profile)
+        new_user_profile.administrative_units.add(payment_channel.money_account.administrative_unit)
+        return self.success_page(payment_channel, form.clean()['userincampaign']['money_account'].slug)
 
     def form_invalid(self, form):
         response = super().form_invalid(form)
@@ -552,7 +541,6 @@ class RegularDPNKView(RegularView):
     template_name = 'regular-dpnk.html'
     form_class = RegularUserFormDPNK
     success_template = 'thanks-dpnk.html'
-    source_slug = 'dpnk'
 
     def get_initial(self):
         initial = super().get_initial()
@@ -573,38 +561,63 @@ class RegularDarujmeView(RegularView):
     success_template = 'thanks-darujme.html'
 
 
+class RegisterWithoutPaymentView(FormView):
+    template_name = 'regular.html'
+    form_class = RegisterUserForm
+    success_template = 'thanks-darujme.html'
+    success_url = 'petition-signatures'
+
+    def get(self, *args, **kwargs):
+        get_object_or_404(AdministrativeUnit, slug=self.kwargs['unit'])
+        return super().get(*args, **kwargs)
+
+    def form_valid(self, form):
+        unit = get_object_or_404(AdministrativeUnit, slug=self.kwargs['unit'])
+        user = get_or_create_new_user_profile(form)
+        user.administrative_units.add(unit)
+        autocom.check(UserProfile.objects.filter(id=user.id), action='new-user')
+        return http.HttpResponse(_("Thanks for register!"))
+
+
 @method_decorator(csrf_exempt, name='dispatch')
-class PetitionView(RegularView):
+class PetitionView(FormView):
     template_name = 'regular.html'
     form_class = PetitionUserForm
     success_template = 'thanks-darujme.html'
     success_url = 'petition-signatures'
 
     def form_valid(self, form):
-        new_user_profile = create_new_user_profile(form, regular=None)
-        create_new_petition_signature(form, new_user_profile, regular=None)
-        payment_channel = create_new_payment_channel(form, 'petition', new_user_profile, regular=None, source_slug=self.source_slug)
-        return self.success_page(payment_channel)
+        user = get_or_create_new_user_profile(form)
+        petition_signature = get_or_create_new_petition_signature(form, user)
+        if petition_signature:
+            user.administrative_units.add(petition_signature.administrative_unit)
+            action = 'user-signature'
+        else:
+            action = 'user-signature-again'
+        autocom.check(UserProfile.objects.filter(id=user.id), action=action)
+        super().form_valid(form)
+        return http.HttpResponse(_('Petition signed'))
 
 
-def donators(request):
-    payed = Payment.objects.exclude(type='expected')
-    donators = DonorPaymentChannel.objects.filter(
-        user__preference__public=True,
-        payment__in=payed,).distinct().order_by(
-        'user__userprofile__last_name',
-        'user__companyprofile__name',
-    )
-    n_donators = len(donators)
-    n_regular = len(donators.filter(user__is_active=True, regular_payments="regular"))
-    return render_to_response(
-        'donators.html',
-        {
-            'n_donators': n_donators,
-            'n_regular': n_regular,
-            'donators': donators,
-        },
-    )
+class DonatorsView(View):
+    def get(self, request, unit):
+        unit = get_object_or_404(AdministrativeUnit, slug=self.kwargs['unit'])
+        users = Preference.objects.filter(administrative_unit=unit, public=True).values_list('user')
+        donators = DonorPaymentChannel.objects.filter(
+            user__in=users,
+            money_account__administrative_unit=unit,
+            payment_total__gt=0,
+        )
+        n_donators = donators.count()
+        n_regular = donators.filter(user__is_active=True, regular_payments="regular").count()
+        return render_to_response(
+            'donators.html',
+            {
+                'n_donators': n_donators,
+                'n_regular': n_regular,
+                'donators': donators,
+            },
+        )
 
 
 def stat_members(request):
@@ -655,40 +668,7 @@ def stat_payments(request):
     )
 
 
-def profiles(request):
-    from_date = request.GET.get('from') or '1970-1-1'
-    paying = request.GET.get('paying')
-
-    users = (
-        DonorPaymentChannel.objects.filter(registered_support__gte=from_date).order_by('-registered_support') |
-        DonorPaymentChannel.objects.filter(id__in=(493, 89, 98, 921, 33, 886, 1181, 842, 954, 25))).\
-        exclude(user__preference__public=False, user__profile_picture__isnull=False).\
-        order_by(
-            "-user__userprofile__last_name",
-            "-user__companyprofile__name",
-            "user__userprofile__first_name",
-        )
-    result = [
-        {
-            'firstname': (
-                (u.user.preference_set.first().public if u.user.preference_set.first() else None)
-                and u.user.first_name or ''
-            ),
-            'surname': (
-                (u.user.preference_set.first().public if u.user.preference_set.first() else None)
-                and u.user.last_name or ''
-                ),
-            'text': u.user.profile_text or '',
-            'picture': u.user.profile_picture and u.user.profile_picture.url or '',
-            'picture_thumbnail': u.user.profile_picture and u.user.profile_picture.thumbnail.url or '',
-        } for u in users if ((not paying) or (u.payment_total > 0))
-    ]
-    return http.HttpResponse(json.dumps(result), content_type='application/json')
-
-
 class CampaignStatistics(View):
-    @method_decorator(never_cache)
-    @method_decorator(cache_page(60))  # cache in memcached for 1 minute
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
@@ -710,41 +690,37 @@ class CampaignStatistics(View):
 
 
 class PetitionSignatures(View):
-    @method_decorator(never_cache)
-    @method_decorator(cache_page(60))  # cache in memcached for 1 minute
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
-        event = get_object_or_404(Event, slug=kwargs['campaign_slug'], allow_statistics=True, enable_signing_petitions=True)
-        signatures = PetitionSignature.objects.filter(event=event, email_confirmed=True)
-        signatures = signatures.order_by('-date')
-        signatures = signatures.annotate(
-            userprofile_first_name=Case(
-                When(public=True, then='user__userprofile__first_name'),
-                default=Value('------'),
-                output_field=CharField(),
-            ),
-            userprofile_last_name=Case(
-                When(public=True, then='user__userprofile__last_name'),
-                default=Value('------'),
-                output_field=CharField(),
-            ),
-            companyprofile_name=Case(
-                When(public=True, then='user__companyprofile__name'),
-                default=Value('------'),
-                output_field=CharField(),
-            ),
-        )
+        event = get_object_or_404(Event, slug=kwargs['campaign_slug'], allow_statistics=True)
+        signatures = PetitionSignature.objects.filter(event=event, email_confirmed=True, public=True).order_by('-created')
+
+        # signatures = signatures.annotate(
+        #     userprofile_first_name=Case(
+        #         When(public=True, then='user__userprofile__first_name'),
+        #         default=Value('------'),
+        #         output_field=CharField(),
+        #     ),
+        #     userprofile_last_name=Case(
+        #         When(public=True, then='user__userprofile__last_name'),
+        #         default=Value('------'),
+        #         output_field=CharField(),
+        #     ),
+        #     companyprofile_name=Case(
+        #         When(public=True, then='user__companyprofile__name'),
+        #         default=Value('------'),
+        #         output_field=CharField(),
+        #     ),
+        # )
+
         signatures = signatures.values(
-            'userprofile_first_name',
-            'userprofile_last_name',
-            'companyprofile_name',
-            'date',
+            'user__userprofile__first_name',
+            'user__userprofile__last_name',
+            'created',
         )
-        signatures = signatures[:100]
-        for signature in signatures:
-            signature['created'] = signature.pop('date')
+
         return JsonResponse(list(signatures), safe=False)
 
 
@@ -800,23 +776,33 @@ class UserInCampaignInline(InlineFormSet):
     fields = ('wished_information',)
 
 
-class MailingFormSetView(SuccessMessageMixin, SesameUserMixin, UpdateWithInlinesView):
-    model = UserProfile
-    template_name = 'mailing.html'
-    success_message = "Nastavení emailů úspěšně změněno"
-    success_url = reverse_lazy('mailing-configuration')
-    inlines = [UserInCampaignInline, ]
-    fields = ('send_mailing_lists',)
-
-
-class ConfirmEmailView(SesameUserMixin, View):
-
+class PetitionConfirmEmailView(SesameUserMixin, View):
     def get(self, *args, **kwargs):
-        user_in_campaign = UserInCampaign.objects.get(campaign__slug=kwargs['campaign_slug'], userprofile=self.get_object())
-        user_in_campaign.email_confirmed = True
-        user_in_campaign.save()
-        cache.clear()
-        return redirect(user_in_campaign.campaign.email_confirmation_redirect, permanent=False)
+        event = get_object_or_404(Event, slug=kwargs['campaign_slug'])
+        user = self.get_object()
+        if user:
+            signature = PetitionSignature.objects.get(event=event, user=user)
+            signature.email_confirmed = True
+            signature.save()
+            if event.email_confirmation_redirect:
+                return redirect(event.email_confirmation_redirect, permanent=False)
+            else:
+                return http.HttpResponse(_('Signature was confirmed'))
+        else:
+            raise http.Http404
+
+
+class SendMailingListView(SesameUserMixin, View):
+    def get(self, request, *args, **kwargs):
+        unit = get_object_or_404(AdministrativeUnit, slug=kwargs['unit'])
+        user = self.get_object()
+        preference = user.preference_set.get(administrative_unit=unit)
+
+        preference.send_mailing_lists = False if kwargs['unsubscribe'] == 'unsubscribe' else True
+        preference.save()
+        user_profiles = UserProfile.objects.filter(id=user.id)
+        autocom.check(user_profiles=user_profiles, action='user-mailing-' + kwargs['unsubscribe'])
+        return http.HttpResponse(f"{kwargs['unsubscribe']} was done")
 
 
 class PasswordResetView(View):

@@ -25,7 +25,7 @@ rekapitulací vámi zapsaných údajů.</p>
    <tr><th>Jméno: </th><td>{{ user_profile.person_name }}</td></tr>
    <tr><th>Email: </th><td>{{ user_profile.email }}</td></tr>
    <tr><th>Variabilní symbol: </th><td>{{ payment_channel.VS }}</td></tr>
-   <tr><th>Číslo účtu: </th><td>2400063333 / 2010</td></tr>
+   <tr><th>Číslo účtu: </th><td>{{account_number}}</td></tr>
    <tr><th>Částka: </th><td>{{ payment_channel.regular_amount }} Kč</td></tr>
    <tr><th>Frekvence: </th><td>{{ frequency }}</td></tr>
    <tr><th>Pravidelné platby: </th><td>{{ payment_channel.get_regular_payments_display }}</td></tr>

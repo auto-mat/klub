@@ -14,7 +14,7 @@ from .mailing import create_mass_communication_tasks_sync, send_communication_sy
 
 @task()
 def check_autocom_daily():
-    check(action="daily")
+    check()
 
 
 @task()
