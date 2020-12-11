@@ -87,7 +87,7 @@ from .forms import (
 )
 from .models import (
     AccountStatements, AdministrativeUnit, ApiAccount, AutomaticCommunication, BankAccount,
-    CompanyContact, CompanyProfile, DonorPaymentChannel, Event, Expense,
+    CompanyContact, CompanyProfile, DonorPaymentChannel, Event, EventType,
     MassCommunication, MoneyAccount, NewUser, Payment, Preference, Profile, ProfileEmail, Recruiter,
     Source, TaxConfirmation, Telephone, UserBankAccount,
     UserProfile,
@@ -122,7 +122,7 @@ class PaymentsInline(nested_admin.NestedTabularInline):
 
 class DonorPaymentChannelInlineForm(forms.ModelForm):
     user_bank_account_char = forms.CharField(
-        label='user_bank_account',
+        label=_('user bank account'),
         max_length=50,
         required=False,
         )
@@ -195,33 +195,35 @@ class DonorPaymentChannelInline(admin.StackedInline):
         url = reverse('admin:aklub_payment_changelist')
         if obj.pk:
             redirect_button = mark_safe(
-                f"<a href='{url}?user_donor_payment_channel={obj.pk}'><input type='button' value='All payments'></a>"
+                f"<a href='{url}?user_donor_payment_channel={obj.pk}'><input type='button' value='{_('All payments')}'></a>"
             )
         else:
-            redirect_button = None
+            redirect_button = ''
         return redirect_button
     get_payment_list_link.short_description = _('All payments')
 
     def get_sum_amount(self, obj):
-        return obj.sum_amount
+        return obj.sum_amount if obj.sum_amount else ""
     get_sum_amount.short_description = _('Total amount')
 
     def get_payment_count(self, obj):
-        return obj.payment_count
+        return obj.payment_count if obj.payment_count else ""
     get_payment_count.short_description = _('Total payment count')
 
     def get_last_payment_date(self, obj):
-        return obj.last_payment_date
+        if not obj.id:
+            return ""
+        return obj.last_payment_date if obj.last_payment_date else ""
     get_last_payment_date.short_description = _('Last payment date')
 
     def get_dpch_details(self, obj):
         url = reverse('admin:aklub_donorpaymentchannel_change', args=(obj.pk,))
         if obj.pk:
             redirect_button = mark_safe(
-                                f"<a href='{url}'><input type='button' value='details'></a>"
-                                )
+                f"<a href='{url}'><input type='button' value={_('Details')}></a>"
+            )
         else:
-            redirect_button = None
+            redirect_button = ""
         return redirect_button
     get_dpch_details.short_description = _('DPCH details')
 
@@ -282,10 +284,6 @@ class PaymentsInlineNoExtra(PaymentsInline):
 
     def user__campaign(self, obj):
         return obj.user.campaign
-
-
-class ExpenseInline(admin.TabularInline):
-    model = Expense
 
 
 def show_payments_by_year(self, request, queryset):
@@ -588,68 +586,20 @@ class TelephoneInline(admin.TabularInline):
     show_change_link = True
 
 
-class ProfileEmailAdminForm(forms.ModelForm):
-    class Meta:
-        model = ProfileEmail
-        fields = '__all__'
-
-    def check_duplicate(self, *args, **kwargs):
-        cleaned_data = kwargs['cleaned_data']
-        qs = ProfileEmail.objects.filter(
-            email=cleaned_data['email'],
-            user=cleaned_data['user'],
-        )
-        msg = _('Duplicate email address for this user')
-        if cleaned_data.get('email'):
-            cleaned_data['email'] = cleaned_data['email'].lower()
-        if not cleaned_data.get('id'):
-            if qs.filter(email=cleaned_data['email'], user=cleaned_data['user']).exists():
-                self.add_error('email', msg)
-                return True
-        else:
-            if 'email' in self.changed_data:
-                if qs.filter(email=cleaned_data['email'], user=cleaned_data['user']).exists():
-                    self.add_error('email', msg)
-                    return True
-
-    def check_unique(self, *args, **kwargs):
-        cleaned_data = kwargs['cleaned_data']
-        model = cleaned_data['user']._meta.model_name
-        qs = ProfileEmail.objects.filter(
-            user__polymorphic_ctype=ContentType.objects.get(model=model),
-        )
-        msg = _('Email address exist')
-        if cleaned_data.get('email'):
-            cleaned_data['email'] = cleaned_data['email'].lower()
-        if not cleaned_data.get('id'):
-            if qs.filter(email=cleaned_data['email']).exists():
-                self.add_error('email', msg)
-                return True
-        else:
-            if (qs.filter(email=cleaned_data['email']).exclude(user=cleaned_data['user']).exists()):
-                self.add_error('email', msg)
-                return True
-
-    def clean(self):
-        cleaned_data = super().clean()
-        if self.check_duplicate(cleaned_data=cleaned_data):
-            return cleaned_data
-        if self.check_unique(cleaned_data=cleaned_data):
-            return cleaned_data
-
-
 class ProfileEmailInline(admin.TabularInline):
     model = ProfileEmail
     extra = 0
     can_delete = True
     show_change_link = True
-    form = ProfileEmailAdminForm
     fields = (
         'email', 'is_email_in_companyprofile', 'is_primary', 'note',
     )
     readonly_fields = ('is_email_in_companyprofile',)
 
     def is_email_in_companyprofile(self, obj):
+        if not obj.id:
+            return ''
+
         filter_kwargs = {'email': obj.email}
         if not self.form.request.user.has_perm('can_edit_all_units'):
             filter_kwargs['company__administrative_units__in'] = self.form.request.user.administrated_units.all()
@@ -748,18 +698,6 @@ class MoneyAccountParentAdmin(PolymorphicParentModelAdmin):
         return {}
 
 
-class UserBankAccountAdmin(admin.ModelAdmin):
-    model = UserBankAccount
-
-    search_fields = (
-        'bank_account', 'bank_account_number',
-    )
-
-    list_filter = (
-        'bank_account', 'bank_account_number',
-    )
-
-
 class ProfileAdminMixin:
     """ ProfileAdmin mixin """
 
@@ -838,26 +776,26 @@ class ProfileAdminMixin:
         return ',\n'.join(results)
 
     total_payment.short_description = _("Total payment")
-    total_payment.admin_order_field = 'Total payment'
+    total_payment.admin_order_field = ("Total payment")
 
     def get_sum_amount(self, obj):
         return obj.sum_amount
-    get_sum_amount.admin_order_field = 'sum_amount'
+    get_sum_amount.admin_order_field = _("Sum of all payments")
     get_sum_amount.short_description = _("Sum of all payments")
 
     def get_payment_count(self, obj):
         return obj.payment_count
-    get_payment_count.admin_order_field = 'payment_count'
+    get_payment_count.admin_order_field = _("Payments count")
     get_payment_count.short_description = _("Payments count")
 
     def get_last_payment_date(self, obj):
         return obj.last_payment_date
-    get_last_payment_date.admin_order_field = 'last_payment_date'
+    get_last_payment_date.admin_order_field = _("Date of last payment")
     get_last_payment_date.short_description = _("Date of last payment")
 
     def get_first_payment_date(self, obj):
         return obj.first_payment_date
-    get_first_payment_date.admin_order_field = 'first_payment_date'
+    get_first_payment_date.admin_order_field = _('Date of first payment')
     get_first_payment_date.short_description = _("Date of first payment")
 
     def get_event(self, obj):
@@ -1027,9 +965,9 @@ class DonorPaymentChannelLoaderClass(BaseInstanceLoader):
                                             money_account=money_account,
             )
         except Event.DoesNotExist:
-            raise ValidationError({'event': 'Event with this name doesnt exist'})
+            raise ValidationError({'event': _('Event with this name doesnt exist')})
         except MoneyAccount.DoesNotExist:
-            raise ValidationError({'moneyaccount': 'MoneyAccount with this bank_number doesnt exist'})
+            raise ValidationError({'moneyaccount': _('MoneyAccount with this bank_number doesnt exist')})
 
         except DonorPaymentChannel.DoesNotExist:
             return None
@@ -1065,7 +1003,7 @@ class DonorPaymentChannelResource(ModelResource):
 
     def before_import_row(self, row, **kwargs):
         if not row.get('profile_type') or row.get('profile_type') not in ['u', 'c']:
-            raise ValidationError({'profile_type': 'Insert "c" or "u" (company/user)'})
+            raise ValidationError({'profile_type': _('Insert "c" or "u" (company/user)')})
         row['email'] = row['email'].lower()
         try:
             if row.get('profile_type') == 'u':
@@ -1073,7 +1011,7 @@ class DonorPaymentChannelResource(ModelResource):
             else:
                 row['user'] = CompanyContact.objects.get(email=row['email']).company.id
         except (ProfileEmail.DoesNotExist, CompanyContact.DoesNotExist):
-            raise ValidationError({"email": "Company/User with this email doesn't exist"})
+            raise ValidationError({"email": _("Company/User with this email doesn't exist")})
 
     def import_obj(self, obj, data, dry_run):
         super(ModelResource, self).import_obj(obj, data, dry_run)
@@ -1247,6 +1185,8 @@ class DonorPaymetChannelAdmin(
         else:
             return obj.email_address_company
 
+    get_email.short_description = _("Main email")
+
     def get_name(self, obj):
         if obj.profile_type == UserProfile._meta.model_name:
             if obj.first_name or obj.last_name:
@@ -1255,6 +1195,7 @@ class DonorPaymetChannelAdmin(
                 return '-'
         else:
             return obj.company_name or '-'
+    get_name.short_description = _("Company/User name")
 
 
 def add_user_bank_acc_to_dpch(self, request, queryset):
@@ -1658,20 +1599,18 @@ class AccountStatementsAdmin(unit_admin_mixin_generator('administrative_unit'), 
     )
 
     def payments_count(self, obj):
+        # TODO: must be in annotation
         return obj.payment_set.count()
 
+    payments_count.admin_order_field = _("Total payments")
+    payments_count.short_description = _("Total payments")
+
     def paired_payments(self, obj):
+        # TODO: must be in annotation
         return obj.payment_set.filter(user_donor_payment_channel__isnull=False).count()
 
-    # TODO: add reporting of skipped payments to Celery task
-    # def save_model(self, request, obj, form, change):
-    #     if getattr(obj, 'skipped_payments', None):
-    #         skipped_payments_string = ', '.join(["%s %s (%s)" % (p['name'], p['surname'], p['email']) for p in obj.skipped_payments])
-    #         messages.info(request, 'Skipped payments: %s' % skipped_payments_string)
-    #     payments_without_user = ', '.join(["%s (%s)" % (p.account_name, p.user_identification) for p in obj.payments if not p.user])
-    #     if payments_without_user:
-    #         messages.info(request, 'Payments without user: %s' % payments_without_user)
-    #     obj.save()
+    paired_payments.admin_order_field = _("Paired payments")
+    paired_payments.short_description = _("Paired payments")
 
 
 def download_darujme_statement(self, request, queryset):
@@ -1695,17 +1634,21 @@ def download_darujme_statement(self, request, queryset):
 download_darujme_statement.short_description = _("Download darujme statements")
 
 
+@admin.register(EventType)
+class EventTypeAdmin(unit_admin_mixin_generator('events__administrative_units'), admin.ModelAdmin):
+    pass
+
+
 class EventAdmin(unit_admin_mixin_generator('administrative_units'), admin.ModelAdmin):
     form = EventForm
     list_display = (
         'name',
         'id',
         'slug',
-        'created',
-        'terminated',
+        'date_from',
+        'date_to',
         'number_of_members',
         'number_of_recruiters',
-        'acquisition_campaign',
         'yield_total',
         'total_expenses',
         'expected_monthly_income',
@@ -1723,11 +1666,51 @@ class EventAdmin(unit_admin_mixin_generator('administrative_units'), admin.Model
         'average_yield',
         'average_expense',
     )
-    list_filter = ('acquisition_campaign', filters.ActiveCampaignFilter)
     search_fields = ('name', )
-    inlines = (ExpenseInline,)
     actions = (download_darujme_statement,)
     save_as = True
+
+    fieldsets = (
+        (None, {
+            'fields': (
+                'name',
+                'slug',
+                'basic_purpose',
+                'grant',
+                ('date_from', 'date_to'),
+                'variable_symbol_prefix',
+                'description',
+                'result',
+                'administrative_units',
+
+
+            ),
+        }),
+        (_('Detail information'), {
+            'classes': ('collapse',),
+            'fields': (
+                ('age_from', 'age_to'),
+                'event_type', 'program', 'indended_for',
+                'participation_fee', 'meeting', 'is_internal', 'focus_on_members',
+                'note',
+            ),
+        }),
+        (_('Web setting'), {
+            'classes': ('collapse',),
+            'fields': (
+                'enable_signing_petitions', 'enable_registration', 'allow_statistics', 'public_on_web',
+                'email_confirmation_redirect', 'entry_form_url'
+            ),
+        }),
+        (_('Statistics'), {
+            'classes': ('collapse',),
+            'fields': (
+                'number_of_members', 'number_of_recruiters', 'yield_total',
+                'total_expenses', 'expected_monthly_income', 'return_of_investmensts',
+                'average_yield', 'average_expense',
+            ),
+        }),
+    )
 
 
 class RecruiterAdmin(admin.ModelAdmin):
@@ -2086,7 +2069,7 @@ class UserProfileAdmin(
         super().get_fieldsets(request, obj)
 
     def add_view(self, request, form_url='', extra_context=None):
-        """ email duplicity handler """
+        """ email duplicity handler (which is used in double form in add form)"""
         data = request.POST
         if data.get('email') and data.get('administrative_units'):
             try:
@@ -2095,7 +2078,7 @@ class UserProfileAdmin(
                 user = email.user
                 user.administrative_units.add(unit)
                 user.save()
-                messages.warning(request, 'User With this email is in database already. You can edit him now')
+                messages.warning(request, _('User With this email is in database already. You can edit him now'))
                 url = reverse('admin:aklub_userprofile_change', args=(user.pk,))
                 return HttpResponseRedirect(url)
 
@@ -2161,6 +2144,9 @@ class CompanyContactInline(admin.TabularInline):
     readonly_fields = ('is_email_in_userprofile',)
 
     def is_email_in_userprofile(self, obj):
+        if not obj.id:
+            return ''
+
         filter_kwargs = {'email': obj.email}
         if not self.form.request.user.has_perm('can_edit_all_units'):
             filter_kwargs['user__administrative_units__in'] = self.form.request.user.administrated_units.all()
@@ -2403,7 +2389,7 @@ class CompanyProfileAdmin(
                 unit = AdministrativeUnit.objects.get(id=data.get('administrative_units'))
                 company.administrative_units.add(unit)
                 company.save()
-                messages.warning(request, 'Company is in database already. You are able to make changes now.')
+                messages.warning(request, _('Company is in database already. You are able to make changes now.'))
                 url = reverse('admin:aklub_companyprofile_change', args=(company.pk,))
                 return HttpResponseRedirect(url)
 
@@ -2465,6 +2451,5 @@ admin.site.register(Recruiter, RecruiterAdmin)
 admin.site.register(TaxConfirmation, TaxConfirmationAdmin)
 admin.site.register(Source, SourceAdmin)
 admin.site.register(Profile, ProfileAdmin)
-admin.site.register(UserBankAccount, UserBankAccountAdmin)
 # register all adminactions
 actions.add_to_site(site)

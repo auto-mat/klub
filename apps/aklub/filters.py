@@ -234,9 +234,9 @@ class ActiveCampaignFilter(SimpleListFilter):
 
     def queryset(self, request, queryset):
         if self.value() == 'yes':
-            return queryset.filter(Q(terminated__gte=date.today()) | Q(terminated=None), created__lte=date.today())
+            return queryset.filter(Q(date_to__gte=date.today()) | Q(date_to=None), date_from__lte=date.today())
         if self.value() == 'no':
-            return queryset.exclude(Q(terminated__gte=date.today()) | Q(terminated=None), created__lte=date.today())
+            return queryset.exclude(Q(date_to__gte=date.today()) | Q(date_to=None), date_from__lte=date.today())
         return queryset
 
 

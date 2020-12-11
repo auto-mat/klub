@@ -286,7 +286,7 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
 
         self.assertEqual(donor_channel.payment_set.get(date=datetime.date(2018, 2, 1)), a1.payment_set.get(account='23'))
 
-    def check_account_statement_data(self):
+    def check_account_statement_data(self, username_is_email=None):
         self.run_commit_hooks()
 
         a1 = AccountStatements.objects.get(type="darujme")
@@ -317,7 +317,10 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
         self.assertEqual(unknown_user.user.street, "Ulice 321")
         self.assertEqual(unknown_user.user.city, "Nová obec")
         self.assertEqual(unknown_user.user.zip_code, "12321")
-        self.assertEqual(unknown_user.user.username, "unknown3")
+        if username_is_email:
+            self.assertEqual(unknown_user.user.username, user_email.email)
+        else:
+            self.assertEqual(unknown_user.user.username, "unknown3")
         # self.assertEqual(unknown_user.wished_information, True)  # TODO: we should store this information somewhere
         self.assertEqual(unknown_user.regular_payments, "regular")
         self.assertEqual(unknown_user.regular_amount, 150)
@@ -377,6 +380,16 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
             a.clean()
             a.save()
         self.check_account_statement_data()
+
+    @override_settings(
+        DARUJME_EMAIL_AS_USERNAME=True,
+    )
+    def test_darujme_statement_email_as_username(self):
+        with open("apps/aklub/test_data/test_darujme.xls", "rb") as f:
+            a = AccountStatements(csv_file=File(f), type="darujme")
+            a.clean()
+            a.save()
+        self.check_account_statement_data(username_is_email=True)
 
     def test_darujme_xml_statement(self):
         a, skipped = darujme.create_statement_from_file("apps/aklub/test_data/darujme.xml", self.unit)

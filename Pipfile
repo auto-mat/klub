@@ -33,7 +33,9 @@ django-betterforms = "*"
 django-adminactions = {editable = true, git = "https://github.com/PetrKudy/django-adminactions", ref = "ignored_fields"}
 # waiting for new version > 0.1.6  => related fields lookup
 django-admin-numeric-filter = {editable = true, git = "https://github.com/PetrKudy/django-admin-numeric-filter", ref = "related_fields_fix"}
+
 django-helpdesk = {editable = true,git = "https://github.com/auto-mat/django-helpdesk.git",ref = "teams"}
+django-celery-beat = "==2.0.0" # helpdesk locking =>  v.>2.0.0 using celery >=4.4 which is not possible to use atm! 
 django-admin-large-initial-data = "*"
 django-admin-charts = { version = ">=0.12.0", override = ["django-nvd3"] }
 # waiting for new version > 3 0.9.7
@@ -107,7 +109,7 @@ pudb = "*"
 "flake8-tidy-imports" = "*"
 "flake8-builtins" = "*"
 coveralls = "*"
-django-admin-smoke-tests = {ref = "merge_all",git = "https://github.com/PetrDlouhy/django-admin-smoke-tests",editable = true}
+django-admin-smoke-tests-2 = {ref = "merge_all",git = "https://github.com/PetrDlouhy/django-admin-smoke-tests",editable = true}
 model_mommy = "*"
 mock = "*"
 flower = "*"

@@ -154,7 +154,6 @@ class CheckPaymentView(generics.GenericAPIView):
         if serializer.is_valid(raise_exception=True):
             try:
                 dpch = DonorPaymentChannel.objects.get(
-                    money_account=serializer.validated_data['money_account'],
                     event=serializer.validated_data['event'],
                     VS=serializer.validated_data['VS'],
                 )

@@ -839,7 +839,7 @@ class PasswordResetView(View):
                 email = EmailMultiAlternatives(
                     subject="password reset",
                     body=template,
-                    from_email=administrative_unit.from_email_str if administrative_unit else 'Klub pratel Auto*Matu <kp@auto-mat.cz>',
+                    from_email=administrative_unit.from_email_str,
                     to=[email.email],
                 )
                 email.send(fail_silently=False)

@@ -22,6 +22,11 @@ class RelatedFieldsMixin(serializers.Serializer):
     regular = serializers.BooleanField(initial=False)
 
 
+class ValidateEmailMixin:
+    def validate_email(self, value):
+        return value.lower()
+
+
 class VSReturnSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -29,7 +34,7 @@ class VSReturnSerializer(serializers.ModelSerializer):
         fields = ['VS', ]
 
 
-class GetDpchUserProfileSerializer(serializers.ModelSerializer, RelatedFieldsMixin):
+class GetDpchUserProfileSerializer(serializers.ModelSerializer, ValidateEmailMixin, RelatedFieldsMixin):
 
     class Meta:
         model = UserProfile
@@ -45,7 +50,7 @@ class GetDpchUserProfileSerializer(serializers.ModelSerializer, RelatedFieldsMix
         }
 
 
-class GetDpchCompanyProfileSerializer(serializers.ModelSerializer, RelatedFieldsMixin):
+class GetDpchCompanyProfileSerializer(serializers.ModelSerializer, ValidateEmailMixin, RelatedFieldsMixin):
     # future version of changed company profile model
     contact_first_name = serializers.CharField(max_length=256, required=False)
     contact_last_name = serializers.CharField(max_length=256, required=False)
@@ -109,7 +114,7 @@ class InteractionSerizer(serializers.Serializer):
     text = serializers.CharField()
 
 
-class CreditCardPaymentSerializer(serializers.ModelSerializer):
+class CreditCardPaymentSerializer(serializers.ModelSerializer, ValidateEmailMixin):
     profile_type = serializers.ChoiceField(choices=[('company', 'Company profile'), ('user', 'User Profile')], write_only=True)
     recipient_account = serializers.SlugRelatedField(queryset=MoneyAccount.objects.filter(slug__isnull=False), slug_field='slug')
     event = serializers.SlugRelatedField(queryset=Event.objects.filter(slug__isnull=False), slug_field='slug', write_only=True)
@@ -152,7 +157,7 @@ class DonorPaymentChannelNestedSerializer(serializers.ModelSerializer):
         depth = 1
 
 
-class CreateUserProfileSerializer(serializers.ModelSerializer, RelatedFieldsMixin):
+class CreateUserProfileSerializer(serializers.ModelSerializer, ValidateEmailMixin, RelatedFieldsMixin):
     password = serializers.CharField(write_only=True, required=False, validators=[validate_password])
     email = serializers.EmailField(validators=[UniqueValidator(queryset=ProfileEmail.objects.all())])
     userchannels = DonorPaymentChannelNestedSerializer(many=True)
@@ -188,7 +193,7 @@ class CreateUserProfileSerializer(serializers.ModelSerializer, RelatedFieldsMixi
         return user
 
 
-class ResetPasswordbyEmailSerializer(serializers.Serializer):
+class ResetPasswordbyEmailSerializer(serializers.Serializer, ValidateEmailMixin):
     email = serializers.EmailField()
 
 

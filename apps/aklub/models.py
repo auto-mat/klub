@@ -182,6 +182,10 @@ ICO_ERROR_MESSAGE = _("IČO není zadáno ve správném formátu. Zkontrolujte �
 
 
 class AdministrativeUnit(models.Model, ParseAccountStatement):
+    class Meta:
+        verbose_name = _("Administrative unit")
+        verbose_name_plural = _("Administrative units")
+
     name = models.CharField(
         verbose_name=_("Name"),
         max_length=255,
@@ -200,16 +204,12 @@ class AdministrativeUnit(models.Model, ParseAccountStatement):
     from_email_address = models.EmailField(
         verbose_name=_("E-mail from address"),
         help_text=_("Every new address has to be set up by system administrator"),
-        default="kp@auto-mat.cz",
-        blank=False,
-        null=False,
+        default="example@nothing_will_sent.ex",
     )
     from_email_str = models.CharField(
         verbose_name=_("E-mail from identifier"),
-        default='Klub pratel Auto*Matu <kp@auto-mat.cz>',
+        default='Example <example@nothing_will_sent.ex>',
         max_length=255,
-        blank=False,
-        null=False,
     )
 
     color = ColorField(
@@ -231,6 +231,27 @@ class AdministrativeUnit(models.Model, ParseAccountStatement):
         return str(self.name)
 
 
+class EventType(models.Model):
+    class Meta:
+        verbose_name = _("Event type")
+        verbose_name_plural = _("Event types")
+
+    name = models.CharField(
+        help_text=_("Name of event type"),
+        verbose_name=_("Name"),
+        max_length=100,
+    )
+    description = models.TextField(
+        verbose_name=_("Description"),
+        help_text=_("Description of this type"),
+        max_length=3000,
+        blank=True,
+    )
+
+    def __str__(self):
+        return self.name
+
+
 class Event(models.Model):
     """Campaign -- abstract event with description
 
@@ -240,16 +261,106 @@ class Event(models.Model):
         verbose_name = _("Event")
         verbose_name_plural = _("Events")
 
-    created = models.DateField(
-        verbose_name=_("Created"),
+    INTENDED_FOR = (
+        ('everyone', _('Everyone')),
+        ('adolescents_and_adults', _('Adolescents and adults')),
+        ('children', _('Children')),
+        ('parents_and_children', _('Parents and children')),
+        ('newcomers', _("Newcomers")),
+    )
+    GRANT = (
+        ('no_grant', _('No Grant')),
+        ('MEYS', _("Ministry of Education, Youth and Sports")),
+        ('others', _('Others')),
+    )
+    PROGRAM = (
+        ("", ('---')),
+        ('education', _('Education')),
+        ('PsB', _('PsB')),
+        ('monuments', _('Monuments')),
+        ('nature', _('Nature')),
+        ('eco_consulting', _('Eco consulting')),
+        ('children_section ', _("Children's Section")),
+    )
+    BASIC_PURPOSE = (
+        ('action', _('Action')),
+        ('petition', _('Petition')),
+        ('camp', _('Camp')),
+
+    )
+    event_type = models.ForeignKey(
+        EventType,
+        verbose_name=_("Event type"),
+        related_name='events',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
+    basic_purpose = models.CharField(
+        verbose_name=_("Basic Purpose"),
+        max_length=128,
+        choices=BASIC_PURPOSE,
+        default='action',
+    )
+    program = models.CharField(
+        verbose_name=_("Program"),
+        max_length=128,
+        choices=PROGRAM,
+        default="",
+        blank=True,
+    )
+    is_internal = models.BooleanField(
+        verbose_name=_("Only for internal members"),
+        default=False,
+    )
+    age_from = models.PositiveIntegerField(
+        verbose_name=_("Age from"),
+        null=True,
+        blank=True,
+    )
+    age_to = models.PositiveIntegerField(
+        verbose_name=_("Age to"),
+        null=True,
+        blank=True,
+    )
+    indended_for = models.CharField(
+        verbose_name=_("Indended for"),
+        max_length=128,
+        choices=INTENDED_FOR,
+        default='everyone',
+    )
+    participation_fee = models.PositiveIntegerField(
+        verbose_name=_("Participation fee"),
+        null=True,
+        blank=True,
+    )
+
+    meeting = models.CharField(
+        verbose_name=_("Meeting at the event"),
+        max_length=128,
+        blank=True,
+    )
+    grant = models.CharField(
+        verbose_name=_("Grant"),
+        max_length=128,
+        choices=GRANT,
+        default='no_grant',
+    )
+    focus_on_members = models.BooleanField(
+        verbose_name=_("Focus on members"),
+        default=False,
+    )
+
+    public_on_web = models.BooleanField(
+        verbose_name=_("Public on webpage"),
+        default=False,
+    )
+    entry_form_url = models.URLField(
+        verbose_name=_("Url address of register form"),
         blank=True,
         null=True,
     )
-    terminated = models.DateField(
-        verbose_name=_("Terminated"),
-        blank=True,
-        null=True,
-    )
+
     name = models.CharField(
         verbose_name=_("Name"),
         help_text=_("Choose some unique name for this campaign"),
@@ -259,8 +370,8 @@ class Event(models.Model):
         validators=[MinValueValidator(10000), MaxValueValidator(99999)],
         verbose_name=_("Variable_symbol_prefix"),
         help_text=_("Number between 10000-99999"),
-        blank=True,
         null=True,
+        blank=True,
     )
     description = models.TextField(
         verbose_name=_("Description"),
@@ -268,9 +379,11 @@ class Event(models.Model):
         max_length=3000,
         blank=True,
     )
-    acquisition_campaign = models.BooleanField(
-        verbose_name=_("Acquisition campaign"),
-        default=False,
+    note = models.TextField(
+        verbose_name=_("Note"),
+        help_text=_("Note of this campaign"),
+        max_length=3000,
+        blank=True,
     )
     real_yield = models.FloatField(
         verbose_name=_("Real yield"),
@@ -305,6 +418,18 @@ class Event(models.Model):
         default=False,
     )
     email_confirmation_redirect = models.URLField(
+        verbose_name=_("Redirect to url after email confirmation"),
+        blank=True,
+        null=True,
+    )
+
+    date_from = models.DateField(
+        verbose_name=_("Date from"),
+        null=True,
+        blank=True,
+    )
+    date_to = models.DateField(
+        verbose_name=_("Date to"),
         blank=True,
         null=True,
     )
@@ -345,7 +470,7 @@ class Event(models.Model):
     number_of_recruiters.short_description = _("number of recruiters")
 
     def yield_total(self):
-        if self.acquisition_campaign:
+        if self.indended_for == 'newcomers':
             return DonorPaymentChannel.objects.filter(event=self).aggregate(yield_total=Sum('payment__amount'))[
                 'yield_total']
         else:
@@ -1044,8 +1169,9 @@ class UserProfile(Profile, AbstractUserProfile):
 
 
 class CompanyContact(models.Model):
-
     class Meta:
+        verbose_name = _("Company contact")
+        verbose_name_plural = _("Company contacts")
         unique_together = (
             ('is_primary', 'administrative_unit', 'email'),
             ('is_primary', 'administrative_unit', 'company'),
@@ -1128,7 +1254,9 @@ class ProfileEmail(models.Model):
     class Meta:
         verbose_name = _("Email")
         verbose_name_plural = _("Emails")
-        unique_together = ("user", "is_primary")
+        unique_together = (
+            ("user", "is_primary"),
+        )
 
     bool_choices = (
         (None, "No"),
@@ -1136,8 +1264,7 @@ class ProfileEmail(models.Model):
     )
     email = models.EmailField(
         _('email address'),
-        blank=False,
-        null=True,
+        unique=True,
     )
     is_primary = models.NullBooleanField(
         verbose_name=_("Primary email"),
@@ -1207,6 +1334,9 @@ def Userprofile_administrative_unit_changed(sender, **kwargs):
 
 
 class Preference(models.Model):
+    class Meta:
+        verbose_name = _("Preference")
+        verbose_name_plural = _("Preferences")
     user = models.ForeignKey(
         Profile,
         blank=True,
@@ -1305,10 +1435,9 @@ class Telephone(models.Model):
         super().validate_unique(exclude=exclude)
 
     def check_duplicate(self, *args, **kwargs):
-        qs = Telephone.objects.filter(telephone=self.telephone, user=self.user)
         if self.pk is None:
-            if qs.filter(telephone=self.telephone, user=self.user).exists():
-                raise ValidationError("Duplicate phone number for this user")
+            if Telephone.objects.filter(telephone=self.telephone, user=self.user).exists():
+                raise ValidationError(_("Duplicate phone number for this user"))
 
     def clean(self, *args, **kwargs):
         self.check_duplicate()
@@ -1669,18 +1798,21 @@ class AccountStatements(ParseAccountStatement, models.Model):
         ('darujme', 'Darujme.cz'),
     )
 
-    type = models.CharField(max_length=30, choices=TYPE_OF_STATEMENT)  # noqa
-    import_date = models.DateTimeField(auto_now=True)
+    type = models.CharField(max_length=30, choices=TYPE_OF_STATEMENT, verbose_name=_("Type"))  # noqa
+    import_date = models.DateTimeField(auto_now=True, verbose_name=_("Import date"),)
     csv_file = models.FileField(
+        verbose_name=_("csv file"),
         upload_to='account-statements',
         null=False,
         blank=False,
     )
     date_from = models.DateField(
+        verbose_name=_("Date from"),
         blank=True,
         null=True,
     )
     date_to = models.DateField(
+        verbose_name=_("Date to"),
         blank=True,
         null=True,
     )
@@ -1746,6 +1878,10 @@ class AccountStatements(ParseAccountStatement, models.Model):
 
 
 class MoneyAccount(PolymorphicModel):
+    class Meta:
+        verbose_name = _("Bank/Api account")
+        verbose_name_plural = _("Bank/Api accounts")
+
     note = models.TextField(
         verbose_name=_("Bank account note"),
         blank=True,
@@ -1775,6 +1911,7 @@ class BankAccount(MoneyAccount):
         verbose_name_plural = _("Bank accounts")
 
     bank_account = models.CharField(
+        verbose_name=_("Bank Account"),
         max_length=50,
         blank=True,
         null=True,
@@ -1791,6 +1928,10 @@ class BankAccount(MoneyAccount):
 
 
 class ApiAccount(MoneyAccount):
+    class Meta:
+        verbose_name = _("Api Account")
+        verbose_name_plural = _("Api Accounts")
+
     project_name = models.CharField(
         verbose_name=_("Name"),
         unique=True,
@@ -1953,11 +2094,13 @@ class DonorPaymentChannel(ComputedFieldsModel):
     )
     money_account = models.ForeignKey(
         MoneyAccount,
+        verbose_name=_("Bank/Api account"),
         related_name='moneyaccounts',
         on_delete=models.CASCADE,
     )
     user_bank_account = models.ForeignKey(
         UserBankAccount,
+        verbose_name=_("User bank account"),
         related_name='userbankaccounts',
         on_delete=models.CASCADE,
         default=None,
@@ -2003,7 +2146,7 @@ class DonorPaymentChannel(ComputedFieldsModel):
                 )
             if qs:
                 if qs.first().pk != self.pk:
-                    raise ValidationError("Duplicate VS")
+                    raise ValidationError(_("Duplicate VS"))
         except MoneyAccount.DoesNotExist:
             pass
 
@@ -2013,7 +2156,7 @@ class DonorPaymentChannel(ComputedFieldsModel):
         """
         return self.payment_set.aggregate(count=Count('amount'))['count']
 
-    number_of_payments.short_description = _("# payments")
+    number_of_payments.short_description = _("Number of payments")
     number_of_payments.admin_order_field = 'payments_number'
 
     def last_payment_function(self):
@@ -2118,6 +2261,8 @@ class DonorPaymentChannel(ComputedFieldsModel):
     @computed(models.FloatField(null=True), depends=['payment_set'])
     def payment_total(self):
         return self.payment_set.aggregate(sum=Sum('amount'))['sum'] or 0
+
+    payment_total.short_description = _("Payment total")
 
     def total_contrib_string(self):
         """Return the sum of all money received from this user
@@ -2522,6 +2667,7 @@ class AutomaticCommunication(models.Model):
     )
     method_type = models.ForeignKey(
         "interactions.interactiontype",
+        verbose_name=_('Method/Type of Interaction'),
         help_text=_("Interaction type with allowed sending"),
         on_delete=models.CASCADE,
         limit_choices_to=Q(send_sms=True) | Q(send_email=True),
@@ -2628,6 +2774,7 @@ class MassCommunication(models.Model):
     )
     method_type = models.ForeignKey(
         "interactions.interactiontype",
+        verbose_name=_('Method/Type of Interaction'),
         on_delete=models.CASCADE,
         help_text=_("Interaction type with allowed sending"),
         limit_choices_to=Q(send_sms=True) | Q(send_email=True),
@@ -2725,7 +2872,7 @@ class MassCommunication(models.Model):
     def clean(self):
         if self.attach_tax_confirmation:
             if not self.attached_tax_confirmation_year or not self.attached_tax_confirmation_type:
-                raise ValidationError("YEAR and PDF_TYPE must be set")
+                raise ValidationError(_("YEAR and PDF_TYPE must be set"))
         super().clean()
 
 
@@ -2796,11 +2943,12 @@ class TaxConfirmation(models.Model):
         null=False,
         blank=False,
     )
-    year = models.PositiveIntegerField()
-    amount = models.PositiveIntegerField(default=0)
+    year = models.PositiveIntegerField(verbose_name=_('Year'))
+    amount = models.PositiveIntegerField(default=0, verbose_name=_('Amount'))
     file = models.FileField(storage=OverwriteStorage())  # DEPRICATED!
     pdf_type = models.ForeignKey(
                     'smmapdfs.PdfSandwichType',
+                    verbose_name=_('PDF type'),
                     on_delete=models.SET_NULL,
                     null=True,
                     blank=True,

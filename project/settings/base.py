@@ -260,9 +260,15 @@ REST_FRAMEWORK = {
 OAUTH2_PROVIDER = {
     # sec * minutes * 24 =  24 hours
     'ACCESS_TOKEN_EXPIRE_SECONDS': 60 * 60 * 24,
-    # this is the list of available scopes
-    # TODO: shoud be added by each application
-    'SCOPES': {
+    'OAUTH2_BACKEND_CLASS': 'oauth2_provider.oauth2_backends.JSONOAuthLibCore',
+    'SCOPES': {'read': 'Read scope'},
+
+}
+# TODO: shoud be added by each application
+# this is the list of available scopes
+SCOPES = os.environ.get('AKLUB_SCOPES', False)
+if SCOPES:
+    OAUTH2_PROVIDER['SCOPES'] = {
         'read': 'Read scope',
         'write': 'Write scope',
         'can_create_profiles': 'Can create profiles by API',
@@ -270,10 +276,7 @@ OAUTH2_PROVIDER = {
         'can_create_interactions': 'Can create interactions by API',
         'can_check_last_payments': 'Can check payments in dpch',
         'can_create_credit_card_payment': 'Can create credit card payment',
-    },
-    'OAUTH2_BACKEND_CLASS': 'oauth2_provider.oauth2_backends.JSONOAuthLibCore',
-
-}
+    }
 
 FLEXIBLE_FILTER_CONDITIONS_FIELD_MAP = {
     'User': ('aklub.models', 'User'),
@@ -512,9 +515,11 @@ WEB_URL = os.environ.get('WEB_URL', '')
 SITE_NAME = os.environ.get('SITE_NAME', '')
 
 # paid content
-SUM_LAST_MONTH_PAYMENTS = os.environ.get('SUM_LAST_MONTH_PAYMENTS', 0)
-SUM_LAST_YEAR_PAYMENTS = os.environ.get('SUM_LAST_YEAR_PAYMENTS', 0)
+SUM_LAST_MONTH_PAYMENTS = int(os.environ.get('SUM_LAST_MONTH_PAYMENTS', 0))
+SUM_LAST_YEAR_PAYMENTS = int(os.environ.get('SUM_LAST_YEAR_PAYMENTS', 0))
 
+# darujme use email as username
+DARUJME_EMAIL_AS_USERNAME = os.environ.get('DARUJME_EMAIL_AS_USERNAME', False)
 
 # django admin action ignored_fields
 UPDATE_ACTION_IGNORED_FIELDS = {

@@ -3,7 +3,7 @@ import datetime
 from aklub.models import CompanyProfile, ProfileEmail
 
 from django.core import mail
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from freezegun import freeze_time
@@ -12,11 +12,12 @@ from interactions.models import Interaction
 
 from model_mommy import mommy
 
-from .utils import app_login_mixin
+from oauth2_provider.models import Application
+
+from .utils import app_login_mixin, user_login_mixin
 
 
-"""
-class GetTokenTest(TestCase):
+class GetAccessTokenTest(TestCase):
     def test_get_client_credentials_token(self):
         app = mommy.make(
              'oauth2_provider.application',
@@ -33,17 +34,67 @@ class GetTokenTest(TestCase):
             "client_secret": "xxx",
         }
         url = reverse('oauth2_provider:token')
+        headers = {'content_type': 'application/json'}
+        response = self.client.post(url, data=data, **headers)
 
-        response = self.client.post(url, data=data)
-        print(response.json())
-        # TODO: cleint_type error .... make it works!
-        # this test work in postman,.. uh?
         self.assertEqual(response.status_code, 200)
+        tokens = app.accesstoken_set.all()
+        self.assertEqual(tokens.count(), 1)
 
-    def test_get_password_token(self):
-        pass
+        token = tokens.first()
+        resp = response.json()
+        self.assertEqual(resp['access_token'], token.token)
+        self.assertEqual(resp['token_type'], 'Bearer')
+        self.assertEqual(resp['scope'], token.scope)
+        self.assertEqual(resp['access_token'], token.token)
+        delta = token.expires.replace(microsecond=0)-token.created.replace(microsecond=0)
+        self.assertEqual(int(resp['expires_in']), int(delta.total_seconds()))
 
-"""
+    def test_get_user_password_token(self):
+        user = mommy.make('aklub.UserProfile', username='tester69')
+        password = 'super_ultra_7853_hard'
+        user.set_password(password)
+        user.save()
+        app = mommy.make(
+             'oauth2_provider.application',
+             client_type=Application.CLIENT_CONFIDENTIAL,
+             authorization_grant_type=Application.GRANT_PASSWORD,
+             skip_authorization=False,
+             client_id='xxx',
+             client_secret='xxx',
+        )
+
+        data = {
+           "grant_type": "password",
+           "username": user.username,
+           "password": password,
+           "client_id": app.client_id,
+           "client_secret": app.client_secret,
+          }
+
+        url = reverse('oauth2_provider:token')
+        headers = {'content_type': 'application/json'}
+        response = self.client.post(url, data=data, **headers)
+
+        self.assertEqual(response.status_code, 200)
+        tokens = app.accesstoken_set.all()
+        self.assertEqual(tokens.count(), 1)
+        token = tokens.first()
+
+        resp = response.json()
+        self.assertEqual(resp['access_token'], token.token)
+        self.assertEqual(resp['token_type'], 'Bearer')
+        self.assertEqual(resp['scope'], token.scope)
+        self.assertEqual(resp['access_token'], token.token)
+        delta = token.expires.replace(microsecond=0)-token.created.replace(microsecond=0)
+        self.assertTrue(int(resp['expires_in']), int(delta.total_seconds()))
+
+        tokens = app.refreshtoken_set.all()
+        self.assertEqual(tokens.count(), 1)
+        token = tokens.first()
+        self.assertEqual(resp['refresh_token'], token.token)
+
+        self.assertEqual(user, token.user)
 
 
 @freeze_time("2015-5-1")
@@ -60,7 +111,7 @@ class CreateDpchUserProfileViewTest(TestCase):
         header = {'Authorization': 'Bearer foo'}
         # required fields
         data = {
-            'email': 'test_user@test.com',
+            'email': 'Test_User@test.coM',
             'first_name': 'test_name',
             'last_name': 'test_last_name',
             'telephone': '111222333',
@@ -129,7 +180,7 @@ class CreateDpchCompanyProfileViewTest(TestCase):
         data = {
             'crn': '63278260',
             'name': 'company_name',
-            'email': 'company@test.com',
+            'email': 'Company@Test.Com',
             'contact_first_name': 'tester',
             'contact_last_name': 'tester_last',
             'telephone': '111222333',
@@ -158,7 +209,7 @@ class CreateDpchCompanyProfileViewTest(TestCase):
             'street': 'street_name',
             'city': 'city_name',
             'zip_code': '111 22',
-            'email': 'company_new@test.com',
+            'email': 'company_neW@test.com',
             'telephone': '333222111',
         }
         data.update(data_update)
@@ -280,6 +331,30 @@ class CheckLastPaymentsViewTest(TestCase):
         self.assertEqual(resp_data[1]['profile_id'],  user.id)
 
 
+@override_settings(SUM_LAST_YEAR_PAYMENTS=3000, SUM_LAST_MONTH_PAYMENTS=100)
+class CheckLastPaymentViewTest(TestCase):
+    "check if user has some payment for last_year or last_month"
+    def setUp(self):
+        self.user = user_login_mixin()
+        unit = mommy.make('aklub.AdministrativeUnit')
+        bank_acc = mommy.make('aklub.BankAccount', administrative_unit=unit, bank_account_number="123")
+        event = mommy.make('aklub.Event')
+        self.dpch = mommy.make("aklub.DonorPaymentChannel", money_account=bank_acc, event=event, user=self.user)
+
+    def test_check_last_payment_success(self):
+        mommy.make('aklub.payment', date=datetime.datetime.now().date(), amount=200, user_donor_payment_channel=self.dpch)
+        url = reverse('check_last_payment')
+        header = {'Authorization': 'Bearer foo'}
+        response = self.client.get(url, **header)
+        self.assertEqual(response.status_code, 200)
+
+    def test_check_last_payment_unsuccess(self):
+        url = reverse('check_last_payment')
+        header = {'Authorization': 'Bearer foo'}
+        response = self.client.get(url, **header)
+        self.assertEqual(response.status_code, 404)
+
+
 class CreateInteractionTest(TestCase):
     def setUp(self):
         app_login_mixin()
@@ -326,7 +401,7 @@ class CreateCreditCardPaymentTest(TestCase):
             'date': '2015-04-10',
             'event': self.event.slug,
             'recipient_account': self.bank_acc.slug,
-            'email': email.email,
+            'email': email.email.upper(),
             'amount': 123456,
             'profile_type': 'user',
             'VS': '332211',
@@ -353,7 +428,7 @@ class CreateCreditCardPaymentTest(TestCase):
             'date': '2021-04-10',
             'event': self.event.slug,
             'recipient_account': self.bank_acc.slug,
-            'email': company_contact.email,
+            'email': company_contact.email.upper(),
             'amount': 654321,
             'profile_type': 'company',
             'VS': '111',
@@ -382,7 +457,7 @@ class RegisterUserProfileTest(TestCase):
         header = {"content_type": "application/json"}
         data = {
 
-            'email': 'tester@gmai.com',
+            'email': 'tester@gmai.coM',
             'telephone': '123456789',
             'first_name': 'tester',
             'last_name': 'dunnot',
@@ -399,7 +474,7 @@ class RegisterUserProfileTest(TestCase):
         response = self.client.post(url, data=data, **header)
         self.assertEqual(response.status_code, 201)
         response_data = response.json()
-        email = ProfileEmail.objects.get(email=data['email'])
+        email = ProfileEmail.objects.get(email=data['email'].lower())
         user = email.user
         dpch = user.userchannels.first()
         telephone = user.telephone_set.first()
@@ -422,10 +497,9 @@ class RegisterUserProfileTest(TestCase):
 
 
 class ResetPasswordTest(TestCase):
-
     def test_reset_password(self):
         user = mommy.make('aklub.UserProfile', username="John_van_test")
-        email = mommy.make('aklub.ProfileEmail', email="John@van.test", user=user)
+        email = mommy.make('aklub.ProfileEmail', email="john@van.test", user=user)
         mommy.make('aklub.AdministrativeUnit', from_email_str="unit@test.test")
         url = reverse('reset_password_email')
         data = {'email': email.email}

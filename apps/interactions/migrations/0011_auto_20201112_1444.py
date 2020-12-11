@@ -9,15 +9,15 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('aklub', '0089_auto_20201112_1410'),
-        ('interactions', '0009_auto_20200219_1818'),
+        ('aklub', '0091_auto_20201111_1403'),
+        ('interactions', '0010_auto_20201209_1107'),
     ]
 
     operations = [
         migrations.AddField(
             model_name='petitionsignature',
             name='administrative_unit',
-            field=models.ForeignKey(default=1, on_delete=django.db.models.deletion.CASCADE, to='aklub.AdministrativeUnit', verbose_name='administrative units'),
+            field=models.ForeignKey(default=1, on_delete=django.db.models.deletion.CASCADE, to='aklub.AdministrativeUnit', verbose_name='Administrative unit'),
             preserve_default=False,
         ),
         migrations.AlterUniqueTogether(

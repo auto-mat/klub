@@ -11,6 +11,10 @@ import html2text
 
 
 class Result(models.Model):
+    class Meta:
+        verbose_name = _("Result")
+        verbose_name_plural = _("Results")
+
     RESULT_SORT = (
         ('promise', _("Promise")),
         ('ongoing', _("Ongoing communication")),
@@ -33,7 +37,12 @@ class Result(models.Model):
 
 
 class InteractionCategory(models.Model):
+    class Meta:
+        verbose_name = _("Interaction Category")
+        verbose_name_plural = _("Interaction Categories")
+
     category = models.CharField(
+        verbose_name=_("Category name"),
         max_length=130,
     )
     display = models.BooleanField(
@@ -64,7 +73,7 @@ class BaseInteraction2(models.Model):
     )
     administrative_unit = models.ForeignKey(
         AdministrativeUnit,
-        verbose_name=("administrative units"),
+        verbose_name=("Administrative unit"),
         on_delete=models.CASCADE,
     )
     created = models.DateTimeField(
@@ -85,6 +94,10 @@ class Interaction(WithAdminUrl, BaseInteraction2):
     if we want to have it False, we must handle it in admin context with ignored fields
     also must be added to field_set in admin inline and import_export fields.
     """
+    class Meta:
+        verbose_name = _("Interaction")
+        verbose_name_plural = _("Interactions")
+
     SETTLEMENT_CHOICES = [
         ('a', _('Automatic')),
         ('m', _('Manual')),
@@ -104,6 +117,7 @@ class Interaction(WithAdminUrl, BaseInteraction2):
     )
     type = models.ForeignKey( # noqa
         'InteractionType',
+        verbose_name=("Type"),
         help_text=("Type of interaction"),
         on_delete=models.CASCADE,
     )
@@ -244,17 +258,12 @@ class Interaction(WithAdminUrl, BaseInteraction2):
             pass
 
         if self.type.send_email:
-            bcc = [] if self.communication_type == 'mass' else [
-                                                    administrative_unit.from_email_address if administrative_unit else 'kp@auto-mat.cz',
-            ]
             if self.user.get_email_str(self.administrative_unit) != "":
-
                 email = EmailMultiAlternatives(
                     subject=self.subject,
                     body=self.summary_txt(),
-                    from_email=administrative_unit.from_email_str if administrative_unit else 'Klub pratel Auto*Matu <kp@auto-mat.cz>',
+                    from_email=administrative_unit.from_email_str,
                     to=[self.user.get_email_str(self.administrative_unit)],
-                    bcc=bcc,
                 )
                 if self.communication_type != 'individual':
                     email.attach_alternative(self.summary, "text/html")
@@ -279,6 +288,8 @@ class Interaction(WithAdminUrl, BaseInteraction2):
 
 class PetitionSignature(BaseInteraction2):
     class Meta:
+        verbose_name = _("Petition signature")
+        verbose_name_plural = _("Petition signatures")
         unique_together = ('user', 'event')
 
     email_confirmed = models.BooleanField(
@@ -286,7 +297,7 @@ class PetitionSignature(BaseInteraction2):
         default=False,
     )
     gdpr_consent = models.BooleanField(
-        _("GDPR consent"),
+        verbose_name=_("GDPR consent"),
         default=False,
     )
     public = models.BooleanField(
@@ -296,12 +307,17 @@ class PetitionSignature(BaseInteraction2):
 
 
 class InteractionType(models.Model):
+    class Meta:
+        verbose_name = _("Interaction Type")
+        verbose_name_plural = _("Interaction Types")
+
     name = models.CharField(
         max_length=130,
     )
 
     category = models.ForeignKey(
         InteractionCategory,
+        verbose_name=_("Category"),
         help_text=("Timeline display category"),
         on_delete=models.CASCADE,
     )
@@ -314,12 +330,14 @@ class InteractionType(models.Model):
     )
 
     send_email = models.BooleanField(
+        verbose_name=_("Sent email"),
         help_text=_("the email will be immediatelly sent to the user"),
         default=False,
         blank=True,
         null=True,
     )
     send_sms = models.BooleanField(
+        verbose_name=_("Sent sms"),
         help_text=_("the sms will be immediatelly send to the use"),
         default=False,
         blank=True,
@@ -336,9 +354,12 @@ for field in Interaction._meta.fields:
         InteractionType.add_to_class(
                 field.name + '_bool',
                 models.BooleanField(
-                                help_text=_(f'choose if {field.name} is visible in specific type of interaction '),
-                                default=False,
-                                blank=False,
-                                null=False,
-                                ),
-                )
+                    verbose_name=_(field.verbose_name),
+                    help_text=_(
+                        'Choose if %(field_name)s is visible in specific type of interaction.'
+                    ) % {'field_name': field.name},
+                    default=False,
+                    blank=False,
+                    null=False,
+                ),
+        )

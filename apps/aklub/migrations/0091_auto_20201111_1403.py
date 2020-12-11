@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aklub', '0087_auto_20200918_1159'),
+        ('aklub', '0090_auto_20201210_1118'),
     ]
 
     operations = [
@@ -15,5 +15,10 @@ class Migration(migrations.Migration):
             model_name='automaticcommunication',
             name='sent_to_users',
             field=models.ManyToManyField(blank=True, help_text='List of users to whom this communication was already sent', to=settings.AUTH_USER_MODEL),
+        ),
+        migrations.AddField(
+            model_name='administrativeunit',
+            name='slug',
+            field=models.SlugField(blank=True, default=None, help_text='Identifier of the administrative unit', max_length=100, null=True, unique=True, verbose_name='Slug'),
         ),
     ]

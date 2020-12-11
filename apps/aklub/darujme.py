@@ -13,6 +13,7 @@ from aklub.models import (
 )
 from aklub.views import get_unique_username
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 
 import xlrd
@@ -223,11 +224,16 @@ def create_payment(data, payments, skipped_payments):  # noqa
         p.user_identification = data['email']
         p.recipient_account = campaign
 
-    username = get_unique_username(data['email'])
     email, email_created = ProfileEmail.objects.get_or_create(
                 email=data['email'].lower(),
                 defaults={'is_primary': True},
             )
+
+    if settings.DARUJME_EMAIL_AS_USERNAME:
+        username = email.email
+    else:
+        username = get_unique_username(email.email)
+
     if email_created:
         userprofile = UserProfile.objects.create(
                 first_name=data['jmeno'],

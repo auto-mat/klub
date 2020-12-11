@@ -39,3 +39,4 @@ def user_login_mixin():
         expires=datetime.datetime.now() + datetime.timedelta(days=999),
         user=user,
     )
+    return user
