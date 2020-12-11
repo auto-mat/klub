@@ -2,6 +2,8 @@ from celery import task
 
 from django.core.management import call_command
 
+from oauth2_provider.models import clear_expired
+
 import smmapdfs.actions
 from smmapdfs.models import PdfSandwichType
 
@@ -10,6 +12,11 @@ from . import models
 from .autocom import check
 from .darujme import parse_darujme
 from .mailing import create_mass_communication_tasks_sync, send_communication_sync
+
+
+@task()
+def clear_expired_tokens():
+    clear_expired()
 
 
 @task()
