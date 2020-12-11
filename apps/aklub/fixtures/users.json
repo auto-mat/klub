@@ -363,7 +363,7 @@
     {
         "fields": {
             "name": "Prahou na kole",
-            "created": "2015-12-16",
+            "date_from": "2015-12-16",
             "slug": "pnk"
         },
         "model": "aklub.event",
@@ -372,10 +372,10 @@
     {
         "fields": {
             "name": "Klub přátel Auto*Matu",
-            "created": "2015-12-16",
+            "date_from": "2015-12-16",
             "slug": "klub",
             "allow_statistics": true,
-            "acquisition_campaign": true,
+            "indended_for": "newcomers",
             "enable_signing_petitions": true,
             "enable_registration": true
         },
@@ -385,10 +385,9 @@
     {
         "fields": {
             "name": "Zažít město jinak",
-            "created": "2015-12-16",
+            "date_from": "2015-12-16",
             "slug": "zmj",
-            "allow_statistics": true,
-            "acquisition_campaign": true
+            "indended_for": "newcomers"
         },
         "model": "aklub.event",
         "pk": 3

@@ -39,7 +39,7 @@ from ..models import (
 class AutocomTest(TestCase):
     def setUp(self):
         self.userprofile = UserProfile.objects.create(sex='male')
-        self.event = Event.objects.create(created=datetime.date(2010, 10, 10))
+        self.event = Event.objects.create(date_from=datetime.date(2010, 10, 10))
         self.au = AdministrativeUnit.objects.create(name='test')
         self.BankAccount = BankAccount.objects.create(bank_account_number=11111, administrative_unit=self.au)
         self.payment_channel = DonorPaymentChannel.objects.create(user=self.userprofile, event=self.event, money_account=self.BankAccount)

@@ -98,7 +98,7 @@ class CommunicationTest(TestCase):
     def setUp(self):
         self.userprofile = UserProfile.objects.create(sex='male')
         mommy.make("ProfileEmail", user=self.userprofile, email="test@test.cz", is_primary=True)
-        self.campaign = Event.objects.create(created=datetime.date(2010, 10, 10))
+        self.campaign = Event.objects.create(date_from=datetime.date(2010, 10, 10))
 
     def test_communication(self):
         inter_category = mommy.make('interactions.interactioncategory', category='testcategory')

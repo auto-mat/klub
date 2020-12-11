@@ -34,10 +34,9 @@ class TestProfilePostMixin:
         event = mommy.make(
             'aklub.Event',
             name='Klub přátel Auto*Matu',
-            created='2015-12-16',
+            date_from='2015-12-16',
             slug='klub',
-            allow_statistics=True,
-            acquisition_campaign=True,
+            indended_for="newcomers",
             enable_signing_petitions=True,
             enable_registration=True,
         )
