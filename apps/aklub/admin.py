@@ -1635,7 +1635,7 @@ download_darujme_statement.short_description = _("Download darujme statements")
 
 
 @admin.register(EventType)
-class EventTypeAdmin(unit_admin_mixin_generator('event__administrative_units'), admin.ModelAdmin):
+class EventTypeAdmin(unit_admin_mixin_generator('events__administrative_units'), admin.ModelAdmin):
     pass
 
 
