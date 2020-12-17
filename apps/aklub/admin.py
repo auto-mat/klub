@@ -1283,7 +1283,12 @@ class PaymentAdmin(
 
     get_full_name.short_description = _("name")
 
-    actions = (add_user_bank_acc_to_dpch, payment_pair_action, payment_request_pair_action)
+    actions = (
+        add_user_bank_acc_to_dpch,
+        payment_pair_action,
+        payment_request_pair_action,
+        create_export_job_action,
+    )
     resource_class = PaymentResource
     list_display = (
         'id',

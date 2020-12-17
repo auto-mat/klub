@@ -2535,6 +2535,13 @@ class Payment(WithAdminUrl, models.Model):
     def __str__(self):
         return str(self.amount)
 
+    @classmethod
+    def export_resource_classes(cls):
+        from .admin import PaymentResource
+        return {
+            'export': (_("All columns"), PaymentResource),
+        }
+
 
 COMMUNICATION_TYPE = (
     ('mass', _("Mass")),
