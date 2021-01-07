@@ -776,26 +776,25 @@ class ProfileAdminMixin:
         return ',\n'.join(results)
 
     total_payment.short_description = _("Total payment")
-    total_payment.admin_order_field = ("Total payment")
 
     def get_sum_amount(self, obj):
         return obj.sum_amount
-    get_sum_amount.admin_order_field = _("Sum of all payments")
+    get_sum_amount.admin_order_field = 'sum_amount'
     get_sum_amount.short_description = _("Sum of all payments")
 
     def get_payment_count(self, obj):
         return obj.payment_count
-    get_payment_count.admin_order_field = _("Payments count")
+    get_payment_count.admin_order_field = 'payment_count'
     get_payment_count.short_description = _("Payments count")
 
     def get_last_payment_date(self, obj):
         return obj.last_payment_date
-    get_last_payment_date.admin_order_field = _("Date of last payment")
+    get_last_payment_date.admin_order_field = 'last_payment_date'
     get_last_payment_date.short_description = _("Date of last payment")
 
     def get_first_payment_date(self, obj):
         return obj.first_payment_date
-    get_first_payment_date.admin_order_field = _('Date of first payment')
+    get_first_payment_date.admin_order_field = 'first_payment_date'
     get_first_payment_date.short_description = _("Date of first payment")
 
     def get_event(self, obj):
@@ -1280,7 +1279,12 @@ class PaymentAdmin(
 
     get_full_name.short_description = _("name")
 
-    actions = (add_user_bank_acc_to_dpch, payment_pair_action, payment_request_pair_action)
+    actions = (
+        add_user_bank_acc_to_dpch,
+        payment_pair_action,
+        payment_request_pair_action,
+        create_export_job_action,
+    )
     resource_class = PaymentResource
     list_display = (
         'id',
@@ -1602,14 +1606,12 @@ class AccountStatementsAdmin(unit_admin_mixin_generator('administrative_unit'), 
         # TODO: must be in annotation
         return obj.payment_set.count()
 
-    payments_count.admin_order_field = _("Total payments")
     payments_count.short_description = _("Total payments")
 
     def paired_payments(self, obj):
         # TODO: must be in annotation
         return obj.payment_set.filter(user_donor_payment_channel__isnull=False).count()
 
-    paired_payments.admin_order_field = _("Paired payments")
     paired_payments.short_description = _("Paired payments")
 
 
