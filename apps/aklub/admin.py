@@ -798,10 +798,7 @@ class ProfileAdminMixin:
     get_first_payment_date.short_description = _("Date of first payment")
 
     def get_event(self, obj):
-        event = format_html_join(
-            ', ', "<nobr>{}) {}</nobr>", ((d.event.id, d.event.name) for d in self.get_donor_details(obj) if d.event is not None),
-            )
-        return event
+        return sweet_text(((f'{d.event.id}) {d.event.name}',) for d in self.get_donor_details(obj)))
     get_event.admin_order_field = 'events'
     get_event.short_description = _("Events")
 
