@@ -736,10 +736,14 @@ class ProfileAdminMixin:
 
     def donor_delay(self, obj):
         def get_result(dpch):
-            if isinstance(dpch.regular_payments_delay(), (bool,)):
-                return _boolean_icon(True)
+            delay = dpch.regular_payments_delay()
+            if delay is None:
+                status = _boolean_icon(None)
+            elif delay == 0:
+                status = _boolean_icon(True)
             else:
-                return format_html("{} {} {}", mark_safe(_boolean_icon(False)), str(dpch.regular_payments_delay().days), 'days')
+                status = format_html("{} {} {}", mark_safe(_boolean_icon(False)), str(delay.days), 'days')
+            return status
 
         result = sweet_text(((get_result(d),) for d in self.get_donor_details(obj)))
         return result
@@ -1062,7 +1066,6 @@ class DonorPaymetChannelAdmin(
         'payment_total',
         'last_payment_amount',
         'regular_amount',
-        'payment_delay',
         'last_payment_date',
         'extra_payments',
         'user__is_active',

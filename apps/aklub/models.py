@@ -42,7 +42,6 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html, format_html_join, mark_safe
 from django.utils.text import format_lazy
-from django.utils.timesince import timesince
 from django.utils.translation import ugettext_lazy as _
 
 from polymorphic.managers import PolymorphicManager
@@ -2275,17 +2274,22 @@ class DonorPaymentChannel(ComputedFieldsModel):
     def regular_payments_delay(self):
         """Check if his payments are OK
 
-        Return True if so, otherwise return the delay in payment as dattime.timedelta
+        1) 0 if payments are ok,
+        2) number of days from the expected payment date if payments are not ok
+        3) None if expected_regular_payment_date is unknown or regular_payments are not "regular"
         """
         expected_regular_payment_date = self.expected_regular_payment_date
         if self.regular_payments == "regular" and expected_regular_payment_date:
             # Check for regular payments
-            # (Allow 7 days for payment processing)
-            if expected_regular_payment_date:
-                expected_with_tolerance = expected_regular_payment_date + datetime.timedelta(days=10)
-                if (expected_with_tolerance < datetime.date.today()):
-                    return datetime.date.today() - expected_with_tolerance
-        return False
+            # (Allow 10 days for payment processing)
+            expected_with_tolerance = expected_regular_payment_date + datetime.timedelta(days=10)
+            if (expected_with_tolerance < datetime.date.today()):
+                delay = datetime.date.today() - expected_with_tolerance
+            else:
+                delay = 0
+        else:
+            delay = None
+        return delay
 
     @computed(models.IntegerField(null=True), depends=['payment_set#amount'])
     def extra_money(self):
@@ -2312,16 +2316,6 @@ class DonorPaymentChannel(ComputedFieldsModel):
     regular_payments_info.allow_tags = True
     regular_payments_info.short_description = _(u"Expected payment")
     regular_payments_info.admin_order_field = 'expected_regular_payment_date'
-
-    def payment_delay(self):
-        if self.regular_payments_delay():
-            return timesince(self.expected_regular_payment_date)
-        else:
-            return _boolean_icon(False)
-
-    payment_delay.allow_tags = True
-    payment_delay.short_description = _(u"Payment delay")
-    payment_delay.admin_order_field = 'expected_regular_payment_date'
 
     def extra_payments(self):
         if self.extra_money:
