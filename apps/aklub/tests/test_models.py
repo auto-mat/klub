@@ -55,15 +55,13 @@ class ModelTests(TestCase):
         self.assertEqual(self.u.last_payment_date(), None)
         self.assertEqual(self.u.last_payment_type(), None)
         self.assertEqual(self.u.requires_action(), False)
-        self.assertEqual(self.u.payment_delay(), ICON_FALSE)
         self.assertEqual(self.u.expected_regular_payment_date, None)
-        self.assertEqual(self.u.regular_payments_delay(), False)
+        self.assertEqual(self.u.regular_payments_delay(), None)
         self.assertEqual(self.u.extra_payments(), ICON_FALSE)
         self.assertEqual(self.u.regular_payments_info(), ICON_FALSE)
         self.assertEqual(self.u.no_upgrade, False)
         self.assertEqual(self.u.monthly_regular_amount(), 0)
 
-        # self.assertEqual(self.u1.is_direct_dialogue(), False)
         self.assertEqual(self.u1.person_name(), 'User Test')
         self.assertEqual(self.u1.requires_action(), True)
         self.assertSetEqual(set(self.u1.payment_set.all()), {self.p1, self.p2, self.p})
@@ -78,7 +76,6 @@ class ModelTests(TestCase):
         self.assertEqual(self.u1.regular_payments_info(), datetime.date(2016, 4, 9))
         self.assertEqual(self.u1.extra_payments(), ICON_FALSE)
         self.assertEqual(self.u1.user.mail_communications_count(), False)
-        self.assertEqual(self.u1.payment_delay(), '3\xa0týdny, 1\xa0den')
         self.assertEqual(self.u1.payment_total, 350.0)
         self.assertEqual(self.u1.total_contrib_string(), "350&nbsp;Kč")
         self.assertEqual(self.u1.registered_support_date(), "16. 12. 2015")
@@ -87,10 +84,8 @@ class ModelTests(TestCase):
         self.assertEqual(self.u1.monthly_regular_amount(), 100)
 
         self.assertEqual(self.u2.expected_regular_payment_date, datetime.date(2015, 12, 19))
-        self.assertEqual(self.u2.payment_delay(), '4\xa0měsíce, 2\xa0týdny')
         self.assertEqual(self.u2.regular_payments_info(), datetime.date(2015, 12, 19))
 
-        self.assertEqual(self.u4.payment_delay(), ICON_FALSE)
         self.assertEqual(self.u4.regular_payments_info(), ICON_UNKNOWN)
 
 
