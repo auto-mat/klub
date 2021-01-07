@@ -736,10 +736,14 @@ class ProfileAdminMixin:
 
     def donor_delay(self, obj):
         def get_result(dpch):
-            if isinstance(dpch.regular_payments_delay(), (bool,)):
-                return _boolean_icon(True)
+            delay = dpch.regular_payments_delay()
+            if delay is None:
+                status = _boolean_icon(None)
+            elif delay == 0:
+                status = _boolean_icon(True)
             else:
-                return format_html("{} {} {}", mark_safe(_boolean_icon(False)), str(dpch.regular_payments_delay().days), 'days')
+                status = format_html("{} {} {}", mark_safe(_boolean_icon(False)), str(delay.days), 'days')
+            return status
 
         result = sweet_text(((get_result(d),) for d in self.get_donor_details(obj)))
         return result
@@ -798,10 +802,7 @@ class ProfileAdminMixin:
     get_first_payment_date.short_description = _("Date of first payment")
 
     def get_event(self, obj):
-        event = format_html_join(
-            ', ', "<nobr>{}) {}</nobr>", ((d.event.id, d.event.name) for d in self.get_donor_details(obj) if d.event is not None),
-            )
-        return event
+        return sweet_text(((f'{d.event.id}) {d.event.name}',) for d in self.get_donor_details(obj)))
     get_event.admin_order_field = 'events'
     get_event.short_description = _("Events")
 
@@ -1065,7 +1066,6 @@ class DonorPaymetChannelAdmin(
         'payment_total',
         'last_payment_amount',
         'regular_amount',
-        'payment_delay',
         'last_payment_date',
         'extra_payments',
         'user__is_active',

@@ -416,3 +416,37 @@ class TestDenormalizedFields(TestCase):
         self.assertEqual(dpch.payment_total, 400)
         self.assertEqual(dpch.extra_money, 300)
         self.assertEqual(dpch.no_upgrade, False)
+
+
+class TestModelMethods(TestCase):
+
+    def setUp(self):
+        self.user = mommy.make("aklub.UserProfile", sex='male')
+        unit = mommy.make("aklub.AdministrativeUnit", name='test1')
+        self.bank_acc = mommy.make("aklub.BankAccount",  bank_account_number='123', administrative_unit=unit)
+        self.event = mommy.make("Event")
+
+    @freeze_time("2017-5-1")
+    def test_regular_payments_delay(self):
+        self.dpch = mommy.make(
+            "aklub.DonorPaymentChannel",
+            user=self.user,
+            event=self.event,
+            money_account=self.bank_acc,
+            regular_payments='onetime',
+        )
+        # fails, because cant be calculated => return None
+        self.assertEqual(self.dpch.regular_payments_delay(), None)
+        # additional info which is needed for calculating
+        self.dpch.regular_payments = 'regular'
+        self.dpch.regular_frequency = 'monthly'
+        self.dpch.save()
+        self.payment = mommy.make("aklub.Payment", amount=350, date="2017-03-01", type='regular', user_donor_payment_channel=self.dpch)
+        self.dpch.refresh_from_db()
+        # 20 days delay, because we have 10 days tolerance
+        self.assertEqual(self.dpch.regular_payments_delay(), datetime.timedelta(20))
+
+        self.payment = mommy.make("aklub.Payment", amount=350, date="2017-04-29", type='regular', user_donor_payment_channel=self.dpch)
+        self.dpch.refresh_from_db()
+        # paid 3 days ago so in time
+        self.assertEqual(self.dpch.regular_payments_delay(), 0)
