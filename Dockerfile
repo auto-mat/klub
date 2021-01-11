@@ -24,9 +24,13 @@ WORKDIR "/home/aplikace"
 
 run pip3 install pipenv
 
+copy Pipfile.lock Pipfile.lock
+copy Pipfile Pipfile
+
 RUN npm install -g less bower
 RUN pip3 install pipenv==2018.11.14
 RUN useradd test
 RUN chsh test -s /bin/bash
 RUN mkdir /home/test ; chown test /home/test ; chgrp test /home/test
-RUN su test ; cd /home/test ; pipenv install --dev --python python3
+RUN su test ; pipenv install --dev --python python3
+copy . .
