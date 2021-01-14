@@ -1934,28 +1934,27 @@ class ApiAccount(MoneyAccount):
     project_name = models.CharField(
         verbose_name=_("Name"),
         unique=True,
-        default=None,
+        default='',
         max_length=100,
-        blank=True,
-        null=True,
     )
     project_id = models.IntegerField(
         verbose_name=_("project ID"),
         default=None,
-        blank=True,
         null=True,
     )
     api_id = models.IntegerField(
         verbose_name=_("API ID"),
         default=None,
-        blank=True,
         null=True,
     )
     api_secret = models.CharField(
         verbose_name=_("API secret"),
-        default=None,
+        default='',
         max_length=100,
-        blank=True,
+    )
+    api_organization_id = models.IntegerField(
+        verbose_name=_("API organization ID"),
+        default=None,
         null=True,
     )
     event = models.ForeignKey(
