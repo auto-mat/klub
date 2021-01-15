@@ -1649,6 +1649,7 @@ class EventAdmin(unit_admin_mixin_generator('administrative_units'), admin.Model
         'slug',
         'date_from',
         'date_to',
+        'sum_yield_amount',
         'number_of_members',
         'number_of_recruiters',
         'yield_total',
@@ -1658,6 +1659,9 @@ class EventAdmin(unit_admin_mixin_generator('administrative_units'), admin.Model
         'average_yield',
         'average_expense',
     )
+    list_filter = [
+        ('donorpaymentchannel__payment__date', filters.EventYieldDateRangeFilter),
+    ]
     readonly_fields = (
         'number_of_members',
         'number_of_recruiters',
@@ -1713,6 +1717,25 @@ class EventAdmin(unit_admin_mixin_generator('administrative_units'), admin.Model
             ),
         }),
     )
+
+    def get_queryset(self, request):
+        donor_filter = {}
+        extra_filters = request.GET
+        dpd_gte = extra_filters.get('donorpaymentchannel__payment__date__range__gte')
+        dpd_lte = extra_filters.get('donorpaymentchannel__payment__date__range__lte')
+        if dpd_gte:
+            donor_filter['donorpaymentchannel__payment__date__gte'] = datetime.datetime.strptime(dpd_gte, '%d.%m.%Y')
+        if dpd_lte:
+            donor_filter['donorpaymentchannel__payment__date__lte'] = datetime.datetime.strptime(dpd_lte, '%d.%m.%Y')
+        queryset = super().get_queryset(request).annotate(
+            sum_yield_amount=Sum('donorpaymentchannel__payment__amount', filter=Q(**donor_filter)),
+        )
+        return queryset
+
+    def sum_yield_amount(self, obj):
+        return obj.sum_yield_amount
+
+    sum_yield_amount.short_description = _("Yield per period")
 
 
 class RecruiterAdmin(admin.ModelAdmin):
