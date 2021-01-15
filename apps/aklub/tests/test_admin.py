@@ -130,9 +130,8 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
 
     @freeze_time("2015-5-1")
     def test_account_statement_changelist_post(self):
-        event = mommy.make("aklub.Event", name="Klub přátel Auto*Matu")
         unit = mommy.make("aklub.administrativeunit", name='test,unit')
-        mommy.make("aklub.ApiAccount", project_name="Klub přátel Auto*Matu", event=event, administrative_unit=unit)
+        mommy.make("aklub.BankAccount", bank_account_number='99999999/2010', administrative_unit=unit)
         mommy.make("aklub.Payment", SS=22258, type="darujme", operation_id="13954", date="2016-02-09")
         donor_payment_channel_recipe.make(id=2979, userprofile__email="bar@email.com", userprofile__language="cs")
         model_admin = django_admin.site._registry[AccountStatements]
@@ -140,10 +139,10 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
         response = model_admin.add_view(request)
         self.assertEqual(response.status_code, 200)
 
-        with open("apps/aklub/test_data/test_darujme.xls", "rb") as f:
+        with open("apps/aklub/test_data/Pohyby_cs.csv", "rb") as f:
             post_data = {
                 '_save': 'Save',
-                "type": "darujme",
+                "type": "account_cs",
                 "date_from": "2010-10-01",
                 "csv_file": f,
                 'payment_set-TOTAL_FORMS': 0,
@@ -154,9 +153,9 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
             response = model_admin.add_view(request)
             self.run_commit_hooks()
             self.assertEqual(response.status_code, 302)
-            obj = AccountStatements.objects.get(date_from="2010-10-01")
+            obj = AccountStatements.objects.get(date_from="2019-2-10")
             self.assertEqual(response.url, "/aklub/accountstatements/")
-            self.assertEqual(obj.payment_set.count(), 6)
+            self.assertEqual(obj.payment_set.count(), 3)
 
             # self.assertEqual(request._messages._queued_messages[0].message, 'Skipped payments: Testing User 1 (test.user1@email.cz)')
             self.assertEqual(
