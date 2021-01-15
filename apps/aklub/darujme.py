@@ -112,7 +112,7 @@ def create_donor_profile(pledge, api_account):
                 new_telephone.full_clean()  # check phone number validations
                 new_telephone.save()
             else:
-                logger.info(f"Duplicate telephone {tel_number}for email: {email.email}")
+                logger.info(f"Duplicate telephone {tel_number} for email: {email.email}")
         except ValidationError:
             logger.info(f"Bad format of telephone {tel_number} for email: {email.email} => skipping")
 
@@ -124,14 +124,15 @@ def create_donor_profile(pledge, api_account):
             'regular_frequency': 'monthly' if pledge['isRecurrent'] else None,
             'regular_payments': 'regular' if pledge['isRecurrent'] else 'onetime',
             'regular_amount': pledge['pledgedAmount']['cents']/100,  # in cents
-            'end_of_regular_payments': parse_datetime(end_of_regular_payments) if end_of_regular_payments else None,
+            'expected_date_of_first_payment': parse_datetime(pledge['pledgedAt']).date(),
+            'end_of_regular_payments': parse_datetime(end_of_regular_payments).date() if end_of_regular_payments else None,
             'money_account': api_account,
         },
     )
     if dpch_created:
         logger.info(f"DonorPaymentChannel for user with email: {pledge['donor']['email']} created")
     else:
-        logger.info(f"DonorPaymentChannel for user with email: {pledge['donor']['email']} exits => updating")
+        logger.info(f"DonorPaymentChannel for user with email: {pledge['donor']['email']} exists => updating")
     return dpch
 
 
