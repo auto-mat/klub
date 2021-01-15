@@ -382,7 +382,7 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         address = reverse('petition')
         response = self.client.post(address, self.sign_petition, follow=True)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content.decode(), 'Petition signed')
+        self.assertEqual(response.content.decode(), 'Podpis petice')
 
         user = ProfileEmail.objects.get(email=self.sign_petition['userprofile-email']).user
         self.assertEqual(user.age_group, self.sign_petition['userprofile-age_group'])
@@ -418,7 +418,7 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         address = reverse('petition')
         response = self.client.post(address, self.sign_petition, follow=True)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content.decode(), 'Petition signed')
+        self.assertEqual(response.content.decode(), 'Podpis petice')
 
         self.assertEqual(len(mail.outbox), 1)
 
@@ -461,7 +461,7 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
 
         response = self.client.get(address)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content.decode(), 'Signature was confirmed')
+        self.assertEqual(response.content.decode(), 'Podpis potvrzen')
 
         signature.refresh_from_db()
         self.assertTrue(signature.email_confirmed)
