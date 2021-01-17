@@ -77,7 +77,7 @@ def new_objects_validations(check, errors):
     for key in check.keys():
         try:
             check[key].full_clean()
-        except Exception as e:
+        except Exception as e:  # noqa
             e.update_error_dict(errors)
     if errors:
         raise ValidationError(errors)
@@ -98,7 +98,7 @@ def import_obj(self, obj, data, dry_run):  # noqa
         try:
             local_time = datetime.datetime.strptime(data.get('date_joined'), '%Y-%m-%d %H:%M:%S')
             obj.date_joined = make_aware(local_time)
-        except Exception as e:
+        except Exception as e: # noqa
             errors['date_joined'] = e
 
     if obj.is_userprofile():
@@ -157,12 +157,12 @@ def import_obj(self, obj, data, dry_run):  # noqa
         SS = data.get('SS', None)
         try:
             check['bank_account'] = BankAccount.objects.get(id=data['bank_account'])
-        except Exception as e:
+        except Exception as e: # noqa
             errors['bank_account'] = e
             can_create_dpch = False
         try:
             check['event'] = Event.objects.get(id=data['event'])
-        except Exception as e:
+        except Exception as e: # noqa
             errors['event'] = e
             can_create_dpch = False
         if can_create_dpch:
