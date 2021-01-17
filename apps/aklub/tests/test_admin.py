@@ -76,7 +76,7 @@ class AdminSmokeTest(CreateSuperUserMixin, tests.AdminSiteSmokeTest):
 
         try:
             admin.autodiscover()
-        except Exception:
+        except Exception: # noqa
             pass
 
     def post_request(self, post_data={}, params=None):

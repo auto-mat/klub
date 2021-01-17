@@ -1572,7 +1572,7 @@ class MassCommunicationAdmin(unit_admin_mixin_generator('administrative_unit'), 
         if "_continue" in request.POST and request.POST["_continue"] == "send_mails":
             try:
                 mailing.send_mass_communication(obj, request.user, request)
-            except Exception as e:
+            except Exception as e:  # noqa
                 messages.error(request, _('While sending e-mails the problem occurred: %s') % e)
                 raise e
             # Sending was done, so revert the state of the 'send' checkbox back to False
