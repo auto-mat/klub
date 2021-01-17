@@ -76,7 +76,7 @@ django-model-utils = "*"
 django_celery_beat = "*"
 email_reply_parser = "*"
 django-smmapdfs = "*"
-django-colorfield = "*"
+django-colorfield = "==0.3.2"
 newrelic = "*"
 django-nested-admin = "*"
 django_celery_monitor = {editable = true,git = "https://github.com/peergradeio/django-celery-monitor",ref = "django-2.2"}
