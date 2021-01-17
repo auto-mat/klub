@@ -250,6 +250,7 @@ INSTALLED_APPS = (
     "account",
     "pinax.invitations",
     "pinax.teams",
+    "inline_static",
     "reversion",
 )
 REST_FRAMEWORK = {
