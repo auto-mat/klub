@@ -21,6 +21,7 @@ Profile = get_user_model()
 class TaxConfirmationForm(forms.Form):
     year = forms.IntegerField(label=_('Year'))
     total_profiles = forms.IntegerField(label=_("Total profiles"))
+
     def __init__(self, *args, **kwargs):
         profiles = kwargs.pop('profiles', None)
         request = kwargs.pop('request', None)

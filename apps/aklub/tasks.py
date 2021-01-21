@@ -1,4 +1,5 @@
 import logging
+
 from celery import task
 
 from django.core.management import call_command
@@ -50,7 +51,7 @@ def generate_tax_confirmations(year, profiles_ids, pdf_type_id):
         try:
             logger.info(f'Creating Tax Confirmation for user: {index}) {user}')
             confirmation, created = user.make_tax_confirmation(year, unit, pdf_type)
-        except Exception as e:
+        except Exception as e: # noqa
             logger.info(f'Creating Tax Confirmation for user: {user} FAILED {e}!!')
         # we want to rewrite existed confirmations,
         # but we dont want to send null values to PdfSandwich cuz it raise bug and pdf is not created
