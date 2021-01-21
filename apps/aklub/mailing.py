@@ -116,8 +116,8 @@ def send_communication_sync(communication_id, communication_type, userincampaign
                 else:
                     tax_confirmations = TaxConfirmation.objects.filter(
                         user_profile=userprofile,
-                        obj__year=mass_communication.attached_tax_confirmation_year,
-                        obj_pdf_type=mass_communication.attached_tax_confirmation_type,
+                        year=mass_communication.attached_tax_confirmation_year,
+                        pdf_type=mass_communication.attached_tax_confirmation_type,
                     )
                     if len(tax_confirmations) > 0:
                         attachment = copy.copy(tax_confirmations[0].file)

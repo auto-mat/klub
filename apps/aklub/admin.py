@@ -813,6 +813,14 @@ class ProfileAdminMixin:
 
     def make_tax_confirmation(self, request, queryset):
         request.method = None
+        # TODO: implement better solution
+        # before sending we make queryset  more lighter (it speed up like 10 times)
+        # we can do it because we use userprofile/companyprofile separatly
+        if queryset.exists():
+            if isinstance(queryset.first(), UserProfile):
+                queryset = UserProfile.objects.filter(id__in=queryset.values_list('id', flat=True))
+            else:
+                queryset = CompanyProfile.objects.filter(id__in=queryset.values_list('id', flat=True))
         return ProfileAdmin.taxform(self, request, profiles=queryset)
 
     make_tax_confirmation.short_description = _("Make Tax Confirmation")

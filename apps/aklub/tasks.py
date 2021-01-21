@@ -1,3 +1,5 @@
+import logging
+
 from celery import task
 
 from django.core.management import call_command
@@ -12,6 +14,8 @@ from . import models
 from .autocom import check
 from .darujme import parse_darujme
 from .mailing import create_mass_communication_tasks_sync, send_communication_sync
+
+logger = logging.getLogger(__name__)
 
 
 @task()
@@ -42,8 +46,13 @@ def generate_tax_confirmations(year, profiles_ids, pdf_type_id):
     pdf_type = PdfSandwichType.objects.get(id=pdf_type_id)
     unit = pdf_type.pdfsandwichtypeconnector.administrative_unit
     confirmations = []
-    for user in users:
-        confirmation, created = user.make_tax_confirmation(year, unit, pdf_type)
+    logger.info(f'Starting creating tax confirmation for users total: {users.count()}')
+    for index, user in enumerate(users, start=1):
+        try:
+            logger.info(f'Creating Tax Confirmation for user: {index}) {user}')
+            confirmation, created = user.make_tax_confirmation(year, unit, pdf_type)
+        except Exception as e: # noqa
+            logger.info(f'Creating Tax Confirmation for user: {user} FAILED {e}!!')
         # we want to rewrite existed confirmations,
         # but we dont want to send null values to PdfSandwich cuz it raise bug and pdf is not created
         if confirmation:
