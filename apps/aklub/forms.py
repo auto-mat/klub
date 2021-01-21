@@ -20,7 +20,7 @@ Profile = get_user_model()
 
 class TaxConfirmationForm(forms.Form):
     year = forms.IntegerField(label=_('Year'))
-
+    total_profiles = forms.IntegerField(label=_("Total profiles"))
     def __init__(self, *args, **kwargs):
         profiles = kwargs.pop('profiles', None)
         request = kwargs.pop('request', None)
@@ -30,6 +30,9 @@ class TaxConfirmationForm(forms.Form):
         self.fields['year'].required = True
         if not profiles:
             profiles = Profile.objects.none()
+
+        self.fields['total_profiles'].initial = profiles.count()
+        self.fields['total_profiles'].disabled = True
         self.fields['profile'] = forms.ModelMultipleChoiceField(queryset=profiles, widget=FilteredSelectMultiple("UserProfile", False))
         self.fields['profile'].initial = profiles
 
