@@ -749,8 +749,7 @@ class MassCommunicationAdmin(large_initial.LargeInitialMixin, admin.ModelAdmin):
     list_display = ('name', 'date', 'method', 'subject')
     ordering = ('-date',)
 
-    filter_horizontal = ('send_to_users',)
-
+    autocomplete_fields = ['send_to_users']
     form = MassCommunicationForm
 
     formfield_overrides = {
