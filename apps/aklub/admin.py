@@ -1809,6 +1809,8 @@ class TaxConfirmationAdmin(
         'user_profile__userprofile__last_name',
         'user_profile__userprofile__first_name',
         'user_profile__companyprofile__name',
+        'email_address_user',
+        'email_address_company',
         'user_profile__userchannels__VS',
     )
     raw_id_fields = ('user_profile',)
