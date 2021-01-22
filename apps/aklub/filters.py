@@ -189,10 +189,18 @@ class ProfileHasEmail(SimpleListFilter):
         )
 
     def queryset(self, request, queryset):
-        if self.value() == 'Yes':
-            return queryset.filter(user_profile__profileemail__is_primary__isnull=False).distinct()
-        elif self.value() == 'No':
-            return queryset.filter(~Q(user_profile__profileemail__is_primary__isnull=False)).distinct()
+        if self.value() == 'No':
+            return queryset.filter(
+                email_address_user__isnull=True,
+                email_address_company__isnull=True,
+            )
+        elif self.value() == 'Yes':
+            return queryset.filter(
+                ~Q(
+                    email_address_user__isnull=True,
+                    email_address_company__isnull=True,
+                ),
+            )
         else:
             return queryset
 
