@@ -12,6 +12,8 @@ from django.db.models import Count, Q, Value
 from django.db.models.functions import Lower, Replace, Right
 from django.utils.translation import ugettext as _
 
+from rangefilter.filter import DateRangeFilter
+
 from .models import (
     CompanyContact, CompanyProfile, ProfileEmail, Telephone,
     UserProfile,
@@ -187,10 +189,18 @@ class ProfileHasEmail(SimpleListFilter):
         )
 
     def queryset(self, request, queryset):
-        if self.value() == 'Yes':
-            return queryset.filter(user_profile__profileemail__is_primary__isnull=False).distinct()
-        elif self.value() == 'No':
-            return queryset.filter(~Q(user_profile__profileemail__is_primary__isnull=False)).distinct()
+        if self.value() == 'No':
+            return queryset.filter(
+                email_address_user__isnull=True,
+                email_address_company__isnull=True,
+            )
+        elif self.value() == 'Yes':
+            return queryset.filter(
+                ~Q(
+                    email_address_user__isnull=True,
+                    email_address_company__isnull=True,
+                ),
+            )
         else:
             return queryset
 
@@ -427,6 +437,17 @@ class ProfileTypeFilter(SimpleListFilter):
     def queryset(self, request, queryset):
         if self.value():
             return queryset.filter(user__polymorphic_ctype__model=self.value())
+        return queryset
+
+
+class EventYieldDateRangeFilter(DateRangeFilter):
+    """
+    filter which doesnt filter queryset but filters total income per date period in admin_list
+    """
+    title = _("Filter by Yield period")
+
+    def queryset(self, request, queryset):
+        # always return full queryset
         return queryset
 
 

@@ -813,6 +813,14 @@ class ProfileAdminMixin:
 
     def make_tax_confirmation(self, request, queryset):
         request.method = None
+        # TODO: implement better solution
+        # before sending we make queryset  more lighter (it speed up like 10 times)
+        # we can do it because we use userprofile/companyprofile separatly
+        if queryset.exists():
+            if isinstance(queryset.first(), UserProfile):
+                queryset = UserProfile.objects.filter(id__in=queryset.values_list('id', flat=True))
+            else:
+                queryset = CompanyProfile.objects.filter(id__in=queryset.values_list('id', flat=True))
         return ProfileAdmin.taxform(self, request, profiles=queryset)
 
     make_tax_confirmation.short_description = _("Make Tax Confirmation")
@@ -859,6 +867,7 @@ class ProfileAdmin(
     child_models = (UserProfile, CompanyProfile)
     list_display = ()
     change_list_template = "admin/aklub/profile_redirect.html"
+    search_fields = ['username', ]
 
     def delete_queryset(self, request, queryset):
         """
@@ -1483,7 +1492,11 @@ class AutomaticCommunicationAdmin(admin.ModelAdmin):
 class MassCommunicationForm(forms.ModelForm):
     class Meta:
         model = MassCommunication
-        fields = '__all__'
+        fields = (
+            'name', 'date', 'method_type', 'subject', 'subject_en', 'template',
+            'template_en', 'attachment', 'attach_tax_confirmation', 'attached_tax_confirmation_year',
+            'attached_tax_confirmation_type', 'note', 'administrative_unit', 'send_to_users',
+            )
 
     def clean_send_to_users(self):
         v = EmailValidator()
@@ -1507,8 +1520,7 @@ class MassCommunicationAdmin(unit_admin_mixin_generator('administrative_unit'), 
     save_as = True
     list_display = ('name', 'date', 'method_type', 'subject')
     ordering = ('-date',)
-
-    filter_horizontal = ('send_to_users',)
+    autocomplete_fields = ['send_to_users']
 
     form = MassCommunicationForm
 
@@ -1516,23 +1528,31 @@ class MassCommunicationAdmin(unit_admin_mixin_generator('administrative_unit'), 
         CharField: {'widget': forms.TextInput(attrs={'size': '60'})},
     }
 
-    """
-    fieldsets = [
-        (_("Basic"), {
-            'fields': [('name', 'method', 'date', 'note',)],
+    fieldsets = (
+        (None, {
+            'fields': (
+                'name',
+                'date',
+                'method_type',
+                'subject',
+                'subject_en',
+                'template',
+                'template_en',
+                'attachment',
+                'attach_tax_confirmation',
+                'attached_tax_confirmation_year',
+                'attached_tax_confirmation_type',
+                'note',
+                'administrative_unit',
+            ),
         }),
-        (_("Content"), {
-            'fields': [
-                ('subject', 'subject_en'),
-                ('template', 'template_en'),
-                ('attachment', 'attach_tax_confirmation'),
-            ],
+        (_('Send to users'), {
+            'classes': ('collapse',),
+            'fields': (
+                'send_to_users',
+            ),
         }),
-        (_("Sending"), {
-            'fields': ['send_to_users'],
-        }),
-    ]
-    """
+    )
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         if db_field.name == "send_to_users":
@@ -1560,7 +1580,7 @@ class MassCommunicationAdmin(unit_admin_mixin_generator('administrative_unit'), 
         if "_continue" in request.POST and request.POST["_continue"] == "send_mails":
             try:
                 mailing.send_mass_communication(obj, request.user, request)
-            except Exception as e:
+            except Exception as e:  # noqa
                 messages.error(request, _('While sending e-mails the problem occurred: %s') % e)
                 raise e
             # Sending was done, so revert the state of the 'send' checkbox back to False
@@ -1649,6 +1669,7 @@ class EventAdmin(unit_admin_mixin_generator('administrative_units'), admin.Model
         'slug',
         'date_from',
         'date_to',
+        'sum_yield_amount',
         'number_of_members',
         'number_of_recruiters',
         'yield_total',
@@ -1658,6 +1679,9 @@ class EventAdmin(unit_admin_mixin_generator('administrative_units'), admin.Model
         'average_yield',
         'average_expense',
     )
+    list_filter = [
+        ('donorpaymentchannel__payment__date', filters.EventYieldDateRangeFilter),
+    ]
     readonly_fields = (
         'number_of_members',
         'number_of_recruiters',
@@ -1714,6 +1738,25 @@ class EventAdmin(unit_admin_mixin_generator('administrative_units'), admin.Model
         }),
     )
 
+    def get_queryset(self, request):
+        donor_filter = {}
+        extra_filters = request.GET
+        dpd_gte = extra_filters.get('donorpaymentchannel__payment__date__range__gte')
+        dpd_lte = extra_filters.get('donorpaymentchannel__payment__date__range__lte')
+        if dpd_gte:
+            donor_filter['donorpaymentchannel__payment__date__gte'] = datetime.datetime.strptime(dpd_gte, '%d.%m.%Y')
+        if dpd_lte:
+            donor_filter['donorpaymentchannel__payment__date__lte'] = datetime.datetime.strptime(dpd_lte, '%d.%m.%Y')
+        queryset = super().get_queryset(request).annotate(
+            sum_yield_amount=Sum('donorpaymentchannel__payment__amount', filter=Q(**donor_filter)),
+        )
+        return queryset
+
+    def sum_yield_amount(self, obj):
+        return obj.sum_yield_amount
+
+    sum_yield_amount.short_description = _("Yield per period")
+
 
 class RecruiterAdmin(admin.ModelAdmin):
     list_display = ('recruiter_id', 'person_name', 'email', 'telephone', 'problem', 'rating')
@@ -1766,6 +1809,8 @@ class TaxConfirmationAdmin(
         'user_profile__userprofile__last_name',
         'user_profile__userprofile__first_name',
         'user_profile__companyprofile__name',
+        'email_address_user',
+        'email_address_company',
         'user_profile__userchannels__VS',
     )
     raw_id_fields = ('user_profile',)

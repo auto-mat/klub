@@ -18,3 +18,10 @@ class InteractionConfig(AppConfig):
 class PdfStorageConfig(AppConfig):
     name = 'pdf_storage'
     verbose_name = _("File Storage")
+
+
+class ImportExportCeleryEdit(AppConfig):
+    name = 'import_export_celery_edit'
+
+    def ready(self):
+        import import_export_celery_edit.signals # noqa

@@ -17,7 +17,7 @@ feedparser = "*"
 django-chart-tools = "*"
 django-mass-edit = "*"
 python-memcached = "*"
-django-import-export = {ref = "row_numbers",git = "https://github.com/PetrDlouhy/django-import-export",editable = true}
+django-import-export = "*"
 django-import-export-celery = "*"
 django-author = "*"
 django-qsstats-magic = "*"
@@ -28,18 +28,23 @@ django-admin-rangefilter = "*"
 django-cors-headers = "*"
 django-related-admin = "*"
 gunicorn = "*"
-django-betterforms = "*"
-# waiting for new version >3.12.1 => bug fix
-django-adminactions = {editable = true, git = "https://github.com/PetrKudy/django-adminactions", ref = "ignored_fields"}
+
+# waiting for new version > 1.2 (fixing setup.py)
+django-betterforms = {editable = true, git = "https://github.com/PetrKudy/django-betterforms", ref = "setuptool_error"}
+
+django-adminactions = "*"
+
 # waiting for new version > 0.1.6  => related fields lookup
 django-admin-numeric-filter = {editable = true, git = "https://github.com/PetrKudy/django-admin-numeric-filter", ref = "related_fields_fix"}
 
 django-helpdesk = {editable = true,git = "https://github.com/auto-mat/django-helpdesk.git",ref = "teams"}
-django-celery-beat = "==2.0.0" # helpdesk locking =>  v.>2.0.0 using celery >=4.4 which is not possible to use atm! 
+django-celery-beat = "==2.0.0" # helpdesk locking =>  v.>2.0.0 using celery >=4.4 which is not possible to use atm!
 django-admin-large-initial-data = "*"
 django-admin-charts = { version = ">=0.12.0", override = ["django-nvd3"] }
-# waiting for new version > 3 0.9.7
+
+# waiting for new version > 0.9.7
 django-nvd3 = {editable = true, git = "https://github.com/PetrKudy/django-nvd3", ref = "booster_python_nvd3"}
+
 django-bower = "*"
 djcacheutils = "*"
 django-adminfilters = "<1.1"
@@ -70,13 +75,12 @@ lxml = "*"
 simplejson = "*"
 pytz = "*"
 six = "*"
-# newest version is uncompable with drf-yasg 1.17.1 => wait for fix, because we need the doc
-djangorestframework = "==3.11.2"
+djangorestframework = "*"
 django-model-utils = "*"
 django_celery_beat = "*"
 email_reply_parser = "*"
 django-smmapdfs = "*"
-django-colorfield = "*"
+django-colorfield = "==0.3.2"
 newrelic = "*"
 django-nested-admin = "*"
 django_celery_monitor = {editable = true,git = "https://github.com/peergradeio/django-celery-monitor",ref = "django-2.2"}
