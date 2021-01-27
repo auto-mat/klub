@@ -23,3 +23,9 @@ class PasswordsDoNotMatch(APIException):
     status_code = 404
     default_detail = 'Passoword 1 and 2 doesnt match'
     default_code = 'password_no_match'
+
+
+class DarujmeConnectionException(APIException):
+    status_code = 404
+    default_detail = 'Can not connect to Darujme to check payment'
+    default_code = 'can_not_connect_to_darujme'
