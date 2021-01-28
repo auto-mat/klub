@@ -38,7 +38,7 @@ def create_statement_from_API(api_account):
     response = requests.get(url)
     try:
         return create_statement(response, api_account)
-    except Exception as e:
+    except Exception as e: # noqa
         logger.info(f'Error while parsing url: {url} error: {e}')
         raise e
 
