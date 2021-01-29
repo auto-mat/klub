@@ -2,6 +2,7 @@ from aklub.models import UserProfile
 
 from api.tests.utils import user_login_mixin
 
+from django.core.cache import cache
 from django.core.files import File
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -14,7 +15,9 @@ from model_mommy import mommy
 
 class RelatedPdfListViewViewTest(TestCase):
     def setUp(self):
-        user_login_mixin()
+        self.login_user = user_login_mixin()
+        cache.delete(f"{self.login_user.id}_paid_section")
+
         user = mommy.make("aklub.UserProfile", first_name='author', last_name='author_last')
         unit = mommy.make("aklub.AdministrativeUnit")
         self.pdf = mommy.make(
@@ -58,7 +61,9 @@ class RelatedPdfListViewViewTest(TestCase):
 @override_settings(SUM_LAST_YEAR_PAYMENTS=3000, SUM_LAST_MONTH_PAYMENTS=100)
 class PaidPdfDownloadViewTest(TestCase):
     def setUp(self):
-        user_login_mixin()
+        self.login_user = user_login_mixin()
+        cache.delete(f"{self.login_user.id}_paid_section")
+
         user = UserProfile.objects.get(username='user_can_access')
         unit = mommy.make("aklub.AdministrativeUnit", name='test_unit')
         event = mommy.make(
@@ -122,7 +127,9 @@ class PaidPdfDownloadViewTest(TestCase):
 
 class AllRelatedIdsViewTest(TestCase):
     def setUp(self):
-        user_login_mixin()
+        self.login_user = user_login_mixin()
+        cache.delete(f"{self.login_user.id}_paid_section")
+
         unit = mommy.make("aklub.AdministrativeUnit", name='test_unit')
         self.pdf_1 = mommy.make(
             'pdf_storage.PdfStorage',
