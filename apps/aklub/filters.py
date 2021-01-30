@@ -18,9 +18,11 @@ from django.utils.translation import ugettext as _
 from rangefilter.filter import DateRangeFilter
 
 from .models import (
-    CompanyContact, CompanyProfile, DonorPaymentChannel, Interaction,
+    CompanyContact, CompanyProfile, DonorPaymentChannel,
     ProfileEmail, Telephone, UserProfile,
 )
+
+from interactions.models import Interaction
 
 
 class ProfileMultiSelectDonorEvent(FieldListFilter):
