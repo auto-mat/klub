@@ -15,14 +15,14 @@ from django.db.models import (
 from django.db.models.functions import Lower, Replace, Right
 from django.utils.translation import ugettext as _
 
+from interactions.models import Interaction
+
 from rangefilter.filter import DateRangeFilter
 
 from .models import (
     CompanyContact, CompanyProfile, DonorPaymentChannel,
     ProfileEmail, Telephone, UserProfile,
 )
-
-from interactions.models import Interaction
 
 
 class ProfileMultiSelectDonorEvent(FieldListFilter):
