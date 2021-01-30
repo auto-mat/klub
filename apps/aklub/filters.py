@@ -8,15 +8,18 @@ from django.contrib import messages
 from django.contrib.admin import SimpleListFilter
 from django.contrib.admin.filters import FieldListFilter, RelatedFieldListFilter
 from django.contrib.admin.utils import reverse_field_path
-from django.db.models import Count, Q, Value
+from django.db.models import (
+    BooleanField, Case, CharField, Count, IntegerField, OuterRef, Q,
+    Subquery, Value, When,
+)
 from django.db.models.functions import Lower, Replace, Right
 from django.utils.translation import ugettext as _
 
 from rangefilter.filter import DateRangeFilter
 
 from .models import (
-    CompanyContact, CompanyProfile, ProfileEmail, Telephone,
-    UserProfile,
+    CompanyContact, CompanyProfile, DonorPaymentChannel, Interaction,
+    ProfileEmail, Telephone, UserProfile,
 )
 
 
@@ -563,3 +566,202 @@ def unit_admin_mixin_generator(queryset_unit):
     class AUAMixin(AdministrativeUnitAdminMixin):
         queryset_unit_param = queryset_unit
     return AUAMixin
+
+
+class BaseAF:
+    @property
+    def get_field(self):
+        return self.field.split('__')[0]
+
+    def __str__(self):
+        return f"{self.model._meta.model_name}.{self.field.split('__')[0]}"
+
+
+class DPCHRegularPayments(BaseAF):
+    model = DonorPaymentChannel
+    field = 'regular_payments'
+    values_list_field = 'user__id'
+
+    def query(self, *args, **kwargs):
+        return {
+            'userchannels__event__administrative_units__name':
+            str(kwargs.get('administrative_unit')),
+        }
+
+    def queryset(self, *args, **kwargs):
+        if kwargs.get('administrative_unit'):
+            queryset = self.model.objects.filter(
+                **self.query(*args, **kwargs),
+            )
+            return queryset
+
+
+class DPCHRegularFrequency(DPCHRegularPayments):
+    field = 'regular_frequency'
+
+
+class DPCHNumberOfPayments(BaseAF):
+    model = DonorPaymentChannel
+    field = 'number_of_payments_conflict'
+    field_verbose_name = _('Number of payments')
+    values_list_field = 'user__id'
+
+    def queryset(self, *args, **kwargs):
+        if kwargs.get('administrative_unit'):
+            au = kwargs['administrative_unit']
+            subquery = self.model.objects.filter(
+                event__administrative_units=au,
+                user=OuterRef('user'),
+            ).values('user').annotate(
+                    number_of_payments=Count('payment__amount'),
+            )
+            queryset = self.model.objects.filter(
+                event__administrative_units=au,
+            ).annotate(
+                    number_of_payments_conflict=Subquery(
+                        subquery.values('number_of_payments')[:1],
+                        output_field=IntegerField(),
+                    ),
+                )
+            return queryset
+
+
+class DPCHWithoutPayments(BaseAF):
+    model = DonorPaymentChannel
+    field = 'without_payments_conflict'
+    field_verbose_name = _('Without payments')
+    values_list_field = 'user__id'
+
+    def queryset(self, *args, **kwargs):
+        if kwargs.get('administrative_unit'):
+            au = kwargs['administrative_unit']
+            queryset = self.model.objects.filter(
+                event__administrative_units__name=au,
+            ).annotate(
+                without_payments_conflict=Case(
+                    When(
+                        number_of_payments__isnull=True,
+                        then=Value(True),
+                    ), default=Value(False),
+                    output_field=BooleanField(),
+                ),
+            )
+            return queryset
+
+
+class DPCHNumberOfDPCHs(BaseAF):
+    model = DonorPaymentChannel
+    field = 'number_of_dpchs'
+    field_verbose_name = _('Number of DPCHs')
+    values_list_field = 'user__id'
+
+    def queryset(self, *args, **kwargs):
+        if kwargs.get('administrative_unit'):
+            au = kwargs['administrative_unit']
+            subquery = self.model.objects.filter(
+                event__administrative_units=au,
+                user=OuterRef('user'),
+            ).values('user').annotate(
+                    number_of_dpchs=Count('pk'),
+            )
+            queryset = self.model.objects.filter(
+                event__administrative_units=au,
+            ).annotate(
+                    number_of_dpchs=Subquery(
+                        subquery.values('number_of_dpchs')[:1],
+                        output_field=IntegerField(),
+                    ),
+                )
+            return queryset
+
+
+class DPCHRegularPaymentsOk(BaseAF):
+    model = DonorPaymentChannel
+    field = 'regular_payments_ok_conflict'
+    field_verbose_name = _('Regular payment ok')
+    values_list_field = 'user__id'
+
+    def queryset(self, *args, **kwargs):
+        if kwargs.get('administrative_unit'):
+            au = kwargs['administrative_unit']
+            queryset = self.model.objects.filter(
+                event__administrative_units__name=au,
+            ).annotate(
+                regular_payments_ok_conflict=Case(
+                    When(
+                        expected_regular_payment_date__lt=(
+                            date.today() - timedelta(days=11)
+                        ),
+                        then=Value(_('Delayed')),
+                    ), default=Value(_('Not delayed')),
+                    output_field=CharField(),
+                ),
+            )
+            return queryset
+
+
+class InteractionEventName(BaseAF):
+    model = Interaction
+    field = 'event__name'
+    values_list_field = 'user__id'
+
+    def queryset(self, *args, **kwargs):
+        if kwargs.get('administrative_unit'):
+            queryset = self.model.objects.filter(
+                administrative_unit=kwargs['administrative_unit'],
+            )
+            return queryset
+
+
+class InteractionDateFrom(InteractionEventName):
+    field = 'date_from'
+
+
+class InteractionDateTo(InteractionEventName):
+    field = 'date_to'
+
+
+class InteractionCommunicationType(InteractionEventName):
+    field = 'communication_type'
+
+
+class InteractionResultName(InteractionEventName):
+    field = 'result__name'
+
+
+class InteractionNextCommunicationDate(InteractionEventName):
+    field = 'next_communication_date'
+
+
+class InteractionNumberOfInteractions(BaseAF):
+    model = Interaction
+    field = 'number_of_interactions_conflict'
+    field_verbose_name = _('Number of interactions')
+    values_list_field = 'user__id'
+
+    def queryset(self, *args, **kwargs):
+        au = kwargs['administrative_unit']
+        subquery = self.model.objects.filter(
+            administrative_unit=au,
+            user=OuterRef('user'),
+        ).values('user').annotate(
+                number_of_interactions=Count('pk'),
+        )
+        queryset = self.model.objects.filter(
+            administrative_unit=au,
+        ).annotate(
+                number_of_interactions_conflict=Subquery(
+                    subquery.values('number_of_interactions')[:1],
+                    output_field=IntegerField(),
+                ),
+            )
+        return queryset
+
+
+AF_FILTERS = [
+    DPCHNumberOfDPCHs, DPCHRegularPaymentsOk, DPCHNumberOfPayments,
+    DPCHRegularPayments, DPCHRegularFrequency, DPCHWithoutPayments,
+    InteractionEventName, InteractionNumberOfInteractions,
+    InteractionDateFrom, InteractionDateTo, InteractionResultName,
+    InteractionNextCommunicationDate, InteractionCommunicationType,
+]
