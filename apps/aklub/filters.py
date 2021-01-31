@@ -586,16 +586,20 @@ class DPCHRegularPayments(BaseAF):
 
     def query(self, *args, **kwargs):
         return {
-            'userchannels__event__administrative_units__name':
-            str(kwargs.get('administrative_unit')),
+            'userchannels__event__administrative_units__in':
+            list(
+                kwargs.get('administrative_unit').values_list(
+                    'id', flat=True,
+                ),
+            ),
         }
 
-    def queryset(self, *args, **kwargs):
-        if kwargs.get('administrative_unit'):
-            queryset = self.model.objects.filter(
-                **self.query(*args, **kwargs),
-            )
-            return queryset
+        def queryset(self, *args, **kwargs):
+            if kwargs.get('administrative_unit'):
+                queryset = self.model.objects.filter(
+                    **self.query(*args, **kwargs),
+                )
+                return queryset
 
 
 class DPCHRegularFrequency(DPCHRegularPayments):
@@ -612,13 +616,13 @@ class DPCHNumberOfPayments(BaseAF):
         if kwargs.get('administrative_unit'):
             au = kwargs['administrative_unit']
             subquery = self.model.objects.filter(
-                event__administrative_units=au,
+                event__administrative_units_in=au,
                 user=OuterRef('user'),
             ).values('user').annotate(
                     number_of_payments=Count('payment__amount'),
             )
             queryset = self.model.objects.filter(
-                event__administrative_units=au,
+                event__administrative_units_in=au,
             ).annotate(
                     number_of_payments_conflict=Subquery(
                         subquery.values('number_of_payments')[:1],
@@ -638,7 +642,7 @@ class DPCHWithoutPayments(BaseAF):
         if kwargs.get('administrative_unit'):
             au = kwargs['administrative_unit']
             queryset = self.model.objects.filter(
-                event__administrative_units__name=au,
+                event__administrative_units__in=au,
             ).annotate(
                 without_payments_conflict=Case(
                     When(
@@ -661,13 +665,13 @@ class DPCHNumberOfDPCHs(BaseAF):
         if kwargs.get('administrative_unit'):
             au = kwargs['administrative_unit']
             subquery = self.model.objects.filter(
-                event__administrative_units=au,
+                event__administrative_units__in=au,
                 user=OuterRef('user'),
             ).values('user').annotate(
                     number_of_dpchs=Count('pk'),
             )
             queryset = self.model.objects.filter(
-                event__administrative_units=au,
+                event__administrative_units__in=au,
             ).annotate(
                     number_of_dpchs=Subquery(
                         subquery.values('number_of_dpchs')[:1],
@@ -687,7 +691,7 @@ class DPCHRegularPaymentsOk(BaseAF):
         if kwargs.get('administrative_unit'):
             au = kwargs['administrative_unit']
             queryset = self.model.objects.filter(
-                event__administrative_units__name=au,
+                event__administrative_units__id=au,
             ).annotate(
                 regular_payments_ok_conflict=Case(
                     When(
@@ -710,7 +714,7 @@ class InteractionEventName(BaseAF):
     def queryset(self, *args, **kwargs):
         if kwargs.get('administrative_unit'):
             queryset = self.model.objects.filter(
-                administrative_unit=kwargs['administrative_unit'],
+                administrative_unit__in=kwargs['administrative_unit'],
             )
             return queryset
 
@@ -744,13 +748,13 @@ class InteractionNumberOfInteractions(BaseAF):
     def queryset(self, *args, **kwargs):
         au = kwargs['administrative_unit']
         subquery = self.model.objects.filter(
-            administrative_unit=au,
+            administrative_unit__in=au,
             user=OuterRef('user'),
         ).values('user').annotate(
                 number_of_interactions=Count('pk'),
         )
         queryset = self.model.objects.filter(
-            administrative_unit=au,
+            administrative_unit__in=au,
         ).annotate(
                 number_of_interactions_conflict=Subquery(
                     subquery.values('number_of_interactions')[:1],
