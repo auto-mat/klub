@@ -85,7 +85,8 @@ from .filters import (
     DPCHWithoutPayments, InteractionCommunicationType, InteractionDateFrom,
     InteractionDateTo, InteractionEventName, InteractionNextCommunicationDate,
     InteractionNumberOfInteractions, InteractionResultName,
-    ProfileTypeFilter, unit_admin_mixin_generator,
+    ProfileEmailIsEmailInCompanyprofile, ProfileTypeFilter,
+    unit_admin_mixin_generator,
 )
 from .forms import (
     CompanyProfileAddForm, CompanyProfileChangeForm, EventForm, TaxConfirmationForm, UnitUserProfileAddForm,
@@ -1991,8 +1992,7 @@ class UserProfileAdmin(
          'age_group',
          'birth_month',
          'birth_day',
-         ('profileemail__is_email_in_companyprofile',
-          _('Email is in the company profile')),
+         str(ProfileEmailIsEmailInCompanyprofile()),
          ('userchannels__event__name', _("Jméno kampaně"))),
         (_('Preference'),
          'preference__newsletter_on',
@@ -2036,7 +2036,7 @@ class UserProfileAdmin(
         'age_group': ('iexact',),
         'birth_month': ('iexact',),
         'birth_day': ('iexact',),
-        'profileemail__is_email_in_companyprofile': ('istrue', 'isfalse'),
+        str(ProfileEmailIsEmailInCompanyprofile()): ('istrue', 'isfalse'),
         'userchannels__event__name': (),
         'preference__newsletter_on': ('istrue', 'isfalse', 'isnull'),
         'preference__public': ('istrue', 'isfalse', 'isnull'),
