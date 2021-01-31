@@ -42,7 +42,6 @@ django-nvd3 = {editable = true,git = "https://github.com/PetrKudy/django-nvd3",r
 django-bower = "*"
 djcacheutils = "*"
 django-adminfilters = "<1.1"
-django-advanced-filters = "*"
 django-bulk-update = "*"
 django-extra-views = "*"
 django-sesame = "==1.4"
