@@ -608,7 +608,7 @@ class DPCHRegularFrequency(DPCHRegularPayments):
 
 class DPCHNumberOfPayments(BaseAF):
     model = DonorPaymentChannel
-    field = 'number_of_payments_conflict'
+    field = 'number_of_payments'
     field_verbose_name = _('Number of payments')
     values_list_field = 'user__id'
 
@@ -624,7 +624,7 @@ class DPCHNumberOfPayments(BaseAF):
             queryset = self.model.objects.filter(
                 event__administrative_units_in=au,
             ).annotate(
-                    number_of_payments_conflict=Subquery(
+                    number_of_payments=Subquery(
                         subquery.values('number_of_payments')[:1],
                         output_field=IntegerField(),
                     ),
@@ -634,7 +634,7 @@ class DPCHNumberOfPayments(BaseAF):
 
 class DPCHWithoutPayments(BaseAF):
     model = DonorPaymentChannel
-    field = 'without_payments_conflict'
+    field = 'without_payments'
     field_verbose_name = _('Without payments')
     values_list_field = 'user__id'
 
@@ -644,7 +644,7 @@ class DPCHWithoutPayments(BaseAF):
             queryset = self.model.objects.filter(
                 event__administrative_units__in=au,
             ).annotate(
-                without_payments_conflict=Case(
+                without_payments=Case(
                     When(
                         number_of_payments__isnull=True,
                         then=Value(True),
@@ -683,7 +683,7 @@ class DPCHNumberOfDPCHs(BaseAF):
 
 class DPCHRegularPaymentsOk(BaseAF):
     model = DonorPaymentChannel
-    field = 'regular_payments_ok_conflict'
+    field = 'regular_payments_ok'
     field_verbose_name = _('Regular payment ok')
     values_list_field = 'user__id'
 
@@ -693,7 +693,7 @@ class DPCHRegularPaymentsOk(BaseAF):
             queryset = self.model.objects.filter(
                 event__administrative_units__id=au,
             ).annotate(
-                regular_payments_ok_conflict=Case(
+                regular_payments_ok=Case(
                     When(
                         expected_regular_payment_date__lt=(
                             date.today() - timedelta(days=11)
@@ -741,7 +741,7 @@ class InteractionNextCommunicationDate(InteractionEventName):
 
 class InteractionNumberOfInteractions(BaseAF):
     model = Interaction
-    field = 'number_of_interactions_conflict'
+    field = 'number_of_interactions'
     field_verbose_name = _('Number of interactions')
     values_list_field = 'user__id'
 
@@ -756,7 +756,7 @@ class InteractionNumberOfInteractions(BaseAF):
         queryset = self.model.objects.filter(
             administrative_unit__in=au,
         ).annotate(
-                number_of_interactions_conflict=Subquery(
+                number_of_interactions=Subquery(
                     subquery.values('number_of_interactions')[:1],
                     output_field=IntegerField(),
                 ),
