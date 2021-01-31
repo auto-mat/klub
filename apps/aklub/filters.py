@@ -616,13 +616,13 @@ class DPCHNumberOfPayments(BaseAF):
         if kwargs.get('administrative_unit'):
             au = kwargs['administrative_unit']
             subquery = self.model.objects.filter(
-                event__administrative_units_in=au,
+                event__administrative_units__in=au,
                 user=OuterRef('user'),
             ).values('user').annotate(
                 number_of_payments=Count('payment__amount'),
             )
             queryset = self.model.objects.filter(
-                event__administrative_units_in=au,
+                event__administrative_units__in=au,
             ).annotate(
                 number_of_payments=Subquery(
                     subquery.values('number_of_payments')[:1],
