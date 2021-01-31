@@ -608,7 +608,7 @@ class DPCHRegularFrequency(DPCHRegularPayments):
 
 class DPCHNumberOfPayments(BaseAF):
     model = DonorPaymentChannel
-    field = 'number_of_payments'
+    field = 'number_of_payments_conflict'
     field_verbose_name = _('Number of payments')
     values_list_field = 'user__id'
 
@@ -619,13 +619,13 @@ class DPCHNumberOfPayments(BaseAF):
                 event__administrative_units__in=au,
                 user=OuterRef('user'),
             ).values('user').annotate(
-                number_of_payments=Count('payment__amount'),
+                number_of_payments_conflict=Count('payment__amount'),
             )
             queryset = self.model.objects.filter(
                 event__administrative_units__in=au,
             ).annotate(
-                number_of_payments=Subquery(
-                    subquery.values('number_of_payments')[:1],
+                number_of_payments_conflict=Subquery(
+                    subquery.values('number_of_payments_conflict')[:1],
                     output_field=IntegerField(),
                 ),
             )
