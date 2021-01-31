@@ -187,6 +187,11 @@
             "index": "pypi",
             "version": "==1.0.0"
         },
+        "django-advanced-filters": {
+            "editable": true,
+            "git": "https://github.com/tmszi/django-advanced-filters.git",
+            "ref": "bd1f0ff0b88dd6e447a411e3d8582b2c1f207e89"
+        },
         "django-appconf": {
             "hashes": [
                 "sha256:1b1d0e1069c843ebe8ae5aa48ec52403b1440402b320c3e3a206a0907e97bb06",
@@ -226,6 +231,13 @@
             ],
             "index": "pypi",
             "version": "==5.2.0"
+        },
+        "django-braces": {
+            "hashes": [
+                "sha256:83705b78948de00804bfacf40c315d001bb39630f35bbdd8588211c2d5b4d43f",
+                "sha256:a6d9b34cf3e4949635e54884097c30410d7964fc7bec7231445ea7079b8c5722"
+            ],
+            "version": "==1.14.0"
         },
         "django-bulk-update": {
             "hashes": [
