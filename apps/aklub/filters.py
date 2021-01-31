@@ -764,10 +764,49 @@ class InteractionNumberOfInteractions(BaseAF):
         return queryset
 
 
+class ProfileEmailIsEmailInCompanyprofile(BaseAF):
+    model = ProfileEmail
+    field = 'is_email_in_companyprofile'
+    field_verbose_name = _('Is email in the company profile')
+    values_list_field = 'user__id'
+
+    def queryset(self, *args, **kwargs):
+        au = kwargs['administrative_unit']
+        subquery = self.model.objects.filter(
+            email=OuterRef('email'),
+        ).values('email')
+        queryset = CompanyContact.objects.filter(
+            administrative_unit__in=au,
+        ).annotate(
+            common_email=Subquery(
+                subquery.values('email')[:1],
+            ),
+        )
+        common_emails = list(
+            queryset.filter(
+                common_email__isnull=False,
+            ).values_list('common_email', flat=True),
+        )
+        queryset = self.model.objects.filter(
+            user__administrative_units__in=au,
+        ).annotate(
+            is_email_in_companyprofile=Case(
+                When(
+                    email__in=common_emails,
+                    then=Value(True),
+                ),
+                default=Value(False),
+                output_field=BooleanField(),
+            ),
+        )
+        return queryset
+
+
 AF_FILTERS = [
     DPCHNumberOfDPCHs, DPCHRegularPaymentsOk, DPCHNumberOfPayments,
     DPCHRegularPayments, DPCHRegularFrequency, DPCHWithoutPayments,
     InteractionEventName, InteractionNumberOfInteractions,
     InteractionDateFrom, InteractionDateTo, InteractionResultName,
     InteractionNextCommunicationDate, InteractionCommunicationType,
+    ProfileEmailIsEmailInCompanyprofile,
 ]
