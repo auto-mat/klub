@@ -594,12 +594,12 @@ class DPCHRegularPayments(BaseAF):
             ),
         }
 
-        def queryset(self, *args, **kwargs):
-            if kwargs.get('administrative_unit'):
-                queryset = self.model.objects.filter(
-                    **self.query(*args, **kwargs),
-                )
-                return queryset
+    def queryset(self, *args, **kwargs):
+        if kwargs.get('administrative_unit'):
+            queryset = self.model.objects.filter(
+                **self.query(*args, **kwargs),
+            )
+            return queryset
 
 
 class DPCHRegularFrequency(DPCHRegularPayments):
@@ -619,16 +619,16 @@ class DPCHNumberOfPayments(BaseAF):
                 event__administrative_units_in=au,
                 user=OuterRef('user'),
             ).values('user').annotate(
-                    number_of_payments=Count('payment__amount'),
+                number_of_payments=Count('payment__amount'),
             )
             queryset = self.model.objects.filter(
                 event__administrative_units_in=au,
             ).annotate(
-                    number_of_payments=Subquery(
-                        subquery.values('number_of_payments')[:1],
-                        output_field=IntegerField(),
-                    ),
-                )
+                number_of_payments=Subquery(
+                    subquery.values('number_of_payments')[:1],
+                    output_field=IntegerField(),
+                ),
+            )
             return queryset
 
 
@@ -668,16 +668,16 @@ class DPCHNumberOfDPCHs(BaseAF):
                 event__administrative_units__in=au,
                 user=OuterRef('user'),
             ).values('user').annotate(
-                    number_of_dpchs=Count('pk'),
+                number_of_dpchs=Count('pk'),
             )
             queryset = self.model.objects.filter(
                 event__administrative_units__in=au,
             ).annotate(
-                    number_of_dpchs=Subquery(
-                        subquery.values('number_of_dpchs')[:1],
-                        output_field=IntegerField(),
-                    ),
-                )
+                number_of_dpchs=Subquery(
+                    subquery.values('number_of_dpchs')[:1],
+                    output_field=IntegerField(),
+                ),
+            )
             return queryset
 
 
@@ -751,16 +751,16 @@ class InteractionNumberOfInteractions(BaseAF):
             administrative_unit__in=au,
             user=OuterRef('user'),
         ).values('user').annotate(
-                number_of_interactions=Count('pk'),
+            number_of_interactions=Count('pk'),
         )
         queryset = self.model.objects.filter(
             administrative_unit__in=au,
         ).annotate(
-                number_of_interactions=Subquery(
-                    subquery.values('number_of_interactions')[:1],
-                    output_field=IntegerField(),
-                ),
-            )
+            number_of_interactions=Subquery(
+                subquery.values('number_of_interactions')[:1],
+                output_field=IntegerField(),
+            ),
+        )
         return queryset
 
 
