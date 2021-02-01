@@ -190,7 +190,7 @@
         "django-advanced-filters": {
             "editable": true,
             "git": "https://github.com/tmszi/django-advanced-filters.git",
-            "ref": "bd1f0ff0b88dd6e447a411e3d8582b2c1f207e89"
+            "ref": "396f445f730cdc1a443b861312f2d8479f888903"
         },
         "django-appconf": {
             "hashes": [
@@ -1470,8 +1470,7 @@
     "develop": {
         "asgiref": {
             "hashes": [
-                "sha256:5ee950735509d04eb673bd7f7120f8fa1c9e2df495394992c73234d526907e17",
-                "sha256:7162a3cb30ab0609f1a4c95938fd73e8604f63bdba516a7f7d64b83ff09478f0"
+                "sha256:5ee950735509d04eb673bd7f7120f8fa1c9e2df495394992c73234d526907e17"
             ],
             "version": "==3.3.1"
         },
