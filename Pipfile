@@ -92,6 +92,7 @@ faker = "*"
 django-computedfields = "==0.0.23"
 django-oauth-toolkit = "*"
 unidecode = "*"
+django-advanced-filters = {editable = true,git = "https://github.com/tmszi/django-advanced-filters",ref = "extended-af"}
 
 [dev-packages]
 coverage = "*"
