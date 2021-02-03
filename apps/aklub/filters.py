@@ -599,7 +599,9 @@ class DPCHRegularPayments(BaseAF):
             queryset = self.model.objects.filter(
                 **self.query(*args, **kwargs),
             )
-            return queryset
+        else:
+            queryset = self.model.objects.none()
+        return queryset
 
 
 class DPCHRegularFrequency(DPCHRegularPayments):
@@ -616,24 +618,23 @@ class DPCHNumberOfPayments(BaseAF):
     def queryset(self, *args, **kwargs):
         if kwargs.get('administrative_unit'):
             au = kwargs['administrative_unit']
-            if au:
-                subquery = self.model.objects.filter(
-                    event__administrative_units__in=au,
-                    user=OuterRef('user'),
-                ).values('user').annotate(
-                    number_of_payments_conflict=Count('payment__amount'),
-                )
-                queryset = self.model.objects.filter(
-                    event__administrative_units__in=au,
-                ).annotate(
-                    number_of_payments_conflict=Subquery(
-                        subquery.values('number_of_payments_conflict')[:1],
-                        output_field=self.field_type,
-                    ),
-                )
-            else:
-                queryset = self.model.objects.none()
-            return queryset
+            subquery = self.model.objects.filter(
+                event__administrative_units__in=au,
+                user=OuterRef('user'),
+            ).values('user').annotate(
+                number_of_payments_conflict=Count('payment__amount'),
+            )
+            queryset = self.model.objects.filter(
+                event__administrative_units__in=au,
+            ).annotate(
+                number_of_payments_conflict=Subquery(
+                    subquery.values('number_of_payments_conflict')[:1],
+                    output_field=self.field_type,
+                ),
+            )
+        else:
+            queryset = self.model.objects.none()
+        return queryset
 
 
 class DPCHWithoutPayments(BaseAF):
@@ -657,7 +658,9 @@ class DPCHWithoutPayments(BaseAF):
                     output_field=self.field_type,
                 ),
             )
-            return queryset
+        else:
+            queryset = self.model.objects.none()
+        return queryset
 
 
 class DPCHNumberOfDPCHs(BaseAF):
@@ -670,24 +673,23 @@ class DPCHNumberOfDPCHs(BaseAF):
     def queryset(self, *args, **kwargs):
         if kwargs.get('administrative_unit'):
             au = kwargs['administrative_unit']
-            if au:
-                subquery = self.model.objects.filter(
-                    event__administrative_units__in=au,
-                    user=OuterRef('user'),
-                ).values('user').annotate(
-                    number_of_dpchs=Count('pk'),
-                )
-                queryset = self.model.objects.filter(
-                    event__administrative_units__in=au,
-                ).annotate(
-                    number_of_dpchs=Subquery(
-                        subquery.values('number_of_dpchs')[:1],
-                        output_field=self.field_type,
-                    ),
-                )
-            else:
-                queryset = self.model.objects.none()
-            return queryset
+            subquery = self.model.objects.filter(
+                event__administrative_units__in=au,
+                user=OuterRef('user'),
+            ).values('user').annotate(
+                number_of_dpchs=Count('pk'),
+            )
+            queryset = self.model.objects.filter(
+                event__administrative_units__in=au,
+            ).annotate(
+                number_of_dpchs=Subquery(
+                    subquery.values('number_of_dpchs')[:1],
+                    output_field=self.field_type,
+                ),
+            )
+        else:
+            queryset = self.model.objects.none()
+        return queryset
 
 
 class DPCHRegularPaymentsOk(BaseAF):
@@ -700,23 +702,22 @@ class DPCHRegularPaymentsOk(BaseAF):
     def queryset(self, *args, **kwargs):
         if kwargs.get('administrative_unit'):
             au = kwargs['administrative_unit']
-            if au:
-                queryset = self.model.objects.filter(
-                    event__administrative_units__id=au,
-                ).annotate(
-                    regular_payments_ok=Case(
-                        When(
-                            expected_regular_payment_date__lt=(
-                                date.today() - timedelta(days=11)
-                            ),
-                            then=Value(_('Delayed')),
-                        ), default=Value(_('Not delayed')),
-                        output_field=self.field_type,
-                    ),
-                )
-            else:
-                queryset = self.model.objects.none()
-            return queryset
+            queryset = self.model.objects.filter(
+                event__administrative_units__id=au,
+            ).annotate(
+                regular_payments_ok=Case(
+                    When(
+                        expected_regular_payment_date__lt=(
+                            date.today() - timedelta(days=11)
+                        ),
+                        then=Value(_('Delayed')),
+                    ), default=Value(_('Not delayed')),
+                    output_field=self.field_type,
+                ),
+            )
+        else:
+            queryset = self.model.objects.none()
+        return queryset
 
 
 class InteractionEventName(BaseAF):
@@ -729,7 +730,9 @@ class InteractionEventName(BaseAF):
             queryset = self.model.objects.filter(
                 administrative_unit__in=kwargs['administrative_unit'],
             )
-            return queryset
+        else:
+            queryset = self.model.objects.none()
+        return queryset
 
 
 class InteractionDateFrom(InteractionEventName):
@@ -760,8 +763,8 @@ class InteractionNumberOfInteractions(BaseAF):
     field_type = IntegerField()
 
     def queryset(self, *args, **kwargs):
-        au = kwargs['administrative_unit']
-        if au:
+        if kwargs.get('administrative_unit'):
+            au = kwargs['administrative_unit']
             subquery = self.model.objects.filter(
                 administrative_unit__in=au,
                 user=OuterRef('user'),
@@ -789,8 +792,8 @@ class ProfileEmailIsEmailInCompanyprofile(BaseAF):
     field_type = BooleanField()
 
     def queryset(self, *args, **kwargs):
-        au = kwargs['administrative_unit']
-        if au:
+        if kwargs.get('administrative_unit'):
+            au = kwargs['administrative_unit']
             subquery = self.model.objects.filter(
                 email=OuterRef('email'),
             ).values('email')
