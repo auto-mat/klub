@@ -2,6 +2,7 @@ import datetime
 
 from aklub.models import CompanyProfile, ProfileEmail
 
+from django.conf import settings
 from django.core import mail
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -26,6 +27,11 @@ class GetAccessTokenTest(TestCase):
              skip_authorization=False,
              client_id='xxx',
              client_secret='xxx',
+        )
+        mommy.make(
+            'oauth2_manager.ApplicationScopeSelector',
+            default_scopes=" ".join(settings.OAUTH2_PROVIDER['SCOPES'].keys()),  # get all possible scopes
+            application=app,
         )
 
         data = {
@@ -63,7 +69,11 @@ class GetAccessTokenTest(TestCase):
              client_id='xxx',
              client_secret='xxx',
         )
-
+        mommy.make(
+            'oauth2_manager.ApplicationScopeSelector',
+            default_scopes="",
+            application=app,
+        )
         data = {
            "grant_type": "password",
            "username": user.username,
