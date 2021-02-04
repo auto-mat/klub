@@ -71,7 +71,7 @@ class GetAccessTokenTest(TestCase):
         )
         mommy.make(
             'oauth2_manager.ApplicationScopeSelector',
-            default_scopes="",
+            default_scopes="read write",
             application=app,
         )
         data = {

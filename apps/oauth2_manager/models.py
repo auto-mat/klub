@@ -5,6 +5,7 @@ class ApplicationScopeSelector(models.Model):
     default_scopes = models.TextField(
         verbose_name=("scope"),
         help_text=("Additing scopes to current app"),
+        default="read write",
         blank=True,
     )
     application = models.OneToOneField(
