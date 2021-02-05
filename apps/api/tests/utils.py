@@ -13,7 +13,7 @@ def app_login_mixin():
          authorization_grant_type=Application.GRANT_CLIENT_CREDENTIALS,
     )
 
-    mommy.make(
+    token = mommy.make(
         'oauth2_provider.accesstoken',
         token='foo',
         application=app,
@@ -21,6 +21,7 @@ def app_login_mixin():
         scope="""read write can_create_profiles can_check_if_exist can_create_interactions can_check_last_payments
             can_create_credit_card_payment""",
     )
+    return token
 
 
 def user_login_mixin():
