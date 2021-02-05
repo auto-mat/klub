@@ -14,6 +14,8 @@ from faker import Faker
 
 from interactions.models import Interaction, InteractionType
 
+import unidecode
+
 
 class Command(BaseCommand):
     """Generate fake users/companies profiles data"""
@@ -184,7 +186,7 @@ class Command(BaseCommand):
             )
             ProfileEmail.objects.get_or_create(
                 is_primary=True,
-                email=(
+                email=unidecode.unidecode(
                     f"{user.first_name}{user.last_name}{randint(1, 5)}@"
                     f"{self._fake.email().split('@')[1]}"
                 ).lower(),
@@ -227,7 +229,7 @@ class Command(BaseCommand):
                 profile = self._fake.profile()
                 CompanyContact.objects.get_or_create(
                     is_primary=True,
-                    email=(
+                    email=unidecode.unidecode(
                         f"{profile['name'].split(' ')[0]}"
                         f"{profile['name'].split(' ')[1]}"
                         f"{str(randint(1, 5))}@"
