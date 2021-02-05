@@ -222,6 +222,7 @@ INSTALLED_APPS = (
     'adminfilters',
     'advanced_filters',
     'aklub',
+    'events',
     'interactions',
     'oauth2_manager',
     'helpdesk',

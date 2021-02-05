@@ -79,7 +79,7 @@ from related_admin import RelatedFieldAdmin
 from smmapdfs.actions import make_pdfsandwich
 
 
-from . import darujme, filters, mailing, tasks
+from . import filters, mailing, tasks
 from .filters import (
     DPCHNumberOfDPCHs, DPCHNumberOfPayments, DPCHRegularPaymentsOk,
     DPCHWithoutPayments, InteractionCommunicationType, InteractionDateFrom,
@@ -89,12 +89,12 @@ from .filters import (
     unit_admin_mixin_generator,
 )
 from .forms import (
-    CompanyProfileAddForm, CompanyProfileChangeForm, EventForm, TaxConfirmationForm, UnitUserProfileAddForm,
+    CompanyProfileAddForm, CompanyProfileChangeForm, TaxConfirmationForm, UnitUserProfileAddForm,
     UnitUserProfileChangeForm, UserCreateForm, UserUpdateForm,
 )
 from .models import (
     AccountStatements, AdministrativeUnit, ApiAccount, AutomaticCommunication, BankAccount,
-    CompanyContact, CompanyProfile, DonorPaymentChannel, Event, EventType,
+    CompanyContact, CompanyProfile, DonorPaymentChannel, Event,
     MassCommunication, MoneyAccount, NewUser, Payment, Preference, Profile, ProfileEmail, Recruiter,
     Source, TaxConfirmation, Telephone, UserBankAccount,
     UserProfile,
@@ -874,7 +874,7 @@ class ProfileAdmin(
     child_models = (UserProfile, CompanyProfile)
     list_display = ()
     change_list_template = "admin/aklub/profile_redirect.html"
-    search_fields = ['username', ]
+    search_fields = ["userprofile__first_name", "userprofile__last_name", "companyprofile__name"]
 
     def delete_queryset(self, request, queryset):
         """
@@ -1640,129 +1640,6 @@ class AccountStatementsAdmin(unit_admin_mixin_generator('administrative_unit'), 
         return obj.payment_set.filter(user_donor_payment_channel__isnull=False).count()
 
     paired_payments.short_description = _("Paired payments")
-
-
-def download_darujme_statement(self, request, queryset):
-    payments = []
-    skipped_payments = []
-    for campaign in queryset.all():
-        payment, skipped = darujme.create_statement_from_API(campaign)
-        payments.append(payment)
-        skipped_payments += skipped
-
-    self.message_user(
-        request,
-        format_html(
-            "Created following account statements: {}<br/>Skipped payments: {}",
-            ", ".join([str(p.id) if p else "" for p in payments]),
-            skipped_payments,
-        ),
-    )
-
-
-download_darujme_statement.short_description = _("Download darujme statements")
-
-
-@admin.register(EventType)
-class EventTypeAdmin(unit_admin_mixin_generator('events__administrative_units'), admin.ModelAdmin):
-    pass
-
-
-class EventAdmin(unit_admin_mixin_generator('administrative_units'), admin.ModelAdmin):
-    form = EventForm
-    list_display = (
-        'name',
-        'id',
-        'slug',
-        'date_from',
-        'date_to',
-        'sum_yield_amount',
-        'number_of_members',
-        'number_of_recruiters',
-        'yield_total',
-        'total_expenses',
-        'expected_monthly_income',
-        'return_of_investmensts',
-        'average_yield',
-        'average_expense',
-    )
-    list_filter = [
-        ('donorpaymentchannel__payment__date', filters.EventYieldDateRangeFilter),
-    ]
-    readonly_fields = (
-        'number_of_members',
-        'number_of_recruiters',
-        'yield_total',
-        'total_expenses',
-        'expected_monthly_income',
-        'return_of_investmensts',
-        'average_yield',
-        'average_expense',
-    )
-    search_fields = ('name', )
-    actions = (download_darujme_statement,)
-    save_as = True
-
-    fieldsets = (
-        (None, {
-            'fields': (
-                'name',
-                'slug',
-                'basic_purpose',
-                'grant',
-                ('date_from', 'date_to'),
-                'variable_symbol_prefix',
-                'description',
-                'result',
-                'administrative_units',
-
-
-            ),
-        }),
-        (_('Detail information'), {
-            'classes': ('collapse',),
-            'fields': (
-                ('age_from', 'age_to'),
-                'event_type', 'program', 'indended_for',
-                'participation_fee', 'meeting', 'is_internal', 'focus_on_members',
-                'note',
-            ),
-        }),
-        (_('Web setting'), {
-            'classes': ('collapse',),
-            'fields': (
-                'enable_signing_petitions', 'enable_registration', 'allow_statistics', 'public_on_web',
-                'email_confirmation_redirect', 'entry_form_url'
-            ),
-        }),
-        (_('Statistics'), {
-            'classes': ('collapse',),
-            'fields': (
-                'number_of_members', 'number_of_recruiters', 'yield_total',
-                'total_expenses', 'expected_monthly_income', 'return_of_investmensts',
-                'average_yield', 'average_expense',
-            ),
-        }),
-    )
-
-    def get_queryset(self, request):
-        donor_filter = {}
-        extra_filters = request.GET
-        dpd_gte = extra_filters.get('donorpaymentchannel__payment__date__range__gte')
-        dpd_lte = extra_filters.get('donorpaymentchannel__payment__date__range__lte')
-        if dpd_gte:
-            donor_filter['donorpaymentchannel__payment__date__gte'] = datetime.datetime.strptime(dpd_gte, '%d.%m.%Y')
-        if dpd_lte:
-            donor_filter['donorpaymentchannel__payment__date__lte'] = datetime.datetime.strptime(dpd_lte, '%d.%m.%Y')
-        queryset = super().get_queryset(request).annotate(
-            sum_yield_amount=Sum('donorpaymentchannel__payment__amount', filter=Q(**donor_filter)),
-        )
-        return queryset
-
-    def sum_yield_amount(self, obj):
-        return obj.sum_yield_amount
-
-    sum_yield_amount.short_description = _("Yield per period")
 
 
 class RecruiterAdmin(admin.ModelAdmin):
@@ -2570,7 +2447,6 @@ admin.site.register(Payment, PaymentAdmin)
 admin.site.register(AccountStatements, AccountStatementsAdmin)
 admin.site.register(AutomaticCommunication, AutomaticCommunicationAdmin)
 admin.site.register(MassCommunication, MassCommunicationAdmin)
-admin.site.register(Event, EventAdmin)
 admin.site.register(Recruiter, RecruiterAdmin)
 admin.site.register(TaxConfirmation, TaxConfirmationAdmin)
 admin.site.register(Source, SourceAdmin)

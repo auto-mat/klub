@@ -17,8 +17,6 @@ from django.utils.translation import ugettext as _
 
 from interactions.models import Interaction
 
-from rangefilter.filter import DateRangeFilter
-
 from .models import (
     CompanyContact, CompanyProfile, DonorPaymentChannel,
     ProfileEmail, Telephone, UserProfile,
@@ -442,17 +440,6 @@ class ProfileTypeFilter(SimpleListFilter):
     def queryset(self, request, queryset):
         if self.value():
             return queryset.filter(user__polymorphic_ctype__model=self.value())
-        return queryset
-
-
-class EventYieldDateRangeFilter(DateRangeFilter):
-    """
-    filter which doesnt filter queryset but filters total income per date period in admin_list
-    """
-    title = _("Filter by Yield period")
-
-    def queryset(self, request, queryset):
-        # always return full queryset
         return queryset
 
 
