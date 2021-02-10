@@ -230,26 +230,26 @@ class AdministrativeUnit(models.Model, ParseAccountStatement):
         return str(self.name)
 
 
-class Location(models.Model):
-    name = models.CharField(
-        verbose_name=_("Name"),
-        max_length=100,
-    )
-    place = models.CharField(
-        verbose_name=_("Place"),
-        max_length=100,
-        blank=True,
-    )
-    region = models.CharField(
-        verbose_name=_("Region"),
-        max_length=100,
-        blank=True,
-    )
-    gps = models.CharField(
-        verbose_name=_("GPS location"),
-        max_length=200,
-        blank=True,
-    )
+# class Location(models.Model):
+#     name = models.CharField(
+#         verbose_name=_("Name"),
+#         max_length=100,
+#     )
+#     place = models.CharField(
+#         verbose_name=_("Place"),
+#         max_length=100,
+#         blank=True,
+#     )
+#     region = models.CharField(
+#         verbose_name=_("Region"),
+#         max_length=100,
+#         blank=True,
+#     )
+#     gps = models.CharField(
+#         verbose_name=_("GPS location"),
+#         max_length=200,
+#         blank=True,
+#     )
 
 
 class EventType(models.Model):
@@ -317,50 +317,50 @@ class Event(models.Model):
         ('full', _("Full, not anymore")),
 
     )
-    registration_method = models.CharField(
-        verbose_name=_("Registration method"),
-        max_length=128,
-        choices=REGISTRATION_METHOD,
-        default='standard',
-    )
-    for i in range(1, 4):
-        vars()[f"additional_question_{i}"] = models.CharField(
-            verbose_name=_(f"Additional question number {i}"),
-            blank=True,
-            max_length=300,
-        )
+    # registration_method = models.CharField(
+    #     verbose_name=_("Registration method"),
+    #     max_length=128,
+    #     choices=REGISTRATION_METHOD,
+    #     default='standard',
+    # )
+    # for i in range(1, 4):
+    #     vars()[f"additional_question_{i}"] = models.CharField(
+    #         verbose_name=_(f"Additional question number {i}"),
+    #         blank=True,
+    #         max_length=300,
+    #     )
 
-    main_photo = models.FileField(
-        verbose_name=_("Main photo"),
-        blank=True,
-        null=True,
-        upload_to='event_photos',
-    )
-    for i in range(1, 7):
-        vars()[f"additional_photo_{i}"] = models.FileField(
-            verbose_name=_(f"Additional photo number {i}"),
-            blank=True,
-            null=True,
-            upload_to='event_photos',
-        )
+    # main_photo = models.FileField(
+    #     verbose_name=_("Main photo"),
+    #     blank=True,
+    #     null=True,
+    #     upload_to='event_photos',
+    # )
+    # for i in range(1, 7):
+    #     vars()[f"additional_photo_{i}"] = models.FileField(
+    #         verbose_name=_(f"Additional photo number {i}"),
+    #         blank=True,
+    #         null=True,
+    #         upload_to='event_photos',
+    #     )
 
-    number_of_actions = models.PositiveIntegerField(
-        verbose_name=_("Number of actions in given time period"),
-        default=1,
-    )
+    # number_of_actions = models.PositiveIntegerField(
+    #     verbose_name=_("Number of actions in given time period"),
+    #     default=1,
+    # )
     # organization_team = models.ManyToManyField(
     #     "Profile",
     #     verbose_name=_("Organization team"),
     #     through="OrganizationTeam",
     #
     # )
-    location = models.ForeignKey(
-        Location,
-        verbose_name=_("Location"),
-        blank=True,
-        null=True,
-        on_delete=models.SET_NULL,
-    )
+    # location = models.ForeignKey(
+    #     Location,
+    #     verbose_name=_("Location"),
+    #     blank=True,
+    #     null=True,
+    #     on_delete=models.SET_NULL,
+    # )
     event_type = models.ForeignKey(
         EventType,
         verbose_name=_("Event type"),
