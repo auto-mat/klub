@@ -1,9 +1,11 @@
-from aklub.models import AdministrativeUnit, CompanyContact, Event, Profile, ProfileEmail
+from aklub.models import AdministrativeUnit, CompanyContact, Profile, ProfileEmail
 
 from django.contrib import admin
 from django.core import serializers
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
+
+from events.models import Event
 
 from import_export import fields
 from import_export.admin import ImportExportMixin

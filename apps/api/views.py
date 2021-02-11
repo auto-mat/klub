@@ -1,7 +1,7 @@
 import datetime
 
 from aklub.models import (
-    AdministrativeUnit, CompanyContact, CompanyProfile, DonorPaymentChannel, Event, MoneyAccount, ProfileEmail, Telephone, UserProfile,
+    AdministrativeUnit, CompanyContact, CompanyProfile, DonorPaymentChannel, MoneyAccount, ProfileEmail, Telephone, UserProfile,
 )
 
 from django.conf import settings
@@ -12,6 +12,8 @@ from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.translation import ugettext_lazy as _
 
 from drf_yasg.utils import swagger_auto_schema
+
+from events.models import Event
 
 from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope
 

@@ -5,11 +5,13 @@ from django.core.exceptions import ValidationError
 from django.utils.timezone import make_aware
 from django.utils.translation import ugettext_lazy as _
 
+from events.models import Event
+
 from import_export import fields
 from import_export.resources import ModelResource
 
 from .models import (
-    BankAccount, CompanyContact, DonorPaymentChannel, Event, Preference,
+    BankAccount, CompanyContact, DonorPaymentChannel, Preference,
     ProfileEmail, Telephone, UserBankAccount,
 )
 

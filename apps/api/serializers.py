@@ -1,9 +1,11 @@
-from aklub.models import CompanyProfile, DonorPaymentChannel, Event, MoneyAccount, Payment, Profile, ProfileEmail, Telephone, UserProfile
+from aklub.models import CompanyProfile, DonorPaymentChannel, MoneyAccount, Payment, Profile, ProfileEmail, Telephone, UserProfile
 
 from django.contrib.auth.password_validation import validate_password
 from django.core.validators import MinLengthValidator, RegexValidator
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
+
+from events.models import Event
 
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator

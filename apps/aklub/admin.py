@@ -46,6 +46,8 @@ from django.urls import resolve
 from django.utils.html import format_html, format_html_join, mark_safe
 from django.utils.translation import ugettext as _
 
+from events.models import Event
+
 try:
     from django.urls import reverse
 except ImportError:  # Django<2.0
@@ -94,7 +96,7 @@ from .forms import (
 )
 from .models import (
     AccountStatements, AdministrativeUnit, ApiAccount, AutomaticCommunication, BankAccount,
-    CompanyContact, CompanyProfile, DonorPaymentChannel, Event,
+    CompanyContact, CompanyProfile, DonorPaymentChannel,
     MassCommunication, MoneyAccount, NewUser, Payment, Preference, Profile, ProfileEmail, Recruiter,
     Source, TaxConfirmation, Telephone, UserBankAccount,
     UserProfile,
