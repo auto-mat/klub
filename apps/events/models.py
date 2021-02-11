@@ -6,26 +6,26 @@ from django.db.models import Sum
 from django.utils.translation import ugettext_lazy as _
 
 
-# class Location(models.Model):
-#     name = models.CharField(
-#         verbose_name=_("Name"),
-#         max_length=100,
-#     )
-#     place = models.CharField(
-#         verbose_name=_("Place"),
-#         max_length=100,
-#         blank=True,
-#     )
-#     region = models.CharField(
-#         verbose_name=_("Region"),
-#         max_length=100,
-#         blank=True,
-#     )
-#     gps = models.CharField(
-#         verbose_name=_("GPS location"),
-#         max_length=200,
-#         blank=True,
-#     )
+class Location(models.Model):
+    name = models.CharField(
+        verbose_name=_("Name"),
+        max_length=100,
+    )
+    place = models.CharField(
+        verbose_name=_("Place"),
+        max_length=100,
+        blank=True,
+    )
+    region = models.CharField(
+        verbose_name=_("Region"),
+        max_length=100,
+        blank=True,
+    )
+    gps = models.CharField(
+        verbose_name=_("GPS location"),
+        max_length=200,
+        blank=True,
+    )
 
 
 class EventType(models.Model):
@@ -47,6 +47,15 @@ class EventType(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class OrganizingAssociation(models.Model):
+    class Meta:
+        verbose_name = _("Organizing association")
+        verbose_name_plural = _("Organizing associations")
+
+    name = models.CharField(max_length=300, blank=True, verbose_name=_("Name"),)
+    description = models.TextField(blank=True, verbose_name=_("Description"))
 
 
 class Event(models.Model):
@@ -93,55 +102,90 @@ class Event(models.Model):
         ('full', _("Full, not anymore")),
 
     )
-    # registration_method = models.CharField(
-    #     verbose_name=_("Registration method"),
-    #     max_length=128,
-    #     choices=REGISTRATION_METHOD,
-    #     default='standard',
-    # )
-    # for i in range(1, 4):
-    #     vars()[f"additional_question_{i}"] = models.CharField(
-    #         verbose_name=_(f"Additional question number {i}"),
-    #         blank=True,
-    #         max_length=300,
-    #     )
-    #
-    # main_photo = models.FileField(
-    #     verbose_name=_("Main photo"),
-    #     blank=True,
-    #     null=True,
-    #     upload_to='event_photos',
-    # )
-    # for i in range(1, 7):
-    #     vars()[f"additional_photo_{i}"] = models.FileField(
-    #         verbose_name=_(f"Additional photo number {i}"),
-    #         blank=True,
-    #         null=True,
-    #         upload_to='event_photos',
-    #     )
-    #
-    # number_of_actions = models.PositiveIntegerField(
-    #     verbose_name=_("Number of actions in given time period"),
-    #     default=1,
-    # )
-    # organization_team = models.ManyToManyField(
-    #     "aklub.Profile",
-    #     verbose_name=_("Organization team"),
-    #     through="OrganizationTeam",
-    #
-    # )
-    # location = models.ForeignKey(
-    #     Location,
-    #     verbose_name=_("Location"),
-    #     blank=True,
-    #     null=True,
-    #     on_delete=models.SET_NULL,
-    # )
+    registration_method = models.CharField(
+        verbose_name=_("Registration method"),
+        max_length=128,
+        choices=REGISTRATION_METHOD,
+        default='standard',
+    )
+    for i in range(1, 4):
+        vars()[f"additional_question_{i}"] = models.CharField(
+            verbose_name=_(f"Additional question number {i}"),
+            blank=True,
+            max_length=300,
+        )
+
+    main_photo = models.FileField(
+        verbose_name=_("Main photo"),
+        blank=True,
+        null=True,
+        upload_to='event_photos',
+    )
+    for i in range(1, 7):
+        vars()[f"additional_photo_{i}"] = models.FileField(
+            verbose_name=_(f"Additional photo number {i}"),
+            blank=True,
+            null=True,
+            upload_to='event_photos',
+        )
+
+    for i in range(1, 7):
+        vars()[f"additional_photo_{i}"] = models.FileField(
+            verbose_name=_(f"Additional photo number {i}"),
+            blank=True,
+            null=True,
+            upload_to='event_photos',
+        )
+
+    invitation_text_1 = models.TextField(
+        verbose_name=_("Invitation: What to expect"),
+        help_text=_("What to except, basic informations."),
+        max_length=3000,
+        blank=True,
+    )
+
+    invitation_text_2 = models.TextField(
+        verbose_name=_("Invitation: What, where and how"),
+        help_text=_("Program of action."),
+        max_length=3000,
+        blank=True,
+    )
+
+    invitation_text_3 = models.TextField(
+        verbose_name=_("Invitation: Volunter help"),
+        help_text=_("Volunter help"),
+        max_length=3000,
+        blank=True,
+    )
+
+    invitation_text_4 = models.TextField(
+        verbose_name=_("Invitation: Little sneek peek"),
+        help_text=_("Little sneek peek"),
+        max_length=3000,
+        blank=True,
+    )
+    number_of_actions = models.PositiveIntegerField(
+        verbose_name=_("Number of actions in given time period"),
+        default=1,
+    )
+    organization_team = models.ManyToManyField(
+        "aklub.Profile",
+        verbose_name=_("Organization team"),
+        through="OrganizationTeam",
+
+    )
+    location = models.ForeignKey(
+        Location,
+        verbose_name=_("Location"),
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+    )
     event_type = models.ForeignKey(
         EventType,
         verbose_name=_("Event type"),
         related_name='events',
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         null=True,
         blank=True,
     )
@@ -209,7 +253,11 @@ class Event(models.Model):
         blank=True,
         null=True,
     )
-
+    web_url = models.URLField(
+        verbose_name=_("Url address of register form"),
+        blank=True,
+        null=True,
+    )
     name = models.CharField(
         verbose_name=_("Name"),
         help_text=_("Choose some unique name for this campaign"),
@@ -282,9 +330,20 @@ class Event(models.Model):
         blank=True,
         null=True,
     )
+    start_date = models.DateField(
+        verbose_name=_("Start date"),
+        blank=True,
+        null=True,
+    )
     administrative_units = models.ManyToManyField(
         "aklub.administrativeunit",
         verbose_name=_("administrative units"),
+    )
+    organizing_associations = models.ManyToManyField(
+        OrganizingAssociation,
+        verbose_name=_("Organizing associations"),
+        blank=True,
+        null=True,
     )
 
     def number_of_members(self):
@@ -368,8 +427,13 @@ class Event(models.Model):
         return str(self.name)
 
 
-# class OrganizationTeam(models.Model):
-#     profile = models.ForeignKey("aklub.Profile", on_delete=models.CASCADE)
-#     event = models.ForeignKey(Event, on_delete=models.CASCADE)
-#     position = models.CharField(max_length=300, blank=True, verbose_name=_("Position"),)
-#     can_be_contacted = models.BooleanField(default=False, verbose_name=_("Can be contacted"))
+class OrganizationPosition(models.Model):
+    name = models.CharField(max_length=300, blank=True, verbose_name=_("Name"),)
+    description = models.TextField(blank=True, verbose_name=_("Description"))
+
+
+class OrganizationTeam(models.Model):
+    profile = models.ForeignKey("aklub.Profile", on_delete=models.CASCADE)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, verbose_name=_("Event"))
+    position = models.ForeignKey(OrganizationPosition, on_delete=models.CASCADE, verbose_name=_("Position"),)
+    can_be_contacted = models.BooleanField(default=False, verbose_name=_("Can be contacted"))
