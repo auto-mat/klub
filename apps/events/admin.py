@@ -10,7 +10,7 @@ from django.utils.translation import ugettext as _
 
 from . import filters
 from .forms import EventForm
-from .models import Event, EventType # OrganizationTeam
+from .models import Event, EventType, Location, OrganizationPosition, OrganizationTeam, OrganizingAssociation
 
 
 def download_darujme_statement(self, request, queryset):
@@ -34,21 +34,36 @@ def download_darujme_statement(self, request, queryset):
 download_darujme_statement.short_description = _("Download darujme statements")
 
 
-@admin.register(EventType)
-class EventTypeAdmin(unit_admin_mixin_generator('events__administrative_units'), admin.ModelAdmin):
+@admin.register(OrganizingAssociation)
+class OrganizingAssociationAdmin(admin.ModelAdmin):
     pass
 
 
-# class OrganizationTeamInline(admin.TabularInline):
-#     model = OrganizationTeam
-#     autocomplete_fields = ['profile']
-#     classes = ['collapse']
+@admin.register(OrganizationPosition)
+class OrganizationPositionAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(Location)
+class LocationAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(EventType)
+class EventTypeAdmin(admin.ModelAdmin):
+    pass
+
+
+class OrganizationTeamInline(admin.TabularInline):
+    model = OrganizationTeam
+    autocomplete_fields = ['profile']
+    classes = ['collapse']
 
 
 @admin.register(Event)
 class EventAdmin(unit_admin_mixin_generator('administrative_units'), admin.ModelAdmin):
     form = EventForm
-    #inlines = (OrganizationTeamInline,)
+    inlines = (OrganizationTeamInline,)
     list_display = (
         'name',
         'id',
