@@ -161,6 +161,20 @@ class EventAdmin(unit_admin_mixin_generator('administrative_units'), admin.Model
         )
         return queryset
 
+    def _extra_view_context(self):
+        from api.serializers import EventSerializer
+        return {
+            "serialized_fields": EventSerializer.Meta.fields,
+        }
+
+    def add_view(self, request, extra_context=None, **kwargs):
+        extra_context = self._extra_view_context()
+        return super().add_view(request, extra_context=extra_context, **kwargs)
+
+    def change_view(self, request, object_id, extra_context=None, **kwargs):
+        extra_context = self._extra_view_context()
+        return super().change_view(request, object_id, extra_context=extra_context, **kwargs)
+
     def sum_yield_amount(self, obj):
         return obj.sum_yield_amount
 
