@@ -8,7 +8,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aklub', '0095_auto_20210211_1516'),
+        ('aklub', '0094_auto_20210211_1311'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
         ('events', '0002_auto_20210211_1416'),
     ]
