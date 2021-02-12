@@ -113,7 +113,7 @@ class CreateDpchUserProfileViewTest(TestCase):
         app_login_mixin()
 
         unit = mommy.make('aklub.administrativeunit', name='test_unit')
-        self.event = mommy.make('aklub.event', slug='event_slug', administrative_units=[unit, ])
+        self.event = mommy.make('events.event', slug='event_slug', administrative_units=[unit, ])
         self.bank_acc = mommy.make('aklub.bankaccount', bank_account='11122/111', slug='bank_slug', administrative_unit=unit)
 
     def test_post_request(self):
@@ -180,7 +180,7 @@ class CreateDpchCompanyProfileViewTest(TestCase):
     def setUp(self):
         app_login_mixin()
         unit = mommy.make('aklub.administrativeunit', name='test_unit')
-        self.event = mommy.make('aklub.event', slug='event_slug', administrative_units=[unit, ])
+        self.event = mommy.make('events.event', slug='event_slug', administrative_units=[unit, ])
         self.bank_acc = mommy.make('aklub.bankaccount', bank_account='11122/111', slug='bank_slug', administrative_unit=unit)
 
     def test_post_request(self):
@@ -242,7 +242,7 @@ class CheckEventViewTest(TestCase):
 
     def test_check_if_event_exist(self):
         unit = mommy.make('aklub.AdministrativeUnit', name='test_unit')
-        event = mommy.make('aklub.Event', slug='event_slug', administrative_units=[unit, ])
+        event = mommy.make('events.event', slug='event_slug', administrative_units=[unit, ])
 
         url = reverse('check_event', kwargs={'slug': 'event_slug'})
         header = {'Authorization': 'Bearer foo'}
@@ -277,7 +277,7 @@ class CheckLastPaymentsViewTest(TestCase):
         user = mommy.make('aklub.Profile', id=22)
         unit = mommy.make('aklub.AdministrativeUnit', name='test_unit')
         money_account = mommy.make('aklub.MoneyAccount', slug='money_account_slug', administrative_unit=unit)
-        event = mommy.make('aklub.Event', slug='event_slug', administrative_units=[unit, ])
+        event = mommy.make('events.event', slug='event_slug', administrative_units=[unit, ])
         dpch = mommy.make('aklub.DonorPaymentChannel', event=event, money_account=money_account, VS=1111, user=user)
         # out of 14 days range payment
         mommy.make(
@@ -348,7 +348,7 @@ class CheckLastPaymentViewTest(TestCase):
         self.user = user_login_mixin()
         unit = mommy.make('aklub.AdministrativeUnit')
         bank_acc = mommy.make('aklub.BankAccount', administrative_unit=unit, bank_account_number="123")
-        event = mommy.make('aklub.Event')
+        event = mommy.make('events.event')
         self.dpch = mommy.make("aklub.DonorPaymentChannel", money_account=bank_acc, event=event, user=self.user)
 
     def test_check_last_payment_success(self):
@@ -372,7 +372,7 @@ class CreateInteractionTest(TestCase):
     def test_create_interaction(self):
         user = mommy.make('aklub.Profile', id=22)
         unit = mommy.make('aklub.AdministrativeUnit', name='test_unit')
-        event = mommy.make('aklub.Event', slug='event_slug', administrative_units=[unit, ])
+        event = mommy.make('events.event', slug='event_slug', administrative_units=[unit, ])
 
         url = reverse('create_interaction')
         header = {'Authorization': 'Bearer foo'}
@@ -398,7 +398,7 @@ class CreateCreditCardPaymentTest(TestCase):
     def setUp(self):
         app_login_mixin()
         unit = mommy.make('aklub.administrativeunit', name='test_unit')
-        self.event = mommy.make('aklub.event', slug='event_slug', administrative_units=[unit, ])
+        self.event = mommy.make('events.event', slug='event_slug', administrative_units=[unit, ])
         self.bank_acc = mommy.make('aklub.bankaccount', bank_account='11122/111', slug='bank_slug', administrative_unit=unit)
 
     def test_create_payment_userprofile(self):
@@ -459,7 +459,7 @@ class CreateCreditCardPaymentTest(TestCase):
 class RegisterUserProfileTest(TestCase):
     def setUp(self):
         unit = mommy.make('aklub.administrativeunit', name='test_unit')
-        self.event = mommy.make('aklub.event', slug='event_slug', administrative_units=[unit, ])
+        self.event = mommy.make('events.event', slug='event_slug', administrative_units=[unit, ])
         self.bank_acc = mommy.make('aklub.bankaccount', bank_account='11122/111', slug='bank_slug', administrative_unit=unit)
 
     def test_create_payment_userprofile(self):

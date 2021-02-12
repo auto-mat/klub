@@ -32,7 +32,7 @@ class TestProfilePostMixin:
 
     def create_event(self):
         event = mommy.make(
-            'aklub.Event',
+            'events.event',
             name='Klub přátel Auto*Matu',
             date_from='2015-12-16',
             slug='klub',

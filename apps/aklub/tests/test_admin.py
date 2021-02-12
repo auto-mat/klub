@@ -135,7 +135,7 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
 
     @freeze_time("2015-5-1")
     def test_account_statement_changelist_post(self):
-        event = mommy.make("aklub.Event", name="Klub přátel Auto*Matu")
+        event = mommy.make("events.event", name="Klub přátel Auto*Matu")
         unit = mommy.make("aklub.administrativeunit", name='test,unit')
         mommy.make("aklub.ApiAccount", project_name="Klub přátel Auto*Matu", event=event, administrative_unit=unit)
         mommy.make("aklub.Payment", SS=22258, type="darujme", operation_id="13954", date="2016-02-09")
@@ -357,7 +357,7 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
         self.assertEqual(response.url, "/interactions/interaction/")
 
     def test_user_in_campaign_changelist_post(self):
-        mommy.make("aklub.Event", id=1)
+        mommy.make("events.event", id=1)
         mommy.make("aklub.Userprofile", id=2978)
         au = mommy.make("aklub.AdministrativeUnit", name="test")
         mommy.make("aklub.BankAccount", administrative_unit=au, id=1)
@@ -496,7 +496,7 @@ class UserProfileAdminTests(TestCase):
 
         u1 = mommy.make('UserProfile', administrative_units=[au1], first_name="Foo")
         mommy.make('UserProfile', administrative_units=[au2], first_name="Bar")
-        event = mommy.make('aklub.event', administrative_units=[au1, ])
+        event = mommy.make('events.event', administrative_units=[au1, ])
         channel = mommy.make(
             'DonorPaymentChannel', user=u1, money_account__administrative_unit=au1,
             regular_payments="regular", regular_amount=120, event=event,

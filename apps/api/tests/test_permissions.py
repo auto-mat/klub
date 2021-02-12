@@ -30,7 +30,7 @@ class LoginByUserPasswordTest(TestCase):
         Check if user with password can not log to scopes based vies => missing scope
         """
         unit = mommy.make('aklub.AdministrativeUnit', name='test_unit')
-        event = mommy.make('aklub.Event', slug='event_slug', administrative_units=[unit, ])
+        event = mommy.make('events.event', slug='event_slug', administrative_units=[unit, ])
 
         url = reverse('check_event', kwargs={'slug': f'{event.slug}'})
         header = {'Authorization': 'Bearer foo'}

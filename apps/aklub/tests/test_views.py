@@ -55,7 +55,7 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
             slug="test",
         )
         self.event = mommy.make(
-            'aklub.event',
+            'events.event',
             administrative_units=[self.unit, ],
             slug='klub',
             enable_registration=True,
@@ -249,7 +249,7 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         address = reverse('regular-darujme')
         user = mommy.make('aklub.userprofile', first_name='test_name', last_name='test_surname')
         mommy.make('aklub.profileemail', email='test@email.cz', user=user, is_primary=True)
-        event = mommy.make('aklub.event', administrative_units=[self.unit, ])
+        event = mommy.make('events.event', administrative_units=[self.unit, ])
         mommy.make('aklub.donorpaymentchannel', event=event, money_account=self.money, user=user)
 
         response = self.client.post(address, self.post_data_darujme)
@@ -653,7 +653,7 @@ class VariableSymbolTests(TestCase):
 
     def test_vs_generate_without_prefix(self):
         event = mommy.make(
-            "aklub.event",
+            "events.event",
             administrative_units=[self.au, ],
         )
 
@@ -663,7 +663,7 @@ class VariableSymbolTests(TestCase):
             event=event,
         )
         event2 = mommy.make(
-            "aklub.event",
+            "events.event",
             administrative_units=[self.au, ],
         )
         dpch2 = mommy.make(
@@ -677,7 +677,7 @@ class VariableSymbolTests(TestCase):
 
     def test_vs_generate_witprefix(self):
         event = mommy.make(
-            "aklub.event",
+            "events.event",
             administrative_units=[self.au, ],
             variable_symbol_prefix='12345',
         )
@@ -693,7 +693,7 @@ class VariableSymbolTests(TestCase):
             event=event,
         )
         event2 = mommy.make(
-            "aklub.event",
+            "events.event",
             administrative_units=[self.au, ],
             variable_symbol_prefix='54321',
         )
