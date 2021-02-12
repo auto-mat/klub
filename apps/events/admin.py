@@ -36,22 +36,22 @@ download_darujme_statement.short_description = _("Download darujme statements")
 
 @admin.register(OrganizingAssociation)
 class OrganizingAssociationAdmin(admin.ModelAdmin):
-    pass
+    list_display = ("name",)
 
 
 @admin.register(OrganizationPosition)
 class OrganizationPositionAdmin(admin.ModelAdmin):
-    pass
+    list_display = ("name",)
 
 
 @admin.register(Location)
 class LocationAdmin(admin.ModelAdmin):
-    pass
+    list_display = ("name", "place", "region", "gps")
 
 
 @admin.register(EventType)
 class EventTypeAdmin(admin.ModelAdmin):
-    pass
+    list_display = ("name",)
 
 
 class OrganizationTeamInline(admin.TabularInline):
@@ -72,13 +72,14 @@ class EventAdmin(unit_admin_mixin_generator('administrative_units'), admin.Model
         'date_to',
         'sum_yield_amount',
         'number_of_members',
-        'number_of_recruiters',
-        'yield_total',
-        'total_expenses',
-        'expected_monthly_income',
-        'return_of_investmensts',
-        'average_yield',
-        'average_expense',
+        # TODO: must be optimalized
+        # 'number_of_recruiters',
+        # 'yield_total',
+        # 'total_expenses',
+        # 'expected_monthly_income',
+        # 'return_of_investmensts',
+        # 'average_yield',
+        # 'average_expense',
     )
     list_filter = [
         ('donorpaymentchannel__payment__date', filters.EventYieldDateRangeFilter),
@@ -104,35 +105,42 @@ class EventAdmin(unit_admin_mixin_generator('administrative_units'), admin.Model
                 'slug',
                 'basic_purpose',
                 'grant',
-                ('date_from', 'date_to'),
+                ('date_from', 'date_to', "start_date"),
                 'variable_symbol_prefix',
                 'description',
-                'result',
+                'organizing_associations',
                 'administrative_units',
-
-
             ),
         }),
         (_('Detail information'), {
             'classes': ('collapse',),
             'fields': (
                 ('age_from', 'age_to'),
-                'event_type', 'program', 'indended_for',
+                'event_type', 'program', 'indended_for', 'location', 'registration_method',
                 'participation_fee', 'meeting', 'is_internal', 'focus_on_members',
-                'note',
+                'note', 'result', 'number_of_actions',
             ),
         }),
         (_('Web setting'), {
             'classes': ('collapse',),
             'fields': (
                 'enable_signing_petitions', 'enable_registration', 'allow_statistics', 'public_on_web',
-                'email_confirmation_redirect', 'entry_form_url'
+                'email_confirmation_redirect', 'entry_form_url', 'web_url'
+            ),
+        }),
+        (_('Additional information'), {
+            'classes': ('collapse',),
+            'fields': (
+                'additional_question_1', 'additional_question_2', 'additional_question_3',
+                'main_photo', "additional_photo_1", "additional_photo_2", "additional_photo_3",
+                "additional_photo_4", "additional_photo_5", "additional_photo_6",
+                "invitation_text_1", "invitation_text_2", "invitation_text_3", "invitation_text_4",
             ),
         }),
         (_('Statistics'), {
             'classes': ('collapse',),
             'fields': (
-                'number_of_members', 'number_of_recruiters', 'yield_total',
+                'number_of_members', 'number_of_recruiters', 'yield_total', 'real_yield',
                 'total_expenses', 'expected_monthly_income', 'return_of_investmensts',
                 'average_yield', 'average_expense',
             ),

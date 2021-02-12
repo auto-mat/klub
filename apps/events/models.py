@@ -26,6 +26,14 @@ class Location(models.Model):
         max_length=200,
         blank=True,
     )
+    administrative_unit = models.ForeignKey(
+        "aklub.AdministrativeUnit",
+        verbose_name=_("administrative unit"),
+        on_delete=models.CASCADE,
+    )
+
+    def __str__(self):
+        return self.name
 
 
 class EventType(models.Model):
@@ -44,6 +52,11 @@ class EventType(models.Model):
         max_length=3000,
         blank=True,
     )
+    administrative_unit = models.ForeignKey(
+        "aklub.AdministrativeUnit",
+        verbose_name=_("administrative unit"),
+        on_delete=models.CASCADE,
+    )
 
     def __str__(self):
         return self.name
@@ -56,6 +69,11 @@ class OrganizingAssociation(models.Model):
 
     name = models.CharField(max_length=300, verbose_name=_("Name"),)
     description = models.TextField(blank=True, verbose_name=_("Description"))
+    administrative_unit = models.ForeignKey(
+        "aklub.AdministrativeUnit",
+        verbose_name=_("administrative unit"),
+        on_delete=models.CASCADE,
+    )
 
 
 class Event(models.Model):
@@ -114,7 +132,6 @@ class Event(models.Model):
             blank=True,
             max_length=300,
         )
-
     main_photo = models.FileField(
         verbose_name=_("Main photo"),
         blank=True,
@@ -128,15 +145,6 @@ class Event(models.Model):
             null=True,
             upload_to='event_photos',
         )
-
-    for i in range(1, 7):
-        vars()[f"additional_photo_{i}"] = models.FileField(
-            verbose_name=_(f"Additional photo number {i}"),
-            blank=True,
-            null=True,
-            upload_to='event_photos',
-        )
-
     invitation_text_1 = models.TextField(
         verbose_name=_("Invitation: What to expect"),
         help_text=_("What to except, basic informations."),
@@ -429,6 +437,9 @@ class Event(models.Model):
 class OrganizationPosition(models.Model):
     name = models.CharField(max_length=300, verbose_name=_("Name"),)
     description = models.TextField(blank=True, verbose_name=_("Description"))
+
+    def __str__(self):
+        return self.name
 
 
 class OrganizationTeam(models.Model):
