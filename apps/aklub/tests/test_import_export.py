@@ -7,16 +7,17 @@ from django.contrib.messages.storage.fallback import FallbackStorage
 from django.test import RequestFactory, TransactionTestCase
 from django.urls import reverse
 
+from events.models import Event
+
 from interactions.models import Interaction
 
 from model_mommy import mommy
 
 from .recipes import generic_profile_recipe
 from .test_admin import CreateSuperUserMixin
-
-from ..models import ( # noqa
-            BankAccount, CompanyProfile, ContentType, DonorPaymentChannel,
-            Event, Payment, Preference, Profile, ProfileEmail, UserBankAccount, UserProfile,
+from ..models import (
+    BankAccount, CompanyProfile, ContentType, DonorPaymentChannel,
+    Payment, Preference, Profile, UserBankAccount, UserProfile,
 )
 
 
