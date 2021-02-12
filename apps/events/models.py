@@ -54,7 +54,7 @@ class OrganizingAssociation(models.Model):
         verbose_name = _("Organizing association")
         verbose_name_plural = _("Organizing associations")
 
-    name = models.CharField(max_length=300, blank=True, verbose_name=_("Name"),)
+    name = models.CharField(max_length=300, verbose_name=_("Name"),)
     description = models.TextField(blank=True, verbose_name=_("Description"))
 
 
@@ -343,7 +343,6 @@ class Event(models.Model):
         OrganizingAssociation,
         verbose_name=_("Organizing associations"),
         blank=True,
-        null=True,
     )
 
     def number_of_members(self):
@@ -428,7 +427,7 @@ class Event(models.Model):
 
 
 class OrganizationPosition(models.Model):
-    name = models.CharField(max_length=300, blank=True, verbose_name=_("Name"),)
+    name = models.CharField(max_length=300, verbose_name=_("Name"),)
     description = models.TextField(blank=True, verbose_name=_("Description"))
 
 
