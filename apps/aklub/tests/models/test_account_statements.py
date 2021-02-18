@@ -26,10 +26,12 @@ from django.core.files import File
 from django.test import RequestFactory, TestCase
 from django.test.utils import override_settings
 
+from events import admin
+
 from model_mommy import mommy
 
 from ..utils import RunCommitHooksMixin
-from ... import admin, darujme
+from ... import darujme
 from ...models import AccountStatements, AdministrativeUnit, ApiAccount, DonorPaymentChannel, Payment, ProfileEmail, Telephone
 
 
