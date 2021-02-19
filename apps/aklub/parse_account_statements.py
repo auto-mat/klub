@@ -24,7 +24,6 @@ def check_incomming(amount):
 def header_parse(payments_reader, date_from_name, date_to_name, recipient_account=None, statement=None):
     for payment in payments_reader:
         if payment[payments_reader.fieldnames[0]] == recipient_account:
-
             account = payment[payments_reader.fieldnames[1]]
             if 'CZK' in account:  # because KB statement has CZK in account name
                 account = account.split()[0]
@@ -80,7 +79,7 @@ class ParseAccountStatement(object):
             payments_reader=payments_reader,
             date_from_name="dateStart",
             date_to_name="dateEnd",
-            recipient_account="\ufeffaccountId",
+            recipient_account='\ufeff"accountId"',
             statement=self,
         )
         self.date_from = models.str_to_datetime(date_from)
