@@ -1827,14 +1827,14 @@ class AccountStatements(ParseAccountStatement, models.Model):
         null=True,
     )
 
-    def save(self, *args, **kwargs):
+    def save(self, parse_csv=True, *args, **kwargs):
         super().save(*args, **kwargs)
         if hasattr(self, "payments"):
             for payment in self.payments:
                 if payment:
                     payment.account_statement = self
                     payment.save()
-        if self.payment_set.count() == 0:
+        if self.payment_set.count() == 0 and parse_csv:
             from .tasks import parse_account_statement
             transaction.on_commit(lambda: parse_account_statement.delay(self.pk))
 
