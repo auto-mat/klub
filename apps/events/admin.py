@@ -3,6 +3,8 @@ import datetime
 from aklub import darujme
 from aklub.filters import unit_admin_mixin_generator
 
+from api.serializers import EventSerializer
+
 from django.contrib import admin
 from django.db.models import Q, Sum
 from django.utils.html import format_html
@@ -162,7 +164,6 @@ class EventAdmin(unit_admin_mixin_generator('administrative_units'), admin.Model
         return queryset
 
     def _extra_view_context(self):
-        from api.serializers import EventSerializer
         return {
             "serialized_fields": EventSerializer.Meta.fields,
         }

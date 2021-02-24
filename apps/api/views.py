@@ -7,13 +7,14 @@ from aklub.models import (
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import EmailMultiAlternatives
+from django.db.models import Prefetch
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.translation import ugettext_lazy as _
 
 from drf_yasg.utils import swagger_auto_schema
 
-from events.models import Event
+from events.models import Event, OrganizationTeam
 
 from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope
 
@@ -26,7 +27,7 @@ from .serializers import (
     CreateUserProfileSerializer, CreditCardPaymentSerializer,
     DonorPaymetChannelSerializer, EventCheckSerializer, GetDpchCompanyProfileSerializer, GetDpchUserProfileSerializer,
     InteractionSerizer, MoneyAccountCheckSerializer, PaymentSerializer, ProfileSerializer, ResetPasswordbyEmailConfirmSerializer,
-    ResetPasswordbyEmailSerializer, VSReturnSerializer,
+    ResetPasswordbyEmailSerializer, VSReturnSerializer, EventSerializer,
 )
 from .utils import check_last_month_year_payment, get_or_create_dpch
 
@@ -332,3 +333,29 @@ class ResetPasswordbyEmailConfirmView(generics.GenericAPIView):
             return Response(status=status.HTTP_200_OK)
         else:
             return Response(status=status.HTTP_403_FORBIDDEN)
+
+
+class EventListView(generics.ListAPIView):
+    """
+    Reguired info for web
+    -- is used to communicate with 3rd aplication
+    """
+    serializer_class = EventSerializer
+    permission_classes = [TokenHasReadWriteScope]
+    required_scopes = ['can_view_events']
+
+    def get_queryset(self):
+        return Event.objects.filter(public_on_web=True).prefetch_related(
+            "organizing_associations",
+            "organization_team",
+            Prefetch(
+                'organization_team',
+                queryset=OrganizationTeam.objects.filter(can_be_contacted=True)
+                    .prefetch_related(
+                        "profile",
+                        # "profile__userprofile__profileemail_set", # polymorphic fix
+                        # "profile__userprofile__telephone_set", # polymorphic fix
+                ),
+                to_attr='filtered_organization_team',
+            ),
+        ).select_related('location')

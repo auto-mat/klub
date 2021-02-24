@@ -5,7 +5,7 @@ from django.core.validators import MinLengthValidator, RegexValidator
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
-from events.models import Event
+from events.models import Event, Location, OrganizationTeam, OrganizingAssociation
 
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
@@ -210,11 +210,54 @@ class ResetPasswordbyEmailConfirmSerializer(serializers.Serializer):
             raise PasswordsDoNotMatch()
 
 
+class OrganizationTeamSerializer(serializers.ModelSerializer):
+    first_name = serializers.ReadOnlyField(source='profile.first_name')
+    last_name = serializers.ReadOnlyField(source='profile.last_name')
+    telephone = serializers.SerializerMethodField()
+    email = serializers.SerializerMethodField()
+
+    class Meta:
+        model = OrganizationTeam
+        fields = ["id", "first_name", "last_name", "telephone", "email"]
+
+    def get_email(self, obj):
+        # TODO: waiting for polymorphic select related fix:
+        # for email in obj.profile.userprofile.profileemail_set.all()
+        #    if email.is_primary:
+        #        return email.email
+        userprofile = obj.profile.get_real_instance()
+        return userprofile.profileemail_set.get(is_primary=True).email
+
+    def get_telephone(self, obj):
+        # TODO: waiting for polymorphic select related fix:
+        # for telephone in obj.profile.userprofile.telephone_set.all()
+        #    if telephone.is_primary:
+        #        return telephone.telephone
+        userprofile = obj.profile.get_real_instance()
+        return userprofile.telephone_set.get(is_primary=True).telephone
+
+
+class OrganizingAssociationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrganizingAssociation
+        fields = ["name"]
+
+
+class LocationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Location
+        fields = ["name", "place", "region", "gps"]
+
+
 class EventSerializer(serializers.ModelSerializer):
+    location = LocationSerializer(read_only=True)
+    organizing_associations = OrganizingAssociationSerializer(read_only=True, many=True)
+    organization_team = OrganizationTeamSerializer(read_only=True, many=True, source="filtered_organization_team")
+
     class Meta:
         model = Event
         fields = [
-            'name', 'slug', 'date_from', 'date_to', 'program', 'indended_for',
+            'id', 'name', 'slug', 'date_from', 'date_to', 'program', 'indended_for',
             'location', 'organizing_associations', 'age_from', 'age_to', 'start_date',
             'participation_fee', 'organization_team', 'entry_form_url', 'web_url',
             'invitation_text_1', 'invitation_text_2', 'invitation_text_3',

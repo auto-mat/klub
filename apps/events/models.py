@@ -75,6 +75,9 @@ class OrganizingAssociation(models.Model):
         on_delete=models.CASCADE,
     )
 
+    def __str__(self):
+        return self.name
+
 
 class Event(models.Model):
     """Campaign -- abstract event with description
@@ -447,3 +450,6 @@ class OrganizationTeam(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE, verbose_name=_("Event"))
     position = models.ForeignKey(OrganizationPosition, on_delete=models.CASCADE, verbose_name=_("Position"),)
     can_be_contacted = models.BooleanField(default=False, verbose_name=_("Can be contacted"))
+
+    def __str__(self):
+        return str(self.id)
