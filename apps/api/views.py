@@ -25,9 +25,9 @@ from rest_framework.response import Response
 from .exceptions import DonorPaymentChannelDoesntExist, EmailDoesntExist, PaymentsDoesntExist
 from .serializers import (
     CreateUserProfileSerializer, CreditCardPaymentSerializer,
-    DonorPaymetChannelSerializer, EventCheckSerializer, GetDpchCompanyProfileSerializer, GetDpchUserProfileSerializer,
+    DonorPaymetChannelSerializer, EventCheckSerializer, EventSerializer, GetDpchCompanyProfileSerializer, GetDpchUserProfileSerializer,
     InteractionSerizer, MoneyAccountCheckSerializer, PaymentSerializer, ProfileSerializer, ResetPasswordbyEmailConfirmSerializer,
-    ResetPasswordbyEmailSerializer, VSReturnSerializer, EventSerializer,
+    ResetPasswordbyEmailSerializer, VSReturnSerializer,
 )
 from .utils import check_last_month_year_payment, get_or_create_dpch
 
