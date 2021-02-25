@@ -2111,7 +2111,6 @@ class DonorPaymentChannel(ComputedFieldsModel):
         help_text=("Event"),
         verbose_name=("Event"),
         on_delete=models.CASCADE,
-        null=True,
     )
     end_of_regular_payments = models.DateField(
         verbose_name=_("End of regular payments (for payments by card)"),
