@@ -110,7 +110,7 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
 
         self.post_data_darujme = {
             "recurringfrequency": "28",  # mothly
-            "ammount": "200",
+            "amount": "200",
             "payment_data____jmeno": "test_name",
             "payment_data____prijmeni": "test_surname",
             "payment_data____email": "test@email.cz",
@@ -217,7 +217,7 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         self.assertContains(response, '<tr><th>Pravidelné platby: </th><td>Pravidelné platby</td></tr>', html=True)
         email = ProfileEmail.objects.get(email="test@email.cz")
         new_channel = DonorPaymentChannel.objects.get(user=email.user)
-        self.assertEqual(new_channel.regular_amount, int(self.post_data_darujme['ammount']))
+        self.assertEqual(new_channel.regular_amount, int(self.post_data_darujme['amount']))
         self.assertEqual(new_channel.regular_payments, 'regular')
         self.assertEqual(new_channel.event, self.event)
         self.assertEqual(new_channel.money_account, self.money)
@@ -264,7 +264,7 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
 
         self.assertEqual(user.userchannels.count(), 2)
         new_channel = user.userchannels.last()
-        self.assertEqual(new_channel.regular_amount, int(self.post_data_darujme['ammount']))
+        self.assertEqual(new_channel.regular_amount, int(self.post_data_darujme['amount']))
         self.assertEqual(new_channel.regular_payments, 'regular')
         self.assertEqual(new_channel.event, self.event)
         self.assertEqual(new_channel.money_account, self.money)

@@ -222,7 +222,7 @@ class RegularDarujmeUserForm_DonorPaymentChannel(FieldNameMappingMixin, RegularU
     FIELD_NAME_MAPPING = {
         'regular_frequency': 'recurringfrequency',
         'regular_payments': 'recurringfrequency',
-        'regular_amount': 'ammount',
+        'regular_amount': 'amount',
     }
 
     def clean_regular_frequency(self):
@@ -481,7 +481,7 @@ class RegularView(FormView):
                         user_data['frequency'] = request.POST.get('donorpaymentchannel-regular_frequency')
                     user_data['name'] = self.get_post_param(request, 'userprofile-first_name', 'payment_data____jmeno')
                     user_data['surname'] = self.get_post_param(request, 'userprofile-last_name', 'payment_data____prijmeni')
-                    user_data['amount'] = self.get_post_param(request, 'donorpaymentchannel-regular_amount', 'ammount')
+                    user_data['amount'] = self.get_post_param(request, 'donorpaymentchannel-regular_amount', 'amount')
                     user_data['telephone'] = self.get_post_param(request, 'userprofile-telephone', 'payment_data____telefon')
                     user_data['email'] = email
                     return self.success_page(
