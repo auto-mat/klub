@@ -46,8 +46,6 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
 from django.views.generic.edit import FormView
 
-from extra_views import InlineFormSet
-
 from interactions.models import PetitionSignature
 
 from sesame.backends import ModelBackend
@@ -55,8 +53,7 @@ from sesame.backends import ModelBackend
 from . import autocom
 from .models import (
     AdministrativeUnit, BankAccount, DonorPaymentChannel, Event, MoneyAccount, Payment, Preference,
-    Profile, ProfileEmail, Telephone, UserInCampaign,
-    UserProfile,
+    Profile, ProfileEmail, Telephone, UserProfile,
 )
 
 
@@ -118,7 +115,7 @@ class RegularUserForm_DonorPaymentChannel(BankAccountMixin, forms.ModelForm):
     )
     regular_frequency = forms.ChoiceField(
         label=_("Regular payments"),
-        choices=UserInCampaign.REGULAR_PAYMENT_FREQUENCIES,
+        choices=DonorPaymentChannel.REGULAR_PAYMENT_FREQUENCIES,
         required=False,
         widget=forms.RadioSelect(),
     )
@@ -154,7 +151,7 @@ class RegularUserForm(MultiModelForm):
     base_fields = {}
     form_classes = OrderedDict([
         ('userprofile', RegularUserForm_UserProfile),
-        ('userincampaign', RegularUserForm_DonorPaymentChannel),
+        ('donorpaymentchannel', RegularUserForm_DonorPaymentChannel),
     ])
 
 
@@ -277,14 +274,14 @@ class PetitionUserForm_PetitionSignature(FieldNameMappingMixin, forms.ModelForm)
 class RegularUserFormDPNK(RegularUserFormWithProfile):
     form_classes = OrderedDict([
         ('userprofile', RegularUserForm_UserProfile),
-        ('userincampaign', RegularUserForm_DonorPaymentChannelDPNK),
+        ('donorpaymentchannel', RegularUserForm_DonorPaymentChannelDPNK),
     ])
 
 
 class RegularDarujmeUserForm(RegularUserForm):
     form_classes = OrderedDict([
         ('userprofile', RegularDarujmeUserForm_UserProfile),
-        ('userincampaign', RegularDarujmeUserForm_DonorPaymentChannel),
+        ('donorpaymentchannel', RegularDarujmeUserForm_DonorPaymentChannel),
     ])
 
 
@@ -381,7 +378,7 @@ def get_or_create_new_user_profile(form):
 
 
 def update_or_create_new_payment_channel(form, new_user_profile):
-    data = form.clean()['userincampaign']
+    data = form.clean()['donorpaymentchannel']
     payment_channel, created = DonorPaymentChannel.objects.get_or_create(
         user=new_user_profile,
         event=data.get('event'),
@@ -427,11 +424,12 @@ class RegularView(FormView):
         if not frequency:
             frequency = payment_channel.regular_frequency
         bank_acc = BankAccount.objects.filter(slug=bank_acc)
+        donor_frequency = DonorPaymentChannel.REGULAR_PAYMENT_FREQUENCIES_MAP[frequency]
         response = render_to_response(
             self.success_template,
             {
                 'amount': amount,
-                'frequency': UserInCampaign.REGULAR_PAYMENT_FREQUENCIES_MAP[frequency],
+                'frequency': donor_frequency if donor_frequency != '---' else _('Onetime'),
                 'account_number': bank_acc.first().bank_account_number if bank_acc else "",
                 'user_id': payment_channel.id,
                 'payment_channel': payment_channel,
@@ -465,22 +463,25 @@ class RegularView(FormView):
         form = self.form_class(request.POST)
         if form.is_valid():
             email = self.get_post_param(request, 'userprofile-email', 'payment_data____email')
-            event = self.get_post_param(request, 'userincampaign-event')
-            bank_acc = self.get_post_param(request, 'userincampaign-money_account')
+            event = self.get_post_param(request, 'donorpaymentchannel-event')
+            bank_acc = self.get_post_param(request, 'donorpaymentchannel-money_account')
             user_profiles = UserProfile.objects.filter(profileemail__email=email.lower())
             if user_profiles.exists():
                 payment_channels = user_profiles.get().userchannels.filter(event__slug=event)
                 if payment_channels.exists():
                     super().post(request, *args, **kwargs)
-                    autocom.check(user_profiles=user_profiles, action='resent-data-' + self.request.POST['userincampaign-payment_type'])
+                    autocom.check(
+                        user_profiles=user_profiles,
+                        action='resent-data-' + self.request.POST['donorpaymentchannel-payment_type'],
+                    )
                     user_data = {}
                     if 'recurringfrequency' in request.POST:
                         user_data['frequency'] = REGULAR_FREQUENCY_MAP[request.POST.get('recurringfrequency')]
                     else:
-                        user_data['frequency'] = request.POST.get('userincampaign-regular_frequency')
+                        user_data['frequency'] = request.POST.get('donorpaymentchannel-regular_frequency')
                     user_data['name'] = self.get_post_param(request, 'userprofile-first_name', 'payment_data____jmeno')
                     user_data['surname'] = self.get_post_param(request, 'userprofile-last_name', 'payment_data____prijmeni')
-                    user_data['amount'] = self.get_post_param(request, 'userincampaign-regular_amount', 'ammount')
+                    user_data['amount'] = self.get_post_param(request, 'donorpaymentchannel-regular_amount', 'ammount')
                     user_data['telephone'] = self.get_post_param(request, 'userprofile-telephone', 'payment_data____telefon')
                     user_data['email'] = email
                     return self.success_page(
@@ -493,7 +494,7 @@ class RegularView(FormView):
                     )
             super().post(request, *args, **kwargs)
             user_profiles = UserProfile.objects.filter(profileemail__email=email.lower())
-            autocom.check(user_profiles=user_profiles, action='new-user-' + self.request.POST['userincampaign-payment_type'])
+            autocom.check(user_profiles=user_profiles, action='new-user-' + self.request.POST['donorpaymentchannel-payment_type'])
             dpchs = user_profiles.get().userchannels.filter(event__slug=event)
             if dpchs:
                 dpch = dpchs.first()
@@ -526,7 +527,7 @@ class RegularView(FormView):
         new_user_profile = get_or_create_new_user_profile(form)
         payment_channel = update_or_create_new_payment_channel(form, new_user_profile)
         new_user_profile.administrative_units.add(payment_channel.money_account.administrative_unit)
-        return self.success_page(payment_channel, form.clean()['userincampaign']['money_account'].slug)
+        return self.success_page(payment_channel, form.clean()['donorpaymentchannel']['money_account'].slug)
 
     def form_invalid(self, form):
         response = super().form_invalid(form)
@@ -763,17 +764,6 @@ class SesameUserMixin():
 
     def get_success_url(self):
         return "%s?url_auth_token=%s" % (super().get_success_url(), self.token)
-
-
-class UserInCampaignInline(InlineFormSet):
-    model = UserInCampaign
-    factory_kwargs = {
-        'fk_name': 'userprofile',
-        'fields': ('wished_information',),
-        'can_delete': False,
-        'extra': 0,
-    }
-    fields = ('wished_information',)
 
 
 class PetitionConfirmEmailView(SesameUserMixin, View):
