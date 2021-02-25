@@ -2003,7 +2003,6 @@ class DonorPaymentChannel(ComputedFieldsModel):
             ('VS', 'money_account'),
             ('user', 'event'),
         )
-
     VS = models.CharField(
         verbose_name=_("VS"),
         help_text=_("Variable symbol"),
@@ -2111,7 +2110,6 @@ class DonorPaymentChannel(ComputedFieldsModel):
         help_text=("Event"),
         verbose_name=("Event"),
         on_delete=models.CASCADE,
-        null=True,
     )
     end_of_regular_payments = models.DateField(
         verbose_name=_("End of regular payments (for payments by card)"),
@@ -2377,12 +2375,12 @@ class DonorPaymentChannel(ComputedFieldsModel):
         return float(self.yearly_regular_amount()) / 12.0
 
     def clean(self, *args, **kwargs):
-        self.generate_VS()
         self.check_duplicate()
         return super().clean(*args, **kwargs)
 
     def save(self, *args, **kwargs):
-        self.clean()  # run twice if save in admin (sadly)
+        self.clean()  # run twice in admin
+        self.generate_VS()
         super().save(*args, **kwargs)
 
 

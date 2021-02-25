@@ -101,23 +101,23 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
             'userprofile-first_name': 'Testing',
             'userprofile-last_name': 'User',
             'userprofile-telephone': 111222333,
-            'userincampaign-regular_frequency': 'monthly',
-            'userincampaign-regular_amount': '321',
-            'userincampaign-event': 'klub',
-            'userincampaign-money_account': '12345123',
-            'userincampaign-payment_type': 'bank-transfer',
+            'donorpaymentchannel-regular_frequency': 'monthly',
+            'donorpaymentchannel-regular_amount': '321',
+            'donorpaymentchannel-event': 'klub',
+            'donorpaymentchannel-money_account': '12345123',
+            'donorpaymentchannel-payment_type': 'bank-transfer',
         }
 
         self.post_data_darujme = {
             "recurringfrequency": "28",  # mothly
-            "ammount": "200",
+            "amount": "200",
             "payment_data____jmeno": "test_name",
             "payment_data____prijmeni": "test_surname",
             "payment_data____email": "test@email.cz",
             "payment_data____telefon": "123456789",
-            "userincampaign-event": 'klub',
-            "userincampaign-money_account": '12345123',
-            "userincampaign-payment_type": "bank-transfer",
+            "donorpaymentchannel-event": 'klub',
+            "donorpaymentchannel-money_account": '12345123',
+            "donorpaymentchannel-payment_type": "bank-transfer",
         }
         self.register_without_payment = {
             "userprofile-age_group": "2010",
@@ -195,7 +195,7 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         )
         self.assertEqual(len(mail.outbox), 1)
         dpch.refresh_from_db()
-        self.assertEqual(dpch.regular_amount, int(self.regular_post_data['userincampaign-regular_amount']))
+        self.assertEqual(dpch.regular_amount, int(self.regular_post_data['donorpaymentchannel-regular_amount']))
         self.assertEqual(dpch.regular_payments, 'regular')
         self.assertEqual(dpch.event, self.event)
         self.assertEqual(dpch.money_account, self.money)
@@ -217,7 +217,7 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         self.assertContains(response, '<tr><th>Pravidelné platby: </th><td>Pravidelné platby</td></tr>', html=True)
         email = ProfileEmail.objects.get(email="test@email.cz")
         new_channel = DonorPaymentChannel.objects.get(user=email.user)
-        self.assertEqual(new_channel.regular_amount, int(self.post_data_darujme['ammount']))
+        self.assertEqual(new_channel.regular_amount, int(self.post_data_darujme['amount']))
         self.assertEqual(new_channel.regular_payments, 'regular')
         self.assertEqual(new_channel.event, self.event)
         self.assertEqual(new_channel.money_account, self.money)
@@ -264,7 +264,7 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
 
         self.assertEqual(user.userchannels.count(), 2)
         new_channel = user.userchannels.last()
-        self.assertEqual(new_channel.regular_amount, int(self.post_data_darujme['ammount']))
+        self.assertEqual(new_channel.regular_amount, int(self.post_data_darujme['amount']))
         self.assertEqual(new_channel.regular_payments, 'regular')
         self.assertEqual(new_channel.event, self.event)
         self.assertEqual(new_channel.money_account, self.money)
