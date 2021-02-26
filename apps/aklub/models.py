@@ -2472,6 +2472,12 @@ class MassCommunication(models.Model):
         verbose_name = _("Mass Communication")
         verbose_name_plural = _("Mass Communications")
 
+    STATUS_CHOICES = (
+        ('waiting_for_sent', _('Waiting for sent')),
+        ('already_sent', _('Already sent')),
+        ('unknown', _('Unknown'))
+    )
+
     name = models.CharField(
         verbose_name=_("Name"),
         max_length=50,
@@ -2568,6 +2574,14 @@ class MassCommunication(models.Model):
         max_length=500,
         blank=True,
         null=True,
+    )
+    status = models.CharField(
+        verbose_name=_("status"),
+        help_text=_("have emails already been sent?"),
+        choices=STATUS_CHOICES,
+        default="waiting_for_sent",
+        max_length=128,
+        blank=True,
     )
     administrative_unit = models.ForeignKey(
         AdministrativeUnit,

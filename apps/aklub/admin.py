@@ -1527,7 +1527,7 @@ class MassCommunicationForm(forms.ModelForm):
 
 class MassCommunicationAdmin(unit_admin_mixin_generator('administrative_unit'), large_initial.LargeInitialMixin, admin.ModelAdmin):
     save_as = True
-    list_display = ('name', 'date', 'method_type', 'subject')
+    list_display = ('name', 'status', 'date', 'method_type', 'subject')
     ordering = ('-date',)
     autocomplete_fields = ['send_to_users']
 
@@ -1541,6 +1541,7 @@ class MassCommunicationAdmin(unit_admin_mixin_generator('administrative_unit'), 
         (None, {
             'fields': (
                 'name',
+                'status',
                 'date',
                 'method_type',
                 'subject',
@@ -1594,6 +1595,7 @@ class MassCommunicationAdmin(unit_admin_mixin_generator('administrative_unit'), 
                 raise e
             # Sending was done, so revert the state of the 'send' checkbox back to False
             obj.date = datetime.datetime.now()
+            obj.status = "already_sent"
             obj.save()
         return obj
 
