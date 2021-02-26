@@ -7,6 +7,10 @@ from django.utils.translation import ugettext_lazy as _
 
 
 class Location(models.Model):
+    class Meta:
+        verbose_name = _("Location")
+        verbose_name_plural = _("Locations")
+
     name = models.CharField(
         verbose_name=_("Name"),
         max_length=100,
@@ -117,7 +121,7 @@ class Event(models.Model):
     )
     REGISTRATION_METHOD = (
         ('standard', _('Standard')),
-        ('other_electronic', _('Other electrinoc')),
+        ('other_electronic', _('Other electronic')),
         ('by_email', _("By organizer's email")),
         ('not_required', _("Not required")),
         ('full', _("Full, not anymore")),
@@ -131,7 +135,7 @@ class Event(models.Model):
     )
     for i in range(1, 4):
         vars()[f"additional_question_{i}"] = models.CharField(
-            verbose_name=_(f"Additional question number {i}"),
+            verbose_name=_("Additional question number %(number)s" % {"number": i}),
             blank=True,
             max_length=300,
         )
@@ -143,7 +147,7 @@ class Event(models.Model):
     )
     for i in range(1, 7):
         vars()[f"additional_photo_{i}"] = models.FileField(
-            verbose_name=_(f"Additional photo number {i}"),
+            verbose_name=_("Additional photo number %(number)s" % {"number": i}),
             blank=True,
             null=True,
             upload_to='event_photos',
@@ -438,6 +442,10 @@ class Event(models.Model):
 
 
 class OrganizationPosition(models.Model):
+    class Meta:
+        verbose_name = _("Organization position")
+        verbose_name_plural = _("Organization position")
+
     name = models.CharField(max_length=300, verbose_name=_("Name"),)
     description = models.TextField(blank=True, verbose_name=_("Description"))
 
@@ -446,6 +454,10 @@ class OrganizationPosition(models.Model):
 
 
 class OrganizationTeam(models.Model):
+    class Meta:
+        verbose_name = _("Organization team")
+        verbose_name_plural = _("Organization teams")
+
     profile = models.ForeignKey("aklub.Profile", on_delete=models.CASCADE)
     event = models.ForeignKey(Event, on_delete=models.CASCADE, verbose_name=_("Event"))
     position = models.ForeignKey(OrganizationPosition, on_delete=models.CASCADE, verbose_name=_("Position"),)

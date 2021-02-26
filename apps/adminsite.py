@@ -15,6 +15,11 @@ class InteractionConfig(AppConfig):
     verbose_name = _("Interactions")
 
 
+class EventConfig(AppConfig):
+    name = 'events'
+    verbose_name = _("Events")
+
+
 class PdfStorageConfig(AppConfig):
     name = 'pdf_storage'
     verbose_name = _("File Storage")

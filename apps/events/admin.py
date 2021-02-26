@@ -60,6 +60,7 @@ class OrganizationTeamInline(admin.TabularInline):
     model = OrganizationTeam
     autocomplete_fields = ['profile']
     classes = ['collapse']
+    extra = 0
 
 
 @admin.register(Event)
