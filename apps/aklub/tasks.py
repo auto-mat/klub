@@ -61,9 +61,8 @@ def generate_tax_confirmations(year, profiles_ids, pdf_type_id):
 
 
 @task()
-def send_communication_task(mass_communication_id, communication_type, userincampaign_id, sending_user_id):
-    print("sending to %s" % userincampaign_id)
-    send_communication_sync(mass_communication_id, communication_type, userincampaign_id, sending_user_id)
+def send_communication_task(mass_communication_id, communication_type, profile, sending_user_id):
+    send_communication_sync(mass_communication_id, communication_type, profile, sending_user_id)
 
 
 @task()
