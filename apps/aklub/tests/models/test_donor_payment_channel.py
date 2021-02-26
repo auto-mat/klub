@@ -44,7 +44,7 @@ class TestNoUpgrade(TestCase):
             administrative_unit=self.administrative_unit,
         )
         self.event = mommy.make(
-            'aklub.Event',
+            'events.event',
             administrative_units=[self.administrative_unit, ],
         )
 
@@ -182,7 +182,7 @@ class TestExtraMoney(TestCase):
             administrative_unit=administrative_unit,
         )
         self.event = mommy.make(
-            'aklub.event',
+            'events.event',
             administrative_units=[administrative_unit, ],
         )
         self.donor_payment_channel = Recipe(
@@ -363,7 +363,7 @@ class TestDenormalizedFields(TestCase):
     def setUp(self):
         unit = mommy.make('aklub.AdministrativeUnit', name='test')
         self.money_acc = mommy.make('aklub.BankAccount', administrative_unit=unit, bank_account_number='12345')
-        self.event = mommy.make('aklub.Event', name='name', administrative_units=[unit, ])
+        self.event = mommy.make('events.event', name='name', administrative_units=[unit, ])
         self.dpch = mommy.make(
             'aklub.DonorPaymentChannel',
             id=10,

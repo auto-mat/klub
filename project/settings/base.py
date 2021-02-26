@@ -222,6 +222,7 @@ INSTALLED_APPS = (
     'adminfilters',
     'advanced_filters',
     'aklub',
+    'events',
     'interactions',
     'oauth2_manager',
     'helpdesk',
@@ -272,6 +273,7 @@ OAUTH2_PROVIDER = {
         'can_create_interactions': 'Can create interactions by API',
         'can_check_last_payments': 'Can check payments in dpch',
         'can_create_credit_card_payment': 'Can create credit card payment',
+        'can_view_events': 'Can view events',
     },
 }
 

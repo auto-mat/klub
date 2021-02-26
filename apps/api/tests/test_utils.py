@@ -15,7 +15,7 @@ class CheckLastMonthYearPaymentTest(TestCase):
         app_login_mixin()
         self.user = mommy.make('aklub.UserProfile', username='Testeretes')
         unit = mommy.make('aklub.administrativeunit', name='test_unit')
-        event = mommy.make('aklub.event', slug='event_slug', administrative_units=[unit, ])
+        event = mommy.make('events.event', slug='event_slug', administrative_units=[unit, ])
         bank_acc = mommy.make('aklub.bankaccount', bank_account='11122/111', slug='bank_slug', administrative_unit=unit)
         self.dpch = mommy.make('aklub.DonorPaymentChannel', event=event, money_account=bank_acc, VS=1111, user=self.user)
 

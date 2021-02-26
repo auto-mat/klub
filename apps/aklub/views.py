@@ -46,13 +46,15 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
 from django.views.generic.edit import FormView
 
+from events.models import Event
+
 from interactions.models import PetitionSignature
 
 from sesame.backends import ModelBackend
 
 from . import autocom
 from .models import (
-    AdministrativeUnit, BankAccount, DonorPaymentChannel, Event, MoneyAccount, Payment, Preference,
+    AdministrativeUnit, BankAccount, DonorPaymentChannel, MoneyAccount, Payment, Preference,
     Profile, ProfileEmail, Telephone, UserProfile,
 )
 

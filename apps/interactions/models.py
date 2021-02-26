@@ -1,6 +1,6 @@
 import os.path
 
-from aklub.models import AdministrativeUnit, Event, Profile
+from aklub.models import AdministrativeUnit, Profile
 from aklub.utils import WithAdminUrl
 
 from django.core.mail import EmailMultiAlternatives
@@ -65,7 +65,7 @@ class BaseInteraction2(models.Model):
         on_delete=models.CASCADE,
     )
     event = models.ForeignKey(
-        Event,
+        "events.Event",
         verbose_name=("Event"),
         on_delete=models.SET_NULL,
         null=True,

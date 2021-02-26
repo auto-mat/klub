@@ -42,7 +42,7 @@ class AutocomTest(TestCase):
         inter_type = mommy.make('interactions.interactiontype', category=inter_category, send_email=True)
         self.unit = mommy.make('aklub.administrativeunit', name='test_unit')
 
-        self.event = mommy.make('aklub.event', name='test_event', administrative_units=[self.unit, ])
+        self.event = mommy.make('events.event', name='test_event', administrative_units=[self.unit, ])
         self.money_account = mommy.make('aklub.BankAccount', bank_account_number=3, administrative_unit=self.unit)
 
         self.user = mommy.make('aklub.userprofile', administrative_units=[self.unit, ])
@@ -258,7 +258,7 @@ class AutocomTest(TestCase):
 class AutocomAddressmentTest(TestCase):
     def setUp(self):
         self.userprofile = mommy.make('aklub.userprofile', sex='male')
-        self.event = mommy.make('aklub.event')
+        self.event = mommy.make('events.event')
         self.au = mommy.make('aklub.administrativeunit', name='test')
         self.bankacc = mommy.make('aklub.BankAccount', bank_account_number=11111, administrative_unit=self.au)
         named_condition = mommy.make('flexible_filter_conditions.NamedCondition')
