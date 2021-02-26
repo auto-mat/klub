@@ -2,6 +2,8 @@
 import codecs
 import csv
 
+from django.utils.translation import ugettext_lazy as _
+
 from . import models
 
 
@@ -21,9 +23,9 @@ def check_incomming(amount):
     return amount < 0
 
 
-def header_parse(payments_reader, date_from_name, date_to_name, recipient_account=None, statement=None):
+def header_parse(payments_reader, date_from_name, date_to_name, recipient_account_name=None, statement=None):
     for payment in payments_reader:
-        if payment[payments_reader.fieldnames[0]] == recipient_account:
+        if payment[payments_reader.fieldnames[0]] == recipient_account_name:
 
             account = payment[payments_reader.fieldnames[1]]
             if 'CZK' in account:  # because KB statement has CZK in account name
@@ -31,7 +33,11 @@ def header_parse(payments_reader, date_from_name, date_to_name, recipient_accoun
             try:
                 recipient_account = models.BankAccount.objects.get(bank_account_number__contains=account)
             except models.BankAccount.DoesNotExist:
-                statement.pair_log = 'Missing Bank account, add it in BankAccounts'
+                statement.pair_log = _('Missing Bank account: %(acc)s, add it in BankAccounts') % {'acc': account}
+                raise
+            else:
+                statement.pair_log = ''
+
         if payment[payments_reader.fieldnames[0]] == date_from_name:
             date_from = payment[payments_reader.fieldnames[1]]
 
@@ -80,7 +86,7 @@ class ParseAccountStatement(object):
             payments_reader=payments_reader,
             date_from_name="dateStart",
             date_to_name="dateEnd",
-            recipient_account="\ufeffaccountId",
+            recipient_account_name='\ufeff"accountId"',
             statement=self,
         )
         self.date_from = models.str_to_datetime(date_from)
@@ -118,7 +124,7 @@ class ParseAccountStatement(object):
             payments_reader=payments_reader,
             date_from_name='Počáteční datum období',
             date_to_name='Konečné datum období',
-            recipient_account='Číslo účtu',
+            recipient_account_name='Číslo účtu',
             statement=self,
         )
         self.date_from = date_format(date_from)
@@ -174,7 +180,7 @@ class ParseAccountStatement(object):
             payments_reader=payments_reader,
             date_from_name='Vypis za obdobi',
             date_to_name='',
-            recipient_account='Cislo uctu',
+            recipient_account_name='Cislo uctu',
             statement=self,
         )
 

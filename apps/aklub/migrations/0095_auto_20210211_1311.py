@@ -8,7 +8,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('interactions', '0012_auto_20210211_1311'),
-        ('aklub', '0093_auto_20210211_1251'),
+        ('aklub', '0094_auto_20210211_1251'),
         ('events', "0001_initial"),
     ]
 
