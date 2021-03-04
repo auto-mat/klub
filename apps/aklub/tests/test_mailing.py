@@ -44,7 +44,12 @@ class MailingTest(TransactionTestCase):
         setattr(self.request, 'session', 'session')
         messages = FallbackStorage(self.request)
         setattr(self.request, '_messages', messages)
-        self.unit = mommy.make("aklub.administrativeunit", name="test_unit")
+        self.unit = mommy.make(
+            "aklub.administrativeunit",
+            name="test_unit",
+            from_email_str="<example@some.com>",
+            from_email_address="example@some.com",
+        )
 
     @freeze_time("2015-5-1")
     def test_mailing_fake_user(self):
@@ -66,7 +71,7 @@ class MailingTest(TransactionTestCase):
         mailing.send_fake_communication(c, sending_user, self.request)
         self.assertEqual(len(mail.outbox), 1)
         msg = mail.outbox[0]
-        self.assertEqual(msg.recipients(), ['test@test.com'])
+        self.assertEqual(msg.recipients(), ['<example@some.com>'])
         self.assertEqual(msg.subject, 'Testing email')
         self.assertIn("Testing template", msg.body)
 
@@ -96,7 +101,7 @@ class MailingTest(TransactionTestCase):
         mailing.send_fake_communication(c, sending_company, self.request)
         self.assertEqual(len(mail.outbox), 1)
         msg = mail.outbox[0]
-        self.assertEqual(msg.recipients(), ['test_company@test.com'])
+        self.assertEqual(msg.recipients(), ['<example@some.com>'])
         self.assertEqual(msg.subject, 'Testing email')
         self.assertIn("Testing template", msg.body)
 

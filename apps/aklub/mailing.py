@@ -28,7 +28,7 @@ from interactions.models import Interaction
 from . import autocom
 from .models import (
     AutomaticCommunication, DonorPaymentChannel,
-    MassCommunication, Payment, Profile, TaxConfirmation, TaxConfirmationPdf,
+    MassCommunication, Payment, Profile, ProfileEmail, TaxConfirmation, TaxConfirmationPdf,
 )
 
 """Mailing"""
@@ -84,14 +84,14 @@ def send_communication_sync(communication_id, communication_type, userincampaign
     payment_channel = None
     # choose if email is mass or auto communication
     if communication_type == 'mass':
-        mass_communication = MassCommunication.objects.get(id=communication_id)
+        communication = MassCommunication.objects.get(id=communication_id)
     else:
-        mass_communication = AutomaticCommunication.objects.get(id=communication_id)
+        communication = AutomaticCommunication.objects.get(id=communication_id)
 
     # choose if email send  action is real or fake
     if userincampaign_id == "fake_user":
-        # if fake we get first user then redirect his email to administrative unit email
-        userprofile = mass_communication.send_to_users.first()
+        # if fake we get first email of mass_communicaiton or random user for testing automatic communication
+        userprofile = communication.send_to_users.first() if communication_type == 'mass' else ProfileEmail.objects.first().user
         save = False
         is_test = True  # later we cant decide this only on "save"
     else:
@@ -99,28 +99,28 @@ def send_communication_sync(communication_id, communication_type, userincampaign
         save = True
         is_test = False
 
-    template, subject = get_template_subject_for_language(mass_communication, userprofile.language)
+    template, subject = get_template_subject_for_language(communication, userprofile.language)
 
     if userprofile.is_active and subject and subject.strip() != '':
         if not subject or subject.strip() == '' or not template or template.strip('') == '':
             raise Exception("Message template is empty for one of the language variants.")
-        # check if its mass_communication ... if not its auto communication and attachment cant be sent yet
+        # check if its communication ... if not its auto communication and attachment cant be sent yet
         if communication_type == "mass":
-            if not mass_communication.attach_tax_confirmation:
-                attachment = copy.copy(mass_communication.attachment)
+            if not communication.attach_tax_confirmation:
+                attachment = copy.copy(communication.attachment)
             else:
                 tax_confirmations = TaxConfirmationPdf.objects.filter(
                     obj__user_profile=userprofile,
-                    obj__year=mass_communication.attached_tax_confirmation_year,
-                    obj__pdf_type=mass_communication.attached_tax_confirmation_type,
+                    obj__year=communication.attached_tax_confirmation_year,
+                    obj__pdf_type=communication.attached_tax_confirmation_type,
                 )
                 if len(tax_confirmations) > 0:
                     attachment = copy.copy(tax_confirmations[0].pdf)
                 else:
                     tax_confirmations = TaxConfirmation.objects.filter(
                         user_profile=userprofile,
-                        year=mass_communication.attached_tax_confirmation_year,
-                        pdf_type=mass_communication.attached_tax_confirmation_type,
+                        year=communication.attached_tax_confirmation_year,
+                        pdf_type=communication.attached_tax_confirmation_type,
                     )
                     if len(tax_confirmations) > 0:
                         attachment = copy.copy(tax_confirmations[0].file)
@@ -131,9 +131,9 @@ def send_communication_sync(communication_id, communication_type, userincampaign
         sending_user = Profile.objects.get(id=sending_user_id)  # created_by
         c = Interaction(
             user=userprofile,
-            type=mass_communication.method_type,
+            type=communication.method_type,
             date_from=datetime.datetime.now(),
-            administrative_unit=mass_communication.administrative_unit,
+            administrative_unit=communication.administrative_unit,
             subject=autocom.process_template(subject, userprofile, payment_channel),
             summary=autocom.process_template(template, userprofile, payment_channel),
             attachment=attachment,
