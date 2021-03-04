@@ -1,15 +1,30 @@
 {% extends "admin/base_site.html" %}
+{% load inline_static_tags %}
 {% block branding %}
 <style>
-.title {
-  color: white;
-  font-family: verdana;
-  font-size: 24px;
-  font-weight: 600;
-  font-family: Arial;
-  padding-left: 15px;
-  font-style: oblique;
-}
+ .title {
+     color: white;
+     font-family: verdana;
+     font-size: 24px;
+     font-weight: 600;
+     font-family: Arial;
+     padding-left: 15px;
+     font-style: oblique;
+     line-height: 20px;
+ }
+ .version {
+     color: lightblue;
+     font-family: verdana;
+     font-size: 6px;
+     font-weight: 600;
+     font-family: Arial;
+     font-style: oblique;
+     line-height: 7px;
+     text-align: right;
+ }
 </style>
 <div class='title'>CRM SYSTEM</div>
+<div class="version">
+{% inline_staticfile "version.txt" %}
+</div>
 {% endblock %}

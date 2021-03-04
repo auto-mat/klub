@@ -13,7 +13,6 @@ project/settings/local.py
 data/
 trash/
 logs/
-static/
 update_local.sh
 aklub.log*
 db_backup
