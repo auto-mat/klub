@@ -241,10 +241,10 @@ class Interaction(WithAdminUrl, BaseInteraction2):
         """
         if self.type.send_email or self.type.send_sms:
             if not self.dispatched:  # take ride of duplicity email send if mass communictaion is used
-                self.dispatch()  # then try to dispatch this email automatically
+                self.dispatch(save=False)  # then try to dispatch this email automatically
         super().save(*args, **kwargs)
 
-    def dispatch(self, save=True):
+    def dispatch(self, save=True, is_test=False):
         """Dispatch the communication
         Currently only method 'email' is implemented, all other methods will be only saved. For these messages, the
         email is sent via the service configured in application settings.
@@ -261,10 +261,7 @@ class Interaction(WithAdminUrl, BaseInteraction2):
             user_email = self.user.get_email_str(self.administrative_unit)
             if user_email:
                 # if we dpmt wamt to save email => its fake communicaiton and we sent some user to administrative unit
-                if save:
-                    to = user_email
-                    body = self.summary_txt()
-                else:
+                if is_test:
                     to = administrative_unit.from_email_str
                     body = _(
                         "Testing email\n"
@@ -272,6 +269,11 @@ class Interaction(WithAdminUrl, BaseInteraction2):
                         "^^^Ignore those lines ^^^\n\n"
                     ) % {'email': user_email}
                     body = str(body) + self.summary_txt()
+
+                else:
+                    to = user_email
+                    body = self.summary_txt()
+
                 email = EmailMultiAlternatives(
                     subject=self.subject,
                     body=body,

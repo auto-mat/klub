@@ -93,9 +93,11 @@ def send_communication_sync(communication_id, communication_type, userincampaign
         # if fake we get first user then redirect his email to administrative unit email
         userprofile = mass_communication.send_to_users.first()
         save = False
+        is_test = True  # later we cant decide this only on "save"
     else:
         userprofile = Profile.objects.get(id=userincampaign_id)
         save = True
+        is_test = False
 
     template, subject = get_template_subject_for_language(mass_communication, userprofile.language)
 
@@ -143,4 +145,5 @@ def send_communication_sync(communication_id, communication_type, userincampaign
         )
         c.dispatch(
             save=save,
+            is_test=is_test,
         )
