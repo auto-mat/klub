@@ -2078,7 +2078,7 @@ class UserProfileAdmin(
         data = request.POST
         if data.get('email') and data.get('administrative_units'):
             try:
-                email = ProfileEmail.objects.get(email=data.get('email'))
+                email = ProfileEmail.objects.get(email=data.get('email').lower())
                 unit = AdministrativeUnit.objects.get(id=data.get('administrative_units'))
                 user = email.user
                 user.administrative_units.add(unit)

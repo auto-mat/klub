@@ -100,6 +100,7 @@ class UserCreateForm(UserCreationForm):
         # validation change "locked" and "unlocked" field , which helps to make double form
         if self.data.get('hidden_lock_change') == 'locked' and super().is_valid():
             self.data = self.data.copy()
+            self.data['email'] = self.data['email'].lower()
             self.data['hidden_lock_change'] = 'unlocked'
             return False
         return super().is_valid()
