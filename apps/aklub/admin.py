@@ -2136,6 +2136,7 @@ class UserProfileAdmin(
                            
     def get_search_results(self, *args, **kwargs):
         queryset, distinct = super().get_search_results(*args, **kwargs)
+        import pdb;pdb.set_trace()
         return queryset.distinct(), True
 
 
