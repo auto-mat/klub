@@ -2133,6 +2133,10 @@ class UserProfileAdmin(
                 )
 
         return queryset
+                           
+    def get_search_results(self, *args, **kwargs):
+        queryset, distinct = super().get_search_results(*args, **kwargs)
+        return queryset, True
 
 
 class CompanyContactInline(admin.TabularInline):
