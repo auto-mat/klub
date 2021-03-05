@@ -36,7 +36,7 @@ from django.contrib.humanize.templatetags.humanize import intcomma
 from django.core.files.storage import FileSystemStorage
 from django.core.validators import RegexValidator, ValidationError
 from django.db import models, transaction
-from django.db.models import Count, Q, Sum, signals
+from django.db.models import Count, Q, QuerySet, Sum, signals
 from django.dispatch import receiver
 from django.urls import reverse
 from django.utils import timezone
@@ -1101,7 +1101,13 @@ class Preference(models.Model):
         return self.administrative_unit.name if self.administrative_unit else ''
 
 
+class TelephoneQuerySet(QuerySet):
+    def get_or_create(self):
+        pass
+
+
 class Telephone(models.Model):
+    queryset_class = TelephoneQuerySet
     bool_choices = (
         (None, "No"),
         (True, "Yes")
@@ -1132,9 +1138,7 @@ class Telephone(models.Model):
     )
     user = models.ForeignKey(
         UserProfile,
-        blank=True,
-        null=True,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
     )
 
     class Meta:
