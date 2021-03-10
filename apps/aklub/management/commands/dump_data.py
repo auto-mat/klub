@@ -95,7 +95,7 @@ class Command(BaseCommand):
         date = datetime.datetime.now() - datetime.timedelta(
             days=randint(0, 40),
         )
-        for num in range(0, randint(0, max_payments_to_dpch)):
+        for num in range(0, randint(1, max_payments_to_dpch)):
             pay = Payment(
                 recipient_account=money_account,
                 amount=amount,
