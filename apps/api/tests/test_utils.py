@@ -17,7 +17,7 @@ class CheckLastMonthYearPaymentTest(TestCase):
         self.user = mommy.make('aklub.UserProfile', username='Testeretes')
         cache.delete(f"{self.user.id}_paid_section")
         self.unit = mommy.make('aklub.administrativeunit', name='test_unit')
-        self.event = mommy.make('aklub.event', slug='event_slug', administrative_units=[self.unit, ])
+        self.event = mommy.make('events.event', slug='event_slug', administrative_units=[self.unit, ])
         self.bank_acc = mommy.make('aklub.bankaccount', bank_account='11122/111', slug='bank_slug', administrative_unit=self.unit)
         self.dpch = mommy.make('aklub.DonorPaymentChannel', event=self.event, money_account=self.bank_acc, VS=1111, user=self.user)
 

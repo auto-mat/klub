@@ -295,7 +295,7 @@ class TestDarujmeCheck(TestCase):
 
         self.unit1 = mommy.make('aklub.AdministrativeUnit', name='test_unit')
         self.unit2 = mommy.make('aklub.AdministrativeUnit', name='test_unit_2')
-        self.event = mommy.make('aklub.Event', name='test_event')
+        self.event = mommy.make('events.Event', name='test_event')
         self.api_acc = mommy.make(
             'aklub.ApiAccount',
             project_name='test_project',
