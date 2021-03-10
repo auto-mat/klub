@@ -12,7 +12,7 @@ from smmapdfs.models import PdfSandwichType
 from . import darujme
 from . import models
 from .autocom import check
-from .darujme import parse_darujme
+from .darujme import parse_darujme_json
 from .mailing import create_mass_communication_tasks_sync, send_communication_sync
 
 logger = logging.getLogger(__name__)
@@ -94,7 +94,7 @@ def parse_account_statement(statement_id):
                 statement.payments = statement.parse_bank_csv_raiffeisenbank()
 
             elif statement.type == 'darujme':
-                statement.payments, statement.skipped_payments = parse_darujme(statement.csv_file)
+                statement.payments, statement.skipped_payments = parse_darujme_json(statement.csv_file)
         except Exception as e: # noqa
             logger.info(f"Error parsing csv_file: {e}")
             statement.save(parse_csv=False)
