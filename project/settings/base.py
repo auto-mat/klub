@@ -197,6 +197,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'django_nyt.apps.DjangoNytConfig',
+    'django_spaghetti',
     'stdimage',
     'dbbackup',
     'bootstrapform',
@@ -535,4 +536,11 @@ MERGE_ACTION_IGNORED_FIELDS = {
             'userprofile': ['is_staff', 'is_superuser', 'user_permissions', 'groups'],
             'companyprofile': ['is_staff', 'is_superuser', 'user_permissions', 'groups'],
     },
+}
+
+# django_spaghetti settings:
+SPAGHETTI_SAUCE = {
+    'apps': ['events', 'interactions', 'pdf_storage', 'aklub'],  # include only main applications
+    'show_fields': False,
+    'exclude': {'aklub': ['administrativeunit']},
 }
