@@ -2,350 +2,170 @@
 """ Parse reports from Darujme.cz """
 import datetime
 import logging
-import urllib
-import xml
-from collections import OrderedDict
-from xml.dom import minidom
 
 from aklub.models import (
-    AccountStatements, ApiAccount, DonorPaymentChannel, Payment, ProfileEmail, Telephone, UserProfile, str_to_datetime,
-    str_to_datetime_xml,
+    AccountStatements, ApiAccount, DonorPaymentChannel, Payment, ProfileEmail, Telephone, UserProfile,
 )
 from aklub.views import get_unique_username
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.utils.dateparse import parse_datetime
 
-import xlrd
+import requests
 
-
-# Text constants in Darujme.cz report
-STATE_OK_MAP = {
-    'OK, převedeno': True,
-    'OK': True,
-    'neproběhlo': False,
-    'neuzavřeno': False,
-    'příslib': False,
-}
-
-FREQUENCY_MAP = {
-    'měsíční': "monthly",
-    "roční": "annually",
-    "jednorázový": None,
-}
-UNLIMITED = "na dobu neurčitou"
-
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
-def parse_string(value):
-    if type(value) == float:
-        return int(value)
-    return value
-
-
-def parse_float_to_int(value):
-    return int(float(value))
-
-
-def map_ano_ne(value):
-    if value == "Ano":
-        return True
-    if value == "Ne":
-        return False
-    return value
-
-
-def parse_darujme_xml(xmlfile):
-    xmldoc = minidom.parse(xmlfile)
-    darujme_api = xmldoc.getElementsByTagName('darujme_api')[0]
-    payments = []
-    skipped_payments = []
-    for record in darujme_api.getElementsByTagName('record'):
-        data = {}
-        trans_id = record.getElementsByTagName('transaction_id')[0].firstChild
-        if trans_id:
-            data['id'] = trans_id.nodeValue
-        else:
-            data['id'] = ""
-        data['projekt'] = record.getElementsByTagName('projekt')[0].firstChild.nodeValue
-        data['cislo_projektu'] = record.getElementsByTagName('cislo_projektu')[0].firstChild.nodeValue
-        data['cetnost'] = record.getElementsByTagName('cetnost')[0].firstChild.nodeValue
-        data['stav'] = record.getElementsByTagName('stav')[0].firstChild.nodeValue
-        data['datum_daru'] = record.getElementsByTagName('datum_daru')[0].firstChild.nodeValue
-        data['uvedena_castka'] = parse_float_to_int(record.getElementsByTagName('uvedena_castka')[0].firstChild.nodeValue)
-        data['telefon'] = ""
-        cetnost_konec = record.getElementsByTagName('cetnost_konec')[0].firstChild
-        if cetnost_konec and cetnost_konec.nodeValue != UNLIMITED:
-            data['cetnost_konec'] = str_to_datetime_xml(cetnost_konec.nodeValue)
-        else:
-            data['cetnost_konec'] = UNLIMITED
-        for hodnota in record.getElementsByTagName('uzivatelska_pole')[0].getElementsByTagName('hodnota'):
-            if hodnota.hasChildNodes():
-                value = map_ano_ne(hodnota.firstChild.nodeValue)
-            else:
-                value = ""
-            data[hodnota.attributes['nazev'].value] = value
-
-        platby = record.getElementsByTagName('platby')
-        if len(platby) > 0:
-            for platba in platby[0].getElementsByTagName('platba'):
-                data['id_platby'] = platba.getElementsByTagName('id_platby')[0].firstChild.nodeValue
-                data['datum_prichozi_platby'] = platba.getElementsByTagName('datum_prichozi_platby')[0].firstChild.nodeValue
-                data['obdrzena_castka'] = parse_float_to_int(platba.getElementsByTagName('obdrzena_castka')[0].firstChild.nodeValue)
-                create_payment(data, payments, skipped_payments)
-        else:
-            data['id_platby'] = None
-            data['datum_prichozi_platby'] = None
-            data['obdrzena_castka'] = None
-            create_payment(data, payments, skipped_payments)
-    return payments, skipped_payments
-
-
-def create_statement_from_file(xmlfile, administrative_unit):
-    payments, skipped_payments = parse_darujme_xml(xmlfile)
+def create_statement(response, api_account):
+    payments = parse_darujme_json(response, api_account)
     if len(payments) > 0:
-        a = AccountStatements(type="darujme", administrative_unit=administrative_unit)
+        a = AccountStatements(type="darujme", administrative_unit=api_account.administrative_unit)
         a.payments = payments
         a.save()
     else:
         a = None
-    return a, skipped_payments
+    return a
 
 
-def create_statement_from_API(campaign):
-    # TODO: limit it somehow ...
-    # get current celery task and look for payments with last_run + time_delay
-    # right now.. we are getting all payments ... again and again
-    url = 'https://www.darujme.cz/dar/api/darujme_api.php?api_id=%s&api_secret=%s&typ_dotazu=1' % (
-        campaign.api_id,
-        campaign.api_secret,
+def create_statement_from_API(api_account):
+    url = 'https://www.darujme.cz/api/v1/organization/{0}/pledges-by-filter/?apiId={1}&apiSecret={2}&projectId={3}'.format(
+        api_account.api_organization_id,
+        api_account.api_id,
+        api_account.api_secret,
+        api_account.project_id,
     )
-    response = urllib.request.urlopen(url)
+    response = requests.get(url)
     try:
-        return create_statement_from_file(response, campaign.administrative_unit)
-    except xml.parsers.expat.ExpatError as e:
-        print("Error while parsing url: %s" % url)
+        return create_statement(response, api_account)
+    except Exception as e: # noqa
+        logger.info(f'Error while parsing url: {url} error: {e}')
         raise e
 
 
-def get_campaign(data):
-    if 'cislo_projektu' in data:
-        return ApiAccount.objects.get(project_id=data['cislo_projektu'])
-    else:
-        return ApiAccount.objects.get(project_name=data['projekt'])
-
-
-def get_cetnost_konec(data):
-    if data['cetnost_konec'] in (UNLIMITED, ""):
-        return None
-    else:
-        return data['cetnost_konec']
-
-
-def get_cetnost_regular_payments(data):
-    cetnost = FREQUENCY_MAP[data['cetnost']]
-    state_ok = STATE_OK_MAP[data['stav'].strip()]
-    if not cetnost:
-        return cetnost, "onetime"
-    else:
-        if state_ok:
-            return cetnost, "regular"
+def create_payments(pledge, api_account):
+    is_donor = False  # check if user has any succeful payment
+    new_payments = []
+    for transaction in pledge['transactions']:
+        # proces only payments which are sent and doesnt exist
+        if transaction['state'] != 'sent_to_organization':
+            logger.info(f"skipping payment id:{transaction['transactionId']} for {pledge['donor']['email']}  => not sent ")
+        elif Payment.objects.filter(type='darujme', SS=pledge['pledgeId'], operation_id=transaction['transactionId']).exists():
+            logger.info(f"skipping payment id:{transaction['transactionId']} for {pledge['donor']['email']}  => exists ")
+            is_donor = True
+            continue
         else:
-            return cetnost, "promise"
-
-
-# class PaymentForm(forms.ModelForm):
-#     class Meta:
-#         model = Payment
-
-
-def create_payment(data, payments, skipped_payments):  # noqa
-    if data['email'] == '':
-        return
-    id_platby = data.get('id_platby')
-    campaign = get_campaign(data)
-
-    if id_platby and Payment.objects.filter(type='darujme', SS=data['id'], operation_id=None).exists():
-        payment = Payment.objects.filter(type='darujme', SS=data['id'], operation_id=None).first()
-        payment.operation_id = id_platby
-        payment.date = data['datum_prichozi_platby'] or data['datum_daru']
-        payment.recipient_account = campaign
-        payment.save()
-        return None
-
-    filter_kwarg = {
-        "type": 'darujme',
-        "SS": data['id'],
-        "date": data['datum_prichozi_platby'] or data['datum_daru'],
-        # TODO:
-        # "recipient_account": campaign, # this cant be done because  this wont find old payments without recipient account
-        # we need to set recipient_account to all payments first!
-    }
-    if id_platby:
-        filter_kwarg["operation_id"] = id_platby
-    existed_payments = Payment.objects.filter(**filter_kwarg)
-    if existed_payments.exists():
-        # TODO: this can be removed after all payments in db has updated recipient_account
-        for pay in existed_payments:
-            if not pay.recipient_account:
-                pay.recipient_account = campaign
-                pay.save()
-
-        skipped_payments.append(
-            OrderedDict(
-                [
-                    ('ss', data['id']),
-                    ('date', data['datum_daru']),
-                    ('name', data['jmeno']),
-                    ('surname', data['prijmeni']),
-                    ('email', data['email']),
-                ],
-            ),
-        )
-        log.info('Payment with type Darujme.cz and SS=%s already exists, skipping' % str(data['id']))
-        return None
-
-    cetnost_konec = get_cetnost_konec(data)
-
-    cetnost, regular_payments = get_cetnost_regular_payments(data)
-
-    amount = max(data['obdrzena_castka'] or data['uvedena_castka'], 0)
-    p = None
-
-    if STATE_OK_MAP[data['stav'].strip()]:
-        p = Payment()
-        p.type = 'darujme'
-        p.SS = data['id']
-        p.date = data['datum_prichozi_platby'] or data['datum_daru']
-        p.operation_id = id_platby
-        p.amount = amount
-        p.account_name = u'%s, %s' % (data['prijmeni'], data['jmeno'])
-        p.user_identification = data['email']
-        p.recipient_account = campaign
-
-    email, email_created = ProfileEmail.objects.get_or_create(
-                email=data['email'].lower(),
-                defaults={'is_primary': True},
+            payment = Payment(
+                type='darujme',
+                SS=pledge['pledgeId'],
+                date=parse_datetime(transaction['receivedAt']).date(),
+                operation_id=transaction['transactionId'],
+                amount=int(transaction['sentAmount']['cents']/100),  # in cents
+                account_name=f"{pledge['donor']['firstName']} {pledge['donor']['lastName']}",
+                user_identification=pledge['donor']['email'],
+                recipient_account=api_account,
             )
+            new_payments.append(payment)
+            is_donor = True
+    return is_donor, new_payments
 
-    if settings.DARUJME_EMAIL_AS_USERNAME:
-        username = email.email
-    else:
-        username = get_unique_username(email.email)
+
+def create_donor_profile(pledge, api_account):
+    """
+    update or create new UserProfile and DonorPaymentChannel
+    """
+    email, email_created = ProfileEmail.objects.get_or_create(
+        email=pledge['donor']['email'].lower(),
+        defaults={'is_primary': True},
+    )
+    if email_created:
+        if settings.DARUJME_EMAIL_AS_USERNAME:
+            username = email.email
+        else:
+            username = get_unique_username(email.email)
 
     if email_created:
         userprofile = UserProfile.objects.create(
-                first_name=data['jmeno'],
-                last_name=data['prijmeni'],
+                first_name=pledge['donor']['firstName'],
+                last_name=pledge['donor']['lastName'],
                 username=username,
-                street=data.get('ulice', ""),
-                city=data.get('mesto', ""),
-                zip_code=data.get('psc', ""),
+                street=pledge['donor']['address']['street'],
+                city=pledge['donor']['address']['city'],
+                zip_code=pledge['donor']['address']['postCode'],
+                country=pledge['donor']['address']['country'],
         )
         email.user = userprofile
         email.save()
     else:
-        log.info("Duplicate email %s" % email.email)
+        logger.info(f"Duplicate email {email.email}")
         userprofile = email.user
-    userprofile.administrative_units.add(campaign.administrative_unit)
-    if data.get('telefon'):
+    userprofile.administrative_units.add(api_account.administrative_unit)
 
+    if pledge['donor']['phone']:
+        tel_number = str(pledge['donor']['phone']).replace(" ", "")
         try:
-            Telephone(telephone=str(data['telefon']).replace(" ", "")).full_clean()
-
+            if not Telephone.objects.filter(telephone=tel_number, user=userprofile).exists():
+                new_telephone = Telephone(
+                    telephone=tel_number,
+                    user=userprofile,
+                )
+                new_telephone.full_clean()  # check phone number validations
+                new_telephone.save()
+            else:
+                logger.info(f"Duplicate telephone {tel_number} for email: {email.email}")
         except ValidationError:
-            log.info(f"Duplicate telephone for email: {email.email}")
-        else:
-            telephone, tel_created = Telephone.objects.get_or_create(
-                telephone=str(data['telefon']).replace(" ", ""),
-                user=userprofile,
-            )
-            if tel_created:
-                log.info(f"Duplicate telephone for email: {email.email}")
+            logger.info(f"Bad format of telephone {tel_number} for email: {email.email} => skipping")
 
-    donorpaymentchannel, donorpaymentchannel_created = DonorPaymentChannel.objects.get_or_create(
+    end_of_regular_payments = pledge.get('lastTransactionExpectedOn', None)
+    dpch, dpch_created = DonorPaymentChannel.objects.update_or_create(
         user=userprofile,
-        event=campaign.event,
+        event=api_account.event,
         defaults={
-            'regular_frequency': cetnost,
-            'regular_payments': regular_payments,
-            'regular_amount': amount if cetnost else None,
-            'end_of_regular_payments': cetnost_konec,
-            'money_account': campaign,
+            'regular_frequency': 'monthly' if pledge['isRecurrent'] else None,
+            'regular_payments': 'regular' if pledge['isRecurrent'] else 'onetime',
+            'regular_amount': pledge['pledgedAmount']['cents']/100,  # in cents
+            'expected_date_of_first_payment': parse_datetime(pledge['pledgedAt']).date(),
+            'end_of_regular_payments': parse_datetime(end_of_regular_payments).date() if end_of_regular_payments else None,
+            'money_account': api_account,
         },
     )
-    if donorpaymentchannel_created:
-        log.info('DonorPaymentChannel with email %s created' % data['email'])
+    if dpch_created:
+        logger.info(f"DonorPaymentChannel for user with email: {pledge['donor']['email']} created")
     else:
-        if cetnost and donorpaymentchannel.regular_payments != "regular":
-            donorpaymentchannel.regular_frequency = cetnost
-            donorpaymentchannel.regular_payments = regular_payments
-            donorpaymentchannel.regular_amount = amount if cetnost else None
-            donorpaymentchannel.save()
-    if p:
-        p.user_donor_payment_channel = donorpaymentchannel
-        p.save()
-        payments.append(p)
+        logger.info(f"DonorPaymentChannel for user with email: {pledge['donor']['email']} exists => updating")
+    return dpch
 
 
-def parse_darujme(xlsfile):
-    log.info('Darujme.cz import started at %s' % datetime.datetime.now())
-    book = xlrd.open_workbook(file_contents=xlsfile.read())
-    sheet = book.sheet_by_index(0)
-    payments = []
-    skipped_payments = []
-    for ir in range(1, sheet.nrows):
-        data = {}
+def pair_payments(dpch, user_payments):
+    [setattr(payment, 'user_donor_payment_channel_id', dpch.id) for payment in user_payments]
+    Payment.objects.bulk_create(user_payments)
 
-        row = sheet.row(ir)
-        log.debug('Parsing transaction: %s' % row)
 
-        # Darujme.cz ID of the transaction
-        if row[0].value:
-            data['id'] = int(row[0].value)
+def parse_darujme_json(response, api_account):
+    logger.info('Darujme.cz import started at %s' % datetime.datetime.now())
+    new_payments = []
+    for pledge in response.json()['pledges']:
+        # skip payments where is unknows email
+        if not pledge['donor']['email']:
+            continue
         else:
-            data['id'] = ""
+            is_donor, user_payments = create_payments(pledge, api_account)
 
-        # Skip all non klub transactions (e.g. PNK)
-        data['projekt'] = row[2].value
+            if is_donor:
+                dpch = create_donor_profile(pledge, api_account)
+            else:
+                continue
+            pair_payments(dpch, user_payments)
+            new_payments += user_payments
 
-        # Amount sent by the donor in CZK
-        # The money we receive is smaller by Darujme.cz
-        # margin, but we must count the whole ammount
-        # to issue correct tax confirmation to the donor
-        data['stav'] = row[9].value
-        if row[5].value:
-            data['obdrzena_castka'] = int(row[5].value)
-        else:
-            data['obdrzena_castka'] = None
-        data['uvedena_castka'] = int(row[4].value)
-
-        data['datum_daru'] = str_to_datetime(row[11].value)
-        data['datum_prichozi_platby'] = str_to_datetime(row[12].value)
-        data['jmeno'] = row[17].value
-        data['prijmeni'] = row[18].value
-        data['email'] = row[19].value
-        data['telefon'] = parse_string(row[20].value)
-        data['ulice'] = row[21].value
-        data['mesto'] = row[22].value
-        data['psc'] = parse_string(row[23].value)
-        data['potvrzeni_daru'] = row[24].value
-        data['cetnost'] = row[13].value
-        cetnost_konec = row[14].value
-        if cetnost_konec and cetnost_konec != UNLIMITED:
-            data['cetnost_konec'] = str_to_datetime(cetnost_konec)
-        else:
-            data['cetnost_konec'] = cetnost_konec
-        create_payment(data, payments, skipped_payments)
-    return payments, skipped_payments
+    return new_payments
 
 
 def check_for_new_payments(log_function=None):
     if log_function is None:
         log_function = lambda _: None # noqa
-    for campaign in ApiAccount.objects.filter(api_secret__isnull=False).exclude(api_secret=""):
-        log_function(campaign)
-        payment, skipped = create_statement_from_API(campaign)
-        log_function(payment)
-        log_function("Skipped: %s" % skipped)
+    for api_account in ApiAccount.objects.filter(api_secret__isnull=False).exclude(api_secret=""):
+        log_function(api_account)
+        payments = create_statement_from_API(api_account)
+
+        log_function(payments)

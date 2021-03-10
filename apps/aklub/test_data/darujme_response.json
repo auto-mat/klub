@@ -1,0 +1,176 @@
+{
+    "pledges": [
+        {
+            "pledgeId": 1,
+            "organizationId": 123,
+            "projectId": 22222,
+            "promotionId": null,
+            "paymentMethod": "webpay",
+            "isRecurrent": false,
+            "pledgedAmount": {
+                "cents": 200000,
+                "currency": "CZK"
+            },
+            "pledgedAt": "2012-11-21T13:11:39+01:00",
+            "donor": {
+                "firstName": "Tricky",
+                "lastName": "One",
+                "email": "trickyone@test.cz",
+                "address": {
+                    "street": "",
+                    "city": "",
+                    "postCode": "",
+                    "country": "Česká republika"
+                },
+                "phone": "111222333"
+            },
+            "wantDonationCertificate": false,
+            "customFields": {},
+            "transactions": [
+                {
+                  "transactionId": 51155,
+                  "presentableCode": "1545",
+                  "state": "timeout",
+                  "sentAmount": null,
+                  "receivedAt": null,
+                  "outgoingAmount": null,
+                  "outgoingVs": null,
+                  "outgoingBankAccount": null
+                }
+            ]
+        },
+        {
+            "pledgeId": 2,
+            "organizationId": 123,
+            "projectId": 22222,
+            "promotionId": null,
+            "paymentMethod": "webpay",
+            "isRecurrent": true,
+            "pledgedAmount": {
+                "cents": 200000,
+                "currency": "CZK"
+            },
+            "pledgedAt": "2012-11-30T11:11:39+01:00",
+            "donor": {
+                "firstName": "Real",
+                "lastName": "One",
+                "email": "Real@one.com",
+                "address": {
+                    "street": "My Home",
+                    "city": "In city",
+                    "postCode": "999",
+                    "country": "Slovenská republika"
+                },
+                "phone": "777888999"
+            },
+            "wantDonationCertificate": true,
+            "customFields": {},
+            "lastTransactionExpectedOn": "2014-11-30T00:00:00+01:00",
+            "transactions": [
+                {
+                  "transactionId": 12,
+                  "presentableCode": "955959",
+                  "state": "sent_to_organization",
+                  "sentAmount": {
+                      "cents": 50000,
+                      "currency": "CZK"
+                  },
+                  "receivedAt": "2013-12-16T00:00:00+01:00",
+                  "outgoingAmount": {
+                      "cents": 40000,
+                      "currency": "CZK"
+                  },
+                  "outgoingVs": 124548,
+                  "outgoingBankAccount": "11111/151"
+                },
+                {
+                  "transactionId": 13,
+                  "presentableCode": "955960",
+                  "state": "sent_to_organization",
+                  "sentAmount": {
+                      "cents": 50000,
+                      "currency": "CZK"
+                  },
+                  "receivedAt": "2014-1-16T00:00:00+01:00",
+                  "outgoingAmount": {
+                      "cents": 40000,
+                      "currency": "CZK"
+                  },
+                  "outgoingVs": 124548,
+                  "outgoingBankAccgp_webpay_chargeount": "11111/151"
+                },
+                {
+                  "transactionId": 14,
+                  "presentableCode": "454445",
+                  "state": "timeout",
+                  "sentAmount": null,
+                  "receivedAt": null,
+                  "outgoingAmount": null,
+                  "outgoingVs": null,
+                  "outgoingBankAccount": null
+                }
+            ]
+        },
+        {
+            "pledgeId": 3,
+            "organizationId": 123,
+            "projectId": 22222,
+            "promotionId": null,
+            "paymentMethod": "webpay",
+            "isRecurrent": false,
+            "pledgedAmount": {
+                "cents": 190000,
+                "currency": "CZK"
+            },
+            "pledgedAt": "2012-11-22T14:11:39+01:00",
+            "donor": {
+                "firstName": "Testerek",
+                "lastName": "Teme",
+                "email": "big@tester.com",
+                "address": {
+                    "street": "i dont want to",
+                    "city": "",
+                    "postCode": "",
+                    "country": "Česká republika"
+                },
+                "phone": "999 888 777"
+            },
+            "wantDonationCertificate": false,
+            "customFields": {},
+            "transactions": [
+                {
+                  "transactionId": 15,
+                  "presentableCode": "955960",
+                  "state": "sent_to_organization",
+                  "sentAmount": {
+                      "cents": 50000,
+                      "currency": "CZK"
+                  },
+                  "receivedAt": "2014-1-16T00:00:00+01:00",
+                  "outgoingAmount": {
+                      "cents": 40000,
+                      "currency": "CZK"
+                  },
+                  "outgoingVs": 125548,
+                  "outgoingBankAccgp_webpay_chargeount": "11111/151"
+                },
+                {
+                  "transactionId": 16,
+                  "presentableCode": "954444",
+                  "state": "success_money_on_account",
+                  "sentAmount": {
+                      "cents": 50000,
+                      "currency": "CZK"
+                  },
+                  "receivedAt": "2014-1-16T00:00:00+01:00",
+                  "outgoingAmount": {
+                      "cents": 40000,
+                      "currency": "CZK"
+                  },
+                  "outgoingVs": null,
+                  "outgoingBankAccgp_webpay_chargeount": null
+                }
+            ]
+        }
+    ]
+}
