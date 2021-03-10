@@ -2578,13 +2578,10 @@ class MassCommunication(models.Model):
         blank=True,
         null=True,
     )
-    status = models.CharField(
+    status = models.BooleanField(
         verbose_name=_("status"),
         help_text=_("have emails already been sent?"),
-        choices=STATUS_CHOICES,
-        default="waiting_for_sent",
-        max_length=128,
-        blank=True,
+        default=False,
     )
     administrative_unit = models.ForeignKey(
         AdministrativeUnit,

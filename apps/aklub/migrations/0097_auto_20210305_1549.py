@@ -7,7 +7,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aklub', '0096_auto_20210226_1700'),
+        ('aklub', '0096_auto_20210114_1114'),
     ]
     def delete_unused_telephones(apps, schema_editor):
         """
@@ -15,6 +15,11 @@ class Migration(migrations.Migration):
         """
         Telephone = apps.get_model('aklub', 'Telephone')
         Telephone.objects.filter(user__isnull=True).delete()
+
+    def set_masscom_as_send(apps, schema_editor):
+        MassCommunication = apps.get_model('aklub', 'MassCommunication')
+        MassCommunication.objects.all().update(status=True)
+
     operations = [
         migrations.RunPython(delete_unused_telephones, reverse_code=migrations.RunPython.noop),
         migrations.AlterField(
@@ -22,4 +27,15 @@ class Migration(migrations.Migration):
             name='user',
             field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='aklub.UserProfile'),
         ),
+        migrations.AddField(
+            model_name='masscommunication',
+            name='status',
+            field=models.BooleanField(default=False, help_text='have emails already been sent?', verbose_name='status'),
+        ),
+        migrations.AlterField(
+            model_name='donorpaymentchannel',
+            name='event',
+            field=models.ForeignKey(help_text='Event', on_delete=django.db.models.deletion.CASCADE, to='events.Event', verbose_name='Event'),
+        ),
+        migrations.RunPython(set_masscom_as_send, reverse_code=migrations.RunPython.noop),
     ]
