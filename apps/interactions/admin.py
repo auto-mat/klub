@@ -20,7 +20,7 @@ from .models import Interaction, InteractionCategory, InteractionType, PetitionS
 
 @admin.register(InteractionType)
 class InteractionTypeAdmin(admin.ModelAdmin):
-    pass
+    list_display = ['name', 'id', 'slug', 'send_email', 'send_sms']
 
 
 class InteractionWidget(ForeignKeyWidget):

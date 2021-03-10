@@ -28,7 +28,7 @@ from interactions.models import Interaction
 from . import autocom
 from .models import (
     AutomaticCommunication, DonorPaymentChannel,
-    MassCommunication, Payment, Profile, TaxConfirmation, TaxConfirmationPdf,
+    MassCommunication, Payment, Profile, ProfileEmail, TaxConfirmation, TaxConfirmationPdf,
 )
 
 """Mailing"""
@@ -61,7 +61,10 @@ def send_fake_communication(communication, sending_user, request):
     else:
         communication_type = 'mass'
     send_communication_task.apply_async(args=(communication.id, communication_type, "fake_user", sending_user.id))
-    messages.add_message(request, messages.INFO, _("Testing communication sending was queued"))
+    messages.add_message(
+        request, messages.INFO,
+        _("Testing communication sending was queued and will be sent to '%s' soon" % communication.administrative_unit.from_email_str),
+    )
 
 
 def send_mass_communication(communication, sending_user, request):
@@ -73,51 +76,51 @@ def send_mass_communication(communication, sending_user, request):
 def create_mass_communication_tasks_sync(communication_id, sending_user_id):
     from .tasks import send_communication_task
     communication = MassCommunication.objects.get(id=communication_id)
-    for userincampaign in communication.send_to_users.all():
-        send_communication_task.apply_async(args=(communication.id, 'mass', userincampaign.id, sending_user_id))
+    for profile in communication.send_to_users.all():
+        send_communication_task.apply_async(args=(communication.id, 'mass', profile.id, sending_user_id))
 
 
 def send_communication_sync(communication_id, communication_type, userincampaign_id, sending_user_id):
-    sending_user = Profile.objects.get(id=sending_user_id)
     payment_channel = None
+    # choose if email is mass or auto communication
+    if communication_type == 'mass':
+        communication = MassCommunication.objects.get(id=communication_id)
+    else:
+        communication = AutomaticCommunication.objects.get(id=communication_id)
+
     # choose if email send  action is real or fake
     if userincampaign_id == "fake_user":
-        payment_channel = create_fake_payment_channel(sending_user)
-        userprofile = sending_user
+        # if fake we get first email of mass_communicaiton or random user for testing automatic communication
+        userprofile = communication.send_to_users.first() if communication_type == 'mass' else ProfileEmail.objects.first().user
         save = False
+        is_test = True  # later we cant decide this only on "save"
     else:
         userprofile = Profile.objects.get(id=userincampaign_id)
         save = True
-    # choose if email is mass or auto communication
-    if communication_type == 'mass':
-        mass_communication = MassCommunication.objects.get(id=communication_id)
-    else:
-        mass_communication = AutomaticCommunication.objects.get(id=communication_id)
+        is_test = False
 
-    template, subject = get_template_subject_for_language(mass_communication, userprofile.language)
+    template, subject = get_template_subject_for_language(communication, userprofile.language)
 
     if userprofile.is_active and subject and subject.strip() != '':
-
         if not subject or subject.strip() == '' or not template or template.strip('') == '':
             raise Exception("Message template is empty for one of the language variants.")
-
-        # check if its mass_communication ... if not its auto communication
+        # check if its communication ... if not its auto communication and attachment cant be sent yet
         if communication_type == "mass":
-            if not mass_communication.attach_tax_confirmation:
-                attachment = copy.copy(mass_communication.attachment)
+            if not communication.attach_tax_confirmation:
+                attachment = copy.copy(communication.attachment)
             else:
                 tax_confirmations = TaxConfirmationPdf.objects.filter(
                     obj__user_profile=userprofile,
-                    obj__year=mass_communication.attached_tax_confirmation_year,
-                    obj__pdf_type=mass_communication.attached_tax_confirmation_type,
+                    obj__year=communication.attached_tax_confirmation_year,
+                    obj__pdf_type=communication.attached_tax_confirmation_type,
                 )
                 if len(tax_confirmations) > 0:
                     attachment = copy.copy(tax_confirmations[0].pdf)
                 else:
                     tax_confirmations = TaxConfirmation.objects.filter(
                         user_profile=userprofile,
-                        year=mass_communication.attached_tax_confirmation_year,
-                        pdf_type=mass_communication.attached_tax_confirmation_type,
+                        year=communication.attached_tax_confirmation_year,
+                        pdf_type=communication.attached_tax_confirmation_type,
                     )
                     if len(tax_confirmations) > 0:
                         attachment = copy.copy(tax_confirmations[0].file)
@@ -125,12 +128,12 @@ def send_communication_sync(communication_id, communication_type, userincampaign
                         attachment = None
         else:
             attachment = None
-
+        sending_user = Profile.objects.get(id=sending_user_id)  # created_by
         c = Interaction(
             user=userprofile,
-            type=mass_communication.method_type,
+            type=communication.method_type,
             date_from=datetime.datetime.now(),
-            administrative_unit=mass_communication.administrative_unit,
+            administrative_unit=communication.administrative_unit,
             subject=autocom.process_template(subject, userprofile, payment_channel),
             summary=autocom.process_template(template, userprofile, payment_channel),
             attachment=attachment,
@@ -140,4 +143,7 @@ def send_communication_sync(communication_id, communication_type, userincampaign
             settlement='a',
             communication_type='mass',
         )
-        c.dispatch(save=save)
+        c.dispatch(
+            save=save,
+            is_test=is_test,
+        )
