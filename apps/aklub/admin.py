@@ -1527,10 +1527,10 @@ class MassCommunicationForm(forms.ModelForm):
 
 class MassCommunicationAdmin(unit_admin_mixin_generator('administrative_unit'), large_initial.LargeInitialMixin, admin.ModelAdmin):
     save_as = True
-    list_display = ('name', 'status', 'date', 'method_type', 'subject')
+    list_display = ('name', 'status', 'get_send_to_users_count', 'date', 'method_type', 'subject')
     ordering = ('-date',)
     autocomplete_fields = ['send_to_users']
-    readonly_fields = ['status']
+    readonly_fields = ['status', 'get_send_to_users_count']
     form = MassCommunicationForm
 
     formfield_overrides = {
@@ -1563,6 +1563,13 @@ class MassCommunicationAdmin(unit_admin_mixin_generator('administrative_unit'), 
             ),
         }),
     )
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).annotate(send_to_users_count=Count("send_to_users"))
+
+    def get_send_to_users_count(self, obj):
+        return obj.send_to_users_count
+    get_send_to_users_count.short_description = _("Send count")
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         if db_field.name == "send_to_users":
