@@ -37,6 +37,7 @@ urlpatterns = [
     path('notifications/', include('django_nyt.urls')),
     path('help/', include('wiki.urls')),
     path('api/', include('api.urls')),
+    path('model_schema/', include('django_spaghetti.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 urlpatterns += i18n_patterns(
