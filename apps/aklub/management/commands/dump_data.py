@@ -3,12 +3,14 @@ from random import randint
 
 from aklub.models import (
     AdministrativeUnit, BankAccount, CompanyContact, CompanyProfile,
-    DonorPaymentChannel, Event, Payment, ProfileEmail, Telephone,
+    DonorPaymentChannel, Payment, ProfileEmail, Telephone,
     UserBankAccount, UserProfile,
 )
 
 from django.core.management.base import BaseCommand
 from django.utils.translation import ugettext as _
+
+from events.models import Event
 
 from faker import Faker
 
