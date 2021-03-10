@@ -22,11 +22,13 @@ from unittest.mock import MagicMock
 
 from django.test import RequestFactory, TestCase
 
+from events.models import Event
+
 from model_mommy import mommy
 
 from .. import admin, filters
 from ..models import (
-    CompanyProfile, DonorPaymentChannel, Event, Payment,
+    CompanyProfile, DonorPaymentChannel, Payment,
     Profile, UserProfile,
 )
 

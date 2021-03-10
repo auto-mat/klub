@@ -1,9 +1,11 @@
-from aklub.models import AdministrativeUnit, CompanyContact, Event, Profile, ProfileEmail
+from aklub.models import AdministrativeUnit, CompanyContact, Profile, ProfileEmail
 
 from django.contrib import admin
 from django.core import serializers
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
+
+from events.models import Event
 
 from import_export import fields
 from import_export.admin import ImportExportMixin
@@ -112,7 +114,7 @@ class InteractionAdmin(ImportExportMixin, RelatedFieldAdmin, admin.ModelAdmin):
 
     search_fields = ['user__username', ]
 
-    autocomplete_fields = ('user', 'event',)
+    # autocomplete_fields = ('user', 'event',)
     list_filter = (
                 'type__name',
                 'date_from',
@@ -208,7 +210,7 @@ class InteractionInline(admin.StackedInline):
     form = InteractionInlineForm
     can_delete = True
     extra = 0
-    autocomplete_fields = ('event',)
+    # autocomplete_fields = ('event',)
     readonly_fields = ('created_by', 'handled_by', 'created', 'updated')
     fk_name = 'user'
 

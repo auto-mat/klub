@@ -46,6 +46,8 @@ from django.urls import resolve
 from django.utils.html import format_html, format_html_join, mark_safe
 from django.utils.translation import ugettext as _
 
+from events.models import Event
+
 try:
     from django.urls import reverse
 except ImportError:  # Django<2.0
@@ -79,15 +81,22 @@ from related_admin import RelatedFieldAdmin
 from smmapdfs.actions import make_pdfsandwich
 
 
-from . import darujme, filters, mailing, tasks
-from .filters import ProfileTypeFilter, unit_admin_mixin_generator
+from . import filters, mailing, tasks
+from .filters import (
+    DPCHNumberOfDPCHs, DPCHNumberOfPayments, DPCHRegularPaymentsOk,
+    DPCHWithoutPayments, InteractionCommunicationType, InteractionDateFrom,
+    InteractionDateTo, InteractionEventName, InteractionNextCommunicationDate,
+    InteractionNumberOfInteractions, InteractionResultName,
+    ProfileEmailIsEmailInCompanyprofile, ProfileTypeFilter,
+    unit_admin_mixin_generator,
+)
 from .forms import (
-    CompanyProfileAddForm, CompanyProfileChangeForm, EventForm, TaxConfirmationForm, UnitUserProfileAddForm,
+    CompanyProfileAddForm, CompanyProfileChangeForm, TaxConfirmationForm, UnitUserProfileAddForm,
     UnitUserProfileChangeForm, UserCreateForm, UserUpdateForm,
 )
 from .models import (
     AccountStatements, AdministrativeUnit, ApiAccount, AutomaticCommunication, BankAccount,
-    CompanyContact, CompanyProfile, DonorPaymentChannel, Event, EventType,
+    CompanyContact, CompanyProfile, DonorPaymentChannel,
     MassCommunication, MoneyAccount, NewUser, Payment, Preference, Profile, ProfileEmail, Recruiter,
     Source, TaxConfirmation, Telephone, UserBankAccount,
     UserProfile,
@@ -867,7 +876,7 @@ class ProfileAdmin(
     child_models = (UserProfile, CompanyProfile)
     list_display = ()
     change_list_template = "admin/aklub/profile_redirect.html"
-    search_fields = ['username', ]
+    search_fields = ["userprofile__first_name", "userprofile__last_name", "companyprofile__name"]
 
     def delete_queryset(self, request, queryset):
         """
@@ -1635,129 +1644,6 @@ class AccountStatementsAdmin(unit_admin_mixin_generator('administrative_unit'), 
     paired_payments.short_description = _("Paired payments")
 
 
-def download_darujme_statement(self, request, queryset):
-    payments = []
-    skipped_payments = []
-    for campaign in queryset.all():
-        payment, skipped = darujme.create_statement_from_API(campaign)
-        payments.append(payment)
-        skipped_payments += skipped
-
-    self.message_user(
-        request,
-        format_html(
-            "Created following account statements: {}<br/>Skipped payments: {}",
-            ", ".join([str(p.id) if p else "" for p in payments]),
-            skipped_payments,
-        ),
-    )
-
-
-download_darujme_statement.short_description = _("Download darujme statements")
-
-
-@admin.register(EventType)
-class EventTypeAdmin(unit_admin_mixin_generator('events__administrative_units'), admin.ModelAdmin):
-    pass
-
-
-class EventAdmin(unit_admin_mixin_generator('administrative_units'), admin.ModelAdmin):
-    form = EventForm
-    list_display = (
-        'name',
-        'id',
-        'slug',
-        'date_from',
-        'date_to',
-        'sum_yield_amount',
-        'number_of_members',
-        'number_of_recruiters',
-        'yield_total',
-        'total_expenses',
-        'expected_monthly_income',
-        'return_of_investmensts',
-        'average_yield',
-        'average_expense',
-    )
-    list_filter = [
-        ('donorpaymentchannel__payment__date', filters.EventYieldDateRangeFilter),
-    ]
-    readonly_fields = (
-        'number_of_members',
-        'number_of_recruiters',
-        'yield_total',
-        'total_expenses',
-        'expected_monthly_income',
-        'return_of_investmensts',
-        'average_yield',
-        'average_expense',
-    )
-    search_fields = ('name', )
-    actions = (download_darujme_statement,)
-    save_as = True
-
-    fieldsets = (
-        (None, {
-            'fields': (
-                'name',
-                'slug',
-                'basic_purpose',
-                'grant',
-                ('date_from', 'date_to'),
-                'variable_symbol_prefix',
-                'description',
-                'result',
-                'administrative_units',
-
-
-            ),
-        }),
-        (_('Detail information'), {
-            'classes': ('collapse',),
-            'fields': (
-                ('age_from', 'age_to'),
-                'event_type', 'program', 'indended_for',
-                'participation_fee', 'meeting', 'is_internal', 'focus_on_members',
-                'note',
-            ),
-        }),
-        (_('Web setting'), {
-            'classes': ('collapse',),
-            'fields': (
-                'enable_signing_petitions', 'enable_registration', 'allow_statistics', 'public_on_web',
-                'email_confirmation_redirect', 'entry_form_url'
-            ),
-        }),
-        (_('Statistics'), {
-            'classes': ('collapse',),
-            'fields': (
-                'number_of_members', 'number_of_recruiters', 'yield_total',
-                'total_expenses', 'expected_monthly_income', 'return_of_investmensts',
-                'average_yield', 'average_expense',
-            ),
-        }),
-    )
-
-    def get_queryset(self, request):
-        donor_filter = {}
-        extra_filters = request.GET
-        dpd_gte = extra_filters.get('donorpaymentchannel__payment__date__range__gte')
-        dpd_lte = extra_filters.get('donorpaymentchannel__payment__date__range__lte')
-        if dpd_gte:
-            donor_filter['donorpaymentchannel__payment__date__gte'] = datetime.datetime.strptime(dpd_gte, '%d.%m.%Y')
-        if dpd_lte:
-            donor_filter['donorpaymentchannel__payment__date__lte'] = datetime.datetime.strptime(dpd_lte, '%d.%m.%Y')
-        queryset = super().get_queryset(request).annotate(
-            sum_yield_amount=Sum('donorpaymentchannel__payment__amount', filter=Q(**donor_filter)),
-        )
-        return queryset
-
-    def sum_yield_amount(self, obj):
-        return obj.sum_yield_amount
-
-    sum_yield_amount.short_description = _("Yield per period")
-
-
 class RecruiterAdmin(admin.ModelAdmin):
     list_display = ('recruiter_id', 'person_name', 'email', 'telephone', 'problem', 'rating')
     list_filter = ('problem', 'campaigns')
@@ -1965,25 +1851,95 @@ class UserProfileAdmin(
         'regular_amount',
         'donor_delay',
         'donor_extra_money',
-
     )
 
     actions = () + ProfileAdminMixin.actions
 
     advanced_filter_fields = (
-        'profileemail__email',
-        'addressment',
-        'telephone__telephone',
-        'title_before',
-        'first_name',
-        'last_name',
-        'title_after',
-        'sex',
-        'is_staff',
-        'date_joined',
-        'last_login',
-        ('userchannels__event__name', _("Jméno kampaně")),
+        (_('Personal information'),
+         'profileemail__email',
+         'addressment',
+         'telephone__telephone',
+         'title_before',
+         'first_name',
+         'last_name',
+         'title_after',
+         'sex',
+         'is_staff',
+         'date_joined',
+         'last_login',
+         'age_group',
+         'birth_month',
+         'birth_day',
+         str(ProfileEmailIsEmailInCompanyprofile()),
+         ('userchannels__event__name', _("Jméno kampaně"))),
+        (_('Preference'),
+         'preference__newsletter_on',
+         'preference__public',
+         'preference__letter_on',
+         'preference__call_on',
+         'preference__send_mailing_lists',
+         'preference__challenge_on',
+         'preference__administrative_unit'),
+        (_('Donor payment channel'),
+         'userchannels__regular_payments',
+         'userchannels__regular_frequency',
+         str(DPCHRegularPaymentsOk()),
+         str(DPCHNumberOfPayments()),
+         str(DPCHWithoutPayments()),
+         str(DPCHNumberOfDPCHs()),
+         'userchannels__payment__date'),
+        (_('Interactions'),
+         (str(InteractionEventName()), _("Event name")),
+         str(InteractionNumberOfInteractions()),
+         str(InteractionDateFrom()),
+         str(InteractionDateTo()),
+         str(InteractionCommunicationType()),
+         str(InteractionResultName()),
+         str(InteractionNextCommunicationDate()),
+         )
     )
+
+    advanced_filter_fields_operators = {
+        'profileemail__email': ('iexact', 'icontains', 'isnull'),
+        'addressment': ('iexact', 'icontains', 'isnull', 'istrue'),
+        'telephone__telephone': ('iexact', 'isnull'),
+        'title_before': (),
+        'first_name': (),
+        'last_name': (),
+        'title_after': (),
+        'sex': ('iexact', 'isnull'),
+        'is_staff': (),
+        'date_joined': (),
+        'last_login': (),
+        'age_group': ('iexact',),
+        'birth_month': ('iexact',),
+        'birth_day': ('iexact',),
+        str(ProfileEmailIsEmailInCompanyprofile()): ('istrue', 'isfalse'),
+        'userchannels__event__name': (),
+        'preference__newsletter_on': ('istrue', 'isfalse', 'isnull'),
+        'preference__public': ('istrue', 'isfalse', 'isnull'),
+        'preference__letter_on': ('istrue', 'isfalse', 'isnull'),
+        'preference__call_on': ('istrue', 'isfalse', 'isnull'),
+        'preference__send_mailing_lists': ('istrue', 'isfalse', 'isnull'),
+        'preference__challenge_on': ('istrue', 'isfalse', 'isnull'),
+        'preference__administrative_unit': ('iexact',),
+        'userchannels__regular_payments': ('iexact',),
+        'userchannels__regular_frequency': ('iexact',),
+        str(DPCHRegularPaymentsOk()): ('iexact',),
+        str(DPCHNumberOfPayments()): ('lt', 'iexact', 'gt'),
+        str(DPCHWithoutPayments()): ('istrue', 'isfalse'),
+        'userchannels__payment__date': ('range',),
+        str(DPCHNumberOfDPCHs()): ('lt', 'iexact', 'gt'),
+        str(InteractionEventName()): ('iexact',),
+        str(InteractionNumberOfInteractions()): ('lt', 'iexact', 'gt'),
+        str(InteractionDateFrom()): ('range',),
+        str(InteractionDateTo()): ('range',),
+        str(InteractionCommunicationType()): ('iexact',),
+        str(InteractionResultName()): ('iexact', 'isnull'),
+        str(InteractionNextCommunicationDate()): ('range', 'isnull'),
+    }
+
     search_fields = (
         'email',
         'username',
@@ -2493,7 +2449,6 @@ admin.site.register(Payment, PaymentAdmin)
 admin.site.register(AccountStatements, AccountStatementsAdmin)
 admin.site.register(AutomaticCommunication, AutomaticCommunicationAdmin)
 admin.site.register(MassCommunication, MassCommunicationAdmin)
-admin.site.register(Event, EventAdmin)
 admin.site.register(Recruiter, RecruiterAdmin)
 admin.site.register(TaxConfirmation, TaxConfirmationAdmin)
 admin.site.register(Source, SourceAdmin)

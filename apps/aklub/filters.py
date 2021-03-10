@@ -8,15 +8,18 @@ from django.contrib import messages
 from django.contrib.admin import SimpleListFilter
 from django.contrib.admin.filters import FieldListFilter, RelatedFieldListFilter
 from django.contrib.admin.utils import reverse_field_path
-from django.db.models import Count, Q, Value
+from django.db.models import (
+    BooleanField, Case, CharField, Count, IntegerField, OuterRef, Q,
+    Subquery, Value, When,
+)
 from django.db.models.functions import Lower, Replace, Right
 from django.utils.translation import ugettext as _
 
-from rangefilter.filter import DateRangeFilter
+from interactions.models import Interaction
 
 from .models import (
-    CompanyContact, CompanyProfile, ProfileEmail, Telephone,
-    UserProfile,
+    CompanyContact, CompanyProfile, DonorPaymentChannel,
+    ProfileEmail, Telephone, UserProfile,
 )
 
 
@@ -440,17 +443,6 @@ class ProfileTypeFilter(SimpleListFilter):
         return queryset
 
 
-class EventYieldDateRangeFilter(DateRangeFilter):
-    """
-    filter which doesnt filter queryset but filters total income per date period in admin_list
-    """
-    title = _("Filter by Yield period")
-
-    def queryset(self, request, queryset):
-        # always return full queryset
-        return queryset
-
-
 class NameFilter(SimpleListFilter):
     title = _("Name")
     parameter_name = 'name'
@@ -563,3 +555,269 @@ def unit_admin_mixin_generator(queryset_unit):
     class AUAMixin(AdministrativeUnitAdminMixin):
         queryset_unit_param = queryset_unit
     return AUAMixin
+
+
+class BaseAF:
+    @property
+    def get_field(self):
+        return self.field.split('__')[0]
+
+    def __str__(self):
+        return f"{self.model._meta.model_name}.{self.field.split('__')[0]}"
+
+
+class DPCHRegularPayments(BaseAF):
+    model = DonorPaymentChannel
+    field = 'regular_payments'
+    values_list_field = 'user__id'
+
+    def query(self, *args, **kwargs):
+        return {
+            'userchannels__event__administrative_units__in':
+            list(
+                kwargs.get('administrative_unit').values_list(
+                    'id', flat=True,
+                ),
+            ),
+        }
+
+    def queryset(self, *args, **kwargs):
+        if kwargs.get('administrative_unit'):
+            queryset = self.model.objects.filter(
+                **self.query(*args, **kwargs),
+            )
+        else:
+            queryset = self.model.objects.none()
+        return queryset
+
+
+class DPCHRegularFrequency(DPCHRegularPayments):
+    field = 'regular_frequency'
+
+
+class DPCHNumberOfPayments(BaseAF):
+    model = DonorPaymentChannel
+    field = 'number_of_payments_conflict'
+    field_verbose_name = _('Number of payments')
+    values_list_field = 'user__id'
+    field_type = IntegerField()
+
+    def queryset(self, *args, **kwargs):
+        if kwargs.get('administrative_unit'):
+            au = kwargs['administrative_unit']
+            subquery = self.model.objects.filter(
+                event__administrative_units__in=au,
+                user=OuterRef('user'),
+            ).values('user').annotate(
+                number_of_payments_conflict=Count('payment__amount'),
+            )
+            queryset = self.model.objects.filter(
+                event__administrative_units__in=au,
+            ).annotate(
+                number_of_payments_conflict=Subquery(
+                    subquery.values('number_of_payments_conflict')[:1],
+                    output_field=self.field_type,
+                ),
+            )
+        else:
+            queryset = self.model.objects.none()
+        return queryset
+
+
+class DPCHWithoutPayments(BaseAF):
+    model = DonorPaymentChannel
+    field = 'without_payments'
+    field_verbose_name = _('Without payments')
+    values_list_field = 'user__id'
+    field_type = BooleanField()
+
+    def queryset(self, *args, **kwargs):
+        if kwargs.get('administrative_unit'):
+            au = kwargs['administrative_unit']
+            queryset = self.model.objects.filter(
+                event__administrative_units__in=au,
+            ).annotate(
+                without_payments=Case(
+                    When(
+                        number_of_payments__isnull=True,
+                        then=Value(True),
+                    ), default=Value(False),
+                    output_field=self.field_type,
+                ),
+            )
+        else:
+            queryset = self.model.objects.none()
+        return queryset
+
+
+class DPCHNumberOfDPCHs(BaseAF):
+    model = DonorPaymentChannel
+    field = 'number_of_dpchs'
+    field_verbose_name = _('Number of DPCHs')
+    values_list_field = 'user__id'
+    field_type = IntegerField()
+
+    def queryset(self, *args, **kwargs):
+        if kwargs.get('administrative_unit'):
+            au = kwargs['administrative_unit']
+            subquery = self.model.objects.filter(
+                event__administrative_units__in=au,
+                user=OuterRef('user'),
+            ).values('user').annotate(
+                number_of_dpchs=Count('pk'),
+            )
+            queryset = self.model.objects.filter(
+                event__administrative_units__in=au,
+            ).annotate(
+                number_of_dpchs=Subquery(
+                    subquery.values('number_of_dpchs')[:1],
+                    output_field=self.field_type,
+                ),
+            )
+        else:
+            queryset = self.model.objects.none()
+        return queryset
+
+
+class DPCHRegularPaymentsOk(BaseAF):
+    model = DonorPaymentChannel
+    field = 'regular_payments_ok'
+    field_verbose_name = _('Regular payment ok')
+    values_list_field = 'user__id'
+    field_type = CharField()
+
+    def queryset(self, *args, **kwargs):
+        if kwargs.get('administrative_unit'):
+            au = kwargs['administrative_unit']
+            queryset = self.model.objects.filter(
+                event__administrative_units__id=au,
+            ).annotate(
+                regular_payments_ok=Case(
+                    When(
+                        expected_regular_payment_date__lt=(
+                            date.today() - timedelta(days=11)
+                        ),
+                        then=Value(_('Delayed')),
+                    ), default=Value(_('Not delayed')),
+                    output_field=self.field_type,
+                ),
+            )
+        else:
+            queryset = self.model.objects.none()
+        return queryset
+
+
+class InteractionEventName(BaseAF):
+    model = Interaction
+    field = 'event__name'
+    values_list_field = 'user__id'
+
+    def queryset(self, *args, **kwargs):
+        if kwargs.get('administrative_unit'):
+            queryset = self.model.objects.filter(
+                administrative_unit__in=kwargs['administrative_unit'],
+            )
+        else:
+            queryset = self.model.objects.none()
+        return queryset
+
+
+class InteractionDateFrom(InteractionEventName):
+    field = 'date_from'
+
+
+class InteractionDateTo(InteractionEventName):
+    field = 'date_to'
+
+
+class InteractionCommunicationType(InteractionEventName):
+    field = 'communication_type'
+
+
+class InteractionResultName(InteractionEventName):
+    field = 'result__name'
+
+
+class InteractionNextCommunicationDate(InteractionEventName):
+    field = 'next_communication_date'
+
+
+class InteractionNumberOfInteractions(BaseAF):
+    model = Interaction
+    field = 'number_of_interactions'
+    field_verbose_name = _('Number of interactions')
+    values_list_field = 'user__id'
+    field_type = IntegerField()
+
+    def queryset(self, *args, **kwargs):
+        if kwargs.get('administrative_unit'):
+            au = kwargs['administrative_unit']
+            subquery = self.model.objects.filter(
+                administrative_unit__in=au,
+                user=OuterRef('user'),
+            ).values('user').annotate(
+                number_of_interactions=Count('pk'),
+            )
+            queryset = self.model.objects.filter(
+                administrative_unit__in=au,
+            ).annotate(
+                number_of_interactions=Subquery(
+                    subquery.values('number_of_interactions')[:1],
+                    output_field=self.field_type,
+                ),
+            )
+        else:
+            queryset = self.model.objects.none()
+        return queryset
+
+
+class ProfileEmailIsEmailInCompanyprofile(BaseAF):
+    model = ProfileEmail
+    field = 'is_email_in_companyprofile'
+    field_verbose_name = _('Is email in the company profile')
+    values_list_field = 'user__id'
+    field_type = BooleanField()
+
+    def queryset(self, *args, **kwargs):
+        if kwargs.get('administrative_unit'):
+            au = kwargs['administrative_unit']
+            subquery = self.model.objects.filter(
+                email=OuterRef('email'),
+            ).values('email')
+            queryset = CompanyContact.objects.filter(
+                administrative_unit__in=au,
+            ).annotate(
+                common_email=Subquery(
+                    subquery.values('email')[:1],
+                ),
+            )
+            common_emails = list(
+                queryset.filter(
+                    common_email__isnull=False,
+                ).values_list('common_email', flat=True),
+            )
+            queryset = self.model.objects.filter(
+                user__administrative_units__in=au,
+            ).annotate(
+                is_email_in_companyprofile=Case(
+                    When(
+                        email__in=common_emails,
+                        then=Value(True),
+                    ),
+                    default=Value(False),
+                    output_field=self.field_type,
+                ),
+            )
+        else:
+            queryset = self.model.objects.none()
+        return queryset
+
+
+AF_FILTERS = [
+    DPCHNumberOfDPCHs, DPCHRegularPaymentsOk, DPCHNumberOfPayments,
+    DPCHRegularPayments, DPCHRegularFrequency, DPCHWithoutPayments,
+    InteractionEventName, InteractionNumberOfInteractions,
+    InteractionDateFrom, InteractionDateTo, InteractionResultName,
+    InteractionNextCommunicationDate, InteractionCommunicationType,
+    ProfileEmailIsEmailInCompanyprofile,
+]

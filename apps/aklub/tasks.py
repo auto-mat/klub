@@ -71,28 +71,34 @@ def create_mass_communication_tasks(communication_id, sending_user_id):
     create_mass_communication_tasks_sync(communication_id, sending_user_id)
 
 
-@task()
+@task() # noqa
 def parse_account_statement(statement_id):
     statement = models.AccountStatements.objects.get(id=statement_id)
     if statement.csv_file and statement.payment_set.count() == 0:  # new Account statement
-        if statement.type == 'account':
-            statement.payments = statement.parse_bank_csv_fio()
+        try:
+            if statement.type == 'account':
+                statement.payments = statement.parse_bank_csv_fio()
 
-        elif statement.type == 'account_cs':
-            statement.payments = statement.parse_bank_csv_cs()
+            elif statement.type == 'account_cs':
+                statement.payments = statement.parse_bank_csv_cs()
 
-        elif statement.type == 'account_kb':
-            statement.payments = statement.parse_bank_csv_kb()
+            elif statement.type == 'account_kb':
+                statement.payments = statement.parse_bank_csv_kb()
 
-        elif statement.type == 'account_csob':
-            statement.payments = statement.parse_bank_csv_csob()
+            elif statement.type == 'account_csob':
+                statement.payments = statement.parse_bank_csv_csob()
 
-        elif statement.type == 'account_sberbank':
-            statement.payments = statement.parse_bank_csv_sberbank()
+            elif statement.type == 'account_sberbank':
+                statement.payments = statement.parse_bank_csv_sberbank()
 
-        elif statement.type == 'account_raiffeisenbank':
-            statement.payments = statement.parse_bank_csv_raiffeisenbank()
+            elif statement.type == 'account_raiffeisenbank':
+                statement.payments = statement.parse_bank_csv_raiffeisenbank()
 
-        elif statement.type == 'darujme':
-            statement.payments, statement.skipped_payments = parse_darujme_json(statement.csv_file)
-    statement.save()
+            elif statement.type == 'darujme':
+                statement.payments, statement.skipped_payments = parse_darujme_json(statement.csv_file)
+        except Exception as e: # noqa
+            logger.info(f"Error parsing csv_file: {e}")
+            statement.save(parse_csv=False)
+            raise
+        else:
+            statement.save()

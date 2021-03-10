@@ -67,7 +67,7 @@ class PaidPdfDownloadViewTest(TestCase):
         user = UserProfile.objects.get(username='user_can_access')
         unit = mommy.make("aklub.AdministrativeUnit", name='test_unit')
         event = mommy.make(
-            "aklub.event",
+            "events.event",
             name='event_test',
             administrative_units=[unit, ],
         )

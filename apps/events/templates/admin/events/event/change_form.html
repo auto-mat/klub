@@ -1,0 +1,17 @@
+{% extends "admin/change_form.html" %}
+{% load i18n %}
+{% block object-tools %}
+{{ block.super }}
+<p>{% trans "Boxes with yellow coloring are used for rest api (if public_on_web is True)" %}</p>
+<script>
+  django.jQuery(function(){
+      // highline fields which are serialized
+      var serialized_fields = {{serialized_fields|safe}}
+      serialized_fields.forEach(function(value,index){
+            $("#id_" + value).css("background-color","#ffffe6");
+      });
+      // also select inline profiles
+      $(".column-profile.required").css("background-color","#ffffe6");
+  });
+</script>
+{% endblock %}

@@ -222,7 +222,9 @@ INSTALLED_APPS = (
     'adminfilters',
     'advanced_filters',
     'aklub',
+    'events',
     'interactions',
+    'oauth2_manager',
     'helpdesk',
     'pdf_storage',
     'django_celery_beat',
@@ -248,6 +250,7 @@ INSTALLED_APPS = (
     "account",
     "pinax.invitations",
     "pinax.teams",
+    "inline_static",
     "reversion",
 )
 REST_FRAMEWORK = {
@@ -257,18 +260,13 @@ REST_FRAMEWORK = {
         'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
     ],
 }
+OAUTH2_PROVIDER_APPLICATION_MODEL = 'oauth2_provider.Application'
 OAUTH2_PROVIDER = {
     # sec * minutes * 24 =  24 hours
     'ACCESS_TOKEN_EXPIRE_SECONDS': 60 * 60 * 24,
     'OAUTH2_BACKEND_CLASS': 'oauth2_provider.oauth2_backends.JSONOAuthLibCore',
-    'SCOPES': {'read': 'Read scope'},
-
-}
-# TODO: shoud be added by each application
-# this is the list of available scopes
-SCOPES = os.environ.get('AKLUB_SCOPES', False)
-if SCOPES:
-    OAUTH2_PROVIDER['SCOPES'] = {
+    'SCOPES_BACKEND_CLASS': 'oauth2_manager.scopes.CustomApplicationScopes',
+    'SCOPES': {
         'read': 'Read scope',
         'write': 'Write scope',
         'can_create_profiles': 'Can create profiles by API',
@@ -276,7 +274,10 @@ if SCOPES:
         'can_create_interactions': 'Can create interactions by API',
         'can_check_last_payments': 'Can check payments in dpch',
         'can_create_credit_card_payment': 'Can create credit card payment',
-    }
+        'can_view_events': 'Can view events',
+    },
+}
+
 
 FLEXIBLE_FILTER_CONDITIONS_FIELD_MAP = {
     'User': ('aklub.models', 'User'),
@@ -293,6 +294,7 @@ BOWER_INSTALLED_APPS = (
     'jquery-ui#~1.12.1',
     'd3#3.3.13',
     'nvd3#1.7.1',
+    'jqueryui-timepicker-addon',
 )
 
 AUTH_PASSWORD_VALIDATORS = [

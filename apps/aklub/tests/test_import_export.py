@@ -7,16 +7,17 @@ from django.contrib.messages.storage.fallback import FallbackStorage
 from django.test import RequestFactory, TransactionTestCase
 from django.urls import reverse
 
+from events.models import Event
+
 from interactions.models import Interaction
 
 from model_mommy import mommy
 
 from .recipes import generic_profile_recipe
 from .test_admin import CreateSuperUserMixin
-
-from ..models import ( # noqa
-            BankAccount, CompanyProfile, ContentType, DonorPaymentChannel,
-            Event, Payment, Preference, Profile, ProfileEmail, UserBankAccount, UserProfile,
+from ..models import (
+    BankAccount, CompanyProfile, ContentType, DonorPaymentChannel,
+    Payment, Preference, Profile, UserBankAccount, UserProfile,
 )
 
 
@@ -31,7 +32,7 @@ class PaymentsImportExportTests(CreateSuperUserMixin, TransactionTestCase):
                     name='test_unit',
                     )
         event = mommy.make(
-            "aklub.event",
+            "events.event",
             administrative_units=[au, ],
         )
         self.bank_account = mommy.make(
@@ -211,7 +212,7 @@ class InteractionsImportExportTests(CreateSuperUserMixin, TransactionTestCase):
                 is_primary=True,
         )
         self.event = mommy.make(
-                'aklub.Event',
+                'events.event',
                 id=1,
                 name='test_event',
         )
@@ -336,12 +337,12 @@ class DonorImportExportTests(CreateSuperUserMixin, TransactionTestCase):
                     bank_account_number='1111/111',
         )
         self.event1 = mommy.make(
-                    'aklub.Event',
+                    'events.event',
                     id=11,
                     name='test',
         )
         self.event2 = mommy.make(
-                    'aklub.Event',
+                    'events.event',
                     id=12,
                     name='test_old',
         )
@@ -531,7 +532,7 @@ class AdminImportExportTests(CreateSuperUserMixin, TransactionTestCase):
             },
         ]
         # event = mommy.make(
-        #     'aklub.Event',
+        #     'events.event',
         #     name='Klub přátel Auto*Matu',
         #     created='2015-12-16',
         #     slug='klub',

@@ -40,7 +40,7 @@ class TestPersonName(TestCase):
             last_name="Name",
         )
         mommy.make(
-            'aklub.Event',
+            'events.event',
             id=22,
             administrative_units=[au, ],
         )
@@ -84,7 +84,7 @@ class TestUserBankAccountRewrite(TestCase):
             bank_account_number="2332222/2222",
         )
         event = mommy.make(
-            'aklub.Event',
+            'events.event',
             administrative_units=[au, ],
         )
         self.donor_payment_channel = mommy.make(

@@ -23,6 +23,8 @@ import datetime
 from django.core import mail
 from django.test import TestCase
 
+from events.models import Event
+
 from freezegun import freeze_time
 
 from interactions.models import Interaction
@@ -30,7 +32,7 @@ from interactions.models import Interaction
 from model_mommy import mommy
 
 from .utils import ICON_FALSE, ICON_UNKNOWN
-from ..models import DonorPaymentChannel, Event, Payment, UserProfile
+from ..models import DonorPaymentChannel, Payment, UserProfile
 
 
 @freeze_time("2016-5-1")
