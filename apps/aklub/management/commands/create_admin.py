@@ -34,7 +34,7 @@ class Command(BaseCommand):
         # create admin of dump_data administrative_unit
         administrative_unit = AdministrativeUnit.objects.get_or_create(name='auto*mat Czech')[0]
         permissions = Permission.objects.exclude(codename='can_edit_all_units')
-        group, created = Group.objects.get_or_create(name='can_do_everything_under_administraitve_unit')
+        group, created = Group.objects.get_or_create(name='can_do_everything_under_administrative_unit')
         group.permissions.add(*list(permissions))
 
         user, created = UserProfile.objects.get_or_create(
