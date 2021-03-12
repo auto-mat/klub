@@ -188,7 +188,7 @@ INSTALLED_APPS = (
     'admin_tools.theming',
     'admin_tools.menu',
     'admin_tools.dashboard',
-    'django.contrib.admin',
+    'project.apps.MyAdminConfig',  # overwrite custom Admin
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.messages',
@@ -218,6 +218,8 @@ INSTALLED_APPS = (
     'computedfields',
     'related_admin',
     'adminactions',
+    'notifications',
+    'notifications_edit',
     'djangobower',
     'django_nvd3',
     'adminfilters',

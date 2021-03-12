@@ -1,1 +1,1 @@
-default_app_config = 'apps.adminsite.EventConfig'
+default_app_config = 'project.apps.EventConfig'

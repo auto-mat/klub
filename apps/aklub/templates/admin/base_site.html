@@ -1,5 +1,7 @@
 {% extends "admin/base_site.html" %}
 {% load inline_static_tags %}
+{% load i18n %}
+{% load static %}
 {% block branding %}
 <style>
  .title {
@@ -24,7 +26,14 @@
  }
 </style>
 <div class='title'>CRM SYSTEM</div>
-<div class="version">
-{% inline_staticfile "version.txt" %}
-</div>
+<div class="version">{% inline_staticfile "version.txt" %}</div>
+{% endblock %}
+
+{% block userlinks %}
+<a href="{% url 'admin:notifications_notification_changelist'%}" class="notification">{% trans "Notifications" %}
+    {% if notifications_count > 0 %}
+    <span style="background:red; border-radius:50%; text-align: center; padding:2px">{{notifications_count}}</span>
+    {% endif %}
+</a> /
+{{block.super}}
 {% endblock %}

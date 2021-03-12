@@ -1,1 +1,1 @@
-default_app_config = 'apps.adminsite.ImportExportCeleryEdit'
+default_app_config = 'project.apps.ImportExportCeleryEdit'
