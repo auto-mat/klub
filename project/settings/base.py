@@ -536,3 +536,5 @@ MERGE_ACTION_IGNORED_FIELDS = {
             'companyprofile': ['is_staff', 'is_superuser', 'user_permissions', 'groups'],
     },
 }
+
+TEST_ERRORS_URL = os.environ.get('TEST_ERRORS_URL', "test_errors")

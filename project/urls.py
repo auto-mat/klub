@@ -1,3 +1,5 @@
+import logging
+
 from aklub.views import stat_members, stat_payments
 
 from django.conf import settings
@@ -9,6 +11,20 @@ from django.contrib.auth import views as auth_views
 from django.urls import path
 from django.views.i18n import JavaScriptCatalog
 
+
+logger = logging.getLogger(__name__)
+
+
+def test_errors(request):
+    """
+    This is for testing error logging. Go to the /test_errors/ url and then check sentry to make sure the error reporting is working.
+    """
+    logger.info("Testing info message", extra={"test": "foobar"})
+    logger.debug("Testing debug message", extra={"test": "foobar"})
+    logger.warning("Testing warning message", extra={"test": "foobar"})
+    logger.exception("Testing exception message", extra={"test": "foobar"})
+    logger.error("Testing error message", extra={"test": "foobar"})
+    return HttpResponse("Errors send")
 
 admin.autodiscover()
 
@@ -37,6 +53,8 @@ urlpatterns = [
     path('notifications/', include('django_nyt.urls')),
     path('help/', include('wiki.urls')),
     path('api/', include('api.urls')),
+    url('^{errors_url}/$'.format(errors_url=settings.TEST_ERRORS_URL), test_errors),
+
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 urlpatterns += i18n_patterns(
