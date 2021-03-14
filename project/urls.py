@@ -27,6 +27,7 @@ def test_errors(request):
     logger.error("Testing error message", extra={"test": "foobar"})
     return HttpResponse("Errors sent")
 
+
 admin.autodiscover()
 
 urlpatterns = [
