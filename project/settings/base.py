@@ -197,6 +197,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'django_nyt.apps.DjangoNytConfig',
+    'django_spaghetti',
     'stdimage',
     'dbbackup',
     'bootstrapform',
@@ -538,3 +539,10 @@ MERGE_ACTION_IGNORED_FIELDS = {
 }
 
 TEST_ERRORS_URL = os.environ.get('TEST_ERRORS_URL', "test_errors")
+
+# django_spaghetti settings:
+SPAGHETTI_SAUCE = {
+    'apps': ['events', 'interactions', 'pdf_storage', 'aklub'],  # include only main applications
+    'show_fields': False,
+    'exclude': {'aklub': ['administrativeunit']},
+}

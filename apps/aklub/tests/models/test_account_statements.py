@@ -19,20 +19,20 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import datetime
-from collections import OrderedDict
-from unittest.mock import MagicMock, patch
+import json
+from unittest.mock import patch
 
 from django.core.files import File
-from django.test import RequestFactory, TestCase
+from django.test import TestCase
 from django.test.utils import override_settings
-
-from events import admin
 
 from model_mommy import mommy
 
 from ..utils import RunCommitHooksMixin
 from ... import darujme
-from ...models import AccountStatements, AdministrativeUnit, ApiAccount, DonorPaymentChannel, Payment, ProfileEmail, Telephone
+from ...models import (
+    AccountStatements, AdministrativeUnit, DonorPaymentChannel, Payment, ProfileEmail, Telephone, UserProfile,
+)
 
 
 @override_settings(
@@ -288,183 +288,206 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
 
         self.assertEqual(donor_channel.payment_set.get(date=datetime.date(2018, 2, 1)), a1.payment_set.get(account='23'))
 
-    def check_account_statement_data(self, username_is_email=None):
-        self.run_commit_hooks()
 
-        a1 = AccountStatements.objects.get(type="darujme")
-        api_account = ApiAccount.objects.filter(event__slug='klub').first()
-        self.assertEqual(
-            list(a1.payment_set.order_by('SS').values_list("account_name", "date", "SS", "recipient_account_id")),
-            [
-                ('User 1, Testing', datetime.date(2016, 1, 19), '', 1),
-                ('User 1, Testing', datetime.date(2016, 1, 19), '12121', 1),
-                ('Date, Blank', datetime.date(2016, 8, 9), '12345', 1),
-                ('User, Testing', datetime.date(2016, 1, 20), '17529', 1),
-                ('User 1, Testing', datetime.date(2016, 1, 19), '22256', 1),
-                ('User 1, Testing', datetime.date(2016, 1, 19), '22257', 1),
-            ],
+@override_settings(CELERY_ALWAYS_EAGER=True)
+class TestDarujmeCheck(TestCase):
+    def setUp(self):
+
+        self.unit1 = mommy.make('aklub.AdministrativeUnit', name='test_unit')
+        self.unit2 = mommy.make('aklub.AdministrativeUnit', name='test_unit_2')
+        self.event = mommy.make('events.Event', name='test_event')
+        self.api_acc = mommy.make(
+            'aklub.ApiAccount',
+            project_name='test_project',
+            project_id='22222',
+            api_id='11111',
+            api_secret='secret_hash',
+            api_organization_id="123",
+            event=self.event,
+            administrative_unit=self.unit1,
         )
 
-        user = DonorPaymentChannel.objects.get(id=2978)
-        self.assertEqual(user.payment_set.get(SS=17529), a1.payment_set.get(amount=200))
+    @patch('aklub.darujme.requests.get')
+    def run_check_darujme(self, mock_get):
+        with open('apps/aklub/test_data/darujme_response.json') as json_file:
+            mock_get.return_value.json.return_value = json.load(json_file)
+            mock_get.return_value.status_code = 200
+        darujme.check_for_new_payments()
 
-        user_email = ProfileEmail.objects.get(email="unknown@email.cz")
-        unknown_user = DonorPaymentChannel.objects.get(user=user_email.user)
-        payment = unknown_user.payment_set.get(SS=22257)
-        tel_unknown_user = Telephone.objects.filter(user=user_email.user).first()
-        self.assertEqual(payment.amount, 150)
-        self.assertEqual(payment.date, datetime.date(2016, 1, 19))
-        self.assertEqual(payment.recipient_account, api_account)
-        self.assertEqual(tel_unknown_user.telephone, "656464222")
-        self.assertEqual(unknown_user.user.street, "Ulice 321")
-        self.assertEqual(unknown_user.user.city, "Nová obec")
-        self.assertEqual(unknown_user.user.zip_code, "12321")
-        if username_is_email:
-            self.assertEqual(unknown_user.user.username, user_email.email)
-        else:
-            self.assertEqual(unknown_user.user.username, "unknown3")
-        # self.assertEqual(unknown_user.wished_information, True)  # TODO: we should store this information somewhere
-        self.assertEqual(unknown_user.regular_payments, "regular")
-        self.assertEqual(unknown_user.regular_amount, 150)
-        self.assertEqual(unknown_user.regular_frequency, "annually")
+    def test_check_new_payments(self):
+        """
+        testing new darujme project => create all data
+        """
+        self.run_check_darujme()
+        # total of 3 users: 2 valid and 1 invalid (so not saved)
+        self.assertTrue(UserProfile.objects.count(), 2)
 
-        user_email = ProfileEmail.objects.get(email="unknown1@email.cz")
-        unknown_user1 = DonorPaymentChannel.objects.get(user=user_email.user)
-        tel_unknown_user1 = Telephone.objects.filter(user=user_email.user).first()
-        self.assertEqual(tel_unknown_user1, None)  # Telephone was submitted, but in bad format
-        self.assertEqual(unknown_user1.user.zip_code, "123 21")
-        self.assertEqual(unknown_user1.regular_amount, 150)
-        self.assertEqual(unknown_user1.end_of_regular_payments, datetime.date(2014, 12, 31))
-        self.assertEqual(unknown_user1.regular_frequency, 'monthly')
-        self.assertEqual(unknown_user1.regular_payments, "regular")
+        # user doesnt exist because he has no valid payment
+        self.assertFalse(ProfileEmail.objects.filter(email="trickyone@test.cz").exists())
 
-        self.assertEqual(Payment.objects.filter(SS=22359).exists(), False)
+        # user exists => has 2 valid payments and 1 invalid
+        profile_email = ProfileEmail.objects.get(email="real@one.com")
+        self.assertTrue(profile_email.is_primary)
+        # check profile
+        user = profile_email.user
+        self.assertEqual(user.first_name, "Real")
+        self.assertEqual(user.last_name, "One")
+        self.assertEqual(user.street, "My Home")
+        self.assertEqual(user.city, "In city")
+        self.assertEqual(user.zip_code, "999")
+        self.assertEqual(user.country, "Slovenská republika")
+        self.assertListEqual(list(user.administrative_units.all()), [self.unit1])
+        telephones = user.telephone_set.all()
+        # check telephone
+        self.assertEqual(telephones.count(), 1)
+        telephone = telephones.first()
+        self.assertEqual(telephone.telephone, "777888999")
+        # check donor_payment_channel
+        dpchs = user.userchannels.all()
+        self.assertEqual(dpchs.count(), 1)
+        dpch = dpchs.first()
+        self.assertEqual(dpch.money_account, self.api_acc)
+        self.assertEqual(dpch.regular_frequency, 'monthly')
+        self.assertEqual(dpch.regular_payments, 'regular')
+        self.assertEqual(dpch.regular_amount, 2000)
+        self.assertEqual(dpch.expected_date_of_first_payment, datetime.date(2012, 11, 30))
+        self.assertEqual(dpch.end_of_regular_payments, datetime.date(2014, 11, 30))
+        # check payments
+        payments = dpch.payment_set.order_by('date')
+        self.assertEqual(payments.count(), 2)
 
-        user_email = ProfileEmail.objects.get(email="unknown3@email.cz")
-        unknown_user3 = DonorPaymentChannel.objects.get(user=user_email.user)
-        tel_unknown_user3 = Telephone.objects.filter(user=user_email.user).first()
-        self.assertEqual(tel_unknown_user3, None)
-        self.assertEqual(unknown_user3.user.zip_code, "")
-        self.assertEqual(unknown_user3.regular_amount, 0)
-        self.assertEqual(unknown_user3.end_of_regular_payments, None)
-        self.assertEqual(unknown_user3.regular_frequency, 'monthly')
-        self.assertEqual(unknown_user3.regular_payments, "promise")
+        self.assertEqual(payments[0].type, 'darujme')
+        self.assertEqual(payments[0].SS, '2')
+        self.assertEqual(payments[0].date, datetime.date(2013, 12, 16))
+        self.assertEqual(payments[0].operation_id, '12')
+        self.assertEqual(payments[0].amount, 500)
+        self.assertEqual(payments[0].account_name, 'Real One')
+        self.assertEqual(payments[0].user_identification, 'Real@one.com')
+        self.assertEqual(payments[0].recipient_account, self.api_acc)
 
-        user_email = ProfileEmail.objects.get(email="test.user1@email.cz")
-        test_user1 = DonorPaymentChannel.objects.get(user=user_email.user)
-        tel_user1 = Telephone.objects.filter(user=user_email.user).first()
-        self.assertEqual(test_user1.user.zip_code, "")
-        self.assertEqual(tel_user1, None)
-        self.assertEqual(test_user1.regular_amount, 150)
-        self.assertEqual(test_user1.end_of_regular_payments, None)
-        self.assertEqual(test_user1.regular_frequency, "annually")
-        self.assertEqual(test_user1.regular_payments, "regular")
+        self.assertEqual(payments[1].type, 'darujme')
+        self.assertEqual(payments[1].SS, '2')
+        self.assertEqual(payments[1].date, datetime.date(2014, 1, 16))
+        self.assertEqual(payments[1].operation_id, '13')
+        self.assertEqual(payments[1].amount, 500)
+        self.assertEqual(payments[1].account_name, 'Real One')
+        self.assertEqual(payments[1].user_identification, 'Real@one.com')
+        self.assertEqual(payments[1].recipient_account, self.api_acc)
 
-        user_email = ProfileEmail.objects.get(email="blank.date@seznam.cz")
-        blank_date_user = DonorPaymentChannel.objects.get(user=user_email.user)
-        payment_blank = blank_date_user.payment_set.get(SS=12345)
-        tel_blank_date_user = Telephone.objects.filter(user=user_email.user).first()
-        self.assertEqual(tel_blank_date_user, None)
-        self.assertEqual(payment_blank.amount, 500)
-        self.assertEqual(payment_blank.date, datetime.date(2016, 8, 9))
-        self.assertEqual(payment_blank.recipient_account, api_account)
-        self.assertEqual(blank_date_user.user.zip_code, "")
-        self.assertEqual(blank_date_user.regular_amount, None)
-        self.assertEqual(blank_date_user.end_of_regular_payments, None)
-        self.assertEqual(blank_date_user.regular_frequency, None)
-        self.assertEqual(blank_date_user.regular_payments, "onetime")
+        # user exists => has 1 valid payments (second one is waiting for sent to organization)
+        profile_email = ProfileEmail.objects.get(email="big@tester.com")
+        self.assertTrue(profile_email.is_primary)
+        # check profile
+        user = profile_email.user
+        self.assertEqual(user.first_name, "Testerek")
+        self.assertEqual(user.last_name, "Teme")
+        self.assertEqual(user.street, "i dont want to")
+        self.assertEqual(user.city, "")
+        self.assertEqual(user.zip_code, "")
+        self.assertEqual(user.country, "Česká republika")
+        self.assertListEqual(list(user.administrative_units.all()), [self.unit1])
+        telephones = user.telephone_set.all()
+        # check telephone
+        self.assertEqual(telephones.count(), 1)
+        telephone = telephones.first()
+        self.assertEqual(telephone.telephone, "999888777")
+        # check donor_payment_channel
+        dpchs = user.userchannels.all()
+        self.assertEqual(dpchs.count(), 1)
+        dpch = dpchs.first()
+        self.assertEqual(dpch.money_account, self.api_acc)
+        self.assertEqual(dpch.regular_frequency, None)
+        self.assertEqual(dpch.regular_payments, 'onetime')
+        self.assertEqual(dpch.regular_amount, 1900)
+        self.assertEqual(dpch.expected_date_of_first_payment, datetime.date(2012, 11, 22))
+        self.assertEqual(dpch.end_of_regular_payments, None)
+        # check payments
+        payments = dpch.payment_set.order_by('date')
+        self.assertEqual(payments.count(), 1)
 
-        return a1
+        self.assertEqual(payments[0].type, 'darujme')
+        self.assertEqual(payments[0].SS, '3')
+        self.assertEqual(payments[0].date, datetime.date(2014, 1, 16))
+        self.assertEqual(payments[0].operation_id, '15')
+        self.assertEqual(payments[0].amount, 500)
+        self.assertEqual(payments[0].account_name, 'Testerek Teme')
+        self.assertEqual(payments[0].user_identification, 'big@tester.com')
+        self.assertEqual(payments[0].recipient_account, self.api_acc)
 
-    def test_darujme_statement(self):
-        with open("apps/aklub/test_data/test_darujme.xls", "rb") as f:
-            a = AccountStatements(csv_file=File(f), type="darujme")
-            a.clean()
-            a.save()
-        self.check_account_statement_data()
+    def test_check_run_repeatly(self):
+        """
+        cron job run repeatly without changes in api => no duplicite data
+        """
+        self.run_check_darujme()
+        self.run_check_darujme()
+        self.run_check_darujme()
 
-    @override_settings(
-        DARUJME_EMAIL_AS_USERNAME=True,
-    )
-    def test_darujme_statement_email_as_username(self):
-        with open("apps/aklub/test_data/test_darujme.xls", "rb") as f:
-            a = AccountStatements(csv_file=File(f), type="darujme")
-            a.clean()
-            a.save()
-        self.check_account_statement_data(username_is_email=True)
+        self.assertEqual(ProfileEmail.objects.count(), 2)
+        self.assertEqual(UserProfile.objects.count(), 2)
+        self.assertEqual(Telephone.objects.count(), 2)
+        self.assertEqual(DonorPaymentChannel.objects.count(), 2)
+        self.assertEqual(Payment.objects.count(), 3)
 
-    def test_darujme_xml_statement(self):
-        a, skipped = darujme.create_statement_from_file("apps/aklub/test_data/darujme.xml", self.unit)
-        a1 = self.check_account_statement_data()
-
-        self.assertEqual(a, a1)
-        self.assertListEqual(
-            skipped,
-            [
-                OrderedDict(
-                    [
-                        ('ss', '22258'),
-                        ('date', '2016-02-09'),
-                        ('name', 'Testing'),
-                        ('surname', 'User 1'),
-                        ('email', 'test.user1@email.cz'),
-                    ],
-                ),
-            ],
+    def test_pair_with_existed_data(self):
+        """
+        user and dpch exists already
+        => create new telephone
+        => do not update userprofile (only add new administrative_unit)
+        => update donor payment channel
+        => pair payments
+        """
+        user = mommy.make(
+            'aklub.UserProfile',
+            first_name='Robert',
+            last_name='Mad',
+            street='a',
+            city='b',
+            zip_code='111',
+            country='Česká republika',
+            administrative_units=[self.unit2],
+        )
+        profile_email = mommy.make('aklub.ProfileEmail', email='real@one.com', user=user)
+        mommy.make('aklub.Telephone', user=user, telephone='555666777')
+        bank_acc = mommy.make('aklub.BankAccount', administrative_unit=self.unit1)
+        mommy.make(
+            'aklub.DonorPaymentChannel',
+            event=self.event,
+            money_account=bank_acc,  # has diff bank_acc of same unit
+            regular_amount=6600,
         )
 
-    def test_darujme_xml_file_skipped(self):
-        count_before = AccountStatements.objects.count()
-        a, skipped = darujme.create_statement_from_file("apps/aklub/test_data/darujme_skip.xml", self.unit)
-        self.assertEqual(AccountStatements.objects.count(), count_before)
-        self.assertEqual(a, None)
-        self.assertListEqual(
-            skipped,
-            [
-                OrderedDict(
-                    [
-                        ('ss', '22258'),
-                        ('date', '2016-2-9'),
-                        ('name', 'Testing'),
-                        ('surname', 'User'),
-                        ('email', 'test.user@email.cz'),
-                    ],
-                ),
-            ],
-        )
+        self.run_check_darujme()
 
-    def test_darujme_xml_file_no_duplicates(self):
-        a, skipped = darujme.create_statement_from_file("apps/aklub/test_data/darujme_duplicate.xml", self.unit)
-        self.assertEqual(a.payment_set.count(), 1)
-        self.assertListEqual(
-            skipped,
-            [
-                OrderedDict(
-                    [
-                        ('ss', '23259'),
-                        ('date', '2016-3-9'),
-                        ('name', 'Testing'),
-                        ('surname', 'User'),
-                        ('email', 'test.user@email.cz'),
-                    ],
-                ),
-            ],
-        )
+        profile_email.refresh_from_db()
+        self.assertFalse(profile_email.is_primary)
+        # check profile (not updated)
+        user = profile_email.user
+        self.assertEqual(user.first_name, "Robert")
+        self.assertEqual(user.last_name, "Mad")
+        self.assertEqual(user.street, "a")
+        self.assertEqual(user.city, "b")
+        self.assertEqual(user.zip_code, "111")
+        self.assertEqual(user.country, "Česká republika")
+        self.assertListEqual(list(user.administrative_units.all()), [self.unit1, self.unit2])
+        telephones = user.telephone_set.all()
+        # check new telephone
+        self.assertEqual(telephones.count(), 2)
+        telephone = telephones.last()
+        self.assertEqual(telephone.telephone, "777888999")
 
-    @patch("urllib.request")
-    def test_darujme_action(self, urllib_request):
-        request = RequestFactory().get("")
-        with open("apps/aklub/test_data/darujme.xml", "r", encoding="utf-8") as f:
-            m = MagicMock()
-            urllib_request.urlopen = MagicMock(return_value=f)
-            admin.download_darujme_statement(m, request, ApiAccount.objects.filter(event__slug='klub'))
-        a1 = self.check_account_statement_data()
-        m.message_user.assert_called_once_with(
-            request,
-            'Created following account statements: %s<br/>Skipped payments: ['
-            'OrderedDict([(&#39;ss&#39;, &#39;22258&#39;), (&#39;date&#39;, &#39;2016-02-09&#39;), (&#39;name&#39;, &#39;Testing&#39;), '
-            '(&#39;surname&#39;, &#39;User 1&#39;), (&#39;email&#39;, &#39;test.user1@email.cz&#39;)])]' % a1.id,
-        )
+        # check donor_payment_channel (updated)
+        dpchs = user.userchannels.all()
+        self.assertEqual(dpchs.count(), 1)
+        dpch = dpchs.first()
+        self.assertEqual(dpch.money_account, self.api_acc)
+        self.assertEqual(dpch.regular_frequency, 'monthly')
+        self.assertEqual(dpch.regular_payments, 'regular')
+        self.assertEqual(dpch.regular_amount, 2000)
+        self.assertEqual(dpch.expected_date_of_first_payment, datetime.date(2012, 11, 30))
+        self.assertEqual(dpch.end_of_regular_payments, datetime.date(2014, 11, 30))
+        # check payments
+        payments = dpch.payment_set.order_by('date')
+        self.assertEqual(payments.count(), 2)
 
 
 @override_settings(

@@ -244,7 +244,7 @@ class Interaction(WithAdminUrl, BaseInteraction2):
                 self.dispatch(save=False)  # then try to dispatch this email automatically
         super().save(*args, **kwargs)
 
-    def dispatch(self, save=True):
+    def dispatch(self, save=True, is_test=False):
         """Dispatch the communication
         Currently only method 'email' is implemented, all other methods will be only saved. For these messages, the
         email is sent via the service configured in application settings.
@@ -258,12 +258,27 @@ class Interaction(WithAdminUrl, BaseInteraction2):
             pass
 
         if self.type.send_email:
-            if self.user.get_email_str(self.administrative_unit) != "":
+            user_email = self.user.get_email_str(self.administrative_unit)
+            if user_email:
+                # if we dpmt wamt to save email => its fake communicaiton and we sent some user to administrative unit
+                if is_test:
+                    to = administrative_unit.from_email_str
+                    body = _(
+                        "Testing email\n"
+                        "Similar email will be sent to every user (email originaly to: %(email)s !!\n"
+                        "^^^Ignore those lines ^^^\n\n"
+                    ) % {'email': user_email}
+                    body = str(body) + self.summary_txt()
+
+                else:
+                    to = user_email
+                    body = self.summary_txt()
+
                 email = EmailMultiAlternatives(
                     subject=self.subject,
-                    body=self.summary_txt(),
+                    body=body,
                     from_email=administrative_unit.from_email_str,
-                    to=[self.user.get_email_str(self.administrative_unit)],
+                    to=[to],
                 )
                 if self.communication_type != 'individual':
                     email.attach_alternative(self.summary, "text/html")

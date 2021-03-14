@@ -54,7 +54,7 @@ urlpatterns = [
     path('help/', include('wiki.urls')),
     path('api/', include('api.urls')),
     url('^{errors_url}/$'.format(errors_url=settings.TEST_ERRORS_URL), test_errors),
-
+    path('model_schema/', include('django_spaghetti.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 urlpatterns += i18n_patterns(

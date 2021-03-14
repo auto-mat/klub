@@ -28,6 +28,7 @@ xlrd = "*"
 django-admin-rangefilter = "*"
 django-cors-headers = "*"
 django-related-admin = "*"
+django-spaghetti-and-meatballs="*"
 gunicorn = "*"
 # waiting for new version > 1.2 (fixing setup.py)
 django-betterforms = {editable = true,git = "https://github.com/PetrKudy/django-betterforms",ref = "setuptool_error"}

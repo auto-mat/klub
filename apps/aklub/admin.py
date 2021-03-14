@@ -1527,10 +1527,10 @@ class MassCommunicationForm(forms.ModelForm):
 
 class MassCommunicationAdmin(unit_admin_mixin_generator('administrative_unit'), large_initial.LargeInitialMixin, admin.ModelAdmin):
     save_as = True
-    list_display = ('name', 'date', 'method_type', 'subject')
+    list_display = ('name', 'status', 'get_send_to_users_count', 'date', 'method_type', 'subject')
     ordering = ('-date',)
     autocomplete_fields = ['send_to_users']
-
+    readonly_fields = ['status', 'get_send_to_users_count']
     form = MassCommunicationForm
 
     formfield_overrides = {
@@ -1541,6 +1541,7 @@ class MassCommunicationAdmin(unit_admin_mixin_generator('administrative_unit'), 
         (None, {
             'fields': (
                 'name',
+                'status',
                 'date',
                 'method_type',
                 'subject',
@@ -1562,6 +1563,13 @@ class MassCommunicationAdmin(unit_admin_mixin_generator('administrative_unit'), 
             ),
         }),
     )
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).annotate(send_to_users_count=Count("send_to_users"))
+
+    def get_send_to_users_count(self, obj):
+        return obj.send_to_users_count
+    get_send_to_users_count.short_description = _("Send count")
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         if db_field.name == "send_to_users":
@@ -1594,6 +1602,7 @@ class MassCommunicationAdmin(unit_admin_mixin_generator('administrative_unit'), 
                 raise e
             # Sending was done, so revert the state of the 'send' checkbox back to False
             obj.date = datetime.datetime.now()
+            obj.status = True
             obj.save()
         return obj
 
@@ -2076,7 +2085,7 @@ class UserProfileAdmin(
         data = request.POST
         if data.get('email') and data.get('administrative_units'):
             try:
-                email = ProfileEmail.objects.get(email=data.get('email'))
+                email = ProfileEmail.objects.get(email=data.get('email').lower())
                 unit = AdministrativeUnit.objects.get(id=data.get('administrative_units'))
                 user = email.user
                 user.administrative_units.add(unit)
