@@ -25,7 +25,7 @@ def test_errors(request):
     logger.warning("Testing warning message", extra={"test": "foobar"})
     logger.exception("Testing exception message", extra={"test": "foobar"})
     logger.error("Testing error message", extra={"test": "foobar"})
-    return HttpResponse("Errors send")
+    return HttpResponse("Errors sent")
 
 admin.autodiscover()
 
