@@ -63,7 +63,8 @@ class AdminSmokeTest(CreateSuperUserMixin, tests.AdminSiteSmokeTest):
     fixtures = ['conditions', 'users']
     # pinax_teams fail in absolute_url => we dont use that so TODO: fix it in future
     exclude_apps = [
-        'helpdesk', 'postoffice', 'advanced_filters', 'celery_monitor', 'import_export_celery', 'wiki_attachments', 'pinax_teams',
+        'helpdesk', 'post_office', 'advanced_filters', 'celery_monitor', 'import_export_celery', 'wiki_attachments', 'pinax_teams',
+        'admin_tools_stats',
     ]
 
     # TODO: make it work... fail in taxconfirmation because of annotated field used in search
