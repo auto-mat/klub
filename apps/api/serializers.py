@@ -8,6 +8,7 @@ from django.utils.translation import ugettext_lazy as _
 from events.models import Event, Location, OrganizationTeam, OrganizingAssociation
 
 from notifications_edit.utils import send_notification_to_is_staff_members
+
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
