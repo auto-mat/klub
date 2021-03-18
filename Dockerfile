@@ -22,15 +22,17 @@ run apt-get update && apt-get install -y \
 run mkdir /home/aplikace -p
 WORKDIR "/home/aplikace"
 
-run pip3 install pipenv
-
-copy Pipfile.lock Pipfile.lock
-copy Pipfile Pipfile
-
-RUN npm install -g less bower
 RUN pip3 install pipenv==2018.11.14
 RUN useradd test
 RUN chsh test -s /bin/bash
 RUN mkdir /home/test ; chown test /home/test ; chgrp test /home/test
+RUN npm install -g bower
+RUN mkdir -p /var/log/django/
+
+copy Pipfile.lock Pipfile.lock
+copy Pipfile Pipfile
 RUN su test ; pipenv install --dev --python python3
 copy . .
+RUN SECRET_KEY="fake_key" pipenv run python manage.py bower install
+RUN SECRET_KEY="fake_key" pipenv run python manage.py compilemessages
+RUN SECRET_KEY="fake_key" pipenv run python manage.py collectstatic --noinput
