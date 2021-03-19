@@ -3,6 +3,10 @@ import logging
 from celery import task
 
 from django.core.management import call_command
+from django.utils import dateformat, timezone
+from django.utils.translation import ugettext_lazy as _
+
+from notifications_edit.utils import send_notification_to_is_staff_members
 
 from oauth2_provider.models import clear_expired
 
@@ -40,7 +44,7 @@ def post_office_send_mail():
 
 @task()
 def generate_tax_confirmations(year, profiles_ids, pdf_type_id):
-
+    started = timezone.now()
     payed = models.Payment.objects.filter(date__year=year).exclude(type='expected')
     users = models.Profile.objects.filter(userchannels__payment__in=payed, id__in=profiles_ids).distinct()
     pdf_type = PdfSandwichType.objects.get(id=pdf_type_id)
@@ -58,6 +62,14 @@ def generate_tax_confirmations(year, profiles_ids, pdf_type_id):
         if confirmation:
             confirmations.append(confirmation)
     smmapdfs.actions.make_pdfsandwich(None, None, confirmations)
+    send_notification_to_is_staff_members(
+        unit,
+        _("Tax Confirmation done"),
+        _("Task started at  %(started)s was done for  %(users)s profiles") % {
+            'started': dateformat.format(started, 'Y-m-d H:i:s'),
+            "users": users.count(),
+        },
+    )
 
 
 @task()
