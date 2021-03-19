@@ -1,9 +1,6 @@
-import pytest
-
 from ..utils import send_notification_to_is_staff_members
 
 
-@pytest.mark.django_db
 class TestCreateNotification:
     def test_send_notification_to_is_staff_members(
         self,
