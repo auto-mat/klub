@@ -180,9 +180,9 @@ class CreateDpchUserProfileViewTest(TestCase):
 class CreateDpchCompanyProfileViewTest(TestCase):
     def setUp(self):
         app_login_mixin()
-        unit = mommy.make('aklub.administrativeunit', name='test_unit')
-        self.event = mommy.make('events.event', slug='event_slug', administrative_units=[unit, ])
-        self.bank_acc = mommy.make('aklub.bankaccount', bank_account='11122/111', slug='bank_slug', administrative_unit=unit)
+        self.unit = mommy.make('aklub.administrativeunit', name='test_unit')
+        self.event = mommy.make('events.event', slug='event_slug', administrative_units=[self.unit, ])
+        self.bank_acc = mommy.make('aklub.bankaccount', bank_account='11122/111', slug='bank_slug', administrative_unit=self.unit)
 
     def test_post_request(self):
         url = reverse('companyprofile_vs')
@@ -235,6 +235,33 @@ class CreateDpchCompanyProfileViewTest(TestCase):
         self.assertEqual(user.zip_code, '111 22')
         self.assertCountEqual(user.companycontact_set.values_list('telephone', flat=True), ['111222333', '333222111'])
         self.assertCountEqual(user.companycontact_set.values_list('email', flat=True), ['company_new@test.com', 'company@test.com'])
+
+    def test_wrong_crn_log(self):
+        """
+        userinput "CRN" is wrong and notificaiton for staff_member is created!
+        """
+        admin_user = mommy.make('aklub.UserProfile', administrated_units=[self.unit, ], is_superuser=True, is_staff=True)
+        url = reverse('companyprofile_vs')
+        header = {'Authorization': 'Bearer foo'}
+        data = {
+            'crn': '1234567',
+            'name': 'company_name',
+            'email': 'Company@Test.Com',
+            'contact_first_name': 'tester',
+            'contact_last_name': 'tester_last',
+            'telephone': '111222333',
+            'money_account': 'bank_slug',
+            'event': 'event_slug',
+            'amount': '111',
+            'regular': True,
+        }
+        response = self.client.post(url, data=data, **header)
+        self.assertEqual(response.status_code, 400)
+        notifications = admin_user.notifications.all()
+        self.assertEqual(notifications.count(), 1)
+        notif = notifications.first()
+        self.assertEqual(notif.verb, 'Wrong format of crn')
+        self.assertEqual(notif.description, 'User input was: 1234567 and was not create in system')
 
 
 class CheckEventViewTest(TestCase):
