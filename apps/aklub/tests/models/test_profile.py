@@ -224,6 +224,8 @@ class TestTaxConfirmation(CreateSuperUserMixin, TestCase):
         super().setUp()
         self.factory = RequestFactory()
         self.client.force_login(self.superuser)
+        self.unit = mommy.make("aklub.AdministrativeUnit", name="unit_test1")
+        self.admin_user = mommy.make('aklub.UserProfile', administrated_units=[self.unit, ], is_superuser=True, is_staff=True)
 
     def test_profile_action(self):
         """ action make tax confirmation redirect to form """
@@ -231,18 +233,17 @@ class TestTaxConfirmation(CreateSuperUserMixin, TestCase):
     def test_make_tax_confirmation_no_payment(self):
         """ Test, that make_tax_confirmation function without any payment """
         t = mommy.make("aklub.UserProfile")
-        unit = mommy.make("aklub.AdministrativeUnit")
         pdf_type = mommy.make(
                 "smmapdfs.PdfSandwichType",
                 name="sandwitch_type",
                 template_pdf=File(open("apps/aklub/test_data/empty_pdf.pdf", "rb")),
         )
-        tax_confirmation, created = t.make_tax_confirmation(2016, unit, pdf_type)
+        tax_confirmation, created = t.make_tax_confirmation(2016, self.unit, pdf_type)
         self.assertEqual(tax_confirmation, None)
         self.assertEqual(created, False)
 
         t = mommy.make("aklub.CompanyProfile")
-        tax_confirmation, created = t.make_tax_confirmation(2016, unit, pdf_type)
+        tax_confirmation, created = t.make_tax_confirmation(2016, self.unit, pdf_type)
         self.assertEqual(tax_confirmation, None)
         self.assertEqual(created, False)
 
@@ -250,8 +251,7 @@ class TestTaxConfirmation(CreateSuperUserMixin, TestCase):
     def test_make_tax_confirmation(self):
         """ Test, that make_tax_confirmation function """
         t = mommy.make("aklub.UserProfile", sex='male')
-        unit = mommy.make("aklub.AdministrativeUnit", name='test1')
-        bank_acc = mommy.make("aklub.BankAccount",  bank_account_number='1111', administrative_unit=unit)
+        bank_acc = mommy.make("aklub.BankAccount",  bank_account_number='1111', administrative_unit=self.unit)
         uc = mommy.make("aklub.DonorPaymentChannel", user=t, event=mommy.make("Event"), money_account=bank_acc)
         mommy.make("aklub.Payment", amount=350, date="2016-01-01", type='regular', user_donor_payment_channel=uc)
         pdf_type = mommy.make(
@@ -259,7 +259,7 @@ class TestTaxConfirmation(CreateSuperUserMixin, TestCase):
                 name="sandwitch_type",
                 template_pdf=File(open("apps/aklub/test_data/empty_pdf.pdf", "rb")),
         )
-        tax_confirmation, created = t.make_tax_confirmation(2016, unit, pdf_type)
+        tax_confirmation, created = t.make_tax_confirmation(2016, self.unit, pdf_type)
         self.assertEqual(t.email, None)
         self.assertEqual(tax_confirmation.year, 2016)
         self.assertEqual(tax_confirmation.amount, 350)
@@ -267,7 +267,7 @@ class TestTaxConfirmation(CreateSuperUserMixin, TestCase):
         t = mommy.make("aklub.CompanyProfile")
         uc = mommy.make("aklub.DonorPaymentChannel", user=t, event=mommy.make("Event"), money_account=bank_acc)
         mommy.make("aklub.Payment", amount=350, date="2016-01-01", type='regular', user_donor_payment_channel=uc)
-        tax_confirmation, created = t.make_tax_confirmation(2016, unit, pdf_type)
+        tax_confirmation, created = t.make_tax_confirmation(2016, self.unit, pdf_type)
         self.assertEqual(t.email, None)
         self.assertEqual(tax_confirmation.year, 2016)
         self.assertEqual(tax_confirmation.amount, 350)
@@ -278,7 +278,6 @@ class TestTaxConfirmation(CreateSuperUserMixin, TestCase):
     @freeze_time("2017-5-1")
     def test_generate_pdf_userprofile(self):
         """ Test, that test tax_configurate task which create TaxConfiguration and generate pdf"""
-        unit = mommy.make("aklub.AdministrativeUnit", name='unit_test1')
         t = mommy.make(
                 "aklub.UserProfile",
                 id=1111,
@@ -289,13 +288,13 @@ class TestTaxConfirmation(CreateSuperUserMixin, TestCase):
                 city='city_name',
                 zip_code='192 00',
                 country="Test_country",
-                administrative_units=[unit],
+                administrative_units=[self.unit],
         )
 
         bank_acc = mommy.make(
             "aklub.BankAccount",
             bank_account_number='1111',
-            administrative_unit=unit,
+            administrative_unit=self.unit,
         )
 
         uc = mommy.make(
@@ -321,7 +320,7 @@ class TestTaxConfirmation(CreateSuperUserMixin, TestCase):
             "smmapdfs_edit.PdfSandwichTypeConnector",
             pdfsandwichtype=pdf_type,
             profile_type='user_profile',
-            administrative_unit=unit,
+            administrative_unit=self.unit,
         )
         mommy.make("aklub.TaxConfirmationField", pdfsandwich_type=pdf_type, field="year", font=font)
         mommy.make("aklub.TaxConfirmationField", pdfsandwich_type=pdf_type, field="amount", font=font)
@@ -376,10 +375,12 @@ class TestTaxConfirmation(CreateSuperUserMixin, TestCase):
         self.assertTrue("01.05.2017" in page_content)
         self.assertTrue("unit_test1" in page_content)
 
+        # notification created
+        self.assertEqual(self.admin_user.notifications.count(), 1)
+
     @freeze_time("2017-5-1")
     def test_generate_pdf_companyprofile(self):
         """ Test, that test tax_configurate task which create TaxConfiguration and generate pdf"""
-        unit = mommy.make("aklub.AdministrativeUnit", name='unit_test1')
         company = mommy.make(
             "aklub.CompanyProfile",
             id=2222,
@@ -390,7 +391,7 @@ class TestTaxConfirmation(CreateSuperUserMixin, TestCase):
             country="Test_country_xx",
             crn='22670319',
             tin='CZ22670319',
-            administrative_units=[unit],
+            administrative_units=[self.unit],
         )
 
         mommy.make(
@@ -399,12 +400,12 @@ class TestTaxConfirmation(CreateSuperUserMixin, TestCase):
             contact_last_name='contact_last',
             company=company,
             is_primary=True,
-            administrative_unit=unit,
+            administrative_unit=self.unit,
         )
         bank_acc = mommy.make(
             "aklub.BankAccount",
             bank_account_number='1111',
-            administrative_unit=unit,
+            administrative_unit=self.unit,
         )
 
         uc = mommy.make(
@@ -430,7 +431,7 @@ class TestTaxConfirmation(CreateSuperUserMixin, TestCase):
             "smmapdfs_edit.PdfSandwichTypeConnector",
             pdfsandwichtype=pdf_type,
             profile_type='company_profile',
-            administrative_unit=unit,
+            administrative_unit=self.unit,
         )
         mommy.make("aklub.TaxConfirmationField", pdfsandwich_type=pdf_type, field="year", font=font)
         mommy.make("aklub.TaxConfirmationField", pdfsandwich_type=pdf_type, field="amount", font=font)
@@ -490,3 +491,6 @@ class TestTaxConfirmation(CreateSuperUserMixin, TestCase):
         self.assertTrue("22670319" in page_content)
         self.assertTrue("CZ22670319" in page_content)
         self.assertTrue("unit_test1" in page_content)
+
+        # notification created
+        self.assertEqual(self.admin_user.notifications.count(), 1)

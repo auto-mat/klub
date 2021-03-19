@@ -1,8 +1,13 @@
 from django.apps import AppConfig
+from django.contrib.admin.apps import AdminConfig
 from django.utils.translation import ugettext_lazy as _
 
 # raname/translate app name in admin
 # dont forget to set path in __init__ file in specific app
+
+
+class MyAdminConfig(AdminConfig):
+    default_site = 'project.admin.MyAdminSite'
 
 
 class AklubConfig(AppConfig):

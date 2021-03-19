@@ -7,6 +7,8 @@ from django.utils.translation import ugettext_lazy as _
 
 from events.models import Event, Location, OrganizationTeam, OrganizingAssociation
 
+from notifications_edit.utils import send_notification_to_is_staff_members
+
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
@@ -68,6 +70,20 @@ class GetDpchCompanyProfileSerializer(serializers.ModelSerializer, ValidateEmail
             'name': {'required': True},
             'email': {'required': True},
         }
+
+    def to_internal_value(self, data):
+        try:
+            return super().to_internal_value(data)
+        except serializers.ValidationError as error:
+            # catching error to log crn error
+            crn_log = error.detail.get('crn')
+            if crn_log:
+                send_notification_to_is_staff_members(
+                    MoneyAccount.objects.get(slug=data['money_account']).administrative_unit,
+                    _('Wrong format of crn'),
+                    _(f'User input was: {data["crn"]} and was not create in system'),
+                )
+            raise error
 
 
 class EventCheckSerializer(serializers.ModelSerializer):
