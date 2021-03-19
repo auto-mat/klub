@@ -17,6 +17,7 @@ update_local.sh
 aklub.log*
 db_backup
 .coverage
+.pytest_cache
 htmlcov/
 venv/
 .idea/

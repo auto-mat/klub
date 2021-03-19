@@ -37,6 +37,7 @@ before_script:
 script:
   - pipenv run python manage.py --version
   - pipenv run ./runtests.sh
+  - pipenv run pytest
 after_script:
   - coveralls
 addons:
