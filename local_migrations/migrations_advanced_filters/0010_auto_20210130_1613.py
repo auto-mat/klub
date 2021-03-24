@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='advancedfilter',
             name='b64_fake_query',
-            field=models.CharField(max_length=2048),
+            field=models.CharField(max_length=2048, default="default_value"),
         ),
         migrations.AlterField(
             model_name='advancedfilter',
