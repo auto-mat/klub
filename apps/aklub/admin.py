@@ -671,7 +671,8 @@ class ApiAccountAdmin(
     """ Api account polymorphic admin model child class """
     base_model = ApiAccount
     show_in_index = True
-    list_display = ('__str__', 'project_name', 'event', 'project_id', 'api_id', 'administrative_unit')
+    list_display = ('__str__', 'project_name', 'event', 'project_id', 'api_id', 'administrative_unit', 'is_active')
+    readonly_fields = ('darujme_url',)
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "event":
@@ -680,6 +681,14 @@ class ApiAccountAdmin(
             else:
                 kwargs["queryset"] = Event.objects.all()
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def darujme_url(self, obj):
+        if self.request.user.has_perm('aklub.can_edit_all_units'):
+            return mark_safe(f'<a href="{obj.darujme_url()}">{_("Here")}</a>')
+        else:
+            return _("Only super administrators can see url")
+
+    darujme_url.short_description = _("Darujme api url")
 
 
 @admin.register(BankAccount)

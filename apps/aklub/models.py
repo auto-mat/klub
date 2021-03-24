@@ -1679,9 +1679,23 @@ class ApiAccount(MoneyAccount):
         verbose_name=("Event"),
         on_delete=models.CASCADE,
     )
+    is_active = models.BooleanField(
+            verbose_name=_("Active"),
+            help_text=_("Is the project active"),
+            default=True,
+    )
 
     def __str__(self):
         return f'{self.administrative_unit} -{self.event} - auto api'
+
+    def darujme_url(self):
+        url = 'https://www.darujme.cz/api/v1/organization/{0}/pledges-by-filter/?apiId={1}&apiSecret={2}&projectId={3}'.format(
+            self.api_organization_id,
+            self.api_id,
+            self.api_secret,
+            self.project_id,
+        )
+        return url
 
 
 class UserBankAccount(models.Model):

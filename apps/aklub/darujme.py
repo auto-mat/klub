@@ -29,12 +29,7 @@ def create_statement(response, api_account):
 
 
 def create_statement_from_API(api_account):
-    url = 'https://www.darujme.cz/api/v1/organization/{0}/pledges-by-filter/?apiId={1}&apiSecret={2}&projectId={3}'.format(
-        api_account.api_organization_id,
-        api_account.api_id,
-        api_account.api_secret,
-        api_account.project_id,
-    )
+    url = api_account.darujme_url()
     response = requests.get(url)
     if response.status_code == 200:
         try:
@@ -167,7 +162,7 @@ def parse_darujme_json(response, api_account):
 def check_for_new_payments(log_function=None):
     if log_function is None:
         log_function = lambda _: None # noqa
-    for api_account in ApiAccount.objects.filter(api_secret__isnull=False).exclude(api_secret=""):
+    for api_account in ApiAccount.objects.filter(is_active=True):
         log_function(api_account)
         payments = create_statement_from_API(api_account)
         log_function(payments)
