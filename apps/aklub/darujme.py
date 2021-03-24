@@ -36,11 +36,14 @@ def create_statement_from_API(api_account):
         api_account.project_id,
     )
     response = requests.get(url)
-    try:
-        return create_statement(response, api_account)
-    except Exception as e: # noqa
-        logger.info(f'Error while parsing url: {url} error: {e}')
-        raise e
+    if response.status_code == 200:
+        try:
+            return create_statement(response, api_account)
+        except Exception as e: # noqa
+            logger.info(f'Error while parsing url: {url} error: {e}')
+            raise e
+    else:
+        logger.info(f'{url} error status not 200: {response.json()}')
 
 
 def create_payments(pledge, api_account):
@@ -167,5 +170,4 @@ def check_for_new_payments(log_function=None):
     for api_account in ApiAccount.objects.filter(api_secret__isnull=False).exclude(api_secret=""):
         log_function(api_account)
         payments = create_statement_from_API(api_account)
-
         log_function(payments)
