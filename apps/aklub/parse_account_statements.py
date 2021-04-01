@@ -1,10 +1,24 @@
 
 import codecs
 import csv
+import datetime
 
 from django.utils.translation import ugettext_lazy as _
 
 from . import models
+
+
+def str_to_datetime(date):
+    if not date:
+        return None
+    return datetime.date(
+        **dict(
+            zip(
+                ['day', 'month', 'year'],
+                [int(val) for val in date.split('.')],
+            ),
+        ),
+    )
 
 
 def register_payment(p_sort, self):
@@ -89,8 +103,8 @@ class ParseAccountStatement(object):
             recipient_account_name='\ufeff"accountId"',
             statement=self,
         )
-        self.date_from = models.str_to_datetime(date_from)
-        self.date_to = models.str_to_datetime(date_to)
+        self.date_from = str_to_datetime(date_from)
+        self.date_to = str_to_datetime(date_to)
         csv_head = True
         payments = []
         for payment in payments_reader:
@@ -99,7 +113,7 @@ class ParseAccountStatement(object):
                     csv_head = False
             else:
 
-                payment['date'] = models.str_to_datetime(payment['date'])
+                payment['date'] = str_to_datetime(payment['date'])
                 payment['amount'] = amount_to_int(payment['amount'])
                 payment['bank_code'] = get_four_digit(payment['bank_code'])
                 payment['recipient_account'] = recipient_account
@@ -184,8 +198,8 @@ class ParseAccountStatement(object):
             statement=self,
         )
 
-        self.date_from = models.str_to_datetime(date_from)
-        self.date_to = models.str_to_datetime(date_to)
+        self.date_from = str_to_datetime(date_from)
+        self.date_to = str_to_datetime(date_to)
 
         csv_head = True
         payments = []
@@ -208,7 +222,7 @@ class ParseAccountStatement(object):
                              'recipient_account': recipient_account,
                              }
                 p_sort['amount'] = amount_to_int(p_sort['amount'])
-                p_sort['date'] = models.str_to_datetime(p_sort['date'])
+                p_sort['date'] = str_to_datetime(p_sort['date'])
 
                 if check_incomming(p_sort['amount']):
                     continue
@@ -235,8 +249,8 @@ class ParseAccountStatement(object):
                 if payment[payments_reader.fieldnames[0]] == 'číslo účtu':
                     csv_head = False
                 elif line_parse[0] == 'Datum':
-                    self.date_from = models.str_to_datetime(line_parse[4])
-                    self.date_to = models.str_to_datetime(line_parse[7].replace(';', ''))
+                    self.date_from = str_to_datetime(line_parse[4])
+                    self.date_to = str_to_datetime(line_parse[7].replace(';', ''))
                 elif line_parse[0] == 'CEB':
                     account = line_parse[12].replace(';', '')
                     try:
@@ -260,7 +274,7 @@ class ParseAccountStatement(object):
                              }
 
                 p_sort['amount'] = amount_to_int(p_sort['amount'])
-                p_sort['date'] = models.str_to_datetime(p_sort['date'])
+                p_sort['date'] = str_to_datetime(p_sort['date'])
 
                 if check_incomming(p_sort['amount']):
                     continue
@@ -304,7 +318,7 @@ class ParseAccountStatement(object):
                         'currency': payment['currency2'],
                         'account_name': payment['account_name'],
                         'recipient_message': payment['message'],
-                        'date': models.str_to_datetime(payment['date1']),
+                        'date': str_to_datetime(payment['date1']),
                         'transfer_type': payment['transfer_type'],
                         'recipient_account': recipient_account,
                          }
@@ -353,7 +367,7 @@ class ParseAccountStatement(object):
                         'account_name': payment['nazev_protiuctu'],
                         'recipient_message': payment['zprava'],
                         'transfer_note': payment['poznamka'],
-                        'date': models.str_to_datetime(payment['datum_zauctovani'].split(' ')[0]),
+                        'date': str_to_datetime(payment['datum_zauctovani'].split(' ')[0]),
                         'recipient_account': recipient_account,
                         'operation_id': payment['id_transakce'],
                          }

@@ -1186,30 +1186,6 @@ class Telephone(models.Model):
                 return format_html("<a href='sip:{}'>{}</a>", formated_telephone, formated_telephone)
 
 
-def str_to_datetime_xml(date):
-    return datetime.date(
-        **dict(
-            zip(
-                ['year', 'month', 'day'],
-                [int(val) for val in date.split('-')],
-            ),
-        ),
-    )
-
-
-def str_to_datetime(date):
-    if not date:
-        return None
-    return datetime.date(
-        **dict(
-            zip(
-                ['day', 'month', 'year'],
-                [int(val) for val in date.split('.')],
-            ),
-        ),
-    )
-
-
 class AccountStatements(ParseAccountStatement, models.Model):
     """AccountStatemt entry and DB model
 
