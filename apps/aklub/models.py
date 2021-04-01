@@ -1790,7 +1790,7 @@ class DonorPaymentChannel(ComputedFieldsModel):
     def person_name(self):
         try:
             return self.user.__str__()
-        except Profile.DoesNotExist:  # This happens, when UserInCampaign is cached, but it is deleted already
+        except Profile.DoesNotExist:  # This happens, when DonorPaymentChannel is cached, but it is deleted already
             return "No Profile"
 
     person_name.short_description = _("Full name")
