@@ -2,7 +2,6 @@
 {% load i18n %}
 {% block content %}
 <h2>{% trans "Select type of profile you want to pick" %}</h2>
-{{ request.GET.urlencode}}
 <a href="{% url 'admin:aklub_userprofile_changelist' %}{% if request.GET.urlencode %}?{{ request.GET.urlencode}}{% endif %}"><input type="button" class="default" value="{% trans "UserProfile" %}"></a>
 <a href="{% url 'admin:aklub_companyprofile_changelist' %}{% if request.GET.urlencode %}?{{ request.GET.urlencode}}{% endif %}"><input type="button" class="default" value="{% trans "CompanyProfile" %}"></a>
 {% endblock %}
