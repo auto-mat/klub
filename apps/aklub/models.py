@@ -38,7 +38,6 @@ from django.core.validators import RegexValidator, ValidationError
 from django.db import models, transaction
 from django.db.models import Count, Q, QuerySet, Sum, signals
 from django.dispatch import receiver
-from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html, format_html_join, mark_safe
 from django.utils.text import format_lazy
