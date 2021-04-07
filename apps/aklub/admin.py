@@ -2115,40 +2115,28 @@ class UserProfileAdmin(
         donor_filter = edit_donor_annotate_filter(self, request)
 
         filter_kwargs = {}
+        extra_related = []
         filter_kwargs = check_annotate_filters(self.list_display, request, filter_kwargs)
         # annotate_kwargs = check_annotate_subqueries(self, request)
-        if request.user.has_perm('aklub.can_edit_all_units'):
-            queryset = super().get_queryset(request, *args, **kwargs).prefetch_related(
-                    'telephone_set',
-                    'profileemail_set',
-                    'administrative_units',
-                    'userchannels__event',
-                    'interaction_set',
-                ).annotate(
-                    sum_amount=Sum('userchannels__payment__amount', filter=Q(**donor_filter)),
-                    payment_count=Count('userchannels__payment', filter=Q(**donor_filter)),
-                    last_payment_date=Max('userchannels__payment__date', filter=Q(**donor_filter)),
-                    first_payment_date=Min('userchannels__payment__date', filter=Q(**donor_filter)),
-                    # **annotate_kwargs,
-                    **filter_kwargs,
-                )
-        else:
-            donor_filter['userchannels__money_account__administrative_unit'] = self.user_administrated_units.first()
-            queryset = super().get_queryset(request, *args, **kwargs).prefetch_related(
-                    'telephone_set',
-                    'profileemail_set',
-                    'administrative_units',
-                    'userchannels__event',
-                    'userchannels__money_account__administrative_unit',
-                    'interaction_set',
-                ).annotate(
-                    sum_amount=Sum('userchannels__payment__amount', filter=Q(**donor_filter)),
-                    payment_count=Count('userchannels__payment', filter=Q(**donor_filter)),
-                    last_payment_date=Max('userchannels__payment__date', filter=Q(**donor_filter)),
-                    first_payment_date=Min('userchannels__payment__date', filter=Q(**donor_filter)),
-                    # **annotate_kwargs,
-                    **filter_kwargs,
-                )
+        if not request.user.has_perm('aklub.can_edit_all_units'):
+            donor_filter['userchannels__money_account__administrative_unit__in'] = self.user_administrated_units
+            extra_related.append('userchannels__money_account__administrative_unit')
+
+        queryset = super().get_queryset(request, *args, **kwargs).prefetch_related(
+                'telephone_set',
+                'profileemail_set',
+                'administrative_units',
+                'userchannels__event',
+                'interaction_set',
+                *extra_related,
+            ).annotate(
+                sum_amount=Sum('userchannels__payment__amount', filter=Q(**donor_filter)),
+                payment_count=Count('userchannels__payment', filter=Q(**donor_filter)),
+                last_payment_date=Max('userchannels__payment__date', filter=Q(**donor_filter)),
+                first_payment_date=Min('userchannels__payment__date', filter=Q(**donor_filter)),
+                # **annotate_kwargs,
+                **filter_kwargs,
+            )
 
         return queryset
 
@@ -2427,37 +2415,26 @@ class CompanyProfileAdmin(
         donor_filter = edit_donor_annotate_filter(self, request)
 
         filter_kwargs = {}
+        extra_related = []
         filter_kwargs = check_annotate_filters(self.list_display, request, filter_kwargs)
         # annotate_kwargs = check_annotate_subqueries(self, request)
-        if request.user.has_perm('aklub.can_edit_all_units'):
-            queryset = super().get_queryset(request, *args, **kwargs).prefetch_related(
-                    'companycontact_set',
-                    'administrative_units',
-                    'userchannels__event',
-                ).annotate(
-                    sum_amount=Sum('userchannels__payment__amount', filter=Q(**donor_filter)),
-                    payment_count=Count('userchannels__payment', filter=Q(**donor_filter)),
-                    last_payment_date=Max('userchannels__payment__date', filter=Q(**donor_filter)),
-                    first_payment_date=Min('userchannels__payment__date', filter=Q(**donor_filter)),
-                    # **annotate_kwargs,
-                    **filter_kwargs,
-                )
-        else:
-            donor_filter['userchannels__money_account__administrative_unit'] = self.user_administrated_units.first()
-            queryset = super().get_queryset(request, *args, **kwargs).prefetch_related(
-                    'companycontact_set',
-                    'administrative_units',
-                    'userchannels__event',
-                    'userchannels__money_account__administrative_unit',
-                ).annotate(
-                    sum_amount=Sum('userchannels__payment__amount', filter=Q(**donor_filter)),
-                    payment_count=Count('userchannels__payment', filter=Q(**donor_filter)),
-                    last_payment_date=Max('userchannels__payment__date', filter=Q(**donor_filter)),
-                    first_payment_date=Min('userchannels__payment__date', filter=Q(**donor_filter)),
-                    # **annotate_kwargs,
-                    **filter_kwargs,
-                )
+        if not request.user.has_perm('aklub.can_edit_all_units'):
+            donor_filter['userchannels__money_account__administrative_unit__in'] = self.user_administrated_units
+            extra_related.append('userchannels__money_account__administrative_unit')
 
+        queryset = super().get_queryset(request, *args, **kwargs).prefetch_related(
+                'companycontact_set',
+                'administrative_units',
+                'userchannels__event',
+                *extra_related,
+            ).annotate(
+                sum_amount=Sum('userchannels__payment__amount', filter=Q(**donor_filter)),
+                payment_count=Count('userchannels__payment', filter=Q(**donor_filter)),
+                last_payment_date=Max('userchannels__payment__date', filter=Q(**donor_filter)),
+                first_payment_date=Min('userchannels__payment__date', filter=Q(**donor_filter)),
+                # **annotate_kwargs,
+                **filter_kwargs,
+            )
         return queryset
 
 
