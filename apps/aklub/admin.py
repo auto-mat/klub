@@ -1824,7 +1824,7 @@ class BaseProfileChildAdmin(PolymorphicChildModelAdmin,):
             yield inline.get_formset(request, obj), inline
 
     readonly_fields = (
-        'userattendance_links', 'date_joined', 'last_login', 'get_main_telephone',
+        'date_joined', 'last_login', 'get_main_telephone',
         'get_email', 'regular_amount', 'donor_delay', 'registered_support_date',
         'donor_frequency', 'total_payment', 'donor_extra_money',
     )
