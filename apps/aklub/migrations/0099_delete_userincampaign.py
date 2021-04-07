@@ -13,6 +13,12 @@ class Migration(migrations.Migration):
     dependencies = [
         ('aklub', '0098_apiaccount_is_active'),
     ]
+    def remove_userincampaign_perms(apps, schema_editor):
+        # removing model permissions ...!
+        Permission = apps.get_model('auth', 'Permission')
+        Permission.objects.filter(codename__contains='userincampaign').delete()
+
+
 
     operations = [
         migrations.DeleteModel(
@@ -34,4 +40,5 @@ class Migration(migrations.Migration):
             },
             bases=('aklub.donorpaymentchannel',),
         ),
+        migrations.RunPython(remove_userincampaign_perms, reverse_code=migrations.RunPython.noop),
     ]
