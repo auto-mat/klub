@@ -1186,13 +1186,11 @@ class DonorPaymetChannelAdmin(
         )
 
         qs = super().get_queryset(request)\
+            .prefetch_related('user__polymorphic_ctype')\
             .annotate(
                 last_name=F("user__userprofile__last_name"),
                 first_name=F("user__userprofile__first_name"),
                 company_name=F("user__companyprofile__name"),
-                # TODO: profile_type shoud not be there, but dpch returns user parent model instead of child...
-                # and we are not able to recognize child without hitting db.
-                profile_type=F("user__userprofile__polymorphic_ctype__model"),
                 email_address_user=Subquery(primary_email_user.values('email')),
                 email_address_company=Subquery(primary_email_company.values('email')),
 
@@ -1206,7 +1204,7 @@ class DonorPaymetChannelAdmin(
         return obj.user.telephone_url()
 
     def get_email(self, obj):
-        if obj.profile_type == UserProfile._meta.model_name:
+        if obj.user.polymorphic_ctype.model == 'userprofile':
             return obj.email_address_user
         else:
             return obj.email_address_company
@@ -1214,7 +1212,7 @@ class DonorPaymetChannelAdmin(
     get_email.short_description = _("Main email")
 
     def get_name(self, obj):
-        if obj.profile_type == UserProfile._meta.model_name:
+        if obj.user.polymorphic_ctype.model == 'userprofile':
             if obj.first_name or obj.last_name:
                 return f"{obj.first_name} {obj.last_name}"
             else:
@@ -1750,21 +1748,19 @@ class TaxConfirmationAdmin(
                 'user_profile__companyprofile',
                 'user_profile__userprofile',
                 'pdf_type__pdfsandwichtypeconnector',
+                'user_profile__polymorphic_ctype',
             )\
             .annotate(
                 last_name=F("user_profile__userprofile__last_name"),
                 first_name=F("user_profile__userprofile__first_name"),
                 company_name=F("user_profile__companyprofile__name"),
-                # TODO: profile_type shoud not be there, but dpch returns user parent model instead of child...
-                # and we are not able to recognize child without hitting db.
-                profile_type=F("user_profile__polymorphic_ctype__model"),
                 email_address_user=Subquery(primary_email_user.values('email')),
                 email_address_company=Subquery(primary_email_company.values('email')),
         )
         return qs
 
     def get_email(self, obj):
-        if obj.profile_type == UserProfile._meta.model_name:
+        if obj.user_profile.polymorphic_ctype.model == 'userprofile':
             return obj.email_address_user
         else:
             return obj.email_address_company
