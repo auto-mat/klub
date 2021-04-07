@@ -617,18 +617,6 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
     person_name.short_description = _("Full name")
     person_name.admin_order_field = 'last_name'
 
-    def userattendance_links(self):
-        from .admin import admin_links
-        return admin_links(
-            [
-                (
-                    reverse('admin:aklub_userincampaign_change', args=(u.pk,)), str(u.campaign)
-                ) for u in self.userincampaign_set.all()
-            ]
-        )
-
-    userattendance_links.short_description = _('Users in campaign')
-
     def make_tax_confirmation(self, year, unit, pdf_type):
         payment_set = Payment.objects.filter(
                             user_donor_payment_channel__user=self,
