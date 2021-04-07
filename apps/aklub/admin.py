@@ -1186,13 +1186,11 @@ class DonorPaymetChannelAdmin(
         )
 
         qs = super().get_queryset(request)\
+            .prefetch_related('user__polymorphic_ctype')\
             .annotate(
                 last_name=F("user__userprofile__last_name"),
                 first_name=F("user__userprofile__first_name"),
                 company_name=F("user__companyprofile__name"),
-                # TODO: profile_type shoud not be there, but dpch returns user parent model instead of child...
-                # and we are not able to recognize child without hitting db.
-                profile_type=F("user__userprofile__polymorphic_ctype__model"),
                 email_address_user=Subquery(primary_email_user.values('email')),
                 email_address_company=Subquery(primary_email_company.values('email')),
 
@@ -1206,7 +1204,7 @@ class DonorPaymetChannelAdmin(
         return obj.user.telephone_url()
 
     def get_email(self, obj):
-        if obj.profile_type == UserProfile._meta.model_name:
+        if obj.user.polymorphic_ctype.model == 'userprofile':
             return obj.email_address_user
         else:
             return obj.email_address_company
@@ -1214,7 +1212,7 @@ class DonorPaymetChannelAdmin(
     get_email.short_description = _("Main email")
 
     def get_name(self, obj):
-        if obj.profile_type == UserProfile._meta.model_name:
+        if obj.user.polymorphic_ctype.model == 'userprofile':
             if obj.first_name or obj.last_name:
                 return f"{obj.first_name} {obj.last_name}"
             else:
@@ -1742,26 +1740,27 @@ class TaxConfirmationAdmin(
         )
 
         qs = super().get_queryset(request)\
+            .prefetch_related(
+                'taxconfirmationpdf_set',
+            )\
             .select_related(
                 'pdf_type__pdfsandwichtypeconnector__administrative_unit',
                 'user_profile__companyprofile',
                 'user_profile__userprofile',
                 'pdf_type__pdfsandwichtypeconnector',
+                'user_profile__polymorphic_ctype',
             )\
             .annotate(
                 last_name=F("user_profile__userprofile__last_name"),
                 first_name=F("user_profile__userprofile__first_name"),
                 company_name=F("user_profile__companyprofile__name"),
-                # TODO: profile_type shoud not be there, but dpch returns user parent model instead of child...
-                # and we are not able to recognize child without hitting db.
-                profile_type=F("user_profile__polymorphic_ctype__model"),
                 email_address_user=Subquery(primary_email_user.values('email')),
                 email_address_company=Subquery(primary_email_company.values('email')),
         )
         return qs
 
     def get_email(self, obj):
-        if obj.profile_type == UserProfile._meta.model_name:
+        if obj.user_profile.polymorphic_ctype.model == 'userprofile':
             return obj.email_address_user
         else:
             return obj.email_address_company
@@ -2115,40 +2114,28 @@ class UserProfileAdmin(
         donor_filter = edit_donor_annotate_filter(self, request)
 
         filter_kwargs = {}
+        extra_related = []
         filter_kwargs = check_annotate_filters(self.list_display, request, filter_kwargs)
         # annotate_kwargs = check_annotate_subqueries(self, request)
-        if request.user.has_perm('aklub.can_edit_all_units'):
-            queryset = super().get_queryset(request, *args, **kwargs).prefetch_related(
-                    'telephone_set',
-                    'profileemail_set',
-                    'administrative_units',
-                    'userchannels__event',
-                    'interaction_set',
-                ).annotate(
-                    sum_amount=Sum('userchannels__payment__amount', filter=Q(**donor_filter)),
-                    payment_count=Count('userchannels__payment', filter=Q(**donor_filter)),
-                    last_payment_date=Max('userchannels__payment__date', filter=Q(**donor_filter)),
-                    first_payment_date=Min('userchannels__payment__date', filter=Q(**donor_filter)),
-                    # **annotate_kwargs,
-                    **filter_kwargs,
-                )
-        else:
-            donor_filter['userchannels__money_account__administrative_unit'] = self.user_administrated_units.first()
-            queryset = super().get_queryset(request, *args, **kwargs).prefetch_related(
-                    'telephone_set',
-                    'profileemail_set',
-                    'administrative_units',
-                    'userchannels__event',
-                    'userchannels__money_account__administrative_unit',
-                    'interaction_set',
-                ).annotate(
-                    sum_amount=Sum('userchannels__payment__amount', filter=Q(**donor_filter)),
-                    payment_count=Count('userchannels__payment', filter=Q(**donor_filter)),
-                    last_payment_date=Max('userchannels__payment__date', filter=Q(**donor_filter)),
-                    first_payment_date=Min('userchannels__payment__date', filter=Q(**donor_filter)),
-                    # **annotate_kwargs,
-                    **filter_kwargs,
-                )
+        if not request.user.has_perm('aklub.can_edit_all_units'):
+            donor_filter['userchannels__money_account__administrative_unit__in'] = self.user_administrated_units
+            extra_related.append('userchannels__money_account__administrative_unit')
+
+        queryset = super().get_queryset(request, *args, **kwargs).prefetch_related(
+                'telephone_set',
+                'profileemail_set',
+                'administrative_units',
+                'userchannels__event',
+                'interaction_set',
+                *extra_related,
+            ).annotate(
+                sum_amount=Sum('userchannels__payment__amount', filter=Q(**donor_filter)),
+                payment_count=Count('userchannels__payment', filter=Q(**donor_filter)),
+                last_payment_date=Max('userchannels__payment__date', filter=Q(**donor_filter)),
+                first_payment_date=Min('userchannels__payment__date', filter=Q(**donor_filter)),
+                # **annotate_kwargs,
+                **filter_kwargs,
+            )
 
         return queryset
 
@@ -2427,37 +2414,26 @@ class CompanyProfileAdmin(
         donor_filter = edit_donor_annotate_filter(self, request)
 
         filter_kwargs = {}
+        extra_related = []
         filter_kwargs = check_annotate_filters(self.list_display, request, filter_kwargs)
         # annotate_kwargs = check_annotate_subqueries(self, request)
-        if request.user.has_perm('aklub.can_edit_all_units'):
-            queryset = super().get_queryset(request, *args, **kwargs).prefetch_related(
-                    'companycontact_set',
-                    'administrative_units',
-                    'userchannels__event',
-                ).annotate(
-                    sum_amount=Sum('userchannels__payment__amount', filter=Q(**donor_filter)),
-                    payment_count=Count('userchannels__payment', filter=Q(**donor_filter)),
-                    last_payment_date=Max('userchannels__payment__date', filter=Q(**donor_filter)),
-                    first_payment_date=Min('userchannels__payment__date', filter=Q(**donor_filter)),
-                    # **annotate_kwargs,
-                    **filter_kwargs,
-                )
-        else:
-            donor_filter['userchannels__money_account__administrative_unit'] = self.user_administrated_units.first()
-            queryset = super().get_queryset(request, *args, **kwargs).prefetch_related(
-                    'companycontact_set',
-                    'administrative_units',
-                    'userchannels__event',
-                    'userchannels__money_account__administrative_unit',
-                ).annotate(
-                    sum_amount=Sum('userchannels__payment__amount', filter=Q(**donor_filter)),
-                    payment_count=Count('userchannels__payment', filter=Q(**donor_filter)),
-                    last_payment_date=Max('userchannels__payment__date', filter=Q(**donor_filter)),
-                    first_payment_date=Min('userchannels__payment__date', filter=Q(**donor_filter)),
-                    # **annotate_kwargs,
-                    **filter_kwargs,
-                )
+        if not request.user.has_perm('aklub.can_edit_all_units'):
+            donor_filter['userchannels__money_account__administrative_unit__in'] = self.user_administrated_units
+            extra_related.append('userchannels__money_account__administrative_unit')
 
+        queryset = super().get_queryset(request, *args, **kwargs).prefetch_related(
+                'companycontact_set',
+                'administrative_units',
+                'userchannels__event',
+                *extra_related,
+            ).annotate(
+                sum_amount=Sum('userchannels__payment__amount', filter=Q(**donor_filter)),
+                payment_count=Count('userchannels__payment', filter=Q(**donor_filter)),
+                last_payment_date=Max('userchannels__payment__date', filter=Q(**donor_filter)),
+                first_payment_date=Min('userchannels__payment__date', filter=Q(**donor_filter)),
+                # **annotate_kwargs,
+                **filter_kwargs,
+            )
         return queryset
 
 

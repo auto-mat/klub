@@ -2378,8 +2378,8 @@ class TaxConfirmation(models.Model):
     def get_pdf(self):
         try:
             try:
-                url = self.taxconfirmationpdf_set.get().pdf.url
-            except TaxConfirmationPdf.DoesNotExist:
+                url = self.taxconfirmationpdf_set.all()[0].pdf.url
+            except IndexError:
                 url = self.file.url
         except ValueError:
             url = None
