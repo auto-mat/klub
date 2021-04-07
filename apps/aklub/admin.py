@@ -1742,6 +1742,9 @@ class TaxConfirmationAdmin(
         )
 
         qs = super().get_queryset(request)\
+            .prefetch_related(
+                'taxconfirmationpdf_set',
+            )\
             .select_related(
                 'pdf_type__pdfsandwichtypeconnector__administrative_unit',
                 'user_profile__companyprofile',
