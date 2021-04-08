@@ -564,6 +564,7 @@ class RegularDarujmeView(RegularView):
     success_template = 'thanks-darujme.html'
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class RegisterWithoutPaymentView(FormView):
     template_name = 'regular.html'
     form_class = RegisterUserForm
