@@ -10,6 +10,15 @@ from django.utils.translation import ugettext_lazy as _
 from . import models as aklub_models
 
 
+class Count(models.Count):
+    """
+    - Django 2.2 purpose (cant use distinct by default)
+    - Django 3.x => support this by default
+    - after migrate on 3.x remove this and use default Count
+    """
+    allow_distinct = True
+
+
 def sweet_text(generator):
     """
     breakto diff lines

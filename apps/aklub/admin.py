@@ -39,7 +39,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core import serializers
 from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator
-from django.db.models import CharField, Count, F, Max, Min, OuterRef, Q, Subquery, Sum
+from django.db.models import CharField, F, Max, Min, OuterRef, Q, Subquery, Sum
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect
 from django.urls import resolve
@@ -105,7 +105,7 @@ from .profile_model_resources import (
     ProfileModelResource, get_polymorphic_parent_child_fields,
 )
 from .profile_model_resources_mixin import ProfileModelResourceMixin
-from .utils import check_annotate_filters, edit_donor_annotate_filter, sweet_text
+from .utils import Count, check_annotate_filters, edit_donor_annotate_filter, sweet_text
 
 
 def admin_links(args_generator):
@@ -2130,7 +2130,7 @@ class UserProfileAdmin(
                 *extra_related,
             ).annotate(
                 sum_amount=Sum('userchannels__payment__amount', filter=Q(**donor_filter)),
-                payment_count=Count('userchannels__payment', filter=Q(**donor_filter)),
+                payment_count=Count('userchannels__payment', distinct=True, filter=Q(**donor_filter)),
                 last_payment_date=Max('userchannels__payment__date', filter=Q(**donor_filter)),
                 first_payment_date=Min('userchannels__payment__date', filter=Q(**donor_filter)),
                 # **annotate_kwargs,
@@ -2428,7 +2428,7 @@ class CompanyProfileAdmin(
                 *extra_related,
             ).annotate(
                 sum_amount=Sum('userchannels__payment__amount', filter=Q(**donor_filter)),
-                payment_count=Count('userchannels__payment', filter=Q(**donor_filter)),
+                payment_count=Count('userchannels__payment', distinct=True, filter=Q(**donor_filter)),
                 last_payment_date=Max('userchannels__payment__date', filter=Q(**donor_filter)),
                 first_payment_date=Min('userchannels__payment__date', filter=Q(**donor_filter)),
                 # **annotate_kwargs,
