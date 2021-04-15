@@ -260,7 +260,7 @@ class CreateDpchCompanyProfileViewTest(TestCase):
         notifications = admin_user.notifications.all()
         self.assertEqual(notifications.count(), 1)
         notif = notifications.first()
-        self.assertEqual(notif.verb, 'Wrong format of crn')
+        self.assertEqual(notif.verb, 'Špatný formát IČA')
         self.assertEqual(notif.description, 'User input was: 1234567 and was not create in system')
 
 
@@ -564,7 +564,7 @@ class EventViewTest(TestCase):
             organizing_associations=[self.organizing_association, ],
             age_from=10,
             age_to=99,
-            start_date="2020-03-01",
+            start_date="2020-03-01T00:00:00+01:00",
             participation_fee=120,
             organization_team=[],
             entry_form_url="http://www.example.com",
