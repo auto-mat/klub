@@ -43,7 +43,7 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
-from django.views.generic import View
+from django.views.generic import TemplateView, View
 from django.views.generic.edit import FormView
 
 from events.models import Event
@@ -845,3 +845,7 @@ class PasswordResetView(View):
             template_name="password/password_reset.html",
             context={"password_reset_form": password_reset_form},
         )
+
+
+class ViewDocView(TemplateView):
+    template_name = "views_doc.html"

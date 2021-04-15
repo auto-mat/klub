@@ -1,0 +1,57 @@
+<textarea readonly style="width: 100%; height: 100vh;">
+  url: /regular-darujme/
+  {
+    "recurringfrequency": "28", # required,  choices=(28(monthly), 365(year), ""(onetime))
+    "amount": "200", # required,# Int
+    "payment_data____jmeno": "test_name", # required, string
+    "payment_data____prijmeni": "test_surname", # required, string
+    "payment_data____email": "test@email.cz", # required, email format
+    "payment_data____telefon": "123456789", # required
+    "donorpaymentchannel-event": 'slug', # required, dynamic choices
+    "donorpaymentchannel-money_account": 'slug', # required, dynamic choices
+    "donorpaymentchannel-payment_type": "bank-transfer", # required, choices=(credit-card, bank-transfer)
+  }
+
+
+url: /register_without_payment/slug/
+{
+  "userprofile-age_group": "2010", # Int
+  "userprofile-sex": "male", # choices=(male, female, unknown)
+  "userprofile-first_name": "tester", # str
+  "userprofile-last_name": "testing", # str
+  "userprofile-telephone": "123456789",
+  "userprofile-email": "test@test.com", # required, email format
+  "userprofile-street": "woah", # str
+  "userprofile-city": "memer", # str
+  "userprofile-zip_code": "987 00", # str
+}
+
+url: /sign-petition/
+{
+  "userprofile-age_group": 2010, # Int
+  "userprofile-sex": "male", # choices=(male, female, unknown)
+  "userprofile-first_name": "test_first", # str
+  "userprofile-last_name": "test_last", # str
+  "userprofile-email": "testeros@test.com", # required # email format
+  "userprofile-telephone": "123456789",
+  "userprofile-street": "test 5005", # str
+  "userprofile-city": "test 5005", # str
+  "userprofile-zip_code": "155 00", # str
+  "petitionsignature-event": "slug", # required, dynamic choices
+  "petitionsignature-public": True, # choices=(True, False)
+  "gdpr": True, # required choices=(True, False)
+}
+
+url: /regular/
+{
+  'userprofile-email': 'test@test.cz', # required, email format
+  'userprofile-first_name': 'Testing', # required, str
+  'userprofile-last_name': 'User', # required, str
+  'userprofile-telephone': 111222333, # required
+  'donorpaymentchannel-regular_frequency': 'monthly', # required, choices=(monthly, quaterly, biannually, annually)
+  'donorpaymentchannel-regular_amount': '321', # required, int
+  'donorpaymentchannel-event': 'klub', # required, dynamic choices
+  'donorpaymentchannel-money_account': '12345123', # required, dynamic choices
+  'donorpaymentchannel-payment_type': 'bank-transfer', # required, choices=(credit-card, bank-transfer)
+}
+</textarea>
