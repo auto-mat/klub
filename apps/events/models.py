@@ -152,6 +152,12 @@ class Event(models.Model):
             null=True,
             upload_to='event_photos',
         )
+
+    invitation_text_short = models.TextField(
+        verbose_name=_("Short Invitation text"),
+        max_length=3000,
+        blank=True,
+    )
     invitation_text_1 = models.TextField(
         verbose_name=_("Invitation: What to expect"),
         help_text=_("What to except, basic informations."),
@@ -269,7 +275,7 @@ class Event(models.Model):
         null=True,
     )
     web_url = models.URLField(
-        verbose_name=_("Url address of register form"),
+        verbose_name=_("Url address of website"),
         blank=True,
         null=True,
     )
@@ -278,6 +284,20 @@ class Event(models.Model):
         help_text=_("Choose some unique name for this campaign"),
         max_length=100,
     )
+    vip_action = models.BooleanField(
+        verbose_name=_("Vip action"),
+        default=False,
+    )
+    promoted_in_magazine = models.BooleanField(
+        verbose_name=_("Promoted in the magazine"),
+        default=False,
+    )
+    hours_worked = models.PositiveIntegerField(
+        verbose_name=_("Hours worked"),
+        blank=True,
+        null=True,
+    )
+
     variable_symbol_prefix = models.PositiveIntegerField(
         validators=[MinValueValidator(10000), MaxValueValidator(99999)],
         verbose_name=_("Variable_symbol_prefix"),
@@ -345,7 +365,7 @@ class Event(models.Model):
         blank=True,
         null=True,
     )
-    start_date = models.DateField(
+    start_date = models.DateTimeField(
         verbose_name=_("Start date"),
         blank=True,
         null=True,
@@ -453,6 +473,18 @@ class OrganizationPosition(models.Model):
         return self.name
 
 
+class Qualification(models.Model):
+    class Meta:
+        verbose_name = _("Qualification")
+        verbose_name_plural = _("Qualifications")
+
+    name = models.CharField(max_length=300, verbose_name=_("Name"),)
+    abbreviated_name = models.CharField(max_length=30, verbose_name=_("Abbreviated name"),)
+
+    def __str__(self):
+        return self.abbreviated_name
+
+
 class OrganizationTeam(models.Model):
     class Meta:
         verbose_name = _("Organization team")
@@ -461,6 +493,7 @@ class OrganizationTeam(models.Model):
     profile = models.ForeignKey("aklub.Profile", on_delete=models.CASCADE)
     event = models.ForeignKey(Event, on_delete=models.CASCADE, verbose_name=_("Event"))
     position = models.ForeignKey(OrganizationPosition, on_delete=models.CASCADE, verbose_name=_("Position"),)
+    qualification = models.ForeignKey(Qualification, on_delete=models.SET_NULL, verbose_name=_("Qualification"), null=True, blank=True)
     can_be_contacted = models.BooleanField(default=False, verbose_name=_("Can be contacted"))
 
     def __str__(self):
