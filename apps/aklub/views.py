@@ -440,9 +440,9 @@ class RegularView(FormView):
                 'repeated_registration': repeated_registration,
                 'addressment': payment_channel.user.get_addressment(),
             },
+            status=201,
         )
         if self.request.is_ajax():
-
             data = {
                 'valid': True,
                 'account_number': bank_acc.first().bank_account_number if bank_acc else "",
@@ -453,7 +453,7 @@ class RegularView(FormView):
                 'repeated_registration': repeated_registration,
                 'addressment': payment_channel.user.get_addressment(),
             }
-            return JsonResponse(data)
+            return JsonResponse(data, status=201)
         return response
 
     def get_post_param(self, request, name, name1=None):
@@ -581,7 +581,7 @@ class RegisterWithoutPaymentView(FormView):
         user = get_or_create_new_user_profile(form)
         user.administrative_units.add(unit)
         autocom.check(UserProfile.objects.filter(id=user.id), action='new-user')
-        return http.HttpResponse(_("Thanks for register!"))
+        return http.HttpResponse(_("Thanks for register!"), status=201)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -601,7 +601,7 @@ class PetitionView(FormView):
             action = 'user-signature-again'
         autocom.check(UserProfile.objects.filter(id=user.id), action=action)
         super().form_valid(form)
-        return http.HttpResponse(_('Petition signed'))
+        return http.HttpResponse(_('Petition signed'), status=201)
 
 
 class DonatorsView(View):
@@ -781,7 +781,7 @@ class PetitionConfirmEmailView(SesameUserMixin, View):
             if event.email_confirmation_redirect:
                 return redirect(event.email_confirmation_redirect, permanent=False)
             else:
-                return http.HttpResponse(_('Signature was confirmed'))
+                return http.HttpResponse(_('Signature was confirmed'), status=201)
         else:
             raise http.Http404
 
@@ -796,7 +796,7 @@ class SendMailingListView(SesameUserMixin, View):
         preference.save()
         user_profiles = UserProfile.objects.filter(id=user.id)
         autocom.check(user_profiles=user_profiles, action='user-mailing-' + kwargs['unsubscribe'])
-        return http.HttpResponse(f"{kwargs['unsubscribe']} was done")
+        return http.HttpResponse(f"{kwargs['unsubscribe']} was done", status=201)
 
 
 class PasswordResetView(View):
