@@ -312,6 +312,7 @@ def get_unique_username(email):
             break
     return username
 
+
 def get_or_create_new_user_profile(form):
     try:
         user = UserProfile.objects.get(profileemail__email=form.forms['userprofile'].cleaned_data['email'].lower())
