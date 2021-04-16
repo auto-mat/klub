@@ -187,8 +187,6 @@ class AdministrativeUnit(models.Model, ParseAccountStatement):
     name = models.CharField(
         verbose_name=_("Name"),
         max_length=255,
-        blank=False,
-        null=False,
     )
     ico = StdNumField(
         'cz.dic',
@@ -238,8 +236,6 @@ class Expense(models.Model):
 
     amount = models.FloatField(
         verbose_name=_("amount"),
-        blank=False,
-        null=False,
     )
     item = models.CharField(
         verbose_name=_("item"),
@@ -251,8 +247,6 @@ class Expense(models.Model):
         verbose_name=_("campaign"),
         related_name='expenses',
         on_delete=models.CASCADE,
-        null=False,
-        blank=False,
     )
 
 
@@ -269,18 +263,15 @@ class Recruiter(models.Model):
     )
     recruiter_id = models.PositiveIntegerField(
         verbose_name=_("Recruiter ID"),
-        blank=False,
         unique=True,
     )
     firstname = models.CharField(
         verbose_name=_("First name"),
         max_length=40,
-        blank=False,
     )
     surname = models.CharField(
         verbose_name=_("Surname"),
         max_length=40,
-        blank=False,
     )
     email = models.CharField(
         verbose_name=_("Email"),
@@ -311,7 +302,6 @@ class Recruiter(models.Model):
                     "10 = excelent much above average"),
         choices=[(i, str(i)) for i in range(0, 11)],
         default=5,
-        blank=False,
     )
     campaigns = models.ManyToManyField(
         "events.Event",
@@ -340,13 +330,11 @@ class Source(models.Model):
         verbose_name=_("Slug"),
         help_text=_("Identifier of the source"),
         max_length=100,
-        blank=False,
     )
     name = models.CharField(
         verbose_name=_("Name"),
         help_text=_("Name of the source"),
         max_length=100,
-        blank=False,
     )
     direct_dialogue = models.BooleanField(
         verbose_name=_("Is from Direct Dialogue"),
@@ -1080,8 +1068,6 @@ class Preference(models.Model):
         AdministrativeUnit,
         verbose_name=_("administrative unit"),
         on_delete=models.CASCADE,
-        null=False,
-        blank=False,
     )
 
     def __str__(self):
@@ -1200,8 +1186,6 @@ class AccountStatements(ParseAccountStatement, models.Model):
     csv_file = models.FileField(
         verbose_name=_("csv file"),
         upload_to='account-statements',
-        null=False,
-        blank=False,
     )
     date_from = models.DateField(
         verbose_name=_("Date from"),
@@ -1288,8 +1272,6 @@ class MoneyAccount(PolymorphicModel):
         AdministrativeUnit,
         verbose_name=_("administrative unit"),
         on_delete=models.CASCADE,
-        null=False,
-        blank=False,
     )
     slug = models.SlugField(
         verbose_name=_("Slug"),
@@ -1316,8 +1298,6 @@ class BankAccount(MoneyAccount):
     bank_account_number = models.CharField(
         verbose_name=_("Bank account number"),
         max_length=50,
-        blank=False,
-        null=False,
     )
 
     def __str__(self):
@@ -1393,8 +1373,6 @@ class UserBankAccount(models.Model):
     bank_account_number = models.CharField(
         verbose_name=_("Bank account number"),
         max_length=50,
-        blank=False,
-        null=False,
     )
     note = models.TextField(
         verbose_name=_("Bank account note"),
@@ -1433,8 +1411,6 @@ class DonorPaymentChannel(ComputedFieldsModel):
         verbose_name=_("User"),
         on_delete=models.CASCADE,
         related_name="userchannels",
-        null=False,
-        blank=False,
     )
     registered_support = models.DateTimeField(
         verbose_name=_("Registered support"),
@@ -2067,7 +2043,6 @@ class AutomaticCommunication(models.Model):
     name = models.CharField(
         verbose_name=_("Name"),
         max_length=50,
-        blank=False,
         null=True,
     )
     condition = models.ForeignKey(
@@ -2153,7 +2128,6 @@ class AutomaticCommunication(models.Model):
         verbose_name=_("administrative unit"),
         on_delete=models.CASCADE,
         null=True,
-        blank=False,
     )
 
     def __str__(self):
@@ -2180,13 +2154,10 @@ class MassCommunication(models.Model):
     name = models.CharField(
         verbose_name=_("Name"),
         max_length=50,
-        blank=False,
         null=True,
     )
     date = models.DateField(
         verbose_name=_("Date"),
-        blank=False,
-        null=False,
     )
     method_type = models.ForeignKey(
         "interactions.interactiontype",
@@ -2219,7 +2190,6 @@ class MassCommunication(models.Model):
         help_text=_("Template can contain following variable substitutions: <br/>") + ("{mr|mrs} or {mr/mrs}, $" + ", $"
                                                                                        .join(autocom.KNOWN_VARIABLES)),
         max_length=50000,
-        blank=False,
         null=True,
         validators=[gender_strings_validator, variable_validator],
     )
@@ -2284,7 +2254,6 @@ class MassCommunication(models.Model):
         verbose_name=_("administrative unit"),
         on_delete=models.CASCADE,
         null=True,
-        blank=False,
     )
 
     def __str__(self):
@@ -2347,8 +2316,6 @@ class TaxConfirmationPdf(PdfSandwichABC):
     field_model = TaxConfirmationField
     obj = models.ForeignKey(
         'TaxConfirmation',
-        null=False,
-        blank=False,
         on_delete=models.CASCADE,
     )
 
@@ -2361,8 +2328,6 @@ class TaxConfirmation(models.Model):
     user_profile = models.ForeignKey(
         Profile,
         on_delete=models.CASCADE,
-        null=False,
-        blank=False,
     )
     year = models.PositiveIntegerField(verbose_name=_('Year'))
     amount = models.PositiveIntegerField(default=0, verbose_name=_('Amount'))
