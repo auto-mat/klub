@@ -18,7 +18,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-import django
 from django.conf import settings
 from django.core import mail
 from django.core.cache import cache
@@ -155,14 +154,15 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
 
         address = reverse('regular')
         response = self.client.get(address)
-        self.assertContains(
+        response = response._container[0].decode()
+        self.assertIn(
+            '<input type="text" name="userprofile-first_name" maxlength="30" required id="id_userprofile-first_name">',
             response,
-            '<input id="id_userprofile-first_name" maxlength="30" name="userprofile-first_name" type="text" required />',
-            html=True,
         )
 
         response = self.client.post(address, self.regular_post_data, follow=True)
-        self.assertContains(response, '<h1>Děkujeme!</h1>', html=True)
+        response = response._container[0].decode()
+        self.assertIn('<h1>Děkujeme!</h1>', response)
         # created data
         email = ProfileEmail.objects.get(email="test@test.cz")
         self.assertEqual(email.user.get_full_name(), "Testing User")
@@ -188,10 +188,10 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         dpch = mommy.make('aklub.donorpaymentchannel', event=self.event, money_account=self.money, user=user)
         address = reverse('regular')
         response = self.client.post(address, self.regular_post_data, follow=False)
-        self.assertContains(
-            response,
+        response = response._container[0].decode()
+        self.assertIn(
             '<h1>Děkujeme!</h1>',
-            html=True,
+            response,
         )
         self.assertEqual(len(mail.outbox), 1)
         dpch.refresh_from_db()
@@ -209,12 +209,13 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
 
         address = reverse('regular-darujme')
         response = self.client.post(address, self.post_data_darujme)
-        self.assertContains(response, '<tr><th>Jméno: </th><td>test_surname test_name</td></tr>', html=True)
-        self.assertContains(response, '<tr><th>Číslo účtu: </th><td>12345/123</td></tr>', html=True)
-        self.assertContains(response, '<tr><th>Email: </th><td>test@email.cz</td></tr>', html=True)
-        self.assertContains(response, '<tr><th>Částka: </th><td>200 Kč</td></tr>', html=True)
-        self.assertContains(response, '<tr><th>Frekvence: </th><td>Měsíčně</td></tr>', html=True)
-        self.assertContains(response, '<tr><th>Pravidelné platby: </th><td>Pravidelné platby</td></tr>', html=True)
+        response = response._container[0].decode()
+        self.assertIn('<tr><th>Jméno: </th><td>test_surname test_name</td></tr>', response)
+        self.assertIn('<tr><th>Číslo účtu: </th><td>12345/123</td></tr>', response)
+        self.assertIn('<tr><th>Email: </th><td>test@email.cz</td></tr>', response)
+        self.assertIn('<tr><th>Částka: </th><td>200 Kč</td></tr>', response)
+        self.assertIn('<tr><th>Frekvence: </th><td>Měsíčně</td></tr>', response)
+        self.assertIn('<tr><th>Pravidelné platby: </th><td>Pravidelné platby</td></tr>', response)
         email = ProfileEmail.objects.get(email="test@email.cz")
         new_channel = DonorPaymentChannel.objects.get(user=email.user)
         self.assertEqual(new_channel.regular_amount, int(self.post_data_darujme['amount']))
@@ -232,12 +233,13 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         post_data_darujme_onetime = self.post_data_darujme.copy()
         post_data_darujme_onetime["recurringfrequency"] = ""
         response = self.client.post(address, post_data_darujme_onetime)
-        self.assertContains(response, '<tr><th>Jméno: </th><td>test_surname test_name</td></tr>', html=True)
-        self.assertContains(response, '<tr><th>Číslo účtu: </th><td>12345/123</td></tr>', html=True)
-        self.assertContains(response, '<tr><th>Email: </th><td>test@email.cz</td></tr>', html=True)
-        self.assertContains(response, '<tr><th>Částka: </th><td>200 Kč</td></tr>', html=True)
-        self.assertContains(response, '<tr><th>Frekvence: </th><td>Jednorázově</td></tr>', html=True)
-        self.assertContains(response, '<tr><th>Pravidelné platby: </th><td>Nemá pravidelné platby</td></tr>', html=True)
+        response = response._container[0].decode()
+        self.assertIn('<tr><th>Jméno: </th><td>test_surname test_name</td></tr>', response)
+        self.assertIn('<tr><th>Číslo účtu: </th><td>12345/123</td></tr>', response)
+        self.assertIn('<tr><th>Email: </th><td>test@email.cz</td></tr>', response)
+        self.assertIn('<tr><th>Částka: </th><td>200 Kč</td></tr>', response)
+        self.assertIn('<tr><th>Frekvence: </th><td>Jednorázově</td></tr>', response)
+        self.assertIn('<tr><th>Pravidelné platby: </th><td>Nemá pravidelné platby</td></tr>', response)
 
     def test_regular_darujme_existing_user_and_different_dpch(self):
         """
@@ -253,14 +255,14 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         mommy.make('aklub.donorpaymentchannel', event=event, money_account=self.money, user=user)
 
         response = self.client.post(address, self.post_data_darujme)
-
-        self.assertContains(response, '<h1>Děkujeme!</h1>', html=True)
-        self.assertContains(response, '<tr><th>Jméno: </th><td>test_surname test_name</td></tr>', html=True)
-        self.assertContains(response, '<tr><th>Číslo účtu: </th><td>12345/123</td></tr>', html=True)
-        self.assertContains(response, '<tr><th>Email: </th><td>test@email.cz</td></tr>', html=True)
-        self.assertContains(response, '<tr><th>Částka: </th><td>200 Kč</td></tr>', html=True)
-        self.assertContains(response, '<tr><th>Frekvence: </th><td>Měsíčně</td></tr>', html=True)
-        self.assertContains(response, '<tr><th>Pravidelné platby: </th><td>Pravidelné platby</td></tr>', html=True)
+        response = response._container[0].decode()
+        self.assertIn('<h1>Děkujeme!</h1>', response)
+        self.assertIn('<tr><th>Jméno: </th><td>test_surname test_name</td></tr>', response)
+        self.assertIn('<tr><th>Číslo účtu: </th><td>12345/123</td></tr>', response)
+        self.assertIn('<tr><th>Email: </th><td>test@email.cz</td></tr>', response)
+        self.assertIn('<tr><th>Částka: </th><td>200 Kč</td></tr>', response)
+        self.assertIn('<tr><th>Frekvence: </th><td>Měsíčně</td></tr>', response)
+        self.assertIn('<tr><th>Pravidelné platby: </th><td>Pravidelné platby</td></tr>', response)
 
         self.assertEqual(user.userchannels.count(), 2)
         new_channel = user.userchannels.last()
@@ -277,15 +279,16 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         """
         address = reverse('regular-wp')
         response = self.client.get(address)
-        self.assertContains(
+        response = response._container[0].decode()
+        self.assertIn(
+            '<input type="text" name="userprofile-first_name" maxlength="30" '
+            'class=" form-control" required id="id_userprofile-first_name">',
             response,
-            '<input class=" form-control" id="id_userprofile-first_name" maxlength="30" '
-            'name="userprofile-first_name" type="text" required />',
-            html=True,
         )
 
         response = self.client.post(address, self.regular_post_data, follow=True)
-        self.assertContains(response, '<h1>Děkujeme!</h1>', html=True)
+        response = response._container[0].decode()
+        self.assertIn('<h1>Děkujeme!</h1>', response)
 
         email = ProfileEmail.objects.get(email="test@test.cz")
         self.assertEqual(email.user.get_full_name(), "Testing User")
@@ -307,33 +310,31 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
 
         address = "%s?firstname=Uest&surname=Tser&email=uest.tser@email.cz&telephone=1211221" % reverse('regular-dpnk')
         response = self.client.get(address)
-        self.assertContains(
+        response = response._container[0].decode()
+        self.assertIn(
+            '<input type="text" name="userprofile-first_name" value="Uest" maxlength="30" '
+            'class=" form-control" required id="id_userprofile-first_name">',
             response,
-            '<input class=" form-control" id="id_userprofile-first_name" maxlength="30" '
-            'name="userprofile-first_name" type="text" required value="Uest" />',
-            html=True,
         )
-        self.assertContains(
+        self.assertIn(
+            '<input type="text" name="userprofile-last_name" value="Tser" maxlength="150" '
+            'class=" form-control" required id="id_userprofile-last_name">',
             response,
-            '<input class=" form-control" id="id_userprofile-last_name" maxlength="%s" '
-            'name="userprofile-last_name" type="text" required value="Tser" />' % (150 if django.VERSION >= (2, 0) else 30),
-            html=True,
         )
-        self.assertContains(
+        self.assertIn(
+            '<input type="text" name="userprofile-telephone" value="1211221" maxlength="30" '
+            'class=" form-control" required id="id_userprofile-telephone">',
             response,
-            '<input class=" form-control" id="id_userprofile-telephone" maxlength="30" '
-            'name="userprofile-telephone" type="text" required value="1211221" />',
-            html=True,
         )
-        self.assertContains(
+        self.assertIn(
+            '<input type="email" name="userprofile-email" value="uest.tser@email.cz" '
+            'class=" form-control" required id="id_userprofile-email">',
             response,
-            '<input class=" form-control" id="id_userprofile-email" name="userprofile-email" type="email" '
-            'required value="uest.tser@email.cz" />',
-            html=True,
         )
 
         response = self.client.post(address, self.regular_post_data, follow=True)
-        self.assertContains(response, '<h5>Děkujeme!</h5>', html=True)
+        response = response._container[0].decode()
+        self.assertIn('<h5>Děkujeme!</h5>', response)
 
         self.assertEqual(len(mail.outbox), 1)
 
@@ -357,7 +358,7 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
 
         address = reverse('register-withou-payment', kwargs={'unit': self.unit.slug})
         response = self.client.post(address, self.register_without_payment)
-        self.assertTrue(response.status_code, 200)
+        self.assertTrue(response.status_code, 201)
         user = ProfileEmail.objects.get(email="test@test.com").user
         self.assertEqual(user.first_name, self.register_without_payment['userprofile-first_name'])
         self.assertEqual(user.last_name, self.register_without_payment['userprofile-last_name'])
@@ -381,7 +382,7 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
 
         address = reverse('petition')
         response = self.client.post(address, self.sign_petition, follow=True)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 201)
         self.assertEqual(response.content.decode(), 'Podpis petice')
 
         user = ProfileEmail.objects.get(email=self.sign_petition['userprofile-email']).user
@@ -417,7 +418,7 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         mommy.make("interactions.PetitionSignature", administrative_unit=self.unit, user=user, event=self.event)
         address = reverse('petition')
         response = self.client.post(address, self.sign_petition, follow=True)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 201)
         self.assertEqual(response.content.decode(), 'Podpis petice')
 
         self.assertEqual(len(mail.outbox), 1)
@@ -460,7 +461,7 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         address += url_hax
 
         response = self.client.get(address)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 201)
         self.assertEqual(response.content.decode(), 'Podpis potvrzen')
 
         signature.refresh_from_db()
@@ -510,7 +511,7 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         address += url_hax
 
         response = self.client.get(address, follow=True)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 201)
 
         preference.refresh_from_db()
         self.assertFalse(preference.send_mailing_lists)
@@ -533,7 +534,7 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         address += url_hax
 
         response = self.client.get(address, follow=True)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 201)
 
         preference.refresh_from_db()
         self.assertTrue(preference.send_mailing_lists)

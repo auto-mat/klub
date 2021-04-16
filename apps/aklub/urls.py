@@ -22,6 +22,7 @@ urlpatterns = [
 
     url(r'^campaign-statistics/(?P<campaign_slug>[^&]+)/$', views.CampaignStatistics.as_view(), name="campaign-statistics"),
     path('donators/<slug:unit>/', views.DonatorsView.as_view(), name="donators"),
+    path('views_docs/', views.ViewDocView.as_view(), name="views_docs"),
 
 
     # userfriendly password reset
