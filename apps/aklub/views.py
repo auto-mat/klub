@@ -312,52 +312,6 @@ def get_unique_username(email):
             break
     return username
 
-
-def generate_variable_symbol(dpch):
-    # TODO: must be more effective!
-    vs_prefix = dpch.event.variable_symbol_prefix
-    unit = dpch.money_account.administrative_unit
-    if not vs_prefix:
-        vs_prefix = '0'
-        dpchs_VS = DonorPaymentChannel.objects.filter(
-            money_account__administrative_unit=unit,
-            VS__startswith=str(vs_prefix),
-        ).order_by('-VS').values_list('VS', flat=True)
-        if not dpchs_VS:
-            # first number
-            return '0000000001'
-        # first shoud be free.. but just in case we loop over it
-        # this is more faster than loop with prefix
-        for VS in dpchs_VS:
-            new_VS = '%0*d' % (10, int(VS)+1)
-            exist = DonorPaymentChannel.objects.filter(
-                        money_account__administrative_unit=unit,
-                        VS=new_VS,
-                        ).exists()
-            if not exist:
-                return new_VS
-    else:
-        dpchs_VS = DonorPaymentChannel.objects.filter(
-            money_account__administrative_unit=unit,
-            VS__startswith=str(vs_prefix),
-        ).order_by('VS').values_list('VS', flat=True)
-        if not dpchs_VS:
-            # first number
-            return str(vs_prefix) + '00001'
-        for vs in dpchs_VS:
-            # we can retype to int because prefix doesnt start with zero
-            if str(int(vs)+1) not in dpchs_VS:
-                # is it really free?
-                exist = DonorPaymentChannel.objects.filter(
-                            money_account__administrative_unit=unit,
-                            VS=str(int(vs)+1),
-                            ).exists()
-                if not exist:
-                    return str(int(vs)+1)
-        else:
-            raise ValidationError('OUT OF VS')
-
-
 def get_or_create_new_user_profile(form):
     try:
         user = UserProfile.objects.get(profileemail__email=form.forms['userprofile'].cleaned_data['email'].lower())

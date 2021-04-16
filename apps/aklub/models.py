@@ -1397,7 +1397,7 @@ class DonorPaymentChannel(ComputedFieldsModel):
         help_text=_("Variable symbol"),
         max_length=30,
         blank=True,
-        null=True,
+
     )
     SS = models.CharField(
         verbose_name=_("SS"),
@@ -1507,11 +1507,51 @@ class DonorPaymentChannel(ComputedFieldsModel):
     def __str__(self):
         return f"Payment channel: {self.VS}"
 
-    def generate_VS(self):
-        if self.VS == "" or self.VS is None:
-            from .views import generate_variable_symbol
-            VS = generate_variable_symbol(dpch=self)
-            self.VS = VS
+    def _generate_variable_symbol(self):
+        # TODO: must be more effective!
+        vs_prefix = self.event.variable_symbol_prefix
+        unit = self.money_account.administrative_unit
+        if not vs_prefix:
+            vs_prefix = '0'
+            dpchs_VS = DonorPaymentChannel.objects.filter(
+                money_account__administrative_unit=unit,
+                VS__startswith=str(vs_prefix),
+            ).order_by('-VS').values_list('VS', flat=True)
+            if not dpchs_VS:
+                # first number
+                self.VS = '0000000001'
+                return
+            for VS in dpchs_VS:
+                new_VS = '%0*d' % (10, int(VS)+1)
+                exist = DonorPaymentChannel.objects.filter(
+                            money_account__administrative_unit=unit,
+                            VS=new_VS,
+                            ).exists()
+                if not exist:
+                    self.VS = new_VS
+                    return
+        else:
+            dpchs_VS = DonorPaymentChannel.objects.filter(
+                money_account__administrative_unit=unit,
+                VS__startswith=str(vs_prefix),
+            ).order_by('VS').values_list('VS', flat=True)
+            if not dpchs_VS:
+                # first number
+                self.VS = str(vs_prefix) + '00001'
+                return
+            for vs in dpchs_VS:
+                # we can retype to int because prefix doesnt start with zero
+                if str(int(vs)+1) not in dpchs_VS:
+                    # is it really free?
+                    exist = DonorPaymentChannel.objects.filter(
+                                money_account__administrative_unit=unit,
+                                VS=str(int(vs)+1),
+                                ).exists()
+                    if not exist:
+                        self.VS = str(int(vs)+1)
+                        return
+            else:
+                raise ValidationError('OUT OF VS')
 
     def requires_action(self):
         """Return true if the user requires some action from
@@ -1525,12 +1565,12 @@ class DonorPaymentChannel(ComputedFieldsModel):
     def check_duplicate(self, *args, **kwargs):
         try:
             qs = DonorPaymentChannel.objects.filter(
-                                VS=self.VS,
-                                money_account__administrative_unit=self.money_account.administrative_unit,
-                )
+                VS=self.VS,
+                money_account__administrative_unit=self.money_account.administrative_unit,
+            )
             if qs:
                 if qs.first().pk != self.pk:
-                    raise ValidationError(_("Duplicate VS"))
+                    raise ValidationError({"VS": _("Duplicate VS")})
         except MoneyAccount.DoesNotExist:
             pass
 
@@ -1767,7 +1807,8 @@ class DonorPaymentChannel(ComputedFieldsModel):
 
     def save(self, *args, **kwargs):
         self.clean()  # run twice in admin
-        self.generate_VS()
+        if not self.VS:
+            self._generate_variable_symbol()
         super().save(*args, **kwargs)
 
 
