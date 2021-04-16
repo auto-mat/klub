@@ -415,6 +415,7 @@ def get_or_create_new_petition_signature(form, user):
     return instance
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class RegularView(FormView):
     template_name = 'regular.html'
     form_class = RegularUserForm
