@@ -1,4 +1,6 @@
-from aklub.models import CompanyProfile, DonorPaymentChannel, MoneyAccount, Payment, Profile, ProfileEmail, Telephone, UserProfile
+from aklub.models import (
+    AdministrativeUnit, CompanyProfile, DonorPaymentChannel, MoneyAccount, Payment, Profile, ProfileEmail, Telephone, UserProfile
+)
 
 from django.contrib.auth.password_validation import validate_password
 from django.core.validators import MinLengthValidator, RegexValidator
@@ -280,3 +282,18 @@ class EventSerializer(serializers.ModelSerializer):
             'invitation_text_4', 'main_photo', 'additional_photo_1', 'additional_photo_2',
             'additional_photo_3', 'additional_photo_4', 'additional_photo_5', 'additional_photo_6',
         ]
+
+
+class AdministrativeUnitSerializer(serializers.ModelSerializer):
+    president_name = serializers.SerializerMethodField()
+    manager_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = AdministrativeUnit
+        fields = ['id', 'name', 'city', 'zip_code', 'telephone', 'from_email_address', 'web_url', 'president_name', 'manager_name']
+
+    def get_president_name(self, obj):
+        return obj.president.get_full_name()
+
+    def get_manager_name(self, obj):
+        return obj.manager.get_full_name()

@@ -34,6 +34,7 @@ urlpatterns = [
     path('check_last_payment/', views.CheckLastPaymentView.as_view(), name='check_last_payment'),
 
     path('event/', views.EventListView.as_view(), name='event'),
+    path('administrative_unit/', views.AdministrativeUnitView.as_view(), name='administrative_unit'),
     path('reset_password_email/', views.ResetPasswordbyEmailView.as_view(), name='reset_password_email'),
     path(
         'reset_password_email_confirm/<slug:uid>/<slug:token>/',

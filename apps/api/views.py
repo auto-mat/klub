@@ -24,6 +24,7 @@ from rest_framework.response import Response
 
 from .exceptions import DonorPaymentChannelDoesntExist, EmailDoesntExist, PaymentsDoesntExist
 from .serializers import (
+    AdministrativeUnitSerializer,
     CreateUserProfileSerializer, CreditCardPaymentSerializer,
     DonorPaymetChannelSerializer, EventCheckSerializer, EventSerializer, GetDpchCompanyProfileSerializer, GetDpchUserProfileSerializer,
     InteractionSerizer, MoneyAccountCheckSerializer, PaymentSerializer, ProfileSerializer, ResetPasswordbyEmailConfirmSerializer,
@@ -359,3 +360,19 @@ class EventListView(generics.ListAPIView):
                 to_attr='filtered_organization_team',
             ),
         ).select_related('location')
+
+
+class AdministrativeUnitView(generics.ListAPIView):
+    """
+    Reguired info for web
+    -- is used to communicate with 3rd aplication
+    """
+    serializer_class = AdministrativeUnitSerializer
+    permission_classes = [TokenHasReadWriteScope]
+    required_scopes = ['can_view_administrative_units']
+
+    def get_queryset(self):
+        return AdministrativeUnit.objects.all().select_related(
+            'president',
+            'manager',
+        )
