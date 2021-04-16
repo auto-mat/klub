@@ -188,6 +188,25 @@ class AdministrativeUnit(models.Model, ParseAccountStatement):
         verbose_name=_("Name"),
         max_length=255,
     )
+    street = models.CharField(
+        verbose_name=_("Street and number"),
+        max_length=80,
+        blank=True,
+    )
+    city = models.CharField(
+        verbose_name=_("City/City part"),
+        max_length=40, blank=True,
+    )
+    zip_code = models.CharField(
+        verbose_name=_("ZIP Code"),
+        max_length=30,
+        blank=True,
+    )
+    web_url = models.URLField(
+        verbose_name=_("Url address of website"),
+        blank=True,
+        null=True,
+    )
     ico = StdNumField(
         'cz.dic',
         default=None,
@@ -207,12 +226,21 @@ class AdministrativeUnit(models.Model, ParseAccountStatement):
         default='Example <example@nothing_will_sent.ex>',
         max_length=255,
     )
-
+    telephone = models.CharField(
+        verbose_name=_("Telephone number"),
+        max_length=100,
+        blank=True,
+        validators=[
+            RegexValidator(
+                r'^\+?(42(0|1){1})?\s?\d{3}\s?\d{3}\s?\d{3}$',
+                _("Telephone must consist of numbers, spaces and + sign or maximum number count is higher."),
+            ),
+        ],
+    )
     color = ColorField(
         default='#000000',
         help_text=_("Choose color to help discern Administrative unit in app"),
     )
-
     slug = models.SlugField(
         verbose_name=_("Slug"),
         help_text=_("Identifier of the administrative unit"),
@@ -221,6 +249,22 @@ class AdministrativeUnit(models.Model, ParseAccountStatement):
         unique=True,
         blank=True,
         null=True,
+    )
+    president = models.ForeignKey(
+        "aklub.UserProfile",
+        verbose_name=_("President"),
+        related_name="au_president",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+    )
+    manager = models.ForeignKey(
+        "aklub.UserProfile",
+        verbose_name=_("Manager"),
+        related_name="au_manager",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
     )
 
     def __str__(self):
