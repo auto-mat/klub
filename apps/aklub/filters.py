@@ -624,7 +624,7 @@ class DPCHNumberOfPayments(BaseAF):
         return queryset
 
 
-class DPCHTheSumOfAllPayments(BaseAF):
+class DPCHSumOfAllPayments(BaseAF):
     model = DonorPaymentChannel
     field = 'the_sum_off_all_payments'
     field_verbose_name = _('The sum of all payments')
@@ -852,7 +852,7 @@ class ProfileEmailIsEmailInCompanyprofile(BaseAF):
 
 AF_FILTERS = [
     DPCHNumberOfDPCHs, DPCHRegularPaymentsOk, DPCHNumberOfPayments,
-    DPCHRegularPayments, DPCHRegularFrequency, DPCHTheSumOfAllPayments,
+    DPCHRegularPayments, DPCHRegularFrequency, DPCHSumOfAllPayments,
     DPCHWithoutPayments, InteractionEventName, InteractionNumberOfInteractions,
     InteractionDateFrom, InteractionDateTo, InteractionResultName,
     InteractionNextCommunicationDate, InteractionCommunicationType,
