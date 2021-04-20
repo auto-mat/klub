@@ -84,11 +84,11 @@ from smmapdfs.actions import make_pdfsandwich
 from . import filters, mailing, tasks
 from .filters import (
     DPCHNumberOfDPCHs, DPCHNumberOfPayments, DPCHRegularPaymentsOk,
-    DPCHWithoutPayments, InteractionCommunicationType, InteractionDateFrom,
-    InteractionDateTo, InteractionEventName, InteractionNextCommunicationDate,
-    InteractionNumberOfInteractions, InteractionResultName,
-    ProfileEmailIsEmailInCompanyprofile, ProfileTypeFilter,
-    unit_admin_mixin_generator,
+    DPCHTheSumOfAllPayments, DPCHWithoutPayments, InteractionCommunicationType,
+    InteractionDateFrom, InteractionDateTo, InteractionEventName,
+    InteractionNextCommunicationDate, InteractionNumberOfInteractions,
+    InteractionResultName, ProfileEmailIsEmailInCompanyprofile,
+    ProfileTypeFilter, unit_admin_mixin_generator,
 )
 from .forms import (
     CompanyProfileAddForm, CompanyProfileChangeForm, TaxConfirmationForm, UnitUserProfileAddForm,
@@ -1903,6 +1903,7 @@ class UserProfileAdmin(
          'userchannels__regular_frequency',
          str(DPCHRegularPaymentsOk()),
          str(DPCHNumberOfPayments()),
+         str(DPCHTheSumOfAllPayments()),
          str(DPCHWithoutPayments()),
          str(DPCHNumberOfDPCHs()),
          'userchannels__payment__date'),
@@ -1945,6 +1946,7 @@ class UserProfileAdmin(
         'userchannels__regular_frequency': ('iexact',),
         str(DPCHRegularPaymentsOk()): ('iexact',),
         str(DPCHNumberOfPayments()): ('lt', 'iexact', 'gt'),
+        str(DPCHTheSumOfAllPayments()): ('lt', 'iexact', 'gt'),
         str(DPCHWithoutPayments()): ('istrue', 'isfalse'),
         'userchannels__payment__date': ('range',),
         str(DPCHNumberOfDPCHs()): ('lt', 'iexact', 'gt'),
