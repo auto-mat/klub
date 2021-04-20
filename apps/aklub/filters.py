@@ -627,7 +627,7 @@ class DPCHNumberOfPayments(BaseAF):
 class DPCHSumOfAllPayments(BaseAF):
     model = DonorPaymentChannel
     field = 'the_sum_off_all_payments'
-    field_verbose_name = _('The sum of all payments')
+    field_verbose_name = _('Sum of all payments')
     values_list_field = 'user__id'
     field_type = FloatField()
 
