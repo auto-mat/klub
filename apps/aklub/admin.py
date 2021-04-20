@@ -84,7 +84,7 @@ from smmapdfs.actions import make_pdfsandwich
 from . import filters, mailing, tasks
 from .filters import (
     DPCHNumberOfDPCHs, DPCHNumberOfPayments, DPCHRegularPaymentsOk,
-    DPCHTheSumOfAllPayments, DPCHWithoutPayments, InteractionCommunicationType,
+    DPCHSumOfAllPayments, DPCHWithoutPayments, InteractionCommunicationType,
     InteractionDateFrom, InteractionDateTo, InteractionEventName,
     InteractionNextCommunicationDate, InteractionNumberOfInteractions,
     InteractionResultName, ProfileEmailIsEmailInCompanyprofile,
@@ -1903,7 +1903,7 @@ class UserProfileAdmin(
          'userchannels__regular_frequency',
          str(DPCHRegularPaymentsOk()),
          str(DPCHNumberOfPayments()),
-         str(DPCHTheSumOfAllPayments()),
+         str(DPCHSumOfAllPayments()),
          str(DPCHWithoutPayments()),
          str(DPCHNumberOfDPCHs()),
          'userchannels__payment__date'),
@@ -1946,7 +1946,7 @@ class UserProfileAdmin(
         'userchannels__regular_frequency': ('iexact',),
         str(DPCHRegularPaymentsOk()): ('iexact',),
         str(DPCHNumberOfPayments()): ('lt', 'iexact', 'gt'),
-        str(DPCHTheSumOfAllPayments()): ('lt', 'iexact', 'gt'),
+        str(DPCHSumOfAllPayments()): ('lt', 'iexact', 'gt'),
         str(DPCHWithoutPayments()): ('istrue', 'isfalse'),
         'userchannels__payment__date': ('range',),
         str(DPCHNumberOfDPCHs()): ('lt', 'iexact', 'gt'),
