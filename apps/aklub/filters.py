@@ -626,7 +626,7 @@ class DPCHNumberOfPayments(BaseAF):
 
 class DPCHSumOfAllPayments(BaseAF):
     model = DonorPaymentChannel
-    field = 'the_sum_off_all_payments'
+    field = 'sum_off_all_payments'
     field_verbose_name = _('Sum of all payments')
     values_list_field = 'user__id'
     field_type = FloatField()
@@ -638,21 +638,21 @@ class DPCHSumOfAllPayments(BaseAF):
                 event__administrative_units__in=au,
                 user=OuterRef('user'),
             ).values('user').annotate(
-                the_sum_off_all_payments=Sum('payment__amount'),
+                sum_off_all_payments=Sum('payment__amount'),
             )
             queryset = self.model.objects.filter(
                 event__administrative_units__in=au,
             ).annotate(
-               the_sum_off_all_payments=Subquery(
-                    subquery.values('the_sum_off_all_payments')[:1],
+               sum_off_all_payments=Subquery(
+                    subquery.values('sum_off_all_payments')[:1],
                     output_field=self.field_type,
                 ),
             ).annotate(
-                the_sum_off_all_payments=Case(
+                sum_off_all_payments=Case(
                     When(
-                        the_sum_off_all_payments__isnull=True,
+                        sum_off_all_payments__isnull=True,
                         then=Value(0.0),
-                    ), default=F('the_sum_off_all_payments'),
+                    ), default=F('sum_off_all_payments'),
                     output_field=self.field_type,
                 ),
             )
