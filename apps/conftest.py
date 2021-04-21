@@ -1,8 +1,11 @@
 import datetime
 
-from aklub.models import AdministrativeUnit, UserProfile
+from aklub.models import AdministrativeUnit, ProfileEmail, Telephone, UserProfile
 
 from django.conf import settings
+from django.core.files import File
+
+from events.models import Event, Location, OrganizationPosition, OrganizationTeam
 
 from oauth2_provider.models import AccessToken, Application
 
@@ -34,6 +37,28 @@ def administrative_unit_1(userprofile_superuser_2):
     )
     yield au
     au.delete()
+
+
+@pytest.fixture(scope='function')
+def telephone_2(userprofile_superuser_2):
+    telephone = Telephone.objects.create(
+        telephone="655455564",
+        is_primary=True,
+        user=userprofile_superuser_2,
+    )
+    yield telephone
+    telephone.delete()
+
+
+@pytest.fixture(scope='function')
+def profileemail_2(userprofile_superuser_2):
+    email = ProfileEmail.objects.create(
+        email="ho@ha.com",
+        is_primary=True,
+        user=userprofile_superuser_2,
+    )
+    yield email
+    email.delete()
 
 
 @pytest.fixture(scope='function')
@@ -85,3 +110,65 @@ def app_request(application_api_access):
     client = APIClient()
     client.credentials(HTTP_AUTHORIZATION='Bearer foo')
     yield client
+
+
+@pytest.fixture(scope='function')
+def location_1(administrative_unit_1):
+    location = Location.objects.create(
+        administrative_unit=administrative_unit_1,
+        name="location_name",
+        place="here",
+        region="Prague",
+        gps="58°, 20°",
+    )
+    yield location
+    location.delete()
+
+
+@pytest.fixture(scope='function')
+def organization_position_1():
+    location = OrganizationPosition.objects.create(
+        name="position",
+    )
+    yield location
+    location.delete()
+
+
+@pytest.fixture(scope='function')
+def organization_team_1(userprofile_superuser_2, organization_position_1, event_1):
+    organization_team = OrganizationTeam.objects.create(
+        position=organization_position_1,
+        profile=userprofile_superuser_2,
+        event=event_1,
+        can_be_contacted=True,
+    )
+    yield organization_team
+    organization_team.delete()
+
+
+@pytest.fixture(scope='function')
+def event_1(administrative_unit_1, location_1):
+    event = Event.objects.create(
+        name='event_name',
+        slug='event_slug',
+        date_from="2020-02-02",
+        date_to="2021-03-03",
+        program='monuments',
+        indended_for='everyone',
+        location=location_1,
+        age_from=10,
+        age_to=99,
+        start_date="2020-03-01T00:00:00+01:00",
+        participation_fee=120,
+        entry_form_url="http://www.example.com",
+        web_url="http://www.example.com",
+        invitation_text_1="text_1",
+        invitation_text_2="text_2",
+        invitation_text_3="text_3",
+        invitation_text_4="text_4",
+        main_photo=File(open("apps/aklub/test_data/empty_pdf.pdf", "rb")),
+        public_on_web=True,
+    )
+    event.administrative_units.add(administrative_unit_1)
+    yield event
+    event.delete()

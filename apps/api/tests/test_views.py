@@ -4,7 +4,6 @@ from aklub.models import CompanyProfile, ProfileEmail
 
 from django.conf import settings
 from django.core import mail
-from django.core.files import File
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
@@ -532,131 +531,6 @@ class RegisterUserProfileTest(TestCase):
         self.assertEqual(dpch.money_account, self.bank_acc)
         self.assertEqual(dpch.regular_amount, data['userchannels'][0]['regular_amount'])
         self.assertEqual(dpch.regular_frequency, data['userchannels'][0]['regular_frequency'])
-
-
-class EventViewTest(TestCase):
-    def setUp(self):
-        app_login_mixin()
-        unit = mommy.make('aklub.administrativeunit', name='test_unit')
-        self.organizing_association = mommy.make(
-            "events.OrganizingAssociation",
-            administrative_unit=unit,
-            name="some_cool_ppl",
-        )
-        self.location = mommy.make(
-            "events.location",
-            administrative_unit=unit,
-            name="location_name",
-            place="here",
-            region="Prague",
-            gps="58°, 20°",
-
-        )
-        self.event = mommy.make(
-            'events.event',
-            name='event_name',
-            slug='event_slug',
-            date_from="2020-02-02",
-            date_to="2021-03-03",
-            program='monuments',
-            indended_for='everyone',
-            location=self.location,
-            organizing_associations=[self.organizing_association, ],
-            age_from=10,
-            age_to=99,
-            start_date="2020-03-01T00:00:00+01:00",
-            participation_fee=120,
-            organization_team=[],
-            entry_form_url="http://www.example.com",
-            web_url="http://www.example.com",
-            invitation_text_1="text_1",
-            invitation_text_2="text_2",
-            invitation_text_3="text_3",
-            invitation_text_4="text_4",
-            main_photo=File(open("apps/aklub/test_data/empty_pdf.pdf", "rb")),
-            administrative_units=[unit, ],
-            public_on_web=True,
-        )
-        self.user_1 = mommy.make(
-            "aklub.userprofile",
-            first_name="user",
-            last_name="profilovic",
-        )
-        self.telephone_1 = mommy.make(
-            "aklub.telephone",
-            telephone="655455564",
-            is_primary=True,
-            user=self.user_1,
-        )
-        self.email_1 = mommy.make(
-            "aklub.profileemail",
-            email="ho@ha.com",
-            is_primary=True,
-            user=self.user_1,
-        )
-        position = mommy.make("events.OrganizationPosition", name="position")
-        mommy.make(
-            "events.OrganizationTeam",
-            position=position,
-            profile=self.user_1,
-            event=self.event,
-            can_be_contacted=True,
-        )
-
-    def test_event_list_view(self):
-        url = reverse('event')
-        header = {'Authorization': 'Bearer foo'}
-        response = self.client.get(url, **header)
-        self.assertEqual(response.status_code, 200)
-        data = response.json()
-        self.assertEqual(len(data), 1)
-        data = data[0]
-
-        self.assertEqual(data['name'], self.event.name)
-        self.assertEqual(data['slug'], self.event.slug)
-        self.assertEqual(data['date_from'], self.event.date_from)
-        self.assertEqual(data['date_to'], self.event.date_to)
-        self.assertEqual(data['program'], self.event.program)
-        self.assertEqual(data['indended_for'], self.event.indended_for)
-
-        location = data['location']
-        self.assertEqual(location['name'], self.location.name)
-        self.assertEqual(location['place'], self.location.place)
-        self.assertEqual(location['region'], self.location.region)
-        self.assertEqual(location['gps'], self.location.gps)
-
-        organizing_associations = data['organizing_associations']
-        self.assertEqual(len(organizing_associations), 1)
-        organizing_associations = organizing_associations[0]
-        self.assertEqual(organizing_associations['name'], self.organizing_association.name)
-
-        self.assertEqual(data['age_from'], self.event.age_from)
-        self.assertEqual(data['age_to'], self.event.age_to)
-        self.assertEqual(data['start_date'], self.event.start_date)
-        self.assertEqual(data['participation_fee'], self.event.participation_fee)
-
-        organization_team = data['organization_team']
-        self.assertEqual(len(organization_team), 1)
-        organization_team = organization_team[0]
-        self.assertEqual(organization_team["first_name"], self.user_1.first_name)
-        self.assertEqual(organization_team["last_name"], self.user_1.last_name)
-        self.assertEqual(organization_team["email"], self.email_1.email)
-        self.assertEqual(organization_team["telephone"], self.telephone_1.telephone)
-
-        self.assertEqual(data['entry_form_url'], self.event.entry_form_url)
-        self.assertEqual(data['web_url'], self.event.web_url)
-        self.assertEqual(data['invitation_text_1'], self.event.invitation_text_1)
-        self.assertEqual(data['invitation_text_2'], self.event.invitation_text_2)
-        self.assertEqual(data['invitation_text_3'], self.event.invitation_text_3)
-        self.assertEqual(data['invitation_text_4'], self.event.invitation_text_4)
-
-        self.assertTrue(self.event.main_photo.url in data['main_photo'])
-        self.assertEqual(data['additional_photo_1'], self.event.additional_photo_1)
-        self.assertEqual(data['additional_photo_2'], self.event.additional_photo_2)
-        self.assertEqual(data['additional_photo_3'], self.event.additional_photo_3)
-        self.assertEqual(data['additional_photo_4'], self.event.additional_photo_4)
-        self.assertEqual(data['additional_photo_5'], self.event.additional_photo_5)
-        self.assertEqual(data['additional_photo_6'], self.event.additional_photo_6)
 
 
 class ResetPasswordTest(TestCase):

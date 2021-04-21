@@ -347,7 +347,6 @@ class EventListView(generics.ListAPIView):
 
     def get_queryset(self):
         return Event.objects.filter(public_on_web=True).prefetch_related(
-            "organizing_associations",
             "organization_team",
             Prefetch(
                 'organization_team',

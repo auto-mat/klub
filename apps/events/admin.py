@@ -13,7 +13,7 @@ from django.utils.translation import ugettext as _
 from . import filters
 from .forms import EventForm
 from .models import (
-    Event, EventType, Location, OrganizationPosition, OrganizationTeam, OrganizingAssociation, Qualification,
+    Event, EventType, Location, OrganizationPosition, OrganizationTeam, Qualification,
 )
 
 
@@ -36,11 +36,6 @@ def download_darujme_statement(self, request, queryset):
 
 
 download_darujme_statement.short_description = _("Download darujme statements")
-
-
-@admin.register(OrganizingAssociation)
-class OrganizingAssociationAdmin(admin.ModelAdmin):
-    list_display = ("name",)
 
 
 @admin.register(OrganizationPosition)
@@ -118,7 +113,6 @@ class EventAdmin(unit_admin_mixin_generator('administrative_units'), admin.Model
                 ('date_from', 'date_to', "start_date"),
                 'variable_symbol_prefix',
                 'description',
-                'organizing_associations',
                 'administrative_units',
             ),
         }),

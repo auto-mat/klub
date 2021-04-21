@@ -66,23 +66,6 @@ class EventType(models.Model):
         return self.name
 
 
-class OrganizingAssociation(models.Model):
-    class Meta:
-        verbose_name = _("Organizing association")
-        verbose_name_plural = _("Organizing associations")
-
-    name = models.CharField(max_length=300, verbose_name=_("Name"),)
-    description = models.TextField(blank=True, verbose_name=_("Description"))
-    administrative_unit = models.ForeignKey(
-        "aklub.AdministrativeUnit",
-        verbose_name=_("administrative unit"),
-        on_delete=models.CASCADE,
-    )
-
-    def __str__(self):
-        return self.name
-
-
 class Event(models.Model):
     """Campaign -- abstract event with description
 
@@ -373,11 +356,6 @@ class Event(models.Model):
     administrative_units = models.ManyToManyField(
         "aklub.administrativeunit",
         verbose_name=_("administrative units"),
-    )
-    organizing_associations = models.ManyToManyField(
-        OrganizingAssociation,
-        verbose_name=_("Organizing associations"),
-        blank=True,
     )
 
     def number_of_members(self):
