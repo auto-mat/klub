@@ -5,7 +5,7 @@ class TestAdministrativeUnitView:
     def test_administrative_unit_get_request(self, administrative_unit_1, userprofile_superuser_2, app_request):
         url = reverse('administrative_unit')
         response = app_request.get(url)
-        self.assertEqual(response.status_code, 200)
+        assert response.status_code == 200
         assert len(response.json()) == 1
         resp_data = response.json()[0]
         assert resp_data["id"] == administrative_unit_1.id
