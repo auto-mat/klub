@@ -40,6 +40,16 @@ def administrative_unit_1(userprofile_superuser_2):
 
 
 @pytest.fixture(scope='function')
+def administrative_unit_2():
+    au = AdministrativeUnit.objects.create(
+        name="Auto*mat - slovakia",
+        slug="automat_slovakia",
+    )
+    yield au
+    au.delete()
+
+
+@pytest.fixture(scope='function')
 def telephone_2(userprofile_superuser_2):
     telephone = Telephone.objects.create(
         telephone="655455564",
@@ -170,5 +180,17 @@ def event_1(administrative_unit_1, location_1):
         public_on_web=True,
     )
     event.administrative_units.add(administrative_unit_1)
+    yield event
+    event.delete()
+
+
+@pytest.fixture(scope='function')
+def event_2(administrative_unit_2):
+    event = Event.objects.create(
+        name='event_name_2',
+        slug='event_slug_2',
+        public_on_web=True,
+    )
+    event.administrative_units.add(administrative_unit_2)
     yield event
     event.delete()

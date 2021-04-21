@@ -12,6 +12,8 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.translation import ugettext_lazy as _
 
+from django_filters import rest_framework as filters
+
 from drf_yasg.utils import swagger_auto_schema
 
 from events.models import Event, OrganizationTeam
@@ -23,6 +25,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .exceptions import DonorPaymentChannelDoesntExist, EmailDoesntExist, PaymentsDoesntExist
+from .filters import EventCustomFilter
 from .serializers import (
     AdministrativeUnitSerializer,
     CreateUserProfileSerializer, CreditCardPaymentSerializer,
@@ -343,6 +346,9 @@ class EventListView(generics.ListAPIView):
     """
     serializer_class = EventSerializer
     permission_classes = [TokenHasReadWriteScope]
+    filter_backends = [filters.DjangoFilterBackend]
+    filter_class = EventCustomFilter
+
     required_scopes = ['can_view_events']
 
     def get_queryset(self):
