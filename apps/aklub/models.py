@@ -33,11 +33,10 @@ from django.contrib.auth.models import (
 )
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.humanize.templatetags.humanize import intcomma
-from django.contrib.gis.db import models as gis_models
 from django.core.files.storage import FileSystemStorage
 from django.core.validators import RegexValidator, ValidationError
 from django.db import models, transaction
-from django.db.models import Count, Q, QuerySet, Sum, signals
+from django.db.models import Count, Q, Sum, signals
 from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.html import format_html, format_html_join, mark_safe
@@ -197,12 +196,12 @@ class AdministrativeUnit(models.Model, ParseAccountStatement):
     gps_latitude = models.FloatField(
         _('GPS latitude'),
         blank=True,
-        null=True
+        null=True,
     )
     gps_longitude = models.FloatField(
         _('GPS longitude'),
         blank=True,
-        null=True
+        null=True,
     )
     city = models.CharField(
         verbose_name=_("City/City part"),
@@ -285,7 +284,7 @@ class AdministrativeUnit(models.Model, ParseAccountStatement):
     manager_since = models.DateField(
         verbose_name=_("Manager since"),
         null=True,
-        blank=True
+        blank=True,
     )
 
     def __str__(self):
