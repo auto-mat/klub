@@ -9,8 +9,8 @@ from django.contrib.admin import SimpleListFilter
 from django.contrib.admin.filters import FieldListFilter, RelatedFieldListFilter
 from django.contrib.admin.utils import reverse_field_path
 from django.db.models import (
-    BooleanField, Case, CharField, Count, IntegerField, OuterRef, Q,
-    Subquery, Value, When,
+    BooleanField, Case, CharField, Count, F, FloatField, IntegerField,
+    OuterRef, Q, Subquery, Sum, Value, When,
 )
 from django.db.models.functions import Lower, Replace, Right
 from django.utils.translation import ugettext as _
@@ -624,6 +624,43 @@ class DPCHNumberOfPayments(BaseAF):
         return queryset
 
 
+class DPCHSumOfAllPayments(BaseAF):
+    model = DonorPaymentChannel
+    field = 'sum_off_all_payments'
+    field_verbose_name = _('Sum of all payments')
+    values_list_field = 'user__id'
+    field_type = FloatField()
+
+    def queryset(self, *args, **kwargs):
+        if kwargs.get('administrative_unit'):
+            au = kwargs['administrative_unit']
+            subquery = self.model.objects.filter(
+                event__administrative_units__in=au,
+                user=OuterRef('user'),
+            ).values('user').annotate(
+                sum_off_all_payments=Sum('payment__amount'),
+            )
+            queryset = self.model.objects.filter(
+                event__administrative_units__in=au,
+            ).annotate(
+               sum_off_all_payments=Subquery(
+                    subquery.values('sum_off_all_payments')[:1],
+                    output_field=self.field_type,
+                ),
+            ).annotate(
+                sum_off_all_payments=Case(
+                    When(
+                        sum_off_all_payments__isnull=True,
+                        then=Value(0.0),
+                    ), default=F('sum_off_all_payments'),
+                    output_field=self.field_type,
+                ),
+            )
+        else:
+            queryset = self.model.objects.none()
+        return queryset
+
+
 class DPCHWithoutPayments(BaseAF):
     model = DonorPaymentChannel
     field = 'without_payments'
@@ -699,6 +736,57 @@ class DPCHRegularPaymentsOk(BaseAF):
                         ),
                         then=Value(_('Delayed')),
                     ), default=Value(_('Not delayed')),
+                    output_field=self.field_type,
+                ),
+            )
+        else:
+            queryset = self.model.objects.none()
+        return queryset
+
+
+class DPCHPaymentsAmount(BaseAF):
+    model = DonorPaymentChannel
+    field = 'payment_amount'
+    field_verbose_name = _('Payment amount')
+    values_list_field = 'user__id'
+    field_type = FloatField()
+
+    def queryset(self, *args, **kwargs):
+        if kwargs.get('administrative_unit'):
+            queryset = self.model.objects.filter(
+                event__administrative_units__in=kwargs['administrative_unit'],
+            ).annotate(
+                payment_amount=Case(
+                    When(
+                        payment__amount__isnull=True,
+                        then=Value(0.0),
+                    ), default=F('payment__amount'),
+                    output_field=self.field_type,
+                ),
+            )
+        else:
+            queryset = self.model.objects.none()
+        return queryset
+
+
+class DPCHRegularPaymentsAmount(BaseAF):
+    model = DonorPaymentChannel
+    field = 'regular_payment_amount'
+    field_verbose_name = _('Regular payment amount')
+    values_list_field = 'user__id'
+    field_type = FloatField()
+
+    def queryset(self, *args, **kwargs):
+        if kwargs.get('administrative_unit'):
+            queryset = self.model.objects.filter(
+                event__administrative_units__in=kwargs['administrative_unit'],
+                regular_payments='regular',
+            ).annotate(
+                regular_payment_amount=Case(
+                    When(
+                        payment__amount__isnull=True,
+                        then=Value(0.0),
+                    ), default=F('payment__amount'),
                     output_field=self.field_type,
                 ),
             )
@@ -815,9 +903,9 @@ class ProfileEmailIsEmailInCompanyprofile(BaseAF):
 
 AF_FILTERS = [
     DPCHNumberOfDPCHs, DPCHRegularPaymentsOk, DPCHNumberOfPayments,
-    DPCHRegularPayments, DPCHRegularFrequency, DPCHWithoutPayments,
-    InteractionEventName, InteractionNumberOfInteractions,
-    InteractionDateFrom, InteractionDateTo, InteractionResultName,
-    InteractionNextCommunicationDate, InteractionCommunicationType,
-    ProfileEmailIsEmailInCompanyprofile,
+    DPCHPaymentsAmount, DPCHRegularPayments, DPCHRegularPaymentsAmount,
+    DPCHRegularFrequency, DPCHSumOfAllPayments, DPCHWithoutPayments,
+    InteractionEventName, InteractionNumberOfInteractions, InteractionDateFrom,
+    InteractionDateTo, InteractionResultName, InteractionNextCommunicationDate,
+    InteractionCommunicationType, ProfileEmailIsEmailInCompanyprofile,
 ]
