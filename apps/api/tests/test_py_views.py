@@ -1,5 +1,8 @@
+from aklub.models import AdministrativeUnit
+
 from django.urls import reverse
 
+from events.models import Event
 
 class TestAdministrativeUnitView:
     def test_administrative_unit_get_request(self, administrative_unit_1, userprofile_superuser_2, app_request):
@@ -19,6 +22,7 @@ class TestAdministrativeUnitView:
         assert resp_data["web_url"] == administrative_unit_1.web_url
         assert resp_data["president_name"] == f"{userprofile_superuser_2.first_name} {userprofile_superuser_2.last_name}"
         assert resp_data["manager_name"] == f"{userprofile_superuser_2.first_name} {userprofile_superuser_2.last_name}"
+        assert resp_data["level"] == dict(AdministrativeUnit.UNIT_LEVEL_CHOICES)[administrative_unit_1.level]
 
 
 class TestEventView:
@@ -36,8 +40,8 @@ class TestEventView:
         assert data['slug'] == event_1.slug
         assert data['date_from'] == event_1.date_from
         assert data['date_to'] == event_1.date_to
-        assert data['program'] == event_1.program
-        assert data['indended_for'] == event_1.indended_for
+        assert data['program'] == dict(Event.PROGRAM)[event_1.program]  # serializer return display value
+        assert data['indended_for'] == dict(Event.INTENDED_FOR)[event_1.indended_for]  # serializer return display value
 
         location = data['location']
         assert location['name'] == location_1.name

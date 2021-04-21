@@ -34,6 +34,7 @@ def administrative_unit_1(userprofile_superuser_2):
         telephone="+420123456789",
         president=userprofile_superuser_2,
         manager=userprofile_superuser_2,
+        level='regional_center',
     )
     yield au
     au.delete()

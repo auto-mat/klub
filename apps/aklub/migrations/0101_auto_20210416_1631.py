@@ -67,4 +67,9 @@ class Migration(migrations.Migration):
             name='president_since',
             field=models.DateField(blank=True, null=True, verbose_name='President since'),
         ),
+        migrations.AddField(
+            model_name='administrativeunit',
+            name='level',
+            field=models.CharField(blank=True, choices=[('regional_center', 'Regional center'), ('basic_section', 'Basic section'), ('headquarter', 'Headquarter')], max_length=128),
+        ),
     ]

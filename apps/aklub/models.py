@@ -184,6 +184,12 @@ class AdministrativeUnit(models.Model, ParseAccountStatement):
         verbose_name = _("Administrative unit")
         verbose_name_plural = _("Administrative units")
 
+    UNIT_LEVEL_CHOICES = (
+        ('regional_center', _('Regional center')),
+        ('basic_section', _('Basic section')),
+        ('headquarter', _('Headquarter')),
+    )
+
     name = models.CharField(
         verbose_name=_("Name"),
         max_length=255,
@@ -226,6 +232,12 @@ class AdministrativeUnit(models.Model, ParseAccountStatement):
         blank=True,
         null=True,
     )
+    level = models.CharField(
+        blank=True,
+        choices=UNIT_LEVEL_CHOICES,
+        max_length=128
+    )
+
     from_email_address = models.EmailField(
         verbose_name=_("E-mail from address"),
         help_text=_("Every new address has to be set up by system administrator"),
