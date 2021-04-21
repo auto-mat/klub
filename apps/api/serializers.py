@@ -1,5 +1,5 @@
 from aklub.models import (
-    AdministrativeUnit, CompanyProfile, DonorPaymentChannel, MoneyAccount, Payment, Profile, ProfileEmail, Telephone, UserProfile
+    AdministrativeUnit, CompanyProfile, DonorPaymentChannel, MoneyAccount, Payment, Profile, ProfileEmail, Telephone, UserProfile,
 )
 
 from django.contrib.auth.password_validation import validate_password
