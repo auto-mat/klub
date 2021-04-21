@@ -744,6 +744,32 @@ class DPCHRegularPaymentsOk(BaseAF):
         return queryset
 
 
+class DPCHRegularPaymentsAmount(BaseAF):
+    model = DonorPaymentChannel
+    field = 'regular_payment_amount'
+    field_verbose_name = _('Regular payment amount')
+    values_list_field = 'user__id'
+    field_type = FloatField()
+
+    def queryset(self, *args, **kwargs):
+        if kwargs.get('administrative_unit'):
+            queryset = self.model.objects.filter(
+                event__administrative_units__in=kwargs['administrative_unit'],
+                regular_payments='regular',
+            ).annotate(
+                regular_payment_amount=Case(
+                    When(
+                        payment__amount__isnull=True,
+                        then=Value(0.0),
+                    ), default=F('payment__amount'),
+                    output_field=self.field_type,
+                ),
+            )
+        else:
+            queryset = self.model.objects.none()
+        return queryset
+
+
 class InteractionEventName(BaseAF):
     model = Interaction
     field = 'event__name'
@@ -852,7 +878,7 @@ class ProfileEmailIsEmailInCompanyprofile(BaseAF):
 
 AF_FILTERS = [
     DPCHNumberOfDPCHs, DPCHRegularPaymentsOk, DPCHNumberOfPayments,
-    DPCHRegularPayments, DPCHRegularFrequency, DPCHSumOfAllPayments,
+    DPCHRegularPayments, DPCHRegularPaymentsAmount, DPCHRegularFrequency, DPCHSumOfAllPayments,
     DPCHWithoutPayments, InteractionEventName, InteractionNumberOfInteractions,
     InteractionDateFrom, InteractionDateTo, InteractionResultName,
     InteractionNextCommunicationDate, InteractionCommunicationType,
