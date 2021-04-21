@@ -1139,13 +1139,7 @@ class Preference(models.Model):
         return self.administrative_unit.name if self.administrative_unit else ''
 
 
-class TelephoneQuerySet(QuerySet):
-    def get_or_create(self):
-        pass
-
-
 class Telephone(models.Model):
-    queryset_class = TelephoneQuerySet
     bool_choices = (
         (None, "No"),
         (True, "Yes")
