@@ -290,7 +290,10 @@ class AdministrativeUnitSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AdministrativeUnit
-        fields = ['id', 'name', 'city', 'zip_code', 'telephone', 'from_email_address', 'web_url', 'president_name', 'manager_name']
+        fields = [
+            'id', 'name', 'city', 'zip_code', 'telephone', 'from_email_address', 'web_url', 'president_name', 'manager_name',
+            'gps_latitude', 'gps_longitude',
+        ]
 
     def get_president_name(self, obj):
         return obj.president.get_full_name()

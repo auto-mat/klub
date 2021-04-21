@@ -33,6 +33,7 @@ from django.contrib.auth.models import (
 )
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.humanize.templatetags.humanize import intcomma
+from django.contrib.gis.db import models as gis_models
 from django.core.files.storage import FileSystemStorage
 from django.core.validators import RegexValidator, ValidationError
 from django.db import models, transaction
@@ -193,6 +194,16 @@ class AdministrativeUnit(models.Model, ParseAccountStatement):
         max_length=80,
         blank=True,
     )
+    gps_latitude = models.FloatField(
+        _('GPS latitude'),
+        blank=True,
+        null=True
+    )
+    gps_longitude = models.FloatField(
+        _('GPS longitude'),
+        blank=True,
+        null=True
+    )
     city = models.CharField(
         verbose_name=_("City/City part"),
         max_length=40, blank=True,
@@ -258,6 +269,11 @@ class AdministrativeUnit(models.Model, ParseAccountStatement):
         null=True,
         on_delete=models.CASCADE,
     )
+    president_since = models.DateField(
+        verbose_name=_("President since"),
+        null=True,
+        blank=True,
+    )
     manager = models.ForeignKey(
         "aklub.UserProfile",
         verbose_name=_("Manager"),
@@ -265,6 +281,11 @@ class AdministrativeUnit(models.Model, ParseAccountStatement):
         blank=True,
         null=True,
         on_delete=models.CASCADE,
+    )
+    manager_since = models.DateField(
+        verbose_name=_("Manager since"),
+        null=True,
+        blank=True
     )
 
     def __str__(self):

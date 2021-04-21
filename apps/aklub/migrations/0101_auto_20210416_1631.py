@@ -47,4 +47,24 @@ class Migration(migrations.Migration):
             name='zip_code',
             field=models.CharField(blank=True, max_length=30, verbose_name='ZIP Code'),
         ),
+        migrations.AddField(
+            model_name='administrativeunit',
+            name='gps_latitude',
+            field=models.FloatField(blank=True, null=True, verbose_name='GPS latitude'),
+        ),
+        migrations.AddField(
+            model_name='administrativeunit',
+            name='gps_longitude',
+            field=models.FloatField(blank=True, null=True, verbose_name='GPS longitude'),
+        ),
+        migrations.AddField(
+            model_name='administrativeunit',
+            name='manager_since',
+            field=models.DateField(blank=True, null=True, verbose_name='Manager since'),
+        ),
+        migrations.AddField(
+            model_name='administrativeunit',
+            name='president_since',
+            field=models.DateField(blank=True, null=True, verbose_name='President since'),
+        ),
     ]
