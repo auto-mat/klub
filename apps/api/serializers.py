@@ -41,7 +41,9 @@ class VSReturnSerializer(serializers.ModelSerializer):
 
 
 class GetDpchUserProfileSerializer(serializers.ModelSerializer, ValidateEmailMixin, RelatedFieldsMixin):
-
+    """
+    Creating legal userprofile with dpch without access to IsAuthentication views
+    """
     class Meta:
         model = UserProfile
         fields = [
@@ -177,7 +179,26 @@ class DonorPaymentChannelNestedSerializer(serializers.ModelSerializer):
         depth = 1
 
 
+class CreateUserProfileInteractionSerializer(serializers.ModelSerializer, ValidateEmailMixin, RelatedFieldsMixin):
+    additional_question_1 = serializers.CharField(required=False)
+    additional_question_2 = serializers.CharField(required=False)
+    additional_question_3 = serializers.CharField(required=False)
+
+    class Meta:
+        model = UserProfile
+        fields = (
+            'first_name', 'last_name', 'telephone', 'email', 'note', 'age_group', 'birth_month', 'birth_day', 'event',
+            'additional_question_1', 'additional_question_2', 'additional_question_3',
+        )
+        extra_kwargs = {
+            'email': {'required': True},
+        }
+
+
 class CreateUserProfileSerializer(serializers.ModelSerializer, ValidateEmailMixin, RelatedFieldsMixin):
+    """
+    Creating legal userprofile with dpch (and also with access to IsAuthenticated views)
+    """
     password = serializers.CharField(write_only=True, required=False, validators=[validate_password])
     email = serializers.EmailField(validators=[UniqueValidator(queryset=ProfileEmail.objects.all())])
     userchannels = DonorPaymentChannelNestedSerializer(many=True)
