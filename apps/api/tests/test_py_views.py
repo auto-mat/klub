@@ -4,6 +4,7 @@ from django.urls import reverse
 
 from events.models import Event
 
+
 class TestAdministrativeUnitView:
     def test_administrative_unit_get_request(self, administrative_unit_1, userprofile_superuser_2, app_request):
         url = reverse('administrative_unit')

@@ -235,7 +235,7 @@ class AdministrativeUnit(models.Model, ParseAccountStatement):
     level = models.CharField(
         blank=True,
         choices=UNIT_LEVEL_CHOICES,
-        max_length=128
+        max_length=128,
     )
 
     from_email_address = models.EmailField(
