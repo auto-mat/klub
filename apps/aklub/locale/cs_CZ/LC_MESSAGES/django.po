@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: AKlub\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-04-21 13:17+0200\n"
+"POT-Creation-Date: 2021-04-22 13:05+0200\n"
 "PO-Revision-Date: 2019-08-02 08:42+0000\n"
 "Last-Translator: Hynek Hanke <hanke@brailcom.org>\n"
 "Language-Team: No linguistic content\n"
@@ -23,7 +23,7 @@ msgid "user bank account"
 msgstr "Bankovní účet uživatele"
 
 #: apps/aklub/admin.py:192 apps/aklub/admin.py:623 apps/aklub/admin.py:1350
-#: apps/aklub/admin.py:2066 apps/aklub/admin.py:2173 apps/aklub/admin.py:2347
+#: apps/aklub/admin.py:2082 apps/aklub/admin.py:2189 apps/aklub/admin.py:2363
 msgid "Details"
 msgstr "Detaily"
 
@@ -287,68 +287,84 @@ msgstr "Název"
 msgid "Personal information"
 msgstr "Osobní informace"
 
-#: apps/aklub/admin.py:1893 apps/aklub/admin.py:2243
+#: apps/aklub/admin.py:1896
+msgid "Correspondence address street and number"
+msgstr "Korespondenční adresa ulice a číslo domu (č.p./č.o.)"
+
+#: apps/aklub/admin.py:1897
+msgid "Correspondence address city/city part"
+msgstr "Korespondenční adresa město/městská část"
+
+#: apps/aklub/admin.py:1898
+msgid "Correspondence address country"
+msgstr "Korespondenční adresa země"
+
+#: apps/aklub/admin.py:1899
+msgid "Correspondence address ZIP code"
+msgstr "Korespondenční adresa PSČ"
+
+#: apps/aklub/admin.py:1901 apps/aklub/admin.py:2259
 msgid "Jméno kampaně"
 msgstr ""
 
-#: apps/aklub/admin.py:1894 apps/aklub/models.py:1024
+#: apps/aklub/admin.py:1902 apps/aklub/models.py:1024
 msgid "Preference"
 msgstr "Povolení"
 
-#: apps/aklub/admin.py:1902 apps/aklub/models.py:1389
+#: apps/aklub/admin.py:1910 apps/aklub/models.py:1389
 msgid "Donor payment channel"
 msgstr "Platební kanál"
 
-#: apps/aklub/admin.py:1913 apps/interactions/models.py:99 project/apps.py:20
+#: apps/aklub/admin.py:1921 apps/interactions/models.py:99 project/apps.py:20
 msgid "Interactions"
 msgstr "Interakce"
 
-#: apps/aklub/admin.py:1914
+#: apps/aklub/admin.py:1922
 msgid "Event name"
 msgstr "Název události"
 
-#: apps/aklub/admin.py:1980 apps/aklub/admin.py:2254
+#: apps/aklub/admin.py:1996 apps/aklub/admin.py:2270
 msgid "Has any payment"
 msgstr "Má platbu?"
 
-#: apps/aklub/admin.py:2004 apps/aklub/admin.py:2016 apps/aklub/admin.py:2277
-#: apps/aklub/admin.py:2294
+#: apps/aklub/admin.py:2020 apps/aklub/admin.py:2032 apps/aklub/admin.py:2293
+#: apps/aklub/admin.py:2310
 msgid "Personal data"
 msgstr "Osobní údaje"
 
-#: apps/aklub/admin.py:2030 apps/aklub/admin.py:2309
+#: apps/aklub/admin.py:2046 apps/aklub/admin.py:2325
 msgid "Contact data"
 msgstr "Kontaktní údaje"
 
-#: apps/aklub/admin.py:2040 apps/aklub/admin.py:2320
+#: apps/aklub/admin.py:2056 apps/aklub/admin.py:2336
 msgid "Correspondence address"
 msgstr "Korespondenční adresa"
 
-#: apps/aklub/admin.py:2050 apps/aklub/admin.py:2330
+#: apps/aklub/admin.py:2066 apps/aklub/admin.py:2346
 msgid "Rights and permissions"
 msgstr "Práva a přístupy"
 
-#: apps/aklub/admin.py:2068 apps/aklub/admin.py:2349 apps/aklub/models.py:942
+#: apps/aklub/admin.py:2084 apps/aklub/admin.py:2365 apps/aklub/models.py:942
 msgid "Emails"
 msgstr "E-maily"
 
-#: apps/aklub/admin.py:2108
+#: apps/aklub/admin.py:2124
 msgid "User With this email is in database already. You can edit him now"
 msgstr ""
 
-#: apps/aklub/admin.py:2177
+#: apps/aklub/admin.py:2193
 msgid "Is email in userprofile"
 msgstr "Je tento email u usera?"
 
-#: apps/aklub/admin.py:2359
+#: apps/aklub/admin.py:2375
 msgid "Main telephone"
 msgstr "Hlavní Telefon"
 
-#: apps/aklub/admin.py:2368
+#: apps/aklub/admin.py:2384
 msgid "Contact Name"
 msgstr "Kontaktní Jméno"
 
-#: apps/aklub/admin.py:2407
+#: apps/aklub/admin.py:2423
 msgid "Company is in database already. You are able to make changes now."
 msgstr "Společnost již je v databazi zaregistována, nyní ji možete editovat"
 
