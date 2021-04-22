@@ -727,7 +727,7 @@ class DPCHRegularPaymentsOk(BaseAF):
         if kwargs.get('administrative_unit'):
             au = kwargs['administrative_unit']
             queryset = self.model.objects.filter(
-                event__administrative_units__id=au,
+                event__administrative_units__in=au,
             ).annotate(
                 regular_payments_ok=Case(
                     When(
