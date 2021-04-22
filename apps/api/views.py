@@ -12,6 +12,8 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.translation import ugettext_lazy as _
 
+from django_filters import rest_framework as filters
+
 from drf_yasg.utils import swagger_auto_schema
 
 from events.models import Event, OrganizationTeam
@@ -23,7 +25,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .exceptions import DonorPaymentChannelDoesntExist, EmailDoesntExist, PaymentsDoesntExist
+from .filters import EventCustomFilter
 from .serializers import (
+    AdministrativeUnitSerializer,
     CreateUserProfileSerializer, CreditCardPaymentSerializer,
     DonorPaymetChannelSerializer, EventCheckSerializer, EventSerializer, GetDpchCompanyProfileSerializer, GetDpchUserProfileSerializer,
     InteractionSerizer, MoneyAccountCheckSerializer, PaymentSerializer, ProfileSerializer, ResetPasswordbyEmailConfirmSerializer,
@@ -342,11 +346,13 @@ class EventListView(generics.ListAPIView):
     """
     serializer_class = EventSerializer
     permission_classes = [TokenHasReadWriteScope]
+    filter_backends = [filters.DjangoFilterBackend]
+    filter_class = EventCustomFilter
+
     required_scopes = ['can_view_events']
 
     def get_queryset(self):
         return Event.objects.filter(public_on_web=True).prefetch_related(
-            "organizing_associations",
             "organization_team",
             Prefetch(
                 'organization_team',
@@ -359,3 +365,19 @@ class EventListView(generics.ListAPIView):
                 to_attr='filtered_organization_team',
             ),
         ).select_related('location')
+
+
+class AdministrativeUnitView(generics.ListAPIView):
+    """
+    Reguired info for web
+    -- is used to communicate with 3rd aplication
+    """
+    serializer_class = AdministrativeUnitSerializer
+    permission_classes = [TokenHasReadWriteScope]
+    required_scopes = ['can_view_administrative_units']
+
+    def get_queryset(self):
+        return AdministrativeUnit.objects.all().select_related(
+            'president',
+            'manager',
+        )

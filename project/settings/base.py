@@ -278,6 +278,7 @@ OAUTH2_PROVIDER = {
         'can_check_last_payments': 'Can check payments in dpch',
         'can_create_credit_card_payment': 'Can create credit card payment',
         'can_view_events': 'Can view events',
+        'can_view_administrative_units': 'Can view administrative units',
     },
 }
 

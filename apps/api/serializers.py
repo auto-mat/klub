@@ -1,11 +1,13 @@
-from aklub.models import CompanyProfile, DonorPaymentChannel, MoneyAccount, Payment, Profile, ProfileEmail, Telephone, UserProfile
+from aklub.models import (
+    AdministrativeUnit, CompanyProfile, DonorPaymentChannel, MoneyAccount, Payment, Profile, ProfileEmail, Telephone, UserProfile,
+)
 
 from django.contrib.auth.password_validation import validate_password
 from django.core.validators import MinLengthValidator, RegexValidator
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
-from events.models import Event, Location, OrganizationTeam, OrganizingAssociation
+from events.models import Event, Location, OrganizationTeam
 
 from notifications_edit.utils import send_notification_to_is_staff_members
 
@@ -242,7 +244,11 @@ class OrganizationTeamSerializer(serializers.ModelSerializer):
         #    if email.is_primary:
         #        return email.email
         userprofile = obj.profile.get_real_instance()
-        return userprofile.profileemail_set.get(is_primary=True).email
+        try:
+            email = userprofile.profileemail_set.get(is_primary=True).email
+        except ProfileEmail.DoesNotExist:
+            email = None
+        return email
 
     def get_telephone(self, obj):
         # TODO: waiting for polymorphic select related fix:
@@ -250,13 +256,11 @@ class OrganizationTeamSerializer(serializers.ModelSerializer):
         #    if telephone.is_primary:
         #        return telephone.telephone
         userprofile = obj.profile.get_real_instance()
-        return userprofile.telephone_set.get(is_primary=True).telephone
-
-
-class OrganizingAssociationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = OrganizingAssociation
-        fields = ["name"]
+        try:
+            telephone = userprofile.telephone_set.get(is_primary=True).telephone
+        except Telephone.DoesNotExist:
+            telephone = None
+        return telephone
 
 
 class LocationSerializer(serializers.ModelSerializer):
@@ -267,16 +271,36 @@ class LocationSerializer(serializers.ModelSerializer):
 
 class EventSerializer(serializers.ModelSerializer):
     location = LocationSerializer(read_only=True)
-    organizing_associations = OrganizingAssociationSerializer(read_only=True, many=True)
     organization_team = OrganizationTeamSerializer(read_only=True, many=True, source="filtered_organization_team")
+    indended_for = serializers.CharField(source='get_indended_for_display')
+    program = serializers.CharField(source='get_program_display')
 
     class Meta:
         model = Event
         fields = [
             'id', 'name', 'slug', 'date_from', 'date_to', 'program', 'indended_for',
-            'location', 'organizing_associations', 'age_from', 'age_to', 'start_date',
+            'location', 'age_from', 'age_to', 'start_date',
             'participation_fee', 'organization_team', 'entry_form_url', 'web_url', 'invitation_text_short',
             'invitation_text_1', 'invitation_text_2', 'invitation_text_3',
             'invitation_text_4', 'main_photo', 'additional_photo_1', 'additional_photo_2',
             'additional_photo_3', 'additional_photo_4', 'additional_photo_5', 'additional_photo_6',
         ]
+
+
+class AdministrativeUnitSerializer(serializers.ModelSerializer):
+    president_name = serializers.SerializerMethodField()
+    manager_name = serializers.SerializerMethodField()
+    level = serializers.CharField(source='get_level_display')
+
+    class Meta:
+        model = AdministrativeUnit
+        fields = [
+            'id', 'name', 'city', 'zip_code', 'telephone', 'from_email_address', 'web_url', 'president_name', 'manager_name',
+            'gps_latitude', 'gps_longitude', 'level',
+        ]
+
+    def get_president_name(self, obj):
+        return obj.president.get_full_name() if obj.president else None
+
+    def get_manager_name(self, obj):
+        return obj.manager.get_full_name() if obj.manager else None

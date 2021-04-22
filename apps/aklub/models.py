@@ -36,7 +36,7 @@ from django.contrib.humanize.templatetags.humanize import intcomma
 from django.core.files.storage import FileSystemStorage
 from django.core.validators import RegexValidator, ValidationError
 from django.db import models, transaction
-from django.db.models import Count, Q, QuerySet, Sum, signals
+from django.db.models import Count, Q, Sum, signals
 from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.html import format_html, format_html_join, mark_safe
@@ -184,9 +184,44 @@ class AdministrativeUnit(models.Model, ParseAccountStatement):
         verbose_name = _("Administrative unit")
         verbose_name_plural = _("Administrative units")
 
+    UNIT_LEVEL_CHOICES = (
+        ('regional_center', _('Regional center')),
+        ('basic_section', _('Basic section')),
+        ('headquarter', _('Headquarter')),
+    )
+
     name = models.CharField(
         verbose_name=_("Name"),
         max_length=255,
+    )
+    street = models.CharField(
+        verbose_name=_("Street and number"),
+        max_length=80,
+        blank=True,
+    )
+    gps_latitude = models.FloatField(
+        _('GPS latitude'),
+        blank=True,
+        null=True,
+    )
+    gps_longitude = models.FloatField(
+        _('GPS longitude'),
+        blank=True,
+        null=True,
+    )
+    city = models.CharField(
+        verbose_name=_("City/City part"),
+        max_length=40, blank=True,
+    )
+    zip_code = models.CharField(
+        verbose_name=_("ZIP Code"),
+        max_length=30,
+        blank=True,
+    )
+    web_url = models.URLField(
+        verbose_name=_("Url address of website"),
+        blank=True,
+        null=True,
     )
     ico = StdNumField(
         'cz.dic',
@@ -197,6 +232,12 @@ class AdministrativeUnit(models.Model, ParseAccountStatement):
         blank=True,
         null=True,
     )
+    level = models.CharField(
+        blank=True,
+        choices=UNIT_LEVEL_CHOICES,
+        max_length=128,
+    )
+
     from_email_address = models.EmailField(
         verbose_name=_("E-mail from address"),
         help_text=_("Every new address has to be set up by system administrator"),
@@ -207,12 +248,21 @@ class AdministrativeUnit(models.Model, ParseAccountStatement):
         default='Example <example@nothing_will_sent.ex>',
         max_length=255,
     )
-
+    telephone = models.CharField(
+        verbose_name=_("Telephone number"),
+        max_length=100,
+        blank=True,
+        validators=[
+            RegexValidator(
+                r'^\+?(42(0|1){1})?\s?\d{3}\s?\d{3}\s?\d{3}$',
+                _("Telephone must consist of numbers, spaces and + sign or maximum number count is higher."),
+            ),
+        ],
+    )
     color = ColorField(
         default='#000000',
         help_text=_("Choose color to help discern Administrative unit in app"),
     )
-
     slug = models.SlugField(
         verbose_name=_("Slug"),
         help_text=_("Identifier of the administrative unit"),
@@ -221,6 +271,32 @@ class AdministrativeUnit(models.Model, ParseAccountStatement):
         unique=True,
         blank=True,
         null=True,
+    )
+    president = models.ForeignKey(
+        "aklub.UserProfile",
+        verbose_name=_("President"),
+        related_name="au_president",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+    )
+    president_since = models.DateField(
+        verbose_name=_("President since"),
+        null=True,
+        blank=True,
+    )
+    manager = models.ForeignKey(
+        "aklub.UserProfile",
+        verbose_name=_("Manager"),
+        related_name="au_manager",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+    )
+    manager_since = models.DateField(
+        verbose_name=_("Manager since"),
+        null=True,
+        blank=True,
     )
 
     def __str__(self):
@@ -1074,13 +1150,7 @@ class Preference(models.Model):
         return self.administrative_unit.name if self.administrative_unit else ''
 
 
-class TelephoneQuerySet(QuerySet):
-    def get_or_create(self):
-        pass
-
-
 class Telephone(models.Model):
-    queryset_class = TelephoneQuerySet
     bool_choices = (
         (None, "No"),
         (True, "Yes")
