@@ -8,6 +8,7 @@ from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import EmailMultiAlternatives
 from django.db.models import Prefetch
+from django.utils import timezone
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.translation import ugettext_lazy as _
@@ -17,6 +18,8 @@ from django_filters import rest_framework as filters
 from drf_yasg.utils import swagger_auto_schema
 
 from events.models import Event, OrganizationTeam
+
+from interactions.models import Interaction, InteractionCategory, InteractionType
 
 from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope
 
@@ -28,7 +31,7 @@ from .exceptions import DonorPaymentChannelDoesntExist, EmailDoesntExist, Paymen
 from .filters import EventCustomFilter
 from .serializers import (
     AdministrativeUnitSerializer,
-    CreateUserProfileSerializer, CreditCardPaymentSerializer,
+    CreateUserProfileInteractionSerializer, CreateUserProfileSerializer, CreditCardPaymentSerializer,
     DonorPaymetChannelSerializer, EventCheckSerializer, EventSerializer, GetDpchCompanyProfileSerializer, GetDpchUserProfileSerializer,
     InteractionSerizer, MoneyAccountCheckSerializer, PaymentSerializer, ProfileSerializer, ResetPasswordbyEmailConfirmSerializer,
     ResetPasswordbyEmailSerializer, VSReturnSerializer,
@@ -195,7 +198,6 @@ class CreateInteractionView(generics.GenericAPIView):
     def post(self, request):
         serializer = self.serializer_class(data=self.request.data)
         if serializer.is_valid(raise_exception=True):
-            from interactions.models import Interaction, InteractionType, InteractionCategory
             category, created = InteractionCategory.objects.get_or_create(category='emails')
             int_type, created = InteractionType.objects.get_or_create(
                 slug=serializer.validated_data['interaction_type'],
@@ -339,16 +341,69 @@ class ResetPasswordbyEmailConfirmView(generics.GenericAPIView):
             return Response(status=status.HTTP_403_FORBIDDEN)
 
 
-class EventListView(generics.ListAPIView):
-    """
-    Reguired info for web
-    -- is used to communicate with 3rd aplication
-    """
+class UserProfileInteractionView(generics.CreateAPIView):
+    serializer_class = CreateUserProfileInteractionSerializer
+    permission_classes = [TokenHasReadWriteScope]
+    required_scopes = ['can_create_userprofile_interaction']
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=self.request.data)
+        serializer.is_valid(raise_exception=True)
+        user, created = UserProfile.objects.get_or_create(
+            profileemail__email=serializer.validated_data.get('email'),
+            defaults={
+                "first_name": serializer.validated_data.get('first_name'),
+                "last_name": serializer.validated_data.get('last_name'),
+                "age_group": serializer.validated_data.get('age_group'),
+                "birth_month": serializer.validated_data.get('birth_month'),
+                "birth_day": serializer.validated_data.get('birth_day'),
+            },
+        )
+        event = serializer.validated_data.get('event')
+        user.administrative_units.add(event.administrative_units.first()),
+        telephone = serializer.validated_data.get("telephone")
+        if telephone:
+            Telephone.objects.get_or_create(telephone=telephone, user=user, defaults={"is_primary": True})
+        email = serializer.validated_data.get("email")
+        if email:
+            ProfileEmail.objects.get_or_create(email=email, user=user, defaults={"is_primary": True})
+
+        category, created = InteractionCategory.objects.get_or_create(category=_('Event registration'))
+        int_type, created = InteractionType.objects.get_or_create(
+            slug='event-registration',
+            category=category,
+            defaults={
+                'name': _('Event registration'),
+                'created_bool': True,
+                'event_bool': True,
+                'note_bool': True,
+                'summary_bool': True,
+            },
+        )
+        # prepare not from fields:
+        add_answer_1 = f"{event.additional_question_1}:\n    {serializer.validated_data.get('additional_question_1', '-')}\n" \
+            if event.additional_question_1 else "-"
+        add_answer_2 = f"{event.additional_question_2}:\n    {serializer.validated_data.get('additional_question_2', '-')}\n" \
+            if event.additional_question_2 else "-"
+        add_answer_3 = f"{event.additional_question_3}:\n    {serializer.validated_data.get('additional_question_3', '-')}\n" \
+            if event.additional_question_3 else "-"
+        summary = f"{serializer.validated_data['note']}\n{add_answer_1}{add_answer_2}{add_answer_3}"
+
+        Interaction.objects.create(
+            user=user,
+            type=int_type,
+            summary=_("note:") + "\n    " + summary,
+            event=event,
+            administrative_unit=event.administrative_units.first(),
+            date_from=timezone.now(),
+            subject=_("Registration to event"),
+        )
+        return Response(self.serializer_class(serializer.validated_data).data, status=status.HTTP_200_OK)
+
+
+class EventViewMixin:
     serializer_class = EventSerializer
     permission_classes = [TokenHasReadWriteScope]
-    filter_backends = [filters.DjangoFilterBackend]
-    filter_class = EventCustomFilter
-
     required_scopes = ['can_view_events']
 
     def get_queryset(self):
@@ -365,6 +420,35 @@ class EventListView(generics.ListAPIView):
                 to_attr='filtered_organization_team',
             ),
         ).select_related('location')
+
+
+class EventListView(EventViewMixin, generics.ListAPIView):
+    """
+    Reguired info for web
+    -- is used to communicate with 3rd aplication
+    """
+
+    filter_backends = [filters.DjangoFilterBackend]
+    filter_class = EventCustomFilter
+
+    def get_queryset(self):
+        return Event.objects.filter(public_on_web=True).prefetch_related(
+            "organization_team",
+            Prefetch(
+                'organization_team',
+                queryset=OrganizationTeam.objects.filter(can_be_contacted=True)
+                    .prefetch_related(
+                        "profile",
+                        # "profile__userprofile__profileemail_set", # polymorphic fix
+                        # "profile__userprofile__telephone_set", # polymorphic fix
+                ),
+                to_attr='filtered_organization_team',
+            ),
+        ).select_related('location')
+
+
+class EventRetrieveView(EventViewMixin, generics.RetrieveAPIView):
+    lookup_field = 'slug'
 
 
 class AdministrativeUnitView(generics.ListAPIView):

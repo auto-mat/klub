@@ -279,6 +279,7 @@ OAUTH2_PROVIDER = {
         'can_create_credit_card_payment': 'Can create credit card payment',
         'can_view_events': 'Can view events',
         'can_view_administrative_units': 'Can view administrative units',
+        'can_create_userprofile_interaction': 'Can create profile with interaction',
     },
 }
 

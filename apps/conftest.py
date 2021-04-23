@@ -5,7 +5,7 @@ from aklub.models import AdministrativeUnit, ProfileEmail, Telephone, UserProfil
 from django.conf import settings
 from django.core.files import File
 
-from events.models import Event, Location, OrganizationPosition, OrganizationTeam
+from events.models import Event, EventType, Location, OrganizationPosition, OrganizationTeam
 
 from oauth2_provider.models import AccessToken, Application
 
@@ -130,7 +130,8 @@ def location_1(administrative_unit_1):
         name="location_name",
         place="here",
         region="Prague",
-        gps="58°, 20°",
+        gps_latitude=52.15151,
+        gps_longitude=35.11515,
     )
     yield location
     location.delete()
@@ -158,7 +159,19 @@ def organization_team_1(userprofile_superuser_2, organization_position_1, event_
 
 
 @pytest.fixture(scope='function')
-def event_1(administrative_unit_1, location_1):
+def event_type_1(administrative_unit_1):
+    event_type = EventType.objects.create(
+        name="Event name",
+        slug="event_name",
+        description="some description",
+        administrative_unit=administrative_unit_1,
+    )
+    yield event_type
+    event_type.delete()
+
+
+@pytest.fixture(scope='function')
+def event_1(administrative_unit_1, event_type_1, location_1):
     event = Event.objects.create(
         name='event_name',
         slug='event_slug',
@@ -167,16 +180,24 @@ def event_1(administrative_unit_1, location_1):
         program='monuments',
         indended_for='everyone',
         location=location_1,
+        event_type=event_type_1,
         age_from=10,
         age_to=99,
         start_date="2020-03-01T00:00:00+01:00",
         participation_fee=120,
         entry_form_url="http://www.example.com",
         web_url="http://www.example.com",
+        additional_question_1="he_1?",
+        additional_question_2="he_2?",
+        additional_question_3="he_3?",
         invitation_text_1="text_1",
         invitation_text_2="text_2",
         invitation_text_3="text_3",
         invitation_text_4="text_4",
+        accommodation="under the sky",
+        diet="vegetarian",
+        looking_forward_to_you="some name_1 name_2",
+        working_hours=3,
         main_photo=File(open("apps/aklub/test_data/empty_pdf.pdf", "rb")),
         public_on_web=True,
     )

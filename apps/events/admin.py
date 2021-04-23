@@ -45,12 +45,12 @@ class OrganizationPositionAdmin(admin.ModelAdmin):
 
 @admin.register(Location)
 class LocationAdmin(admin.ModelAdmin):
-    list_display = ("name", "place", "region", "gps")
+    list_display = ("name", "place", "region", "gps_latitude", "gps_longitude")
 
 
 @admin.register(EventType)
 class EventTypeAdmin(admin.ModelAdmin):
-    list_display = ("name",)
+    list_display = ("name", 'slug')
 
 
 @admin.register(Qualification)
@@ -123,6 +123,7 @@ class EventAdmin(unit_admin_mixin_generator('administrative_units'), admin.Model
                 'event_type', 'program', 'indended_for', 'location', 'registration_method',
                 'participation_fee', 'meeting', 'is_internal', 'focus_on_members',
                 'note', 'result', 'number_of_actions', 'promoted_in_magazine', 'vip_action',
+                'working_hours', 'accommodation', 'diet', 'looking_forward_to_you',
             ),
         }),
         (_('Web setting'), {
