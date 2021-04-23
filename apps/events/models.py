@@ -25,10 +25,15 @@ class Location(models.Model):
         max_length=100,
         blank=True,
     )
-    gps = models.CharField(
-        verbose_name=_("GPS location"),
-        max_length=200,
+    gps_latitude = models.FloatField(
+        _('GPS latitude'),
         blank=True,
+        null=True,
+    )
+    gps_longitude = models.FloatField(
+        _('GPS longitude'),
+        blank=True,
+        null=True,
     )
     administrative_unit = models.ForeignKey(
         "aklub.AdministrativeUnit",

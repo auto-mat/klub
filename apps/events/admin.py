@@ -45,7 +45,7 @@ class OrganizationPositionAdmin(admin.ModelAdmin):
 
 @admin.register(Location)
 class LocationAdmin(admin.ModelAdmin):
-    list_display = ("name", "place", "region", "gps")
+    list_display = ("name", "place", "region", "gps_latitude", "gps_longitude")
 
 
 @admin.register(EventType)
