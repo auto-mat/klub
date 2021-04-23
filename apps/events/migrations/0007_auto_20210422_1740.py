@@ -24,4 +24,29 @@ class Migration(migrations.Migration):
             name='gps_longitude',
             field=models.FloatField(blank=True, null=True, verbose_name='GPS longitude'),
         ),
+        migrations.AddField(
+            model_name='event',
+            name='accommodation',
+            field=models.CharField(blank=True, max_length=256, verbose_name='Accomondation'),
+        ),
+        migrations.AddField(
+            model_name='event',
+            name='diet',
+            field=models.CharField(blank=True, choices=[('vegetarian', 'Vegetarian'), ('non_vegetarian', 'Non-vegetarian'), ('can_choose', 'Can choose')], max_length=128, verbose_name='Diet'),
+        ),
+        migrations.AddField(
+            model_name='event',
+            name='looking_forward_to_you',
+            field=models.CharField(blank=True, max_length=512, verbose_name='Looking forward to you'),
+        ),
+        migrations.AddField(
+            model_name='event',
+            name='working_hours',
+            field=models.PositiveIntegerField(blank=True, null=True, verbose_name='Working hours (per day)'),
+        ),
+        migrations.AddField(
+            model_name='eventtype',
+            name='slug',
+            field=models.SlugField(blank=True, help_text='Identifier of the event type', max_length=100, unique=True, verbose_name='Slug'),
+        ),
     ]

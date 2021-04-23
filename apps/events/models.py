@@ -55,6 +55,13 @@ class EventType(models.Model):
         verbose_name=_("Name"),
         max_length=100,
     )
+    slug = models.SlugField(
+        verbose_name=_("Slug"),
+        help_text=_("Identifier of the event type"),
+        max_length=100,
+        unique=True,
+        blank=True,
+    )
     description = models.TextField(
         verbose_name=_("Description"),
         help_text=_("Description of this type"),
@@ -105,7 +112,6 @@ class Event(models.Model):
         ('action', _('Action')),
         ('petition', _('Petition')),
         ('camp', _('Camp')),
-
     )
     REGISTRATION_METHOD = (
         ('standard', _('Standard')),
@@ -113,7 +119,11 @@ class Event(models.Model):
         ('by_email', _("By organizer's email")),
         ('not_required', _("Not required")),
         ('full', _("Full, not anymore")),
-
+    )
+    DIET_CHOICES = (
+        ('vegetarian', _('Vegetarian')),
+        ('non_vegetarian', _('Non-vegetarian')),
+        ('can_choose', _('Can choose')),
     )
     registration_method = models.CharField(
         verbose_name=_("Registration method"),
@@ -285,6 +295,11 @@ class Event(models.Model):
         blank=True,
         null=True,
     )
+    working_hours = models.PositiveIntegerField(
+        verbose_name=_("Working hours (per day)"),
+        blank=True,
+        null=True,
+    )
 
     variable_symbol_prefix = models.PositiveIntegerField(
         validators=[MinValueValidator(10000), MaxValueValidator(99999)],
@@ -357,6 +372,22 @@ class Event(models.Model):
         verbose_name=_("Start date"),
         blank=True,
         null=True,
+    )
+    accommodation = models.CharField(
+        verbose_name=_("Accomondation"),
+        max_length=256,
+        blank=True,
+    )
+    diet = models.CharField(
+        verbose_name=_("Diet"),
+        max_length=128,
+        choices=DIET_CHOICES,
+        blank=True,
+    )
+    looking_forward_to_you = models.CharField(
+        verbose_name=_("Looking forward to you"),
+        max_length=512,
+        blank=True,
     )
     administrative_units = models.ManyToManyField(
         "aklub.administrativeunit",

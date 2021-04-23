@@ -1,10 +1,10 @@
-from aklub.models import AdministrativeUnit, UserProfile
+from aklub.models import UserProfile
 
-from freezegun import freeze_time
-
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
-from django.urls import reverse
+
+from freezegun import freeze_time
 
 
 class TestAdministrativeUnitView:
@@ -29,16 +29,7 @@ class TestAdministrativeUnitView:
 
 
 class TestEventView:
-    def test_event_list_view(
-            self, event_1, app_request, location_1,  userprofile_superuser_2, organization_team_1, organization_position_1,
-            profileemail_2, telephone_2,
-            ):
-        url = reverse('event')
-        response = app_request.get(url)
-        assert response.status_code == 200
-        assert len(response.json()) == 1
-        data = response.json()[0]
-
+    def _assert_data(self, data, event_1, location_1, event_type_1, userprofile_superuser_2, telephone_2, profileemail_2):
         assert data['name'] == event_1.name
         assert data['slug'] == event_1.slug
         assert data['date_from'] == event_1.date_from
@@ -53,17 +44,25 @@ class TestEventView:
         assert location['gps_latitude'] == location_1.gps_latitude
         assert location['gps_longitude'] == location_1.gps_longitude
 
+        event_type = data['event_type']
+        assert event_type['name'] == event_type_1.name
+        assert event_type['slug'] == event_type_1.slug
+
         assert data['age_from'] == event_1.age_from
         assert data['age_to'] == event_1.age_to
         assert data['start_date'] == event_1.start_date
         assert data['participation_fee'] == event_1.participation_fee
+        assert data['accommodation'] == event_1.accommodation
+        assert data['diet'] == event_1.diet
+        assert data['looking_forward_to_you'] == event_1.looking_forward_to_you
+        assert data['working_hours'] == event_1.working_hours
 
-        assert len(data['organization_team']) == 1
-        organization_team = data['organization_team'][0]
-        assert organization_team["first_name"] == userprofile_superuser_2.first_name
-        assert organization_team["last_name"] == userprofile_superuser_2.last_name
-        assert organization_team["email"] == profileemail_2.email
-        assert organization_team["telephone"] == telephone_2.telephone
+        assert len(data['contact_persons']) == 1
+        contact_person = data['contact_persons'][0]
+        assert contact_person["first_name"] == userprofile_superuser_2.first_name
+        assert contact_person["last_name"] == userprofile_superuser_2.last_name
+        assert contact_person["email"] == profileemail_2.email
+        assert contact_person["telephone"] == telephone_2.telephone
 
         assert data['entry_form_url'] == event_1.entry_form_url
         assert data['web_url'] == event_1.web_url
@@ -80,6 +79,27 @@ class TestEventView:
         assert data['additional_question_1'] == event_1.additional_question_1
         assert data['additional_question_2'] == event_1.additional_question_2
         assert data['additional_question_3'] == event_1.additional_question_3
+
+    def test_event_list_view(
+            self, event_1, app_request, location_1,  userprofile_superuser_2, organization_team_1, organization_position_1,
+            profileemail_2, event_type_1, telephone_2,
+            ):
+        url = reverse('event')
+        response = app_request.get(url)
+        assert response.status_code == 200
+        assert len(response.json()) == 1
+        data = response.json()[0]
+        self._assert_data(data, event_1, location_1, event_type_1, userprofile_superuser_2, telephone_2, profileemail_2)
+
+    def test_event_detail_view(
+            self, event_1, app_request, location_1,  userprofile_superuser_2, organization_team_1, organization_position_1,
+            profileemail_2, event_type_1, telephone_2,
+            ):
+        url = reverse('event_detail', kwargs={"slug": event_1.slug})
+        response = app_request.get(url)
+        assert response.status_code == 200
+        data = response.json()
+        self._assert_data(data, event_1, location_1, event_type_1, userprofile_superuser_2, telephone_2, profileemail_2)
 
     class TestUserProfileInteractiontView:
         def test_create_userprofile_interaction(self, event_1, app_request):

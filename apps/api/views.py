@@ -401,16 +401,9 @@ class UserProfileInteractionView(generics.CreateAPIView):
         return Response(self.serializer_class(serializer.validated_data).data, status=status.HTTP_200_OK)
 
 
-class EventListView(generics.ListAPIView):
-    """
-    Reguired info for web
-    -- is used to communicate with 3rd aplication
-    """
+class EventViewMixin:
     serializer_class = EventSerializer
     permission_classes = [TokenHasReadWriteScope]
-    filter_backends = [filters.DjangoFilterBackend]
-    filter_class = EventCustomFilter
-
     required_scopes = ['can_view_events']
 
     def get_queryset(self):
@@ -427,6 +420,35 @@ class EventListView(generics.ListAPIView):
                 to_attr='filtered_organization_team',
             ),
         ).select_related('location')
+
+
+class EventListView(EventViewMixin, generics.ListAPIView):
+    """
+    Reguired info for web
+    -- is used to communicate with 3rd aplication
+    """
+
+    filter_backends = [filters.DjangoFilterBackend]
+    filter_class = EventCustomFilter
+
+    def get_queryset(self):
+        return Event.objects.filter(public_on_web=True).prefetch_related(
+            "organization_team",
+            Prefetch(
+                'organization_team',
+                queryset=OrganizationTeam.objects.filter(can_be_contacted=True)
+                    .prefetch_related(
+                        "profile",
+                        # "profile__userprofile__profileemail_set", # polymorphic fix
+                        # "profile__userprofile__telephone_set", # polymorphic fix
+                ),
+                to_attr='filtered_organization_team',
+            ),
+        ).select_related('location')
+
+
+class EventRetrieveView(EventViewMixin, generics.RetrieveAPIView):
+    lookup_field = 'slug'
 
 
 class AdministrativeUnitView(generics.ListAPIView):

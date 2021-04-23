@@ -5,7 +5,7 @@ from aklub.models import AdministrativeUnit, ProfileEmail, Telephone, UserProfil
 from django.conf import settings
 from django.core.files import File
 
-from events.models import Event, Location, OrganizationPosition, OrganizationTeam
+from events.models import Event, EventType, Location, OrganizationPosition, OrganizationTeam
 
 from oauth2_provider.models import AccessToken, Application
 
@@ -159,7 +159,19 @@ def organization_team_1(userprofile_superuser_2, organization_position_1, event_
 
 
 @pytest.fixture(scope='function')
-def event_1(administrative_unit_1, location_1):
+def event_type_1(administrative_unit_1):
+    event_type = EventType.objects.create(
+        name="Event name",
+        slug="event_name",
+        description="some description",
+        administrative_unit=administrative_unit_1,
+    )
+    yield event_type
+    event_type.delete()
+
+
+@pytest.fixture(scope='function')
+def event_1(administrative_unit_1, event_type_1, location_1):
     event = Event.objects.create(
         name='event_name',
         slug='event_slug',
@@ -168,6 +180,7 @@ def event_1(administrative_unit_1, location_1):
         program='monuments',
         indended_for='everyone',
         location=location_1,
+        event_type=event_type_1,
         age_from=10,
         age_to=99,
         start_date="2020-03-01T00:00:00+01:00",
@@ -181,6 +194,10 @@ def event_1(administrative_unit_1, location_1):
         invitation_text_2="text_2",
         invitation_text_3="text_3",
         invitation_text_4="text_4",
+        accommodation="under the sky",
+        diet="vegetarian",
+        looking_forward_to_you="some name_1 name_2",
+        working_hours=3,
         main_photo=File(open("apps/aklub/test_data/empty_pdf.pdf", "rb")),
         public_on_web=True,
     )

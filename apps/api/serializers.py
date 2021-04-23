@@ -7,7 +7,7 @@ from django.core.validators import MinLengthValidator, RegexValidator
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
-from events.models import Event, Location, OrganizationTeam
+from events.models import Event, EventType, Location, OrganizationTeam
 
 from notifications_edit.utils import send_notification_to_is_staff_members
 
@@ -284,6 +284,12 @@ class OrganizationTeamSerializer(serializers.ModelSerializer):
         return telephone
 
 
+class EventType(serializers.ModelSerializer):
+    class Meta:
+        model = EventType
+        fields = ['name', 'slug']
+
+
 class LocationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Location
@@ -292,14 +298,16 @@ class LocationSerializer(serializers.ModelSerializer):
 
 class EventSerializer(serializers.ModelSerializer):
     location = LocationSerializer(read_only=True)
-    organization_team = OrganizationTeamSerializer(read_only=True, many=True, source="filtered_organization_team")
+    contact_persons = OrganizationTeamSerializer(read_only=True, many=True, source="filtered_organization_team")
+    event_type = EventType(read_only=True)
 
     class Meta:
         model = Event
         fields = [
             'id', 'name', 'slug', 'date_from', 'date_to', 'program', 'indended_for',
-            'location', 'age_from', 'age_to', 'start_date',
-            'participation_fee', 'organization_team', 'entry_form_url', 'web_url', 'invitation_text_short',
+            'location', 'age_from', 'age_to', 'start_date', 'event_type',
+            'participation_fee', 'contact_persons', 'entry_form_url', 'web_url', 'invitation_text_short',
+            'working_hours', 'accommodation', 'diet', 'looking_forward_to_you',
             'invitation_text_1', 'invitation_text_2', 'invitation_text_3',
             'invitation_text_4', 'main_photo', 'additional_photo_1', 'additional_photo_2',
             'additional_photo_3', 'additional_photo_4', 'additional_photo_5', 'additional_photo_6',
