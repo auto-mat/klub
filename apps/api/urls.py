@@ -22,7 +22,7 @@ urlpatterns_bronto = [
     path('event/', views.EventListView.as_view(), name='event'),
     path('administrative_unit/', views.AdministrativeUnitView.as_view(), name='administrative_unit'),
 ]
-
+# TODO: separate others as bronto (if possible)
 urlpatterns = [
     # auth
     path('o/', include('oauth2_provider.urls', namespace='oauth2_provider')),

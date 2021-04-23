@@ -287,14 +287,12 @@ class OrganizationTeamSerializer(serializers.ModelSerializer):
 class LocationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Location
-        fields = ["name", "place", "region", "gps"]
+        fields = ["name", "place", "region", 'gps_latitude', 'gps_longitude']
 
 
 class EventSerializer(serializers.ModelSerializer):
     location = LocationSerializer(read_only=True)
     organization_team = OrganizationTeamSerializer(read_only=True, many=True, source="filtered_organization_team")
-    indended_for = serializers.CharField(source='get_indended_for_display')
-    program = serializers.CharField(source='get_program_display')
 
     class Meta:
         model = Event
@@ -305,13 +303,13 @@ class EventSerializer(serializers.ModelSerializer):
             'invitation_text_1', 'invitation_text_2', 'invitation_text_3',
             'invitation_text_4', 'main_photo', 'additional_photo_1', 'additional_photo_2',
             'additional_photo_3', 'additional_photo_4', 'additional_photo_5', 'additional_photo_6',
+            'additional_question_1', 'additional_question_2', 'additional_question_3',
         ]
 
 
 class AdministrativeUnitSerializer(serializers.ModelSerializer):
     president_name = serializers.SerializerMethodField()
     manager_name = serializers.SerializerMethodField()
-    level = serializers.CharField(source='get_level_display')
 
     class Meta:
         model = AdministrativeUnit

@@ -377,7 +377,7 @@ class UserProfileInteractionView(generics.CreateAPIView):
                 'created_bool': True,
                 'event_bool': True,
                 'note_bool': True,
-                'summary': True,
+                'summary_bool': True,
             },
         )
         # prepare not from fields:

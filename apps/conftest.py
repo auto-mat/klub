@@ -130,7 +130,8 @@ def location_1(administrative_unit_1):
         name="location_name",
         place="here",
         region="Prague",
-        gps="58°, 20°",
+        gps_latitude=52.15151,
+        gps_longitude=35.11515,
     )
     yield location
     location.delete()
@@ -173,6 +174,9 @@ def event_1(administrative_unit_1, location_1):
         participation_fee=120,
         entry_form_url="http://www.example.com",
         web_url="http://www.example.com",
+        additional_question_1="he_1?",
+        additional_question_2="he_2?",
+        additional_question_3="he_3?",
         invitation_text_1="text_1",
         invitation_text_2="text_2",
         invitation_text_3="text_3",
