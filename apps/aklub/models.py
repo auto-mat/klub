@@ -22,6 +22,8 @@
 import datetime
 import logging
 
+from autoslug import AutoSlugField
+
 from colorfield.fields import ColorField
 
 from computedfields.models import ComputedFieldsModel, computed
@@ -263,10 +265,11 @@ class AdministrativeUnit(models.Model, ParseAccountStatement):
         default='#000000',
         help_text=_("Choose color to help discern Administrative unit in app"),
     )
-    slug = models.SlugField(
+    slug = AutoSlugField(
         verbose_name=_("Slug"),
+        populate_from="name",
+        editable=True,
         help_text=_("Identifier of the administrative unit"),
-        default=None,
         max_length=100,
         unique=True,
         blank=True,
@@ -402,8 +405,11 @@ class Source(models.Model):
         verbose_name = _("Source")
         verbose_name_plural = _("Sources")
 
-    slug = models.SlugField(
+    slug = AutoSlugField(
         verbose_name=_("Slug"),
+        populate_from="name",
+        editable=True,
+        blank=True,
         help_text=_("Identifier of the source"),
         max_length=100,
     )
@@ -1343,11 +1349,11 @@ class MoneyAccount(PolymorphicModel):
         verbose_name=_("administrative unit"),
         on_delete=models.CASCADE,
     )
-    slug = models.SlugField(
+    slug = AutoSlugField(
         verbose_name=_("Slug"),
         help_text=_("Identifier of the Account"),
-        default=None,
         max_length=100,
+        editable=True,
         unique=True,
         blank=True,
         null=True,
