@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 celery = "==4.3.0"
+django-autoslug = "*"
 django-celery-email = "*"
 django-stdimage = "*"
 reportlab = "*"
