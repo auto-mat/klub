@@ -480,12 +480,9 @@ class CompanyProfileResource(ProfileModelResourceMixin):
             return "-"
 
     def export_dehydrate_email(self, profile):
-        try:
-            email = CompanyContact.objects.get(company=profile, is_primary=True)
-        except CompanyContact.DoesNotExist:
-            email = CompanyContact.objects.filter(company=profile).first()
-        if email:
-            return email.email
+        emails = CompanyContact.objects.filter(company=profile, is_primary=True)
+        if emails:
+            return emails.first().email
         return None
 
     def export_field(self, field, obj):

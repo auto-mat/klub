@@ -714,6 +714,15 @@ class AdminImportExportTests(CreateSuperUserMixin, TransactionTestCase):
         user_profile = Profile.objects.filter(email='test.userprofile@userprofile.test')
         self.assertEqual(user_profile.count(), 1)
         self.assertEqual(user_profile[0].sex, 'male')
+        profileemail = user_profile.first().profileemail_set.all()
+        self.assertEqual(profileemail.count(), 1)
+        self.assertEqual(profileemail[0].email, 'test.userprofile@userprofile.test')
+        self.assertEqual(profileemail[0].is_primary, True)
+        telephone = user_profile.first().telephone_set.all()
+        self.assertEqual(telephone.count(), 1)
+        self.assertEqual(telephone[0].telephone, '999888888')
+        self.assertEqual(telephone[0].is_primary, True)
+
         donor = DonorPaymentChannel.objects.filter(user=user_profile[0])
         self.assertEqual(donor.count(), 1)
         self.assertEqual(donor[0].VS, '150157010')
@@ -967,7 +976,7 @@ class AdminImportExportTests(CreateSuperUserMixin, TransactionTestCase):
         company_contact = company_profile[0].companycontact_set.first()
         self.assertEqual(company_contact.email, 'test.companyprofile@companyprofile.test')
         self.assertEqual(company_contact.telephone, '111222333')
-        self.assertEqual(company_contact.is_primary, None)
+        self.assertEqual(company_contact.is_primary, True)
         self.assertEqual(company_contact.contact_first_name, "")
         self.assertEqual(company_contact.contact_last_name, "")
 
@@ -983,6 +992,8 @@ class AdminImportExportTests(CreateSuperUserMixin, TransactionTestCase):
                 'input_format': 0,
             }
             response = self.client.post(address, post_data)
+        from .utils import print_response
+        print_response(response)
         profiles_count_after = Profile.objects.count()
         # checking that new profiles were not created during dry import
         self.assertEqual(profiles_count_before, profiles_count_after)

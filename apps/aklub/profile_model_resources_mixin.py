@@ -67,7 +67,7 @@ def save_email(email, obj):
     email, _ = ProfileEmail.objects.get_or_create(
         email=email,
         user=obj,
-        defaults={'is_primary': None},
+        defaults={'is_primary': True},
     )
     if not ProfileEmail.objects.filter(user=obj, is_primary=True):
         email.is_primary = True
@@ -108,25 +108,25 @@ def import_obj(self, obj, data, dry_run):  # noqa
             check['telephone'], _ = Telephone.objects.get_or_create(
                 telephone=data['telephone'],
                 user=obj,
-                defaults={'is_primary': None},
+                defaults={'is_primary': True},
             )
         if data.get("email"):
             check['email'] = save_email(data['email'], obj)
     else:
         if data.get('telephone') or data.get("email"):
-            email, _ = CompanyContact.objects.get_or_create(
+            company_contact, _ = CompanyContact.objects.get_or_create(
                 telephone=data.get('telephone'),
                 email=data.get("email"),
                 company=obj,
                 administrative_unit_id=data["administrative_units"],
                 defaults={
-                    'is_primary': None,
+                    'is_primary': True,
                     },
                 )
-            if not email.contact_first_name and not email.contact_last_name:
-                email.contact_first_name = data.get('contact_first_name')
-                email.contact_last_name = data.get('contact_last_name')
-                email.save()
+            if not company_contact.contact_first_name and not company_contact.contact_last_name:
+                company_contact.contact_first_name = data.get('contact_first_name')
+                company_contact.contact_last_name = data.get('contact_last_name')
+                company_contact.save()
 
     if data.get("administrative_units"):
         if not obj.administrative_units.filter(id=data["administrative_units"]):
