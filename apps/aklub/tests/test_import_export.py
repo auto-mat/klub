@@ -992,8 +992,6 @@ class AdminImportExportTests(CreateSuperUserMixin, TransactionTestCase):
                 'input_format': 0,
             }
             response = self.client.post(address, post_data)
-        from .utils import print_response
-        print_response(response)
         profiles_count_after = Profile.objects.count()
         # checking that new profiles were not created during dry import
         self.assertEqual(profiles_count_before, profiles_count_after)
