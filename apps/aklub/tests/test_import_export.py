@@ -437,11 +437,11 @@ class DonorImportExportTests(CreateSuperUserMixin, TransactionTestCase):
         self.assertEqual(new_dpch2.VS, '4332')
         self.assertEqual(new_dpch2.SS, '4442')
         self.assertEqual(new_dpch2.regular_frequency, 'monthly')
-        self.assertEqual(new_dpch2.expected_date_of_first_payment, datetime.date(2016, 1, 12))
+        self.assertEqual(new_dpch2.expected_date_of_first_payment, datetime.date(2016, 2, 12))
         self.assertEqual(new_dpch2.regular_amount, 987)
         self.assertEqual(new_dpch2.regular_payments, 'regular')
         self.assertEqual(new_dpch2.user_bank_account.bank_account_number, '9999/9992')
-        self.assertEqual(new_dpch2.end_of_regular_payments, datetime.date(2017, 1, 11))
+        self.assertEqual(new_dpch2.end_of_regular_payments, datetime.date(2017, 1, 10))
 
         # check updated  DonorPaymentChannel data
         dpch_update = DonorPaymentChannel.objects.get(id=101)
@@ -652,10 +652,9 @@ class AdminImportExportTests(CreateSuperUserMixin, TransactionTestCase):
             response,
             ''.join(
                 [
-                    '1,test.companyprofile@companyprofile.test,-,',
                     '"VS:150157010\nevent:Klub přátel Auto*Matu\nbank_accout:\nuser_bank_account:\n\n",',
-                    'test.companyprofile,2016-09-16 16:22:30,,,en,,Praha 4,Česká republika,,1,,,Česká republika,',
-                    ',,False,,False,True,True,True,True,Company,11223344,55667788',
+                    'test.companyprofile,2016-09-16 16:22:30,,,en,,Praha 4,Česká republika,,1,,,Česká republika',
+                    ',,,False,,False,True,True,True,True,Company,11223344,55667788,-,-\r\n',
                 ],
             ),
         )
@@ -714,6 +713,15 @@ class AdminImportExportTests(CreateSuperUserMixin, TransactionTestCase):
         user_profile = Profile.objects.filter(email='test.userprofile@userprofile.test')
         self.assertEqual(user_profile.count(), 1)
         self.assertEqual(user_profile[0].sex, 'male')
+        profileemail = user_profile.first().profileemail_set.all()
+        self.assertEqual(profileemail.count(), 1)
+        self.assertEqual(profileemail[0].email, 'test.userprofile@userprofile.test')
+        self.assertEqual(profileemail[0].is_primary, True)
+        telephone = user_profile.first().telephone_set.all()
+        self.assertEqual(telephone.count(), 1)
+        self.assertEqual(telephone[0].telephone, '999888888')
+        self.assertEqual(telephone[0].is_primary, True)
+
         donor = DonorPaymentChannel.objects.filter(user=user_profile[0])
         self.assertEqual(donor.count(), 1)
         self.assertEqual(donor[0].VS, '150157010')
@@ -967,7 +975,7 @@ class AdminImportExportTests(CreateSuperUserMixin, TransactionTestCase):
         company_contact = company_profile[0].companycontact_set.first()
         self.assertEqual(company_contact.email, 'test.companyprofile@companyprofile.test')
         self.assertEqual(company_contact.telephone, '111222333')
-        self.assertEqual(company_contact.is_primary, None)
+        self.assertEqual(company_contact.is_primary, True)
         self.assertEqual(company_contact.contact_first_name, "")
         self.assertEqual(company_contact.contact_last_name, "")
 

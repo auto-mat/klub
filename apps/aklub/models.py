@@ -198,7 +198,7 @@ class AdministrativeUnit(models.Model, ParseAccountStatement):
     )
     street = models.CharField(
         verbose_name=_("Street and number"),
-        max_length=80,
+        max_length=128,
         blank=True,
     )
     gps_latitude = models.FloatField(
@@ -492,7 +492,7 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
 
     street = models.CharField(
         verbose_name=_("Street and number"),
-        max_length=80,
+        max_length=128,
         blank=True,
     )
     city = models.CharField(
@@ -519,7 +519,7 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
 
     correspondence_street = models.CharField(
         verbose_name=_("Street and number"),
-        max_length=80,
+        max_length=128,
         blank=True,
     )
     correspondence_city = models.CharField(
