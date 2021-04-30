@@ -23,7 +23,7 @@ from interactions.models import Interaction, InteractionCategory, InteractionTyp
 
 from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope
 
-from rest_framework import generics, status
+from rest_framework import filters as rf_filters, generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -428,7 +428,7 @@ class EventListView(EventViewMixin, generics.ListAPIView):
     -- is used to communicate with 3rd aplication
     """
 
-    filter_backends = [filters.DjangoFilterBackend]
+    filter_backends = [filters.DjangoFilterBackend, rf_filters.OrderingFilter]
     filter_class = EventCustomFilter
 
     def get_queryset(self):
