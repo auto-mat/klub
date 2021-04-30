@@ -886,7 +886,12 @@ class ProfileAdmin(
     child_models = (UserProfile, CompanyProfile)
     list_display = ()
     change_list_template = "admin/aklub/profile_redirect.html"
-    search_fields = ["userprofile__first_name", "userprofile__last_name", "companyprofile__name"]
+    search_fields = [
+        "id", "username",
+        "userprofile__first_name",
+        "userprofile__last_name",
+        "companyprofile__name",
+    ]
 
     def delete_queryset(self, request, queryset):
         """
