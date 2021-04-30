@@ -1,5 +1,7 @@
 from aklub.models import DonorPaymentChannel, Recruiter
 
+from autoslug import AutoSlugField
+
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Sum
@@ -55,8 +57,10 @@ class EventType(models.Model):
         verbose_name=_("Name"),
         max_length=100,
     )
-    slug = models.SlugField(
+    slug = AutoSlugField(
         verbose_name=_("Slug"),
+        editable=True,
+        populate_from="name",
         help_text=_("Identifier of the event type"),
         max_length=100,
         unique=True,
@@ -331,8 +335,10 @@ class Event(models.Model):
         verbose_name=_("Acceptable results of communication"),
         blank=True,
     )
-    slug = models.SlugField(
+    slug = AutoSlugField(
         verbose_name=_("Slug"),
+        populate_from="name",
+        editable=True,
         help_text=_("Identifier of the campaign"),
         default=None,
         max_length=100,
