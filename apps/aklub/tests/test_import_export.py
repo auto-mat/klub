@@ -437,11 +437,11 @@ class DonorImportExportTests(CreateSuperUserMixin, TransactionTestCase):
         self.assertEqual(new_dpch2.VS, '4332')
         self.assertEqual(new_dpch2.SS, '4442')
         self.assertEqual(new_dpch2.regular_frequency, 'monthly')
-        self.assertEqual(new_dpch2.expected_date_of_first_payment, datetime.date(2016, 1, 12))
+        self.assertEqual(new_dpch2.expected_date_of_first_payment, datetime.date(2016, 2, 12))
         self.assertEqual(new_dpch2.regular_amount, 987)
         self.assertEqual(new_dpch2.regular_payments, 'regular')
         self.assertEqual(new_dpch2.user_bank_account.bank_account_number, '9999/9992')
-        self.assertEqual(new_dpch2.end_of_regular_payments, datetime.date(2017, 1, 11))
+        self.assertEqual(new_dpch2.end_of_regular_payments, datetime.date(2017, 1, 10))
 
         # check updated  DonorPaymentChannel data
         dpch_update = DonorPaymentChannel.objects.get(id=101)
