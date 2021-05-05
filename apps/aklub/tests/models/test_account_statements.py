@@ -468,7 +468,7 @@ class TestDarujmeCheck(TestCase):
         self.assertEqual(user.city, "b")
         self.assertEqual(user.zip_code, "111")
         self.assertEqual(user.country, "Česká republika")
-        self.assertListEqual(list(user.administrative_units.all()), [self.unit1, self.unit2])
+        self.assertListEqual(sorted(user.administrative_units.all().values_list('id', flat=True)), sorted([self.unit1.id, self.unit2.id]))
         telephones = user.telephone_set.all()
         # check new telephone
         self.assertEqual(telephones.count(), 2)

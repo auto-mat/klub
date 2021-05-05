@@ -83,7 +83,8 @@ from smmapdfs.actions import make_pdfsandwich
 
 from . import filters, mailing, tasks
 from .filters import (
-    DPCHNumberOfDPCHs, DPCHNumberOfPayments, DPCHRegularPaymentsOk,
+    DPCHNumberOfDPCHs, DPCHNumberOfPayments, DPCHPaymentsAmount,
+    DPCHRegularPaymentsAmount, DPCHRegularPaymentsOk, DPCHSumOfAllPayments,
     DPCHWithoutPayments, InteractionCommunicationType, InteractionDateFrom,
     InteractionDateTo, InteractionEventName, InteractionNextCommunicationDate,
     InteractionNumberOfInteractions, InteractionResultName,
@@ -479,12 +480,9 @@ class CompanyProfileResource(ProfileModelResourceMixin):
             return "-"
 
     def export_dehydrate_email(self, profile):
-        try:
-            email = CompanyContact.objects.get(company=profile, is_primary=True)
-        except CompanyContact.DoesNotExist:
-            email = CompanyContact.objects.filter(company=profile).first()
-        if email:
-            return email.email
+        emails = CompanyContact.objects.filter(company=profile, is_primary=True)
+        if emails:
+            return emails.first().email
         return None
 
     def export_field(self, field, obj):
@@ -885,7 +883,12 @@ class ProfileAdmin(
     child_models = (UserProfile, CompanyProfile)
     list_display = ()
     change_list_template = "admin/aklub/profile_redirect.html"
-    search_fields = ["userprofile__first_name", "userprofile__last_name", "companyprofile__name"]
+    search_fields = [
+        "id", "username",
+        "userprofile__first_name",
+        "userprofile__last_name",
+        "companyprofile__name",
+    ]
 
     def delete_queryset(self, request, queryset):
         """
@@ -1021,24 +1024,38 @@ class DonorPaymentChannelResource(ModelResource):
     class Meta:
         model = DonorPaymentChannel
         fields = (
-                'email', 'user', 'money_account', 'event', 'VS', 'SS', 'regular_frequency', 'expected_date_of_first_payment',
+                'email', 'username', 'user', 'money_account', 'event', 'VS', 'SS', 'regular_frequency', 'expected_date_of_first_payment',
                 'regular_amount', 'regular_payments', 'user_bank_account', 'end_of_regular_payments',
         )
-        import_id_fields = ('email', )
+        import_id_fields = []  # must be empty or library take field id as default and ignore before_import_row
         clean_model_instances = True
         instance_loader_class = DonorPaymentChannelLoaderClass
 
-    def before_import_row(self, row, **kwargs):
-        if not row.get('profile_type') or row.get('profile_type') not in ['u', 'c']:
+    def before_import_row(self, row, **kwargs): # noqa
+        user = None
+        if row.get('profile_type') not in ['u', 'c']:
             raise ValidationError({'profile_type': _('Insert "c" or "u" (company/user)')})
-        row['email'] = row['email'].lower()
-        try:
-            if row.get('profile_type') == 'u':
-                row['user'] = ProfileEmail.objects.get(email=row['email']).user.id
-            else:
-                row['user'] = CompanyContact.objects.get(email=row['email']).company.id
-        except (ProfileEmail.DoesNotExist, CompanyContact.DoesNotExist):
-            raise ValidationError({"email": _("Company/User with this email doesn't exist")})
+        if not row.get('email') and not row.get('user'):
+            raise ValidationError({'email': _('Email or Username must be set')})
+        if row.get('email'):
+            row['email'] = row['email'].lower()
+            try:
+                if row.get('profile_type') == 'u':
+                    user = ProfileEmail.objects.get(email=row['email']).user
+                else:
+                    user = CompanyContact.objects.get(email=row['email']).company
+            except (ProfileEmail.DoesNotExist, CompanyContact.DoesNotExist):
+                pass
+        if row.get('user') and not user:
+            try:
+                user = Profile.objects.get(username=row['user'])
+            except Profile.DoesNotExist:
+                pass
+        if user:
+            row['user'] = user.id
+            return row
+        else:
+            raise ValidationError({'user': _('User with this username or email doesnt exist')})
 
     def import_obj(self, obj, data, dry_run):
         super(ModelResource, self).import_obj(obj, data, dry_run)
@@ -1888,6 +1905,14 @@ class UserProfileAdmin(
          'age_group',
          'birth_month',
          'birth_day',
+         'street',
+         'city',
+         'country',
+         'zip_code',
+         ('correspondence_street', _("Correspondence address street and number")),
+         ('correspondence_city', _("Correspondence address city/city part")),
+         ('correspondence_country', _("Correspondence address country")),
+         ('correspondence_zip_code', _("Correspondence address ZIP code")),
          str(ProfileEmailIsEmailInCompanyprofile()),
          ('userchannels__event__name', _("Jméno kampaně"))),
         (_('Preference'),
@@ -1903,8 +1928,11 @@ class UserProfileAdmin(
          'userchannels__regular_frequency',
          str(DPCHRegularPaymentsOk()),
          str(DPCHNumberOfPayments()),
+         str(DPCHSumOfAllPayments()),
          str(DPCHWithoutPayments()),
          str(DPCHNumberOfDPCHs()),
+         str(DPCHPaymentsAmount()),
+         str(DPCHRegularPaymentsAmount()),
          'userchannels__payment__date'),
         (_('Interactions'),
          (str(InteractionEventName()), _("Event name")),
@@ -1932,6 +1960,14 @@ class UserProfileAdmin(
         'age_group': ('iexact',),
         'birth_month': ('iexact',),
         'birth_day': ('iexact',),
+        'street': ('iexact',),
+        'city': ('iexact',),
+        'country': ('iexact',),
+        'zip_code': ('iexact',),
+        'correspondence_street': ('iexact',),
+        'correspondence_city': ('iexact',),
+        'correspondence_country': ('iexact',),
+        'correspondence_zip_code': ('iexact',),
         str(ProfileEmailIsEmailInCompanyprofile()): ('istrue', 'isfalse'),
         'userchannels__event__name': (),
         'preference__newsletter_on': ('istrue', 'isfalse', 'isnull'),
@@ -1945,9 +1981,12 @@ class UserProfileAdmin(
         'userchannels__regular_frequency': ('iexact',),
         str(DPCHRegularPaymentsOk()): ('iexact',),
         str(DPCHNumberOfPayments()): ('lt', 'iexact', 'gt'),
+        str(DPCHSumOfAllPayments()): ('lt', 'iexact', 'gt'),
         str(DPCHWithoutPayments()): ('istrue', 'isfalse'),
         'userchannels__payment__date': ('range',),
         str(DPCHNumberOfDPCHs()): ('lt', 'iexact', 'gt'),
+        str(DPCHPaymentsAmount()): ('lt', 'iexact', 'gt'),
+        str(DPCHRegularPaymentsAmount()): ('lt', 'iexact', 'gt'),
         str(InteractionEventName()): ('iexact',),
         str(InteractionNumberOfInteractions()): ('lt', 'iexact', 'gt'),
         str(InteractionDateFrom()): ('range',),

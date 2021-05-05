@@ -1,5 +1,7 @@
 from aklub.models import DonorPaymentChannel, Recruiter
 
+from autoslug import AutoSlugField
+
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Sum
@@ -25,10 +27,15 @@ class Location(models.Model):
         max_length=100,
         blank=True,
     )
-    gps = models.CharField(
-        verbose_name=_("GPS location"),
-        max_length=200,
+    gps_latitude = models.FloatField(
+        _('GPS latitude'),
         blank=True,
+        null=True,
+    )
+    gps_longitude = models.FloatField(
+        _('GPS longitude'),
+        blank=True,
+        null=True,
     )
     administrative_unit = models.ForeignKey(
         "aklub.AdministrativeUnit",
@@ -50,29 +57,21 @@ class EventType(models.Model):
         verbose_name=_("Name"),
         max_length=100,
     )
+    slug = AutoSlugField(
+        verbose_name=_("Slug"),
+        editable=True,
+        populate_from="name",
+        help_text=_("Identifier of the event type"),
+        max_length=100,
+        unique=True,
+        blank=True,
+    )
     description = models.TextField(
         verbose_name=_("Description"),
         help_text=_("Description of this type"),
         max_length=3000,
         blank=True,
     )
-    administrative_unit = models.ForeignKey(
-        "aklub.AdministrativeUnit",
-        verbose_name=_("administrative unit"),
-        on_delete=models.CASCADE,
-    )
-
-    def __str__(self):
-        return self.name
-
-
-class OrganizingAssociation(models.Model):
-    class Meta:
-        verbose_name = _("Organizing association")
-        verbose_name_plural = _("Organizing associations")
-
-    name = models.CharField(max_length=300, verbose_name=_("Name"),)
-    description = models.TextField(blank=True, verbose_name=_("Description"))
     administrative_unit = models.ForeignKey(
         "aklub.AdministrativeUnit",
         verbose_name=_("administrative unit"),
@@ -117,7 +116,6 @@ class Event(models.Model):
         ('action', _('Action')),
         ('petition', _('Petition')),
         ('camp', _('Camp')),
-
     )
     REGISTRATION_METHOD = (
         ('standard', _('Standard')),
@@ -125,7 +123,11 @@ class Event(models.Model):
         ('by_email', _("By organizer's email")),
         ('not_required', _("Not required")),
         ('full', _("Full, not anymore")),
-
+    )
+    DIET_CHOICES = (
+        ('vegetarian', _('Vegetarian')),
+        ('non_vegetarian', _('Non-vegetarian')),
+        ('can_choose', _('Can choose')),
     )
     registration_method = models.CharField(
         verbose_name=_("Registration method"),
@@ -152,6 +154,12 @@ class Event(models.Model):
             null=True,
             upload_to='event_photos',
         )
+
+    invitation_text_short = models.TextField(
+        verbose_name=_("Short Invitation text"),
+        max_length=3000,
+        blank=True,
+    )
     invitation_text_1 = models.TextField(
         verbose_name=_("Invitation: What to expect"),
         help_text=_("What to except, basic informations."),
@@ -269,7 +277,7 @@ class Event(models.Model):
         null=True,
     )
     web_url = models.URLField(
-        verbose_name=_("Url address of register form"),
+        verbose_name=_("Url address of website"),
         blank=True,
         null=True,
     )
@@ -278,6 +286,25 @@ class Event(models.Model):
         help_text=_("Choose some unique name for this campaign"),
         max_length=100,
     )
+    vip_action = models.BooleanField(
+        verbose_name=_("Vip action"),
+        default=False,
+    )
+    promoted_in_magazine = models.BooleanField(
+        verbose_name=_("Promoted in the magazine"),
+        default=False,
+    )
+    hours_worked = models.PositiveIntegerField(
+        verbose_name=_("Hours worked"),
+        blank=True,
+        null=True,
+    )
+    working_hours = models.PositiveIntegerField(
+        verbose_name=_("Working hours (per day)"),
+        blank=True,
+        null=True,
+    )
+
     variable_symbol_prefix = models.PositiveIntegerField(
         validators=[MinValueValidator(10000), MaxValueValidator(99999)],
         verbose_name=_("Variable_symbol_prefix"),
@@ -308,8 +335,10 @@ class Event(models.Model):
         verbose_name=_("Acceptable results of communication"),
         blank=True,
     )
-    slug = models.SlugField(
+    slug = AutoSlugField(
         verbose_name=_("Slug"),
+        populate_from="name",
+        editable=True,
         help_text=_("Identifier of the campaign"),
         default=None,
         max_length=100,
@@ -345,19 +374,30 @@ class Event(models.Model):
         blank=True,
         null=True,
     )
-    start_date = models.DateField(
+    start_date = models.DateTimeField(
         verbose_name=_("Start date"),
         blank=True,
         null=True,
     )
+    accommodation = models.CharField(
+        verbose_name=_("Accomondation"),
+        max_length=256,
+        blank=True,
+    )
+    diet = models.CharField(
+        verbose_name=_("Diet"),
+        max_length=128,
+        choices=DIET_CHOICES,
+        blank=True,
+    )
+    looking_forward_to_you = models.CharField(
+        verbose_name=_("Looking forward to you"),
+        max_length=512,
+        blank=True,
+    )
     administrative_units = models.ManyToManyField(
         "aklub.administrativeunit",
         verbose_name=_("administrative units"),
-    )
-    organizing_associations = models.ManyToManyField(
-        OrganizingAssociation,
-        verbose_name=_("Organizing associations"),
-        blank=True,
     )
 
     def number_of_members(self):
@@ -453,6 +493,18 @@ class OrganizationPosition(models.Model):
         return self.name
 
 
+class Qualification(models.Model):
+    class Meta:
+        verbose_name = _("Qualification")
+        verbose_name_plural = _("Qualifications")
+
+    name = models.CharField(max_length=300, verbose_name=_("Name"),)
+    abbreviated_name = models.CharField(max_length=30, verbose_name=_("Abbreviated name"),)
+
+    def __str__(self):
+        return self.abbreviated_name
+
+
 class OrganizationTeam(models.Model):
     class Meta:
         verbose_name = _("Organization team")
@@ -461,6 +513,7 @@ class OrganizationTeam(models.Model):
     profile = models.ForeignKey("aklub.Profile", on_delete=models.CASCADE)
     event = models.ForeignKey(Event, on_delete=models.CASCADE, verbose_name=_("Event"))
     position = models.ForeignKey(OrganizationPosition, on_delete=models.CASCADE, verbose_name=_("Position"),)
+    qualification = models.ForeignKey(Qualification, on_delete=models.SET_NULL, verbose_name=_("Qualification"), null=True, blank=True)
     can_be_contacted = models.BooleanField(default=False, verbose_name=_("Can be contacted"))
 
     def __str__(self):

@@ -3,6 +3,8 @@ import os.path
 from aklub.models import AdministrativeUnit, Profile
 from aklub.utils import WithAdminUrl
 
+from autoslug import AutoSlugField
+
 from django.core.mail import EmailMultiAlternatives
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
@@ -336,8 +338,10 @@ class InteractionType(models.Model):
         help_text=("Timeline display category"),
         on_delete=models.CASCADE,
     )
-    slug = models.SlugField(
+    slug = AutoSlugField(
         verbose_name=_("Slug"),
+        editable=True,
+        populate_from="name",
         help_text=_("Identifier of the Interaction Type"),
         max_length=100,
         blank=True,
