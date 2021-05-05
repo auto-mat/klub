@@ -822,7 +822,6 @@ class DPCHEventPaymentsAmount(BaseAF):
     conditional_fields = {DPCHEventName.field: 'event__name'}
 
     def queryset(self, *args, **kwargs):
-        print(f"KWARGS {kwargs}")
         if kwargs.get('administrative_unit'):
             queryset = self.model.objects.filter(
                 event__administrative_units__in=kwargs.pop('administrative_unit'),
