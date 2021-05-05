@@ -2173,7 +2173,7 @@ class UserProfileAdmin(
                 *extra_related,
             ).annotate(
                 sum_amount=Sum('userchannels__payment__amount', filter=Q(**donor_filter)),
-                payment_count=Count('userchannels__payment', distinct=True, filter=Q(**donor_filter)),
+                payment_count=Count('userchannels__payment', filter=Q(**donor_filter)),
                 last_payment_date=Max('userchannels__payment__date', filter=Q(**donor_filter)),
                 first_payment_date=Min('userchannels__payment__date', filter=Q(**donor_filter)),
                 # **annotate_kwargs,
@@ -2471,7 +2471,7 @@ class CompanyProfileAdmin(
                 *extra_related,
             ).annotate(
                 sum_amount=Sum('userchannels__payment__amount', filter=Q(**donor_filter)),
-                payment_count=Count('userchannels__payment', distinct=True, filter=Q(**donor_filter)),
+                payment_count=Count('userchannels__payment', filter=Q(**donor_filter)),
                 last_payment_date=Max('userchannels__payment__date', filter=Q(**donor_filter)),
                 first_payment_date=Min('userchannels__payment__date', filter=Q(**donor_filter)),
                 # **annotate_kwargs,
