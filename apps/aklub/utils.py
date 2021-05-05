@@ -63,7 +63,7 @@ def annotation_friendly_search_results(self, request, queryset, search_term): # 
                 for orm_lookup in orm_lookups]
             # THIS IS CHANGED!!!!
             # queryset = queryset.filter(reduce(operator.or_, or_queries))
-            filtered_ids = self.model.objects.filter(reduce(operator.or_, or_queries))
+            filtered_ids = self.model.objects.filter(reduce(operator.or_, or_queries)).values_list("id", flat=True)
             queryset = queryset.filter(id__in=filtered_ids)
             # ^^^^^^^
         use_distinct |= any(lookup_needs_distinct(self.opts, search_spec) for search_spec in orm_lookups)
