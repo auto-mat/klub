@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "904b13f73745813dadb36986b631890a5ab195b291b5d7d12e059949b5e2b693"
+            "sha256": "95576dccbdcc4b9300aa31dd4138e9a26d5eca25d4cdce05e7ef0543a0ad0e3a"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -32,10 +32,10 @@
         },
         "attrs": {
             "hashes": [
-                "sha256:31b2eced602aa8423c2aea9c76a724617ed67cf9513173fd3a4f03e3a929c7e6",
-                "sha256:832aa3cde19744e49938b91fea06d69ecb9e649c93ba974535d08ad92164f700"
+                "sha256:3901be1cb7c2a780f14668691474d9252c070a756be0a9ead98cfeabfa11aeb8",
+                "sha256:8ee1e5f5a1afc5b19bdfae4fdf0c35ed324074bdce3500c939842c8f818645d9"
             ],
-            "version": "==20.3.0"
+            "version": "==21.1.0"
         },
         "beautifulsoup4": {
             "hashes": [
@@ -62,17 +62,18 @@
         },
         "boto3": {
             "hashes": [
-                "sha256:d21af50e35ef2e941df03b4363bbec88909996144f530ba1611ab15156da7c40"
+                "sha256:1db618cfe0e9d8c6ff4fc31ef4f9620bd72f472da0f3095f0be9372d77b671e9",
+                "sha256:61fe8cbb2d4bf1c9a69a73b3f2c68464e0ab587c9367b35f0ef691f372d5ce67"
             ],
             "index": "pypi",
-            "version": "==1.17.66"
+            "version": "==1.17.67"
         },
         "botocore": {
             "hashes": [
-                "sha256:01c24793df0f814e0b00f109972d4a3fbc54aa5f7edf2fc16c065c24f27e8974",
-                "sha256:455b2eff5c443393bc3bf898ea4fc0dc50151eba50f2bad6b48bedb1defe0310"
+                "sha256:4666fb5bdf7d78c51d465bac7d9eb1d31c34be46990cd1ad2d1b338bbec8c049",
+                "sha256:adb26d8bc65761b5a46744f67b7e7096dedb2071aff876e0962cd648f28e9a8f"
             ],
-            "version": "==1.20.66"
+            "version": "==1.20.67"
         },
         "celery": {
             "hashes": [
@@ -206,11 +207,9 @@
             "version": "==2.2.20"
         },
         "django-admin-charts": {
-            "hashes": [
-                "sha256:ff9e886c2780fe88180e47c57b665ccc9063797da6162fc2e9d7d22675c57d43"
-            ],
-            "index": "pypi",
-            "version": "==0.24.1"
+            "editable": true,
+            "git": "https://github.com/PetrKudy/django-admin-charts",
+            "ref": "e18c606d0d64822420e94b6db1bd3e12deec8c6f"
         },
         "django-admin-large-initial-data": {
             "hashes": [
@@ -1258,10 +1257,10 @@
         },
         "python-slugify": {
             "hashes": [
-                "sha256:2a497206413bebbab1d9004c44443b71f65a402653446af7246904ad1c0927d3",
-                "sha256:744cd5d42b381687657f3b652d1d9b183c0870ec43de23be682b6d83d69c6962"
+                "sha256:6d8c5df75cd4a7c3a2d21e257633de53f52ab0265cd2d1dc62a730e8194a7380",
+                "sha256:f13383a0b9fcbe649a1892b9c8eb4f8eab1d6d84b84bb7a624317afa98159cab"
             ],
-            "version": "==5.0.0"
+            "version": "==5.0.2"
         },
         "python-stdnum": {
             "hashes": [
