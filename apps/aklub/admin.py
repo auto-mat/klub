@@ -1084,7 +1084,7 @@ class DonorPaymentChannelResource(ModelResource):
                     email = donor.user.companyprofile.companycontact_set.get(is_primary=True)
                 except CompanyContact.DoesNotExist:
                     email = donor.user.companyprofile.companycontact_set.first()
-            return email.email
+            return email.email if email else ""
         return ''
 
     def dehydrate_user(self, donor):
