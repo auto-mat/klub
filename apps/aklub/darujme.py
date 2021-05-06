@@ -86,6 +86,7 @@ def create_donor_profile(pledge, api_account): # noqa
         user = UserProfile.objects.get(profileemail__email=email.email)
     except UserProfile.DoesNotExist:
         user = UserProfile()
+        user.country = ""  # replace default value
     # update only if empty! maybe better handle?
     user.first_name = pledge['donor']['firstName'] if not user.first_name else user.first_name
     user.last_name = pledge['donor']['lastName'] if not user.last_name else user.last_name
