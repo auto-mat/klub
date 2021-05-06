@@ -68,7 +68,7 @@ def create_payments(pledge, api_account):
     return is_donor, new_payments
 
 
-def create_donor_profile(pledge, api_account):
+def create_donor_profile(pledge, api_account): # noqa
     """
     update or create new UserProfile and DonorPaymentChannel
     """
@@ -76,36 +76,42 @@ def create_donor_profile(pledge, api_account):
         email=pledge['donor']['email'].lower(),
         defaults={'is_primary': True},
     )
-    if email_created:
-        if settings.DARUJME_EMAIL_AS_USERNAME:
-            username = email.email
-        else:
-            username = get_unique_username(email.email)
 
+    if settings.DARUJME_EMAIL_AS_USERNAME:
+        username = email.email
+    else:
+        username = get_unique_username(email.email)
+
+    try:
+        user = UserProfile.objects.get(profileemail__email=email.email)
+    except UserProfile.DoesNotExist:
+        user = UserProfile()
+        user.country = ""  # replace default value
+    # update only if empty! maybe better handle?
+    user.first_name = pledge['donor']['firstName'] if not user.first_name else user.first_name
+    user.last_name = pledge['donor']['lastName'] if not user.last_name else user.last_name
+    user.username = username if not user.username else user.username
+    user.street = pledge['donor']['address']['street'] if not user.street else user.street
+    user.city = pledge['donor']['address']['city'] if not user.city else user.city
+    user.zip_code = pledge['donor']['address']['postCode'] if not user.zip_code else user.zip_code
+    user.country = pledge['donor']['address']['country'] if not user.country else user.country
+    user.save()
+
+    email.user = user
+    email.save()
     if email_created:
-        userprofile = UserProfile.objects.create(
-                first_name=pledge['donor']['firstName'],
-                last_name=pledge['donor']['lastName'],
-                username=username,
-                street=pledge['donor']['address']['street'],
-                city=pledge['donor']['address']['city'],
-                zip_code=pledge['donor']['address']['postCode'],
-                country=pledge['donor']['address']['country'],
-        )
-        email.user = userprofile
-        email.save()
+        logger.info(f"New User created email {email.email}")
     else:
         logger.info(f"Duplicate email {email.email}")
-        userprofile = email.user
-    userprofile.administrative_units.add(api_account.administrative_unit)
+    user.administrative_units.add(api_account.administrative_unit)
 
     if pledge['donor']['phone']:
         tel_number = str(pledge['donor']['phone']).replace(" ", "")
         try:
-            if not Telephone.objects.filter(telephone=tel_number, user=userprofile).exists():
+            if not Telephone.objects.filter(telephone=tel_number, user=user).exists():
                 new_telephone = Telephone(
                     telephone=tel_number,
-                    user=userprofile,
+                    user=user,
                 )
                 new_telephone.full_clean()  # check phone number validations
                 new_telephone.save()
@@ -116,7 +122,7 @@ def create_donor_profile(pledge, api_account):
 
     end_of_regular_payments = pledge.get('lastTransactionExpectedOn', None)
     dpch, dpch_created = DonorPaymentChannel.objects.update_or_create(
-        user=userprofile,
+        user=user,
         event=api_account.event,
         defaults={
             'regular_frequency': 'monthly' if pledge['isRecurrent'] else None,
