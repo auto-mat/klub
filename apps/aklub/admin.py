@@ -106,7 +106,7 @@ from .profile_model_resources import (
     ProfileModelResource, get_polymorphic_parent_child_fields,
 )
 from .profile_model_resources_mixin import ProfileModelResourceMixin
-from .utils import check_annotate_filters, edit_donor_annotate_filter, sweet_text
+from .utils import annotation_friendly_search_results, check_annotate_filters, edit_donor_annotate_filter, sweet_text
 
 
 def admin_links(args_generator):
@@ -716,6 +716,10 @@ class MoneyAccountParentAdmin(PolymorphicParentModelAdmin):
 
 class ProfileAdminMixin:
     """ ProfileAdmin mixin """
+
+    def get_search_results(self, request, queryset, search_term):
+        # overwrited django default method for admin search!
+        return annotation_friendly_search_results(self, request, queryset, search_term)
 
     def date_format(self, obj):
         return list(map(lambda o: o.strftime('%d. %m. %Y'), obj))
