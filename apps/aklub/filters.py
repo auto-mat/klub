@@ -795,6 +795,51 @@ class DPCHRegularPaymentsAmount(BaseAF):
         return queryset
 
 
+class DPCHEventName(BaseAF):
+    model = DonorPaymentChannel
+    field = 'dpch_event_name'
+    field_verbose_name = _('Event name')
+    values_list_field = 'user__id'
+
+    def queryset(self, *args, **kwargs):
+        if kwargs.get('administrative_unit'):
+            queryset = self.model.objects.filter(
+                event__administrative_units__in=kwargs['administrative_unit'],
+            ).annotate(
+                dpch_event_name=F('event__name'),
+            )
+        else:
+            queryset = self.model.objects.none()
+        return queryset
+
+
+class DPCHEventPaymentsAmount(BaseAF):
+    model = DonorPaymentChannel
+    field = 'event_payment_amount'
+    field_verbose_name = _('Event payment amount')
+    values_list_field = 'user__id'
+    field_type = FloatField()
+    conditional_fields = {DPCHEventName.field: 'event__name'}
+
+    def queryset(self, *args, **kwargs):
+        if kwargs.get('administrative_unit'):
+            queryset = self.model.objects.filter(
+                event__administrative_units__in=kwargs.pop('administrative_unit'),
+                **kwargs,
+            ).annotate(
+               event_payment_amount=Case(
+                    When(
+                        payment__amount__isnull=True,
+                        then=Value(0.0),
+                    ), default=F('payment__amount'),
+                    output_field=self.field_type,
+                ),
+            )
+        else:
+            queryset = self.model.objects.none()
+        return queryset
+
+
 class InteractionEventName(BaseAF):
     model = Interaction
     field = 'event__name'
@@ -902,10 +947,15 @@ class ProfileEmailIsEmailInCompanyprofile(BaseAF):
 
 
 AF_FILTERS = [
-    DPCHNumberOfDPCHs, DPCHRegularPaymentsOk, DPCHNumberOfPayments,
-    DPCHPaymentsAmount, DPCHRegularPayments, DPCHRegularPaymentsAmount,
-    DPCHRegularFrequency, DPCHSumOfAllPayments, DPCHWithoutPayments,
-    InteractionEventName, InteractionNumberOfInteractions, InteractionDateFrom,
-    InteractionDateTo, InteractionResultName, InteractionNextCommunicationDate,
-    InteractionCommunicationType, ProfileEmailIsEmailInCompanyprofile,
+    DPCHEventName, DPCHEventPaymentsAmount, DPCHNumberOfDPCHs, DPCHRegularPaymentsOk,
+    DPCHNumberOfPayments, DPCHPaymentsAmount, DPCHRegularPayments,
+    DPCHRegularPaymentsAmount, DPCHRegularFrequency, DPCHSumOfAllPayments,
+    DPCHWithoutPayments, InteractionEventName, InteractionNumberOfInteractions,
+    InteractionDateFrom, InteractionDateTo, InteractionResultName,
+    InteractionNextCommunicationDate, InteractionCommunicationType,
+    ProfileEmailIsEmailInCompanyprofile,
+]
+
+AF_FILTERS_CONDITIONAL_FIELDS = [
+    [DPCHEventName.field, DPCHEventPaymentsAmount.field],
 ]
