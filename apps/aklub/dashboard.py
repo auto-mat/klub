@@ -62,7 +62,7 @@ class AklubIndexDashboard(Dashboard):
     """
     Aklub index dashboard for aklub.
     """
-    def init_with_context(self, context):
+    def init_with_context(self, context): # noqa
         site_name = get_admin_site_name(context)
         # append a link list module for "quick links"
         self.children.append(
