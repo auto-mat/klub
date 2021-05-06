@@ -19,8 +19,11 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 """Database models for the club management application"""
+
 import datetime
 import logging
+
+from admin_tools_stats.models import DashboardStats
 
 from autoslug import AutoSlugField
 
@@ -28,6 +31,7 @@ from colorfield.fields import ColorField
 
 from computedfields.models import ComputedFieldsModel, computed
 
+from django.apps import apps
 from django.contrib.admin.templatetags.admin_list import _boolean_icon
 from django.contrib.auth.models import (
     AbstractBaseUser, AbstractUser, PermissionsMixin,
@@ -39,6 +43,7 @@ from django.core.files.storage import FileSystemStorage
 from django.core.validators import RegexValidator, ValidationError
 from django.db import models, transaction
 from django.db.models import Count, Q, Sum, signals
+from django.db.models.functions import Trunc
 from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.html import format_html, format_html_join, mark_safe
@@ -2528,3 +2533,82 @@ class TaxConfirmation(models.Model):
 
 
 User._meta.get_field('email').__dict__['_unique'] = True
+
+
+# we need to work with extra administrative_unit so money_patch is added there and extra filter by administrative_unit is added
+# add model_name and path to administrative_unit
+administrative_unit_extra_filters = {
+    "UserProfile": "administrative_units__in",
+    "Payment": "user_donor_payment_channel__money_account__administrative_unit__in",
+}
+
+def get_time_series(self, dynamic_criteria, all_criteria, request, time_since, time_until, interval): # noqa
+    """ Get the stats time series """
+    model_name = apps.get_model(self.model_app_name, self.model_name)
+    kwargs = {}
+    dynamic_kwargs = []
+    if request and not request.user.is_superuser and self.user_field_name:
+        kwargs[self.user_field_name] = request.user
+    for m2m in all_criteria:
+        criteria = m2m.criteria
+        # fixed mapping value passed info kwargs
+        if criteria.criteria_fix_mapping:
+            for key in criteria.criteria_fix_mapping:
+                # value => criteria.criteria_fix_mapping[key]
+                kwargs[key] = criteria.criteria_fix_mapping[key]
+
+        # dynamic mapping value passed info kwargs
+        dynamic_key = "select_box_dynamic_%i" % m2m.id
+        if dynamic_key in dynamic_criteria:
+            if dynamic_criteria[dynamic_key] != '':
+                dynamic_values = dynamic_criteria[dynamic_key]
+                dynamic_field_name = m2m.get_dynamic_criteria_field_name()
+                criteria_key = 'id' if dynamic_field_name == '' else dynamic_field_name
+                if isinstance(dynamic_values, (list, tuple)):
+                    single_value = False
+                else:
+                    dynamic_values = (dynamic_values,)
+                    single_value = True
+
+                for dynamic_value in dynamic_values:
+                    try:
+                        criteria_value = m2m.get_dynamic_choices(time_since, time_until)[dynamic_value]
+                    except KeyError:
+                        criteria_value = 0
+                    if isinstance(criteria_value, (list, tuple)):
+                        criteria_value = criteria_value[0]
+                    else:
+                        criteria_value = dynamic_value
+                    criteria_key_string = criteria_key + ("__in" if isinstance(criteria_value, list) else "")
+                    if single_value:
+                        kwargs[criteria_key_string] = criteria_value
+                    else:
+                        dynamic_kwargs.append(Q(**{criteria_key_string: criteria_value}))
+
+    aggregate_dict = {}
+    i = 0
+    if not dynamic_kwargs:
+        dynamic_kwargs = [None]
+
+    for dkwargs in dynamic_kwargs:
+        i += 1
+        aggregate_dict['agg_%i' % i] = self.get_operation(dkwargs)
+
+    # TODO: maybe backport values_list support back to django-qsstats-magic and use it again for the query
+    time_range = {'%s__range' % self.date_field_name: (time_since, time_until)}
+    qs = model_name.objects
+    qs = qs.filter(**time_range)
+    qs = qs.filter(**kwargs)
+    # this lines are added
+    if not request.user.has_perm('aklub.can_edit_all_units'):
+        qs = qs.filter(**{administrative_unit_extra_filters[self.model_name]: request.user.administrated_units.all()})
+    # ^^^
+    kind = interval[:-1]
+    qs = qs.annotate(d=Trunc(self.date_field_name, kind))
+    qs = qs.values_list('d')
+    qs = qs.order_by('d')
+    qs = qs.annotate(**aggregate_dict)
+    return qs
+
+
+DashboardStats.add_to_class("get_time_series", get_time_series)

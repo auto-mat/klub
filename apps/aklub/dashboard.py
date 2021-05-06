@@ -62,7 +62,7 @@ class AklubIndexDashboard(Dashboard):
     """
     Aklub index dashboard for aklub.
     """
-    def init_with_context(self, context):
+    def init_with_context(self, context): # noqa
         site_name = get_admin_site_name(context)
         # append a link list module for "quick links"
         self.children.append(
@@ -192,7 +192,11 @@ class AklubIndexDashboard(Dashboard):
         # Copy following code into your custom dashboard
         # append following code after recent actions module or
         # a link list module for "quick links"
-        graph_list = get_active_graph()
+        if context['request'].user.has_perm('admin_tools_stats.view_dashboardstats'):
+            graph_list = get_active_graph()
+        else:
+            graph_list = []
+
         for i in graph_list:
             kwargs = {}
             kwargs['require_chart_jscss'] = True
