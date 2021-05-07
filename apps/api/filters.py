@@ -22,7 +22,7 @@ class EventCustomFilter(filters.FilterSet):
 
     def get_administrative_unit(self, queryset, name, value, *args, **kwargs):
         if name == 'administrative_unit':
-            queryset = queryset.filter(administrative_units__slug=value)
+            queryset = queryset.filter(administrative_units__id=value)
         return queryset
 
     def get_event_type_array(self, queryset, name, value, *args, **kwargs):
