@@ -6,6 +6,8 @@ from events.models import Event
 class EventCustomFilter(filters.FilterSet):
     administrative_unit = filters.CharFilter(method='get_administrative_unit')
     event_type_array = filters.CharFilter(method='get_event_type_array')
+    program_array = filters.CharFilter(method='get_program_array')
+    indended_for_array = filters.CharFilter(method='get_indended_for_array')
 
     class Meta:
         model = Event
@@ -27,4 +29,16 @@ class EventCustomFilter(filters.FilterSet):
         if name == 'event_type_array':
             event_type_list = value.split(",")  # slugs
             queryset = queryset.filter(event_type__slug__in=event_type_list)
+        return queryset
+
+    def get_program_array(self, queryset, name, value, *args, **kwargs):
+        if name == 'program_array':
+            program_list = value.split(",")  # slugs
+            queryset = queryset.filter(program__in=program_list)
+        return queryset
+
+    def get_indended_for_array(self, queryset, name, value, *args, **kwargs):
+        if name == 'indended_for_array':
+            indended_for_list = value.split(",")  # slugs
+            queryset = queryset.filter(indended_for__in=indended_for_list)
         return queryset
