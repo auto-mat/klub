@@ -125,6 +125,7 @@ class Event(models.Model):
         ('full', _("Full, not anymore")),
     )
     DIET_CHOICES = (
+        ("", ('---')),
         ('vegetarian', _('Vegetarian')),
         ('non_vegetarian', _('Non-vegetarian')),
         ('can_choose', _('Can choose')),
@@ -245,12 +246,16 @@ class Event(models.Model):
         choices=INTENDED_FOR,
         default='everyone',
     )
-    participation_fee = models.PositiveIntegerField(
+    participation_fee = models.CharField(
         verbose_name=_("Participation fee"),
-        null=True,
+        blank=True,
+        max_length=128,
+    )
+    responsible_person = models.CharField(
+        verbose_name=_("Responsible person"),
+        max_length=128,
         blank=True,
     )
-
     meeting = models.CharField(
         verbose_name=_("Meeting at the event"),
         max_length=128,
