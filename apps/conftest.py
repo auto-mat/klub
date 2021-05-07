@@ -184,7 +184,7 @@ def event_1(administrative_unit_1, event_type_1, location_1):
         age_from=10,
         age_to=99,
         start_date="2020-03-01T00:00:00+01:00",
-        participation_fee=120,
+        participation_fee="120kc",
         entry_form_url="http://www.example.com",
         web_url="http://www.example.com",
         additional_question_1="he_1?",
