@@ -448,7 +448,7 @@ class EventListView(EventViewMixin, generics.ListAPIView):
 
 
 class EventRetrieveView(EventViewMixin, generics.RetrieveAPIView):
-    lookup_field = 'slug'
+    lookup_field = 'id'
 
 
 class AdministrativeUnitView(generics.ListAPIView):

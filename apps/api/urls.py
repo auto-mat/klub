@@ -20,7 +20,7 @@ schema_view = get_schema_view(
 urlpatterns_bronto = [
     path('register_userprofile_interaction/', views.UserProfileInteractionView.as_view(), name='userprofile_interaction'),
     path('event/', views.EventListView.as_view(), name='event'),
-    path('event/<slug:slug>/', views.EventRetrieveView.as_view(), name='event_detail'),
+    path('event/<int:id>/', views.EventRetrieveView.as_view(), name='event_detail'),
     path('administrative_unit/', views.AdministrativeUnitView.as_view(), name='administrative_unit'),
 ]
 # TODO: separate others as bronto (if possible)
