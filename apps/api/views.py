@@ -432,19 +432,22 @@ class EventListView(EventViewMixin, generics.ListAPIView):
     filter_class = EventCustomFilter
 
     def get_queryset(self):
-        return Event.objects.filter(public_on_web=True).prefetch_related(
-            "organization_team",
-            Prefetch(
-                'organization_team',
-                queryset=OrganizationTeam.objects.filter(can_be_contacted=True)
-                    .prefetch_related(
-                        "profile",
-                        # "profile__userprofile__profileemail_set", # polymorphic fix
-                        # "profile__userprofile__telephone_set", # polymorphic fix
+        return Event.objects.filter(public_on_web=True)\
+            .select_related('location')\
+            .prefetch_related(
+                "administrative_units",
+                "organization_team",
+                Prefetch(
+                    'organization_team',
+                    queryset=OrganizationTeam.objects.filter(can_be_contacted=True)
+                        .prefetch_related(
+                            "profile",
+                            # "profile__userprofile__profileemail_set", # polymorphic fix
+                            # "profile__userprofile__telephone_set", # polymorphic fix
+                    ),
+                    to_attr='filtered_organization_team',
                 ),
-                to_attr='filtered_organization_team',
-            ),
-        ).select_related('location')
+            )
 
 
 class EventRetrieveView(EventViewMixin, generics.RetrieveAPIView):

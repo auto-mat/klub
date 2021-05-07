@@ -300,6 +300,8 @@ class EventSerializer(serializers.ModelSerializer):
     location = LocationSerializer(read_only=True)
     contact_persons = OrganizationTeamSerializer(read_only=True, many=True, source="filtered_organization_team")
     event_type = EventType(read_only=True)
+    administrative_unit_name = serializers.SerializerMethodField()
+    administrative_unit_web_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Event
@@ -308,11 +310,20 @@ class EventSerializer(serializers.ModelSerializer):
             'location', 'age_from', 'age_to', 'start_date', 'event_type', 'responsible_person',
             'participation_fee', 'contact_persons', 'entry_form_url', 'web_url', 'invitation_text_short',
             'working_hours', 'accommodation', 'diet', 'looking_forward_to_you', 'registration_method',
+            'administrative_unit_name', 'administrative_unit_web_url',
             'invitation_text_1', 'invitation_text_2', 'invitation_text_3',
             'invitation_text_4', 'main_photo', 'additional_photo_1', 'additional_photo_2',
             'additional_photo_3', 'additional_photo_4', 'additional_photo_5', 'additional_photo_6',
             'additional_question_1', 'additional_question_2', 'additional_question_3',
         ]
+
+    def get_administrative_unit_name(self, obj):
+        # there is always one
+        return obj.administrative_units.all()[0].name
+
+    def get_administrative_unit_web_url(self, obj):
+        # there is always one
+        return obj.administrative_units.all()[0].web_url or ""
 
 
 class AdministrativeUnitSerializer(serializers.ModelSerializer):
