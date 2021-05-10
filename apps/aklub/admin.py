@@ -1954,7 +1954,7 @@ class UserProfileAdmin(
     advanced_filter_fields_operators = {
         'profileemail__email': ('iexact', 'icontains', 'isnull'),
         'addressment': ('iexact', 'icontains', 'isnull', 'istrue'),
-        'telephone__telephone': ('iexact', 'isnull'),
+        'telephone__telephone': ('iexact', 'isnull', 'icontains'),
         'title_before': (),
         'first_name': (),
         'last_name': (),
