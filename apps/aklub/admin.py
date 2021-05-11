@@ -1960,7 +1960,7 @@ class UserProfileAdmin(
         'last_name': (),
         'title_after': (),
         'sex': ('iexact', 'isnull'),
-        'is_staff': (),
+        'is_staff': ('istrue', 'isfalse'),
         'date_joined': (),
         'last_login': (),
         'age_group': ('lt', 'iexact', 'gt', 'nirange', 'isnull'),
