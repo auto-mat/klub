@@ -257,7 +257,7 @@
         "django-advanced-filters": {
             "editable": true,
             "git": "https://github.com/tmszi/django-advanced-filters",
-            "ref": "2c947315c68cdb3c6f7ce8e8b39e43959299c906"
+            "ref": "1867d388a4d12ca5ef20657dc6a8d69a10dc8fd7"
         },
         "django-appconf": {
             "hashes": [
