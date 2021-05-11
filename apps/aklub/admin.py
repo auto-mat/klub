@@ -1975,7 +1975,7 @@ class UserProfileAdmin(
         'correspondence_country': ('iexact', 'icontains'),
         'correspondence_zip_code': ('iexact', 'icontains'),
         str(ProfileEmailIsEmailInCompanyprofile()): ('istrue', 'isfalse'),
-        'userchannels__event__name': (),
+        'userchannels__event__name': ('iexact', 'icontains'),
         'preference__newsletter_on': ('istrue', 'isfalse', 'isnull'),
         'preference__public': ('istrue', 'isfalse', 'isnull'),
         'preference__letter_on': ('istrue', 'isfalse', 'isnull'),
