@@ -953,13 +953,13 @@ class ProfileEmailIsEmailInCompanyprofile(BaseAF):
 
 
 AF_FILTERS = [
-    DPCHEventName, DPCHEventPaymentsAmount, DPCHNumberOfDPCHs, DPCHRegularPaymentsOk,
-    DPCHNumberOfPayments, DPCHPaymentsAmount, DPCHRegularPayments,
-    DPCHRegularPaymentsAmount, DPCHRegularFrequency, DPCHSumOfAllPayments,
-    DPCHWithoutPayments, InteractionEventName, InteractionNumberOfInteractions,
-    InteractionDateFrom, InteractionDateTo, InteractionResultName,
-    InteractionNextCommunicationDate, InteractionCommunicationType,
-    ProfileEmailIsEmailInCompanyprofile,
+    DPCHEventName, DPCHEventPaymentsAmount, DPCHNumberOfDPCHs,
+    DPCHRegularPaymentsOk, DPCHNumberOfPayments, DPCHPaymentsAmount,
+    DPCHRegularPayments, DPCHRegularPaymentsAmount, DPCHRegularFrequency,
+    DPCHSumOfAllPayments, DPCHWithoutPayments, InteractionEventName,
+    InteractionNumberOfInteractions, InteractionDateFrom, InteractionDateTo,
+    InteractionResultName, InteractionNextCommunicationDate,
+    InteractionCommunicationType, ProfileEmailIsEmailInCompanyprofile,
 ]
 
 AF_FILTERS_CONDITIONAL_FIELDS = [
