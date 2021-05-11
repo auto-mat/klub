@@ -842,13 +842,16 @@ class DPCHEventPaymentsAmount(BaseAF):
 
 class InteractionEventName(BaseAF):
     model = Interaction
-    field = 'event__name'
+    field = 'interaction_event_name'
+    field_verbose_name = _('Event name')
     values_list_field = 'user__id'
 
     def queryset(self, *args, **kwargs):
         if kwargs.get('administrative_unit'):
             queryset = self.model.objects.filter(
                 administrative_unit__in=kwargs['administrative_unit'],
+            ).annotate(
+                interaction_event_name=F('event__name'),
             )
         else:
             queryset = self.model.objects.none()
@@ -881,18 +884,21 @@ class InteractionNumberOfInteractions(BaseAF):
     field_verbose_name = _('Number of interactions')
     values_list_field = 'user__id'
     field_type = IntegerField()
+    conditional_fields = {InteractionEventName.field: 'event__name'}
 
     def queryset(self, *args, **kwargs):
         if kwargs.get('administrative_unit'):
-            au = kwargs['administrative_unit']
+            au = kwargs.pop('administrative_unit')
             subquery = self.model.objects.filter(
                 administrative_unit__in=au,
                 user=OuterRef('user'),
+                **kwargs,
             ).values('user').annotate(
                 number_of_interactions=Count('pk'),
             )
             queryset = self.model.objects.filter(
                 administrative_unit__in=au,
+                **kwargs,
             ).annotate(
                 number_of_interactions=Subquery(
                     subquery.values('number_of_interactions')[:1],
@@ -958,4 +964,5 @@ AF_FILTERS = [
 
 AF_FILTERS_CONDITIONAL_FIELDS = [
     [DPCHEventName.field, DPCHEventPaymentsAmount.field],
+    [InteractionEventName.field, InteractionNumberOfInteractions.field],
 ]
