@@ -20,9 +20,13 @@ class Migration(migrations.Migration):
             name='diet',
             field=models.CharField(blank=True, choices=[('', '---'), ('vegetarian', 'Vegetarian'), ('non_vegetarian', 'Non-vegetarian'), ('can_choose', 'Can choose')], max_length=128, verbose_name='Diet'),
         ),
-        migrations.AlterField(
+        migrations.RemoveField(
             model_name='event',
             name='participation_fee',
-            field=models.CharField(blank=True, max_length=128, default="", verbose_name='Participation fee'),
+        ),
+        migrations.AddField(
+            model_name='event',
+            name='participation_fee',
+            field=models.CharField(blank=True, max_length=128, verbose_name='Participation fee'),
         ),
     ]
