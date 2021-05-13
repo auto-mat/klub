@@ -31,11 +31,13 @@ class TestAdministrativeUnitView:
 class TestEventView:
     def _assert_data(self, data, event_1, location_1, event_type_1, userprofile_superuser_2, telephone_2, profileemail_2):
         assert data['name'] == event_1.name
-        assert data['slug'] == event_1.slug
         assert data['date_from'] == event_1.date_from
         assert data['date_to'] == event_1.date_to
         assert data['program'] == event_1.program
         assert data['indended_for'] == event_1.indended_for
+        assert data['responsible_person'] == event_1.responsible_person
+        assert data['administrative_unit_name'] == event_1.administrative_units.first().name
+        assert data['administrative_unit_web_url'] == event_1.administrative_units.first().web_url
 
         location = data['location']
         assert location['name'] == location_1.name
@@ -95,7 +97,7 @@ class TestEventView:
             self, event_1, app_request, location_1,  userprofile_superuser_2, organization_team_1, organization_position_1,
             profileemail_2, event_type_1, telephone_2,
             ):
-        url = reverse('event_detail', kwargs={"slug": event_1.slug})
+        url = reverse('event_detail', kwargs={"id": event_1.id})
         response = app_request.get(url)
         assert response.status_code == 200
         data = response.json()

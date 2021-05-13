@@ -120,7 +120,7 @@ class EventAdmin(unit_admin_mixin_generator('administrative_units'), admin.Model
             'classes': ('collapse',),
             'fields': (
                 ('age_from', 'age_to'),
-                'event_type', 'program', 'indended_for', 'location', 'registration_method',
+                'event_type', 'program', 'indended_for', 'location', 'responsible_person', 'registration_method',
                 'participation_fee', 'meeting', 'is_internal', 'focus_on_members',
                 'note', 'result', 'number_of_actions', 'promoted_in_magazine', 'vip_action',
                 'working_hours', 'accommodation', 'diet', 'looking_forward_to_you',
