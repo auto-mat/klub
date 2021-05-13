@@ -112,7 +112,14 @@ class InteractionAdmin(ImportExportMixin, RelatedFieldAdmin, admin.ModelAdmin):
 
     readonly_fields = ("updated", "created", "created_by", "handled_by", )
 
-    search_fields = ['user__username', ]
+    search_fields = [
+        'id',
+        'user__username',
+        "user__userprofile__first_name",
+        "user__userprofile__last_name",
+        "user__companyprofile__name",
+        "user__userprofile__profileemail__email",
+    ]
 
     # autocomplete_fields = ('user', 'event',)
     list_filter = (
@@ -154,7 +161,7 @@ class InteractionAdmin(ImportExportMixin, RelatedFieldAdmin, admin.ModelAdmin):
         return fields
 
     def get_queryset(self, request):
-        qs = super().get_queryset(request)
+        qs = super().get_queryset(request).select_related("administrative_unit", "type", "user__userprofile", "user__companyprofile")
         if not request.user.has_perm('aklub.can_edit_all_units'):
             qs = qs.filter(user__administrative_units=request.user.administrated_units.first())
         return qs
