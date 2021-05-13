@@ -78,6 +78,8 @@ from rangefilter.filter import DateRangeFilter
 
 from related_admin import RelatedFieldAdmin
 
+import requests
+
 from smmapdfs.actions import make_pdfsandwich
 
 
@@ -682,7 +684,8 @@ class ApiAccountAdmin(
 
     def darujme_url(self, obj):
         if self.request.user.has_perm('aklub.can_edit_all_units'):
-            return mark_safe(f'<a href="{obj.darujme_url()}">{_("Here")}</a>')
+            is_correct = _boolean_icon("pledges" in requests.get(obj.darujme_url()).json())
+            return mark_safe(f'<a href="{obj.darujme_url()}">{_(f"Here {is_correct}")}</a>')
         else:
             return _("Only super administrators can see url")
 
