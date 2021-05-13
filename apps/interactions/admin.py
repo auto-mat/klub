@@ -94,8 +94,8 @@ class InteractionResource(ModelResource):
 
 @admin.register(Interaction)
 class InteractionAdmin(ImportExportMixin, RelatedFieldAdmin, admin.ModelAdmin):
-
     resource_class = InteractionResource
+    autocomplete_fields = ('user',)
 
     list_display = (
                 'user',
