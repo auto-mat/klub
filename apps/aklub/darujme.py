@@ -36,9 +36,10 @@ def create_statement_from_API(api_account):
             return create_statement(response, api_account)
         except Exception as e: # noqa
             logger.info(f'Error while parsing url: {url} error: {e}')
-            raise e
+            return
     else:
-        logger.info(f'{url} error status not 200: {response.json()}')
+        logger.info(f'{url} error status not 200: {response.status_code}')
+        return
 
 
 def create_payments(pledge, api_account):
