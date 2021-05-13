@@ -440,10 +440,10 @@ class EventListView(EventViewMixin, generics.ListAPIView):
                 Prefetch(
                     'organization_team',
                     queryset=OrganizationTeam.objects.filter(can_be_contacted=True)
-                        .prefetch_related(
-                            "profile",
-                            # "profile__userprofile__profileemail_set", # polymorphic fix
-                            # "profile__userprofile__telephone_set", # polymorphic fix
+                    .prefetch_related(
+                        "profile",
+                        # "profile__userprofile__profileemail_set", # polymorphic fix
+                        # "profile__userprofile__telephone_set", # polymorphic fix
                     ),
                     to_attr='filtered_organization_team',
                 ),
