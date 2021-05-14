@@ -440,6 +440,7 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
         permissions = (
             ('can_edit_all_units', _('Může editovat všechno ve všech administrativních jednotkách')),
             ('can_remove_contact_from_administrative_unit', _('Can remove contact from his administrative unit')),
+            ('can_edit_during_importing', _('Can edit records in import')),
         )
     objects = CustomUserManager()
     REQUIRED_FIELDS = ['email', 'polymorphic_ctype_id']
@@ -725,11 +726,15 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
             self.username = get_unique_username(self.email)
         super().save(*args, **kwargs)
 
-    def get_telephone(self):
+    def get_telephone(self, administrative_units):
+        extra_filter = {}
+        if administrative_units:
+            extra_filter["administrative_unit__in"] = administrative_units
+
         if self.is_userprofile():
             numbers = ','.join(number.telephone for number in self.telephone_set.all())
         else:
-            numbers = ','.join(number.telephone for number in self.companycontact_set.all())
+            numbers = ','.join(number.telephone for number in self.companycontact_set.filter(**extra_filter))
         return numbers
 
     def get_donor(self):

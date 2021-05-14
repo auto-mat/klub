@@ -39,29 +39,6 @@ def get_profile_model_resource_custom_fields():
     return result
 
 
-def preference_model_dehydrate_decorator(field):
-    def wrap(f):
-        def wrapped_f(self, profile):
-            if profile.pk:
-                preference = profile.preference_set.filter(
-                    administrative_unit=profile.administrated_units.first(),
-                ).first()
-                if preference:
-                    return getattr(preference, field)
-        return wrapped_f
-    return wrap
-
-
-def get_preference_model_custom_field_dehydrate_func():
-    funcs = {}
-    fields = get_preference_model_fields()
-    for field in fields:
-        func_name = 'dehydrate_{}'.format(field)
-        funcs[func_name] = (preference_model_dehydrate_decorator(field=field))(dehydrate_base)
-
-    return funcs
-
-
 def save_email(email, obj):
     # needs to be done, because company profile can't have multiple primary emails
     email, _ = ProfileEmail.objects.get_or_create(
@@ -135,18 +112,22 @@ def import_obj(self, obj, data, dry_run):  # noqa
         check['preference'], _ = Preference.objects.get_or_create(
             user=obj,
             administrative_unit=obj.administrative_units.get(id=data["administrative_units"]),
+            defaults={
+                "newsletter_on": data['newsletter_on'],
+                "call_on": data['call_on'],
+                "challenge_on": data['challenge_on'],
+                "letter_on": data['letter_on'],
+                "send_mailing_lists": data['send_mailing_lists'],
+                "public": data['public'],
+            },
         )
-        if data.get("newsletter_on") is not None:
+        # allow update if user has permisison....
+        if self.user.has_perm("can_edit_during_importing") and data.get('allow_edit') == "x":
             check['preference'].newsletter_on = data['newsletter_on']
-        if data.get("call_on") is not None:
             check['preference'].call_on = data['call_on']
-        if data.get("challenge_on") is not None:
             check['preference'].challenge_on = data['challenge_on']
-        if data.get("letter_on") is not None:
             check['preference'].letter_on = data['letter_on']
-        if data.get("send_mailing_lists") is not None:
             check['preference'].send_mailing_lists = data['send_mailing_lists']
-        if data.get("public") is not None:
             check['preference'].public = data['public']
 
         if data.get('country'):
@@ -200,7 +181,37 @@ def save_m2m(self, *args, **kwargs):
 
 
 def dehydrate_telephone(self, profile):
-    return profile.get_telephone()
+    return profile.get_telephone([self.administrative_unit])
+
+
+def dehydrate_send_mailing_lists(self, profile):
+    if profile.pk:
+        return profile.preference_set.get(administrative_unit=self.administrative_unit).send_mailing_lists
+
+
+def dehydrate_newsletter_on(self, profile):
+    if profile.pk:
+        return profile.preference_set.get(administrative_unit=self.administrative_unit).newsletter_on
+
+
+def dehydrate_call_on(self, profile):
+    if profile.pk:
+        return profile.preference_set.get(administrative_unit=self.administrative_unit).call_on
+
+
+def dehydrate_challenge_on(self, profile):
+    if profile.pk:
+        return profile.preference_set.get(administrative_unit=self.administrative_unit).challenge_on
+
+
+def dehydrate_letter_on(self, profile):
+    if profile.pk:
+        return profile.preference_set.get(administrative_unit=self.administrative_unit).letter_on
+
+
+def dehydrate_public(self, profile):
+    if profile.pk:
+        return profile.preference_set.get(administrative_unit=self.administrative_unit).public
 
 
 def dehydrate_donor(self, profile):
@@ -225,18 +236,32 @@ def dehydrate_donor(self, profile):
     return "".join(tuple(donor_list))
 
 
+def before_import(self, *args, **kwargs):
+    # by celery or by classic import
+    if hasattr(self, "import_job"):
+        self.user = self.import_job.updated_by
+        self.administrative_unit = self.import_job.importconnector.administrative_unit
+    else:
+        self.user = kwargs.get("user")
+        self.administrative_unit = self.user.administrated_units.first()
+    if not self.administrative_unit or not self.user:
+        raise ValidationError(_("user or administrative_unit is not set for this import!"))
+
+
 def before_import_row(self, row, **kwargs):
     row['is_superuser'] = 0
     row['is_staff'] = 0
     row['email'] = row['email'].lower() if row.get('email') else ''
     if row.get('username') == "":
         row["username"] = None
-    if not row['administrative_units']:
-        raise ValidationError({'administrative_units': _('This field must be set')})
+    if not row['administrative_units'] or row['administrative_units'] != str(self.administrative_unit.id):
+        raise ValidationError(
+            {'administrative_units': _('This field must be set or you are trying to import to another administrated_unit')}
+        )
 
 
 def import_field(self, field, obj, data, is_m2m=False):
-    """
+    """dehydrate_donor
     rewrite original method to avoid data rewriting
     """
     if field.attribute and field.column_name in data:
@@ -251,18 +276,23 @@ def import_field(self, field, obj, data, is_m2m=False):
 
 
 def get_profile_model_resource_mixin_class_body():
+    # Custom fields (dehydrate funcs)
     body = {}
+    body.update(get_profile_model_resource_custom_fields())
+    # Preference model dehydrate funcs
     body['import_obj'] = import_obj
     body['dehydrate_telephone'] = dehydrate_telephone
     body['dehydrate_donor'] = dehydrate_donor
+    body['dehydrate_send_mailing_lists'] = dehydrate_send_mailing_lists
+    body['dehydrate_newsletter_on'] = dehydrate_newsletter_on
+    body['dehydrate_call_on'] = dehydrate_call_on
+    body['dehydrate_challenge_on'] = dehydrate_challenge_on
+    body['dehydrate_letter_on'] = dehydrate_letter_on
+    body['dehydrate_public'] = dehydrate_public
     body['before_import_row'] = before_import_row
+    body['before_import'] = before_import
     body['save_m2m'] = save_m2m
     body['import_field'] = import_field
-    # Custom fields (dehydrate funcs)
-    body.update(get_profile_model_resource_custom_fields())
-    # Preference model dehydrate funcs
-    body.update(get_preference_model_custom_field_dehydrate_func())
-
     return body
 
 
