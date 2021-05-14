@@ -1110,47 +1110,36 @@ class Preference(models.Model):
     class Meta:
         verbose_name = _("Preference")
         verbose_name_plural = _("Preferences")
+
     user = models.ForeignKey(
         Profile,
-        blank=True,
-        null=True,
         on_delete=models.CASCADE,
     )
-    newsletter_on = models.NullBooleanField(
+    newsletter_on = models.BooleanField(
         verbose_name=_("newsletter_on"),
-        null=True,
-        blank=True,
-        default=False,
+        default=True,
     )
-    call_on = models.NullBooleanField(
+    call_on = models.BooleanField(
         verbose_name=_("call_on"),
-        null=True,
         blank=True,
-        default=False,
+        default=True,
     )
-    challenge_on = models.NullBooleanField(
+    challenge_on = models.BooleanField(
         verbose_name=_("challenge_on"),
-        null=True,
-        blank=True,
-        default=False,
+        default=True,
     )
-    letter_on = models.NullBooleanField(
+    letter_on = models.BooleanField(
         verbose_name=_("letter_on"),
-        null=True,
-        blank=True,
-        default=False,
+        default=True,
     )
     send_mailing_lists = models.BooleanField(
         verbose_name=_("Sending of mailing lists allowed"),
-        null=True,
         default=True,
     )
     public = models.BooleanField(
         verbose_name=_("Publish my name in the list of supporters"),
-        null=True,
-        default=True,
+        default=False,
     )
-
     administrative_unit = models.ForeignKey(
         AdministrativeUnit,
         verbose_name=_("administrative unit"),
