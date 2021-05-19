@@ -2059,8 +2059,8 @@ class UserProfileAdmin(
         (_('Personal data'), {
             'classes': ('wide',),
             'fields': (
-                'username', ('first_name', 'last_name'), ('title_before', 'title_after'), 'sex',
-                'is_active',
+                'username', ('first_name', 'last_name', "maiden_name"), ('title_before', 'title_after'), 'sex',
+                'nickname', 'is_active',
                 ('birth_day', 'birth_month', 'age_group'),
                 ('get_email',),
                 'get_main_telephone',

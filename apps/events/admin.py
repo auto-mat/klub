@@ -122,7 +122,7 @@ class EventAdmin(unit_admin_mixin_generator('administrative_units'), admin.Model
                 ('age_from', 'age_to'),
                 'event_type', 'program', 'indended_for', 'location', 'responsible_person', 'registration_method',
                 'participation_fee', 'meeting', 'is_internal', 'focus_on_members',
-                'note', 'result', 'number_of_actions', 'promoted_in_magazine', 'vip_action',
+                'note', 'result', 'number_of_actions', 'promoted_in_magazine', 'vip_action', 'total_working_days',
                 'working_hours', 'accommodation', 'diet', 'looking_forward_to_you',
             ),
         }),
@@ -147,7 +147,8 @@ class EventAdmin(unit_admin_mixin_generator('administrative_units'), admin.Model
             'fields': (
                 'number_of_members', 'number_of_recruiters', 'yield_total', 'real_yield',
                 'total_expenses', 'expected_monthly_income', 'return_of_investmensts',
-                'average_yield', 'average_expense', 'hours_worked',
+                'average_yield', 'average_expense', 'hours_worked', 'total_participants',
+                'total_participants_under_26',
             ),
         }),
     )

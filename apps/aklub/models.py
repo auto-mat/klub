@@ -932,6 +932,16 @@ class UserProfile(Profile, AbstractUserProfile):
         max_length=50,
         default='unknown',
     )
+    nickname = models.CharField(
+        verbose_name=_("Nickname"),
+        max_length=126,
+        blank=True,
+    )
+    maiden_name = models.CharField(
+        verbose_name=_("Maiden name"),
+        max_length=126,
+        blank=True,
+    )
 
     @classmethod
     def export_resource_classes(cls):
