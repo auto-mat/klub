@@ -8,6 +8,7 @@ class EventCustomFilter(filters.FilterSet):
     event_type_array = filters.CharFilter(method='get_event_type_array')
     program_array = filters.CharFilter(method='get_program_array')
     indended_for_array = filters.CharFilter(method='get_indended_for_array')
+    type = filters.CharFilter(method='get_type') # noqa
 
     class Meta:
         model = Event
@@ -19,6 +20,25 @@ class EventCustomFilter(filters.FilterSet):
             'program': ['exact'],
             'is_internal': ['exact'],
         }
+
+    def get_type(self, queryset, name, value, *args, **kwargs):
+        # some crazy custom filters
+        if name == 'type':
+            if value == "klub":
+                queryset = queryset.filter(is_internal=True)
+            elif value == "vik":
+                queryset = queryset.exclude(is_internal=True, event_type__slug="tabor")
+            elif value == "tabor":
+                queryset = queryset.filter(event_type__slug="tabor")
+            elif value == "viktabor":
+                queryset = queryset.exclude(is_internal=True)
+            elif value == "ekostan":
+                queryset = queryset.filter(program="eco_consulting")
+            elif value == "vikekostan":
+                queryset = queryset\
+                    .filter(program="eco_consulting")\
+                    .exclude(is_internal=True, event_type__slug="tabor")
+        return queryset
 
     def get_administrative_unit(self, queryset, name, value, *args, **kwargs):
         if name == 'administrative_unit':
