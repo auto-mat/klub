@@ -400,6 +400,21 @@ class Event(models.Model):
         max_length=512,
         blank=True,
     )
+    total_working_days = models.PositiveIntegerField(
+        verbose_name=_("Total working days"),
+        null=True,
+        blank=True,
+    )
+    total_participants = models.PositiveIntegerField(
+        verbose_name=_("Total participations"),
+        null=True,
+        blank=True,
+    )
+    total_participants_under_26 = models.PositiveIntegerField(
+        verbose_name=_("Total participations under 26 years"),
+        null=True,
+        blank=True,
+    )
     administrative_units = models.ManyToManyField(
         "aklub.administrativeunit",
         verbose_name=_("administrative units"),
