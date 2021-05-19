@@ -183,6 +183,7 @@ class CreateUserProfileInteractionSerializer(serializers.ModelSerializer, Valida
     additional_question_1 = serializers.CharField(required=False)
     additional_question_2 = serializers.CharField(required=False)
     additional_question_3 = serializers.CharField(required=False)
+    event = serializers.SlugRelatedField(queryset=Event.objects.filter(slug__isnull=False), slug_field='id')
 
     class Meta:
         model = UserProfile
@@ -333,7 +334,7 @@ class AdministrativeUnitSerializer(serializers.ModelSerializer):
     class Meta:
         model = AdministrativeUnit
         fields = [
-            'id', 'name', 'city', 'zip_code', 'telephone', 'from_email_address', 'web_url', 'president_name', 'manager_name',
+            'id', 'name', 'street', 'city', 'zip_code', 'telephone', 'from_email_address', 'web_url', 'president_name', 'manager_name',
             'gps_latitude', 'gps_longitude', 'level',
         ]
 

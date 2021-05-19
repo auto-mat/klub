@@ -17,6 +17,7 @@ class TestAdministrativeUnitView:
         assert resp_data["id"] == administrative_unit_1.id
         assert resp_data["name"] == administrative_unit_1.name
         assert resp_data["city"] == administrative_unit_1.city
+        assert resp_data["street"] == administrative_unit_1.street
         assert resp_data["zip_code"] == administrative_unit_1.zip_code
         assert resp_data["gps_latitude"] == administrative_unit_1.gps_latitude
         assert resp_data["gps_longitude"] == administrative_unit_1.gps_longitude
@@ -119,7 +120,7 @@ class TestEventView:
                 "additional_question_1": "answer_1",
                 "additional_question_2": "answer_2",
                 "additional_question_3": "answer_3",
-                "event": event_1.slug,
+                "event": event_1.id,
             }
             current_date = timezone.now()
             with freeze_time(current_date):

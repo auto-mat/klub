@@ -195,6 +195,7 @@ class AdministrativeUnit(models.Model, ParseAccountStatement):
         ('regional_center', _('Regional center')),
         ('basic_section', _('Basic section')),
         ('headquarter', _('Headquarter')),
+        ('club', _("Club"))
     )
 
     name = models.CharField(
@@ -240,7 +241,7 @@ class AdministrativeUnit(models.Model, ParseAccountStatement):
         null=True,
     )
     level = models.CharField(
-        blank=True,
+        default="club",
         choices=UNIT_LEVEL_CHOICES,
         max_length=128,
     )
