@@ -7,7 +7,6 @@ from aklub.models import (
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import EmailMultiAlternatives
-from django.db.models import Prefetch
 from django.utils import timezone
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
@@ -17,7 +16,7 @@ from django_filters import rest_framework as filters
 
 from drf_yasg.utils import swagger_auto_schema
 
-from events.models import Event, OrganizationTeam
+from events.models import Event
 
 from interactions.models import Interaction, InteractionCategory, InteractionType
 
@@ -407,19 +406,9 @@ class EventViewMixin:
     required_scopes = ['can_view_events']
 
     def get_queryset(self):
-        return Event.objects.filter(public_on_web=True).prefetch_related(
-            "organization_team",
-            Prefetch(
-                'organization_team',
-                queryset=OrganizationTeam.objects.filter(can_be_contacted=True)
-                    .prefetch_related(
-                        "profile",
-                        # "profile__userprofile__profileemail_set", # polymorphic fix
-                        # "profile__userprofile__telephone_set", # polymorphic fix
-                ),
-                to_attr='filtered_organization_team',
-            ),
-        ).select_related('location')
+        return Event.objects.filter(public_on_web=True)\
+            .prefetch_related("administrative_units")\
+            .select_related('location', "event_type")
 
 
 class EventListView(EventViewMixin, generics.ListAPIView):
@@ -430,24 +419,6 @@ class EventListView(EventViewMixin, generics.ListAPIView):
 
     filter_backends = [filters.DjangoFilterBackend, rf_filters.OrderingFilter]
     filter_class = EventCustomFilter
-
-    def get_queryset(self):
-        return Event.objects.filter(public_on_web=True)\
-            .select_related('location')\
-            .prefetch_related(
-                "administrative_units",
-                "organization_team",
-                Prefetch(
-                    'organization_team',
-                    queryset=OrganizationTeam.objects.filter(can_be_contacted=True)
-                    .prefetch_related(
-                        "profile",
-                        # "profile__userprofile__profileemail_set", # polymorphic fix
-                        # "profile__userprofile__telephone_set", # polymorphic fix
-                    ),
-                    to_attr='filtered_organization_team',
-                ),
-            )
 
 
 class EventRetrieveView(EventViewMixin, generics.RetrieveAPIView):
