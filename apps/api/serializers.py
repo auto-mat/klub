@@ -294,7 +294,7 @@ class EventSerializer(serializers.ModelSerializer):
     def get_administrative_unit_web_url(self, obj):
         try:
             # there is always one
-            web_url = obj.administrative_units.all()[0].name
+            web_url = obj.administrative_units.all()[0].web_url
         except IndexError:
             web_url = ""
         return web_url
