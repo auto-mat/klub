@@ -152,7 +152,6 @@ def organization_team_1(userprofile_superuser_2, organization_position_1, event_
         position=organization_position_1,
         profile=userprofile_superuser_2,
         event=event_1,
-        can_be_contacted=True,
     )
     yield organization_team
     organization_team.delete()
@@ -200,6 +199,9 @@ def event_1(administrative_unit_1, event_type_1, location_1):
         working_hours=3,
         main_photo=File(open("apps/aklub/test_data/empty_pdf.pdf", "rb")),
         public_on_web=True,
+        contact_person_name="Tester Testerovič",
+        contact_person_email="now@ds.com",
+        contact_person_telephone="999888777",
     )
     event.administrative_units.add(administrative_unit_1)
     yield event
