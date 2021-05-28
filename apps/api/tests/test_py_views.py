@@ -17,6 +17,7 @@ class TestAdministrativeUnitView:
         assert resp_data["id"] == administrative_unit_1.id
         assert resp_data["name"] == administrative_unit_1.name
         assert resp_data["city"] == administrative_unit_1.city
+        assert resp_data["street"] == administrative_unit_1.street
         assert resp_data["zip_code"] == administrative_unit_1.zip_code
         assert resp_data["gps_latitude"] == administrative_unit_1.gps_latitude
         assert resp_data["gps_longitude"] == administrative_unit_1.gps_longitude
@@ -59,13 +60,6 @@ class TestEventView:
         assert data['looking_forward_to_you'] == event_1.looking_forward_to_you
         assert data['working_hours'] == event_1.working_hours
 
-        assert len(data['contact_persons']) == 1
-        contact_person = data['contact_persons'][0]
-        assert contact_person["first_name"] == userprofile_superuser_2.first_name
-        assert contact_person["last_name"] == userprofile_superuser_2.last_name
-        assert contact_person["email"] == profileemail_2.email
-        assert contact_person["telephone"] == telephone_2.telephone
-
         assert data['entry_form_url'] == event_1.entry_form_url
         assert data['web_url'] == event_1.web_url
         assert data['invitation_text_1'] == event_1.invitation_text_1
@@ -81,6 +75,9 @@ class TestEventView:
         assert data['additional_question_1'] == event_1.additional_question_1
         assert data['additional_question_2'] == event_1.additional_question_2
         assert data['additional_question_3'] == event_1.additional_question_3
+        assert data['contact_person_name'] == event_1.contact_person_name
+        assert data['contact_person_email'] == event_1.contact_person_email
+        assert data['contact_person_telephone'] == event_1.contact_person_telephone
 
     def test_event_list_view(
             self, event_1, app_request, location_1,  userprofile_superuser_2, organization_team_1, organization_position_1,
@@ -119,7 +116,7 @@ class TestEventView:
                 "additional_question_1": "answer_1",
                 "additional_question_2": "answer_2",
                 "additional_question_3": "answer_3",
-                "event": event_1.slug,
+                "event": event_1.id,
             }
             current_date = timezone.now()
             with freeze_time(current_date):

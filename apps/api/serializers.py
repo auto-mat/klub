@@ -7,7 +7,7 @@ from django.core.validators import MinLengthValidator, RegexValidator
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
-from events.models import Event, EventType, Location, OrganizationTeam
+from events.models import Event, EventType, Location
 
 from notifications_edit.utils import send_notification_to_is_staff_members
 
@@ -183,6 +183,7 @@ class CreateUserProfileInteractionSerializer(serializers.ModelSerializer, Valida
     additional_question_1 = serializers.CharField(required=False)
     additional_question_2 = serializers.CharField(required=False)
     additional_question_3 = serializers.CharField(required=False)
+    event = serializers.SlugRelatedField(queryset=Event.objects.filter(slug__isnull=False), slug_field='id')
 
     class Meta:
         model = UserProfile
@@ -249,41 +250,6 @@ class ResetPasswordbyEmailConfirmSerializer(serializers.Serializer):
             raise PasswordsDoNotMatch()
 
 
-class OrganizationTeamSerializer(serializers.ModelSerializer):
-    first_name = serializers.ReadOnlyField(source='profile.first_name')
-    last_name = serializers.ReadOnlyField(source='profile.last_name')
-    telephone = serializers.SerializerMethodField()
-    email = serializers.SerializerMethodField()
-
-    class Meta:
-        model = OrganizationTeam
-        fields = ["id", "first_name", "last_name", "telephone", "email"]
-
-    def get_email(self, obj):
-        # TODO: waiting for polymorphic select related fix:
-        # for email in obj.profile.userprofile.profileemail_set.all()
-        #    if email.is_primary:
-        #        return email.email
-        userprofile = obj.profile.get_real_instance()
-        try:
-            email = userprofile.profileemail_set.get(is_primary=True).email
-        except ProfileEmail.DoesNotExist:
-            email = None
-        return email
-
-    def get_telephone(self, obj):
-        # TODO: waiting for polymorphic select related fix:
-        # for telephone in obj.profile.userprofile.telephone_set.all()
-        #    if telephone.is_primary:
-        #        return telephone.telephone
-        userprofile = obj.profile.get_real_instance()
-        try:
-            telephone = userprofile.telephone_set.get(is_primary=True).telephone
-        except Telephone.DoesNotExist:
-            telephone = None
-        return telephone
-
-
 class EventType(serializers.ModelSerializer):
     class Meta:
         model = EventType
@@ -298,7 +264,6 @@ class LocationSerializer(serializers.ModelSerializer):
 
 class EventSerializer(serializers.ModelSerializer):
     location = LocationSerializer(read_only=True)
-    contact_persons = OrganizationTeamSerializer(read_only=True, many=True, source="filtered_organization_team")
     event_type = EventType(read_only=True)
     administrative_unit_name = serializers.SerializerMethodField()
     administrative_unit_web_url = serializers.SerializerMethodField()
@@ -308,22 +273,31 @@ class EventSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'date_from', 'date_to', 'program', 'indended_for',
             'location', 'age_from', 'age_to', 'start_date', 'event_type', 'responsible_person',
-            'participation_fee', 'contact_persons', 'entry_form_url', 'web_url', 'invitation_text_short',
+            'participation_fee', 'entry_form_url', 'web_url', 'invitation_text_short',
             'working_hours', 'accommodation', 'diet', 'looking_forward_to_you', 'registration_method',
             'administrative_unit_name', 'administrative_unit_web_url',
             'invitation_text_1', 'invitation_text_2', 'invitation_text_3',
             'invitation_text_4', 'main_photo', 'additional_photo_1', 'additional_photo_2',
             'additional_photo_3', 'additional_photo_4', 'additional_photo_5', 'additional_photo_6',
             'additional_question_1', 'additional_question_2', 'additional_question_3',
+            "contact_person_name", "contact_person_email", "contact_person_telephone",
         ]
 
     def get_administrative_unit_name(self, obj):
-        # there is always one
-        return obj.administrative_units.all()[0].name
+        try:
+            # there is always one
+            name = obj.administrative_units.all()[0].name
+        except IndexError:
+            name = ""
+        return name
 
     def get_administrative_unit_web_url(self, obj):
-        # there is always one
-        return obj.administrative_units.all()[0].web_url or ""
+        try:
+            # there is always one
+            web_url = obj.administrative_units.all()[0].web_url
+        except IndexError:
+            web_url = ""
+        return web_url
 
 
 class AdministrativeUnitSerializer(serializers.ModelSerializer):
@@ -333,7 +307,7 @@ class AdministrativeUnitSerializer(serializers.ModelSerializer):
     class Meta:
         model = AdministrativeUnit
         fields = [
-            'id', 'name', 'city', 'zip_code', 'telephone', 'from_email_address', 'web_url', 'president_name', 'manager_name',
+            'id', 'name', 'street', 'city', 'zip_code', 'telephone', 'from_email_address', 'web_url', 'president_name', 'manager_name',
             'gps_latitude', 'gps_longitude', 'level',
         ]
 

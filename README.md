@@ -49,15 +49,7 @@ Pro testovací účely spustíte projekt pomocí následujícího příkazu:
 * env/bin/python manage.py runserver 0.0.0.0:8000
 
 
-Heroku
+K8S
 ======
 
-````
-heroku config:set BUILD_WITH_GEO_LIBRARIES=1 (DEPRICATED duben 2020) => nadále neni třeba
-````
-
-Nejdřív musíš [povolit heroku.yml](https://devcenter.heroku.com/articles/buildpack-builds-heroku-yml)
-
-Pak je důležité, aby buildpacky byli ve správném pořádi. Tj. nodejs, musí mít index=1.
-
-Více informace o buildpackech nalezntete [zde](https://devcenter.heroku.com/articles/using-multiple-buildpacks-for-an-app).
+[konfigurace najdete zde](https://github.com/auto-mat/k8s#adding-new-klub-p%C5%99atel-instances)

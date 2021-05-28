@@ -5,7 +5,7 @@ from .base import *  # noqa
 ALLOWED_HOSTS = [
     "klub.auto-mat.cz",
     os.environ.get('HEROKU_APP_URL'),
-]
+] + os.environ.get('AKLUB_ALLOWED_HOSTS', "").split(" ")
 
 SITE_ID = 1
 

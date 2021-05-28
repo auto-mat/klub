@@ -195,6 +195,7 @@ class AdministrativeUnit(models.Model, ParseAccountStatement):
         ('regional_center', _('Regional center')),
         ('basic_section', _('Basic section')),
         ('headquarter', _('Headquarter')),
+        ('club', _("Club"))
     )
 
     name = models.CharField(
@@ -240,7 +241,7 @@ class AdministrativeUnit(models.Model, ParseAccountStatement):
         null=True,
     )
     level = models.CharField(
-        blank=True,
+        default="club",
         choices=UNIT_LEVEL_CHOICES,
         max_length=128,
     )
@@ -936,6 +937,16 @@ class UserProfile(Profile, AbstractUserProfile):
         choices=GENDER,
         max_length=50,
         default='unknown',
+    )
+    nickname = models.CharField(
+        verbose_name=_("Nickname"),
+        max_length=126,
+        blank=True,
+    )
+    maiden_name = models.CharField(
+        verbose_name=_("Maiden name"),
+        max_length=126,
+        blank=True,
     )
 
     @classmethod

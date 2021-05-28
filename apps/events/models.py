@@ -2,7 +2,7 @@ from aklub.models import DonorPaymentChannel, Recruiter
 
 from autoslug import AutoSlugField
 
-from django.core.validators import MaxValueValidator, MinValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.db import models
 from django.db.models import Sum
 from django.utils.translation import ugettext_lazy as _
@@ -400,6 +400,41 @@ class Event(models.Model):
         max_length=512,
         blank=True,
     )
+    total_working_days = models.PositiveIntegerField(
+        verbose_name=_("Total working days"),
+        null=True,
+        blank=True,
+    )
+    total_participants = models.PositiveIntegerField(
+        verbose_name=_("Total participations"),
+        null=True,
+        blank=True,
+    )
+    total_participants_under_26 = models.PositiveIntegerField(
+        verbose_name=_("Total participations under 26 years"),
+        null=True,
+        blank=True,
+    )
+    contact_person_name = models.CharField(
+        verbose_name=_("Contact person name"),
+        max_length=128,
+        blank=True,
+    )
+    contact_person_telephone = models.CharField(
+        verbose_name=_("Contact person telephone number"),
+        max_length=100,
+        blank=True,
+        validators=[
+            RegexValidator(
+                r'^\+?(42(0|1){1})?\s?\d{3}\s?\d{3}\s?\d{3}$',
+                _("Telephone must consist of numbers, spaces and + sign or maximum number count is higher."),
+            ),
+        ],
+    )
+    contact_person_email = models.EmailField(
+        _('Contact person email address'),
+        blank=True,
+    )
     administrative_units = models.ManyToManyField(
         "aklub.administrativeunit",
         verbose_name=_("administrative units"),
@@ -519,7 +554,6 @@ class OrganizationTeam(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE, verbose_name=_("Event"))
     position = models.ForeignKey(OrganizationPosition, on_delete=models.CASCADE, verbose_name=_("Position"),)
     qualification = models.ForeignKey(Qualification, on_delete=models.SET_NULL, verbose_name=_("Qualification"), null=True, blank=True)
-    can_be_contacted = models.BooleanField(default=False, verbose_name=_("Can be contacted"))
 
     def __str__(self):
         return str(self.id)
