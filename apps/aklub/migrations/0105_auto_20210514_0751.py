@@ -7,7 +7,7 @@ from django.conf import settings
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aklub', '0103_auto_20210430_1615'),
+        ('aklub', '0104_auto_20210519_1141'),
     ]
 
     def set_null_preference_to_null(apps, schema_editor):
