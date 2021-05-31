@@ -156,7 +156,7 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         response = self.client.get(address)
         response = response._container[0].decode()
         self.assertIn(
-            '<input type="text" name="userprofile-first_name" maxlength="30" required id="id_userprofile-first_name">',
+            '<input type="text" name="userprofile-first_name" maxlength="128" required id="id_userprofile-first_name">',
             response,
         )
 
@@ -281,7 +281,7 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         response = self.client.get(address)
         response = response._container[0].decode()
         self.assertIn(
-            '<input type="text" name="userprofile-first_name" maxlength="30" '
+            '<input type="text" name="userprofile-first_name" maxlength="128" '
             'class=" form-control" required id="id_userprofile-first_name">',
             response,
         )
@@ -312,12 +312,12 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         response = self.client.get(address)
         response = response._container[0].decode()
         self.assertIn(
-            '<input type="text" name="userprofile-first_name" value="Uest" maxlength="30" '
+            '<input type="text" name="userprofile-first_name" value="Uest" maxlength="128" '
             'class=" form-control" required id="id_userprofile-first_name">',
             response,
         )
         self.assertIn(
-            '<input type="text" name="userprofile-last_name" value="Tser" maxlength="150" '
+            '<input type="text" name="userprofile-last_name" value="Tser" maxlength="128" '
             'class=" form-control" required id="id_userprofile-last_name">',
             response,
         )
