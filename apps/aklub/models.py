@@ -909,6 +909,16 @@ class UserProfile(Profile, AbstractUserProfile):
         null=True,
         blank=True,
     )
+    first_name = models.CharField(
+        verbose_name=_('first name'),
+        max_length=128,
+        blank=True,
+    )
+    last_name = models.CharField(
+        verbose_name=_('last name'),
+        max_length=128,
+        blank=True,
+    )
     age_group = models.PositiveIntegerField(
         verbose_name=_("Birth year"),
         null=True,
