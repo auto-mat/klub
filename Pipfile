@@ -54,7 +54,7 @@ django-sesame = "==1.4"
 django-ses = "*"
 drf-yasg = "*"
 vokativ = "*"
-Django = "==2.2.20"
+Django = "==2.2.22"
 "PyPDF2" = "*"
 django-post_office = {ref = "jsonfield2",git = "https://github.com/Mogost/django-post_office",editable = true}  # for django-jsonfield2 transition
 raven = "*"
