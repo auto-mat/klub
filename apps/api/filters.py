@@ -18,6 +18,7 @@ class EventCustomFilter(filters.FilterSet):
             'start_date': ['gte', 'lte', 'year'],
             'indended_for': ['exact'],
             'program': ['exact'],
+            'basic_purpose': ['exact'],
             'is_internal': ['exact'],
         }
 

@@ -271,7 +271,7 @@ class EventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = [
-            'id', 'name', 'date_from', 'date_to', 'program', 'indended_for',
+            'id', 'name', 'date_from', 'date_to', 'program', 'indended_for', 'basic_purpose',
             'location', 'age_from', 'age_to', 'start_date', 'event_type', 'responsible_person',
             'participation_fee', 'entry_form_url', 'web_url', 'invitation_text_short',
             'working_hours', 'accommodation', 'diet', 'looking_forward_to_you', 'registration_method',
