@@ -180,9 +180,9 @@ class DonorPaymentChannelNestedSerializer(serializers.ModelSerializer):
 
 
 class CreateUserProfileInteractionSerializer(serializers.ModelSerializer, ValidateEmailMixin, RelatedFieldsMixin):
-    additional_question_1 = serializers.CharField(required=False)
-    additional_question_2 = serializers.CharField(required=False)
-    additional_question_3 = serializers.CharField(required=False)
+    additional_question_1 = serializers.CharField(required=False, allow_blank=True)
+    additional_question_2 = serializers.CharField(required=False, allow_blank=True)
+    additional_question_3 = serializers.CharField(required=False, allow_blank=True)
     event = serializers.SlugRelatedField(queryset=Event.objects.filter(slug__isnull=False), slug_field='id')
 
     class Meta:
