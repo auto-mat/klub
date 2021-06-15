@@ -23,7 +23,7 @@ from interactions.models import Interaction, InteractionCategory, InteractionTyp
 from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope
 
 from rest_framework import filters as rf_filters, generics, status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 
 from .exceptions import DonorPaymentChannelDoesntExist, EmailDoesntExist, PaymentsDoesntExist
@@ -342,7 +342,7 @@ class ResetPasswordbyEmailConfirmView(generics.GenericAPIView):
 
 class UserProfileInteractionView(generics.CreateAPIView):
     serializer_class = CreateUserProfileInteractionSerializer
-    permission_classes = [TokenHasReadWriteScope]
+    permission_classes = [TokenHasReadWriteScope | IsAdminUser]
     required_scopes = ['can_create_userprofile_interaction']
 
     def post(self, request, *args, **kwargs):
@@ -402,7 +402,7 @@ class UserProfileInteractionView(generics.CreateAPIView):
 
 class EventViewMixin:
     serializer_class = EventSerializer
-    permission_classes = [TokenHasReadWriteScope]
+    permission_classes = [TokenHasReadWriteScope | IsAdminUser]
     required_scopes = ['can_view_events']
 
     def get_queryset(self):
