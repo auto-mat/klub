@@ -28,10 +28,9 @@ Instalace (Docker compose)
     $ docker-compose up
 
     $ docker attach klub_web_1
-    # su test
-    $ pipenv shell
+    $ pipenv install && pipenv shell
     $ export PYTHONPATH=/klub-v
-    $ cd apps/aklub && django-admin.py compilemessages -l cs_CZ
+    $ cd apps/aklub && django-admin.py compilemessages -l cs_CZ && cd ../../
     $ django-admin.py migrate
     $ django-admin.py createsuperuser
     # Set django Site object domain name
