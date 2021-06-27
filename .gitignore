@@ -21,3 +21,6 @@ db_backup
 htmlcov/
 venv/
 .idea/
+
+*.pid
+celerybeat-schedule

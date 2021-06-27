@@ -56,19 +56,6 @@ services:
   volumes:
    - ./:/klub-v/
    - ./pipenv:/home/test
- celery-beat:
-  build: .
-  entrypoint: pipenv run celery beat -A project.celery
-  links:
-   - postgres
-   - redis
-  tty: true
-  stdin_open: true
-  working_dir: /klub-v/
-  user: test
-  volumes:
-   - ./:/klub-v/
-   - ./pipenv:/home/test
 
  redis:
   image: redis
