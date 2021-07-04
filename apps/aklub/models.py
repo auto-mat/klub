@@ -294,6 +294,19 @@ class AdministrativeUnit(models.Model, ParseAccountStatement):
         null=True,
         blank=True,
     )
+    vice_president = models.ForeignKey(
+        "aklub.UserProfile",
+        verbose_name=_("Vice president"),
+        related_name="au_vice_president",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+    )
+    vice_president_since = models.DateField(
+        verbose_name=_("Vice president since"),
+        null=True,
+        blank=True,
+    )
     manager = models.ForeignKey(
         "aklub.UserProfile",
         verbose_name=_("Manager"),
