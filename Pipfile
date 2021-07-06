@@ -121,7 +121,6 @@ model_mommy = "*"
 mock = "*"
 flower = "*"
 ipython = "*"
-v = {editable = true,version = "*"}
 
 [requires]
 python_version = "3.6"
