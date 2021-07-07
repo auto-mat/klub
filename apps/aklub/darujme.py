@@ -64,6 +64,14 @@ def create_payments(pledge, api_account):
                 user_identification=pledge['donor']['email'],
                 recipient_account=api_account,
             )
+
+            try:
+                # For Brontosaurus project 525. Get customFields values
+                payment.regional_centre = pledge['customFields']['Brontosaurus_adopce_RC']
+                payment.main_entity_or_club = pledge['customFields']['Brontosaurus_adopce_ZC']
+            except KeyError:
+                pass
+
             new_payments.append(payment)
             is_donor = True
     return is_donor, new_payments
