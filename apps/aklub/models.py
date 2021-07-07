@@ -2141,6 +2141,22 @@ class Payment(WithAdminUrl, models.Model):
         auto_now=True,
         null=True,
     )
+    regional_centre = models.CharField(
+        #  Darujme API project ID 525: customField (Brontosaurus)
+        #  Example: "Brontosaurus_adopce_RC": "RC HB Jeseníky"
+        verbose_name=_("Regional centre"),
+        max_length=200,
+        blank=True,
+        null=True
+    )
+    main_entity_or_club = models.CharField(
+        #  Darujme API project ID 525: customField (Brontosaurus)
+        #  Example: "Brontosaurus_adopce_ZC": "Ardea Břeclav"
+        verbose_name=_("Main entity or club"),
+        max_length=200,
+        blank=True,
+        null=True,
+    )
 
     objects = GatedPaymentManager()
 
