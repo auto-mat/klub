@@ -67,3 +67,5 @@ services:
    POSTGRES_PASSWORD: foobar
    POSTGRES_USER: klub
    PGDATA: /var/lib/postgresql/data
+  ports:
+  - "6543:5432"
