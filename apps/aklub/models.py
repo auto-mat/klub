@@ -2141,6 +2141,24 @@ class Payment(WithAdminUrl, models.Model):
         auto_now=True,
         null=True,
     )
+    regional_centre = models.ForeignKey(
+        #  Darujme API project ID 525: customField (Brontosaurus)
+        #  Example: "Brontosaurus_adopce_RC": "RC HB Jeseníky"
+        AdministrativeUnit,
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name='regional_centre'
+    )
+    main_entity_or_club = models.ForeignKey(
+        #  Darujme API project ID 525: customField (Brontosaurus)
+        #  Example: "Brontosaurus_adopce_ZC": "Ardea Břeclav"
+        AdministrativeUnit,
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name='main_entity_or_club'
+    )
 
     objects = GatedPaymentManager()
 
