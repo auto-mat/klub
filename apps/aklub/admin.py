@@ -1357,6 +1357,8 @@ class PaymentAdmin(
         'user_identification',
         'type',
         'paired_with_expected',
+        'regional_centre',
+        'main_entity_or_club',
         'created',
         'updated',
     )
@@ -1391,6 +1393,8 @@ class PaymentAdmin(
                 'transfer_type',
                 'specification',
                 'order_id',
+                'regional_centre',
+                'main_entity_or_club',
                 'created',
                 'updated',
             ],
