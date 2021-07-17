@@ -5,12 +5,14 @@ import logging
 
 from aklub.models import (
     AccountStatements, ApiAccount, DonorPaymentChannel, Payment, ProfileEmail, Telephone, UserProfile,
+    AdministrativeUnit
 )
 from aklub.views import get_unique_username
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils.dateparse import parse_datetime
+from django.utils.text import slugify
 
 import requests
 
@@ -64,6 +66,22 @@ def create_payments(pledge, api_account):
                 user_identification=pledge['donor']['email'],
                 recipient_account=api_account,
             )
+
+            # Brontosaurus project 525 -  customField RC and ZC
+            try:
+                regional_centre = pledge['customFields']['Brontosaurus_adopce_RC']
+            except KeyError:
+                pass
+            else:
+                payment.regional_centre = AdministrativeUnit.objects.filter(slug=slugify(regional_centre)).first()
+
+            try:
+                main_entity_or_club = pledge['customFields']['Brontosaurus_adopce_ZC']
+            except KeyError:
+                pass
+            else:
+                payment.main_entity_or_club = AdministrativeUnit.objects.filter(slug=slugify(main_entity_or_club)).first()
+
             new_payments.append(payment)
             is_donor = True
     return is_donor, new_payments
