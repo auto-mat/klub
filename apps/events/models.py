@@ -439,6 +439,20 @@ class Event(models.Model):
         "aklub.administrativeunit",
         verbose_name=_("administrative units"),
     )
+    comment_on_work_done = models.TextField(
+        max_length=2000,
+        verbose_name=_('Comment on work done'),
+        blank=True,
+        null=True,
+        default=''
+    )
+    other_work = models.TextField(
+        max_length=2000,
+        verbose_name=_('Other work'),
+        blank=True,
+        null=True,
+        default=''
+    )
 
     def number_of_members(self):
         return self.donorpaymentchannel_set.count()
