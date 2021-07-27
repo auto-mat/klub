@@ -39,6 +39,7 @@ from django.contrib.auth.models import (
 )
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.humanize.templatetags.humanize import intcomma
+from django.contrib.postgres.fields import JSONField
 from django.core.files.storage import FileSystemStorage
 from django.core.validators import RegexValidator, ValidationError
 from django.db import models, transaction
@@ -2141,6 +2142,7 @@ class Payment(WithAdminUrl, models.Model):
         auto_now=True,
         null=True,
     )
+    custom_fields = JSONField(default=dict)
 
     objects = GatedPaymentManager()
 
