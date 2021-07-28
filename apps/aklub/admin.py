@@ -1306,7 +1306,7 @@ class PaymentResource(ModelResource):
             'recipient_account', 'date', 'amount', 'account' 'bank_code', 'VS', 'VS2', 'SS', 'KS',
             'BIC', 'user_identification', 'type', 'done_by', 'account_name', 'bank_name', 'transfer_note',
             'currency', 'recipient_message', 'operation_id', 'transfer_type', 'specification',
-            'order_id', 'user_donor_payment_channel', 'created', 'updated',
+            'order_id', 'user_donor_payment_channel', 'created', 'updated', 'custom_fields',
                   )
         clean_model_instances = True
         import_id_fields = []  # must be empty or library take field id as default
@@ -1359,6 +1359,7 @@ class PaymentAdmin(
         'paired_with_expected',
         'created',
         'updated',
+        'custom_fields',
     )
     list_editable = ('user_donor_payment_channel',)
     fieldsets = [
@@ -1393,6 +1394,7 @@ class PaymentAdmin(
                 'order_id',
                 'created',
                 'updated',
+                'custom_fields',
             ],
         }),
     ]

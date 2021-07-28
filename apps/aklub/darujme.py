@@ -63,7 +63,9 @@ def create_payments(pledge, api_account):
                 account_name=f"{pledge['donor']['firstName']} {pledge['donor']['lastName']}",
                 user_identification=pledge['donor']['email'],
                 recipient_account=api_account,
+                custom_fields=pledge['customFields']
             )
+
             new_payments.append(payment)
             is_donor = True
     return is_donor, new_payments
