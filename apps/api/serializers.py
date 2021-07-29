@@ -282,7 +282,8 @@ class EventSerializer(serializers.ModelSerializer):
             'invitation_text_4', 'main_photo', 'additional_photo_1', 'additional_photo_2',
             'additional_photo_3', 'additional_photo_4', 'additional_photo_5', 'additional_photo_6',
             'additional_question_1', 'additional_question_2', 'additional_question_3',
-            "contact_person_name", "contact_person_email", "contact_person_telephone",
+            "contact_person_name", "contact_person_email", "contact_person_telephone", "public_on_web_date_from",
+            "public_on_web_date_to",
         ]
 
     def get_administrative_unit_name(self, obj):
