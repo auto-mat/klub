@@ -183,6 +183,7 @@ class CreateUserProfileInteractionSerializer(serializers.ModelSerializer, Valida
     additional_question_1 = serializers.CharField(required=False, allow_blank=True)
     additional_question_2 = serializers.CharField(required=False, allow_blank=True)
     additional_question_3 = serializers.CharField(required=False, allow_blank=True)
+    additional_question_4 = serializers.CharField(required=False, allow_blank=True)
     event = serializers.SlugRelatedField(queryset=Event.objects.filter(slug__isnull=False), slug_field='id')
 
     class Meta:
@@ -192,6 +193,7 @@ class CreateUserProfileInteractionSerializer(serializers.ModelSerializer, Valida
             'age_group', 'birth_month', 'birth_day', 'street', 'city',
             'zip_code', 'event', 'additional_question_1',
             'additional_question_2', 'additional_question_3',
+            'additional_question_4',
         )
         extra_kwargs = {
             'email': {'required': True},
@@ -281,7 +283,7 @@ class EventSerializer(serializers.ModelSerializer):
             'invitation_text_1', 'invitation_text_2', 'invitation_text_3',
             'invitation_text_4', 'main_photo', 'additional_photo_1', 'additional_photo_2',
             'additional_photo_3', 'additional_photo_4', 'additional_photo_5', 'additional_photo_6',
-            'additional_question_1', 'additional_question_2', 'additional_question_3',
+            'additional_question_1', 'additional_question_2', 'additional_question_3', 'additional_question_4',
             "contact_person_name", "contact_person_email", "contact_person_telephone", "public_on_web_date_from",
             "public_on_web_date_to",
         ]
