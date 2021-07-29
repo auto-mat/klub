@@ -131,7 +131,8 @@ class EventAdmin(unit_admin_mixin_generator('administrative_units'), admin.Model
             'classes': ('collapse',),
             'fields': (
                 'enable_signing_petitions', 'enable_registration', 'allow_statistics', 'public_on_web',
-                'email_confirmation_redirect', 'entry_form_url', 'web_url'
+                'public_on_web_date_from', 'public_on_web_date_to', 'email_confirmation_redirect',
+                'entry_form_url', 'web_url'
             ),
         }),
         (_('Additional information'), {
