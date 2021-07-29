@@ -389,7 +389,9 @@ class UserProfileInteractionView(generics.CreateAPIView):
             if event.additional_question_2 else "-"
         add_answer_3 = f"{event.additional_question_3}:\n    {serializer.validated_data.get('additional_question_3', '-')}\n" \
             if event.additional_question_3 else "-"
-        summary = f"{serializer.validated_data['note']}\n{add_answer_1}{add_answer_2}{add_answer_3}"
+        add_answer_4 = f"{event.additional_question_4}:\n    {serializer.validated_data.get('additional_question_4', '-')}\n" \
+            if event.additional_question_4 else "-"
+        summary = f"{serializer.validated_data['note']}\n{add_answer_1}{add_answer_2}{add_answer_3}{add_answer_4}"
 
         Interaction.objects.create(
             user=user,
