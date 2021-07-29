@@ -131,6 +131,12 @@ class Event(models.Model):
         ('non_vegetarian', _('Non-vegetarian')),
         ('can_choose', _('Can choose')),
     )
+    OPPORTUNITIES = (
+        ("", ('---')),
+        ('organizing_events', _('Organizing events')),
+        ('cooperation', _('Cooperation')),
+        ('help_the_locality', _('Help the locality')),
+    )
     registration_method = models.CharField(
         verbose_name=_("Registration method"),
         max_length=128,
@@ -219,6 +225,12 @@ class Event(models.Model):
         max_length=128,
         choices=BASIC_PURPOSE,
         default='action',
+    )
+    opportunity = models.CharField(
+        verbose_name=_("Opportunity"),
+        max_length=128,
+        choices=OPPORTUNITIES,
+        blank=True,
     )
     program = models.CharField(
         verbose_name=_("Program"),
