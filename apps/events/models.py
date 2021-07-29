@@ -116,6 +116,7 @@ class Event(models.Model):
         ('action', _('Action')),
         ('petition', _('Petition')),
         ('camp', _('Camp')),
+        ('opportunity', _('Opportunity')),
     )
     REGISTRATION_METHOD = (
         ('standard', _('Standard')),
