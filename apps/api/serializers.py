@@ -188,8 +188,10 @@ class CreateUserProfileInteractionSerializer(serializers.ModelSerializer, Valida
     class Meta:
         model = UserProfile
         fields = (
-            'first_name', 'last_name', 'telephone', 'email', 'note', 'age_group', 'birth_month', 'birth_day', 'event',
-            'additional_question_1', 'additional_question_2', 'additional_question_3',
+            'first_name', 'last_name', 'telephone', 'email', 'note',
+            'age_group', 'birth_month', 'birth_day', 'street', 'city',
+            'zip_code', 'event', 'additional_question_1',
+            'additional_question_2', 'additional_question_3',
         )
         extra_kwargs = {
             'email': {'required': True},

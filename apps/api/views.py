@@ -356,6 +356,9 @@ class UserProfileInteractionView(generics.CreateAPIView):
                 "age_group": serializer.validated_data.get('age_group'),
                 "birth_month": serializer.validated_data.get('birth_month'),
                 "birth_day": serializer.validated_data.get('birth_day'),
+                "street": serializer.validated_data.get('street'),
+                "city": serializer.validated_data.get('city'),
+                "zip_code": serializer.validated_data.get('zip_code'),
             },
         )
         event = serializer.validated_data.get('event')

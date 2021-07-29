@@ -113,6 +113,9 @@ class TestEventView:
                 "age_group": 2012,
                 "birth_month": 12,
                 "birth_day": 12,
+                "street": "Belmont Avenue 2414",
+                "city": "New York",
+                "zip_code": "10458",
                 "additional_question_1": "answer_1",
                 "additional_question_2": "answer_2",
                 "additional_question_3": "answer_3",
@@ -130,6 +133,9 @@ class TestEventView:
             assert new_user.age_group == post_data["age_group"]
             assert new_user.birth_month == post_data["birth_month"]
             assert new_user.birth_day == post_data["birth_day"]
+            assert new_user.street == post_data["street"]
+            assert new_user.city == post_data["city"]
+            assert new_user.zip_code == post_data["zip_code"]
             assert new_user.administrative_units.first() == event_1.administrative_units.all().first()
 
             assert new_user.interaction_set.count() == 1
