@@ -119,6 +119,7 @@ class TestEventView:
                 "additional_question_1": "answer_1",
                 "additional_question_2": "answer_2",
                 "additional_question_3": "answer_3",
+                "additional_question_4": "answer_4",
                 "event": event_1.id,
             }
             current_date = timezone.now()
@@ -145,12 +146,13 @@ class TestEventView:
             assert interaction.subject == _("Registration to event")
             assert interaction.date_from == current_date
             assert (interaction.summary ==
-                    'note:\n    iam alergic to bees\nhe_1?:\n    answer_1\nhe_2?:\n    answer_2\nhe_3?:\n    answer_3\n')
+                    'note:\n    iam alergic to bees\nhe_1?:\n    answer_1\nhe_2?:\n    answer_2\nhe_3?:\n    answer_3\nhe_4?:\n    answer_4\n')
 
             # second registration => user recognized and only new interaction is created!
             post_data["additional_question_1"] = "new_answer_1"
             post_data["additional_question_2"] = "new_answer_2"
             post_data["additional_question_3"] = "new_answer_3"
+            post_data["additional_question_4"] = "new_answer_4"
 
             response = app_request.post(url, post_data)
             assert response.status_code == 200
