@@ -139,7 +139,7 @@ class EventAdmin(unit_admin_mixin_generator('administrative_units'), admin.Model
         (_('Additional information'), {
             'classes': ('collapse',),
             'fields': (
-                'additional_question_1', 'additional_question_2', 'additional_question_3',
+                'additional_question_1', 'additional_question_2', 'additional_question_3', 'additional_question_4',
                 'main_photo', "additional_photo_1", "additional_photo_2", "additional_photo_3",
                 "additional_photo_4", "additional_photo_5", "additional_photo_6", "invitation_text_short",
                 "invitation_text_1", "invitation_text_2", "invitation_text_3", "invitation_text_4",
