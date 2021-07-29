@@ -109,6 +109,7 @@ class EventAdmin(unit_admin_mixin_generator('administrative_units'), admin.Model
                 'name',
                 'slug',
                 'basic_purpose',
+                'opportunity',
                 'grant',
                 ('date_from', 'date_to', "start_date"),
                 'variable_symbol_prefix',
