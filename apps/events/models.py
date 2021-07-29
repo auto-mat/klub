@@ -276,6 +276,16 @@ class Event(models.Model):
         verbose_name=_("Public on webpage"),
         default=False,
     )
+    public_on_web_date_from = models.DateField(
+        verbose_name=_("Public on the web date from"),
+        null=True,
+        blank=True,
+    )
+    public_on_web_date_to = models.DateField(
+        verbose_name=_("Public on the web date to"),
+        blank=True,
+        null=True,
+    )
     entry_form_url = models.URLField(
         verbose_name=_("Url address of register form"),
         blank=True,
