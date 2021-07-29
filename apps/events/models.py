@@ -143,7 +143,7 @@ class Event(models.Model):
         choices=REGISTRATION_METHOD,
         default='standard',
     )
-    for i in range(1, 4):
+    for i in range(1, 5):
         vars()[f"additional_question_{i}"] = models.CharField(
             verbose_name=_("Additional question number %(number)s" % {"number": i}),
             blank=True,
