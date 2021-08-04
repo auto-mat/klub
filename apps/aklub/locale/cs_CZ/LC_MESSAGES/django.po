@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: AKlub\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-07-29 08:53+0200\n"
+"POT-Creation-Date: 2021-08-04 10:12+0200\n"
 "PO-Revision-Date: 2019-08-02 08:42+0000\n"
 "Last-Translator: Hynek Hanke <hanke@brailcom.org>\n"
 "Language-Team: No linguistic content\n"
@@ -281,8 +281,8 @@ msgstr "Organizační jednotka"
 #: aklub/admin.py:1811 aklub/filters.py:447 aklub/models.py:203
 #: aklub/models.py:418 aklub/models.py:437 aklub/models.py:1429
 #: aklub/models.py:2202 aklub/models.py:2313 events/models.py:17
-#: events/models.py:57 events/models.py:301 events/models.py:554
-#: events/models.py:566
+#: events/models.py:57 events/models.py:313 events/models.py:566
+#: events/models.py:578
 msgid "Name"
 msgstr "Název"
 
@@ -405,7 +405,7 @@ msgstr "Administrace"
 msgid "Recent Actions"
 msgstr "Nedávné akce"
 
-#: aklub/dashboard.py:108 events/admin.py:146
+#: aklub/dashboard.py:108 events/admin.py:148
 msgid "Statistics"
 msgstr "Statistiky"
 
@@ -606,7 +606,7 @@ msgid "Total profiles"
 msgstr "Počet členů"
 
 #: aklub/forms.py:73 aklub/forms.py:157 aklub/forms.py:257 aklub/models.py:267
-#: aklub/models.py:1015 aklub/models.py:1212 events/models.py:441
+#: aklub/models.py:1015 aklub/models.py:1212 events/models.py:453
 msgid ""
 "Telephone must consist of numbers, spaces and + sign or maximum number count "
 "is higher."
@@ -737,7 +737,7 @@ msgstr "Město/Městská část"
 msgid "ZIP Code"
 msgstr "PSČ"
 
-#: aklub/models.py:231 events/models.py:296
+#: aklub/models.py:231 events/models.py:308
 msgid "Url address of website"
 msgstr "Url adresa webu"
 
@@ -771,7 +771,7 @@ msgid "Choose color to help discern Administrative unit in app"
 msgstr "Vyberte barvu pro rozlišení organizační jednotky"
 
 #: aklub/models.py:276 aklub/models.py:429 aklub/models.py:1393
-#: events/models.py:61 events/models.py:355 interactions/models.py:342
+#: events/models.py:61 events/models.py:367 interactions/models.py:342
 msgid "Slug"
 msgstr "Identifikátor"
 
@@ -848,7 +848,7 @@ msgid "Surname"
 msgstr "Příjmení"
 
 #: aklub/models.py:386 aklub/models.py:1026 aklub/models.py:1084
-#: aklub/models.py:1223 aklub/models.py:2400 events/models.py:338
+#: aklub/models.py:1223 aklub/models.py:2400 events/models.py:350
 msgid "Note"
 msgstr "Poznámka"
 
@@ -1040,7 +1040,7 @@ msgstr "Datum vytvoření"
 msgid "Date of last change"
 msgstr "Datum poslední změny"
 
-#: aklub/models.py:621 events/models.py:451
+#: aklub/models.py:621 events/models.py:463
 msgid "administrative units"
 msgstr "Organizační jednotky"
 
@@ -1247,11 +1247,11 @@ msgstr "Datum importu"
 msgid "csv file"
 msgstr "CSV soubor"
 
-#: aklub/models.py:1307 events/models.py:384
+#: aklub/models.py:1307 events/models.py:396
 msgid "Date from"
 msgstr "Datum od"
 
-#: aklub/models.py:1312 events/models.py:389
+#: aklub/models.py:1312 events/models.py:401
 msgid "Date to"
 msgstr "Datum do"
 
@@ -2175,7 +2175,7 @@ msgstr "Špatný formát IČA"
 msgid "User input was: {data[\"crn\"]} and was not create in system"
 msgstr ""
 
-#: api/tests/test_py_views.py:145 api/views.py:401
+#: api/tests/test_py_views.py:146 api/views.py:403
 #, fuzzy
 #| msgid "Registration method"
 msgid "Registration to event"
@@ -2242,7 +2242,7 @@ msgstr "Obnovení hesla"
 msgid "Event registration"
 msgstr "Opakovaná registrace"
 
-#: api/views.py:397
+#: api/views.py:399
 #, fuzzy
 #| msgid "note"
 msgid "note:"
@@ -2252,19 +2252,19 @@ msgstr "poznámka"
 msgid "Download darujme statements"
 msgstr "Stáhnout výpisy z Darujme.cz"
 
-#: events/admin.py:119
+#: events/admin.py:120
 msgid "Detail information"
 msgstr "Detailní informace"
 
-#: events/admin.py:130
+#: events/admin.py:131
 msgid "Web setting"
 msgstr "Webové nastavení"
 
-#: events/admin.py:137
+#: events/admin.py:139
 msgid "Additional information"
 msgstr "Rozšiřující informace"
 
-#: events/admin.py:187
+#: events/admin.py:189
 msgid "Yield per period"
 msgstr "Výnosy za období"
 
@@ -2272,7 +2272,19 @@ msgstr "Výnosy za období"
 msgid "Filter by Yield period"
 msgstr "Filtrovat výnosy dle období"
 
-#: events/models.py:13 events/models.py:204
+#: events/forms.py:16
+msgid "You can't select more than one adminstrative_unit."
+msgstr "Nemůžete vybrat více než jednu administrativní jednotku."
+
+#: events/forms.py:18
+msgid "You must select one non-empty opportunity option."
+msgstr "Musíte vybrat jednu neprázdnou možnost příležitosti."
+
+#: events/forms.py:20
+msgid "You must select 'Opportunity' option."
+msgstr "Musíte vybrat možnost „Příležitost“."
+
+#: events/models.py:13 events/models.py:210
 msgid "Location"
 msgstr "Lokace"
 
@@ -2288,7 +2300,7 @@ msgstr "Místo"
 msgid "Region"
 msgstr "Kraj"
 
-#: events/models.py:52 events/models.py:211
+#: events/models.py:52 events/models.py:217
 msgid "Event type"
 msgstr "Typ události"
 
@@ -2306,7 +2318,7 @@ msgstr "Název typu události"
 msgid "Identifier of the event type"
 msgstr "Identifikátor typu interakce"
 
-#: events/models.py:70 events/models.py:332 events/models.py:555
+#: events/models.py:70 events/models.py:344 events/models.py:567
 msgid "Description"
 msgstr "Popis"
 
@@ -2314,7 +2326,7 @@ msgstr "Popis"
 msgid "Description of this type"
 msgstr "Popis typu eventu"
 
-#: events/models.py:91 events/models.py:579
+#: events/models.py:91 events/models.py:591
 msgid "Event"
 msgstr "Událost"
 
@@ -2386,7 +2398,7 @@ msgstr "Petice"
 msgid "Camp"
 msgstr "Tábor"
 
-#: events/models.py:119
+#: events/models.py:119 events/models.py:230
 msgid "Opportunity"
 msgstr "Příležitost"
 
@@ -2422,323 +2434,339 @@ msgstr ""
 msgid "Can choose"
 msgstr ""
 
-#: events/models.py:135
+#: events/models.py:136
+#, fuzzy
+#| msgid "Organization teams"
+msgid "Organizing events"
+msgstr "Organizační tým"
+
+#: events/models.py:137
+#, fuzzy
+#| msgid "Operation"
+msgid "Cooperation"
+msgstr "Operace"
+
+#: events/models.py:138
+msgid "Help the locality"
+msgstr ""
+
+#: events/models.py:141
 msgid "Registration method"
 msgstr "Způsob registrace"
 
-#: events/models.py:142
+#: events/models.py:148
 #, python-format
 msgid "Additional question number %(number)s"
 msgstr "Doplňková otázka číslo %(number)s"
 
-#: events/models.py:147
+#: events/models.py:153
 msgid "Main photo"
 msgstr "Hlavní fotka"
 
-#: events/models.py:154
+#: events/models.py:160
 #, python-format
 msgid "Additional photo number %(number)s"
 msgstr "Doplňková fotka číslo %(number)s"
 
-#: events/models.py:161
+#: events/models.py:167
 msgid "Short Invitation text"
 msgstr "Pozvánka: malá ochutnávka"
 
-#: events/models.py:166
+#: events/models.py:172
 msgid "Invitation: What to expect"
 msgstr "Pozvánka: co očekávat"
 
-#: events/models.py:167
+#: events/models.py:173
 msgid "What to except, basic informations."
 msgstr "Co očekávat, základní informace"
 
-#: events/models.py:173
+#: events/models.py:179
 msgid "Invitation: What, where and how"
 msgstr "Pozvánka: co, kde a jak"
 
-#: events/models.py:174
+#: events/models.py:180
 msgid "Program of action."
 msgstr "Program akce"
 
-#: events/models.py:180
+#: events/models.py:186
 msgid "Invitation: Volunter help"
 msgstr "Pozvánka: dobrovolnická pomoc"
 
-#: events/models.py:181
+#: events/models.py:187
 msgid "Volunter help"
 msgstr "dobrovolnická pomoc"
 
-#: events/models.py:187
+#: events/models.py:193
 msgid "Invitation: Little sneek peek"
 msgstr "Pozvánka: ochutnávka"
 
-#: events/models.py:188
+#: events/models.py:194
 msgid "Little sneek peek"
 msgstr "Malá ochutnávka"
 
-#: events/models.py:193
+#: events/models.py:199
 msgid "Number of actions in given time period"
 msgstr "Počet akcí za termín konání"
 
-#: events/models.py:198 events/models.py:575
+#: events/models.py:204 events/models.py:587
 msgid "Organization team"
 msgstr "Organizační tým"
 
-#: events/models.py:218
+#: events/models.py:224
 msgid "Basic Purpose"
 msgstr "Základní účel"
 
-#: events/models.py:224
+#: events/models.py:236
 msgid "Program"
 msgstr "Program"
 
-#: events/models.py:231
+#: events/models.py:243
 msgid "Only for internal members"
 msgstr "Pouze pro interní členy"
 
-#: events/models.py:235
+#: events/models.py:247
 msgid "Age from"
 msgstr "věk od"
 
-#: events/models.py:240
+#: events/models.py:252
 msgid "Age to"
 msgstr "věk do"
 
-#: events/models.py:245
+#: events/models.py:257
 msgid "Indended for"
 msgstr "Pro koho"
 
-#: events/models.py:251
+#: events/models.py:263
 msgid "Participation fee"
 msgstr "Účastnický poplatek"
 
-#: events/models.py:256
+#: events/models.py:268
 msgid "Responsible person"
 msgstr ""
 
-#: events/models.py:261
+#: events/models.py:273
 msgid "Meeting at the event"
 msgstr "Místo srazu"
 
-#: events/models.py:266
+#: events/models.py:278
 msgid "Grant"
 msgstr "Dotace"
 
-#: events/models.py:272
+#: events/models.py:284
 msgid "Focus on members"
 msgstr "Akce zaměřená na členy"
 
-#: events/models.py:277
+#: events/models.py:289
 msgid "Public on webpage"
 msgstr "Zobrazit na webu"
 
-#: events/models.py:281
+#: events/models.py:293
 #, fuzzy
 #| msgid "Public on webpage"
 msgid "Public on the web date from"
 msgstr "Zobrazit na webu"
 
-#: events/models.py:286
+#: events/models.py:298
 #, fuzzy
 #| msgid "Public on webpage"
 msgid "Public on the web date to"
 msgstr "Zobrazit na webu"
 
-#: events/models.py:291
+#: events/models.py:303
 msgid "Url address of register form"
 msgstr "Url adresa registračního formuláře"
 
-#: events/models.py:302
+#: events/models.py:314
 msgid "Choose some unique name for this campaign"
 msgstr "Vyberte pro tuto kampaň nějaké unikátní jméno"
 
-#: events/models.py:306
+#: events/models.py:318
 msgid "Vip action"
 msgstr "akce pro VIP"
 
-#: events/models.py:310
+#: events/models.py:322
 msgid "Promoted in the magazine"
 msgstr "Propagován v časopise"
 
-#: events/models.py:314
+#: events/models.py:326
 msgid "Hours worked"
 msgstr "Odpracované hodiny"
 
-#: events/models.py:319
+#: events/models.py:331
 msgid "Working hours (per day)"
 msgstr ""
 
-#: events/models.py:326
+#: events/models.py:338
 msgid "Variable_symbol_prefix"
 msgstr "Předčíslí variabilního symbolu"
 
-#: events/models.py:327
+#: events/models.py:339
 msgid "Number between 10000-99999"
 msgstr "číslo mezi 10000-99999 "
 
-#: events/models.py:333
+#: events/models.py:345
 msgid "Description of this campaign"
 msgstr "Popis kampaně"
 
-#: events/models.py:339
+#: events/models.py:351
 msgid "Note of this campaign"
 msgstr "Popis události"
 
-#: events/models.py:344
+#: events/models.py:356
 msgid "Real yield"
 msgstr "Reálné výnosy"
 
-#: events/models.py:345
+#: events/models.py:357
 msgid "Use if yield differs from counted value"
 msgstr "Použijte pokud se reálné výnosy liší od vypočítané hodnoty."
 
-#: events/models.py:351
+#: events/models.py:363
 msgid "Acceptable results of communication"
 msgstr "Přípustné výsledky komunikací"
 
-#: events/models.py:358
+#: events/models.py:370
 msgid "Identifier of the campaign"
 msgstr "Identifikátor kampaně"
 
-#: events/models.py:366
+#: events/models.py:378
 msgid "Enable registration through petition/mailing list forms"
 msgstr "Povolit registraci skrz petiční nebo přihlašovací formulář"
 
-#: events/models.py:370
+#: events/models.py:382
 msgid "Enable registration through donation forms"
 msgstr "Povolit registraci přes darovací formulář"
 
-#: events/models.py:374
+#: events/models.py:386
 msgid "Allow statistics exports"
 msgstr "Povolit exporty statistik kampaně"
 
-#: events/models.py:378
+#: events/models.py:390
 msgid "Redirect to url after email confirmation"
 msgstr "Přesměrování na url adresu po potvrzení emailu"
 
-#: events/models.py:394
+#: events/models.py:406
 msgid "Start date"
 msgstr "Datum začátku"
 
-#: events/models.py:399
+#: events/models.py:411
 #, fuzzy
 #| msgid "Condition"
 msgid "Accomondation"
 msgstr "Podmínka"
 
-#: events/models.py:404
+#: events/models.py:416
 msgid "Diet"
 msgstr ""
 
-#: events/models.py:410
+#: events/models.py:422
 msgid "Looking forward to you"
 msgstr ""
 
-#: events/models.py:415
+#: events/models.py:427
 msgid "Total working days"
 msgstr ""
 
-#: events/models.py:420
+#: events/models.py:432
 #, fuzzy
 #| msgid "Participation fee"
 msgid "Total participations"
 msgstr "Účastnický poplatek"
 
-#: events/models.py:425
+#: events/models.py:437
 #, fuzzy
 #| msgid "Participation fee"
 msgid "Total participations under 26 years"
 msgstr "Účastnický poplatek"
 
-#: events/models.py:430
+#: events/models.py:442
 #, fuzzy
 #| msgid "Contact first name"
 msgid "Contact person name"
 msgstr "Jméno"
 
-#: events/models.py:435
+#: events/models.py:447
 #, fuzzy
 #| msgid "Telephone number"
 msgid "Contact person telephone number"
 msgstr "Telefon"
 
-#: events/models.py:446
+#: events/models.py:458
 #, fuzzy
 #| msgid "email address"
 msgid "Contact person email address"
 msgstr "e-mailová adresa"
 
-#: events/models.py:455
+#: events/models.py:467
 msgid "Comment on work done"
 msgstr ""
 
-#: events/models.py:462
+#: events/models.py:474
 #, fuzzy
 #| msgid "Other support"
 msgid "Other work"
 msgstr "Jiná podpora"
 
-#: events/models.py:471
+#: events/models.py:483
 msgid "number of members"
 msgstr "počet členů"
 
-#: events/models.py:492
+#: events/models.py:504
 msgid "recruiters"
 msgstr "verbíři"
 
-#: events/models.py:497
+#: events/models.py:509
 msgid "number of recruiters"
 msgstr "počet verbířů"
 
-#: events/models.py:506
+#: events/models.py:518
 msgid "total yield"
 msgstr "Celkové výnosy"
 
-#: events/models.py:515
+#: events/models.py:527
 msgid "expected yearly income"
 msgstr "předpokládaný roční příjem"
 
-#: events/models.py:520
+#: events/models.py:532
 msgid "expected monthly income"
 msgstr "předpokládaný měsíční příjem"
 
-#: events/models.py:526
+#: events/models.py:538
 msgid "return of investmensts"
 msgstr "návratnost investic"
 
-#: events/models.py:531
+#: events/models.py:543
 msgid "total expenses"
 msgstr "celkové výdaje"
 
-#: events/models.py:537
+#: events/models.py:549
 msgid "average expense"
 msgstr "průměrný výdaj"
 
-#: events/models.py:543
+#: events/models.py:555
 msgid "average yield"
 msgstr "průměrný výnos"
 
-#: events/models.py:551 events/models.py:552
+#: events/models.py:563 events/models.py:564
 msgid "Organization position"
 msgstr "Pozice organizátora"
 
-#: events/models.py:563 events/models.py:581
+#: events/models.py:575 events/models.py:593
 msgid "Qualification"
 msgstr "Kvalifikace"
 
-#: events/models.py:564
+#: events/models.py:576
 msgid "Qualifications"
 msgstr "Kvalifikace"
 
-#: events/models.py:567
+#: events/models.py:579
 msgid "Abbreviated name"
 msgstr "Zkrácený název"
 
-#: events/models.py:576
+#: events/models.py:588
 msgid "Organization teams"
 msgstr "Organizační tým"
 
-#: events/models.py:580
+#: events/models.py:592
 msgid "Position"
 msgstr "Pozice"
 
@@ -3172,9 +3200,6 @@ msgstr ""
 
 #~ msgid "nor"
 #~ msgstr "ani (nor)"
-
-#~ msgid "Operation"
-#~ msgstr "Operace"
 
 #~ msgid "Display as filter?"
 #~ msgstr "Zobrazit jako filtr?"
