@@ -31,7 +31,7 @@ RUN mkdir -p /var/log/django/
 
 copy Pipfile.lock Pipfile.lock
 copy Pipfile Pipfile
-RUN su test ; pipenv install --dev --python python3
+RUN su test ; pipenv install --dev --python python3.6
 copy . .
 RUN SECRET_KEY="fake_key" pipenv run python manage.py bower install
 RUN SECRET_KEY="fake_key" pipenv run python manage.py compilemessages
