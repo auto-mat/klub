@@ -119,7 +119,7 @@ coveralls = "*"
 django-admin-smoke-tests-2 = {ref = "merge_all",git = "https://github.com/PetrDlouhy/django-admin-smoke-tests",editable = true}
 model_mommy = "*"
 mock = "*"
-flower = "*"
+flower = "==0.9.7"
 ipython = "*"
 
 [requires]
