@@ -37,6 +37,10 @@ class Command(BaseCommand):
             '--db', dest='db', default=None, type=str,
             help='Specifies the db for the mysql db that you\'re migrating from.',
         )
+        parser.add_argument(
+            '--dont-export-users', dest='dont_export_users', default=False,
+            help='Export users?', action='store_true',
+        )
 
     def handle(self, *args, **options):
         mydb = mysql.connector.connect(
@@ -46,80 +50,78 @@ class Command(BaseCommand):
           database=options.get("db")
         )
         cur = mydb.cursor(buffered=True, dictionary=True)
-        sql = "SELECT * from adresa"
-        cur.execute(sql)
-        adresa_all = cur.fetchall()
-        print("------------------ migrace uzivatelu----------------------")
-        cur = mydb.cursor(buffered=True, dictionary=True)
-        sql = "SELECT * from adresa"
-        cur.execute(sql)
-        adresa_all = cur.fetchall()
-        dups = []
-        exceptions = open("user-exceptions", "w")
-        for adresa in adresa_all:
-            try:
-                user, created = UserProfile.objects.get_or_create(
-                    id=adresa["id"],
-                    username=adresa["id"],
-                    defaults={
-                        "title_before":adresa.get("titul"),
-                        "nickname":adresa.get("prezdivka") or "",
-                        "first_name":adresa.get("jmeno"),
-                        "last_name":adresa.get("prijmeni"),
-                        "addressment":adresa.get("osloveni") or "",
-                        "maiden_name":adresa.get("rodne_prijmeni") or "",
-                        "street":adresa.get("ulice") or "",
-                        "city":adresa.get("mesto") or "",
-                        "zip_code":adresa.get("psc") or "",
-                        "age_group":adresa.get("datum_narozeni").year if adresa.get("datum_narozeni") else None,
-                        "birth_month":adresa.get("datum_narozeni").month if adresa.get("datum_narozeni") else None,
-                        "birth_day":adresa.get("datum_narozeni").day if adresa.get("datum_narozeni") else None,
-                        "correspondence_street":adresa.get("kont_ulice") or "",
-                        "correspondence_city":adresa.get("kont_mesto") or "",
-                        "correspondence_zip_code":adresa.get("kont_psc") or "",
-                        "note":adresa.get("poznamka") or "",
-                        "created":adresa.get("created_at"),
-                    }
-                )
-            except Exception as e:
-                print(adresa, "field to long exception.", str(e))
-                exceptions.write(str(adresa) + "\n")
+        if not options.get("dont_export_users"):
+            print("------------------ migrace uzivatelu----------------------")
+            cur = mydb.cursor(buffered=True, dictionary=True)
+            sql = "SELECT * from adresa"
+            cur.execute(sql)
+            adresa_all = cur.fetchall()
+            dups = []
+            exceptions = open("user-exceptions", "w")
+            for adresa in adresa_all:
+                try:
+                    user, created = UserProfile.objects.get_or_create(
+                        id=adresa["id"],
+                        username=adresa["id"],
+                        defaults={
+                            "title_before":adresa.get("titul"),
+                            "nickname":adresa.get("prezdivka") or "",
+                            "first_name":adresa.get("jmeno"),
+                            "last_name":adresa.get("prijmeni"),
+                            "addressment":adresa.get("osloveni") or "",
+                            "maiden_name":adresa.get("rodne_prijmeni") or "",
+                            "street":adresa.get("ulice") or "",
+                            "city":adresa.get("mesto") or "",
+                            "zip_code":adresa.get("psc") or "",
+                            "age_group":adresa.get("datum_narozeni").year if adresa.get("datum_narozeni") else None,
+                            "birth_month":adresa.get("datum_narozeni").month if adresa.get("datum_narozeni") else None,
+                            "birth_day":adresa.get("datum_narozeni").day if adresa.get("datum_narozeni") else None,
+                            "correspondence_street":adresa.get("kont_ulice") or "",
+                            "correspondence_city":adresa.get("kont_mesto") or "",
+                            "correspondence_zip_code":adresa.get("kont_psc") or "",
+                            "note":adresa.get("poznamka") or "",
+                            "created":adresa.get("created_at"),
+                        }
+                    )
+                except Exception as e:
+                    print(adresa, "field to long exception.", str(e))
+                    exceptions.write(str(adresa) + "\n")
 
-            try:
-                pe = ProfileEmail.objects.get(email=adresa["email"])
-                if pe.user != user:
-                    print(adresa.get("email"), "probably duplicited", adresa)
-                    d = pe.user.__dict__
-                    del d["_state"]
-                    del d["created"]
-                    del d["updated"]
-                    del d["date_joined"]
-                    del d["profile_picture"]
-                    print(d)
-                    dups.append(adresa)
-                    dups.append(d)
-            except ProfileEmail.DoesNotExist:
-                pass
+                try:
+                    pe = ProfileEmail.objects.get(email=adresa["email"])
+                    if pe.user != user:
+                        print(adresa.get("email"), "probably duplicited", adresa)
+                        d = pe.user.__dict__
+                        del d["_state"]
+                        del d["created"]
+                        del d["updated"]
+                        del d["date_joined"]
+                        del d["profile_picture"]
+                        print(d)
+                        dups.append(adresa)
+                        dups.append(d)
+                except ProfileEmail.DoesNotExist:
+                    pass
 
-            if created:
-                #print("User ", adresa.get("jmeno"), " added.")
-                if adresa.get("email"):
-                    try:
-                        email = ProfileEmail.objects.create(user=user, email=adresa["email"], is_primary=True)
-                    except Exception as e:
-                        pass
+                if created:
+                    #print("User ", adresa.get("jmeno"), " added.")
+                    if adresa.get("email"):
+                        try:
+                            email = ProfileEmail.objects.create(user=user, email=adresa["email"], is_primary=True)
+                        except Exception as e:
+                            pass
 
-                if adresa.get("telefon"):
-                    Telephone.objects.create(is_primary=True, user=user, telephone=adresa.get("telefon"))
+                    if adresa.get("telefon"):
+                        Telephone.objects.create(is_primary=True, user=user, telephone=adresa.get("telefon"))
 
-        import csv
-        keys = set(dups[0].keys())
-        keys.update(dups[1].keys())
-        with open('user-dups.csv', 'w', newline='') as output_file:
-            dict_writer = csv.DictWriter(output_file, keys)
-            dict_writer.writeheader()
-            dict_writer.writerows(dups)
-        exceptions.close()
+            import csv
+            keys = set(dups[0].keys())
+            keys.update(dups[1].keys())
+            with open('user-dups.csv', 'w', newline='') as output_file:
+                dict_writer = csv.DictWriter(output_file, keys)
+                dict_writer.writeheader()
+                dict_writer.writerows(dups)
+            exceptions.close()
         print("------------------ migrace administrativeu units----------------------")
         cur = mydb.cursor(buffered=True, dictionary=True)
         sql = "SELECT * from klub"
