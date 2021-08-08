@@ -141,15 +141,17 @@ class Command(BaseCommand):
             AdministrativeUnit.objects.get_or_create(
                 id=au.get("id") or "",
                 name=au.get("nazev") or "",
-                street=au.get("ulice") or "",
-                city=au.get("mesto") or "",
-                zip_code=au.get("zip_code") or "",
-                web_url=au.get("www"),
-                level=uroven,
-                telephone=au.get("telefon") or "",
-                from_email_address=au.get("email") or "",
-                president__id=au.get("predseda"),
-                president_since=au.get("predseda_od"),
+                defaults = {
+                    "street":au.get("ulice") or "",
+                    "city":au.get("mesto") or "",
+                    "zip_code":au.get("zip_code") or "",
+                    "web_url":au.get("www"),
+                    "level":uroven,
+                    "telephone":au.get("telefon") or "",
+                    "from_email_address":au.get("email") or "",
+                    "president__id":au.get("predseda"),
+                    "president_since":au.get("predseda_od"),
+                }
             )
 
         sql = "SELECT * from akce_typ"
