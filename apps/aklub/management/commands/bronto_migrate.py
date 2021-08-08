@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import json
 from aklub.models import AdministrativeUnit, ProfileEmail, UserProfile, Telephone, Profile
 from events.models import Event, EventType
 from interactions.models import InteractionCategory, InteractionType, Interaction
@@ -7,7 +8,10 @@ from django.contrib.auth.models import Group, Permission
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-import mysql.connector
+try:
+    import mysql.connector
+except ImportError:
+    print("Import error, please run\n pip install mysql-connector-python-rf")
 
 
 class Command(BaseCommand):
@@ -50,37 +54,72 @@ class Command(BaseCommand):
         sql = "SELECT * from adresa"
         cur.execute(sql)
         adresa_all = cur.fetchall()
+        dups = []
+        exceptions = open("user-exceptions", "w")
         for adresa in adresa_all:
-            user = UserProfile.objects.create(
-                id=adresa["id"],
-                username=adresa["id"],
-                title_before=adresa.get("titul"),
-                nickname=adresa.get("prezdivka") or "",
-                first_name=adresa.get("jmeno"),
-                last_name=adresa.get("prijmeni"),
-                addressment=adresa.get("osloveni") or "",
-                maiden_name=adresa.get("rodne_prijmeni") or "",
-                street=adresa.get("ulice") or "",
-                city=adresa.get("mesto") or "",
-                zip_code=adresa.get("psc") or "",
-                age_group=adresa.get("datum_narozeni").year if adresa.get("datum_narozeni") else None,
-                birth_month=adresa.get("datum_narozeni").month if adresa.get("datum_narozeni") else None,
-                birth_day=adresa.get("datum_narozeni").day if adresa.get("datum_narozeni") else None,
-                correspondence_street=adresa.get("kont_ulice") or "",
-                correspondence_city=adresa.get("kont_mesto") or "",
-                correspondence_zip_code=adresa.get("kont_psc") or "",
-                note=adresa.get("poznamka") or "",
-                created=adresa.get("created_at"),
-            )
-            if adresa.get("email"):
-                try:
-                    email = ProfileEmail.objects.create(user=user, email=adresa["email"], is_primary=True)
-                except Exception as e:
-                    print(adresa.get("email"), "probably duplicited")
+            try:
+                user, created = UserProfile.objects.get_or_create(
+                    id=adresa["id"],
+                    username=adresa["id"],
+                    defaults={
+                        "title_before":adresa.get("titul"),
+                        "nickname":adresa.get("prezdivka") or "",
+                        "first_name":adresa.get("jmeno"),
+                        "last_name":adresa.get("prijmeni"),
+                        "addressment":adresa.get("osloveni") or "",
+                        "maiden_name":adresa.get("rodne_prijmeni") or "",
+                        "street":adresa.get("ulice") or "",
+                        "city":adresa.get("mesto") or "",
+                        "zip_code":adresa.get("psc") or "",
+                        "age_group":adresa.get("datum_narozeni").year if adresa.get("datum_narozeni") else None,
+                        "birth_month":adresa.get("datum_narozeni").month if adresa.get("datum_narozeni") else None,
+                        "birth_day":adresa.get("datum_narozeni").day if adresa.get("datum_narozeni") else None,
+                        "correspondence_street":adresa.get("kont_ulice") or "",
+                        "correspondence_city":adresa.get("kont_mesto") or "",
+                        "correspondence_zip_code":adresa.get("kont_psc") or "",
+                        "note":adresa.get("poznamka") or "",
+                        "created":adresa.get("created_at"),
+                    }
+                )
+            except Exception as e:
+                print(adresa, "field to long exception.", str(e))
+                exceptions.write(str(adresa) + "\n")
 
-            if adresa.get("telefon"):
-                Telephone.objects.create(is_primary=True, user=user, telephone=adresa.get("telefon"))
+            try:
+                pe = ProfileEmail.objects.get(email=adresa["email"])
+                if pe.user != user:
+                    print(adresa.get("email"), "probably duplicited", adresa)
+                    d = pe.user.__dict__
+                    del d["_state"]
+                    del d["created"]
+                    del d["updated"]
+                    del d["date_joined"]
+                    del d["profile_picture"]
+                    print(d)
+                    dups.append(adresa)
+                    dups.append(d)
+            except ProfileEmail.DoesNotExist:
+                pass
 
+            if created:
+                #print("User ", adresa.get("jmeno"), " added.")
+                if adresa.get("email"):
+                    try:
+                        email = ProfileEmail.objects.create(user=user, email=adresa["email"], is_primary=True)
+                    except Exception as e:
+                        pass
+
+                if adresa.get("telefon"):
+                    Telephone.objects.create(is_primary=True, user=user, telephone=adresa.get("telefon"))
+
+        import csv
+        keys = set(dups[0].keys())
+        keys.update(dups[1].keys())
+        with open('user-dups.csv', 'w', newline='') as output_file:
+            dict_writer = csv.DictWriter(output_file, keys)
+            dict_writer.writeheader()
+            dict_writer.writerows(dups)
+        exceptions.close()
         print("------------------ migrace administrativeu units----------------------")
         cur = mydb.cursor(buffered=True, dictionary=True)
         sql = "SELECT * from klub"
@@ -182,7 +221,7 @@ class Command(BaseCommand):
                 prihlaska = "not_required"
             elif prihlaska == 5:
                 prihlaska = "full"
-            Event.objects.create(
+            Event.objects.get_or_create(
                 id=akce.get("id"),
                 name=akce.get("nazev"),
                 date_from=akce.get("od"),
@@ -231,9 +270,12 @@ class Command(BaseCommand):
         for porada in porada_all:
             try:
                 event = Event.objects.get(id=porada.get("akce"))
+            except:
+                print(porada, "event neexistuje")
+            try:
                 unit = AdministrativeUnit.objects.get(id=porada.get("klub"))
             except:
-                print(porada, "neexistuje")
+                print(porada, "unit neexistuje")
             event.administrative_units.add(unit)
 
         print("a taky jejich event_type (takze znova to projedem pač už víme jaké administrativni jednotky eventy maji)")
@@ -268,9 +310,13 @@ class Command(BaseCommand):
         for ucastnik in ucastnik_all:
             try:
                 event = Event.objects.get(id=ucastnik.get("akce"))
+            except:
+                print(ucastnik, "event neexistuje")
+                continue
+            try:
                 user = UserProfile.objects.get(id=ucastnik.get("adresa"))
             except:
-                print(ucastnik, "neexistuje")
+                print(ucastnik, "user neexistuje")
                 continue
             Interaction.objects.create(
                 event=event,
@@ -325,7 +371,7 @@ class Command(BaseCommand):
                 print("AU do not exists... skipping")
                 print("or User do not exists... skipping")
                 continue
-            Interaction.objects.create(
+            Interaction.objects.get_or_create(
                 subject="Členství v Brontosaurech",
                 administrative_unit=au,
                 user=user,
