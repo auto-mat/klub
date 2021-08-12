@@ -253,7 +253,7 @@ class Command(BaseCommand):
                     "invitation_text_short":akce.get("text") or "",
                     "invitation_text_1":akce.get("text_uvod") or "",
                     "invitation_text_2":akce.get("text_info") or "",
-                    "invitation_text_3":akce.get("text_dopr") or "",
+                    "invitation_text_3":akce.get("text_dobr") or "",
                     "invitation_text_4":akce.get("text_mnam") or "",
                     "grant":grant,
                     "focus_on_members":akce.get("zamereno_na_cleny"),
