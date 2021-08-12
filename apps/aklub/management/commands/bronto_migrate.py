@@ -245,7 +245,7 @@ class Command(BaseCommand):
                     "total_participants":akce.get("lidi"),
                     "total_participants_under_26":akce.get("lidi_do26"),
                     "public_on_web":akce.get("zverejnit"),
-                    "registration_method":akce.get("prihlaska"),
+                    "registration_method":prihlaska,
                     "participation_fee":akce.get("poplatek") or "",
                     "looking_forward_to_you":akce.get("org") or "",
                     "entry_form_url":akce.get("kontakt_url"),
