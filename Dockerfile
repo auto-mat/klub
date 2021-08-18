@@ -1,6 +1,6 @@
 FROM python:3.6
 
-RUN curl -sL https://deb.nodesource.com/setup_10.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
 run apt-get update && apt-get install -y \
    binutils \
    gdal-bin \
