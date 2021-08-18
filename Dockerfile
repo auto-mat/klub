@@ -1,4 +1,4 @@
-FROM python:3.6
+FROM python:3.6-buster
 
 RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
 run apt-get update && apt-get install -y \
