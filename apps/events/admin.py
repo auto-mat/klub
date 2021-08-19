@@ -88,6 +88,7 @@ class EventAdmin(unit_admin_mixin_generator('administrative_units'), admin.Model
     )
     list_filter = [
         ('donorpaymentchannel__payment__date', filters.EventYieldDateRangeFilter),
+        'grant',
     ]
     readonly_fields = (
         'number_of_members',

@@ -210,7 +210,7 @@ class Command(BaseCommand):
             if grant == 0:
                 grant = "no_grant"
             elif grant == 1:
-                grant == "MEYS"
+                grant = "MEYS"
             elif grant == 2:
                 grant = "others"
 
