@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import json
-from aklub.models import AdministrativeUnit, ProfileEmail, UserProfile, Telephone, Profile
+from aklub.models import AdministrativeUnit, ProfileEmail, UserProfile, Telephone, Profile, BankAccount
 from events.models import Event, EventType
 from interactions.models import InteractionCategory, InteractionType, Interaction
 from django.conf import settings
@@ -153,6 +153,25 @@ class Command(BaseCommand):
                     "president_since":au.get("predseda_od"),
                 }
             )
+
+        print("--------- Loading zakladní članky --------------")
+        sql = "SELECT * from zc"
+        cur.execute(sql)
+        zc_all = cur.fetchall()
+        for zc in zc_all:
+            au = AdministrativeUnit.objects.get(id=zc.get("id"))
+            au.ico = zc.ic
+            au.manager = UserProfile.objects.get(id=zc.hospodar)
+            au.manager_since = zc.hospodar_od
+            au.president = UserProfile.objects.get(id=zc.statutar)
+            au.president_since = zc.statutar_od
+            au.vice_president = UserProfile.objects.get(id=zc.statutar2)
+            au.vice_president_since = zc.statutar2_od
+            BankAccount.objects.get_or_create(
+                bank_account_number=zc.ucet,
+                admininstrative_unit=au,
+            )
+
 
         sql = "SELECT * from akce_typ"
         cur.execute(sql)
