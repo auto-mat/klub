@@ -112,11 +112,11 @@ class CustomUserManager(PolymorphicManager, UserManager):
         email = self.normalize_email(email)
         user = model(email=email, **extra_fields)
         user.set_password(password)
-        user.save()
+        user_instance = user.save()
         email = ProfileEmail(
             email=email,
             is_primary=True,
-            user=user,
+            user=user_instance,
         )
         email.save()
 
