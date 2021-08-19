@@ -37,7 +37,7 @@ django-betterforms = {editable = true,git = "https://github.com/PetrKudy/django-
 django-adminactions = "*"
 # waiting for new version > 0.1.6  => related fields lookup
 django-admin-numeric-filter = {editable = true,git = "https://github.com/PetrKudy/django-admin-numeric-filter",ref = "related_fields_fix"}
-django-helpdesk = {editable = true,git = "https://github.com/auto-mat/django-helpdesk.git",ref = "large-desk-performance"}
+django-helpdesk = {editable = true,git = "https://github.com/auto-mat/django-helpdesk.git",ref = "iframe-defaults-fix"}
 django-celery-beat = "==2.0.0" # helpdesk locking =>  v.>2.0.0 using celery >=4.4 which is not possible to use atm!
 django-admin-large-initial-data = "*"
 # need version  > 0.24.1
