@@ -330,6 +330,7 @@ class InteractionType(models.Model):
 
     name = models.CharField(
         max_length=130,
+        verbose_name='Interaction name'
     )
 
     category = models.ForeignKey(

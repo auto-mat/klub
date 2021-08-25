@@ -1902,7 +1902,7 @@ class UserProfileAdmin(
 
     def get_list_filter(self, request):
         """
-        return from super() is a tuple of objects and tuples!
+        return from super() is a tuple of objects and tuples.
         This method returns new tuple without admin_unit_filer as list of admin units
 
         The new admin_unit_filter as text-input-search box is added in list_filter
@@ -2095,6 +2095,7 @@ class UserProfileAdmin(
         filters.TelephoneFilter,
         filters.NameFilter,
         UserConditionFilter, UserConditionFilter1,
+        'interaction__type__name',
     )
     ordering = ('email',)
     filter_horizontal = ('groups', 'user_permissions',)
