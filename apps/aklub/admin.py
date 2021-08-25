@@ -1689,8 +1689,8 @@ parse_statement.short_description = _("Reparse CSV file")
 
 class AccountStatementsAdmin(unit_admin_mixin_generator('administrative_unit'), nested_admin.NestedModelAdmin):
     list_display = (
-    'type', 'import_date', 'payments_count', 'paired_payments', 'csv_file', 'administrative_unit', 'date_from',
-    'date_to')
+        'type', 'import_date', 'payments_count', 'paired_payments', 'csv_file', 'administrative_unit', 'date_from',
+        'date_to')
     list_filter = (
         'type',
         ('payment__date', DateRangeFilter),
@@ -1902,14 +1902,22 @@ class UserProfileAdmin(
 
     def get_list_filter(self, request):
         """
-        list_filter from super() is a list of objects/filters, except the admin_unit, which is
-        (who knows why), a tuple. The method removes this tuple, thus admin_unit_filer by all
-        admin units and the new admin unit filter (as search field) has been added to
-        list_filter if this object.
+        return from super() is a tuple of objects and tuples!
+        This method returns new tuple without admin_unit_filer as list of admin units
+
+        The new admin_unit_filter as text-input-search box is added in list_filter
+        parameter.
         """
         list_filter = super(UserProfileAdmin, self).get_list_filter(request)
-        list_filter_without_admin_unit = tuple(filter(lambda x: not isinstance(x, tuple), list_filter))
-        return list_filter_without_admin_unit
+
+        # The first item of tuple:
+        # (('administrative_units', <class 'aklub.filters.UnitFilter'>),...
+        (admin_unit_filter_tuple, *rest) = list_filter
+        # Validate correct item
+        if admin_unit_filter_tuple[0] == 'administrative_units':
+            return tuple(rest)
+
+        return list_filter
 
     """ User profile polymorphic admin model child class """
     base_model = UserProfile
