@@ -1,6 +1,7 @@
 # custom filters
 
 import operator
+from abc import ABC
 from datetime import date, timedelta
 from functools import reduce
 
@@ -27,6 +28,7 @@ class ProfileMultiSelectDonorEvent(FieldListFilter):
     """
     allowe to multiple events from filters
     """
+
     def __init__(self, field, request, params, model, model_admin, field_path):
         self.lookup_kwarg = field_path + '__in'
         self.lookup_kwarg_isnull = field_path + '__isnull'
@@ -50,8 +52,8 @@ class ProfileMultiSelectDonorEvent(FieldListFilter):
         if request.user.has_perm('can_edit_all_units'):
             look_up = queryset.distinct().order_by(field.name)
         else:
-            look_up = queryset.filter(administrative_units__in=request.user.administrated_units.all())\
-                .distinct()\
+            look_up = queryset.filter(administrative_units__in=request.user.administrated_units.all()) \
+                .distinct() \
                 .order_by(field.name)
         self.lookup_choices = [(event.id, event.name) for event in look_up]
 
@@ -79,7 +81,8 @@ class ProfileMultiSelectDonorEvent(FieldListFilter):
             if values:
                 yield {
                     'selected': lookup in self.lookup_val,
-                    'query_string': changelist.get_query_string({self.lookup_kwarg: ','.join(values)}, [self.lookup_kwarg_isnull]),
+                    'query_string': changelist.get_query_string({self.lookup_kwarg: ','.join(values)},
+                                                                [self.lookup_kwarg_isnull]),
                     'display': title,
                 }
             else:
@@ -165,18 +168,18 @@ class ProfileHasFullAdress(SimpleListFilter):
     def queryset(self, request, queryset):
         if self.value() == 'full_address':
             return queryset.filter(
-                            ~Q(user_profile__street=""),
-                            ~Q(user_profile__city=""),
-                            ~Q(user_profile__zip_code=""),
-                            ~Q(user_profile__country=""),
-                            )
+                ~Q(user_profile__street=""),
+                ~Q(user_profile__city=""),
+                ~Q(user_profile__zip_code=""),
+                ~Q(user_profile__country=""),
+            )
         elif self.value() == 'not_full_address':
             return queryset.filter(
-                            Q(user_profile__street="") |
-                            Q(user_profile__city="") |
-                            Q(user_profile__zip_code="") |
-                            Q(user_profile__country=""),
-                            )
+                Q(user_profile__street="") |
+                Q(user_profile__city="") |
+                Q(user_profile__zip_code="") |
+                Q(user_profile__country=""),
+            )
         else:
             return queryset
 
@@ -264,7 +267,7 @@ class EmailFilter(SimpleListFilter):
             ('blank', _(u'Blank')),
         )
 
-    def queryset(self, request, queryset): # noqa
+    def queryset(self, request, queryset):  # noqa
         if self.value():
             if not queryset:
                 return queryset
@@ -281,16 +284,17 @@ class EmailFilter(SimpleListFilter):
             if self.value() == 'duplicate':
                 if queryset.first().is_userprofile():
                     # right now.. this shoud never ever return smth cuz of model definition.
-                    duplicates = ProfileEmail.objects.filter(email__isnull=False, user__isnull=False).\
-                        exclude(email__exact='').\
-                        annotate(email_lower=Lower('email')).\
-                        values('email_lower').\
-                        annotate(Count('id')).\
-                        values('email_lower').\
-                        order_by().\
-                        filter(id__count__gt=1).\
+                    duplicates = ProfileEmail.objects.filter(email__isnull=False, user__isnull=False). \
+                        exclude(email__exact=''). \
+                        annotate(email_lower=Lower('email')). \
+                        values('email_lower'). \
+                        annotate(Count('id')). \
+                        values('email_lower'). \
+                        order_by(). \
+                        filter(id__count__gt=1). \
                         values_list('email_lower', flat=True)
-                    duplicates = ProfileEmail.objects.annotate(email_lower=Lower('email')).filter(email_lower__in=duplicates)
+                    duplicates = ProfileEmail.objects.annotate(email_lower=Lower('email')).filter(
+                        email_lower__in=duplicates)
                     return queryset.filter(profileemail__in=duplicates)
                 else:
                     if request.user.has_perm('can_edit_all_units'):
@@ -298,22 +302,25 @@ class EmailFilter(SimpleListFilter):
                     else:
                         filter_kwargs = {'administrative_unit__in': request.user.administrated_units.all()}
 
-                    duplicates = CompanyContact.objects.filter(email__isnull=False)\
-                        .filter(**filter_kwargs)\
-                        .exclude(email__exact='')\
-                        .annotate(email_lower=Lower('email'))\
-                        .values('email_lower')\
-                        .annotate(Count('company', distinct=True))\
-                        .filter(company__count__gt=1)\
+                    duplicates = CompanyContact.objects.filter(email__isnull=False) \
+                        .filter(**filter_kwargs) \
+                        .exclude(email__exact='') \
+                        .annotate(email_lower=Lower('email')) \
+                        .values('email_lower') \
+                        .annotate(Count('company', distinct=True)) \
+                        .filter(company__count__gt=1) \
                         .values_list('email_lower', flat=True)
-                    duplicates = CompanyContact.objects.annotate(email_lower=Lower('email')).filter(email_lower__in=duplicates)
+                    duplicates = CompanyContact.objects.annotate(email_lower=Lower('email')).filter(
+                        email_lower__in=duplicates)
                     return queryset.filter(companycontact__in=duplicates)
 
             if self.value() == 'email-format':
                 if queryset.first().is_userprofile():
-                    return queryset.exclude(profileemail__email__iregex=r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9.-]+$)")
+                    return queryset.exclude(
+                        profileemail__email__iregex=r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9.-]+$)")
                 else:
-                    return queryset.exclude(companycontact__email__iregex=r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9.-]+$)")
+                    return queryset.exclude(
+                        companycontact__email__iregex=r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9.-]+$)")
         return queryset
 
 
@@ -363,7 +370,7 @@ class TelephoneFilter(SimpleListFilter):
             ('blank', _('Blank')),
         )
 
-    def queryset(self, request, queryset): # noqa
+    def queryset(self, request, queryset):  # noqa
         if self.value():
             if not queryset:
                 return queryset
@@ -383,38 +390,38 @@ class TelephoneFilter(SimpleListFilter):
                     if not request.user.has_perm('aklub.can_edit_all_units'):
                         filter_kwargs = {'user__administrative_units__in': request.user.administrated_units.all()}
                     # TODO: shoud be nicer
-                    duplicate = Telephone.objects.\
-                        annotate(clean_telephone=Right(Replace('telephone', Value(' '), Value('')), 9, ))\
-                        .values('clean_telephone')\
-                        .filter(**filter_kwargs)\
-                        .annotate(total_clean=Count('clean_telephone'))\
-                        .filter(total_clean__gt=1)\
+                    duplicate = Telephone.objects. \
+                        annotate(clean_telephone=Right(Replace('telephone', Value(' '), Value('')), 9, )) \
+                        .values('clean_telephone') \
+                        .filter(**filter_kwargs) \
+                        .annotate(total_clean=Count('clean_telephone')) \
+                        .filter(total_clean__gt=1) \
                         .values_list('clean_telephone', flat=True)
 
-                    users_ids = Telephone.objects.\
-                        annotate(clean_telephone=Right(Replace('telephone', Value(' '), Value('')), 9, ))\
-                        .filter(clean_telephone__in=duplicate)\
-                        .order_by('clean_telephone')\
-                        .values_list('user', flat=True)\
+                    users_ids = Telephone.objects. \
+                        annotate(clean_telephone=Right(Replace('telephone', Value(' '), Value('')), 9, )) \
+                        .filter(clean_telephone__in=duplicate) \
+                        .order_by('clean_telephone') \
+                        .values_list('user', flat=True) \
                         .order_by('clean_telephone')
                     return queryset.filter(id__in=users_ids).distinct()
                 else:
                     if not request.user.has_perm('aklub.can_edit_all_units'):
                         filter_kwargs = {'company__administrative_units__in': request.user.administrated_units.all()}
                     # TODO: shoud be nicer
-                    duplicate = CompanyContact.objects\
-                        .filter(**filter_kwargs)\
-                        .annotate(clean_telephone=Right(Replace('telephone', Value(' '), Value('')), 9, ))\
-                        .values('clean_telephone')\
-                        .annotate(total_clean=Count('clean_telephone'))\
-                        .filter(total_clean__gt=1)\
+                    duplicate = CompanyContact.objects \
+                        .filter(**filter_kwargs) \
+                        .annotate(clean_telephone=Right(Replace('telephone', Value(' '), Value('')), 9, )) \
+                        .values('clean_telephone') \
+                        .annotate(total_clean=Count('clean_telephone')) \
+                        .filter(total_clean__gt=1) \
                         .values_list('clean_telephone', flat=True)
 
-                    companies_ids = CompanyContact.objects\
-                        .annotate(clean_telephone=Right(Replace('telephone', Value(' '), Value('')), 9, ))\
-                        .filter(clean_telephone__in=duplicate)\
-                        .order_by('clean_telephone')\
-                        .values_list('company', flat=True)\
+                    companies_ids = CompanyContact.objects \
+                        .annotate(clean_telephone=Right(Replace('telephone', Value(' '), Value('')), 9, )) \
+                        .filter(clean_telephone__in=duplicate) \
+                        .order_by('clean_telephone') \
+                        .values_list('company', flat=True) \
                         .order_by('clean_telephone')
                     return queryset.filter(id__in=companies_ids).distinct()
 
@@ -504,7 +511,8 @@ class UnitFilter(RelatedFieldListFilter):
         if request.user.has_perm('aklub.can_edit_all_units'):
             return field.get_choices(include_blank=False)
         else:
-            return field.get_choices(include_blank=False, limit_choices_to={'pk__in': request.user.administrated_units.all()})
+            return field.get_choices(include_blank=False,
+                                     limit_choices_to={'pk__in': request.user.administrated_units.all()})
 
 
 class AdministrativeUnitAdminMixin(object):
@@ -516,7 +524,8 @@ class AdministrativeUnitAdminMixin(object):
         if request.user.has_perm('aklub.can_edit_all_units'):
             return queryset
         kwargs = {self.queryset_unit_param + '__in': request.user.administrated_units.all()}
-        return queryset.filter(**kwargs).distinct()  # The distinct is necessarry here for unit admins, that have more cities
+        return queryset.filter(
+            **kwargs).distinct()  # The distinct is necessarry here for unit admins, that have more cities
 
     def lookup_allowed(self, key, value):
         allowed_lookups = (
@@ -554,6 +563,7 @@ class AdministrativeUnitAdminMixin(object):
 def unit_admin_mixin_generator(queryset_unit):
     class AUAMixin(AdministrativeUnitAdminMixin):
         queryset_unit_param = queryset_unit
+
     return AUAMixin
 
 
@@ -574,11 +584,11 @@ class DPCHRegularPayments(BaseAF):
     def query(self, *args, **kwargs):
         return {
             'userchannels__event__administrative_units__in':
-            list(
-                kwargs.get('administrative_unit').values_list(
-                    'id', flat=True,
+                list(
+                    kwargs.get('administrative_unit').values_list(
+                        'id', flat=True,
+                    ),
                 ),
-            ),
         }
 
     def queryset(self, *args, **kwargs):
@@ -643,7 +653,7 @@ class DPCHSumOfAllPayments(BaseAF):
             queryset = self.model.objects.filter(
                 event__administrative_units__in=au,
             ).annotate(
-               sum_off_all_payments=Subquery(
+                sum_off_all_payments=Subquery(
                     subquery.values('sum_off_all_payments')[:1],
                     output_field=self.field_type,
                 ),
@@ -732,7 +742,7 @@ class DPCHRegularPaymentsOk(BaseAF):
                 regular_payments_ok=Case(
                     When(
                         expected_regular_payment_date__lt=(
-                            date.today() - timedelta(days=11)
+                                date.today() - timedelta(days=11)
                         ),
                         then=Value(_('Delayed')),
                     ), default=Value(_('Not delayed')),
@@ -827,7 +837,7 @@ class DPCHEventPaymentsAmount(BaseAF):
                 event__administrative_units__in=kwargs.pop('administrative_unit'),
                 **kwargs,
             ).annotate(
-               event_payment_amount=Case(
+                event_payment_amount=Case(
                     When(
                         payment__amount__isnull=True,
                         then=Value(0.0),
@@ -966,3 +976,37 @@ AF_FILTERS_CONDITIONAL_FIELDS = [
     [DPCHEventName.field, DPCHEventPaymentsAmount.field],
     [InteractionEventName.field, InteractionNumberOfInteractions.field],
 ]
+
+
+class InputFilter(SimpleListFilter, ABC):
+    """
+    SimpleListFilter changed to TextInput (Search field)
+    """
+    template = 'admin/input_filter.html'
+
+    def lookups(self, request, model_admin):
+        return ((),)
+
+    def choices(self, changelist):
+        all_choice = next(super().choices(changelist))
+
+        all_choice['query_parts'] = (
+            (k, v)
+            for k, v in changelist.get_filters_params().items()
+            if k != self.parameter_name
+        )
+
+        yield all_choice
+
+
+class AdminUnitTextSearchFilter(InputFilter):
+    parameter_name = "administrative-unit"
+    title = _("Administrative unit")
+
+    def queryset(self, request, queryset):
+        if self.value() is not None:
+            admin_unit = self.value()
+
+            return queryset.filter(
+                administrative_units__name=admin_unit
+            )

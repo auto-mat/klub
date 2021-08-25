@@ -25,7 +25,6 @@ from admin_numeric_filter.admin import NumericFilterModelAdmin, RangeNumericFilt
 
 from adminactions import actions, merge
 
-
 from adminfilters.filters import RelatedFieldCheckBoxFilter
 
 from advanced_filters.admin import AdminAdvancedFiltersMixin
@@ -82,7 +81,6 @@ import requests
 
 from smmapdfs.actions import make_pdfsandwich
 
-
 from . import filters, mailing, tasks
 from .filters import (
     DPCHEventName, DPCHEventPaymentsAmount, DPCHNumberOfDPCHs, DPCHNumberOfPayments,
@@ -91,7 +89,7 @@ from .filters import (
     InteractionDateFrom, InteractionDateTo, InteractionEventName,
     InteractionNextCommunicationDate, InteractionNumberOfInteractions,
     InteractionResultName, ProfileEmailIsEmailInCompanyprofile, ProfileTypeFilter,
-    unit_admin_mixin_generator,
+    unit_admin_mixin_generator, UnitFilter
 )
 from .forms import (
     CompanyProfileAddForm, CompanyProfileChangeForm, TaxConfirmationForm, UnitUserProfileAddForm,
@@ -137,7 +135,7 @@ class DonorPaymentChannelInlineForm(forms.ModelForm):
         label=_('user bank account'),
         max_length=50,
         required=False,
-        )
+    )
 
     class Meta():
         model = DonorPaymentChannel
@@ -156,7 +154,8 @@ class DonorPaymentChannelInlineForm(forms.ModelForm):
 
     def save(self, commit=False):
         donor = super().save()
-        bank_acc, _ = UserBankAccount.objects.get_or_create(bank_account_number=self.cleaned_data['user_bank_account_char'])
+        bank_acc, _ = UserBankAccount.objects.get_or_create(
+            bank_account_number=self.cleaned_data['user_bank_account_char'])
         donor.user_bank_account = bank_acc
         donor.save()
         return super().save()
@@ -212,20 +211,24 @@ class DonorPaymentChannelInline(admin.StackedInline):
         else:
             redirect_button = ''
         return redirect_button
+
     get_payment_list_link.short_description = _('All payments')
 
     def get_sum_amount(self, obj):
         return obj.sum_amount if obj.sum_amount else ""
+
     get_sum_amount.short_description = _('Total amount')
 
     def get_payment_count(self, obj):
         return obj.payment_count if obj.payment_count else ""
+
     get_payment_count.short_description = _('Total payment count')
 
     def get_last_payment_date(self, obj):
         if not obj.id:
             return ""
         return obj.last_payment_date if obj.last_payment_date else ""
+
     get_last_payment_date.short_description = _('Last payment date')
 
     def get_dpch_details(self, obj):
@@ -237,35 +240,38 @@ class DonorPaymentChannelInline(admin.StackedInline):
         else:
             redirect_button = ""
         return redirect_button
+
     get_dpch_details.short_description = _('DPCH details')
 
     def get_queryset(self, request):
         if not request.user.has_perm('aklub.can_edit_all_units'):
-            queryset = DonorPaymentChannel.objects.filter(money_account__administrative_unit__in=request.user.administrated_units.all())
+            queryset = DonorPaymentChannel.objects.filter(
+                money_account__administrative_unit__in=request.user.administrated_units.all())
         else:
             queryset = super().get_queryset(request)
-        return queryset.\
-            annotate(sum_amount=Sum('payment__amount')).\
-            annotate(payment_count=Count('payment')).\
+        return queryset. \
+            annotate(sum_amount=Sum('payment__amount')). \
+            annotate(payment_count=Count('payment')). \
             annotate(last_payment_date=Max('payment__date'))
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "money_account":
             if not request.user.has_perm('aklub.can_edit_all_units'):
-                kwargs["queryset"] = MoneyAccount.objects.filter(administrative_unit__in=request.user.administrated_units.all())
+                kwargs["queryset"] = MoneyAccount.objects.filter(
+                    administrative_unit__in=request.user.administrated_units.all())
             else:
                 kwargs["queryset"] = MoneyAccount.objects.all()
 
         if db_field.name == "event":
             if not request.user.has_perm('aklub.can_edit_all_units'):
-                kwargs["queryset"] = Event.objects.filter(administrative_units__in=request.user.administrated_units.all())
+                kwargs["queryset"] = Event.objects.filter(
+                    administrative_units__in=request.user.administrated_units.all())
             else:
                 kwargs["queryset"] = Event.objects.all()
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 class PaymentsInlineNoExtra(PaymentsInline):
-
     raw_id_fields = ('user_donor_payment_channel',)
     fields = (
         'type',
@@ -396,7 +402,8 @@ class UserProfileLoaderClass(BaseInstanceLoader):
         obj = None
         if row.get('email'):
             try:
-                obj = ProfileEmail.objects.get(email=row['email'], user__polymorphic_ctype__model=UserProfile._meta.model_name).user
+                obj = ProfileEmail.objects.get(email=row['email'],
+                                               user__polymorphic_ctype__model=UserProfile._meta.model_name).user
             except ProfileEmail.DoesNotExist:
                 pass
         return obj
@@ -406,14 +413,14 @@ class UserProfileResource(ProfileModelResourceMixin):
     class Meta:
         model = UserProfile
         exclude = get_profile_admin_model_import_export_exclude_fields()
-        import_id_fields = ('email', )
+        import_id_fields = ('email',)
         export_order = (
-            get_profile_admin_export_base_order_fields() +
-            [
-                'title_before', 'first_name', 'last_name',
-                'title_after', 'sex', 'age_group', 'birth_month',
-                'birth_day',
-            ]
+                get_profile_admin_export_base_order_fields() +
+                [
+                    'title_before', 'first_name', 'last_name',
+                    'title_after', 'sex', 'age_group', 'birth_month',
+                    'birth_day',
+                ]
         )
         instance_loader_class = UserProfileLoaderClass
         clean_model_instances = True
@@ -444,11 +451,11 @@ class CompanyProfileResource(ProfileModelResourceMixin):
         exclude = get_profile_admin_model_import_export_exclude_fields()
         import_id_fields = ('crn',)
         export_order = (
-            get_profile_admin_export_base_order_fields() +
-            [
-                'name', 'crn', 'tin',
-                'contact_first_name', 'contact_last_name',
-            ]
+                get_profile_admin_export_base_order_fields() +
+                [
+                    'name', 'crn', 'tin',
+                    'contact_first_name', 'contact_last_name',
+                ]
         )
         instance_loader_class = CompanyProfileLoaderClass
         clean_model_instances = True
@@ -502,14 +509,14 @@ class ProfileResource(ProfileModelResource):
     class Meta:
         model = Profile
         exclude = get_profile_admin_model_import_export_exclude_fields()
-        import_id_fields = ('email', )
+        import_id_fields = ('email',)
         export_order = (
-            get_profile_admin_export_base_order_fields() +
-            [
-                'name', 'crn', 'tin', 'sex', 'title_after',
-                'first_name', 'last_name', 'title_before',
-                'birth_month', 'birth_day', 'profile_type',
-            ]
+                get_profile_admin_export_base_order_fields() +
+                [
+                    'name', 'crn', 'tin', 'sex', 'title_after',
+                    'first_name', 'last_name', 'title_before',
+                    'birth_month', 'birth_day', 'profile_type',
+                ]
         )
         clean_model_instances = True
 
@@ -630,7 +637,7 @@ class ProfileEmailInline(admin.TabularInline):
 class RedirectMixin(object):
     def response_add(self, request, obj, post_url_continue=None):
         response = super(PolymorphicChildModelAdmin, self).response_add(
-            request, obj, post_url_continue,)
+            request, obj, post_url_continue, )
         if not hasattr(response, 'url'):
             return response
         elif 'add' in response.url or 'change' in response.url:
@@ -640,7 +647,7 @@ class RedirectMixin(object):
 
     def response_change(self, request, obj):
         response = super(PolymorphicChildModelAdmin, self).response_change(
-            request, obj,)
+            request, obj, )
         if not hasattr(response, 'url'):
             return response
         elif 'change' in response.url:
@@ -651,23 +658,24 @@ class RedirectMixin(object):
 def child_redirect_mixin(redirect):
     class RedMixin(RedirectMixin):
         redirect_page = redirect
+
     return RedMixin
 
 
 class MoneyAccountChildAdmin(
-                    unit_admin_mixin_generator('administrative_unit'),
-                    PolymorphicChildModelAdmin,
-                    ):
+    unit_admin_mixin_generator('administrative_unit'),
+    PolymorphicChildModelAdmin,
+):
     """ Base admin class for all child models """
     base_model = MoneyAccount
 
 
 @admin.register(ApiAccount)
 class ApiAccountAdmin(
-                child_redirect_mixin('apiaccount'),
-                unit_admin_mixin_generator('administrative_unit'),
-                MoneyAccountChildAdmin,
-                ):
+    child_redirect_mixin('apiaccount'),
+    unit_admin_mixin_generator('administrative_unit'),
+    MoneyAccountChildAdmin,
+):
     """ Api account polymorphic admin model child class """
     base_model = ApiAccount
     show_in_index = True
@@ -677,7 +685,8 @@ class ApiAccountAdmin(
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "event":
             if not request.user.has_perm('aklub.can_edit_all_units'):
-                kwargs["queryset"] = Event.objects.filter(administrative_units__in=request.user.administrated_units.all())
+                kwargs["queryset"] = Event.objects.filter(
+                    administrative_units__in=request.user.administrated_units.all())
             else:
                 kwargs["queryset"] = Event.objects.all()
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
@@ -694,10 +703,10 @@ class ApiAccountAdmin(
 
 @admin.register(BankAccount)
 class BankAccountAdmin(
-                child_redirect_mixin('bankaccount'),
-                unit_admin_mixin_generator('administrative_unit'),
-                MoneyAccountChildAdmin,
-                ):
+    child_redirect_mixin('bankaccount'),
+    unit_admin_mixin_generator('administrative_unit'),
+    MoneyAccountChildAdmin,
+):
     """ bank account polymorphic admin model child class """
     base_model = BankAccount
     show_in_index = True
@@ -754,6 +763,7 @@ class ProfileAdminMixin:
     def regular_amount(self, obj):
         result = self.get_donor_details(obj)
         return sweet_text(((str(d.regular_amount),) for d in result if d.regular_amount))
+
     regular_amount.short_description = _("Regular amount")
     regular_amount.admin_order_field = 'userchannels__regular_amount'
 
@@ -796,9 +806,9 @@ class ProfileAdminMixin:
         results = []
         for unit in administrative_units:
             result = Payment.objects.filter(
-                        user_donor_payment_channel__user=obj,
-                        user_donor_payment_channel__money_account__administrative_unit=unit,
-                        ).aggregate(Count('amount'), Sum('amount'))
+                user_donor_payment_channel__user=obj,
+                user_donor_payment_channel__money_account__administrative_unit=unit,
+            ).aggregate(Count('amount'), Sum('amount'))
             results.append(f"{unit}: {result['amount__sum']} Kč ({result['amount__count']})")
         return ',\n'.join(results)
 
@@ -806,31 +816,37 @@ class ProfileAdminMixin:
 
     def get_sum_amount(self, obj):
         return obj.sum_amount
+
     get_sum_amount.admin_order_field = 'sum_amount'
     get_sum_amount.short_description = _("Sum of all payments")
 
     def get_payment_count(self, obj):
         return obj.payment_count
+
     get_payment_count.admin_order_field = 'payment_count'
     get_payment_count.short_description = _("Payments count")
 
     def get_last_payment_date(self, obj):
         return obj.last_payment_date
+
     get_last_payment_date.admin_order_field = 'last_payment_date'
     get_last_payment_date.short_description = _("Date of last payment")
 
     def get_first_payment_date(self, obj):
         return obj.first_payment_date
+
     get_first_payment_date.admin_order_field = 'first_payment_date'
     get_first_payment_date.short_description = _("Date of first payment")
 
     def get_event(self, obj):
         return sweet_text(((f'{d.event.id}) {d.event.name}',) for d in self.get_donor_details(obj)))
+
     get_event.admin_order_field = 'events'
     get_event.short_description = _("Events")
 
     def get_next_communication_date(self, obj):
         return obj.next_communication_date
+
     get_next_communication_date.short_description = _("Next Communication")
     get_next_communication_date.admin_order_field = 'next_communication_date'
 
@@ -852,7 +868,7 @@ class ProfileAdminMixin:
         make_tax_confirmation,
         create_export_job_action,
         send_mass_communication_action,
-        )
+    )
 
     def change_view(self, request, object_id, extra_context=None, **kwargs):
         from helpdesk.query import query_to_base64
@@ -865,8 +881,8 @@ class ProfileAdminMixin:
 
         ignore_required = ['id', 'user', 'baseinteraction2_ptr']
         extra_context['required_fields'] = [
-                    field.name for field in Interaction._meta.get_fields()
-                    if not field.blank and field.name not in ignore_required
+            field.name for field in Interaction._meta.get_fields()
+            if not field.blank and field.name not in ignore_required
         ]
         extra_context['object_id'] = object_id
         return super().change_view(
@@ -925,9 +941,9 @@ class ProfileAdmin(
         if request.method == 'POST':
             data = request.POST
             parameters = (
-                        data.get('year'),
-                        data.getlist('profile'),
-                        data.get('pdf_type')
+                data.get('year'),
+                data.getlist('profile'),
+                data.get('pdf_type')
             )
             tasks.generate_tax_confirmations.apply_async(args=parameters)
             messages.info(request, _('TaxConfirmations created'))
@@ -966,10 +982,10 @@ class ProfileAdmin(
             message = _("If you confirm, you wonˇt see this profile anymore ")
             HttpResponseRedirect(reverse('admin:aklub_taxconfirmation_changelist'))
             return render(
-                    request,
-                    'admin/aklub/profile_remove_contact_from_unit.html',
-                    {'opts': self.model._meta, 'pk': pk, 'message': message},
-                    )
+                request,
+                'admin/aklub/profile_remove_contact_from_unit.html',
+                {'opts': self.model._meta, 'pk': pk, 'message': message},
+            )
 
     def get_urls(self):
         """ add extra view to admin """
@@ -997,9 +1013,9 @@ class DonorPaymentChannelLoaderClass(BaseInstanceLoader):
             money_account = BankAccount.objects.get(id=row.get('money_account'))
 
             obj = DonorPaymentChannel.objects.get(
-                                            user_id=row.get('user'),
-                                            event=event,
-                                            money_account=money_account,
+                user_id=row.get('user'),
+                event=event,
+                money_account=money_account,
             )
         except Event.DoesNotExist:
             raise ValidationError({'event': _('Event with this name doesnt exist')})
@@ -1013,6 +1029,7 @@ class DonorPaymentChannelLoaderClass(BaseInstanceLoader):
 
 class DonorPaymentChannelWidget(ForeignKeyWidget):
     """ Handle ForeignKey no exist error """
+
     def get_queryset(self, value, row):
         values = self.model.objects.filter(id=value)
         if values:
@@ -1031,14 +1048,15 @@ class DonorPaymentChannelResource(ModelResource):
     class Meta:
         model = DonorPaymentChannel
         fields = (
-                'email', 'username', 'user', 'money_account', 'event', 'VS', 'SS', 'regular_frequency', 'expected_date_of_first_payment',
-                'regular_amount', 'regular_payments', 'user_bank_account', 'end_of_regular_payments',
+            'email', 'username', 'user', 'money_account', 'event', 'VS', 'SS', 'regular_frequency',
+            'expected_date_of_first_payment',
+            'regular_amount', 'regular_payments', 'user_bank_account', 'end_of_regular_payments',
         )
         import_id_fields = []  # must be empty or library take field id as default and ignore before_import_row
         clean_model_instances = True
         instance_loader_class = DonorPaymentChannelLoaderClass
 
-    def before_import_row(self, row, **kwargs): # noqa
+    def before_import_row(self, row, **kwargs):  # noqa
         user = None
         if row.get('profile_type') not in ['u', 'c']:
             raise ValidationError({'profile_type': _('Insert "c" or "u" (company/user)')})
@@ -1209,14 +1227,14 @@ class DonorPaymetChannelAdmin(
             is_primary=True,
         )
 
-        qs = super().get_queryset(request)\
-            .prefetch_related('user__polymorphic_ctype')\
+        qs = super().get_queryset(request) \
+            .prefetch_related('user__polymorphic_ctype') \
             .annotate(
-                last_name=F("user__userprofile__last_name"),
-                first_name=F("user__userprofile__first_name"),
-                company_name=F("user__companyprofile__name"),
-                email_address_user=Subquery(primary_email_user.values('email')),
-                email_address_company=Subquery(primary_email_company.values('email')),
+            last_name=F("user__userprofile__last_name"),
+            first_name=F("user__userprofile__first_name"),
+            company_name=F("user__companyprofile__name"),
+            email_address_user=Subquery(primary_email_user.values('email')),
+            email_address_company=Subquery(primary_email_company.values('email')),
 
         )
         return qs
@@ -1243,6 +1261,7 @@ class DonorPaymetChannelAdmin(
                 return '-'
         else:
             return obj.company_name or '-'
+
     get_name.short_description = _("Company/User name")
 
 
@@ -1250,7 +1269,7 @@ def add_user_bank_acc_to_dpch(self, request, queryset):
     for payment in queryset:
         if payment.user_donor_payment_channel and payment.account and payment.bank_code:
             user_bank_acc, created = UserBankAccount.objects.get_or_create(
-                                        bank_account_number=str(payment.account) + '/' + str(payment.bank_code),
+                bank_account_number=str(payment.account) + '/' + str(payment.bank_code),
             )
             donor = payment.user_donor_payment_channel
             donor.user_bank_account = user_bank_acc
@@ -1278,16 +1297,19 @@ def payment_request_pair_action(self, request, queryset):
         statement.administrative_unit = request.user.administrated_units.first()
         for payment in queryset:
             statement.payment_pair(payment)
-        messages.info(request, _('Payments succesfully paired with donor payment channels which are under your administrative unit.'))
+        messages.info(request,
+                      _('Payments succesfully paired with donor payment channels which are under your administrative unit.'))
     else:
         messages.error(request, _('Your administrated unit have to be set to pair payments.'))
 
 
-payment_request_pair_action.short_description = _("pair payments without account statement (need to be admin of administrative unit)")
+payment_request_pair_action.short_description = _(
+    "pair payments without account statement (need to be admin of administrative unit)")
 
 
 class PaymentWidget(ForeignKeyWidget):
     """ Handle ForeignKey no exist error """
+
     def get_queryset(self, value, row):
         values = self.model.objects.filter(id=value)
         if values:
@@ -1298,7 +1320,8 @@ class PaymentWidget(ForeignKeyWidget):
 
 class PaymentResource(ModelResource):
     recipient_account = fields.Field(attribute='recipient_account', widget=PaymentWidget(MoneyAccount))
-    user_donor_payment_channel = fields.Field(attribute='user_donor_payment_channel', widget=PaymentWidget(DonorPaymentChannel))
+    user_donor_payment_channel = fields.Field(attribute='user_donor_payment_channel',
+                                              widget=PaymentWidget(DonorPaymentChannel))
 
     class Meta:
         model = Payment
@@ -1307,9 +1330,10 @@ class PaymentResource(ModelResource):
             'BIC', 'user_identification', 'type', 'done_by', 'account_name', 'bank_name', 'transfer_note',
             'currency', 'recipient_message', 'operation_id', 'transfer_type', 'specification',
             'order_id', 'user_donor_payment_channel', 'created', 'updated', 'custom_fields',
-                  )
+        )
         clean_model_instances = True
         import_id_fields = []  # must be empty or library take field id as default
+
     """
     TODO: add payment_pair from account_statement model to pair payments
         import_obj is the way
@@ -1464,27 +1488,28 @@ class PaymentAdmin(
         prefetch_related and select_related in normal way!
         Then we want to avoid hitting DB in every list_row
         """
-        qs = super().get_queryset(request)\
-                    .select_related('user_donor_payment_channel')\
-                    .annotate(
-                        last_name=F("user_donor_payment_channel__user__userprofile__last_name"),
-                        first_name=F("user_donor_payment_channel__user__userprofile__first_name"),
-                        company_name=F("user_donor_payment_channel__user__companyprofile__name"),
-                    )
+        qs = super().get_queryset(request) \
+            .select_related('user_donor_payment_channel') \
+            .annotate(
+            last_name=F("user_donor_payment_channel__user__userprofile__last_name"),
+            first_name=F("user_donor_payment_channel__user__userprofile__first_name"),
+            company_name=F("user_donor_payment_channel__user__companyprofile__name"),
+        )
 
         if not request.user.has_perm('aklub.can_edit_all_units'):
             administrated_unit = request.user.administrated_units.first()
             qs = qs.filter(
-                    Q(recipient_account__administrative_unit=administrated_unit) |
-                    Q(user_donor_payment_channel__money_account__administrative_unit=administrated_unit) |
-                    Q(account_statement__administrative_unit=administrated_unit),
-                )
+                Q(recipient_account__administrative_unit=administrated_unit) |
+                Q(user_donor_payment_channel__money_account__administrative_unit=administrated_unit) |
+                Q(account_statement__administrative_unit=administrated_unit),
+            )
         return qs
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "recipient_account":
             if not request.user.has_perm('aklub.can_edit_all_units'):
-                kwargs["queryset"] = MoneyAccount.objects.filter(administrative_unit=request.user.administrated_units.first())
+                kwargs["queryset"] = MoneyAccount.objects.filter(
+                    administrative_unit=request.user.administrated_units.first())
             else:
                 kwargs["queryset"] = MoneyAccount.objects.all()
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
@@ -1538,7 +1563,7 @@ class MassCommunicationForm(forms.ModelForm):
             'name', 'date', 'method_type', 'subject', 'subject_en', 'template',
             'template_en', 'attachment', 'attach_tax_confirmation', 'attached_tax_confirmation_year',
             'attached_tax_confirmation_type', 'note', 'administrative_unit', 'send_to_users',
-            )
+        )
 
     def clean_send_to_users(self):
         v = EmailValidator()
@@ -1558,7 +1583,8 @@ class MassCommunicationForm(forms.ModelForm):
         return self.cleaned_data['send_to_users']
 
 
-class MassCommunicationAdmin(unit_admin_mixin_generator('administrative_unit'), large_initial.LargeInitialMixin, admin.ModelAdmin):
+class MassCommunicationAdmin(unit_admin_mixin_generator('administrative_unit'), large_initial.LargeInitialMixin,
+                             admin.ModelAdmin):
     save_as = True
     list_display = ('name', 'status', 'get_send_to_users_count', 'date', 'method_type', 'subject')
     ordering = ('-date',)
@@ -1602,6 +1628,7 @@ class MassCommunicationAdmin(unit_admin_mixin_generator('administrative_unit'), 
 
     def get_send_to_users_count(self, obj):
         return obj.send_to_users_count
+
     get_send_to_users_count.short_description = _("Send count")
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
@@ -1609,14 +1636,14 @@ class MassCommunicationAdmin(unit_admin_mixin_generator('administrative_unit'), 
             # lets make it a little easier for superadmin (if he has administrated_units)
             if not request.user.has_perm('aklub.can_edit_all_units'):
                 users_ids = Preference.objects.filter(
-                                            administrative_unit=request.user.administrated_units.first(),
-                                            send_mailing_lists=True,
-                            ).values_list('user__id', flat=True)
+                    administrative_unit=request.user.administrated_units.first(),
+                    send_mailing_lists=True,
+                ).values_list('user__id', flat=True)
 
                 kwargs["queryset"] = Profile.objects.filter(
-                                            is_active=True,
-                                            id__in=users_ids,
-                                     ).distinct()
+                    is_active=True,
+                    id__in=users_ids,
+                ).distinct()
             else:
                 kwargs["queryset"] = Profile.objects.filter(is_active=True).distinct()
             return super().formfield_for_manytomany(db_field, request, **kwargs)
@@ -1661,7 +1688,9 @@ parse_statement.short_description = _("Reparse CSV file")
 
 
 class AccountStatementsAdmin(unit_admin_mixin_generator('administrative_unit'), nested_admin.NestedModelAdmin):
-    list_display = ('type', 'import_date', 'payments_count', 'paired_payments', 'csv_file', 'administrative_unit', 'date_from', 'date_to')
+    list_display = (
+    'type', 'import_date', 'payments_count', 'paired_payments', 'csv_file', 'administrative_unit', 'date_from',
+    'date_to')
     list_filter = (
         'type',
         ('payment__date', DateRangeFilter),
@@ -1697,9 +1726,9 @@ class SourceAdmin(admin.ModelAdmin):
 
 
 class TaxConfirmationAdmin(
-            unit_admin_mixin_generator('pdf_type__pdfsandwichtypeconnector__administrative_unit'),
-            admin.ModelAdmin,
-            ):
+    unit_admin_mixin_generator('pdf_type__pdfsandwichtypeconnector__administrative_unit'),
+    admin.ModelAdmin,
+):
 
     def batch_download(self, request, queryset):
         links = []
@@ -1765,23 +1794,23 @@ class TaxConfirmationAdmin(
             is_primary=True,
         )
 
-        qs = super().get_queryset(request)\
+        qs = super().get_queryset(request) \
             .prefetch_related(
-                'taxconfirmationpdf_set',
-            )\
+            'taxconfirmationpdf_set',
+        ) \
             .select_related(
-                'pdf_type__pdfsandwichtypeconnector__administrative_unit',
-                'user_profile__companyprofile',
-                'user_profile__userprofile',
-                'pdf_type__pdfsandwichtypeconnector',
-                'user_profile__polymorphic_ctype',
-            )\
+            'pdf_type__pdfsandwichtypeconnector__administrative_unit',
+            'user_profile__companyprofile',
+            'user_profile__userprofile',
+            'pdf_type__pdfsandwichtypeconnector',
+            'user_profile__polymorphic_ctype',
+        ) \
             .annotate(
-                last_name=F("user_profile__userprofile__last_name"),
-                first_name=F("user_profile__userprofile__first_name"),
-                company_name=F("user_profile__companyprofile__name"),
-                email_address_user=Subquery(primary_email_user.values('email')),
-                email_address_company=Subquery(primary_email_company.values('email')),
+            last_name=F("user_profile__userprofile__last_name"),
+            first_name=F("user_profile__userprofile__first_name"),
+            company_name=F("user_profile__companyprofile__name"),
+            email_address_user=Subquery(primary_email_user.values('email')),
+            email_address_company=Subquery(primary_email_company.values('email')),
         )
         return qs
 
@@ -1790,6 +1819,7 @@ class TaxConfirmationAdmin(
             return obj.email_address_user
         else:
             return obj.email_address_company
+
     get_email.short_description = _("Main email")
 
     def get_administrative_unit(self, obj):
@@ -1798,6 +1828,7 @@ class TaxConfirmationAdmin(
         except AttributeError:
             au = None
         return au
+
     get_administrative_unit.short_description = _("Administrative Unit")
 
     def get_name(self, obj):
@@ -1808,6 +1839,7 @@ class TaxConfirmationAdmin(
                 return f"{obj.first_name} {obj.last_name}"
             else:
                 return "-"
+
     get_name.short_description = _("Name")
 
 
@@ -1823,7 +1855,7 @@ class AdministrativeUnitAdmin(admin.ModelAdmin):
     )
 
 
-class BaseProfileChildAdmin(PolymorphicChildModelAdmin,):
+class BaseProfileChildAdmin(PolymorphicChildModelAdmin, ):
     """ Base admin class for all Profile child models """
     merge_form = ProfileMergeForm
 
@@ -1863,10 +1895,22 @@ class BaseProfileChildAdmin(PolymorphicChildModelAdmin,):
 
 @admin.register(UserProfile)
 class UserProfileAdmin(
-        child_redirect_mixin('userprofile'), filters.AdministrativeUnitAdminMixin,
-        ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFiltersMixin, ProfileAdminMixin,
-        BaseProfileChildAdmin, NumericFilterModelAdmin,
+    child_redirect_mixin('userprofile'), filters.AdministrativeUnitAdminMixin,
+    ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFiltersMixin, ProfileAdminMixin,
+    BaseProfileChildAdmin, NumericFilterModelAdmin,
 ):
+
+    def get_list_filter(self, request):
+        """
+        list_filter from super() is a list of objects/filters, except the admin_unit, which is
+        (who knows why), a tuple. The method removes this tuple, thus admin_unit_filer by all
+        admin units and the new admin unit filter (as search field) has been added to
+        list_filter if this object.
+        """
+        list_filter = super(UserProfileAdmin, self).get_list_filter(request)
+        list_filter_without_admin_unit = tuple(filter(lambda x: not isinstance(x, tuple), list_filter))
+        return list_filter_without_admin_unit
+
     """ User profile polymorphic admin model child class """
     base_model = UserProfile
     show_in_index = True
@@ -2021,6 +2065,7 @@ class UserProfileAdmin(
     )
 
     list_filter = (
+        filters.AdminUnitTextSearchFilter,
         filters.PreferenceMailingListAllowed,
         isnull_filter('userchannels__payment', _('Has any payment'), negate=True),
         ('userchannels__extra_money', RangeNumericFilter),
@@ -2073,7 +2118,7 @@ class UserProfileAdmin(
             ),
         }),
         (_('Contact data'), {
-            'classes': ('wide', ),
+            'classes': ('wide',),
             'fields': [
                 ('street', 'city',),
                 ('country', 'zip_code'),
@@ -2083,7 +2128,7 @@ class UserProfileAdmin(
         }
          ),
         (_('Correspondence address'), {
-            'classes': ('collapse', ),
+            'classes': ('collapse',),
             'fields': [
                 ('correspondence_street', 'correspondence_city',),
                 ('correspondence_country', 'correspondence_zip_code'),
@@ -2101,15 +2146,17 @@ class UserProfileAdmin(
                 'administrated_units',
             ],
         }
-        ),
+         ),
     )
 
     def get_email(self, obj):
         emails = obj.get_email()
         if resolve(self.request.path_info).url_name == 'aklub_userprofile_change':
             # add anchor in changeform
-            emails = mark_safe('<a href="#profileemail_set-group">%(detail)s</a><br>' % {'detail': _('Details')}) + emails
+            emails = mark_safe(
+                '<a href="#profileemail_set-group">%(detail)s</a><br>' % {'detail': _('Details')}) + emails
         return emails
+
     get_email.short_description = _("Emails")
 
     def get_form(self, request, obj=None, **kwargs):
@@ -2174,20 +2221,20 @@ class UserProfileAdmin(
             extra_related.append('userchannels__money_account__administrative_unit')
 
         queryset = super().get_queryset(request, *args, **kwargs).prefetch_related(
-                'telephone_set',
-                'profileemail_set',
-                'administrative_units',
-                'userchannels__event',
-                'interaction_set',
-                *extra_related,
-            ).annotate(
-                sum_amount=Sum('userchannels__payment__amount', filter=Q(**donor_filter)),
-                payment_count=Count('userchannels__payment', filter=Q(**donor_filter)),
-                last_payment_date=Max('userchannels__payment__date', filter=Q(**donor_filter)),
-                first_payment_date=Min('userchannels__payment__date', filter=Q(**donor_filter)),
-                # **annotate_kwargs,
-                **filter_kwargs,
-            )
+            'telephone_set',
+            'profileemail_set',
+            'administrative_units',
+            'userchannels__event',
+            'interaction_set',
+            *extra_related,
+        ).annotate(
+            sum_amount=Sum('userchannels__payment__amount', filter=Q(**donor_filter)),
+            payment_count=Count('userchannels__payment', filter=Q(**donor_filter)),
+            last_payment_date=Max('userchannels__payment__date', filter=Q(**donor_filter)),
+            first_payment_date=Min('userchannels__payment__date', filter=Q(**donor_filter)),
+            # **annotate_kwargs,
+            **filter_kwargs,
+        )
 
         return queryset
 
@@ -2219,6 +2266,7 @@ class CompanyContactInline(admin.TabularInline):
             return mark_safe(f'<a href="{url}">{icon} {details}</a>')
         else:
             return _boolean_icon(False)
+
     is_email_in_userprofile.short_description = _("Is email in userprofile")
 
     def get_queryset(self, request):
@@ -2239,9 +2287,9 @@ class CompanyContactInline(admin.TabularInline):
 
 @admin.register(CompanyProfile)
 class CompanyProfileAdmin(
-        child_redirect_mixin('companyprofile'), filters.AdministrativeUnitAdminMixin,
-        ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFiltersMixin,
-        ProfileAdminMixin, BaseProfileChildAdmin, NumericFilterModelAdmin,
+    child_redirect_mixin('companyprofile'), filters.AdministrativeUnitAdminMixin,
+    ImportExportMixin, RelatedFieldAdmin, AdminAdvancedFiltersMixin,
+    ProfileAdminMixin, BaseProfileChildAdmin, NumericFilterModelAdmin,
 ):
     """ Company profile polymorphic admin model child class """
     base_model = CompanyProfile
@@ -2352,7 +2400,7 @@ class CompanyProfileAdmin(
             ),
         }),
         (_('Contact data'), {
-            'classes': ('wide', ),
+            'classes': ('wide',),
             'fields': [
                 ('street', 'city',),
                 ('country', 'zip_code'),
@@ -2363,14 +2411,14 @@ class CompanyProfileAdmin(
          ),
 
         (_('Correspondence address'), {
-             'classes': ('collapse', ),
-             'fields': [
-                 ('correspondence_street', 'correspondence_city',),
-                 ('correspondence_country', 'correspondence_zip_code'),
-             ],
-         }
+            'classes': ('collapse',),
+            'fields': [
+                ('correspondence_street', 'correspondence_city',),
+                ('correspondence_country', 'correspondence_zip_code'),
+            ],
+        }
          ),
-     )
+    )
     superuser_fieldsets = (
         (_('Rights and permissions'), {
             'classes': ('collapse',),
@@ -2378,19 +2426,22 @@ class CompanyProfileAdmin(
                 ('is_active',),
             ],
         }
-        ),
+         ),
     )
 
     def get_company_email(self, obj):
         if self.request.user.has_perm('aklub.can_edit_all_units'):
             emails = obj.get_email()
         else:
-            com = [c for c in obj.companycontact_set.all() if c.administrative_unit_id in self.user_administrated_units_ids]
+            com = [c for c in obj.companycontact_set.all() if
+                   c.administrative_unit_id in self.user_administrated_units_ids]
             emails = obj.get_email(com)
         # if in edit form add anchor to inlines
         if resolve(self.request.path_info).url_name == 'aklub_companyprofile_change':
-            emails = mark_safe('<a href="#companycontact_set-group">%(detail)s</a><br>' % {'detail': _('Details')}) + emails
+            emails = mark_safe(
+                '<a href="#companycontact_set-group">%(detail)s</a><br>' % {'detail': _('Details')}) + emails
         return emails
+
     get_company_email.short_description = _("Emails")
 
     def get_company_telephone(self, obj):
@@ -2398,7 +2449,8 @@ class CompanyProfileAdmin(
         if self.request.user.has_perm('aklub.can_edit_all_units'):
             return obj.get_main_telephone()
         else:
-            com = [c for c in obj.companycontact_set.all() if c.administrative_unit_id in self.user_administrated_units_ids]
+            com = [c for c in obj.companycontact_set.all() if
+                   c.administrative_unit_id in self.user_administrated_units_ids]
             return obj.get_main_telephone(com)
 
     get_company_telephone.short_description = _("Main telephone")
@@ -2407,7 +2459,8 @@ class CompanyProfileAdmin(
         if self.request.user.has_perm('aklub.can_edit_all_units'):
             return obj.get_main_contact_name()
         else:
-            com = [c for c in obj.companycontact_set.all() if c.administrative_unit_id in self.user_administrated_units_ids]
+            com = [c for c in obj.companycontact_set.all() if
+                   c.administrative_unit_id in self.user_administrated_units_ids]
             return obj.get_main_contact_name(com)
 
     get_contact_name.short_description = _("Contact Name")
@@ -2474,18 +2527,18 @@ class CompanyProfileAdmin(
             extra_related.append('userchannels__money_account__administrative_unit')
 
         queryset = super().get_queryset(request, *args, **kwargs).prefetch_related(
-                'companycontact_set',
-                'administrative_units',
-                'userchannels__event',
-                *extra_related,
-            ).annotate(
-                sum_amount=Sum('userchannels__payment__amount', filter=Q(**donor_filter)),
-                payment_count=Count('userchannels__payment', filter=Q(**donor_filter)),
-                last_payment_date=Max('userchannels__payment__date', filter=Q(**donor_filter)),
-                first_payment_date=Min('userchannels__payment__date', filter=Q(**donor_filter)),
-                # **annotate_kwargs,
-                **filter_kwargs,
-            )
+            'companycontact_set',
+            'administrative_units',
+            'userchannels__event',
+            *extra_related,
+        ).annotate(
+            sum_amount=Sum('userchannels__payment__amount', filter=Q(**donor_filter)),
+            payment_count=Count('userchannels__payment', filter=Q(**donor_filter)),
+            last_payment_date=Max('userchannels__payment__date', filter=Q(**donor_filter)),
+            first_payment_date=Min('userchannels__payment__date', filter=Q(**donor_filter)),
+            # **annotate_kwargs,
+            **filter_kwargs,
+        )
         return queryset
 
 
