@@ -1010,3 +1010,16 @@ class AdminUnitTextSearchFilter(InputFilter):
             return queryset.filter(
                 administrative_units__name=admin_unit
             )
+
+
+class DonorsEventTextSearchFilter(InputFilter):
+    parameter_name = "donors-event"
+    title = _("Donor's event")
+
+    def queryset(self, request, queryset):
+        if self.value() is not None:
+            donors_event = self.value()
+
+            return queryset.filter(
+                userchannels__event__name=donors_event
+            )

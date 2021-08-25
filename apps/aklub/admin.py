@@ -89,7 +89,7 @@ from .filters import (
     InteractionDateFrom, InteractionDateTo, InteractionEventName,
     InteractionNextCommunicationDate, InteractionNumberOfInteractions,
     InteractionResultName, ProfileEmailIsEmailInCompanyprofile, ProfileTypeFilter,
-    unit_admin_mixin_generator, UnitFilter
+    unit_admin_mixin_generator
 )
 from .forms import (
     CompanyProfileAddForm, CompanyProfileChangeForm, TaxConfirmationForm, UnitUserProfileAddForm,
@@ -1909,7 +1909,7 @@ class UserProfileAdmin(
         parameter.
         """
         list_filter = super(UserProfileAdmin, self).get_list_filter(request)
-
+        print(list_filter)
         # The first item of tuple:
         # (('administrative_units', <class 'aklub.filters.UnitFilter'>),...
         (admin_unit_filter_tuple, *rest) = list_filter
@@ -2088,7 +2088,8 @@ class UserProfileAdmin(
         'language',
         ('userchannels__last_payment__date', DateRangeFilter),
         filters.IsUserInCompanyProfile,
-        ('userchannels__event__id', filters.ProfileMultiSelectDonorEvent),
+        # ('userchannels__event__id', filters.ProfileMultiSelectDonorEvent),
+        filters.DonorsEventTextSearchFilter,
         filters.RegularPaymentsFilter,
         filters.EmailFilter,
         filters.TelephoneFilter,
