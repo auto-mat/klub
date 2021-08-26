@@ -10,11 +10,9 @@ env:
     - DATABASE_USER="postgres"
     - DJANGO_SETTINGS_MODULE="project.settings.test"
     - SECRET_KEY="sadfjasasdfasdfsadfsadfsadfeq"
-
-  matrix:
-    - DJANGO_VERSION="Django==2.2.24"
+    - DJANGO_VERSION="Django==3.1"
 python:
-  - "3.6"
+  - "3.7"
 before_install:
   - sudo apt-get install -y python-gdal
 install:
