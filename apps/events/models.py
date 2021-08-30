@@ -114,6 +114,7 @@ class Event(models.Model):
     )
     BASIC_PURPOSE = (
         ('action', _('Action')),
+        ('action-with-attendee-list', _('Action with attendee list'))
         ('petition', _('Petition')),
         ('camp', _('Camp')),
         ('opportunity', _('Opportunity')),

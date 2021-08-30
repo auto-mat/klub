@@ -252,6 +252,7 @@ class Command(BaseCommand):
                 defaults= {
                     "number_of_actions":akce.get("pocet"),
                     "is_internal":akce.get("klubova") if akce.get("klubova") else 0,
+                    "basic_purpose": "action-with-attendee-list" if akce.get("adresar", False) else "action",
                     "program":program,
                     "indended_for":indended_for,
                     "age_from":akce.get("vek_od"),
@@ -287,6 +288,15 @@ class Command(BaseCommand):
                     "contact_person_email":akce.get("kontakt_email") or "",
                 }
             )
+
+        print("------ nahravání taborů ------")
+        sql = "SELECT * from tabor"
+        cur.execute(sql)
+        tabor_all = cur.fetchall()
+        for tabor in tabor_all:
+            event = Event.objects.get(id = tabor.get("id"))
+            event.basic_purpose = "camp"
+            event.save()
         print("------ prirazovani administrativnich jednotek k eventum------")
 
         sql = "SELECT * from porada"
