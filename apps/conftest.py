@@ -195,6 +195,7 @@ def event_1(administrative_unit_1, event_type_1, location_1):
         additional_question_1="he_1?",
         additional_question_2="he_2?",
         additional_question_3="he_3?",
+        additional_question_4="he_4?",
         invitation_text_1="text_1",
         invitation_text_2="text_2",
         invitation_text_3="text_3",
