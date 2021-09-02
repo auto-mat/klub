@@ -330,6 +330,18 @@ class Command(BaseCommand):
         for tabor in tabor_all:
             event = Event.objects.get(id=tabor.get("id"))
             event.basic_purpose = "camp"
+            event.working_hours = tabor.get("pracovni_doba")
+            event.total_working_days = tabor.get("pracovni_dny")
+            event.accommodation = tabor.get("ubytovani")
+            diets = {
+                0: ["vegetarian", "non_vegetarian"],
+                1: ["vegetarian"],
+                2: ["non_vegetarian"],
+                3: [],
+            }
+            event.diet = diets[tabor.get("strava")]
+            event.vip_action = tabor.get("vip") == 1
+            event.promoted_in_magazine = tabor.get("rover") == 1
             event.save()
         print("------ prirazovani administrativnich jednotek k eventum------")
 
