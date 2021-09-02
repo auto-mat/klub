@@ -8,7 +8,7 @@ from aklub.models import (
     Profile,
     BankAccount,
 )
-from events.models import Event, EventType
+from events.models import Event, EventType, Location
 from interactions.models import InteractionCategory, InteractionType, Interaction
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission
@@ -343,6 +343,34 @@ class Command(BaseCommand):
             event.vip_action = tabor.get("vip") == 1
             event.promoted_in_magazine = tabor.get("rover") == 1
             event.save()
+
+        print("------ importování lokalit ------")
+        sql = "SELECT * from lokalita"
+        cur.execute(sql)
+        lokalita_all = cur.fetchall()
+        for lokalita in lokalita_all:
+            location, _ = Location.objects.get_or_create(pk=lokalita.get("id"))
+            location.name = lokalita.get("nazev")
+            location.place = lokalita.get("misto")
+            regions = {
+                1: "Praha",
+                2: "Středočeský",
+                3: "Ústecký",
+                4: "Liberecký",
+                5: "Pardubický",
+                6: "Královéhradecký",
+                7: "Jihočeský",
+                8: "Plzeňský",
+                9: "Karlovarský",
+                10: "Vysočina",
+                11: "Jihomoravský",
+                12: "Olomoucký",
+                13: "Moavskoslezský",
+                14: "Zlínský",
+                15: "Zahraničí",
+            }
+            location.region = regions[lokalita.get("kraj")]
+
         print("------ prirazovani administrativnich jednotek k eventum------")
 
         sql = "SELECT * from porada"
