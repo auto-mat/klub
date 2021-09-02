@@ -17,7 +17,7 @@ services:
    - ./venv:/home/test
  celery:
   build: .
-  entrypoint: ./venv/bin/python3 celery worker -A project.celery
+  entrypoint: /klub-v/venv/bin/celery worker -A project.celery
   links:
    - postgres
    - redis
@@ -30,7 +30,7 @@ services:
    - ./venv:/home/test
  celery-beat:
   build: .
-  entrypoint:  ./venv/bin/python3 celery beat -A project.celery
+  entrypoint: /klub-v/venv/bin/celery beat -A project.celery
   links:
    - postgres
    - redis
