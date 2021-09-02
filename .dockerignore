@@ -22,4 +22,4 @@ docker.env
 third_party/
 Dockerfile
 .env
-pipenv
+venv

@@ -10,15 +10,15 @@ Ke zprovoznění je zapotřebí následující
 
 * Virtualenv
 * Postgres 8.4 + postgis 1.5
-* pipenv
 
 Vzorová lokální konfigurace je v `.env-sample`, stačí přejmenovat na `.env` a doplnit SECRET\_KEY.
 
 Instalace probíhá pomocí následujícíh příkazů:
 
 * sudo apt-get install libgraphviz-dev
-* pipenv install
-* pipenv shell
+* virtualenv venv --activators bash,fish
+* source venv/bin/activate
+* pip3 install -r requirements.txt
 * python manage.py compilemessages -l "cs_CZ"
 
 Instalace (Docker compose)
@@ -28,8 +28,9 @@ Instalace (Docker compose)
     $ docker-compose up
 
     $ docker attach klub_web_1
-    $ pipenv install && pipenv shell
-    $ export PYTHONPATH=/klub-v
+    $ virtualenv venv --activators bash,fish
+    $ source venv/bin/activate
+    $ pip3 install -r requirements.txt
     $ cd apps/aklub && django-admin.py compilemessages -l cs_CZ && cd ../../
     $ django-admin.py migrate
     $ django-admin.py createsuperuser
@@ -45,7 +46,7 @@ Spuštění
 
 Pro testovací účely spustíte projekt pomocí následujícího příkazu:
 
-* env/bin/python manage.py runserver 0.0.0.0:8000
+* venv/bin/python manage.py runserver 0.0.0.0:8000
 
 
 K8S

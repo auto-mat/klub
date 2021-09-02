@@ -16,23 +16,21 @@ python:
 before_install:
   - sudo apt-get install -y python-gdal
 install:
-  - pip install pipenv
-  - pipenv install --dev --ignore-pipfile --python=python$TRAVIS_PYTHON_VERSION
-  - pipenv run python --version
-  - pipenv run pip install flake8-strict  # not installable with pipenv, move ther when repaired
-  - pipenv run pip install -q $DJANGO_VERSION
+  - pip3 install -r requirements.txt
+  - python --version
+  - pip install -q $DJANGO_VERSION
 before_script:
   - npm install -g bower
-  - pipenv run flake8
-  - pipenv run python manage.py bower install
-  - pipenv run python manage.py collectstatic -v0 --noinput
+  - flake8
+  - python manage.py bower install
+  - python manage.py collectstatic -v0 --noinput
   - cd apps/aklub/
-  - DJANGO_SETTINGS_MODULE="" pipenv run django-admin compilemessages
+  - DJANGO_SETTINGS_MODULE="" django-admin compilemessages
   - cd ../..
 script:
-  - pipenv run python manage.py --version
-  - pipenv run ./runtests.sh
-  - pipenv run pytest
+  - python manage.py --version
+  - ./runtests.sh
+  - pytest
 after_script:
   - coveralls
 addons:

@@ -1,3 +1,3 @@
 #!/bin/bash
 
-pipenv run manage.py autocom
+manage.py autocom

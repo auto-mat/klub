@@ -14,10 +14,10 @@ services:
   user: test
   volumes:
    - ./:/klub-v/
-   - ./pipenv:/home/test
+   - ./venv:/home/test
  celery:
   build: .
-  entrypoint: pipenv run celery worker -A project.celery
+  entrypoint: ./venv/bin/python3 celery worker -A project.celery
   links:
    - postgres
    - redis
@@ -27,10 +27,10 @@ services:
   user: test
   volumes:
    - ./:/klub-v/
-   - ./pipenv:/home/test
+   - ./venv:/home/test
  celery-beat:
   build: .
-  entrypoint: pipenv run celery beat -A project.celery
+  entrypoint:  ./venv/bin/python3 celery beat -A project.celery
   links:
    - postgres
    - redis
@@ -40,7 +40,7 @@ services:
   user: test
   volumes:
    - ./:/klub-v/
-   - ./pipenv:/home/test
+   - ./venv:/home/test
  flower:
   build: .
   entrypoint: ./launch_flower
@@ -55,7 +55,7 @@ services:
   user: test
   volumes:
    - ./:/klub-v/
-   - ./pipenv:/home/test
+   - ./venv:/home/test
 
  redis:
   image: redis

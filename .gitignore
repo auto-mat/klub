@@ -8,7 +8,7 @@ media/
 *~
 env/
 .env
-pipenv/
+venv/
 project/settings/local.py
 data/
 trash/

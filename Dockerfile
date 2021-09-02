@@ -22,17 +22,15 @@ run apt-get update && apt-get install -y \
 run mkdir /home/aplikace -p
 WORKDIR "/home/aplikace"
 
-RUN pip3 install pipenv==2020.11.15
 RUN useradd test
 RUN chsh test -s /bin/bash
 RUN mkdir /home/test ; chown test /home/test ; chgrp test /home/test
 RUN npm install -g bower
 RUN mkdir -p /var/log/django/
 
-copy Pipfile.lock Pipfile.lock
-copy Pipfile Pipfile
-RUN su test ; pipenv install --dev --python python3.6
+copy requirements.txt 
+RUN su test ; pip3 install -r requirements.txt
 copy . .
-RUN SECRET_KEY="fake_key" pipenv run python manage.py bower install
-RUN SECRET_KEY="fake_key" pipenv run python manage.py compilemessages
-RUN SECRET_KEY="fake_key" pipenv run python manage.py collectstatic --noinput
+RUN SECRET_KEY="fake_key" python3 manage.py bower install
+RUN SECRET_KEY="fake_key" python3 manage.py compilemessages
+RUN SECRET_KEY="fake_key" python3 manage.py collectstatic --noinput

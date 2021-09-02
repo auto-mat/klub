@@ -1,2 +1,2 @@
 #!/bin/sh
-pipenv run celery flower -A project.celery --basic_auth=admin:$FLOWER_PASSWORD
+celery flower -A project.celery --basic_auth=admin:$FLOWER_PASSWORD
