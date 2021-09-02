@@ -200,7 +200,7 @@ def event_1(administrative_unit_1, event_type_1, location_1):
         invitation_text_3="text_3",
         invitation_text_4="text_4",
         accommodation="under the sky",
-        diet="vegetarian",
+        diet=["vegetarian"],
         looking_forward_to_you="some name_1 name_2",
         working_hours=3,
         main_photo=File(open("apps/aklub/test_data/empty_pdf.pdf", "rb")),
