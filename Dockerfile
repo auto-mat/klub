@@ -28,7 +28,7 @@ RUN mkdir /home/test ; chown test /home/test ; chgrp test /home/test
 RUN npm install -g bower
 RUN mkdir -p /var/log/django/
 
-copy requirements.txt 
+copy requirements.txt requirements.txt
 RUN su test ; pip3 install -r requirements.txt
 copy . .
 RUN SECRET_KEY="fake_key" python3 manage.py bower install
