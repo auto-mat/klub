@@ -26,7 +26,7 @@ before_script:
   - cd ../..
 script:
   - python manage.py --version
-  - coverage run pytest
+  - pytest --cov=apps apps
   - coverage html
 after_script:
   - coveralls
