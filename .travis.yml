@@ -10,7 +10,6 @@ env:
     - DATABASE_USER="postgres"
     - DJANGO_SETTINGS_MODULE="project.settings.test"
     - SECRET_KEY="sadfjasasdfasdfsadfsadfsadfeq"
-    - DJANGO_VERSION="Django==3.1"
 python:
   - "3.6"
 before_install:
@@ -18,7 +17,6 @@ before_install:
 install:
   - pip3 install -r requirements.txt
   - python --version
-  - pip install -q $DJANGO_VERSION
 before_script:
   - npm install -g bower
   - black --check --exclude migrations apps
@@ -36,7 +34,3 @@ after_script:
   - coveralls
 addons:
   postgresql: "9.6"
-matrix:
-   allow_failures:
-      - env: DJANGO_VERSION='https://github.com/django/django/archive/master.tar.gz'
-      - env: DJANGO_VERSION="Django>=3.0,<3.1"
