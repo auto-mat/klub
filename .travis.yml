@@ -4,8 +4,6 @@ services:
   - redis-server
 env:
   global:
-    - PIPENV_VENV_IN_PROJECT=1
-    - PIPENV_IGNORE_VIRTUALENVS=1
     - DATABASE_NAME="travis_ci"
     - DATABASE_USER="postgres"
     - DJANGO_SETTINGS_MODULE="project.settings.test"
