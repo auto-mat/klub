@@ -44,17 +44,17 @@ from flexible_filter_conditions.models import NamedCondition
 
 from .models import AccountStatements, MassCommunication, UserProfile
 
-cache = caches['default']
+cache = caches["default"]
 
 
 def get_users_by_condition_cached(cond):
-    items = cache.get('condition_filter_%i' % cond.pk, None)
+    items = cache.get("condition_filter_%i" % cond.pk, None)
     if not items:
         items = cond.filter_queryset(UserProfile.objects.all())
         now = timezone.now()
         td = now.replace(hour=23, minute=59, second=59, microsecond=999) - now
         seconds_till_midnight = td.seconds + (td.days * 24 * 3600)
-        cache.set('condition_filter_%i' % cond.pk, items, seconds_till_midnight)
+        cache.set("condition_filter_%i" % cond.pk, items, seconds_till_midnight)
     return items
 
 
@@ -62,24 +62,25 @@ class AklubIndexDashboard(Dashboard):
     """
     Aklub index dashboard for aklub.
     """
-    def init_with_context(self, context): # noqa
+
+    def init_with_context(self, context):  # noqa
         site_name = get_admin_site_name(context)
         # append a link list module for "quick links"
         self.children.append(
             modules.LinkList(
-                _('Quick links'),
-                layout='inline',
+                _("Quick links"),
+                layout="inline",
                 draggable=False,
                 deletable=False,
                 collapsible=False,
                 children=[
-                    [_('Return to site'), '/'],
+                    [_("Return to site"), "/"],
                     [
-                        _('Change password'),
-                        reverse('%s:password_change' % site_name),
+                        _("Change password"),
+                        reverse("%s:password_change" % site_name),
                     ],
-                    [_('Log out'), reverse('%s:logout' % site_name)],
-                    [_('Helpdesk'), reverse('helpdesk:dashboard')],
+                    [_("Log out"), reverse("%s:logout" % site_name)],
+                    [_("Helpdesk"), reverse("helpdesk:dashboard")],
                 ],
             ),
         )
@@ -87,35 +88,35 @@ class AklubIndexDashboard(Dashboard):
         # append an app list module for "Applications"
         self.children.append(
             modules.AppList(
-                _('Applications'),
-                exclude=('django.contrib.*',),
+                _("Applications"),
+                exclude=("django.contrib.*",),
             ),
         )
 
         # append an app list module for "Administration"
         self.children.append(
             modules.AppList(
-                _('Administration'),
-                models=('django.contrib.*',),
+                _("Administration"),
+                models=("django.contrib.*",),
             ),
         )
 
         # append a recent actions module
-        self.children.append(modules.RecentActions(_('Recent Actions'), 5))
+        self.children.append(modules.RecentActions(_("Recent Actions"), 5))
 
         self.children.append(
             modules.LinkList(
-                _('Statistics'),
+                _("Statistics"),
                 children=[
                     {
-                        'title': _('Members'),
-                        'url': '/admin/aklub/stat-members',
-                        'external': False,
+                        "title": _("Members"),
+                        "url": "/admin/aklub/stat-members",
+                        "external": False,
                     },
                     {
-                        'title': _('Payments'),
-                        'url': '/admin/aklub/stat-payments',
-                        'external': False,
+                        "title": _("Payments"),
+                        "url": "/admin/aklub/stat-payments",
+                        "external": False,
                     },
                 ],
             ),
@@ -126,37 +127,47 @@ class AklubIndexDashboard(Dashboard):
         if AccountStatements.objects.exists():
             children.append(
                 {
-                    'title': _(u"Days from last bill upload: %(days)s days") % {
-                        "days": (timezone.now() - AccountStatements.objects.first().import_date).days,
+                    "title": _(u"Days from last bill upload: %(days)s days")
+                    % {
+                        "days": (
+                            timezone.now()
+                            - AccountStatements.objects.first().import_date
+                        ).days,
                     },
-                    'url': "aklub/accountstatements/",
-                    'external': False,
+                    "url": "aklub/accountstatements/",
+                    "external": False,
                 }
             )
         if MassCommunication.objects.exists():
             children.append(
                 {
-                    'title': _(
-                        u"Days from last mass communication: %(days)s days"
-                    ) % {"days": (datetime.date.today() - MassCommunication.objects.order_by("-date").first().date).days},
-                    'url': "aklub/masscommunication/",
-                    'external': False,
+                    "title": _(u"Days from last mass communication: %(days)s days")
+                    % {
+                        "days": (
+                            datetime.date.today()
+                            - MassCommunication.objects.order_by("-date").first().date
+                        ).days
+                    },
+                    "url": "aklub/masscommunication/",
+                    "external": False,
                 }
             )
         for cond in NamedCondition.objects.filter(on_dashboard=True):
             children.append(
                 {
-                    'title': _(u"%(name)s: %(items)s items") % {
+                    "title": _(u"%(name)s: %(items)s items")
+                    % {
                         "name": str(cond.name),
                         "items": get_users_by_condition_cached(cond).count(),
                     },
-                    'url': reverse('admin:aklub_userprofile_changelist') + "?user_condition=%i" % cond.id,
-                    'external': False,
+                    "url": reverse("admin:aklub_userprofile_changelist")
+                    + "?user_condition=%i" % cond.id,
+                    "external": False,
                 }
             )
         self.children.append(
             modules.LinkList(
-                _('Conditions'),
+                _("Conditions"),
                 children=children,
             ),
         )
@@ -167,15 +178,18 @@ class AklubIndexDashboard(Dashboard):
             for member in members[:10]:
                 children.append(
                     {
-                        'title': member.person_name(),
-                        'url': reverse('admin:aklub_donorpaymentchannel_change', args=[member.id]),
-                        'external': False,
+                        "title": member.person_name(),
+                        "url": reverse(
+                            "admin:aklub_donorpaymentchannel_change", args=[member.id]
+                        ),
+                        "external": False,
                     }
                 )
             self.children.append(
                 modules.LinkList(
                     title=cond.name,
-                    title_url=reverse('admin:aklub_userprofile_changelist') + "/?user_condition=%i" % cond.id,
+                    title_url=reverse("admin:aklub_userprofile_changelist")
+                    + "/?user_condition=%i" % cond.id,
                     children=children,
                     pre_content=_(u"Total number of items: %i") % members.count(),
                 ),
@@ -184,27 +198,27 @@ class AklubIndexDashboard(Dashboard):
         # append an app list module
         self.children.append(
             modules.AppList(
-                _('Dashboard Stats Settings'),
-                models=('admin_tools_stats.*', ),
+                _("Dashboard Stats Settings"),
+                models=("admin_tools_stats.*",),
             ),
         )
 
         # Copy following code into your custom dashboard
         # append following code after recent actions module or
         # a link list module for "quick links"
-        if context['request'].user.has_perm('admin_tools_stats.view_dashboardstats'):
+        if context["request"].user.has_perm("admin_tools_stats.view_dashboardstats"):
             graph_list = get_active_graph()
         else:
             graph_list = []
 
         for i in graph_list:
             kwargs = {}
-            kwargs['require_chart_jscss'] = True
-            kwargs['graph_key'] = i.graph_key
+            kwargs["require_chart_jscss"] = True
+            kwargs["graph_key"] = i.graph_key
 
-            for key in context['request'].POST:
-                if key.startswith('select_box_'):
-                    kwargs[key] = context['request'].POST[key]
+            for key in context["request"].POST:
+                if key.startswith("select_box_"):
+                    kwargs[key] = context["request"].POST[key]
 
             self.children.append(DashboardChart(**kwargs))
 
@@ -215,7 +229,7 @@ class AklubAppIndexDashboard(AppIndexDashboard):
     """
 
     # we disable title because its redundant with the model list module
-    title = ''
+    title = ""
 
     def __init__(self, *args, **kwargs):
         AppIndexDashboard.__init__(self, *args, **kwargs)
@@ -224,7 +238,7 @@ class AklubAppIndexDashboard(AppIndexDashboard):
         self.children += [
             modules.ModelList(self.app_title, self.models),
             modules.RecentActions(
-                _('Recent Actions'),
+                _("Recent Actions"),
                 include_list=self.get_app_content_types(),
                 limit=5,
             ),

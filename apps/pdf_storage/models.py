@@ -36,7 +36,7 @@ class PdfStorage(models.Model):
     )
     pdf_file = models.FileField(
         verbose_name=_("File"),
-        upload_to='pdf_storage',
+        upload_to="pdf_storage",
     )
     administrative_unit = models.ForeignKey(
         AdministrativeUnit,

@@ -31,7 +31,13 @@ from model_mommy import mommy
 from ..utils import RunCommitHooksMixin
 from ... import darujme
 from ...models import (
-    AccountStatements, AdministrativeUnit, DonorPaymentChannel, Payment, ProfileEmail, Telephone, UserProfile,
+    AccountStatements,
+    AdministrativeUnit,
+    DonorPaymentChannel,
+    Payment,
+    ProfileEmail,
+    Telephone,
+    UserProfile,
 )
 
 
@@ -39,15 +45,21 @@ from ...models import (
     CELERY_ALWAYS_EAGER=True,
 )
 class AccountStatementTests(RunCommitHooksMixin, TestCase):
-    fixtures = ['conditions', 'users']
+    fixtures = ["conditions", "users"]
 
     def setUp(self):
         self.unit = AdministrativeUnit.objects.get(pk=1)
 
     def test_bank_new_statement_fio(self):
-        recipient_account = mommy.make("aklub.bankaccount", bank_account_number='2400063333/2010', administrative_unit=self.unit)
+        recipient_account = mommy.make(
+            "aklub.bankaccount",
+            bank_account_number="2400063333/2010",
+            administrative_unit=self.unit,
+        )
         with open("apps/aklub/test_data/Pohyby_5_2016.csv", "rb") as f:
-            a = AccountStatements(csv_file=File(f), type="account", administrative_unit=self.unit)
+            a = AccountStatements(
+                csv_file=File(f), type="account", administrative_unit=self.unit
+            )
             a.clean()
             a.save()
 
@@ -62,14 +74,14 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
         p1 = Payment.objects.get(account=2150508001)
         self.assertEqual(p1.date, datetime.date(day=18, month=1, year=2016))
         self.assertEqual(p1.amount, 250)
-        self.assertEqual(p1.account, '2150508001')
-        self.assertEqual(p1.bank_code, '5500')
-        self.assertEqual(p1.VS, '120127010')
+        self.assertEqual(p1.account, "2150508001")
+        self.assertEqual(p1.bank_code, "5500")
+        self.assertEqual(p1.VS, "120127010")
         self.assertEqual(p1.VS2, None)
         self.assertEqual(p1.SS, "12321")
-        self.assertEqual(p1.KS, '0101')
-        self.assertEqual(p1.user_identification, 'Account note')
-        self.assertEqual(p1.type, 'bank-transfer')
+        self.assertEqual(p1.KS, "0101")
+        self.assertEqual(p1.user_identification, "Account note")
+        self.assertEqual(p1.type, "bank-transfer")
         self.assertEqual(p1.done_by, "Done by")
         self.assertEqual(p1.account_name, "Testing user account")
         self.assertEqual(p1.bank_name, "Raiffeisenbank a.s.")
@@ -83,12 +95,21 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
         self.assertEqual(p1.user_donor_payment_channel, donor_channel)
         self.assertEqual(p1.recipient_account, recipient_account)
 
-        self.assertEqual(donor_channel.payment_set.get(date=datetime.date(2016, 1, 18)), a1.payment_set.get(account=2150508001))
+        self.assertEqual(
+            donor_channel.payment_set.get(date=datetime.date(2016, 1, 18)),
+            a1.payment_set.get(account=2150508001),
+        )
 
     def test_bank_new_statement_cs(self):
-        recipient_account = mommy.make("aklub.bankaccount", bank_account_number='99999999/2010', administrative_unit=self.unit)
+        recipient_account = mommy.make(
+            "aklub.bankaccount",
+            bank_account_number="99999999/2010",
+            administrative_unit=self.unit,
+        )
         with open("apps/aklub/test_data/Pohyby_cs.csv", "rb") as f:
-            a = AccountStatements(csv_file=File(f), type="account_cs", administrative_unit=self.unit)
+            a = AccountStatements(
+                csv_file=File(f), type="account_cs", administrative_unit=self.unit
+            )
             a.clean()
             a.save()
 
@@ -102,14 +123,14 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
         p1 = Payment.objects.get(account="20000-92392323")
         self.assertEqual(p1.date, datetime.date(day=11, month=3, year=2019))
         self.assertEqual(p1.amount, 1000)
-        self.assertEqual(p1.account, '20000-92392323')
-        self.assertEqual(p1.bank_code, '0800')
-        self.assertEqual(p1.VS, '120127010')
-        self.assertEqual(p1.VS2, '120127010')
+        self.assertEqual(p1.account, "20000-92392323")
+        self.assertEqual(p1.bank_code, "0800")
+        self.assertEqual(p1.VS, "120127010")
+        self.assertEqual(p1.VS2, "120127010")
         self.assertEqual(p1.SS, "5")
-        self.assertEqual(p1.KS, '0')
-        self.assertEqual(p1.user_identification, '')
-        self.assertEqual(p1.type, 'bank-transfer')
+        self.assertEqual(p1.KS, "0")
+        self.assertEqual(p1.user_identification, "")
+        self.assertEqual(p1.type, "bank-transfer")
         self.assertEqual(p1.done_by, "")
         self.assertEqual(p1.account_name, "Test Name")
         self.assertEqual(p1.bank_name, "")
@@ -123,12 +144,21 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
         self.assertEqual(p1.user_donor_payment_channel, donor_channel)
         self.assertEqual(p1.recipient_account, recipient_account)
 
-        self.assertEqual(donor_channel.payment_set.get(date=datetime.date(2019, 3, 11)), a1.payment_set.get(account='20000-92392323'))
+        self.assertEqual(
+            donor_channel.payment_set.get(date=datetime.date(2019, 3, 11)),
+            a1.payment_set.get(account="20000-92392323"),
+        )
 
     def test_bank_new_statement_kb(self):
-        recipient_account = mommy.make("aklub.bankaccount", bank_account_number='999-99999999/2010', administrative_unit=self.unit)
+        recipient_account = mommy.make(
+            "aklub.bankaccount",
+            bank_account_number="999-99999999/2010",
+            administrative_unit=self.unit,
+        )
         with open("apps/aklub/test_data/pohyby_kb.csv", "rb") as f:
-            a = AccountStatements(csv_file=File(f), type="account_kb", administrative_unit=self.unit)
+            a = AccountStatements(
+                csv_file=File(f), type="account_kb", administrative_unit=self.unit
+            )
             a.clean()
             a.save()
 
@@ -140,23 +170,23 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
         self.assertEqual(a1.date_from, datetime.date(day=1, month=2, year=2010))
         self.assertEqual(a1.date_to, datetime.date(day=3, month=2, year=2010))
 
-        p1 = Payment.objects.get(account='28937-32323234')
+        p1 = Payment.objects.get(account="28937-32323234")
         self.assertEqual(p1.date, datetime.date(day=1, month=2, year=2010))
         self.assertEqual(p1.amount, 500)
-        self.assertEqual(p1.account, '28937-32323234')
-        self.assertEqual(p1.bank_code, '9999')
-        self.assertEqual(p1.VS, '120127010')
+        self.assertEqual(p1.account, "28937-32323234")
+        self.assertEqual(p1.bank_code, "9999")
+        self.assertEqual(p1.VS, "120127010")
         self.assertEqual(p1.VS2, None)
         self.assertEqual(p1.SS, "3232")
-        self.assertEqual(p1.KS, '23')
-        self.assertEqual(p1.user_identification, '')
-        self.assertEqual(p1.type, 'bank-transfer')
+        self.assertEqual(p1.KS, "23")
+        self.assertEqual(p1.user_identification, "")
+        self.assertEqual(p1.type, "bank-transfer")
         self.assertEqual(p1.done_by, "")
         self.assertEqual(p1.account_name, "Protiucet_name")
         self.assertEqual(p1.bank_name, "")
         self.assertEqual(p1.transfer_note, "TEST1, ")
         self.assertEqual(p1.currency, None)
-        self.assertEqual(p1.recipient_message, 'Z    CK-73782378278')
+        self.assertEqual(p1.recipient_message, "Z    CK-73782378278")
         self.assertEqual(p1.operation_id, None)
         self.assertEqual(p1.transfer_type, None)
         self.assertEqual(p1.specification, None)
@@ -164,12 +194,21 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
         self.assertEqual(p1.user_donor_payment_channel, donor_channel)
         self.assertEqual(p1.recipient_account, recipient_account)
 
-        self.assertEqual(donor_channel.payment_set.get(date=datetime.date(2010, 2, 1)), a1.payment_set.get(account='28937-32323234'))
+        self.assertEqual(
+            donor_channel.payment_set.get(date=datetime.date(2010, 2, 1)),
+            a1.payment_set.get(account="28937-32323234"),
+        )
 
     def test_bank_new_statement_csob(self):
-        recipient_account = mommy.make("aklub.bankaccount", bank_account_number='99999999/0300', administrative_unit=self.unit)
+        recipient_account = mommy.make(
+            "aklub.bankaccount",
+            bank_account_number="99999999/0300",
+            administrative_unit=self.unit,
+        )
         with open("apps/aklub/test_data/pohyby_csob.csv", "rb") as f:
-            a = AccountStatements(csv_file=File(f), type="account_csob", administrative_unit=self.unit)
+            a = AccountStatements(
+                csv_file=File(f), type="account_csob", administrative_unit=self.unit
+            )
             a.clean()
             a.save()
 
@@ -181,23 +220,23 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
         self.assertEqual(a1.date_from, datetime.date(day=19, month=7, year=2019))
         self.assertEqual(a1.date_to, datetime.date(day=2, month=8, year=2019))
 
-        p1 = Payment.objects.get(account='99999999')
+        p1 = Payment.objects.get(account="99999999")
         self.assertEqual(p1.date, datetime.date(day=19, month=7, year=2019))
         self.assertEqual(p1.amount, 200)
-        self.assertEqual(p1.account, '99999999')
-        self.assertEqual(p1.bank_code, '0600')
-        self.assertEqual(p1.VS, '120127010')
+        self.assertEqual(p1.account, "99999999")
+        self.assertEqual(p1.bank_code, "0600")
+        self.assertEqual(p1.VS, "120127010")
         self.assertEqual(p1.VS2, None)
         self.assertEqual(p1.SS, "9999")
-        self.assertEqual(p1.KS, '1')
-        self.assertEqual(p1.user_identification, '')
-        self.assertEqual(p1.type, 'bank-transfer')
+        self.assertEqual(p1.KS, "1")
+        self.assertEqual(p1.user_identification, "")
+        self.assertEqual(p1.type, "bank-transfer")
         self.assertEqual(p1.done_by, "")
         self.assertEqual(p1.account_name, "TEST USER 1")
         self.assertEqual(p1.bank_name, "")
         self.assertEqual(p1.transfer_note, "")
-        self.assertEqual(p1.currency, 'CZK')
-        self.assertEqual(p1.recipient_message, 'We must test')
+        self.assertEqual(p1.currency, "CZK")
+        self.assertEqual(p1.recipient_message, "We must test")
         self.assertEqual(p1.operation_id, None)
         self.assertEqual(p1.transfer_type, None)
         self.assertEqual(p1.specification, None)
@@ -205,12 +244,21 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
         self.assertEqual(p1.user_donor_payment_channel, donor_channel)
         self.assertEqual(p1.recipient_account, recipient_account)
 
-        self.assertEqual(donor_channel.payment_set.get(date=datetime.date(2019, 7, 19)), a1.payment_set.get(account='99999999'))
+        self.assertEqual(
+            donor_channel.payment_set.get(date=datetime.date(2019, 7, 19)),
+            a1.payment_set.get(account="99999999"),
+        )
 
     def test_bank_new_statement_sberbank(self):
-        recipient_account = mommy.make("aklub.bankaccount", bank_account_number='9999999999/0800', administrative_unit=self.unit)
+        recipient_account = mommy.make(
+            "aklub.bankaccount",
+            bank_account_number="9999999999/0800",
+            administrative_unit=self.unit,
+        )
         with open("apps/aklub/test_data/pohyby_sberbank.txt", "rb") as f:
-            a = AccountStatements(csv_file=File(f), type="account_sberbank", administrative_unit=self.unit)
+            a = AccountStatements(
+                csv_file=File(f), type="account_sberbank", administrative_unit=self.unit
+            )
             a.clean()
             a.save()
 
@@ -222,36 +270,47 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
         self.assertEqual(a1.date_from, None)
         self.assertEqual(a1.date_to, None)
 
-        p1 = Payment.objects.get(account='9999999999')
+        p1 = Payment.objects.get(account="9999999999")
         self.assertEqual(p1.date, datetime.date(day=13, month=8, year=2019))
         self.assertEqual(p1.amount, 1000)
-        self.assertEqual(p1.account, '9999999999')
-        self.assertEqual(p1.bank_code, '9999')
-        self.assertEqual(p1.VS, '120127010')
+        self.assertEqual(p1.account, "9999999999")
+        self.assertEqual(p1.bank_code, "9999")
+        self.assertEqual(p1.VS, "120127010")
         self.assertEqual(p1.VS2, None)
-        self.assertEqual(p1.SS, '')
-        self.assertEqual(p1.KS, '999')
-        self.assertEqual(p1.user_identification, '')
-        self.assertEqual(p1.type, 'bank-transfer')
+        self.assertEqual(p1.SS, "")
+        self.assertEqual(p1.KS, "999")
+        self.assertEqual(p1.user_identification, "")
+        self.assertEqual(p1.type, "bank-transfer")
         self.assertEqual(p1.done_by, "")
         self.assertEqual(p1.account_name, "Tester TEST")
         self.assertEqual(p1.bank_name, "")
         self.assertEqual(p1.transfer_note, None)
-        self.assertEqual(p1.currency, 'CZK')
+        self.assertEqual(p1.currency, "CZK")
         self.assertEqual(p1.recipient_message, "MESSAGE TEST ONE")
         self.assertEqual(p1.operation_id, None)
-        self.assertEqual(p1.transfer_type, 'kreditní')
+        self.assertEqual(p1.transfer_type, "kreditní")
         self.assertEqual(p1.specification, None)
         self.assertEqual(p1.order_id, None)
         self.assertEqual(p1.user_donor_payment_channel, donor_channel)
         self.assertEqual(p1.recipient_account, recipient_account)
 
-        self.assertEqual(donor_channel.payment_set.get(date=datetime.date(2019, 8, 13)), a1.payment_set.get(account='9999999999'))
+        self.assertEqual(
+            donor_channel.payment_set.get(date=datetime.date(2019, 8, 13)),
+            a1.payment_set.get(account="9999999999"),
+        )
 
     def test_bank_new_statement_raiffeisenbank(self):
-        recipient_account = mommy.make("aklub.bankaccount", bank_account_number='233223/12', administrative_unit=self.unit)
+        recipient_account = mommy.make(
+            "aklub.bankaccount",
+            bank_account_number="233223/12",
+            administrative_unit=self.unit,
+        )
         with open("apps/aklub/test_data/pohyby_raiffeisenbank.csv", "rb") as f:
-            a = AccountStatements(csv_file=File(f), type="account_raiffeisenbank", administrative_unit=self.unit)
+            a = AccountStatements(
+                csv_file=File(f),
+                type="account_raiffeisenbank",
+                administrative_unit=self.unit,
+            )
             a.clean()
             a.save()
         donor_channel = DonorPaymentChannel.objects.get(VS=120127010)
@@ -262,54 +321,57 @@ class AccountStatementTests(RunCommitHooksMixin, TestCase):
         self.assertEqual(a1.date_from, None)
         self.assertEqual(a1.date_to, None)
 
-        p1 = Payment.objects.get(account='23')
+        p1 = Payment.objects.get(account="23")
         self.assertEqual(p1.date, datetime.date(day=1, month=2, year=2018))
         self.assertEqual(p1.amount, 102)
-        self.assertEqual(p1.account, '23')
-        self.assertEqual(p1.bank_code, '23')
-        self.assertEqual(p1.VS, '120127010')
+        self.assertEqual(p1.account, "23")
+        self.assertEqual(p1.bank_code, "23")
+        self.assertEqual(p1.VS, "120127010")
         self.assertEqual(p1.VS2, None)
         self.assertEqual(p1.SS, "")
-        self.assertEqual(p1.KS, '23322')
-        self.assertEqual(p1.user_identification, '')
-        self.assertEqual(p1.type, 'bank-transfer')
+        self.assertEqual(p1.KS, "23322")
+        self.assertEqual(p1.user_identification, "")
+        self.assertEqual(p1.type, "bank-transfer")
         self.assertEqual(p1.done_by, "")
         self.assertEqual(p1.account_name, "Mr. Test")
         self.assertEqual(p1.bank_name, "")
         self.assertEqual(p1.transfer_note, "note")
-        self.assertEqual(p1.currency, 'CZK')
-        self.assertEqual(p1.recipient_message, 'message')
-        self.assertEqual(p1.operation_id, '1')
+        self.assertEqual(p1.currency, "CZK")
+        self.assertEqual(p1.recipient_message, "message")
+        self.assertEqual(p1.operation_id, "1")
         self.assertEqual(p1.transfer_type, None)
         self.assertEqual(p1.specification, None)
         self.assertEqual(p1.order_id, None)
         self.assertEqual(p1.user_donor_payment_channel, donor_channel)
         self.assertEqual(p1.recipient_account, recipient_account)
 
-        self.assertEqual(donor_channel.payment_set.get(date=datetime.date(2018, 2, 1)), a1.payment_set.get(account='23'))
+        self.assertEqual(
+            donor_channel.payment_set.get(date=datetime.date(2018, 2, 1)),
+            a1.payment_set.get(account="23"),
+        )
 
 
 @override_settings(CELERY_ALWAYS_EAGER=True)
 class TestDarujmeCheck(TestCase):
     def setUp(self):
 
-        self.unit1 = mommy.make('aklub.AdministrativeUnit', name='test_unit')
-        self.unit2 = mommy.make('aklub.AdministrativeUnit', name='test_unit_2')
-        self.event = mommy.make('events.Event', name='test_event')
+        self.unit1 = mommy.make("aklub.AdministrativeUnit", name="test_unit")
+        self.unit2 = mommy.make("aklub.AdministrativeUnit", name="test_unit_2")
+        self.event = mommy.make("events.Event", name="test_event")
         self.api_acc = mommy.make(
-            'aklub.ApiAccount',
-            project_name='test_project',
-            project_id='22222',
-            api_id='11111',
-            api_secret='secret_hash',
+            "aklub.ApiAccount",
+            project_name="test_project",
+            project_id="22222",
+            api_id="11111",
+            api_secret="secret_hash",
             api_organization_id="123",
             event=self.event,
             administrative_unit=self.unit1,
         )
 
-    @patch('aklub.darujme.requests.get')
+    @patch("aklub.darujme.requests.get")
     def run_check_darujme(self, mock_get):
-        with open('apps/aklub/test_data/darujme_response.json') as json_file:
+        with open("apps/aklub/test_data/darujme_response.json") as json_file:
             mock_get.return_value.json.return_value = json.load(json_file)
             mock_get.return_value.status_code = 200
         darujme.check_for_new_payments()
@@ -323,7 +385,9 @@ class TestDarujmeCheck(TestCase):
         self.assertTrue(UserProfile.objects.count(), 2)
 
         # user doesnt exist because he has no valid payment
-        self.assertFalse(ProfileEmail.objects.filter(email="trickyone@test.cz").exists())
+        self.assertFalse(
+            ProfileEmail.objects.filter(email="trickyone@test.cz").exists()
+        )
 
         # user exists => has 2 valid payments and 1 invalid
         profile_email = ProfileEmail.objects.get(email="real@one.com")
@@ -347,31 +411,33 @@ class TestDarujmeCheck(TestCase):
         self.assertEqual(dpchs.count(), 1)
         dpch = dpchs.first()
         self.assertEqual(dpch.money_account, self.api_acc)
-        self.assertEqual(dpch.regular_frequency, 'monthly')
-        self.assertEqual(dpch.regular_payments, 'regular')
+        self.assertEqual(dpch.regular_frequency, "monthly")
+        self.assertEqual(dpch.regular_payments, "regular")
         self.assertEqual(dpch.regular_amount, 2000)
-        self.assertEqual(dpch.expected_date_of_first_payment, datetime.date(2012, 11, 30))
+        self.assertEqual(
+            dpch.expected_date_of_first_payment, datetime.date(2012, 11, 30)
+        )
         self.assertEqual(dpch.end_of_regular_payments, datetime.date(2014, 11, 30))
         # check payments
-        payments = dpch.payment_set.order_by('date')
+        payments = dpch.payment_set.order_by("date")
         self.assertEqual(payments.count(), 2)
 
-        self.assertEqual(payments[0].type, 'darujme')
-        self.assertEqual(payments[0].SS, '2')
+        self.assertEqual(payments[0].type, "darujme")
+        self.assertEqual(payments[0].SS, "2")
         self.assertEqual(payments[0].date, datetime.date(2013, 12, 16))
-        self.assertEqual(payments[0].operation_id, '12')
+        self.assertEqual(payments[0].operation_id, "12")
         self.assertEqual(payments[0].amount, 500)
-        self.assertEqual(payments[0].account_name, 'Real One')
-        self.assertEqual(payments[0].user_identification, 'Real@one.com')
+        self.assertEqual(payments[0].account_name, "Real One")
+        self.assertEqual(payments[0].user_identification, "Real@one.com")
         self.assertEqual(payments[0].recipient_account, self.api_acc)
 
-        self.assertEqual(payments[1].type, 'darujme')
-        self.assertEqual(payments[1].SS, '2')
+        self.assertEqual(payments[1].type, "darujme")
+        self.assertEqual(payments[1].SS, "2")
         self.assertEqual(payments[1].date, datetime.date(2014, 1, 16))
-        self.assertEqual(payments[1].operation_id, '13')
+        self.assertEqual(payments[1].operation_id, "13")
         self.assertEqual(payments[1].amount, 500)
-        self.assertEqual(payments[1].account_name, 'Real One')
-        self.assertEqual(payments[1].user_identification, 'Real@one.com')
+        self.assertEqual(payments[1].account_name, "Real One")
+        self.assertEqual(payments[1].user_identification, "Real@one.com")
         self.assertEqual(payments[1].recipient_account, self.api_acc)
 
         # user exists => has 1 valid payments (second one is waiting for sent to organization)
@@ -397,21 +463,23 @@ class TestDarujmeCheck(TestCase):
         dpch = dpchs.first()
         self.assertEqual(dpch.money_account, self.api_acc)
         self.assertEqual(dpch.regular_frequency, None)
-        self.assertEqual(dpch.regular_payments, 'onetime')
+        self.assertEqual(dpch.regular_payments, "onetime")
         self.assertEqual(dpch.regular_amount, 1900)
-        self.assertEqual(dpch.expected_date_of_first_payment, datetime.date(2012, 11, 22))
+        self.assertEqual(
+            dpch.expected_date_of_first_payment, datetime.date(2012, 11, 22)
+        )
         self.assertEqual(dpch.end_of_regular_payments, None)
         # check payments
-        payments = dpch.payment_set.order_by('date')
+        payments = dpch.payment_set.order_by("date")
         self.assertEqual(payments.count(), 1)
 
-        self.assertEqual(payments[0].type, 'darujme')
-        self.assertEqual(payments[0].SS, '3')
+        self.assertEqual(payments[0].type, "darujme")
+        self.assertEqual(payments[0].SS, "3")
         self.assertEqual(payments[0].date, datetime.date(2014, 1, 16))
-        self.assertEqual(payments[0].operation_id, '15')
+        self.assertEqual(payments[0].operation_id, "15")
         self.assertEqual(payments[0].amount, 500)
-        self.assertEqual(payments[0].account_name, 'Testerek Teme')
-        self.assertEqual(payments[0].user_identification, 'big@tester.com')
+        self.assertEqual(payments[0].account_name, "Testerek Teme")
+        self.assertEqual(payments[0].user_identification, "big@tester.com")
         self.assertEqual(payments[0].recipient_account, self.api_acc)
 
     def test_check_run_repeatly(self):
@@ -437,20 +505,22 @@ class TestDarujmeCheck(TestCase):
         => pair payments
         """
         user = mommy.make(
-            'aklub.UserProfile',
-            first_name='Robert',
-            last_name='Mad',
-            street='a',
-            city='b',
-            zip_code='111',
-            country='Česká republika',
+            "aklub.UserProfile",
+            first_name="Robert",
+            last_name="Mad",
+            street="a",
+            city="b",
+            zip_code="111",
+            country="Česká republika",
             administrative_units=[self.unit2],
         )
-        profile_email = mommy.make('aklub.ProfileEmail', email='real@one.com', user=user)
-        mommy.make('aklub.Telephone', user=user, telephone='555666777')
-        bank_acc = mommy.make('aklub.BankAccount', administrative_unit=self.unit1)
+        profile_email = mommy.make(
+            "aklub.ProfileEmail", email="real@one.com", user=user
+        )
+        mommy.make("aklub.Telephone", user=user, telephone="555666777")
+        bank_acc = mommy.make("aklub.BankAccount", administrative_unit=self.unit1)
         mommy.make(
-            'aklub.DonorPaymentChannel',
+            "aklub.DonorPaymentChannel",
             event=self.event,
             money_account=bank_acc,  # has diff bank_acc of same unit
             regular_amount=6600,
@@ -468,7 +538,10 @@ class TestDarujmeCheck(TestCase):
         self.assertEqual(user.city, "b")
         self.assertEqual(user.zip_code, "111")
         self.assertEqual(user.country, "Česká republika")
-        self.assertListEqual(sorted(user.administrative_units.all().values_list('id', flat=True)), sorted([self.unit1.id, self.unit2.id]))
+        self.assertListEqual(
+            sorted(user.administrative_units.all().values_list("id", flat=True)),
+            sorted([self.unit1.id, self.unit2.id]),
+        )
         telephones = user.telephone_set.all()
         # check new telephone
         self.assertEqual(telephones.count(), 2)
@@ -480,13 +553,15 @@ class TestDarujmeCheck(TestCase):
         self.assertEqual(dpchs.count(), 1)
         dpch = dpchs.first()
         self.assertEqual(dpch.money_account, self.api_acc)
-        self.assertEqual(dpch.regular_frequency, 'monthly')
-        self.assertEqual(dpch.regular_payments, 'regular')
+        self.assertEqual(dpch.regular_frequency, "monthly")
+        self.assertEqual(dpch.regular_payments, "regular")
         self.assertEqual(dpch.regular_amount, 2000)
-        self.assertEqual(dpch.expected_date_of_first_payment, datetime.date(2012, 11, 30))
+        self.assertEqual(
+            dpch.expected_date_of_first_payment, datetime.date(2012, 11, 30)
+        )
         self.assertEqual(dpch.end_of_regular_payments, datetime.date(2014, 11, 30))
         # check payments
-        payments = dpch.payment_set.order_by('date')
+        payments = dpch.payment_set.order_by("date")
         self.assertEqual(payments.count(), 2)
 
 
@@ -494,36 +569,51 @@ class TestDarujmeCheck(TestCase):
     CELERY_ALWAYS_EAGER=True,
 )
 class TestPairPayments(TestCase):
-    """ Test AccountStatement. payment_pair()"""
+    """Test AccountStatement. payment_pair()"""
+
     def setUp(self):
-        self.payment_vs = mommy.make("aklub.Payment", id=1, VS=123, account=999999, bank_code=1111)
-        self.payment_no_vs = mommy.make("aklub.Payment", id=2, account=999999, bank_code=1111)
+        self.payment_vs = mommy.make(
+            "aklub.Payment", id=1, VS=123, account=999999, bank_code=1111
+        )
+        self.payment_no_vs = mommy.make(
+            "aklub.Payment", id=2, account=999999, bank_code=1111
+        )
 
-        self.administrative_unit_1 = mommy.make("aklub.AdministrativeUnit", name='test1')
-        self.administrative_unit_2 = mommy.make("aklub.AdministrativeUnit", name='test2')
+        self.administrative_unit_1 = mommy.make(
+            "aklub.AdministrativeUnit", name="test1"
+        )
+        self.administrative_unit_2 = mommy.make(
+            "aklub.AdministrativeUnit", name="test2"
+        )
 
-        self.user_bank_acc = mommy.make('aklub.UserBankAccount', bank_account_number='999999/1111')
+        self.user_bank_acc = mommy.make(
+            "aklub.UserBankAccount", bank_account_number="999999/1111"
+        )
 
-        self.bank_account_1 = mommy.make('aklub.BankAccount', id=1, administrative_unit=self.administrative_unit_1)
-        self.bank_account_2 = mommy.make('aklub.BankAccount', id=2, administrative_unit=self.administrative_unit_2)
+        self.bank_account_1 = mommy.make(
+            "aklub.BankAccount", id=1, administrative_unit=self.administrative_unit_1
+        )
+        self.bank_account_2 = mommy.make(
+            "aklub.BankAccount", id=2, administrative_unit=self.administrative_unit_2
+        )
 
         self.donor_payment_channel_1 = mommy.make(
-                                        'aklub.DonorPaymentChannel',
-                                        VS=123,
-                                        user_bank_account=self.user_bank_acc,
-                                        money_account=self.bank_account_1,
+            "aklub.DonorPaymentChannel",
+            VS=123,
+            user_bank_account=self.user_bank_acc,
+            money_account=self.bank_account_1,
         )
         self.donor_payment_channel_1_1 = mommy.make(
-                                        'aklub.DonorPaymentChannel',
-                                        VS=1234,
-                                        user_bank_account=self.user_bank_acc,
-                                        money_account=self.bank_account_1,
+            "aklub.DonorPaymentChannel",
+            VS=1234,
+            user_bank_account=self.user_bank_acc,
+            money_account=self.bank_account_1,
         )
         self.donor_payment_channel_2 = mommy.make(
-                                        'aklub.DonorPaymentChannel',
-                                        VS=123,
-                                        user_bank_account=self.user_bank_acc,
-                                        money_account=self.bank_account_2,
+            "aklub.DonorPaymentChannel",
+            VS=123,
+            user_bank_account=self.user_bank_acc,
+            money_account=self.bank_account_2,
         )
 
     def test_pairing_vs(self):
@@ -540,13 +630,15 @@ class TestPairPayments(TestCase):
         return_value = account_statement.payment_pair(self.payment_vs)
         payment = Payment.objects.get(id=1)
 
-        self.assertEqual(payment.user_donor_payment_channel, self.donor_payment_channel_1)
+        self.assertEqual(
+            payment.user_donor_payment_channel, self.donor_payment_channel_1
+        )
         self.assertEqual(return_value, True)
 
         self.assertTrue(account_statement.pair_log == "")
 
     def test_pairing_user_bank_acc(self):
-        """ Prefer pair with DPCH with unique user bank account in administrative unit """
+        """Prefer pair with DPCH with unique user bank account in administrative unit"""
         account_statement = mommy.make(
             "aklub.AccountStatements",
             administrative_unit=self.administrative_unit_2,
@@ -556,13 +648,15 @@ class TestPairPayments(TestCase):
         return_value = account_statement.payment_pair(self.payment_vs)
         payment = Payment.objects.get(id=1)
 
-        self.assertEqual(payment.user_donor_payment_channel, self.donor_payment_channel_2)
+        self.assertEqual(
+            payment.user_donor_payment_channel, self.donor_payment_channel_2
+        )
         self.assertEqual(return_value, True)
 
         self.assertTrue(account_statement.pair_log == "")
 
     def test_pairing_multiple_user_bank_acc_false(self):
-        """ Test if Variable symbol not exist and multiple user_bank_acc exist in one administrative unit """
+        """Test if Variable symbol not exist and multiple user_bank_acc exist in one administrative unit"""
 
         account_statement = mommy.make(
             "aklub.AccountStatements",
@@ -581,7 +675,7 @@ class TestPairPayments(TestCase):
         )
 
     def test_pairing_no_dpch_false(self):
-        """ Test if donor_payment_channel is not found """
+        """Test if donor_payment_channel is not found"""
         payment = mommy.make("aklub.Payment", VS=12345, id=3)
         account_statement = mommy.make(
             "aklub.AccountStatements",

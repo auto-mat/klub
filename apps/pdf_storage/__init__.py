@@ -1,1 +1,1 @@
-default_app_config = 'project.apps.PdfStorageConfig'
+default_app_config = "project.apps.PdfStorageConfig"

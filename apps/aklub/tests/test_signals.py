@@ -10,24 +10,49 @@ class AdministrativeUnitChangeSignalTest(TransactionTestCase):
         """
         Test signal if preference is created/removed after unit is added/removed to profile
         """
-        unit1 = mommy.make('aklub.administrativeunit', name='unit1')
-        unit2 = mommy.make('aklub.administrativeunit', name='unit2')
-        mommy.make("aklub.userprofile", id=11, administrative_units=[unit1, ])
+        unit1 = mommy.make("aklub.administrativeunit", name="unit1")
+        unit2 = mommy.make("aklub.administrativeunit", name="unit2")
+        mommy.make(
+            "aklub.userprofile",
+            id=11,
+            administrative_units=[
+                unit1,
+            ],
+        )
 
         user = UserProfile.objects.get(id=11)
         self.assertEqual(user.preference_set.count(), 1)
-        self.assertCountEqual(list(user.preference_set.values_list('administrative_unit__name', flat=True)), ['unit1', ])
+        self.assertCountEqual(
+            list(
+                user.preference_set.values_list("administrative_unit__name", flat=True)
+            ),
+            [
+                "unit1",
+            ],
+        )
         self.assertEqual(user.is_active, True)
 
         user.administrative_units.add(unit2)
 
         self.assertEqual(user.preference_set.count(), 2)
-        self.assertCountEqual(list(user.preference_set.values_list('administrative_unit__name', flat=True)), ['unit1', 'unit2'])
+        self.assertCountEqual(
+            list(
+                user.preference_set.values_list("administrative_unit__name", flat=True)
+            ),
+            ["unit1", "unit2"],
+        )
         self.assertEqual(user.is_active, True)
         user.administrative_units.remove(unit1)
 
         self.assertEqual(user.preference_set.count(), 1)
-        self.assertCountEqual(list(user.preference_set.values_list('administrative_unit__name', flat=True)), ['unit2', ])
+        self.assertCountEqual(
+            list(
+                user.preference_set.values_list("administrative_unit__name", flat=True)
+            ),
+            [
+                "unit2",
+            ],
+        )
         self.assertEqual(user.is_active, True)
 
         user.administrative_units.remove(unit2)

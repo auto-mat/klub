@@ -43,5 +43,8 @@ class RunCommitHooksMixin(object):
         :return:
         """
         for db_name in reversed(self._databases_names()):
-            with mock.patch('django.db.backends.base.base.BaseDatabaseWrapper.validate_no_atomic_block', lambda a: False):
+            with mock.patch(
+                "django.db.backends.base.base.BaseDatabaseWrapper.validate_no_atomic_block",
+                lambda a: False,
+            ):
                 transaction.get_connection(using=db_name).run_and_clear_commit_hooks()

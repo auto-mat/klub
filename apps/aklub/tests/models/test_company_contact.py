@@ -6,20 +6,20 @@ from ...models import CompanyContact
 
 
 class CompanyContactTest(TestCase):
-    """ Test CompanyContactTest model """
+    """Test CompanyContactTest model"""
 
     def test_create_company_contact(self):
-        """ Test create ContactTest model """
-        username = 'test_user'
+        """Test create ContactTest model"""
+        username = "test_user"
         profile = mommy.make(
-            'aklub.CompanyProfile',
+            "aklub.CompanyProfile",
             username=username,
         )
         self.assertEqual(profile.email, None)
 
         user_profile_email1 = mommy.make(
-            'aklub.CompanyContact',
-            email='test_email@bla.com',
+            "aklub.CompanyContact",
+            email="test_email@bla.com",
             is_primary=True,
             company=profile,
         )
@@ -28,9 +28,9 @@ class CompanyContactTest(TestCase):
         self.assertEqual(emails.count(), 1)
 
         mommy.make(
-            'aklub.CompanyContact',
-            email='test_email@blah.com2',
-            is_primary='',
+            "aklub.CompanyContact",
+            email="test_email@blah.com2",
+            is_primary="",
             company=profile,
         )
 

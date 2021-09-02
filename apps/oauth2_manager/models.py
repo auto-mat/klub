@@ -9,7 +9,7 @@ class ApplicationScopeSelector(models.Model):
         blank=True,
     )
     application = models.OneToOneField(
-        'oauth2_provider.Application',
+        "oauth2_provider.Application",
         on_delete=models.CASCADE,
         blank=True,
     )

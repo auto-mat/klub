@@ -4,7 +4,7 @@ from .models import Repo
 
 
 class RepoAdmin(admin.ModelAdmin):
-    list_display = ('name', 'account', 'provider')
+    list_display = ("name", "account", "provider")
 
 
 admin.site.register(Repo, RepoAdmin)

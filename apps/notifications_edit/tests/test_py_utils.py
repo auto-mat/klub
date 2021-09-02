@@ -7,7 +7,9 @@ class TestCreateNotification:
         userprofile_superuser_1,
     ):
         send_notification_to_is_staff_members(
-            userprofile_superuser_1.administrated_units.first(), "test_verb", "test_description",
+            userprofile_superuser_1.administrated_units.first(),
+            "test_verb",
+            "test_description",
         )
         notifications = userprofile_superuser_1.notifications.all()
         assert notifications.count() == 1

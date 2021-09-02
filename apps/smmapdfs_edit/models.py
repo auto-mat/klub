@@ -8,17 +8,17 @@ from smmapdfs.models import PdfSandwichEmail, PdfSandwichType
 
 class PdfSandwichTypeConnector(models.Model):
     PROFILE_TYPE = [
-        ('company_profile', _('Company profile')),
-        ('user_profile', _('User profile')),
+        ("company_profile", _("Company profile")),
+        ("user_profile", _("User profile")),
     ]
     pdfsandwichtype = models.OneToOneField(
-                     PdfSandwichType,
-                     on_delete=models.CASCADE,
+        PdfSandwichType,
+        on_delete=models.CASCADE,
     )
     profile_type = models.CharField(
-            max_length=50,
-            choices=PROFILE_TYPE,
-            default='user_profile',
+        max_length=50,
+        choices=PROFILE_TYPE,
+        default="user_profile",
     )
     administrative_unit = models.ForeignKey(
         AdministrativeUnit,
@@ -28,8 +28,8 @@ class PdfSandwichTypeConnector(models.Model):
 
 class PdfSandwichEmailConnector(models.Model):
     pdfsandwichemail = models.OneToOneField(
-                     PdfSandwichEmail,
-                     on_delete=models.CASCADE,
+        PdfSandwichEmail,
+        on_delete=models.CASCADE,
     )
 
     administrative_unit = models.ForeignKey(

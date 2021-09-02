@@ -8,20 +8,20 @@ from ...models import ProfileEmail
 
 
 class ProfileEmailTest(TestCase):
-    """ Test ProfileEmail model """
+    """Test ProfileEmail model"""
 
     def test_create_profile_email(self):
-        """ Test create ProfileEmail model """
-        username = 'test_user'
+        """Test create ProfileEmail model"""
+        username = "test_user"
         profile = mommy.make(
-            'aklub.UserProfile',
+            "aklub.UserProfile",
             username=username,
         )
         self.assertEqual(profile.email, None)
 
         user_profile_email1 = mommy.make(
-            'aklub.ProfileEmail',
-            email='test_email@bla.com',
+            "aklub.ProfileEmail",
+            email="test_email@bla.com",
             is_primary=True,
             user=profile,
         )
@@ -30,9 +30,9 @@ class ProfileEmailTest(TestCase):
         self.assertEqual(emails.count(), 1)
 
         mommy.make(
-            'aklub.ProfileEmail',
-            email='test_email@blah.com2',
-            is_primary='',
+            "aklub.ProfileEmail",
+            email="test_email@blah.com2",
+            is_primary="",
             user=profile,
         )
 

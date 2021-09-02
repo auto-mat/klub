@@ -13,7 +13,7 @@ class Repo(models.Model):
     )
     provider = models.CharField(
         verbose_name=_("Repo host"),
-        choices=[('github', 'github')],
+        choices=[("github", "github")],
         default="github",
         max_length=64,
     )

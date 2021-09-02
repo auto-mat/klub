@@ -12,8 +12,8 @@ class ApplicationScopeSelectorInline(admin.TabularInline):
     extra = 1
 
     def has_changed(self):
-        """ Must return True if we want to save unchanged inlines
-            or raise validation errors """
+        """Must return True if we want to save unchanged inlines
+        or raise validation errors"""
         return True
 
 
@@ -25,4 +25,5 @@ class ApplicationAdminWithScopesAdmin(ApplicationAdmin):
     """
     add scopes class to admin
     """
+
     inlines = [ApplicationScopeSelectorInline]

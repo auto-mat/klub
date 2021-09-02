@@ -39,15 +39,15 @@ user_profile_recipe = Recipe(
 
 # Model name set later, User/CompanyProfile
 generic_profile_recipe = Recipe(
-    '',
+    "",
     is_staff=False,
     is_active=True,
-    date_joined='2016-09-16 16:22:30',
-    language='en',
-    city='Praha 4',
-    country='Česká republika',
+    date_joined="2016-09-16 16:22:30",
+    language="en",
+    city="Praha 4",
+    country="Česká republika",
     different_correspondence_address=True,
-    correspondence_country='Česká republika',
+    correspondence_country="Česká republika",
     club_card_available=False,
     club_card_dispatched=False,
     preference__public=True,

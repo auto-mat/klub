@@ -1,1 +1,1 @@
-default_app_config = 'project.apps.InteractionConfig'
+default_app_config = "project.apps.InteractionConfig"

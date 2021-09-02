@@ -21,7 +21,8 @@ install:
   - pip install -q $DJANGO_VERSION
 before_script:
   - npm install -g bower
-  - flake8
+  - black --check --exclude migrations apps
+  - black --check project
   - python manage.py bower install
   - python manage.py collectstatic -v0 --noinput
   - cd apps/aklub/

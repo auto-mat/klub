@@ -19,11 +19,18 @@ class _NotificationAdmin(NotificationAdmin):
     """
     Use this list only as some list of Notifications
     """
-    list_display = ("timestamp", "verb", "description", "level", "unread",)
+
+    list_display = (
+        "timestamp",
+        "verb",
+        "description",
+        "level",
+        "unread",
+    )
     fields = list_display
     readonly_fields = list_display
-    list_filter = ('unread', 'level')
-    actions = (mark_as_read_action, )
+    list_filter = ("unread", "level")
+    actions = (mark_as_read_action,)
 
     def get_queryset(self, request):
         return super().get_queryset(request).filter(recipient=request.user)

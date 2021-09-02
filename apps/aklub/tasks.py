@@ -39,24 +39,26 @@ def check_darujme():
 
 @task()
 def post_office_send_mail():
-    call_command('send_queued_mail', processes=1)
+    call_command("send_queued_mail", processes=1)
 
 
 @task()
 def generate_tax_confirmations(year, profiles_ids, pdf_type_id):
     started = timezone.now()
-    payed = models.Payment.objects.filter(date__year=year).exclude(type='expected')
-    users = models.Profile.objects.filter(userchannels__payment__in=payed, id__in=profiles_ids).distinct()
+    payed = models.Payment.objects.filter(date__year=year).exclude(type="expected")
+    users = models.Profile.objects.filter(
+        userchannels__payment__in=payed, id__in=profiles_ids
+    ).distinct()
     pdf_type = PdfSandwichType.objects.get(id=pdf_type_id)
     unit = pdf_type.pdfsandwichtypeconnector.administrative_unit
     confirmations = []
-    logger.info(f'Starting creating tax confirmation for users total: {users.count()}')
+    logger.info(f"Starting creating tax confirmation for users total: {users.count()}")
     for index, user in enumerate(users, start=1):
         try:
-            logger.info(f'Creating Tax Confirmation for user: {index}) {user}')
+            logger.info(f"Creating Tax Confirmation for user: {index}) {user}")
             confirmation, created = user.make_tax_confirmation(year, unit, pdf_type)
-        except Exception as e: # noqa
-            logger.info(f'Creating Tax Confirmation for user: {user} FAILED {e}!!')
+        except Exception as e:  # noqa
+            logger.info(f"Creating Tax Confirmation for user: {user} FAILED {e}!!")
         # we want to rewrite existed confirmations,
         # but we dont want to send null values to PdfSandwich cuz it raise bug and pdf is not created
         if confirmation:
@@ -65,16 +67,21 @@ def generate_tax_confirmations(year, profiles_ids, pdf_type_id):
     send_notification_to_is_staff_members(
         unit,
         _("Tax Confirmation done"),
-        _("Task started at  %(started)s was done for  %(users)s profiles") % {
-            'started': dateformat.format(started, 'Y-m-d H:i:s'),
+        _("Task started at  %(started)s was done for  %(users)s profiles")
+        % {
+            "started": dateformat.format(started, "Y-m-d H:i:s"),
             "users": users.count(),
         },
     )
 
 
 @task()
-def send_communication_task(mass_communication_id, communication_type, profile, sending_user_id):
-    send_communication_sync(mass_communication_id, communication_type, profile, sending_user_id)
+def send_communication_task(
+    mass_communication_id, communication_type, profile, sending_user_id
+):
+    send_communication_sync(
+        mass_communication_id, communication_type, profile, sending_user_id
+    )
 
 
 @task()
@@ -82,32 +89,36 @@ def create_mass_communication_tasks(communication_id, sending_user_id):
     create_mass_communication_tasks_sync(communication_id, sending_user_id)
 
 
-@task() # noqa
+@task()  # noqa
 def parse_account_statement(statement_id):
     statement = models.AccountStatements.objects.get(id=statement_id)
-    if statement.csv_file and statement.payment_set.count() == 0:  # new Account statement
+    if (
+        statement.csv_file and statement.payment_set.count() == 0
+    ):  # new Account statement
         try:
-            if statement.type == 'account':
+            if statement.type == "account":
                 statement.payments = statement.parse_bank_csv_fio()
 
-            elif statement.type == 'account_cs':
+            elif statement.type == "account_cs":
                 statement.payments = statement.parse_bank_csv_cs()
 
-            elif statement.type == 'account_kb':
+            elif statement.type == "account_kb":
                 statement.payments = statement.parse_bank_csv_kb()
 
-            elif statement.type == 'account_csob':
+            elif statement.type == "account_csob":
                 statement.payments = statement.parse_bank_csv_csob()
 
-            elif statement.type == 'account_sberbank':
+            elif statement.type == "account_sberbank":
                 statement.payments = statement.parse_bank_csv_sberbank()
 
-            elif statement.type == 'account_raiffeisenbank':
+            elif statement.type == "account_raiffeisenbank":
                 statement.payments = statement.parse_bank_csv_raiffeisenbank()
 
-            elif statement.type == 'darujme':
-                statement.payments, statement.skipped_payments = parse_darujme_json(statement.csv_file)
-        except Exception as e: # noqa
+            elif statement.type == "darujme":
+                statement.payments, statement.skipped_payments = parse_darujme_json(
+                    statement.csv_file
+                )
+        except Exception as e:  # noqa
             logger.info(f"Error parsing csv_file: {e}")
             statement.save(parse_csv=False)
             raise

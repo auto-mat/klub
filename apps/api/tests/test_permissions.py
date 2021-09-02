@@ -14,11 +14,11 @@ class LoginByClientCredentialsTest(TestCase):
         """
         Check if 3rd application is logged by Client credentials => can not access IsAuthenticated perm
         """
-        url = reverse('check_last_payment')
-        header = {'Authorization': f'Bearer {self.token.token}'}
+        url = reverse("check_last_payment")
+        header = {"Authorization": f"Bearer {self.token.token}"}
         response = self.client.get(url, **header)
         self.assertEqual(response.status_code, 403)
-        self.assertEqual(response.json()['detail'], "K této akci nemáte oprávnění.")
+        self.assertEqual(response.json()["detail"], "K této akci nemáte oprávnění.")
 
 
 class LoginByUserPasswordTest(TestCase):
@@ -29,12 +29,18 @@ class LoginByUserPasswordTest(TestCase):
         """
         Check if user with password can not log to scopes based vies => missing scope
         """
-        unit = mommy.make('aklub.AdministrativeUnit', name='test_unit')
-        event = mommy.make('events.event', slug='event_slug', administrative_units=[unit, ])
+        unit = mommy.make("aklub.AdministrativeUnit", name="test_unit")
+        event = mommy.make(
+            "events.event",
+            slug="event_slug",
+            administrative_units=[
+                unit,
+            ],
+        )
 
-        url = reverse('check_event', kwargs={'slug': f'{event.slug}'})
-        header = {'Authorization': 'Bearer foo'}
+        url = reverse("check_event", kwargs={"slug": f"{event.slug}"})
+        header = {"Authorization": "Bearer foo"}
         response = self.client.get(url, **header)
 
         self.assertEqual(response.status_code, 403)
-        self.assertEqual(response.json()['detail'], "K této akci nemáte oprávnění.")
+        self.assertEqual(response.json()["detail"], "K této akci nemáte oprávnění.")

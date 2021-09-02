@@ -28,21 +28,21 @@ from model_mommy import mommy
 
 
 class TestPersonName(TestCase):
-    """ Test Result.person_name """
+    """Test Result.person_name"""
 
     def test_result_str(self):
-        au = mommy.make(
-            'aklub.AdministrativeUnit'
-        )
+        au = mommy.make("aklub.AdministrativeUnit")
         user_profile = mommy.make(
             "aklub.UserProfile",
             first_name="Foo",
             last_name="Name",
         )
         mommy.make(
-            'events.event',
+            "events.event",
             id=22,
-            administrative_units=[au, ],
+            administrative_units=[
+                au,
+            ],
         )
         result = mommy.make(
             "aklub.Payment",
@@ -51,10 +51,10 @@ class TestPersonName(TestCase):
             user_donor_payment_channel__bank_account__id=1,
             user_donor_payment_channel__event__id=22,
         )
-        self.assertEqual(result.person_name(), 'Name Foo')
+        self.assertEqual(result.person_name(), "Name Foo")
 
     def test_no_user(self):
-        """ Test with no user set """
+        """Test with no user set"""
         result = mommy.make(
             "aklub.Payment",
             campaign__name="Foo campaign",
@@ -84,8 +84,10 @@ class TestUserBankAccountRewrite(TestCase):
             bank_account_number="2332222/2222",
         )
         event = mommy.make(
-            'events.event',
-            administrative_units=[au, ],
+            "events.event",
+            administrative_units=[
+                au,
+            ],
         )
         self.donor_payment_channel = mommy.make(
             "aklub.DonorPaymentChannel",
@@ -96,7 +98,7 @@ class TestUserBankAccountRewrite(TestCase):
         )
 
         self.request = RequestFactory().post("/aklub/payments")
-        self.request.session = 'session'
+        self.request.session = "session"
         self.request._messages = FallbackStorage(self.request)
 
     def test_dpch_user_bank_acc_rewrite(self):
@@ -111,7 +113,13 @@ class TestUserBankAccountRewrite(TestCase):
             bank_code="1111",
             user_donor_payment_channel=self.donor_payment_channel,
         )
-        add_user_bank_acc_to_dpch(None, self.request, [payment, ])
+        add_user_bank_acc_to_dpch(
+            None,
+            self.request,
+            [
+                payment,
+            ],
+        )
 
         dpch = DonorPaymentChannel.objects.get(user=self.user_profile)
         self.assertEqual(dpch.user_bank_account.bank_account_number, "111111/1111")
@@ -127,7 +135,13 @@ class TestUserBankAccountRewrite(TestCase):
             account="111111",
             user_donor_payment_channel=self.donor_payment_channel,
         )
-        add_user_bank_acc_to_dpch(None, self.request, [payment, ])
+        add_user_bank_acc_to_dpch(
+            None,
+            self.request,
+            [
+                payment,
+            ],
+        )
 
         dpch = DonorPaymentChannel.objects.get(user=self.user_profile)
         self.assertEqual(dpch.user_bank_account.bank_account_number, "2332222/2222")
@@ -143,7 +157,13 @@ class TestUserBankAccountRewrite(TestCase):
             account="111111",
             bank_code="1111",
         )
-        add_user_bank_acc_to_dpch(None, self.request, [payment, ])
+        add_user_bank_acc_to_dpch(
+            None,
+            self.request,
+            [
+                payment,
+            ],
+        )
 
         dpch = DonorPaymentChannel.objects.get(user=self.user_profile)
         self.assertEqual(dpch.user_bank_account.bank_account_number, "2332222/2222")

@@ -21,6 +21,7 @@
 from django.conf import settings
 from django.core import mail
 from django.core.cache import cache
+
 try:
     from django.urls import reverse
 except ImportError:  # Django<2.0
@@ -50,34 +51,47 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         self.client.force_login(self.superuser)
         self.unit = mommy.make(
             "aklub.AdministrativeUnit",
-            name='test',
+            name="test",
             slug="test",
         )
         self.event = mommy.make(
-            'events.event',
-            administrative_units=[self.unit, ],
-            slug='klub',
+            "events.event",
+            administrative_units=[
+                self.unit,
+            ],
+            slug="klub",
             enable_registration=True,
             enable_signing_petitions=True,
             allow_statistics=True,
             real_yield=500,
         )
         self.money = mommy.make(
-            'aklub.BankAccount',
+            "aklub.BankAccount",
             administrative_unit=self.unit,
-            bank_account_number='12345/123',
-            bank_account='test',
-            slug='12345123',
+            bank_account_number="12345/123",
+            bank_account="test",
+            slug="12345123",
         )
 
         # check if autocom is running.
-        inter_category = mommy.make('interactions.interactioncategory', category='emails')
-        inter_type = mommy.make('interactions.interactiontype', category=inter_category, send_email=True)
+        inter_category = mommy.make(
+            "interactions.interactioncategory", category="emails"
+        )
+        inter_type = mommy.make(
+            "interactions.interactiontype", category=inter_category, send_email=True
+        )
 
-        named_cond = mommy.make('flexible_filter_conditions.NamedCondition', name="some-random-name")
-        condition = mommy.make('flexible_filter_conditions.Condition', operation="and", negate=False, named_condition=named_cond)
+        named_cond = mommy.make(
+            "flexible_filter_conditions.NamedCondition", name="some-random-name"
+        )
+        condition = mommy.make(
+            "flexible_filter_conditions.Condition",
+            operation="and",
+            negate=False,
+            named_condition=named_cond,
+        )
         self.term_cond = mommy.make(
-            'flexible_filter_conditions.TerminalCondition',
+            "flexible_filter_conditions.TerminalCondition",
             variable="action",
             operation="=",
             value="some-random-value",
@@ -88,23 +102,23 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
             method_type=inter_type,
             condition=named_cond,
             event=self.event,
-            template='Template',
-            subject='It works!',
+            template="Template",
+            subject="It works!",
             only_once=True,
             dispatch_auto=True,
             administrative_unit=self.unit,
         )
 
         self.regular_post_data = {
-            'userprofile-email': 'test@test.cz',
-            'userprofile-first_name': 'Testing',
-            'userprofile-last_name': 'User',
-            'userprofile-telephone': 111222333,
-            'donorpaymentchannel-regular_frequency': 'monthly',
-            'donorpaymentchannel-regular_amount': '321',
-            'donorpaymentchannel-event': 'klub',
-            'donorpaymentchannel-money_account': '12345123',
-            'donorpaymentchannel-payment_type': 'bank-transfer',
+            "userprofile-email": "test@test.cz",
+            "userprofile-first_name": "Testing",
+            "userprofile-last_name": "User",
+            "userprofile-telephone": 111222333,
+            "donorpaymentchannel-regular_frequency": "monthly",
+            "donorpaymentchannel-regular_amount": "321",
+            "donorpaymentchannel-event": "klub",
+            "donorpaymentchannel-money_account": "12345123",
+            "donorpaymentchannel-payment_type": "bank-transfer",
         }
 
         self.post_data_darujme = {
@@ -114,8 +128,8 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
             "payment_data____prijmeni": "test_surname",
             "payment_data____email": "test@email.cz",
             "payment_data____telefon": "123456789",
-            "donorpaymentchannel-event": 'klub',
-            "donorpaymentchannel-money_account": '12345123',
+            "donorpaymentchannel-event": "klub",
+            "donorpaymentchannel-money_account": "12345123",
             "donorpaymentchannel-payment_type": "bank-transfer",
         }
         self.register_without_payment = {
@@ -149,10 +163,10 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         regular form create new data and sent autocom new-user-bank-transfer
         """
         # autocom set up
-        self.term_cond.value = 'new-user-bank-transfer'
+        self.term_cond.value = "new-user-bank-transfer"
         self.term_cond.save()
 
-        address = reverse('regular')
+        address = reverse("regular")
         response = self.client.get(address)
         response = response._container[0].decode()
         self.assertIn(
@@ -162,15 +176,15 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
 
         response = self.client.post(address, self.regular_post_data, follow=True)
         response = response._container[0].decode()
-        self.assertIn('<h1>Děkujeme!</h1>', response)
+        self.assertIn("<h1>Děkujeme!</h1>", response)
         # created data
         email = ProfileEmail.objects.get(email="test@test.cz")
         self.assertEqual(email.user.get_full_name(), "Testing User")
         self.assertEqual(email.user.username, "test1")
-        self.assertEqual(email.user.telephone_set.get().telephone, '111222333')
+        self.assertEqual(email.user.telephone_set.get().telephone, "111222333")
         new_channel = DonorPaymentChannel.objects.get(user=email.user)
         self.assertEqual(new_channel.regular_amount, 321)
-        self.assertEqual(new_channel.regular_payments, 'regular')
+        self.assertEqual(new_channel.regular_payments, "regular")
         self.assertEqual(new_channel.event.slug, self.event.slug)
         self.assertEqual(new_channel.money_account.slug, self.money.slug)
         # autocom send!
@@ -181,22 +195,32 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         regular form update data and sent autocom resent-data-bank-transfer
         """
         # autocom set up
-        self.term_cond.value = 'resent-data-bank-transfer'
+        self.term_cond.value = "resent-data-bank-transfer"
         self.term_cond.save()
-        user = mommy.make('aklub.userprofile')
-        mommy.make('aklub.profileemail', email='test@test.cz', user=user, is_primary=True)
-        dpch = mommy.make('aklub.donorpaymentchannel', event=self.event, money_account=self.money, user=user)
-        address = reverse('regular')
+        user = mommy.make("aklub.userprofile")
+        mommy.make(
+            "aklub.profileemail", email="test@test.cz", user=user, is_primary=True
+        )
+        dpch = mommy.make(
+            "aklub.donorpaymentchannel",
+            event=self.event,
+            money_account=self.money,
+            user=user,
+        )
+        address = reverse("regular")
         response = self.client.post(address, self.regular_post_data, follow=False)
         response = response._container[0].decode()
         self.assertIn(
-            '<h1>Děkujeme!</h1>',
+            "<h1>Děkujeme!</h1>",
             response,
         )
         self.assertEqual(len(mail.outbox), 1)
         dpch.refresh_from_db()
-        self.assertEqual(dpch.regular_amount, int(self.regular_post_data['donorpaymentchannel-regular_amount']))
-        self.assertEqual(dpch.regular_payments, 'regular')
+        self.assertEqual(
+            dpch.regular_amount,
+            int(self.regular_post_data["donorpaymentchannel-regular_amount"]),
+        )
+        self.assertEqual(dpch.regular_payments, "regular")
         self.assertEqual(dpch.event, self.event)
         self.assertEqual(dpch.money_account, self.money)
 
@@ -204,22 +228,28 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         """
         testing ajax response and saved data sent autocom new-user-bank-transfer
         """
-        self.term_cond.value = 'new-user-bank-transfer'
+        self.term_cond.value = "new-user-bank-transfer"
         self.term_cond.save()
 
-        address = reverse('regular-darujme')
+        address = reverse("regular-darujme")
         response = self.client.post(address, self.post_data_darujme)
         response = response._container[0].decode()
-        self.assertIn('<tr><th>Jméno: </th><td>test_surname test_name</td></tr>', response)
-        self.assertIn('<tr><th>Číslo účtu: </th><td>12345/123</td></tr>', response)
-        self.assertIn('<tr><th>Email: </th><td>test@email.cz</td></tr>', response)
-        self.assertIn('<tr><th>Částka: </th><td>200 Kč</td></tr>', response)
-        self.assertIn('<tr><th>Frekvence: </th><td>Měsíčně</td></tr>', response)
-        self.assertIn('<tr><th>Pravidelné platby: </th><td>Pravidelné platby</td></tr>', response)
+        self.assertIn(
+            "<tr><th>Jméno: </th><td>test_surname test_name</td></tr>", response
+        )
+        self.assertIn("<tr><th>Číslo účtu: </th><td>12345/123</td></tr>", response)
+        self.assertIn("<tr><th>Email: </th><td>test@email.cz</td></tr>", response)
+        self.assertIn("<tr><th>Částka: </th><td>200 Kč</td></tr>", response)
+        self.assertIn("<tr><th>Frekvence: </th><td>Měsíčně</td></tr>", response)
+        self.assertIn(
+            "<tr><th>Pravidelné platby: </th><td>Pravidelné platby</td></tr>", response
+        )
         email = ProfileEmail.objects.get(email="test@email.cz")
         new_channel = DonorPaymentChannel.objects.get(user=email.user)
-        self.assertEqual(new_channel.regular_amount, int(self.post_data_darujme['amount']))
-        self.assertEqual(new_channel.regular_payments, 'regular')
+        self.assertEqual(
+            new_channel.regular_amount, int(self.post_data_darujme["amount"])
+        )
+        self.assertEqual(new_channel.regular_payments, "regular")
         self.assertEqual(new_channel.event, self.event)
         self.assertEqual(new_channel.money_account, self.money)
 
@@ -229,45 +259,70 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         """
         testing ajax response in onetime
         """
-        address = reverse('regular-darujme')
+        address = reverse("regular-darujme")
         post_data_darujme_onetime = self.post_data_darujme.copy()
         post_data_darujme_onetime["recurringfrequency"] = ""
         response = self.client.post(address, post_data_darujme_onetime)
         response = response._container[0].decode()
-        self.assertIn('<tr><th>Jméno: </th><td>test_surname test_name</td></tr>', response)
-        self.assertIn('<tr><th>Číslo účtu: </th><td>12345/123</td></tr>', response)
-        self.assertIn('<tr><th>Email: </th><td>test@email.cz</td></tr>', response)
-        self.assertIn('<tr><th>Částka: </th><td>200 Kč</td></tr>', response)
-        self.assertIn('<tr><th>Frekvence: </th><td>Jednorázově</td></tr>', response)
-        self.assertIn('<tr><th>Pravidelné platby: </th><td>Nemá pravidelné platby</td></tr>', response)
+        self.assertIn(
+            "<tr><th>Jméno: </th><td>test_surname test_name</td></tr>", response
+        )
+        self.assertIn("<tr><th>Číslo účtu: </th><td>12345/123</td></tr>", response)
+        self.assertIn("<tr><th>Email: </th><td>test@email.cz</td></tr>", response)
+        self.assertIn("<tr><th>Částka: </th><td>200 Kč</td></tr>", response)
+        self.assertIn("<tr><th>Frekvence: </th><td>Jednorázově</td></tr>", response)
+        self.assertIn(
+            "<tr><th>Pravidelné platby: </th><td>Nemá pravidelné platby</td></tr>",
+            response,
+        )
 
     def test_regular_darujme_existing_user_and_different_dpch(self):
         """
         testing ajax user has different DPCH, he is still able to register to new event, sent autocom new-user-bank-transfer
         """
-        self.term_cond.value = 'new-user-bank-transfer'
+        self.term_cond.value = "new-user-bank-transfer"
         self.term_cond.save()
 
-        address = reverse('regular-darujme')
-        user = mommy.make('aklub.userprofile', first_name='test_name', last_name='test_surname')
-        mommy.make('aklub.profileemail', email='test@email.cz', user=user, is_primary=True)
-        event = mommy.make('events.event', administrative_units=[self.unit, ])
-        mommy.make('aklub.donorpaymentchannel', event=event, money_account=self.money, user=user)
+        address = reverse("regular-darujme")
+        user = mommy.make(
+            "aklub.userprofile", first_name="test_name", last_name="test_surname"
+        )
+        mommy.make(
+            "aklub.profileemail", email="test@email.cz", user=user, is_primary=True
+        )
+        event = mommy.make(
+            "events.event",
+            administrative_units=[
+                self.unit,
+            ],
+        )
+        mommy.make(
+            "aklub.donorpaymentchannel",
+            event=event,
+            money_account=self.money,
+            user=user,
+        )
 
         response = self.client.post(address, self.post_data_darujme)
         response = response._container[0].decode()
-        self.assertIn('<h1>Děkujeme!</h1>', response)
-        self.assertIn('<tr><th>Jméno: </th><td>test_surname test_name</td></tr>', response)
-        self.assertIn('<tr><th>Číslo účtu: </th><td>12345/123</td></tr>', response)
-        self.assertIn('<tr><th>Email: </th><td>test@email.cz</td></tr>', response)
-        self.assertIn('<tr><th>Částka: </th><td>200 Kč</td></tr>', response)
-        self.assertIn('<tr><th>Frekvence: </th><td>Měsíčně</td></tr>', response)
-        self.assertIn('<tr><th>Pravidelné platby: </th><td>Pravidelné platby</td></tr>', response)
+        self.assertIn("<h1>Děkujeme!</h1>", response)
+        self.assertIn(
+            "<tr><th>Jméno: </th><td>test_surname test_name</td></tr>", response
+        )
+        self.assertIn("<tr><th>Číslo účtu: </th><td>12345/123</td></tr>", response)
+        self.assertIn("<tr><th>Email: </th><td>test@email.cz</td></tr>", response)
+        self.assertIn("<tr><th>Částka: </th><td>200 Kč</td></tr>", response)
+        self.assertIn("<tr><th>Frekvence: </th><td>Měsíčně</td></tr>", response)
+        self.assertIn(
+            "<tr><th>Pravidelné platby: </th><td>Pravidelné platby</td></tr>", response
+        )
 
         self.assertEqual(user.userchannels.count(), 2)
         new_channel = user.userchannels.last()
-        self.assertEqual(new_channel.regular_amount, int(self.post_data_darujme['amount']))
-        self.assertEqual(new_channel.regular_payments, 'regular')
+        self.assertEqual(
+            new_channel.regular_amount, int(self.post_data_darujme["amount"])
+        )
+        self.assertEqual(new_channel.regular_payments, "regular")
         self.assertEqual(new_channel.event, self.event)
         self.assertEqual(new_channel.money_account, self.money)
 
@@ -277,7 +332,7 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         """
         form testing data are saved new user and new dpch
         """
-        address = reverse('regular-wp')
+        address = reverse("regular-wp")
         response = self.client.get(address)
         response = response._container[0].decode()
         self.assertIn(
@@ -288,16 +343,16 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
 
         response = self.client.post(address, self.regular_post_data, follow=True)
         response = response._container[0].decode()
-        self.assertIn('<h1>Děkujeme!</h1>', response)
+        self.assertIn("<h1>Děkujeme!</h1>", response)
 
         email = ProfileEmail.objects.get(email="test@test.cz")
         self.assertEqual(email.user.get_full_name(), "Testing User")
         self.assertEqual(email.user.username, "test1")
-        self.assertEqual(email.user.telephone_set.get().telephone, '111222333')
+        self.assertEqual(email.user.telephone_set.get().telephone, "111222333")
         new_channel = DonorPaymentChannel.objects.get(user=email.user)
 
         self.assertEqual(new_channel.regular_amount, 321)
-        self.assertEqual(new_channel.regular_payments, 'regular')
+        self.assertEqual(new_channel.regular_payments, "regular")
         self.assertEqual(new_channel.event.slug, self.event.slug)
         self.assertEqual(new_channel.money_account.slug, self.money.slug)
 
@@ -305,10 +360,13 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         """
         register new user => create user and donor payment channel send autocom new-user-bank-transfer
         """
-        self.term_cond.value = 'new-user-bank-transfer'
+        self.term_cond.value = "new-user-bank-transfer"
         self.term_cond.save()
 
-        address = "%s?firstname=Uest&surname=Tser&email=uest.tser@email.cz&telephone=1211221" % reverse('regular-dpnk')
+        address = (
+            "%s?firstname=Uest&surname=Tser&email=uest.tser@email.cz&telephone=1211221"
+            % reverse("regular-dpnk")
+        )
         response = self.client.get(address)
         response = response._container[0].decode()
         self.assertIn(
@@ -334,18 +392,18 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
 
         response = self.client.post(address, self.regular_post_data, follow=True)
         response = response._container[0].decode()
-        self.assertIn('<h5>Děkujeme!</h5>', response)
+        self.assertIn("<h5>Děkujeme!</h5>", response)
 
         self.assertEqual(len(mail.outbox), 1)
 
         email = ProfileEmail.objects.get(email="test@test.cz")
         self.assertEqual(email.user.get_full_name(), "Testing User")
         self.assertEqual(email.user.username, "test1")
-        self.assertEqual(email.user.telephone_set.get().telephone, '111222333')
+        self.assertEqual(email.user.telephone_set.get().telephone, "111222333")
         new_channel = DonorPaymentChannel.objects.get(user=email.user)
 
         self.assertEqual(new_channel.regular_amount, 321)
-        self.assertEqual(new_channel.regular_payments, 'regular')
+        self.assertEqual(new_channel.regular_payments, "regular")
         self.assertEqual(new_channel.event.slug, self.event.slug)
         self.assertEqual(new_channel.money_account.slug, self.money.slug)
 
@@ -353,21 +411,34 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         """
         register => to receive new and so (dont want to pay) autocom sent action new-user
         """
-        self.term_cond.value = 'new-user'
+        self.term_cond.value = "new-user"
         self.term_cond.save()
 
-        address = reverse('register-withou-payment', kwargs={'unit': self.unit.slug})
+        address = reverse("register-withou-payment", kwargs={"unit": self.unit.slug})
         response = self.client.post(address, self.register_without_payment)
         self.assertTrue(response.status_code, 201)
         user = ProfileEmail.objects.get(email="test@test.com").user
-        self.assertEqual(user.first_name, self.register_without_payment['userprofile-first_name'])
-        self.assertEqual(user.last_name, self.register_without_payment['userprofile-last_name'])
-        self.assertEqual(user.age_group, int(self.register_without_payment['userprofile-age_group']))
-        self.assertEqual(user.sex, self.register_without_payment['userprofile-sex'])
-        self.assertEqual(user.street, self.register_without_payment['userprofile-street'])
-        self.assertEqual(user.city, self.register_without_payment['userprofile-city'])
-        self.assertEqual(user.zip_code, self.register_without_payment['userprofile-zip_code'])
-        self.assertEqual(user.telephone_set.get().telephone, self.register_without_payment['userprofile-telephone'])
+        self.assertEqual(
+            user.first_name, self.register_without_payment["userprofile-first_name"]
+        )
+        self.assertEqual(
+            user.last_name, self.register_without_payment["userprofile-last_name"]
+        )
+        self.assertEqual(
+            user.age_group, int(self.register_without_payment["userprofile-age_group"])
+        )
+        self.assertEqual(user.sex, self.register_without_payment["userprofile-sex"])
+        self.assertEqual(
+            user.street, self.register_without_payment["userprofile-street"]
+        )
+        self.assertEqual(user.city, self.register_without_payment["userprofile-city"])
+        self.assertEqual(
+            user.zip_code, self.register_without_payment["userprofile-zip_code"]
+        )
+        self.assertEqual(
+            user.telephone_set.get().telephone,
+            self.register_without_payment["userprofile-telephone"],
+        )
 
         self.assertEqual(user.userchannels.count(), 0)
 
@@ -377,32 +448,39 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         """
         signature success => create user and signature autocom sent 'user-signature'
         """
-        self.term_cond.value = 'user-signature'
+        self.term_cond.value = "user-signature"
         self.term_cond.save()
 
-        address = reverse('petition')
+        address = reverse("petition")
         response = self.client.post(address, self.sign_petition, follow=True)
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(response.content.decode(), 'Podpis petice')
+        self.assertEqual(response.content.decode(), "Podpis petice")
 
-        user = ProfileEmail.objects.get(email=self.sign_petition['userprofile-email']).user
-        self.assertEqual(user.age_group, self.sign_petition['userprofile-age_group'])
-        self.assertEqual(user.sex, self.sign_petition['userprofile-sex'])
-        self.assertEqual(user.first_name, self.sign_petition['userprofile-first_name'])
-        self.assertEqual(user.last_name, self.sign_petition['userprofile-last_name'])
-        self.assertEqual(user.street, self.sign_petition['userprofile-street'])
-        self.assertEqual(user.city, self.sign_petition['userprofile-city'])
-        self.assertEqual(user.zip_code, self.sign_petition['userprofile-zip_code'])
+        user = ProfileEmail.objects.get(
+            email=self.sign_petition["userprofile-email"]
+        ).user
+        self.assertEqual(user.age_group, self.sign_petition["userprofile-age_group"])
+        self.assertEqual(user.sex, self.sign_petition["userprofile-sex"])
+        self.assertEqual(user.first_name, self.sign_petition["userprofile-first_name"])
+        self.assertEqual(user.last_name, self.sign_petition["userprofile-last_name"])
+        self.assertEqual(user.street, self.sign_petition["userprofile-street"])
+        self.assertEqual(user.city, self.sign_petition["userprofile-city"])
+        self.assertEqual(user.zip_code, self.sign_petition["userprofile-zip_code"])
 
-        self.assertEqual(user.telephone_set.first().telephone, self.sign_petition['userprofile-telephone'])
+        self.assertEqual(
+            user.telephone_set.first().telephone,
+            self.sign_petition["userprofile-telephone"],
+        )
 
         signature = user.petitionsignature_set.first()
 
         self.assertEqual(signature.event, self.event)
         self.assertEqual(signature.administrative_unit, self.unit)
         self.assertEqual(signature.email_confirmed, False)
-        self.assertEqual(signature.gdpr_consent, self.sign_petition['gdpr'])
-        self.assertEqual(signature.public, self.sign_petition['petitionsignature-public'])
+        self.assertEqual(signature.gdpr_consent, self.sign_petition["gdpr"])
+        self.assertEqual(
+            signature.public, self.sign_petition["petitionsignature-public"]
+        )
 
         self.assertEqual(len(mail.outbox), 1)
 
@@ -410,16 +488,26 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         """
         signature success => create user and signature autocom sent 'user-signature'
         """
-        self.term_cond.value = 'user-signature-again'
+        self.term_cond.value = "user-signature-again"
         self.term_cond.save()
 
         user = mommy.make("aklub.UserProfile")
-        mommy.make("aklub.ProfileEmail", email=self.sign_petition['userprofile-email'], user=user, is_primary=True)
-        mommy.make("interactions.PetitionSignature", administrative_unit=self.unit, user=user, event=self.event)
-        address = reverse('petition')
+        mommy.make(
+            "aklub.ProfileEmail",
+            email=self.sign_petition["userprofile-email"],
+            user=user,
+            is_primary=True,
+        )
+        mommy.make(
+            "interactions.PetitionSignature",
+            administrative_unit=self.unit,
+            user=user,
+            event=self.event,
+        )
+        address = reverse("petition")
         response = self.client.post(address, self.sign_petition, follow=True)
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(response.content.decode(), 'Podpis petice')
+        self.assertEqual(response.content.decode(), "Podpis petice")
 
         self.assertEqual(len(mail.outbox), 1)
 
@@ -427,12 +515,12 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         """
         petition form is filled, but gdpr is not clicked autocom is not sent
         """
-        self.term_cond.value = 'user-signature'
+        self.term_cond.value = "user-signature"
         self.term_cond.save()
 
-        address = reverse('petition')
+        address = reverse("petition")
         post_data = self.sign_petition.copy()
-        post_data['gdpr'] = False
+        post_data["gdpr"] = False
 
         response = self.client.post(address, post_data)
         self.assertEqual(response.status_code, 200)
@@ -453,16 +541,26 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         confirmation petition signature
         """
         user = mommy.make("aklub.UserProfile")
-        mommy.make("aklub.ProfileEmail", email=self.sign_petition['userprofile-email'], user=user, is_primary=True)
-        signature = mommy.make("interactions.PetitionSignature", administrative_unit=self.unit, user=user, event=self.event)
+        mommy.make(
+            "aklub.ProfileEmail",
+            email=self.sign_petition["userprofile-email"],
+            user=user,
+            is_primary=True,
+        )
+        signature = mommy.make(
+            "interactions.PetitionSignature",
+            administrative_unit=self.unit,
+            user=user,
+            event=self.event,
+        )
 
-        address = reverse('sing-petition-confirm', kwargs={'campaign_slug': 'klub'})
+        address = reverse("sing-petition-confirm", kwargs={"campaign_slug": "klub"})
         url_hax = sesame_utils.get_query_string(user)
         address += url_hax
 
         response = self.client.get(address)
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(response.content.decode(), 'Podpis potvrzen')
+        self.assertEqual(response.content.decode(), "Podpis potvrzen")
 
         signature.refresh_from_db()
         self.assertTrue(signature.email_confirmed)
@@ -472,7 +570,11 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         list of all signatures
         """
         for i in range(0, 3):
-            user = mommy.make('aklub.userprofile', first_name='first_' + str(i), last_name='last_' + str(i))
+            user = mommy.make(
+                "aklub.userprofile",
+                first_name="first_" + str(i),
+                last_name="last_" + str(i),
+            )
             mommy.make(
                 "interactions.PetitionSignature",
                 administrative_unit=self.unit,
@@ -482,31 +584,50 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
                 email_confirmed=True,
             )
 
-        address = reverse('petition-signatures', kwargs={'campaign_slug': self.event.slug})
+        address = reverse(
+            "petition-signatures", kwargs={"campaign_slug": self.event.slug}
+        )
         response = self.client.get(address)
         self.assertEqual(response.status_code, 200)
 
-        signatures = PetitionSignature.objects.order_by('-created')
+        signatures = PetitionSignature.objects.order_by("-created")
         # response is already ordered by -create
         sig_json = response.json()
         from django.utils.dateparse import parse_datetime
+
         for i in range(0, signatures.count()):
-            self.assertEqual(sig_json[i]['user__userprofile__first_name'], signatures[i].user.first_name)
-            self.assertEqual(sig_json[i]['user__userprofile__last_name'], signatures[i].user.last_name)
-            self.assertEqual(parse_datetime(sig_json[i]['created']).replace(microsecond=0), signatures[i].created.replace(microsecond=0))
+            self.assertEqual(
+                sig_json[i]["user__userprofile__first_name"],
+                signatures[i].user.first_name,
+            )
+            self.assertEqual(
+                sig_json[i]["user__userprofile__last_name"],
+                signatures[i].user.last_name,
+            )
+            self.assertEqual(
+                parse_datetime(sig_json[i]["created"]).replace(microsecond=0),
+                signatures[i].created.replace(microsecond=0),
+            )
 
     def test_send_mailing_list_unsubscribe(self):
         """
         unsubscribe to mailing list in preference
         """
-        self.term_cond.value = 'user-mailing-unsubscribe'
+        self.term_cond.value = "user-mailing-unsubscribe"
         self.term_cond.save()
 
         user = mommy.make("aklub.UserProfile")
-        mommy.make("aklub.ProfileEmail", email='harry@test.com', user=user, is_primary=True)
-        preference = mommy.make("aklub.Preference", user=user, administrative_unit=self.unit)
+        mommy.make(
+            "aklub.ProfileEmail", email="harry@test.com", user=user, is_primary=True
+        )
+        preference = mommy.make(
+            "aklub.Preference", user=user, administrative_unit=self.unit
+        )
 
-        address = reverse('send-mailing-list', kwargs={'unit': self.unit.slug, 'unsubscribe': 'unsubscribe'})
+        address = reverse(
+            "send-mailing-list",
+            kwargs={"unit": self.unit.slug, "unsubscribe": "unsubscribe"},
+        )
         url_hax = sesame_utils.get_query_string(user)
         address += url_hax
 
@@ -522,14 +643,24 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         """
         subscribe back to mailing list in preference
         """
-        self.term_cond.value = 'user-mailing-subscribe'
+        self.term_cond.value = "user-mailing-subscribe"
         self.term_cond.save()
 
         user = mommy.make("aklub.UserProfile")
-        mommy.make("aklub.ProfileEmail", email='harry@test.com', user=user, is_primary=True)
-        preference = mommy.make("aklub.Preference", user=user, administrative_unit=self.unit, send_mailing_lists=False)
+        mommy.make(
+            "aklub.ProfileEmail", email="harry@test.com", user=user, is_primary=True
+        )
+        preference = mommy.make(
+            "aklub.Preference",
+            user=user,
+            administrative_unit=self.unit,
+            send_mailing_lists=False,
+        )
 
-        address = reverse('send-mailing-list', kwargs={'unit': self.unit.slug, 'unsubscribe': 'subscribe'})
+        address = reverse(
+            "send-mailing-list",
+            kwargs={"unit": self.unit.slug, "unsubscribe": "subscribe"},
+        )
         url_hax = sesame_utils.get_query_string(user)
         address += url_hax
 
@@ -548,17 +679,24 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         for i in range(0, 3):
             user = mommy.make("aklub.UserProfile")
             dpch = mommy.make(
-                'aklub.donorpaymentchannel',
+                "aklub.donorpaymentchannel",
                 money_account=self.money,
                 event=self.event,
                 user=user,
-                regular_payments='regular',
+                regular_payments="regular",
                 regular_amount=300,
-                regular_frequency='monthly',
-                )
-            mommy.make('aklub.payment', recipient_account=self.money, amount=250, user_donor_payment_channel=dpch)
+                regular_frequency="monthly",
+            )
+            mommy.make(
+                "aklub.payment",
+                recipient_account=self.money,
+                amount=250,
+                user_donor_payment_channel=dpch,
+            )
 
-        address = reverse('campaign-statistics', kwargs={'campaign_slug': self.event.slug})
+        address = reverse(
+            "campaign-statistics", kwargs={"campaign_slug": self.event.slug}
+        )
         response = self.client.get(address)
         self.assertEqual(response.status_code, 200)
         response = response.json()
@@ -579,30 +717,35 @@ class ViewsTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
             user = mommy.make("aklub.UserProfile")
             mommy.make("aklub.preference", user=user, administrative_unit=self.unit)
             dpch = mommy.make(
-                'aklub.donorpaymentchannel',
+                "aklub.donorpaymentchannel",
                 money_account=self.money,
                 event=self.event,
                 user=user,
-                regular_payments='regular',
+                regular_payments="regular",
                 regular_amount=300,
-                regular_frequency='monthly',
-                )
-            mommy.make('aklub.payment', recipient_account=self.money, amount=250, user_donor_payment_channel=dpch)
-        dpch.regular_payments = 'onetime'
+                regular_frequency="monthly",
+            )
+            mommy.make(
+                "aklub.payment",
+                recipient_account=self.money,
+                amount=250,
+                user_donor_payment_channel=dpch,
+            )
+        dpch.regular_payments = "onetime"
         dpch.save()  # editing last one to onetime
 
-        address = reverse('donators', kwargs={'unit': self.unit.slug})
+        address = reverse("donators", kwargs={"unit": self.unit.slug})
         response = self.client.get(address)
 
         self.assertContains(
             response,
-            '<p>Celkem již podpořilo činnost Auto*Matu 3 lidí<br/>Z toho 2 přispívá na jeho činnost pravidelně</p>',
+            "<p>Celkem již podpořilo činnost Auto*Matu 3 lidí<br/>Z toho 2 přispívá na jeho činnost pravidelně</p>",
             html=True,
         )
 
 
 class AdminViewTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
-    fixtures = ['conditions', 'users', 'communications', 'dashboard_stats']
+    fixtures = ["conditions", "users", "communications", "dashboard_stats"]
 
     def setUp(self):
         super().setUp()
@@ -617,7 +760,7 @@ class AdminViewTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
             '<div class="dashboard-module-content"> <p>Celkový počet položek: 2</p><ul class="stacked">'
             '<li class="odd"><a href="/aklub/donorpaymentchannel/3/change/">Payments Without</a></li>'
             '<li class="even"><a href="/aklub/donorpaymentchannel/2978/change/">User Test</a></li>'
-            '</ul> </div>',
+            "</ul> </div>",
             html=True,
         )
 
@@ -627,15 +770,23 @@ class AdminViewTests(CreateSuperUserMixin, ClearCacheMixin, TestCase):
         self.assertContains(response, "<h2>Poslední akce</h2>", html=True)
 
     def test_stat_members(self):
-        address = reverse('stat-members')
+        address = reverse("stat-members")
         response = self.client.get(address)
-        self.assertContains(response, "<tr><td>2016</td><td>Zář</td><td>2</td><td>2</td><td>4</td><td>4</td></tr>", html=True)
+        self.assertContains(
+            response,
+            "<tr><td>2016</td><td>Zář</td><td>2</td><td>2</td><td>4</td><td>4</td></tr>",
+            html=True,
+        )
         self.assertContains(response, "<h1>Statistiky členů klubu</h1>", html=True)
 
     def test_stat_payments(self):
-        address = reverse('stat-payments')
+        address = reverse("stat-payments")
         response = self.client.get(address)
-        self.assertContains(response, "<tr><td>2016</td><td>Bře</td><td>1</td><td>100 Kč</td><td>610 Kč</td></tr>", html=True)
+        self.assertContains(
+            response,
+            "<tr><td>2016</td><td>Bře</td><td>1</td><td>100 Kč</td><td>610 Kč</td></tr>",
+            html=True,
+        )
         self.assertContains(response, "<h1>Statistiky plateb</h1>", html=True)
 
 
@@ -644,31 +795,35 @@ class VariableSymbolTests(TestCase):
     def setUp(self):
         self.au = mommy.make(
             "aklub.administrativeunit",
-            name='test_unit',
+            name="test_unit",
         )
         self.bank_account = mommy.make(
-            'aklub.BankAccount',
-            bank_account_number='111111/1111',
+            "aklub.BankAccount",
+            bank_account_number="111111/1111",
             administrative_unit=self.au,
         )
 
     def test_vs_generate_without_prefix(self):
         event = mommy.make(
             "events.event",
-            administrative_units=[self.au, ],
+            administrative_units=[
+                self.au,
+            ],
         )
 
         dpch = mommy.make(
-            'aklub.donorpaymentchannel',
+            "aklub.donorpaymentchannel",
             money_account=self.bank_account,
             event=event,
         )
         event2 = mommy.make(
             "events.event",
-            administrative_units=[self.au, ],
+            administrative_units=[
+                self.au,
+            ],
         )
         dpch2 = mommy.make(
-            'aklub.donorpaymentchannel',
+            "aklub.donorpaymentchannel",
             money_account=self.bank_account,
             event=event2,
         )
@@ -679,32 +834,36 @@ class VariableSymbolTests(TestCase):
     def test_vs_generate_witprefix(self):
         event = mommy.make(
             "events.event",
-            administrative_units=[self.au, ],
-            variable_symbol_prefix='12345',
+            administrative_units=[
+                self.au,
+            ],
+            variable_symbol_prefix="12345",
         )
 
         dpch1_1 = mommy.make(
-            'aklub.donorpaymentchannel',
+            "aklub.donorpaymentchannel",
             money_account=self.bank_account,
             event=event,
         )
         dpch1_2 = mommy.make(
-            'aklub.donorpaymentchannel',
+            "aklub.donorpaymentchannel",
             money_account=self.bank_account,
             event=event,
         )
         event2 = mommy.make(
             "events.event",
-            administrative_units=[self.au, ],
-            variable_symbol_prefix='54321',
+            administrative_units=[
+                self.au,
+            ],
+            variable_symbol_prefix="54321",
         )
         dpch2_1 = mommy.make(
-            'aklub.donorpaymentchannel',
+            "aklub.donorpaymentchannel",
             money_account=self.bank_account,
             event=event2,
         )
         dpch2_2 = mommy.make(
-            'aklub.donorpaymentchannel',
+            "aklub.donorpaymentchannel",
             money_account=self.bank_account,
             event=event2,
         )
@@ -718,27 +877,42 @@ class VariableSymbolTests(TestCase):
 
 class ResetPasswordTest(TestCase):
     def setUp(self):
-        au = mommy.make('aklub.administrativeunit', name='au_1')
-        self.user = mommy.make('aklub.userprofile', username='username_1', administrative_units=[au, ])
-        mommy.make('aklub.profileemail', user=self.user, email='username_1@auto-mat.com', is_primary=True)
+        au = mommy.make("aklub.administrativeunit", name="au_1")
+        self.user = mommy.make(
+            "aklub.userprofile",
+            username="username_1",
+            administrative_units=[
+                au,
+            ],
+        )
+        mommy.make(
+            "aklub.profileemail",
+            user=self.user,
+            email="username_1@auto-mat.com",
+            is_primary=True,
+        )
 
     def test_reset_password(self):
         url = reverse("password_reset")
-        data = {'email': self.user.get_email_str()}
+        data = {"email": self.user.get_email_str()}
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, 302)
         self.assertEqual(mail.outbox[0].to[0], self.user.get_email_str())
         self.assertEqual(mail.outbox[0].subject, "password reset")
         # parse reset url
-        reset_url = [te for te in mail.outbox[0].body.split(' ') if '/reset/' in te][0].replace('\n', '').replace(settings.WEB_URL, '')
-        new_pw = 'super_hard_pw123_DSD'
+        reset_url = (
+            [te for te in mail.outbox[0].body.split(" ") if "/reset/" in te][0]
+            .replace("\n", "")
+            .replace(settings.WEB_URL, "")
+        )
+        new_pw = "super_hard_pw123_DSD"
         # page is firstly redirected
         self.client.get(reset_url, follow=True)
         # then fill up redirected url
-        split_url = reset_url.split('/')
+        split_url = reset_url.split("/")
         split_url[-2] = "set-password"
         new_url = "/".join(split_url)
-        data = {'new_password1': new_pw, 'new_password2': new_pw}
+        data = {"new_password1": new_pw, "new_password2": new_pw}
         response = self.client.post(new_url, data)
         self.assertEqual(response.status_code, 302)
         self.user.refresh_from_db()

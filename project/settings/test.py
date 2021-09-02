@@ -24,27 +24,23 @@ from .base import INSTALLED_APPS, LOGGING, MIDDLEWARE
 DEBUG = True
 
 POST_OFFICE = {
-    'BACKENDS': {
-        'default': 'django.core.mail.backends.filebased.EmailBackend',
+    "BACKENDS": {
+        "default": "django.core.mail.backends.filebased.EmailBackend",
     },
 }
 
-if os.environ.get('AKLUB_DEBUG_TOOLBAR', False):
-    INSTALLED_APPS += (
-        'debug_toolbar',
-    )
+if os.environ.get("AKLUB_DEBUG_TOOLBAR", False):
+    INSTALLED_APPS += ("debug_toolbar",)
 
-    MIDDLEWARE += (
-        'debug_toolbar.middleware.DebugToolbarMiddleware',
-    )
+    MIDDLEWARE += ("debug_toolbar.middleware.DebugToolbarMiddleware",)
 
     DEBUG_TOOLBAR_CONFIG = {
         "SHOW_TOOLBAR_CALLBACK": lambda x: True,
     }
 
-EMAIL_FILE_PATH = '/tmp/aklub-emails'
+EMAIL_FILE_PATH = "/tmp/aklub-emails"
 
-LOGGING['handlers']['logfile']['filename'] = "aklub.log"
+LOGGING["handlers"]["logfile"]["filename"] = "aklub.log"
 WEB_URL = "https://www.test_url.com"
 SITE_NAME = "site_name"
 

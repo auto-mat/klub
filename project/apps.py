@@ -7,31 +7,31 @@ from django.utils.translation import ugettext_lazy as _
 
 
 class MyAdminConfig(AdminConfig):
-    default_site = 'project.admin.MyAdminSite'
+    default_site = "project.admin.MyAdminSite"
 
 
 class AklubConfig(AppConfig):
-    name = 'aklub'
+    name = "aklub"
     verbose_name = _("Basic menu")
 
 
 class InteractionConfig(AppConfig):
-    name = 'interactions'
+    name = "interactions"
     verbose_name = _("Interactions")
 
 
 class EventConfig(AppConfig):
-    name = 'events'
+    name = "events"
     verbose_name = _("Events")
 
 
 class PdfStorageConfig(AppConfig):
-    name = 'pdf_storage'
+    name = "pdf_storage"
     verbose_name = _("File Storage")
 
 
 class ImportExportCeleryEdit(AppConfig):
-    name = 'import_export_celery_edit'
+    name = "import_export_celery_edit"
 
     def ready(self):
-        import import_export_celery_edit.signals # noqa
+        import import_export_celery_edit.signals  # noqa

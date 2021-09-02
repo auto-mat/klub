@@ -1,5 +1,13 @@
 from aklub.models import (
-    AdministrativeUnit, CompanyProfile, DonorPaymentChannel, MoneyAccount, Payment, Profile, ProfileEmail, Telephone, UserProfile,
+    AdministrativeUnit,
+    CompanyProfile,
+    DonorPaymentChannel,
+    MoneyAccount,
+    Payment,
+    Profile,
+    ProfileEmail,
+    Telephone,
+    UserProfile,
 )
 
 from django.contrib.auth.password_validation import validate_password
@@ -18,11 +26,21 @@ from .exceptions import PasswordsDoNotMatch
 
 
 class RelatedFieldsMixin(serializers.Serializer):
-    money_account = serializers.SlugRelatedField(queryset=MoneyAccount.objects.filter(slug__isnull=False), slug_field='slug')
-    event = serializers.SlugRelatedField(queryset=Event.objects.filter(slug__isnull=False), slug_field='slug')
+    money_account = serializers.SlugRelatedField(
+        queryset=MoneyAccount.objects.filter(slug__isnull=False), slug_field="slug"
+    )
+    event = serializers.SlugRelatedField(
+        queryset=Event.objects.filter(slug__isnull=False), slug_field="slug"
+    )
     telephone = serializers.CharField(
         required=False,
-        validators=[RegexValidator(r'^[0-9+ ]*$', _('Telephone must consist of numbers, spaces and plus sign')), MinLengthValidator(9)],
+        validators=[
+            RegexValidator(
+                r"^[0-9+ ]*$",
+                _("Telephone must consist of numbers, spaces and plus sign"),
+            ),
+            MinLengthValidator(9),
+        ],
     )
     amount = serializers.IntegerField(required=True)
     regular = serializers.BooleanField(initial=False)
@@ -34,31 +52,49 @@ class ValidateEmailMixin:
 
 
 class VSReturnSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = DonorPaymentChannel
-        fields = ['VS', ]
+        fields = [
+            "VS",
+        ]
 
 
-class GetDpchUserProfileSerializer(serializers.ModelSerializer, ValidateEmailMixin, RelatedFieldsMixin):
+class GetDpchUserProfileSerializer(
+    serializers.ModelSerializer, ValidateEmailMixin, RelatedFieldsMixin
+):
     """
     Creating legal userprofile with dpch without access to IsAuthentication views
     """
+
     class Meta:
         model = UserProfile
         fields = [
-            'email', 'first_name', 'last_name', 'telephone', 'street',
-            'city', 'zip_code', 'money_account', 'event', 'birth_day', 'birth_month',
-            'age_group', 'sex', 'amount', 'regular',
-            ]
+            "email",
+            "first_name",
+            "last_name",
+            "telephone",
+            "street",
+            "city",
+            "zip_code",
+            "money_account",
+            "event",
+            "birth_day",
+            "birth_month",
+            "age_group",
+            "sex",
+            "amount",
+            "regular",
+        ]
         extra_kwargs = {
-            'first_name': {'required': True},
-            'last_name': {'required': True},
-            'email': {'required': True},
+            "first_name": {"required": True},
+            "last_name": {"required": True},
+            "email": {"required": True},
         }
 
 
-class GetDpchCompanyProfileSerializer(serializers.ModelSerializer, ValidateEmailMixin, RelatedFieldsMixin):
+class GetDpchCompanyProfileSerializer(
+    serializers.ModelSerializer, ValidateEmailMixin, RelatedFieldsMixin
+):
     # future version of changed company profile model
     contact_first_name = serializers.CharField(max_length=256, required=False)
     contact_last_name = serializers.CharField(max_length=256, required=False)
@@ -66,13 +102,23 @@ class GetDpchCompanyProfileSerializer(serializers.ModelSerializer, ValidateEmail
     class Meta:
         model = CompanyProfile
         fields = [
-            'crn', 'name', 'email', 'telephone', 'street', 'city',
-            'zip_code', 'money_account', 'event', 'amount', 'regular',
-            'contact_first_name', 'contact_last_name',
-            ]
+            "crn",
+            "name",
+            "email",
+            "telephone",
+            "street",
+            "city",
+            "zip_code",
+            "money_account",
+            "event",
+            "amount",
+            "regular",
+            "contact_first_name",
+            "contact_last_name",
+        ]
         extra_kwargs = {
-            'name': {'required': True},
-            'email': {'required': True},
+            "name": {"required": True},
+            "email": {"required": True},
         }
 
     def to_internal_value(self, data):
@@ -80,11 +126,13 @@ class GetDpchCompanyProfileSerializer(serializers.ModelSerializer, ValidateEmail
             return super().to_internal_value(data)
         except serializers.ValidationError as error:
             # catching error to log crn error
-            crn_log = error.detail.get('crn')
+            crn_log = error.detail.get("crn")
             if crn_log:
                 send_notification_to_is_staff_members(
-                    MoneyAccount.objects.get(slug=data['money_account']).administrative_unit,
-                    _('Wrong format of crn'),
+                    MoneyAccount.objects.get(
+                        slug=data["money_account"]
+                    ).administrative_unit,
+                    _("Wrong format of crn"),
                     _(f'User input was: {data["crn"]} and was not create in system'),
                 )
             raise error
@@ -93,26 +141,30 @@ class GetDpchCompanyProfileSerializer(serializers.ModelSerializer, ValidateEmail
 class EventCheckSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
-        fields = ['slug']
+        fields = ["slug"]
 
 
 class MoneyAccountCheckSerializer(serializers.ModelSerializer):
     class Meta:
         model = MoneyAccount
-        fields = ['slug']
+        fields = ["slug"]
 
 
 class DonorPaymetChannelSerializer(serializers.ModelSerializer):
-    money_account = serializers.SlugRelatedField(queryset=MoneyAccount.objects.filter(slug__isnull=False), slug_field='slug')
-    event = serializers.SlugRelatedField(queryset=Event.objects.filter(slug__isnull=False), slug_field='slug')
+    money_account = serializers.SlugRelatedField(
+        queryset=MoneyAccount.objects.filter(slug__isnull=False), slug_field="slug"
+    )
+    event = serializers.SlugRelatedField(
+        queryset=Event.objects.filter(slug__isnull=False), slug_field="slug"
+    )
     amount = serializers.IntegerField(required=True)
     date = serializers.DateField(required=True)
 
     class Meta:
         model = DonorPaymentChannel
-        fields = ['event', 'money_account', 'VS', 'amount', 'date']
+        fields = ["event", "money_account", "VS", "amount", "date"]
         extra_kwargs = {
-            'event': {'required': True},
+            "event": {"required": True},
         }
 
     def get_unique_together_validators(self):
@@ -121,121 +173,185 @@ class DonorPaymetChannelSerializer(serializers.ModelSerializer):
 
 
 class PaymentSerializer(serializers.ModelSerializer):
-    profile_id = serializers.IntegerField(source='user_donor_payment_channel.user.id')
+    profile_id = serializers.IntegerField(source="user_donor_payment_channel.user.id")
 
     class Meta:
         model = Payment
-        fields = ['amount', 'date', 'operation_id', 'profile_id']
+        fields = ["amount", "date", "operation_id", "profile_id"]
 
 
 class InteractionSerizer(serializers.Serializer):
     date = serializers.DateTimeField(required=True)
-    event = serializers.SlugRelatedField(queryset=Event.objects.filter(slug__isnull=False), slug_field='slug')
+    event = serializers.SlugRelatedField(
+        queryset=Event.objects.filter(slug__isnull=False), slug_field="slug"
+    )
     profile_id = serializers.IntegerField(required=True)
     interaction_type = serializers.ChoiceField(choices=("certificate", "confirmation"))
     text = serializers.CharField()
 
 
 class CreditCardPaymentSerializer(serializers.ModelSerializer, ValidateEmailMixin):
-    profile_type = serializers.ChoiceField(choices=[('company', 'Company profile'), ('user', 'User Profile')], write_only=True)
-    recipient_account = serializers.SlugRelatedField(queryset=MoneyAccount.objects.filter(slug__isnull=False), slug_field='slug')
-    event = serializers.SlugRelatedField(queryset=Event.objects.filter(slug__isnull=False), slug_field='slug', write_only=True)
+    profile_type = serializers.ChoiceField(
+        choices=[("company", "Company profile"), ("user", "User Profile")],
+        write_only=True,
+    )
+    recipient_account = serializers.SlugRelatedField(
+        queryset=MoneyAccount.objects.filter(slug__isnull=False), slug_field="slug"
+    )
+    event = serializers.SlugRelatedField(
+        queryset=Event.objects.filter(slug__isnull=False),
+        slug_field="slug",
+        write_only=True,
+    )
     email = serializers.EmailField(write_only=True)
 
     class Meta:
         model = Payment
         fields = (
-            'profile_type', 'recipient_account', 'date', 'amount', 'event', 'email', 'account', 'bank_code', 'VS', 'VS2',
-            'SS', 'KS', 'BIC', 'user_identification', 'done_by', 'account_name', 'bank_name', 'transfer_type',
-            'specification', 'order_id',
+            "profile_type",
+            "recipient_account",
+            "date",
+            "amount",
+            "event",
+            "email",
+            "account",
+            "bank_code",
+            "VS",
+            "VS2",
+            "SS",
+            "KS",
+            "BIC",
+            "user_identification",
+            "done_by",
+            "account_name",
+            "bank_name",
+            "transfer_type",
+            "specification",
+            "order_id",
         )
 
     def create(self, validated_data):
         obj = super().create(validated_data)
-        obj.type = 'creadit_card'
+        obj.type = "creadit_card"
         obj.save()
         return obj
 
 
 class ProfileSerializer(serializers.ModelSerializer):
-    profile_id = serializers.IntegerField(source='id')
+    profile_id = serializers.IntegerField(source="id")
 
     class Meta:
         model = Profile
-        fields = ['profile_id']
+        fields = ["profile_id"]
 
 
 class DonorPaymentChannelNestedSerializer(serializers.ModelSerializer):
-    money_account = serializers.SlugRelatedField(queryset=MoneyAccount.objects.filter(slug__isnull=False), slug_field='slug')
-    event = serializers.SlugRelatedField(queryset=Event.objects.filter(slug__isnull=False), slug_field='slug')
+    money_account = serializers.SlugRelatedField(
+        queryset=MoneyAccount.objects.filter(slug__isnull=False), slug_field="slug"
+    )
+    event = serializers.SlugRelatedField(
+        queryset=Event.objects.filter(slug__isnull=False), slug_field="slug"
+    )
 
     class Meta:
         model = DonorPaymentChannel
-        fields = ['money_account', 'event', 'regular_amount', 'regular_frequency', 'VS']
+        fields = ["money_account", "event", "regular_amount", "regular_frequency", "VS"]
         extra_kwargs = {
-            'regular_amount': {'required': True},
-            'VS': {'read_only': True},
+            "regular_amount": {"required": True},
+            "VS": {"read_only": True},
         }
         depth = 1
 
 
-class CreateUserProfileInteractionSerializer(serializers.ModelSerializer, ValidateEmailMixin, RelatedFieldsMixin):
+class CreateUserProfileInteractionSerializer(
+    serializers.ModelSerializer, ValidateEmailMixin, RelatedFieldsMixin
+):
     additional_question_1 = serializers.CharField(required=False, allow_blank=True)
     additional_question_2 = serializers.CharField(required=False, allow_blank=True)
     additional_question_3 = serializers.CharField(required=False, allow_blank=True)
     additional_question_4 = serializers.CharField(required=False, allow_blank=True)
-    event = serializers.SlugRelatedField(queryset=Event.objects.filter(slug__isnull=False), slug_field='id')
+    event = serializers.SlugRelatedField(
+        queryset=Event.objects.filter(slug__isnull=False), slug_field="id"
+    )
 
     class Meta:
         model = UserProfile
         fields = (
-            'first_name', 'last_name', 'telephone', 'email', 'note',
-            'age_group', 'birth_month', 'birth_day', 'street', 'city',
-            'zip_code', 'event', 'additional_question_1',
-            'additional_question_2', 'additional_question_3',
-            'additional_question_4',
+            "first_name",
+            "last_name",
+            "telephone",
+            "email",
+            "note",
+            "age_group",
+            "birth_month",
+            "birth_day",
+            "street",
+            "city",
+            "zip_code",
+            "event",
+            "additional_question_1",
+            "additional_question_2",
+            "additional_question_3",
+            "additional_question_4",
         )
         extra_kwargs = {
-            'email': {'required': True},
+            "email": {"required": True},
         }
 
 
-class CreateUserProfileSerializer(serializers.ModelSerializer, ValidateEmailMixin, RelatedFieldsMixin):
+class CreateUserProfileSerializer(
+    serializers.ModelSerializer, ValidateEmailMixin, RelatedFieldsMixin
+):
     """
     Creating legal userprofile with dpch (and also with access to IsAuthenticated views)
     """
-    password = serializers.CharField(write_only=True, required=False, validators=[validate_password])
-    email = serializers.EmailField(validators=[UniqueValidator(queryset=ProfileEmail.objects.all())])
+
+    password = serializers.CharField(
+        write_only=True, required=False, validators=[validate_password]
+    )
+    email = serializers.EmailField(
+        validators=[UniqueValidator(queryset=ProfileEmail.objects.all())]
+    )
     userchannels = DonorPaymentChannelNestedSerializer(many=True)
 
     class Meta:
         model = UserProfile
         fields = [
-            'username', 'password', 'first_name', 'last_name', 'telephone',
-            'email', 'password', 'userchannels',
+            "username",
+            "password",
+            "first_name",
+            "last_name",
+            "telephone",
+            "email",
+            "password",
+            "userchannels",
         ]
         extra_kwargs = {
-            'email': {'required': True},
+            "email": {"required": True},
         }
 
     def create(self, validated_data):
-        dpch_data = validated_data.pop('userchannels')[0]
-        telephone = validated_data.pop('telephone', None)
+        dpch_data = validated_data.pop("userchannels")[0]
+        telephone = validated_data.pop("telephone", None)
 
         user = UserProfile.objects.create(
             **validated_data,
-            )
-        user.administrative_units.add(dpch_data['money_account'].administrative_unit),
-        if validated_data.get('password'):
-            user.set_password(validated_data.get('password'))
+        )
+        user.administrative_units.add(dpch_data["money_account"].administrative_unit),
+        if validated_data.get("password"):
+            user.set_password(validated_data.get("password"))
         user.save()
 
-        ProfileEmail.objects.create(email=validated_data['email'], user=user, is_primary=True)
+        ProfileEmail.objects.create(
+            email=validated_data["email"], user=user, is_primary=True
+        )
 
         if telephone:
             Telephone.objects.create(telephone=telephone, user=user, is_primary=True)
 
-        DonorPaymentChannel.objects.create(**dpch_data, user=user, expected_date_of_first_payment=timezone.now())
+        DonorPaymentChannel.objects.create(
+            **dpch_data, user=user, expected_date_of_first_payment=timezone.now()
+        )
         return user
 
 
@@ -248,7 +364,7 @@ class ResetPasswordbyEmailConfirmSerializer(serializers.Serializer):
     password_2 = serializers.CharField(write_only=True)
 
     def validate(self, data):
-        if data['password_1'] == data['password_2']:
+        if data["password_1"] == data["password_2"]:
             return data
         else:
             raise PasswordsDoNotMatch()
@@ -257,13 +373,13 @@ class ResetPasswordbyEmailConfirmSerializer(serializers.Serializer):
 class EventType(serializers.ModelSerializer):
     class Meta:
         model = EventType
-        fields = ['name', 'slug']
+        fields = ["name", "slug"]
 
 
 class LocationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Location
-        fields = ["name", "place", "region", 'gps_latitude', 'gps_longitude']
+        fields = ["name", "place", "region", "gps_latitude", "gps_longitude"]
 
 
 class EventSerializer(serializers.ModelSerializer):
@@ -275,16 +391,50 @@ class EventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = [
-            'id', 'name', 'date_from', 'date_to', 'program', 'indended_for', 'basic_purpose', 'opportunity',
-            'location', 'age_from', 'age_to', 'start_date', 'event_type', 'responsible_person',
-            'participation_fee', 'entry_form_url', 'web_url', 'invitation_text_short',
-            'working_hours', 'accommodation', 'diet', 'looking_forward_to_you', 'registration_method',
-            'administrative_unit_name', 'administrative_unit_web_url',
-            'invitation_text_1', 'invitation_text_2', 'invitation_text_3',
-            'invitation_text_4', 'main_photo', 'additional_photo_1', 'additional_photo_2',
-            'additional_photo_3', 'additional_photo_4', 'additional_photo_5', 'additional_photo_6',
-            'additional_question_1', 'additional_question_2', 'additional_question_3', 'additional_question_4',
-            "contact_person_name", "contact_person_email", "contact_person_telephone", "public_on_web_date_from",
+            "id",
+            "name",
+            "date_from",
+            "date_to",
+            "program",
+            "indended_for",
+            "basic_purpose",
+            "opportunity",
+            "location",
+            "age_from",
+            "age_to",
+            "start_date",
+            "event_type",
+            "responsible_person",
+            "participation_fee",
+            "entry_form_url",
+            "web_url",
+            "invitation_text_short",
+            "working_hours",
+            "accommodation",
+            "diet",
+            "looking_forward_to_you",
+            "registration_method",
+            "administrative_unit_name",
+            "administrative_unit_web_url",
+            "invitation_text_1",
+            "invitation_text_2",
+            "invitation_text_3",
+            "invitation_text_4",
+            "main_photo",
+            "additional_photo_1",
+            "additional_photo_2",
+            "additional_photo_3",
+            "additional_photo_4",
+            "additional_photo_5",
+            "additional_photo_6",
+            "additional_question_1",
+            "additional_question_2",
+            "additional_question_3",
+            "additional_question_4",
+            "contact_person_name",
+            "contact_person_email",
+            "contact_person_telephone",
+            "public_on_web_date_from",
             "public_on_web_date_to",
         ]
 
@@ -312,8 +462,19 @@ class AdministrativeUnitSerializer(serializers.ModelSerializer):
     class Meta:
         model = AdministrativeUnit
         fields = [
-            'id', 'name', 'street', 'city', 'zip_code', 'telephone', 'from_email_address', 'web_url', 'president_name', 'manager_name',
-            'gps_latitude', 'gps_longitude', 'level',
+            "id",
+            "name",
+            "street",
+            "city",
+            "zip_code",
+            "telephone",
+            "from_email_address",
+            "web_url",
+            "president_name",
+            "manager_name",
+            "gps_latitude",
+            "gps_longitude",
+            "level",
         ]
 
     def get_president_name(self, obj):

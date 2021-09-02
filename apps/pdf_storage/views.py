@@ -6,7 +6,11 @@ from rest_framework.response import Response
 
 from .exceptions import HasNoPayment, PdfDoNotExist
 from .models import PdfStorage
-from .serializers import AllRelatedIdsSerializer, PaidPdfDownloadLinkSerializer, PdfStorageListSerializer
+from .serializers import (
+    AllRelatedIdsSerializer,
+    PaidPdfDownloadLinkSerializer,
+    PdfStorageListSerializer,
+)
 
 
 class RelatedPdfListView(generics.ListAPIView):
@@ -14,7 +18,9 @@ class RelatedPdfListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return PdfStorage.objects.filter(related_ids__contains=[self.kwargs['related_id']])
+        return PdfStorage.objects.filter(
+            related_ids__contains=[self.kwargs["related_id"]]
+        )
 
 
 class PaidPdfDownloadView(generics.RetrieveAPIView):
@@ -22,12 +28,12 @@ class PaidPdfDownloadView(generics.RetrieveAPIView):
     model_class = PdfStorage
     permission_classes = [IsAuthenticated]
 
-    def get(self, *args, **kwargs): # noqa
+    def get(self, *args, **kwargs):  # noqa
         user = self.request.user
         found_payment = check_last_month_year_payment(user)
         if found_payment:
             try:
-                pdf = PdfStorage.objects.get(id=self.kwargs['id'])
+                pdf = PdfStorage.objects.get(id=self.kwargs["id"])
             except PdfStorage.DoesNotExist:
                 raise PdfDoNotExist()
             return Response(self.serializer_class(pdf).data)

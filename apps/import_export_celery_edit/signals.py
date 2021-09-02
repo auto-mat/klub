@@ -14,7 +14,7 @@ def add_administrative_unit(sender, instance, **kwargs):
     - The administrative unit is not saved and because of that, user do not see the change page
     - This post save takes action of it and add connector with administrative unit if not set!
     """
-    if not hasattr(instance, 'exportconnector'):
+    if not hasattr(instance, "exportconnector"):
         au = instance.author.administrative_units.first()
         if au:
             ExportConnector.objects.create(

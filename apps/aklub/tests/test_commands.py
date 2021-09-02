@@ -1,9 +1,14 @@
-
-
 from aklub.models import (
-    AdministrativeUnit, BankAccount, CompanyContact, CompanyProfile,
-    DonorPaymentChannel, Payment, ProfileEmail, Telephone,
-    UserBankAccount, UserProfile,
+    AdministrativeUnit,
+    BankAccount,
+    CompanyContact,
+    CompanyProfile,
+    DonorPaymentChannel,
+    Payment,
+    ProfileEmail,
+    Telephone,
+    UserBankAccount,
+    UserProfile,
 )
 
 from django.core import management
@@ -16,8 +21,9 @@ class DumpDataTest(TestCase):
     """
     python manage.py dump_data test => generate some data
     """
+
     def test_dump_data(self):
-        management.call_command('dump_data', number_of_users=10, number_of_companies=10)
+        management.call_command("dump_data", number_of_users=10, number_of_companies=10)
 
         self.assertEqual(UserProfile.objects.count(), 10)
         self.assertEqual(CompanyProfile.objects.count(), 10)
@@ -41,7 +47,7 @@ class CreateAdminTest(TestCase):
     """
 
     def test_create_admin(self):
-        management.call_command('create_admin')
+        management.call_command("create_admin")
         superuser = UserProfile.objects.get(is_superuser=True)
         self.assertTrue(superuser.profileemail_set.exists())
         self.assertTrue(superuser.password)
@@ -52,4 +58,6 @@ class CreateAdminTest(TestCase):
         self.assertTrue(admin.profileemail_set.exists())
         self.assertTrue(admin.password)
         self.assertEqual(admin.groups.count(), 1)
-        self.assertEqual(admin.groups.first().name, "can_do_everything_under_administrative_unit")
+        self.assertEqual(
+            admin.groups.first().name, "can_do_everything_under_administrative_unit"
+        )

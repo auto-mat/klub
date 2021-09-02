@@ -28,12 +28,12 @@ class Location(models.Model):
         blank=True,
     )
     gps_latitude = models.FloatField(
-        _('GPS latitude'),
+        _("GPS latitude"),
         blank=True,
         null=True,
     )
     gps_longitude = models.FloatField(
-        _('GPS longitude'),
+        _("GPS longitude"),
         blank=True,
         null=True,
     )
@@ -92,57 +92,58 @@ class Event(models.Model):
         verbose_name_plural = _("Events")
 
     INTENDED_FOR = (
-        ('everyone', _('Everyone')),
-        ('adolescents_and_adults', _('Adolescents and adults')),
-        ('children', _('Children')),
-        ('parents_and_children', _('Parents and children')),
-        ('newcomers', _("Newcomers")),
+        ("everyone", _("Everyone")),
+        ("adolescents_and_adults", _("Adolescents and adults")),
+        ("children", _("Children")),
+        ("parents_and_children", _("Parents and children")),
+        ("newcomers", _("Newcomers")),
     )
     GRANT = (
-        ('no_grant', _('No Grant')),
-        ('MEYS', _("Ministry of Education, Youth and Sports")),
-        ('others', _('Others')),
+        ("no_grant", _("No Grant")),
+        ("MEYS", _("Ministry of Education, Youth and Sports")),
+        ("others", _("Others")),
     )
     PROGRAM = (
-        ("", ('---')),
-        ('education', _('Education')),
-        ('PsB', _('PsB')),
-        ('monuments', _('Monuments')),
-        ('nature', _('Nature')),
-        ('eco_consulting', _('Eco consulting')),
-        ('children_section ', _("Children's Section")),
+        ("", ("---")),
+        ("education", _("Education")),
+        ("PsB", _("PsB")),
+        ("monuments", _("Monuments")),
+        ("nature", _("Nature")),
+        ("eco_consulting", _("Eco consulting")),
+        ("children_section ", _("Children's Section")),
     )
     BASIC_PURPOSE = (
-        ('action', _('Action')),
-        ('action-with-attendee-list', _('Action with attendee list'))
-        ('petition', _('Petition')),
-        ('camp', _('Camp')),
-        ('opportunity', _('Opportunity')),
+        ("action", _("Action")),
+        ("action-with-attendee-list", _("Action with attendee list"))(
+            "petition", _("Petition")
+        ),
+        ("camp", _("Camp")),
+        ("opportunity", _("Opportunity")),
     )
     REGISTRATION_METHOD = (
-        ('standard', _('Standard')),
-        ('other_electronic', _('Other electronic')),
-        ('by_email', _("By organizer's email")),
-        ('not_required', _("Not required")),
-        ('full', _("Full, not anymore")),
+        ("standard", _("Standard")),
+        ("other_electronic", _("Other electronic")),
+        ("by_email", _("By organizer's email")),
+        ("not_required", _("Not required")),
+        ("full", _("Full, not anymore")),
     )
     DIET_CHOICES = (
-        ("", ('---')),
-        ('vegetarian', _('Vegetarian')),
-        ('non_vegetarian', _('Non-vegetarian')),
-        ('can_choose', _('Can choose')),
+        ("", ("---")),
+        ("vegetarian", _("Vegetarian")),
+        ("non_vegetarian", _("Non-vegetarian")),
+        ("can_choose", _("Can choose")),
     )
     OPPORTUNITIES = (
-        ("", ('---')),
-        ('organizing_events', _('Organizing events')),
-        ('cooperation', _('Cooperation')),
-        ('help_the_locality', _('Help the locality')),
+        ("", ("---")),
+        ("organizing_events", _("Organizing events")),
+        ("cooperation", _("Cooperation")),
+        ("help_the_locality", _("Help the locality")),
     )
     registration_method = models.CharField(
         verbose_name=_("Registration method"),
         max_length=128,
         choices=REGISTRATION_METHOD,
-        default='standard',
+        default="standard",
     )
     for i in range(1, 5):
         vars()[f"additional_question_{i}"] = models.CharField(
@@ -154,14 +155,14 @@ class Event(models.Model):
         verbose_name=_("Main photo"),
         blank=True,
         null=True,
-        upload_to='event_photos',
+        upload_to="event_photos",
     )
     for i in range(1, 7):
         vars()[f"additional_photo_{i}"] = models.FileField(
             verbose_name=_("Additional photo number %(number)s" % {"number": i}),
             blank=True,
             null=True,
-            upload_to='event_photos',
+            upload_to="event_photos",
         )
 
     invitation_text_short = models.TextField(
@@ -204,7 +205,6 @@ class Event(models.Model):
         "aklub.Profile",
         verbose_name=_("Organization team"),
         through="OrganizationTeam",
-
     )
     location = models.ForeignKey(
         Location,
@@ -216,7 +216,7 @@ class Event(models.Model):
     event_type = models.ForeignKey(
         EventType,
         verbose_name=_("Event type"),
-        related_name='events',
+        related_name="events",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -225,7 +225,7 @@ class Event(models.Model):
         verbose_name=_("Basic Purpose"),
         max_length=128,
         choices=BASIC_PURPOSE,
-        default='action',
+        default="action",
     )
     opportunity = models.CharField(
         verbose_name=_("Opportunity"),
@@ -258,7 +258,7 @@ class Event(models.Model):
         verbose_name=_("Indended for"),
         max_length=128,
         choices=INTENDED_FOR,
-        default='everyone',
+        default="everyone",
     )
     participation_fee = models.CharField(
         verbose_name=_("Participation fee"),
@@ -279,7 +279,7 @@ class Event(models.Model):
         verbose_name=_("Grant"),
         max_length=128,
         choices=GRANT,
-        default='no_grant',
+        default="no_grant",
     )
     focus_on_members = models.BooleanField(
         verbose_name=_("Focus on members"),
@@ -360,7 +360,7 @@ class Event(models.Model):
         null=True,
     )
     result = models.ManyToManyField(
-        'interactions.result',
+        "interactions.result",
         verbose_name=_("Acceptable results of communication"),
         blank=True,
     )
@@ -450,13 +450,15 @@ class Event(models.Model):
         blank=True,
         validators=[
             RegexValidator(
-                r'^\+?(42(0|1){1})?\s?\d{3}\s?\d{3}\s?\d{3}$',
-                _("Telephone must consist of numbers, spaces and + sign or maximum number count is higher."),
+                r"^\+?(42(0|1){1})?\s?\d{3}\s?\d{3}\s?\d{3}$",
+                _(
+                    "Telephone must consist of numbers, spaces and + sign or maximum number count is higher."
+                ),
             ),
         ],
     )
     contact_person_email = models.EmailField(
-        _('Contact person email address'),
+        _("Contact person email address"),
         blank=True,
     )
     administrative_units = models.ManyToManyField(
@@ -465,17 +467,13 @@ class Event(models.Model):
     )
     comment_on_work_done = models.TextField(
         max_length=2000,
-        verbose_name=_('Comment on work done'),
+        verbose_name=_("Comment on work done"),
         blank=True,
         null=True,
-        default=''
+        default="",
     )
     other_work = models.TextField(
-        max_length=2000,
-        verbose_name=_('Other work'),
-        blank=True,
-        null=True,
-        default=''
+        max_length=2000, verbose_name=_("Other work"), blank=True, null=True, default=""
     )
 
     def number_of_members(self):
@@ -484,20 +482,36 @@ class Event(models.Model):
     number_of_members.short_description = _("number of members")
 
     def number_of_regular_members(self):
-        return self.donorpaymentchannel_set.filter(regular_payments="regular", payment__amount__gt=0).distinct().count()
+        return (
+            self.donorpaymentchannel_set.filter(
+                regular_payments="regular", payment__amount__gt=0
+            )
+            .distinct()
+            .count()
+        )
 
     def number_of_onetime_members(self):
-        return self.donorpaymentchannel_set.exclude(regular_payments="regular")\
-            .filter(payment__amount__gt=0).distinct().count()
+        return (
+            self.donorpaymentchannel_set.exclude(regular_payments="regular")
+            .filter(payment__amount__gt=0)
+            .distinct()
+            .count()
+        )
 
     def number_of_active_members(self):
-        return self.donorpaymentchannel_set.filter(payment__amount__gt=0).distinct().count()
+        return (
+            self.donorpaymentchannel_set.filter(payment__amount__gt=0)
+            .distinct()
+            .count()
+        )
 
     def number_of_all_members(self):
         return self.donorpaymentchannel_set.distinct().count()
 
     def number_of_confirmed_members(self):
-        return self.petitionsignature_set.filter(email_confirmed=True).distinct().count()
+        return (
+            self.petitionsignature_set.filter(email_confirmed=True).distinct().count()
+        )
 
     def recruiters(self):
         return Recruiter.objects.filter(campaigns=self)
@@ -510,9 +524,10 @@ class Event(models.Model):
     number_of_recruiters.short_description = _("number of recruiters")
 
     def yield_total(self):
-        if self.indended_for == 'newcomers':
-            return DonorPaymentChannel.objects.filter(event=self).aggregate(yield_total=Sum('payment__amount'))[
-                'yield_total']
+        if self.indended_for == "newcomers":
+            return DonorPaymentChannel.objects.filter(event=self).aggregate(
+                yield_total=Sum("payment__amount")
+            )["yield_total"]
         else:
             return self.real_yield
 
@@ -520,7 +535,9 @@ class Event(models.Model):
 
     def expected_yearly_income(self):
         income = 0
-        for campaign_member in DonorPaymentChannel.objects.filter(event=self, payment__amount__gt=0).distinct():
+        for campaign_member in DonorPaymentChannel.objects.filter(
+            event=self, payment__amount__gt=0
+        ).distinct():
             # TODO: use aggregate to count this
             income += campaign_member.yearly_regular_amount()
         return income
@@ -539,7 +556,7 @@ class Event(models.Model):
     return_of_investmensts.short_description = _("return of investmensts")
 
     def total_expenses(self):
-        return self.expenses.aggregate(Sum('amount'))['amount__sum']
+        return self.expenses.aggregate(Sum("amount"))["amount__sum"]
 
     total_expenses.short_description = _("total expenses")
 
@@ -564,7 +581,10 @@ class OrganizationPosition(models.Model):
         verbose_name = _("Organization position")
         verbose_name_plural = _("Organization position")
 
-    name = models.CharField(max_length=300, verbose_name=_("Name"),)
+    name = models.CharField(
+        max_length=300,
+        verbose_name=_("Name"),
+    )
     description = models.TextField(blank=True, verbose_name=_("Description"))
 
     def __str__(self):
@@ -576,8 +596,14 @@ class Qualification(models.Model):
         verbose_name = _("Qualification")
         verbose_name_plural = _("Qualifications")
 
-    name = models.CharField(max_length=300, verbose_name=_("Name"),)
-    abbreviated_name = models.CharField(max_length=30, verbose_name=_("Abbreviated name"),)
+    name = models.CharField(
+        max_length=300,
+        verbose_name=_("Name"),
+    )
+    abbreviated_name = models.CharField(
+        max_length=30,
+        verbose_name=_("Abbreviated name"),
+    )
 
     def __str__(self):
         return self.abbreviated_name
@@ -590,8 +616,18 @@ class OrganizationTeam(models.Model):
 
     profile = models.ForeignKey("aklub.Profile", on_delete=models.CASCADE)
     event = models.ForeignKey(Event, on_delete=models.CASCADE, verbose_name=_("Event"))
-    position = models.ForeignKey(OrganizationPosition, on_delete=models.CASCADE, verbose_name=_("Position"),)
-    qualification = models.ForeignKey(Qualification, on_delete=models.SET_NULL, verbose_name=_("Qualification"), null=True, blank=True)
+    position = models.ForeignKey(
+        OrganizationPosition,
+        on_delete=models.CASCADE,
+        verbose_name=_("Position"),
+    )
+    qualification = models.ForeignKey(
+        Qualification,
+        on_delete=models.SET_NULL,
+        verbose_name=_("Qualification"),
+        null=True,
+        blank=True,
+    )
 
     def __str__(self):
         return str(self.id)

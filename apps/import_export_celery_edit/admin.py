@@ -15,8 +15,8 @@ from .models import ExportConnector, ImportConnector
 
 class InlineMixinForm(ModelForm):
     def has_changed(self):
-        """ Must return True if we want to save unchanged inlines
-            or raise validation errors """
+        """Must return True if we want to save unchanged inlines
+        or raise validation errors"""
         return True
 
 
@@ -25,8 +25,8 @@ class InlineMixin(object):
     form = InlineMixinForm
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if not request.user.has_perm('aklub.can_edit_all_units'):
-            if db_field.name == 'administrative_unit':
+        if not request.user.has_perm("aklub.can_edit_all_units"):
+            if db_field.name == "administrative_unit":
                 kwargs["queryset"] = request.user.administrated_units.all()
                 kwargs["required"] = True
                 kwargs["initial"] = kwargs["queryset"].first()
@@ -42,14 +42,14 @@ admin.site.unregister(ImportJob)
 
 @admin.register(ImportJob)
 class _ImportJobAdmin(
-    unit_admin_mixin_generator('importconnector__administrative_unit'),
+    unit_admin_mixin_generator("importconnector__administrative_unit"),
     ImportJobAdmin,
     RelatedFieldAdmin,
 ):
     inlines = (ImportAdminInline,)
 
     list_display = ImportJobAdmin.list_display + (
-        'importconnector__administrative_unit',
+        "importconnector__administrative_unit",
     )
 
 
@@ -62,12 +62,12 @@ admin.site.unregister(ExportJob)
 
 @admin.register(ExportJob)
 class _ExportJobAdmin(
-    unit_admin_mixin_generator('exportconnector__administrative_unit'),
+    unit_admin_mixin_generator("exportconnector__administrative_unit"),
     ExportJobAdmin,
     RelatedFieldAdmin,
 ):
     inlines = (ExportAdminInline,)
 
     list_display = ExportJobAdmin.list_display + (
-        'exportconnector__administrative_unit',
+        "exportconnector__administrative_unit",
     )

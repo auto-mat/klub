@@ -8,7 +8,7 @@ register = template.Library()
 class ReposNode(template.Node):
     def render(self, context):
         context["repos"] = Repo.objects.all()
-        return ''
+        return ""
 
 
 @register.tag

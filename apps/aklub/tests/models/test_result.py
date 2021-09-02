@@ -24,11 +24,11 @@ from model_mommy import mommy
 
 
 class TestStr(TestCase):
-    """ Test Result.__str__ """
+    """Test Result.__str__"""
 
     def test_result_str(self):
         result = mommy.make(
             "interactions.Result",
             name="Test result",
         )
-        self.assertEqual(result.__str__(), 'Test result')
+        self.assertEqual(result.__str__(), "Test result")

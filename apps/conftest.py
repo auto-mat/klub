@@ -5,7 +5,13 @@ from aklub.models import AdministrativeUnit, ProfileEmail, Telephone, UserProfil
 from django.conf import settings
 from django.core.files import File
 
-from events.models import Event, EventType, Location, OrganizationPosition, OrganizationTeam
+from events.models import (
+    Event,
+    EventType,
+    Location,
+    OrganizationPosition,
+    OrganizationTeam,
+)
 
 from oauth2_provider.models import AccessToken, Application
 
@@ -19,7 +25,7 @@ def enable_db_access_for_all_tests(db):
     pass
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
 def administrative_unit_1(userprofile_superuser_2):
     au = AdministrativeUnit.objects.create(
         name="Auto*mat",
@@ -34,13 +40,13 @@ def administrative_unit_1(userprofile_superuser_2):
         telephone="+420123456789",
         president=userprofile_superuser_2,
         manager=userprofile_superuser_2,
-        level='regional_center',
+        level="regional_center",
     )
     yield au
     au.delete()
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
 def administrative_unit_2():
     au = AdministrativeUnit.objects.create(
         name="Auto*mat - slovakia",
@@ -50,7 +56,7 @@ def administrative_unit_2():
     au.delete()
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
 def telephone_2(userprofile_superuser_2):
     telephone = Telephone.objects.create(
         telephone="655455564",
@@ -61,7 +67,7 @@ def telephone_2(userprofile_superuser_2):
     telephone.delete()
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
 def profileemail_2(userprofile_superuser_2):
     email = ProfileEmail.objects.create(
         email="ho@ha.com",
@@ -72,7 +78,7 @@ def profileemail_2(userprofile_superuser_2):
     email.delete()
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
 def userprofile_superuser_2():
     user = UserProfile.objects.create(
         username="admin_2",
@@ -85,7 +91,7 @@ def userprofile_superuser_2():
     user.delete()
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
 def userprofile_superuser_1(administrative_unit_1):
     user = UserProfile.objects.create(
         username="admin",
@@ -99,31 +105,31 @@ def userprofile_superuser_1(administrative_unit_1):
     user.delete()
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
 def application_api_access():
     app = Application.objects.create(
-         name="Test Application",
-         client_type=Application.CLIENT_CONFIDENTIAL,
-         authorization_grant_type=Application.GRANT_CLIENT_CREDENTIALS,
+        name="Test Application",
+        client_type=Application.CLIENT_CONFIDENTIAL,
+        authorization_grant_type=Application.GRANT_CLIENT_CREDENTIALS,
     )
     AccessToken.objects.create(
-        token='foo',
+        token="foo",
         application=app,
         expires=datetime.datetime.now() + datetime.timedelta(days=999),
-        scope=" ".join(settings.OAUTH2_PROVIDER['SCOPES'].keys()),
+        scope=" ".join(settings.OAUTH2_PROVIDER["SCOPES"].keys()),
     )
     yield app
     app.delete()
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
 def app_request(application_api_access):
     client = APIClient()
-    client.credentials(HTTP_AUTHORIZATION='Bearer foo')
+    client.credentials(HTTP_AUTHORIZATION="Bearer foo")
     yield client
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
 def location_1(administrative_unit_1):
     location = Location.objects.create(
         administrative_unit=administrative_unit_1,
@@ -137,7 +143,7 @@ def location_1(administrative_unit_1):
     location.delete()
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
 def organization_position_1():
     location = OrganizationPosition.objects.create(
         name="position",
@@ -146,7 +152,7 @@ def organization_position_1():
     location.delete()
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
 def organization_team_1(userprofile_superuser_2, organization_position_1, event_1):
     organization_team = OrganizationTeam.objects.create(
         position=organization_position_1,
@@ -157,7 +163,7 @@ def organization_team_1(userprofile_superuser_2, organization_position_1, event_
     organization_team.delete()
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
 def event_type_1(administrative_unit_1):
     event_type = EventType.objects.create(
         name="Event name",
@@ -169,15 +175,15 @@ def event_type_1(administrative_unit_1):
     event_type.delete()
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
 def event_1(administrative_unit_1, event_type_1, location_1):
     event = Event.objects.create(
-        name='event_name',
-        slug='event_slug',
+        name="event_name",
+        slug="event_slug",
         date_from="2020-02-02",
         date_to="2021-03-03",
-        program='monuments',
-        indended_for='everyone',
+        program="monuments",
+        indended_for="everyone",
         location=location_1,
         event_type=event_type_1,
         age_from=10,
@@ -208,11 +214,11 @@ def event_1(administrative_unit_1, event_type_1, location_1):
     event.delete()
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
 def event_2(administrative_unit_2):
     event = Event.objects.create(
-        name='event_name_2',
-        slug='event_slug_2',
+        name="event_name_2",
+        slug="event_slug_2",
         public_on_web=True,
     )
     event.administrative_units.add(administrative_unit_2)

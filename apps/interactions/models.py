@@ -18,9 +18,9 @@ class Result(models.Model):
         verbose_name_plural = _("Results")
 
     RESULT_SORT = (
-        ('promise', _("Promise")),
-        ('ongoing', _("Ongoing communication")),
-        ('dont_contact', _("Don't contact again")),
+        ("promise", _("Promise")),
+        ("ongoing", _("Ongoing communication")),
+        ("dont_contact", _("Don't contact again")),
     )
 
     name = models.CharField(
@@ -31,7 +31,7 @@ class Result(models.Model):
         verbose_name=_("Sort of result"),
         max_length=30,
         choices=RESULT_SORT,
-        default='individual',
+        default="individual",
     )
 
     def __str__(self):
@@ -61,6 +61,7 @@ class InteractionCategory(models.Model):
 class BaseInteraction2(models.Model):
     class Meta:
         abstract = True
+
     user = models.ForeignKey(
         Profile,
         verbose_name=("User"),
@@ -96,29 +97,30 @@ class Interaction(WithAdminUrl, BaseInteraction2):
     if we want to have it False, we must handle it in admin context with ignored fields
     also must be added to field_set in admin inline and import_export fields.
     """
+
     class Meta:
         verbose_name = _("Interaction")
         verbose_name_plural = _("Interactions")
 
     SETTLEMENT_CHOICES = [
-        ('a', _('Automatic')),
-        ('m', _('Manual')),
+        ("a", _("Automatic")),
+        ("m", _("Manual")),
     ]
 
     RATING_CHOICES = [
-        ('1', '1'),
-        ('2', '2'),
-        ('3', '3'),
-        ('4', '4'),
-        ('5', '5'),
+        ("1", "1"),
+        ("2", "2"),
+        ("3", "3"),
+        ("4", "4"),
+        ("5", "5"),
     ]
     COMMUNICATION_TYPE = (
-        ('mass', _("Mass")),
-        ('auto', _("Automatic")),
-        ('individual', _("Individual")),
+        ("mass", _("Mass")),
+        ("auto", _("Automatic")),
+        ("individual", _("Individual")),
     )
-    type = models.ForeignKey( # noqa
-        'InteractionType',
+    type = models.ForeignKey(  # noqa
+        "InteractionType",
         verbose_name=("Type"),
         help_text=("Type of interaction"),
         on_delete=models.CASCADE,
@@ -154,7 +156,7 @@ class Interaction(WithAdminUrl, BaseInteraction2):
 
     attachment = models.FileField(
         verbose_name=("Attachment"),
-        upload_to='communication-attachments',
+        upload_to="communication-attachments",
         blank=True,
         null=True,
     )
@@ -164,14 +166,14 @@ class Interaction(WithAdminUrl, BaseInteraction2):
         help_text=("Text or summary of this communication"),
         max_length=50000,
         blank=True,
-        default='',
+        default="",
     )
     status = models.CharField(
         verbose_name=("Status"),
         help_text=("Status/progress of this communication"),
         max_length=130,
         blank=True,
-        default='',
+        default="",
     )
     result = models.ForeignKey(
         Result,
@@ -194,7 +196,7 @@ class Interaction(WithAdminUrl, BaseInteraction2):
         help_text=("What happens next"),
         max_length=3000,
         blank=True,
-        default='',
+        default="",
     )
     next_communication_date = models.DateTimeField(
         verbose_name=("Date of next communication"),
@@ -204,7 +206,7 @@ class Interaction(WithAdminUrl, BaseInteraction2):
     created_by = models.ForeignKey(
         Profile,
         verbose_name=_("Created by"),
-        related_name='created_by_communications',
+        related_name="created_by_communications",
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
@@ -212,7 +214,7 @@ class Interaction(WithAdminUrl, BaseInteraction2):
     handled_by = models.ForeignKey(
         Profile,
         verbose_name=_("Last handled by"),
-        related_name='handled_by_communications',
+        related_name="handled_by_communications",
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
@@ -221,7 +223,7 @@ class Interaction(WithAdminUrl, BaseInteraction2):
         verbose_name=_("Type of communication"),
         max_length=30,
         choices=COMMUNICATION_TYPE,
-        default='individual',
+        default="individual",
         blank=True,
     )
     dispatched = models.BooleanField(
@@ -233,7 +235,7 @@ class Interaction(WithAdminUrl, BaseInteraction2):
     )
 
     def __str__(self):
-        return f'{self.user.username} - {self.type}'
+        return f"{self.user.username} - {self.type}"
 
     def save(self, *args, **kwargs):
         """Record save hook
@@ -242,8 +244,12 @@ class Interaction(WithAdminUrl, BaseInteraction2):
         the automated dispatch() method.
         """
         if self.type.send_email or self.type.send_sms:
-            if not self.dispatched:  # take ride of duplicity email send if mass communictaion is used
-                self.dispatch(save=False)  # then try to dispatch this email automatically
+            if (
+                not self.dispatched
+            ):  # take ride of duplicity email send if mass communictaion is used
+                self.dispatch(
+                    save=False
+                )  # then try to dispatch this email automatically
         super().save(*args, **kwargs)
 
     def dispatch(self, save=True, is_test=False):
@@ -255,7 +261,7 @@ class Interaction(WithAdminUrl, BaseInteraction2):
         typeseted and the admin presented with a 'print' button. Address for
         filling on the envelope should be displayed to the admin.
         """
-        administrative_unit = getattr(self, 'administrative_unit', None)
+        administrative_unit = getattr(self, "administrative_unit", None)
         if self.type.send_sms:  # TODO: implement SMS method
             pass
 
@@ -269,7 +275,7 @@ class Interaction(WithAdminUrl, BaseInteraction2):
                         "Testing email\n"
                         "Similar email will be sent to every user (email originaly to: %(email)s !!\n"
                         "^^^Ignore those lines ^^^\n\n"
-                    ) % {'email': user_email}
+                    ) % {"email": user_email}
                     body = str(body) + self.summary_txt()
 
                 else:
@@ -282,7 +288,7 @@ class Interaction(WithAdminUrl, BaseInteraction2):
                     from_email=administrative_unit.from_email_str,
                     to=[to],
                 )
-                if self.communication_type != 'individual':
+                if self.communication_type != "individual":
                     email.attach_alternative(self.summary, "text/html")
                 if self.attachment:
                     att = self.attachment
@@ -297,7 +303,7 @@ class Interaction(WithAdminUrl, BaseInteraction2):
                 self.save()
 
     def summary_txt(self):
-        if self.communication_type == 'individual':
+        if self.communication_type == "individual":
             return self.summary
         else:
             return html2text.html2text(self.summary)
@@ -307,7 +313,7 @@ class PetitionSignature(BaseInteraction2):
     class Meta:
         verbose_name = _("Petition signature")
         verbose_name_plural = _("Petition signatures")
-        unique_together = ('user', 'event')
+        unique_together = ("user", "event")
 
     email_confirmed = models.BooleanField(
         verbose_name=_("Is confirmed via e-mail"),
@@ -318,7 +324,9 @@ class PetitionSignature(BaseInteraction2):
         default=False,
     )
     public = models.BooleanField(
-        verbose_name=_("Publish my name in the list of supporters/petitents of this campaign"),
+        verbose_name=_(
+            "Publish my name in the list of supporters/petitents of this campaign"
+        ),
         default=False,
     )
 
@@ -371,14 +379,15 @@ class InteractionType(models.Model):
 for field in Interaction._meta.fields:
     if Interaction._meta.get_field(field.name).blank and field.name != "id":
         InteractionType.add_to_class(
-                field.name + '_bool',
-                models.BooleanField(
-                    verbose_name=_(field.verbose_name),
-                    help_text=_(
-                        'Choose if %(field_name)s is visible in specific type of interaction.'
-                    ) % {'field_name': field.name},
-                    default=False,
-                    blank=False,
-                    null=False,
-                ),
+            field.name + "_bool",
+            models.BooleanField(
+                verbose_name=_(field.verbose_name),
+                help_text=_(
+                    "Choose if %(field_name)s is visible in specific type of interaction."
+                )
+                % {"field_name": field.name},
+                default=False,
+                blank=False,
+                null=False,
+            ),
         )

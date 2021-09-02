@@ -7,8 +7,8 @@ from import_export_celery.models import ExportJob, ImportJob
 
 class ImportConnector(models.Model):
     importjob = models.OneToOneField(
-                     ImportJob,
-                     on_delete=models.CASCADE,
+        ImportJob,
+        on_delete=models.CASCADE,
     )
 
     administrative_unit = models.ForeignKey(
@@ -20,8 +20,8 @@ class ImportConnector(models.Model):
 
 class ExportConnector(models.Model):
     exportjob = models.OneToOneField(
-                     ExportJob,
-                     on_delete=models.CASCADE,
+        ExportJob,
+        on_delete=models.CASCADE,
     )
 
     administrative_unit = models.ForeignKey(

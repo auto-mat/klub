@@ -42,34 +42,50 @@ from .test_admin_helper import TestProfilePostMixin
 from .utils import RunCommitHooksMixin
 from .utils import print_response  # noqa
 from .. import admin
-from .. models import (
-    AccountStatements, CompanyContact, DonorPaymentChannel, MassCommunication,
-    Profile, Telephone, UserProfile,
+from ..models import (
+    AccountStatements,
+    CompanyContact,
+    DonorPaymentChannel,
+    MassCommunication,
+    Profile,
+    Telephone,
+    UserProfile,
 )
 
 
 class CreateSuperUserMixin:
-
     def setUp(self):
         self.superuser = auth.get_user_model().objects.create_superuser(
-            username='testuser',
-            email='testuser@example.com',
-            password='foo',
-            polymorphic_ctype_id=ContentType.objects.get(model=UserProfile._meta.model_name).id,
+            username="testuser",
+            email="testuser@example.com",
+            password="foo",
+            polymorphic_ctype_id=ContentType.objects.get(
+                model=UserProfile._meta.model_name
+            ).id,
         )
 
 
 class AdminSmokeTest(CreateSuperUserMixin, tests.AdminSiteSmokeTest):
-    fixtures = ['conditions', 'users']
+    fixtures = ["conditions", "users"]
     # pinax_teams fail in absolute_url => we dont use that so TODO: fix it in future
     exclude_apps = [
-        'helpdesk', 'post_office', 'advanced_filters', 'celery_monitor', 'import_export_celery', 'wiki_attachments', 'pinax_teams',
-        'admin_tools_stats',
+        "helpdesk",
+        "post_office",
+        "advanced_filters",
+        "celery_monitor",
+        "import_export_celery",
+        "wiki_attachments",
+        "pinax_teams",
+        "admin_tools_stats",
     ]
 
     # TODO: make it work... fail in taxconfirmation because of annotated field used in search
     # do not want to exlude whole admin... atm!
-    iter_attributes = [item for item in tests.AdminSiteSmokeTest.iter_attributes if item not in ['search_fields']]
+    iter_attributes = [
+        item
+        for item in tests.AdminSiteSmokeTest.iter_attributes
+        if item not in ["search_fields"]
+    ]
     #  Profile Admin is not used in views, so we dont have to take care
     exclude_modeladmins = [admin.ProfileAdmin]
 
@@ -82,12 +98,12 @@ class AdminSmokeTest(CreateSuperUserMixin, tests.AdminSiteSmokeTest):
 
         try:
             admin.autodiscover()
-        except Exception: # noqa
+        except Exception:  # noqa
             pass
 
     def post_request(self, post_data={}, params=None):
         request = super().post_request(post_data, params)
-        request.session = 'session'
+        request.session = "session"
         request._messages = FallbackStorage(request)
         return request
 
@@ -95,22 +111,24 @@ class AdminSmokeTest(CreateSuperUserMixin, tests.AdminSiteSmokeTest):
 @override_settings(
     CELERY_ALWAYS_EAGER=True,
 )
-class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin, TestCase):
+class AdminTest(
+    CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin, TestCase
+):
     def setUp(self):
         super().setUp()
         self.factory = RequestFactory()
 
     def get_request(self, params=None):
-        request = self.factory.get('/', params)
+        request = self.factory.get("/", params)
 
         request.user = self.superuser
         return request
 
     def post_request(self, post_data={}, params=None):
-        request = self.factory.post('/', data=post_data)
+        request = self.factory.post("/", data=post_data)
         request.user = self.superuser
         request._dont_enforce_csrf_checks = True
-        request.session = 'session'
+        request.session = "session"
         request._messages = FallbackStorage(request)
         return request
 
@@ -118,28 +136,50 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
         users = user_profile_recipe.make(username=seq("Foo "), _quantity=5)
         for u in users:
             donor_payment_channel_recipe.make(user=u)
-            mommy.make('Preference', send_mailing_lists=True, user=u)
+            mommy.make("Preference", send_mailing_lists=True, user=u)
         model_admin = django_admin.site._registry[DonorPaymentChannel]
         request = self.post_request({})
-        for queryset in (UserProfile.objects.filter(id__in=(u.id for u in users)), DonorPaymentChannel.objects.all()):
-            response = admin.send_mass_communication_action(model_admin, request, queryset)
+        for queryset in (
+            UserProfile.objects.filter(id__in=(u.id for u in users)),
+            DonorPaymentChannel.objects.all(),
+        ):
+            response = admin.send_mass_communication_action(
+                model_admin, request, queryset
+            )
             self.assertEqual(response.status_code, 302)
             self.assertEqual(
                 response.url,
-                "/aklub/masscommunication/add/?send_to_users=%s" % "%2C".join(str(getattr(u, 'user', u).id) for u in queryset),
+                "/aklub/masscommunication/add/?send_to_users=%s"
+                % "%2C".join(str(getattr(u, "user", u).id) for u in queryset),
             )
             self.client.force_login(self.superuser)
             response = self.client.get(response.url, follow=True)
             for u in queryset:
-                user = getattr(u, 'user', u)
-                self.assertContains(response, '<option value="%s" selected>%s</option>' % (user.id, str(user)), html=True)
+                user = getattr(u, "user", u)
+                self.assertContains(
+                    response,
+                    '<option value="%s" selected>%s</option>' % (user.id, str(user)),
+                    html=True,
+                )
 
     @freeze_time("2015-5-1")
     def test_account_statement_changelist_post(self):
-        unit = mommy.make("aklub.administrativeunit", name='test,unit')
-        mommy.make("aklub.BankAccount", bank_account_number='99999999/2010', administrative_unit=unit)
-        mommy.make("aklub.Payment", SS=22258, type="darujme", operation_id="13954", date="2016-02-09")
-        donor_payment_channel_recipe.make(id=2979, userprofile__email="bar@email.com", userprofile__language="cs")
+        unit = mommy.make("aklub.administrativeunit", name="test,unit")
+        mommy.make(
+            "aklub.BankAccount",
+            bank_account_number="99999999/2010",
+            administrative_unit=unit,
+        )
+        mommy.make(
+            "aklub.Payment",
+            SS=22258,
+            type="darujme",
+            operation_id="13954",
+            date="2016-02-09",
+        )
+        donor_payment_channel_recipe.make(
+            id=2979, userprofile__email="bar@email.com", userprofile__language="cs"
+        )
         model_admin = django_admin.site._registry[AccountStatements]
         request = self.get_request()
         response = model_admin.add_view(request)
@@ -147,13 +187,13 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
 
         with open("apps/aklub/test_data/Pohyby_cs.csv", "rb") as f:
             post_data = {
-                '_save': 'Save',
+                "_save": "Save",
                 "type": "account_cs",
                 "date_from": "2010-10-01",
                 "csv_file": f,
-                'payment_set-TOTAL_FORMS': 0,
-                'payment_set-INITIAL_FORMS': 0,
-                'administrative_unit': unit.id,
+                "payment_set-TOTAL_FORMS": 0,
+                "payment_set-INITIAL_FORMS": 0,
+                "administrative_unit": unit.id,
             }
             request = self.post_request(post_data=post_data)
             response = model_admin.add_view(request)
@@ -167,14 +207,18 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
             self.assertEqual(
                 request._messages._queued_messages[0].message,
                 'Položka typu Výpis z účtu "<a href="/aklub/accountstatements/%(id)s/change/">%(id)s (2015-05-01 00:00:00+00:00)</a>"'
-                ' byla úspěšně přidána.' % {'id': obj.id},
+                " byla úspěšně přidána." % {"id": obj.id},
             )
 
     @freeze_time("2015-5-1")
     def test_account_statement_changelist_post_bank_statement(self):
         donor_payment_channel_recipe.make(VS=120127010)
-        unit = mommy.make("aklub.administrativeunit", name='test_name')
-        mommy.make("aklub.bankaccount", bank_account_number='2400063333/2010', administrative_unit=unit)
+        unit = mommy.make("aklub.administrativeunit", name="test_name")
+        mommy.make(
+            "aklub.bankaccount",
+            bank_account_number="2400063333/2010",
+            administrative_unit=unit,
+        )
         model_admin = django_admin.site._registry[AccountStatements]
         request = self.get_request()
         response = model_admin.add_view(request)
@@ -182,12 +226,12 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
 
         with open("apps/aklub/test_data/Pohyby_5_2016.csv", "rb") as f:
             post_data = {
-                '_save': 'Save',
+                "_save": "Save",
                 "type": "account",
                 "csv_file": f,
-                'payment_set-TOTAL_FORMS': 0,
-                'payment_set-INITIAL_FORMS': 0,
-                'administrative_unit': unit.id,
+                "payment_set-TOTAL_FORMS": 0,
+                "payment_set-INITIAL_FORMS": 0,
+                "administrative_unit": unit.id,
             }
 
             request = self.post_request(post_data=post_data)
@@ -207,11 +251,11 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
             self.assertEqual(
                 request._messages._queued_messages[0].message,
                 'Položka typu Výpis z účtu "<a href="/aklub/accountstatements/%(id)s/change/">%(id)s (2015-05-01 00:00:00+00:00)</a>"'
-                ' byla úspěšně přidána.' % {'id': obj.id},
+                " byla úspěšně přidána." % {"id": obj.id},
             )
 
     @override_settings(
-        LANGUAGE_CODE='en',
+        LANGUAGE_CODE="en",
     )
     def test_mass_communication_changelist_post_send_mails(self):
         unit = mommy.make("aklub.AdministrativeUnit", name="test1")
@@ -236,20 +280,27 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
             email="baz@email.com",
             language="en",
         )
-        inter_category = mommy.make('interactions.interactioncategory', category='testcategory')
-        inter_type = mommy.make('interactions.interactiontype', category=inter_category, name='testtype', send_email=True)
+        inter_category = mommy.make(
+            "interactions.interactioncategory", category="testcategory"
+        )
+        inter_type = mommy.make(
+            "interactions.interactiontype",
+            category=inter_category,
+            name="testtype",
+            send_email=True,
+        )
         for profile in [company_profile1, user_profile1, user_profile2]:
-            mommy.make('Preference', send_mailing_lists=True, user=profile)
+            mommy.make("Preference", send_mailing_lists=True, user=profile)
         model_admin = django_admin.site._registry[MassCommunication]
         request = self.get_request()
         response = model_admin.add_view(request)
         self.assertEqual(response.status_code, 200)
 
         post_data = {
-            '_continue': 'send_mails',
-            'name': 'test communication',
+            "_continue": "send_mails",
+            "name": "test communication",
             "method_type": inter_type.id,
-            'date': "2010-03-03",
+            "date": "2010-03-03",
             "subject": "Subject",
             "send_to_users": [2978, 2979, 3],
             "administrative_unit": unit.id,
@@ -265,27 +316,36 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
             request._messages._queued_messages[0].message,
             "Communication sending was queued for 3 users",
         )
-        edit_text = 'You may edit it again below.'
+        edit_text = "You may edit it again below."
         self.assertEqual(
             request._messages._queued_messages[1].message,
             'The Mass Communication "<a href="/aklub/masscommunication/%s/change/">test communication</a>"'
-            ' was added successfully. %s' % (obj.id, edit_text),
+            " was added successfully. %s" % (obj.id, edit_text),
         )
 
     def test_mass_communication_changelist_post(self):
         unit = mommy.make("aklub.AdministrativeUnit", name="test1")
-        inter_category = mommy.make('interactions.interactioncategory', category='testcategory')
-        inter_type = mommy.make('interactions.interactiontype', category=inter_category, name='testtype', send_email=True)
+        inter_category = mommy.make(
+            "interactions.interactioncategory", category="testcategory"
+        )
+        inter_type = mommy.make(
+            "interactions.interactiontype",
+            category=inter_category,
+            name="testtype",
+            send_email=True,
+        )
         model_admin = django_admin.site._registry[MassCommunication]
         request = self.get_request()
         response = model_admin.add_view(request)
         self.assertEqual(response.status_code, 200)
-        attachment = SimpleUploadedFile("attachment.txt", b"attachment", content_type="text/plain")
+        attachment = SimpleUploadedFile(
+            "attachment.txt", b"attachment", content_type="text/plain"
+        )
         post_data = {
-            '_continue': 'test_mail',
-            'name': 'test communication',
+            "_continue": "test_mail",
+            "name": "test communication",
             "method_type": inter_type.id,
-            'date': "2010-03-03",
+            "date": "2010-03-03",
             "subject": "Subject",
             "attach_tax_confirmation": False,
             "attachment": attachment,
@@ -298,6 +358,7 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
         obj = MassCommunication.objects.get(name="test communication")
         self.assertEqual(obj.subject, "Subject")
         self.assertEqual(response.url, "/aklub/masscommunication/%s/change/" % obj.id)
+
     """
     # WORK IN PROGRESS
     def test_automatic_communication_changelist_post(self):
@@ -326,19 +387,22 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
         self.assertEqual(obj.subject, "Subject")
         self.assertEqual(response.url, "/aklub/automaticcommunication/%s/change/" % obj.id)
     """
-    def test_communication_changelist_post(self):
-        user_profile = mommy.make('aklub.UserProfile')
-        unit = mommy.make('aklub.AdministrativeUnit')
 
-        interaction_category = mommy.make('interactions.interactioncategory')
-        interaction_type = mommy.make('interactions.interactiontype', category=interaction_category)
+    def test_communication_changelist_post(self):
+        user_profile = mommy.make("aklub.UserProfile")
+        unit = mommy.make("aklub.AdministrativeUnit")
+
+        interaction_category = mommy.make("interactions.interactioncategory")
+        interaction_type = mommy.make(
+            "interactions.interactiontype", category=interaction_category
+        )
         model_admin = django_admin.site._registry[Interaction]
         request = self.get_request()
         response = model_admin.add_view(request)
         self.assertEqual(response.status_code, 200)
 
         post_data = {
-            '_save': 'test_mail',
+            "_save": "test_mail",
             "user": user_profile.id,
             "date_from_0": "2015-03-1",
             "date_from_1": "12:43",
@@ -366,21 +430,21 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
         response = model_admin.add_view(request)
         self.assertEqual(response.status_code, 200)
         post_data = {
-            '_continue': 'Save',
-            'money_account': 1,
-            'user': 2978,
-            'VS': 1234,
-            'activity_points': 13,
-            'registered_support_0': "2010-03-03",
-            'registered_support_1': "12:35",
-            'regular_payments': 'promise',
-            'campaign': '1',
-            'verified': 1,
-            'event': 1,
-            'communications-TOTAL_FORMS': 1,
-            'communications-INITIAL_FORMS': 0,
-            'payment_set-TOTAL_FORMS': 0,
-            'payment_set-INITIAL_FORMS': 0,
+            "_continue": "Save",
+            "money_account": 1,
+            "user": 2978,
+            "VS": 1234,
+            "activity_points": 13,
+            "registered_support_0": "2010-03-03",
+            "registered_support_1": "12:35",
+            "regular_payments": "promise",
+            "campaign": "1",
+            "verified": 1,
+            "event": 1,
+            "communications-TOTAL_FORMS": 1,
+            "communications-INITIAL_FORMS": 0,
+            "payment_set-TOTAL_FORMS": 0,
+            "payment_set-INITIAL_FORMS": 0,
             "communications-0-method": "phonecall",
             "communications-0-subject": "Subject 1",
             "communications-0-summary": "Text 1",
@@ -391,16 +455,21 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
         response = model_admin.add_view(request)
         self.assertEqual(response.status_code, 302)
         donorpaymentchannel = DonorPaymentChannel.objects.get(VS=1234)
-        self.assertEqual(response.url, "/aklub/donorpaymentchannel/%s/change/" % donorpaymentchannel.id)
+        self.assertEqual(
+            response.url,
+            "/aklub/donorpaymentchannel/%s/change/" % donorpaymentchannel.id,
+        )
 
         # self.assertEqual(donorpaymentchannel.activity_points, 13)
         # self.assertEqual(donorpaymentchannel.verified_by.username, 'testuser')
 
     def test_pair_payments_with_dpch(self):
-        """ Test pair_payment_with_dpch action """
-        unit = mommy.make('aklub.AdministrativeUnit', name='test')
-        money_acc = mommy.make('aklub.MoneyAccount', administrative_unit=unit)
-        payment_channel = donor_payment_channel_recipe.make(VS=123, money_account=money_acc)
+        """Test pair_payment_with_dpch action"""
+        unit = mommy.make("aklub.AdministrativeUnit", name="test")
+        money_acc = mommy.make("aklub.MoneyAccount", administrative_unit=unit)
+        payment_channel = donor_payment_channel_recipe.make(
+            VS=123, money_account=money_acc
+        )
         payment = mommy.make("aklub.Payment", VS=123)
         account_statement = mommy.make(
             "aklub.AccountStatements",
@@ -413,28 +482,28 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
         self.assertEqual(payment.user_donor_payment_channel, payment_channel)
 
     def test_profile_post(self):
-        """ Test Profile admin model add/change view """
+        """Test Profile admin model add/change view"""
         self.create_group()
         event = self.create_event()
-        actions = ['add_view', 'change_view']
+        actions = ["add_view", "change_view"]
         child_models = Profile.__subclasses__()
 
         for index, child_model in enumerate(child_models):
             admin_model = self.register_admin_model(admin_model=child_model)
             for view_method_name in actions:
-                action = view_method_name.split('_')[0]
+                action = view_method_name.split("_")[0]
                 model_name = child_model._meta.model_name
-                test_str = '{}.{}'.format(action, model_name)
+                test_str = "{}.{}".format(action, model_name)
 
                 administrative_unit = mommy.make(
-                    'aklub.AdministrativeUnit',
-                    name='test_AU',
+                    "aklub.AdministrativeUnit",
+                    name="test_AU",
                 )
                 bank_account = mommy.make(
-                    'aklub.BankAccount',
+                    "aklub.BankAccount",
                     bank_account=test_str,
                     bank_account_number=index,
-                    note='test',
+                    note="test",
                 )
                 profile_post_data = self.get_profile_post_data(
                     administrative_units=administrative_unit,
@@ -452,38 +521,56 @@ class AdminTest(CreateSuperUserMixin, TestProfilePostMixin, RunCommitHooksMixin,
                 )
                 view_method = getattr(admin_model, view_method_name)
                 request = self.post_request(post_data=post_data)
-                if action == 'change':
-                    user_id = str(Profile.objects.get(username='add.{}'.format(model_name)).id)
+                if action == "change":
+                    user_id = str(
+                        Profile.objects.get(username="add.{}".format(model_name)).id
+                    )
                     response = view_method(request, object_id=user_id)
                 else:
                     response = view_method(request)
                 self.assertEqual(response.status_code, 302)
 
-                profile = Profile.objects.get(username='{}'.format(test_str))
+                profile = Profile.objects.get(username="{}".format(test_str))
                 # Personal info
                 self.compare_profile_personal_info(
-                    action=action, post_data=post_data, profile=profile,
+                    action=action,
+                    post_data=post_data,
+                    profile=profile,
                 )
 
                 # Telephone
                 if profile.is_userprofile():
-                    telephone = set(Telephone.objects.filter(user=profile).values_list('telephone', flat=True))
-                    if action == 'add':
-                        self.assertEqual(telephone, {post_data['telephone']})
+                    telephone = set(
+                        Telephone.objects.filter(user=profile).values_list(
+                            "telephone", flat=True
+                        )
+                    )
+                    if action == "add":
+                        self.assertEqual(telephone, {post_data["telephone"]})
                     else:
-                        self.assertEqual(telephone, {post_data['telephone_set-0-telephone']})
+                        self.assertEqual(
+                            telephone, {post_data["telephone_set-0-telephone"]}
+                        )
                 else:
-                    telephone = set(CompanyContact.objects.filter(company=profile).values_list('telephone', flat=True))
-                    if action == 'add':
-                        self.assertEqual(telephone, {post_data['telephone']})
+                    telephone = set(
+                        CompanyContact.objects.filter(company=profile).values_list(
+                            "telephone", flat=True
+                        )
+                    )
+                    if action == "add":
+                        self.assertEqual(telephone, {post_data["telephone"]})
                     else:
-                        self.assertEqual(telephone, {post_data['companycontact_set-0-telephone']})
+                        self.assertEqual(
+                            telephone, {post_data["companycontact_set-0-telephone"]}
+                        )
 
         new_profiles = Profile.objects.exclude(username=self.superuser.username)
         self.assertEqual(new_profiles.count(), len(child_models))
         # Delete profiles
         self.delete_profile(new_profiles)
-        self.assertEqual(Profile.objects.exclude(username=self.superuser.username).count(), 0)
+        self.assertEqual(
+            Profile.objects.exclude(username=self.superuser.username).count(), 0
+        )
 
 
 class UserProfileAdminTests(TestCase):
@@ -491,27 +578,48 @@ class UserProfileAdminTests(TestCase):
         au1 = mommy.make("aklub.AdministrativeUnit", name="test1")
         au2 = mommy.make("aklub.AdministrativeUnit", name="test2")
 
-        user = mommy.make('UserProfile', is_staff=True, administrated_units=[au1])
+        user = mommy.make("UserProfile", is_staff=True, administrated_units=[au1])
         self.client.force_login(user)
 
-        u1 = mommy.make('UserProfile', administrative_units=[au1], first_name="Foo")
-        mommy.make('UserProfile', administrative_units=[au2], first_name="Bar")
-        event = mommy.make('events.event', administrative_units=[au1, ])
-        channel = mommy.make(
-            'DonorPaymentChannel', user=u1, money_account__administrative_unit=au1,
-            regular_payments="regular", regular_amount=120, event=event,
+        u1 = mommy.make("UserProfile", administrative_units=[au1], first_name="Foo")
+        mommy.make("UserProfile", administrative_units=[au2], first_name="Bar")
+        event = mommy.make(
+            "events.event",
+            administrative_units=[
+                au1,
+            ],
         )
-        mommy.make('Payment', user_donor_payment_channel=channel, amount=100)
-        user.user_permissions.add(Permission.objects.get(codename='view_userprofile'))
-        response = self.client.get(reverse('admin:aklub_userprofile_changelist'), follow=True)
-        self.assertContains(response, '<td class="field-get_administrative_units">test1</td>', html=True)
-        self.assertContains(response, '<td class="field-get_sum_amount">100</td>', html=True)
-        self.assertContains(response, '<td class="field-regular_amount"><nobr>120</nobr></td>', html=True)
-        self.assertNotContains(response, '<td class="field-get_administrative_units">test2</td>', html=True)
+        channel = mommy.make(
+            "DonorPaymentChannel",
+            user=u1,
+            money_account__administrative_unit=au1,
+            regular_payments="regular",
+            regular_amount=120,
+            event=event,
+        )
+        mommy.make("Payment", user_donor_payment_channel=channel, amount=100)
+        user.user_permissions.add(Permission.objects.get(codename="view_userprofile"))
+        response = self.client.get(
+            reverse("admin:aklub_userprofile_changelist"), follow=True
+        )
+        self.assertContains(
+            response, '<td class="field-get_administrative_units">test1</td>', html=True
+        )
+        self.assertContains(
+            response, '<td class="field-get_sum_amount">100</td>', html=True
+        )
+        self.assertContains(
+            response,
+            '<td class="field-regular_amount"><nobr>120</nobr></td>',
+            html=True,
+        )
+        self.assertNotContains(
+            response, '<td class="field-get_administrative_units">test2</td>', html=True
+        )
 
 
 class AdminActionsTests(CreateSuperUserMixin, RunCommitHooksMixin, TestCase):
-    """ Admin actions tests """
+    """Admin actions tests"""
 
     def setUp(self):
         super().setUp()
@@ -519,15 +627,15 @@ class AdminActionsTests(CreateSuperUserMixin, RunCommitHooksMixin, TestCase):
         self.client.force_login(self.superuser)
 
     def get_request(self, params=None):
-        request = self.factory.get('/', params)
+        request = self.factory.get("/", params)
         request.user = self.superuser
         return request
 
     def post_request(self, post_data={}, params=None):
-        request = self.factory.post('/', data=post_data)
+        request = self.factory.post("/", data=post_data)
         request.user = self.superuser
         request._dont_enforce_csrf_checks = True
-        request.session = 'session'
+        request.session = "session"
         request._messages = FallbackStorage(request)
         return request
 
@@ -537,46 +645,52 @@ class AdminActionsTests(CreateSuperUserMixin, RunCommitHooksMixin, TestCase):
         action
         """
         user_profile = mommy.make(
-            'aklub.UserProfile',
-            username='test.userprofile',
+            "aklub.UserProfile",
+            username="test.userprofile",
         )
         mommy.make(
-            'aklub.ProfileEmail',
-            email='test.userprofile@test.userprofile.test',
+            "aklub.ProfileEmail",
+            email="test.userprofile@test.userprofile.test",
             is_primary=True,
             user=user_profile,
         )
         company_profile = mommy.make(
-            'aklub.CompanyProfile',
-            username='test.companyprofile',
+            "aklub.CompanyProfile",
+            username="test.companyprofile",
         )
         mommy.make(
-            'aklub.CompanyContact',
-            email='test.companyprofile@test.companyprofile.test',
+            "aklub.CompanyContact",
+            email="test.companyprofile@test.companyprofile.test",
             is_primary=True,
             company=company_profile,
         )
 
-        self.assertEqual(Profile.objects.exclude(username=self.superuser.username).count(), 2)
+        self.assertEqual(
+            Profile.objects.exclude(username=self.superuser.username).count(), 2
+        )
         post_data = {
-            '_selected_action': [user_profile.id],
-            'action': 'delete_selected',
-            'post': 'yes',
+            "_selected_action": [user_profile.id],
+            "action": "delete_selected",
+            "post": "yes",
         }
-        address = reverse('admin:aklub_userprofile_changelist')
+        address = reverse("admin:aklub_userprofile_changelist")
         response = self.client.post(address, post_data)
         self.assertRedirects(response, expected_url=address)
-        self.assertEqual(Profile.objects.exclude(username=self.superuser.username).count(), 1)
+        self.assertEqual(
+            Profile.objects.exclude(username=self.superuser.username).count(), 1
+        )
 
         post_data = {
-            '_selected_action': [company_profile.id],
-            'action': 'delete_selected',
-            'post': 'yes',
+            "_selected_action": [company_profile.id],
+            "action": "delete_selected",
+            "post": "yes",
         }
-        address = reverse('admin:aklub_companyprofile_changelist')
+        address = reverse("admin:aklub_companyprofile_changelist")
         response = self.client.post(address, post_data)
         self.assertRedirects(response, expected_url=address)
-        self.assertEqual(Profile.objects.exclude(username=self.superuser.username).count(), 0)
+        self.assertEqual(
+            Profile.objects.exclude(username=self.superuser.username).count(), 0
+        )
 
 
 class AdminRemoveAdministrativeUnitTests(CreateSuperUserMixin, TransactionTestCase):
@@ -586,12 +700,12 @@ class AdminRemoveAdministrativeUnitTests(CreateSuperUserMixin, TransactionTestCa
         self.client.force_login(self.superuser)
 
         self.unit = mommy.make(
-            'aklub.AdministrativeUnit',
-            name='test_unit',
+            "aklub.AdministrativeUnit",
+            name="test_unit",
         )
         mommy.make(
-            'aklub.UserProfile',
-            username='test.userprofile',
+            "aklub.UserProfile",
+            username="test.userprofile",
             id=11111,
             administrative_units=[self.unit],
             is_active=True,
@@ -604,7 +718,7 @@ class AdminRemoveAdministrativeUnitTests(CreateSuperUserMixin, TransactionTestCa
         """
         Test admin view remove_contact_from_unit to remove administrative_unit from profile succesfully
         """
-        address = reverse('admin:aklub_remove_contact_from_unit', args=(11111,))
+        address = reverse("admin:aklub_remove_contact_from_unit", args=(11111,))
         response = self.client.post(address)
         self.assertEqual(response.status_code, 302)
         profile = Profile.objects.get(pk=11111)
@@ -616,10 +730,14 @@ class AdminRemoveAdministrativeUnitTests(CreateSuperUserMixin, TransactionTestCa
         """
         Test admin view remove_contact_from_unit to remove administrative_unit from own profile unsuccesfully
         """
-        address = reverse('admin:aklub_remove_contact_from_unit', args=(self.superuser.id,))
+        address = reverse(
+            "admin:aklub_remove_contact_from_unit", args=(self.superuser.id,)
+        )
         response = self.client.post(address, follow=True)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Nemůžete si odstranit organizační jednotku!', html=True)
+        self.assertContains(
+            response, "Nemůžete si odstranit organizační jednotku!", html=True
+        )
 
         profile = Profile.objects.get(pk=self.superuser.id)
         self.assertEqual(profile.administrative_units.first(), self.unit)

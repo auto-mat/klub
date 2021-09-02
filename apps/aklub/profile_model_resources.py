@@ -21,7 +21,9 @@ def get_polymorphic_parent_child_fields(parent_model):
     result = {}
     for child_model in parent_model.__subclasses__():
         child_model_fields = [f.name for f in child_model._meta.fields]
-        child_model_fields_only = set(parent_model_fields).symmetric_difference(set(child_model_fields))
+        child_model_fields_only = set(parent_model_fields).symmetric_difference(
+            set(child_model_fields)
+        )
         child_model_fields_only = child_model_fields_only - exclude_fields
         result[child_model._meta.model_name] = child_model_fields_only
     return result
@@ -34,12 +36,14 @@ def dehydrate_decorator(field):
                 return getattr(profile, field)
             else:
                 return None
+
         return wrapped_f
+
     return wrap
 
 
 def get_parent_child_instance(self, row):
-    return apps.get_model('aklub', row['profile_type'])()
+    return apps.get_model("aklub", row["profile_type"])()
 
 
 def init_instance(self, row=None):
@@ -48,17 +52,19 @@ def init_instance(self, row=None):
 
 def get_profile_model_resource_class_body(parent_model):
     body = {}
-    all_child_models_fields = get_polymorphic_parent_child_fields(parent_model=parent_model)
+    all_child_models_fields = get_polymorphic_parent_child_fields(
+        parent_model=parent_model
+    )
     for model, model_fields in all_child_models_fields.items():
         for field in model_fields:
             # Additional child field
             body[field] = fields.Field()
             # Additional child field dehydrate method
             dehydrate_func = (dehydrate_decorator(field=field))(dehydrate_base)
-            body['dehydrate_{}'.format(field)] = dehydrate_func
+            body["dehydrate_{}".format(field)] = dehydrate_func
 
-    body['get_polymorphic_child_instance'] = get_parent_child_instance
-    body['init_instance'] = init_instance
+    body["get_polymorphic_child_instance"] = get_parent_child_instance
+    body["init_instance"] = init_instance
 
     # Get profile model resource mixin class body
     body.update(get_profile_model_resource_mixin_class_body())
@@ -67,7 +73,7 @@ def get_profile_model_resource_class_body(parent_model):
 
 
 ProfileModelResource = type(
-    'ProfileModelResource',
+    "ProfileModelResource",
     (ModelResource,),
     get_profile_model_resource_class_body(parent_model=Profile),
 )

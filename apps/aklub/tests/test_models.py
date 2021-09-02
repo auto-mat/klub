@@ -37,7 +37,7 @@ from ..models import DonorPaymentChannel, Payment, UserProfile
 
 @freeze_time("2016-5-1")
 class ModelTests(TestCase):
-    fixtures = ['conditions', 'users']
+    fixtures = ["conditions", "users"]
 
     def setUp(self):
         self.u = DonorPaymentChannel.objects.get(pk=2979)
@@ -64,15 +64,17 @@ class ModelTests(TestCase):
         self.assertEqual(self.u.no_upgrade, False)
         self.assertEqual(self.u.monthly_regular_amount(), 0)
 
-        self.assertEqual(self.u1.person_name(), 'User Test')
+        self.assertEqual(self.u1.person_name(), "User Test")
         self.assertEqual(self.u1.requires_action(), True)
         self.assertSetEqual(set(self.u1.payment_set.all()), {self.p1, self.p2, self.p})
         self.assertEqual(self.u1.number_of_payments, 3)
         self.assertEqual(self.u1.last_payment, self.p1)
         self.assertEqual(self.u1.last_payment_date(), datetime.date(2016, 3, 9))
-        self.assertEqual(self.u1.last_payment_type(), 'bank-transfer')
+        self.assertEqual(self.u1.last_payment_type(), "bank-transfer")
         self.assertEqual(self.u1.regular_frequency_td(), datetime.timedelta(31))
-        self.assertEqual(self.u1.expected_regular_payment_date, datetime.date(2016, 4, 9))
+        self.assertEqual(
+            self.u1.expected_regular_payment_date, datetime.date(2016, 4, 9)
+        )
         self.assertEqual(self.u1.regular_payments_delay(), datetime.timedelta(12))
         self.assertEqual(self.u1.extra_money, None)
         self.assertEqual(self.u1.regular_payments_info(), datetime.date(2016, 4, 9))
@@ -81,11 +83,18 @@ class ModelTests(TestCase):
         self.assertEqual(self.u1.payment_total, 350.0)
         self.assertEqual(self.u1.total_contrib_string(), "350&nbsp;Kč")
         self.assertEqual(self.u1.registered_support_date(), "16. 12. 2015")
-        self.assertEqual(self.u1.payment_total_range(datetime.date(2016, 1, 1), datetime.date(2016, 2, 1)), 0)
+        self.assertEqual(
+            self.u1.payment_total_range(
+                datetime.date(2016, 1, 1), datetime.date(2016, 2, 1)
+            ),
+            0,
+        )
         self.assertEqual(self.u1.no_upgrade, False)
         self.assertEqual(self.u1.monthly_regular_amount(), 100)
 
-        self.assertEqual(self.u2.expected_regular_payment_date, datetime.date(2015, 12, 19))
+        self.assertEqual(
+            self.u2.expected_regular_payment_date, datetime.date(2015, 12, 19)
+        )
         self.assertEqual(self.u2.regular_payments_info(), datetime.date(2015, 12, 19))
 
         self.assertEqual(self.u4.regular_payments_info(), ICON_UNKNOWN)
@@ -93,14 +102,23 @@ class ModelTests(TestCase):
 
 class CommunicationTest(TestCase):
     def setUp(self):
-        self.userprofile = UserProfile.objects.create(sex='male')
-        mommy.make("ProfileEmail", user=self.userprofile, email="test@test.cz", is_primary=True)
+        self.userprofile = UserProfile.objects.create(sex="male")
+        mommy.make(
+            "ProfileEmail", user=self.userprofile, email="test@test.cz", is_primary=True
+        )
         self.campaign = Event.objects.create(date_from=datetime.date(2010, 10, 10))
 
     def test_communication(self):
-        inter_category = mommy.make('interactions.interactioncategory', category='testcategory')
-        inter_type = mommy.make('interactions.interactiontype', category=inter_category, name='testtype', send_email=True)
-        unit = mommy.make('aklub.administrativeunit', name='testAU')
+        inter_category = mommy.make(
+            "interactions.interactioncategory", category="testcategory"
+        )
+        inter_type = mommy.make(
+            "interactions.interactiontype",
+            category=inter_category,
+            name="testtype",
+            send_email=True,
+        )
+        unit = mommy.make("aklub.administrativeunit", name="testAU")
         Interaction.objects.create(
             communication_type="individual",
             user=self.userprofile,
@@ -112,14 +130,21 @@ class CommunicationTest(TestCase):
         )
         self.assertEqual(len(mail.outbox), 1)
         msg = mail.outbox[0]
-        self.assertEqual(msg.recipients(), ['test@test.cz'])
-        self.assertEqual(msg.subject, 'Testing email')
+        self.assertEqual(msg.recipients(), ["test@test.cz"])
+        self.assertEqual(msg.subject, "Testing email")
         self.assertIn("Testing template", msg.body)
 
     def test_communication_sms(self):
-        inter_category = mommy.make('interactions.interactioncategory', category='testcategory')
-        inter_type = mommy.make('interactions.interactiontype', category=inter_category, name='testtype', send_sms=True)
-        unit = mommy.make('aklub.administrativeunit', name='testAU')
+        inter_category = mommy.make(
+            "interactions.interactioncategory", category="testcategory"
+        )
+        inter_type = mommy.make(
+            "interactions.interactiontype",
+            category=inter_category,
+            name="testtype",
+            send_sms=True,
+        )
+        unit = mommy.make("aklub.administrativeunit", name="testAU")
         Interaction.objects.create(
             communication_type="individual",
             user=self.userprofile,

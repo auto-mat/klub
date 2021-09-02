@@ -13,7 +13,12 @@ from django.utils.translation import ugettext as _
 from . import filters
 from .forms import EventForm
 from .models import (
-    Event, EventType, Location, OrganizationPosition, OrganizationTeam, Qualification,
+    Event,
+    EventType,
+    Location,
+    OrganizationPosition,
+    OrganizationTeam,
+    Qualification,
 )
 
 
@@ -50,7 +55,7 @@ class LocationAdmin(admin.ModelAdmin):
 
 @admin.register(EventType)
 class EventTypeAdmin(admin.ModelAdmin):
-    list_display = ("name", 'slug')
+    list_display = ("name", "slug")
 
 
 @admin.register(Qualification)
@@ -60,23 +65,23 @@ class Qualificationdmin(admin.ModelAdmin):
 
 class OrganizationTeamInline(admin.TabularInline):
     model = OrganizationTeam
-    autocomplete_fields = ['profile']
-    classes = ['collapse']
+    autocomplete_fields = ["profile"]
+    classes = ["collapse"]
     extra = 0
 
 
 @admin.register(Event)
-class EventAdmin(unit_admin_mixin_generator('administrative_units'), admin.ModelAdmin):
+class EventAdmin(unit_admin_mixin_generator("administrative_units"), admin.ModelAdmin):
     form = EventForm
     inlines = (OrganizationTeamInline,)
     list_display = (
-        'name',
-        'id',
-        'slug',
-        'date_from',
-        'date_to',
-        'sum_yield_amount',
-        'number_of_members',
+        "name",
+        "id",
+        "slug",
+        "date_from",
+        "date_to",
+        "sum_yield_amount",
+        "number_of_members",
         # TODO: must be optimalized
         # 'number_of_recruiters',
         # 'yield_total',
@@ -87,87 +92,158 @@ class EventAdmin(unit_admin_mixin_generator('administrative_units'), admin.Model
         # 'average_expense',
     )
     list_filter = [
-        ('donorpaymentchannel__payment__date', filters.EventYieldDateRangeFilter),
-        'grant',
+        ("donorpaymentchannel__payment__date", filters.EventYieldDateRangeFilter),
+        "grant",
     ]
     readonly_fields = (
-        'number_of_members',
-        'number_of_recruiters',
-        'yield_total',
-        'total_expenses',
-        'expected_monthly_income',
-        'return_of_investmensts',
-        'average_yield',
-        'average_expense',
+        "number_of_members",
+        "number_of_recruiters",
+        "yield_total",
+        "total_expenses",
+        "expected_monthly_income",
+        "return_of_investmensts",
+        "average_yield",
+        "average_expense",
     )
-    search_fields = ('name', )
+    search_fields = ("name",)
     actions = (download_darujme_statement,)
     save_as = True
 
     fieldsets = (
-        (None, {
-            'fields': (
-                'name',
-                'slug',
-                'basic_purpose',
-                'opportunity',
-                'grant',
-                ('date_from', 'date_to', "start_date"),
-                'variable_symbol_prefix',
-                'description',
-                'administrative_units',
-            ),
-        }),
-        (_('Detail information'), {
-            'classes': ('collapse',),
-            'fields': (
-                ('age_from', 'age_to'),
-                'event_type', 'program', 'indended_for', 'location', 'responsible_person', 'registration_method',
-                'participation_fee', 'meeting', 'is_internal', 'focus_on_members',
-                'note', 'result', 'number_of_actions', 'promoted_in_magazine', 'vip_action', 'total_working_days',
-                'working_hours', 'accommodation', 'diet', 'looking_forward_to_you', 'contact_person_name',
-                'contact_person_email', 'contact_person_telephone', 'comment_on_work_done', 'other_work'
-            ),
-        }),
-        (_('Web setting'), {
-            'classes': ('collapse',),
-            'fields': (
-                'enable_signing_petitions', 'enable_registration', 'allow_statistics', 'public_on_web',
-                'public_on_web_date_from', 'public_on_web_date_to', 'email_confirmation_redirect',
-                'entry_form_url', 'web_url'
-            ),
-        }),
-        (_('Additional information'), {
-            'classes': ('collapse',),
-            'fields': (
-                'additional_question_1', 'additional_question_2', 'additional_question_3', 'additional_question_4',
-                'main_photo', "additional_photo_1", "additional_photo_2", "additional_photo_3",
-                "additional_photo_4", "additional_photo_5", "additional_photo_6", "invitation_text_short",
-                "invitation_text_1", "invitation_text_2", "invitation_text_3", "invitation_text_4",
-            ),
-        }),
-        (_('Statistics'), {
-            'classes': ('collapse',),
-            'fields': (
-                'number_of_members', 'number_of_recruiters', 'yield_total', 'real_yield',
-                'total_expenses', 'expected_monthly_income', 'return_of_investmensts',
-                'average_yield', 'average_expense', 'hours_worked', 'total_participants',
-                'total_participants_under_26',
-            ),
-        }),
+        (
+            None,
+            {
+                "fields": (
+                    "name",
+                    "slug",
+                    "basic_purpose",
+                    "opportunity",
+                    "grant",
+                    ("date_from", "date_to", "start_date"),
+                    "variable_symbol_prefix",
+                    "description",
+                    "administrative_units",
+                ),
+            },
+        ),
+        (
+            _("Detail information"),
+            {
+                "classes": ("collapse",),
+                "fields": (
+                    ("age_from", "age_to"),
+                    "event_type",
+                    "program",
+                    "indended_for",
+                    "location",
+                    "responsible_person",
+                    "registration_method",
+                    "participation_fee",
+                    "meeting",
+                    "is_internal",
+                    "focus_on_members",
+                    "note",
+                    "result",
+                    "number_of_actions",
+                    "promoted_in_magazine",
+                    "vip_action",
+                    "total_working_days",
+                    "working_hours",
+                    "accommodation",
+                    "diet",
+                    "looking_forward_to_you",
+                    "contact_person_name",
+                    "contact_person_email",
+                    "contact_person_telephone",
+                    "comment_on_work_done",
+                    "other_work",
+                ),
+            },
+        ),
+        (
+            _("Web setting"),
+            {
+                "classes": ("collapse",),
+                "fields": (
+                    "enable_signing_petitions",
+                    "enable_registration",
+                    "allow_statistics",
+                    "public_on_web",
+                    "public_on_web_date_from",
+                    "public_on_web_date_to",
+                    "email_confirmation_redirect",
+                    "entry_form_url",
+                    "web_url",
+                ),
+            },
+        ),
+        (
+            _("Additional information"),
+            {
+                "classes": ("collapse",),
+                "fields": (
+                    "additional_question_1",
+                    "additional_question_2",
+                    "additional_question_3",
+                    "additional_question_4",
+                    "main_photo",
+                    "additional_photo_1",
+                    "additional_photo_2",
+                    "additional_photo_3",
+                    "additional_photo_4",
+                    "additional_photo_5",
+                    "additional_photo_6",
+                    "invitation_text_short",
+                    "invitation_text_1",
+                    "invitation_text_2",
+                    "invitation_text_3",
+                    "invitation_text_4",
+                ),
+            },
+        ),
+        (
+            _("Statistics"),
+            {
+                "classes": ("collapse",),
+                "fields": (
+                    "number_of_members",
+                    "number_of_recruiters",
+                    "yield_total",
+                    "real_yield",
+                    "total_expenses",
+                    "expected_monthly_income",
+                    "return_of_investmensts",
+                    "average_yield",
+                    "average_expense",
+                    "hours_worked",
+                    "total_participants",
+                    "total_participants_under_26",
+                ),
+            },
+        ),
     )
 
     def get_queryset(self, request):
         donor_filter = {}
         extra_filters = request.GET
-        dpd_gte = extra_filters.get('donorpaymentchannel__payment__date__range__gte')
-        dpd_lte = extra_filters.get('donorpaymentchannel__payment__date__range__lte')
+        dpd_gte = extra_filters.get("donorpaymentchannel__payment__date__range__gte")
+        dpd_lte = extra_filters.get("donorpaymentchannel__payment__date__range__lte")
         if dpd_gte:
-            donor_filter['donorpaymentchannel__payment__date__gte'] = datetime.datetime.strptime(dpd_gte, '%d.%m.%Y')
+            donor_filter[
+                "donorpaymentchannel__payment__date__gte"
+            ] = datetime.datetime.strptime(dpd_gte, "%d.%m.%Y")
         if dpd_lte:
-            donor_filter['donorpaymentchannel__payment__date__lte'] = datetime.datetime.strptime(dpd_lte, '%d.%m.%Y')
-        queryset = super().get_queryset(request).annotate(
-            sum_yield_amount=Sum('donorpaymentchannel__payment__amount', filter=Q(**donor_filter)),
+            donor_filter[
+                "donorpaymentchannel__payment__date__lte"
+            ] = datetime.datetime.strptime(dpd_lte, "%d.%m.%Y")
+        queryset = (
+            super()
+            .get_queryset(request)
+            .annotate(
+                sum_yield_amount=Sum(
+                    "donorpaymentchannel__payment__amount", filter=Q(**donor_filter)
+                ),
+            )
         )
         return queryset
 
@@ -182,7 +258,9 @@ class EventAdmin(unit_admin_mixin_generator('administrative_units'), admin.Model
 
     def change_view(self, request, object_id, extra_context=None, **kwargs):
         extra_context = self._extra_view_context()
-        return super().change_view(request, object_id, extra_context=extra_context, **kwargs)
+        return super().change_view(
+            request, object_id, extra_context=extra_context, **kwargs
+        )
 
     def sum_yield_amount(self, obj):
         return obj.sum_yield_amount
