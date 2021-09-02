@@ -258,6 +258,7 @@ INSTALLED_APPS = (
     "pinax.teams",
     "inline_static",
     "reversion",
+    "multiselectfield",
 )
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [  # noqa

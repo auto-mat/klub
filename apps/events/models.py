@@ -7,6 +7,8 @@ from django.db import models
 from django.db.models import Sum
 from django.utils.translation import ugettext_lazy as _
 
+from multiselectfield import MultiSelectField
+
 
 class Location(models.Model):
     class Meta:
@@ -114,9 +116,8 @@ class Event(models.Model):
     )
     BASIC_PURPOSE = (
         ("action", _("Action")),
-        ("action-with-attendee-list", _("Action with attendee list"))(
-            "petition", _("Petition")
-        ),
+        ("action-with-attendee-list", _("Action with attendee list")),
+        ("petition", _("Petition")),
         ("camp", _("Camp")),
         ("opportunity", _("Opportunity")),
     )
@@ -128,10 +129,12 @@ class Event(models.Model):
         ("full", _("Full, not anymore")),
     )
     DIET_CHOICES = (
-        ("", ("---")),
         ("vegetarian", _("Vegetarian")),
         ("non_vegetarian", _("Non-vegetarian")),
-        ("can_choose", _("Can choose")),
+        ("vegan", _("Vegan")),
+        ("kosher", _("Kosher")),
+        ("halal", _("Halal")),
+        ("gluten_free", _("Gluten free")),
     )
     OPPORTUNITIES = (
         ("", ("---")),
@@ -413,9 +416,8 @@ class Event(models.Model):
         max_length=256,
         blank=True,
     )
-    diet = models.CharField(
+    diet = MultiSelectField(
         verbose_name=_("Diet"),
-        max_length=128,
         choices=DIET_CHOICES,
         blank=True,
     )
