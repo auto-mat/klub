@@ -1133,7 +1133,8 @@ class InputFilter(SimpleListFilter, ABC):
     """
     SimpleListFilter changed to TextInput (Search field)
     """
-    template = 'admin/input_filter.html'
+
+    template = "admin/input_filter.html"
 
     def lookups(self, request, model_admin):
         return ((),)
@@ -1141,7 +1142,7 @@ class InputFilter(SimpleListFilter, ABC):
     def choices(self, changelist):
         all_choice = next(super().choices(changelist))
 
-        all_choice['query_parts'] = (
+        all_choice["query_parts"] = (
             (k, v)
             for k, v in changelist.get_filters_params().items()
             if k != self.parameter_name
@@ -1158,9 +1159,7 @@ class AdminUnitTextSearchFilter(InputFilter):
         if self.value() is not None:
             admin_unit = self.value()
 
-            return queryset.filter(
-                administrative_units__name=admin_unit
-            )
+            return queryset.filter(administrative_units__name=admin_unit)
 
 
 class DonorsEventTextSearchFilter(InputFilter):
@@ -1171,6 +1170,4 @@ class DonorsEventTextSearchFilter(InputFilter):
         if self.value() is not None:
             donors_event = self.value()
 
-            return queryset.filter(
-                userchannels__event__name=donors_event
-            )
+            return queryset.filter(userchannels__event__name=donors_event)

@@ -2268,7 +2268,6 @@ class UserProfileAdmin(
     BaseProfileChildAdmin,
     NumericFilterModelAdmin,
 ):
-
     def get_list_filter(self, request):
         """
         return from super() is a tuple of objects and tuples.
@@ -2283,7 +2282,7 @@ class UserProfileAdmin(
         # (('administrative_units', <class 'aklub.filters.UnitFilter'>),...
         (admin_unit_filter_tuple, *rest) = list_filter
         # Validate correct object
-        if admin_unit_filter_tuple[0] == 'administrative_units':
+        if admin_unit_filter_tuple[0] == "administrative_units":
             return tuple(rest)
 
         return list_filter
@@ -2476,7 +2475,7 @@ class UserProfileAdmin(
         filters.NameFilter,
         UserConditionFilter,
         UserConditionFilter1,
-        'interaction__type__name',
+        "interaction__type__name",
     )
     ordering = ("email",)
     filter_horizontal = (

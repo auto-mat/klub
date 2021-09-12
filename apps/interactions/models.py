@@ -336,10 +336,7 @@ class InteractionType(models.Model):
         verbose_name = _("Interaction Type")
         verbose_name_plural = _("Interaction Types")
 
-    name = models.CharField(
-        max_length=130,
-        verbose_name='Interaction name'
-    )
+    name = models.CharField(max_length=130, verbose_name="Interaction name")
 
     category = models.ForeignKey(
         InteractionCategory,
