@@ -107,6 +107,7 @@ from .filters import (
     ProfileEmailIsEmailInCompanyprofile,
     ProfileTypeFilter,
     unit_admin_mixin_generator,
+    UnitFilter,
 )
 from .forms import (
     CompanyProfileAddForm,
@@ -2267,8 +2268,27 @@ class UserProfileAdmin(
     BaseProfileChildAdmin,
     NumericFilterModelAdmin,
 ):
-    """User profile polymorphic admin model child class"""
 
+    def get_list_filter(self, request):
+        """
+        return from super() is a tuple of objects and tuples.
+        This method returns new tuple without admin_unit_filer as list of admin units
+        The new admin_unit_filter as text-input-search box is added in list_filter
+        parameter.
+        """
+        list_filter = super(UserProfileAdmin, self).get_list_filter(request)
+        # list_filter_without_admin_unit = tuple(filter(lambda x: not isinstance(x, tuple), list_filter))
+
+        # The first item of tuple:
+        # (('administrative_units', <class 'aklub.filters.UnitFilter'>),...
+        (admin_unit_filter_tuple, *rest) = list_filter
+        # Validate correct object
+        if admin_unit_filter_tuple[0] == 'administrative_units':
+            return tuple(rest)
+
+        return list_filter
+
+    """User profile polymorphic admin model child class"""
     base_model = UserProfile
     show_in_index = True
     save_on_top = True
@@ -2432,6 +2452,7 @@ class UserProfileAdmin(
     )
 
     list_filter = (
+        filters.AdminUnitTextSearchFilter,
         filters.PreferenceMailingListAllowed,
         isnull_filter("userchannels__payment", _("Has any payment"), negate=True),
         ("userchannels__extra_money", RangeNumericFilter),
@@ -2446,13 +2467,16 @@ class UserProfileAdmin(
         "language",
         ("userchannels__last_payment__date", DateRangeFilter),
         filters.IsUserInCompanyProfile,
-        ("userchannels__event__id", filters.ProfileMultiSelectDonorEvent),
+        # Disabled filter: All Donors
+        # ("userchannels__event__id", filters.ProfileMultiSelectDonorEvent),
+        filters.DonorsEventTextSearchFilter,
         filters.RegularPaymentsFilter,
         filters.EmailFilter,
         filters.TelephoneFilter,
         filters.NameFilter,
         UserConditionFilter,
         UserConditionFilter1,
+        'interaction__type__name',
     )
     ordering = ("email",)
     filter_horizontal = (
