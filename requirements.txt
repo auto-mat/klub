@@ -72,7 +72,7 @@ django-extra-views==0.14.0
 django-filter==2.4.0
 django-flexible-filter-conditions==0.5.0
 django-grapesjs==0.0.7
--e git+https://github.com/auto-mat/django-helpdesk@a9e5cfa52def60b236b17db8a71e6a920c75d86b#egg=django_helpdesk
+-e git+https://github.com/django-helpdesk/django-helpdesk@00edddbaad1170fb1ccf6dcd198011e22af6c891#egg=django_helpdesk
 django-heroku==0.3.1
 django-import-export==2.5.0
 django-import-export-celery==1.1.4
