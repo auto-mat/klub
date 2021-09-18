@@ -1159,7 +1159,7 @@ class AdminUnitTextSearchFilter(InputFilter):
         if self.value() is not None:
             admin_unit = self.value()
 
-            return queryset.filter(administrative_units__name=admin_unit)
+            return queryset.filter(administrative_units__name__icontains=admin_unit)
 
 
 class DonorsEventTextSearchFilter(InputFilter):
@@ -1170,4 +1170,4 @@ class DonorsEventTextSearchFilter(InputFilter):
         if self.value() is not None:
             donors_event = self.value()
 
-            return queryset.filter(userchannels__event__name=donors_event)
+            return queryset.filter(userchannels__event__name__icontains=donors_event)
