@@ -24,3 +24,5 @@ venv/
 
 *.pid
 celerybeat-schedule
+
+db
