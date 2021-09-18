@@ -2268,6 +2268,8 @@ class UserProfileAdmin(
     BaseProfileChildAdmin,
     NumericFilterModelAdmin,
 ):
+    """User profile polymorphic admin model child class"""
+
     def get_list_filter(self, request):
         """
         return from super() is a tuple of objects and tuples.
@@ -2287,7 +2289,6 @@ class UserProfileAdmin(
 
         return list_filter
 
-    """User profile polymorphic admin model child class"""
     base_model = UserProfile
     show_in_index = True
     save_on_top = True
@@ -2466,8 +2467,6 @@ class UserProfileAdmin(
         "language",
         ("userchannels__last_payment__date", DateRangeFilter),
         filters.IsUserInCompanyProfile,
-        # Disabled filter: All Donors
-        # ("userchannels__event__id", filters.ProfileMultiSelectDonorEvent),
         filters.DonorsEventTextSearchFilter,
         filters.RegularPaymentsFilter,
         filters.EmailFilter,
