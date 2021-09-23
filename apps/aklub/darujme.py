@@ -70,7 +70,7 @@ def create_payments(pledge, api_account):
             is_donor = True
             continue
         else:
-            payment = Payment(
+            payment = Payment.objects.create(
                 type="darujme",
                 SS=pledge["pledgeId"],
                 date=parse_datetime(transaction["receivedAt"]).date(),

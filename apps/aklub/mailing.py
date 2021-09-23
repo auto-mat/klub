@@ -48,7 +48,7 @@ def create_fake_payment_channel(sending_user):
         regular_amount=123456,
         regular_frequency="monthly",
         VS=12345678,
-        last_payment=Payment(amount=12345),
+        last_payment=Payment.objects.create(amount=12345),
     )
     return payment_channel
 
