@@ -182,7 +182,9 @@ def create_donor_profile(pledge, api_account):  # noqa
 
 
 def pair_payments(dpch, user_payments):
-    Payment.objects.filter(id__in=[payment.id for payment in user_payments]).update(user_donor_payment_channel_id = dpch.id)
+    Payment.objects.filter(id__in=[payment.id for payment in user_payments]).update(
+        user_donor_payment_channel_id=dpch.id
+    )
 
 
 def parse_darujme_json(response, api_account):
