@@ -21,7 +21,7 @@ def str_to_datetime(date):
 
 
 def register_payment(p_sort, self):
-    p = models.Payment(**p_sort)
+    p = models.Payment.objects.create(**p_sort)
     models.AccountStatements.payment_pair(self, p)
     p.type = "bank-transfer"
     p.account_statement = self

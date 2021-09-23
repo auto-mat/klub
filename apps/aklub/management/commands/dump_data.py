@@ -108,7 +108,7 @@ class Command(BaseCommand):
             days=randint(0, 40),
         )
         for num in range(0, randint(1, max_payments_to_dpch)):
-            pay = Payment(
+            pay = Payment.objects.create(
                 recipient_account=money_account,
                 amount=amount,
                 user_donor_payment_channel=dpch,
