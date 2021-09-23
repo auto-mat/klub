@@ -25,4 +25,5 @@ venv/
 *.pid
 celerybeat-schedule
 
-db
+db*
+third-party
