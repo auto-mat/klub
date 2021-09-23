@@ -3,6 +3,7 @@
 import operator
 from datetime import date, timedelta
 from functools import reduce
+from abc import ABC
 
 from django.contrib import messages
 from django.contrib.admin import SimpleListFilter
@@ -1126,3 +1127,47 @@ AF_FILTERS_CONDITIONAL_FIELDS = [
     [DPCHEventName.field, DPCHEventPaymentsAmount.field],
     [InteractionEventName.field, InteractionNumberOfInteractions.field],
 ]
+
+
+class InputFilter(SimpleListFilter, ABC):
+    """
+    SimpleListFilter changed to TextInput (Search field)
+    """
+
+    template = "admin/input_filter.html"
+
+    def lookups(self, request, model_admin):
+        return ((),)
+
+    def choices(self, changelist):
+        all_choice = next(super().choices(changelist))
+
+        all_choice["query_parts"] = (
+            (k, v)
+            for k, v in changelist.get_filters_params().items()
+            if k != self.parameter_name
+        )
+
+        yield all_choice
+
+
+class AdminUnitTextSearchFilter(InputFilter):
+    parameter_name = "administrative-unit"
+    title = _("Administrative unit")
+
+    def queryset(self, request, queryset):
+        if self.value() is not None:
+            admin_unit = self.value()
+
+            return queryset.filter(administrative_units__name__icontains=admin_unit)
+
+
+class DonorsEventTextSearchFilter(InputFilter):
+    parameter_name = "donors-event"
+    title = _("Donor's event")
+
+    def queryset(self, request, queryset):
+        if self.value() is not None:
+            donors_event = self.value()
+
+            return queryset.filter(userchannels__event__name__icontains=donors_event)
