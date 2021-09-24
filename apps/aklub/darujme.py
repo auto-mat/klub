@@ -184,7 +184,7 @@ def create_donor_profile(pledge, api_account):  # noqa
 def pair_payments(dpch, user_payments):
     payment_ids = [payment.id for payment in user_payments]
     logger.info(
-        "Pairing payments {payments} with donor channel {}".format(payment_ids, dpch)
+        "Pairing payments {payments} with donor channel {dpch}".format(payments=payment_ids, dpch = dpch)
     )
     paired = Payment.objects.filter(id__in=payment_ids).update(
         user_donor_payment_channel_id=dpch.id
