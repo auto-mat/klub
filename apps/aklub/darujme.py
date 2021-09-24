@@ -204,10 +204,9 @@ def parse_darujme_json(response, api_account):
 
             if is_donor:
                 dpch = create_donor_profile(pledge, api_account)
-            else:
-                continue
-            pair_payments(dpch, user_payments)
-            new_payments += user_payments
+                if user_payments:
+                    pair_payments(dpch, user_payments)
+                    new_payments += user_payments
 
     return new_payments
 
