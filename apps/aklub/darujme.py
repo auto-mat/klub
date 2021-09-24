@@ -188,10 +188,8 @@ def pair_payments(dpch, user_payments):
             payments=payment_ids, dpch=dpch
         )
     )
-    paired = Payment.objects.filter(id__in=payment_ids).update(
-        user_donor_payment_channel_id=dpch.id
-    )
-    logger.info("{} payments were paired.".format(paired))
+    for payment in user_payments:
+        payment.user_donor_payment_channel_id=dpch.id
 
 
 def parse_darujme_json(response, api_account):
