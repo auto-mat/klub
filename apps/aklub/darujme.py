@@ -189,7 +189,7 @@ def pair_payments(dpch, user_payments):
         )
     )
     for payment in user_payments:
-        payment.user_donor_payment_channel_id=dpch.id
+        payment.user_donor_payment_channel_id = dpch.id
 
 
 def parse_darujme_json(response, api_account):
