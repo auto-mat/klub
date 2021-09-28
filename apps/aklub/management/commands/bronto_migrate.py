@@ -8,7 +8,13 @@ from aklub.models import (
     Profile,
     BankAccount,
 )
-from events.models import Event, EventType, Location
+from events.models import (
+    Event,
+    EventType,
+    Location,
+    OrganizationPosition,
+    OrganizationTeam,
+)
 from interactions.models import InteractionCategory, InteractionType, Interaction
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission
@@ -171,10 +177,19 @@ class Command(BaseCommand):
             elif uroven == 4:
                 uroven = "headquarter"
 
+            try:
+                president = UserProfile.objects.get(id=au.get("predseda"))
+            except UserProfile.DoesNotExist:
+                print(
+                    "Could not find president (id = {}) for AdministrativeUnit {}".format(
+                        au.get("predseda"), au
+                    )
+                )
+
             AdministrativeUnit.objects.get_or_create(
                 id=au.get("id") or "",
-                name=au.get("nazev") or "",
                 defaults={
+                    "name": au.get("nazev") or "",
                     "street": au.get("ulice") or "",
                     "city": au.get("mesto") or "",
                     "zip_code": au.get("zip_code") or "",
@@ -182,7 +197,7 @@ class Command(BaseCommand):
                     "level": uroven,
                     "telephone": au.get("telefon") or "",
                     "from_email_address": au.get("email") or "",
-                    "president__id": au.get("predseda"),
+                    "president": president,
                     "president_since": au.get("predseda_od"),
                 },
             )
@@ -193,17 +208,28 @@ class Command(BaseCommand):
         zc_all = cur.fetchall()
         for zc in zc_all:
             au = AdministrativeUnit.objects.get(id=zc.get("id"))
-            au.ico = zc.ic
-            au.manager = UserProfile.objects.get(id=zc.hospodar)
-            au.manager_since = zc.hospodar_od
-            au.president = UserProfile.objects.get(id=zc.statutar)
-            au.president_since = zc.statutar_od
-            au.vice_president = UserProfile.objects.get(id=zc.statutar2)
-            au.vice_president_since = zc.statutar2_od
-            BankAccount.objects.get_or_create(
-                bank_account_number=zc.ucet,
-                admininstrative_unit=au,
-            )
+            au.ico = zc.get("ic")
+            try:
+                au.manager = UserProfile.objects.get(id=zc.get("hospodar"))
+            except UserProfile.DoesNotExist:
+                print("No manager for au ", au, zc)
+            au.manager_since = zc.get("hospodar_od")
+            try:
+                au.president = UserProfile.objects.get(id=zc.get("statutar"))
+            except UserProfile.DoesNotExist:
+                print("No president for au ", au, zc)
+            au.president_since = zc.get("statutar_od")
+            try:
+                au.vice_president = UserProfile.objects.get(id=zc.get("statutar2"))
+            except UserProfile.DoesNotExist:
+                print("No vice president for au ", au, zc)
+            au.vice_president_since = zc.get("statutar2_od")
+            acct_number = zc.get("ucet", "")
+            if acct_number:
+                BankAccount.objects.get_or_create(
+                    bank_account_number=acct_number,
+                    administrative_unit=au,
+                )
 
         sql = "SELECT * from akce_typ"
         cur.execute(sql)
@@ -222,6 +248,36 @@ class Command(BaseCommand):
                     slug=event_type.get("kod"),
                     administrative_unit=administrative_unit,
                 )
+        print("------ importování lokalit ------")
+        sql = "SELECT * from lokalita"
+        cur.execute(sql)
+        lokalita_all = cur.fetchall()
+        for lokalita in lokalita_all:
+            location, _ = Location.objects.get_or_create(
+                pk=lokalita.get("id"),
+            )
+            location.name = lokalita.get("nazev")
+            location.place = lokalita.get("misto")
+            regions = {
+                None: "Neznámé",
+                0: "Neznámé",
+                1: "Praha",
+                2: "Středočeský",
+                3: "Ústecký",
+                4: "Liberecký",
+                5: "Pardubický",
+                6: "Královéhradecký",
+                7: "Jihočeský",
+                8: "Plzeňský",
+                9: "Karlovarský",
+                10: "Vysočina",
+                11: "Jihomoravský",
+                12: "Olomoucký",
+                13: "Moavskoslezský",
+                14: "Zlínský",
+                15: "Zahraničí",
+            }
+            location.region = regions[lokalita.get("kraj")]
 
         print("------------------ migrace eventu----------------------")
         sql = "SELECT * from akce"
@@ -333,43 +389,19 @@ class Command(BaseCommand):
             event.working_hours = tabor.get("pracovni_doba")
             event.total_working_days = tabor.get("pracovni_dny")
             event.accommodation = tabor.get("ubytovani")
+            if event.accommodation is None:
+                event.accommodation = ""
             diets = {
                 0: ["vegetarian", "non_vegetarian"],
                 1: ["vegetarian"],
                 2: ["non_vegetarian"],
                 3: [],
+                None: [],
             }
             event.diet = diets[tabor.get("strava")]
             event.vip_action = tabor.get("vip") == 1
             event.promoted_in_magazine = tabor.get("rover") == 1
             event.save()
-
-        print("------ importování lokalit ------")
-        sql = "SELECT * from lokalita"
-        cur.execute(sql)
-        lokalita_all = cur.fetchall()
-        for lokalita in lokalita_all:
-            location, _ = Location.objects.get_or_create(pk=lokalita.get("id"))
-            location.name = lokalita.get("nazev")
-            location.place = lokalita.get("misto")
-            regions = {
-                1: "Praha",
-                2: "Středočeský",
-                3: "Ústecký",
-                4: "Liberecký",
-                5: "Pardubický",
-                6: "Královéhradecký",
-                7: "Jihočeský",
-                8: "Plzeňský",
-                9: "Karlovarský",
-                10: "Vysočina",
-                11: "Jihomoravský",
-                12: "Olomoucký",
-                13: "Moavskoslezský",
-                14: "Zlínský",
-                15: "Zahraničí",
-            }
-            location.region = regions[lokalita.get("kraj")]
 
         print("------ prirazovani administrativnich jednotek k eventum------")
 
@@ -397,17 +429,14 @@ class Command(BaseCommand):
             event = Event.objects.get(id=akce.get("id"))
             if not event.administrative_units.all().exists():
                 event.administrative_units.add(au_nezname)
-            try:
-                event_type = EventType.objects.get(
-                    name=akce.get("nazev"),
-                    administrative_unit=event.administrative_units.first(),
-                )
-            except:
-                import pdb
+            print(akce)
+            event_types = EventType.objects.filter(
+                name=akce.get("nazev"),
+                administrative_unit=event.administrative_units.first(),
+            )
+            print(event_types)
 
-                pdb.set_trace()
-
-            event.event_type = event_type
+            event.event_type = event_types.first()
             event.save()
 
         print("------ prirazovani ucastníků k akcím k eventum------")
@@ -422,6 +451,9 @@ class Command(BaseCommand):
         type, _ = InteractionType.objects.get_or_create(
             name="Účast na akci",
             category=cat,
+        )
+        org_pos, _ = OrganizationPosition.objects.get_or_create(
+            name="Organizátor (nespecifikováno)"
         )
         for ucastnik in ucastnik_all:
             try:
@@ -444,6 +476,13 @@ class Command(BaseCommand):
                 type=type,
                 date_from=event.date_from if event.date_from else timezone.now(),
             )
+            if ucastnik.get("org") == 1:
+                OrganizationTeam.objects.get_or_create(
+                    profile=user,
+                    event=event,
+                    position=org_pos,
+                )
+
             if event.administrative_units.all().exists():
                 user.administrative_units.add(*event.administrative_units.all())
 
@@ -483,10 +522,12 @@ class Command(BaseCommand):
                 cislo_karty = ""
             try:
                 au = AdministrativeUnit.objects.get(id=clen["klub"])
+            except:
+                print("AU does not exist... skipping", clen)
+            try:
                 user = UserProfile.objects.get(id=clen["adresa"])
             except:
-                print("AU do not exists... skipping")
-                print("or User do not exists... skipping")
+                print("User does not exist... skipping", clen)
                 continue
             Interaction.objects.get_or_create(
                 subject="Členství v Brontosaurech",

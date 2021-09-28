@@ -39,11 +39,6 @@ class Location(models.Model):
         blank=True,
         null=True,
     )
-    administrative_unit = models.ForeignKey(
-        "aklub.AdministrativeUnit",
-        verbose_name=_("administrative unit"),
-        on_delete=models.CASCADE,
-    )
 
     def __str__(self):
         return self.name
