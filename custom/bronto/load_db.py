@@ -24,11 +24,16 @@ def docker_compose(*args):
     subprocess.run(args)
     print("\n")
 
-def docker(*args):
+def docker(*args, log=None):
     args = ["docker"] + list(args)
     print("###############################################")
     print("$ " + str(args))
-    subprocess.run(args)
+    if log is not None:
+        result = subprocess.run(args, capture_output=True)
+        with open(log) as fd:
+            fd.write(result.stdout)
+    else:
+        subprocess.run(args)
     print("\n")
 
 docker("stop", maria_container_name)
@@ -47,5 +52,5 @@ time.sleep(3)
 print("Loading db dump into mariadb...")
 docker("exec", maria_container_name, "bash", "-c", "mysql -uroot -hlocalhost -P 3306 --protocol=tcp -Dbronto < bronto/" + bronto_dump_file)
 docker("exec", kp_web_container, "venv/bin/python3", "manage.py", "migrate")
-docker("exec", kp_web_container, "venv/bin/python3", "manage.py", "bronto_migrate", "--dbhost", maria_container_name, "--dbuser", "root", "--db", "bronto")
+docker("exec", kp_web_container, "venv/bin/python3", "manage.py", "bronto_migrate", "--dbhost", maria_container_name, "--dbuser", "root", "--db", "bronto", log="migration_log")
 docker("exec", "-it", kp_web_container, "venv/bin/python3", "manage.py", "createsuperuser2")

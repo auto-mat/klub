@@ -257,7 +257,9 @@ class Command(BaseCommand):
                 pk=lokalita.get("id"),
             )
             location.name = lokalita.get("nazev")
-            location.place = lokalita.get("misto")
+            place = lokalita.get("misto")
+            if place:
+                location.place = place
             regions = {
                 None: "Neznámé",
                 0: "Neznámé",
@@ -278,6 +280,7 @@ class Command(BaseCommand):
                 15: "Zahraničí",
             }
             location.region = regions[lokalita.get("kraj")]
+            location.save()
 
         print("------------------ migrace eventu----------------------")
         sql = "SELECT * from akce"
