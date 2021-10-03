@@ -30,7 +30,7 @@ def docker(*args, log=None):
     print("$ " + str(args))
     if log is not None:
         result = subprocess.run(args, capture_output=True)
-        with open(log) as fd:
+        with open(log, "wb") as fd:
             fd.write(result.stdout)
     else:
         subprocess.run(args)

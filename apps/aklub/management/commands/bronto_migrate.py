@@ -335,6 +335,12 @@ class Command(BaseCommand):
                 prihlaska = "not_required"
             elif prihlaska == 5:
                 prihlaska = "full"
+
+            location_id = akce.get("lokalita")
+            location = None
+            if location_id is not None:
+                location = Location.objects.get(id=location_id)
+
             Event.objects.get_or_create(
                 id=akce.get("id"),
                 name=akce.get("nazev"),
@@ -363,6 +369,7 @@ class Command(BaseCommand):
                     "looking_forward_to_you": akce.get("org") or "",
                     "entry_form_url": akce.get("kontakt_url"),
                     "web_url": akce.get("web"),
+                    "location": location,
                     "invitation_text_short": akce.get("text") or "",
                     "invitation_text_1": akce.get("text_uvod") or "",
                     "invitation_text_2": akce.get("text_info") or "",
