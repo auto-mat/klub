@@ -132,7 +132,6 @@ def app_request(application_api_access):
 @pytest.fixture(scope="function")
 def location_1(administrative_unit_1):
     location = Location.objects.create(
-        administrative_unit=administrative_unit_1,
         name="location_name",
         place="here",
         region="Prague",
