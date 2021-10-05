@@ -1171,3 +1171,16 @@ class DonorsEventTextSearchFilter(InputFilter):
             donors_event = self.value()
 
             return queryset.filter(userchannels__event__name__icontains=donors_event)
+
+
+class EventOfInteractionTextSearchFilter(InputFilter):
+    parameter_name = "event-of-interaction"
+    title = _("Event of interaction")
+
+    def queryset(self, request, queryset):
+        if self.value() is not None:
+            interaction_name = self.value()
+
+            return queryset.filter(
+                interaction__administrative_unit__name__icontains=interaction_name
+            )

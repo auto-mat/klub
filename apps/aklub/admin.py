@@ -2475,6 +2475,7 @@ class UserProfileAdmin(
         UserConditionFilter,
         UserConditionFilter1,
         "interaction__type__name",
+        filters.EventOfInteractionTextSearchFilter,
     )
     ordering = ("email",)
     filter_horizontal = (
