@@ -1181,6 +1181,4 @@ class EventOfInteractionTextSearchFilter(InputFilter):
         if self.value() is not None:
             interaction_name = self.value()
 
-            return queryset.filter(
-                interaction__event__name__icontains=interaction_name
-            )
+            return queryset.filter(interaction__event__name__icontains=interaction_name)
