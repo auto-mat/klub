@@ -1182,5 +1182,5 @@ class EventOfInteractionTextSearchFilter(InputFilter):
             interaction_name = self.value()
 
             return queryset.filter(
-                interaction__administrative_unit__name__icontains=interaction_name
+                interaction__event__name__icontains=interaction_name
             )
