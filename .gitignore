@@ -27,3 +27,5 @@ celerybeat-schedule
 
 db*
 third-party
+
+.DS_Store
