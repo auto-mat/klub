@@ -2476,7 +2476,7 @@ class UserProfileAdmin(
         UserConditionFilter1,
         "interaction__type__name",
         filters.EventOfInteractionTextSearchFilter,
-        isnull_filter("petitionsignature__user", _("Petition signed"), negate=True)
+        isnull_filter("petitionsignature__user", _("Petition signed"), negate=True),
     )
     ordering = ("email",)
     filter_horizontal = (
