@@ -399,29 +399,20 @@ class RegularPaymentsFilter(SimpleListFilter):
         In this filter we dont have to handle administrative units, because event is required for filter,
         thats good because user under AU can select only events under his AU
         """
-        if request.GET.get("profile_dpch_event"):
-            event_id = request.GET["profile_dpch_event"]
-            if self.value() == "not-delayed":
-                queryset = queryset.filter(
-                    userchannels__expected_regular_payment_date__gt=date.today()
-                    - timedelta(days=11),
-                    userchannels__regular_payments="regular",
-                    userchannels__event_id=event_id,
-                )
-            if self.value() == "delayed":
-                queryset = queryset.filter(
-                    userchannels__expected_regular_payment_date__lt=date.today()
-                    - timedelta(days=11),
-                    userchannels__regular_payments="regular",
-                    userchannels__event_id=event_id,
-                )
 
-        elif request.GET.get("regular_payments") and not request.GET.get(
-            "profile_dpch_event"
-        ):
-            messages.warning(
-                request, _("You cant check payments delay if event is not selected")
+        if self.value() == "not-delayed":
+            queryset = queryset.filter(
+                userchannels__expected_regular_payment_date__gt=date.today()
+                - timedelta(days=11),
+                userchannels__regular_payments="regular",
             )
+        if self.value() == "delayed":
+            queryset = queryset.filter(
+                userchannels__expected_regular_payment_date__lt=date.today()
+                - timedelta(days=11),
+                userchannels__regular_payments="regular",
+            )
+
         return queryset
 
 
