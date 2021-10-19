@@ -230,6 +230,7 @@ class Command(BaseCommand):
                     bank_account_number=acct_number,
                     administrative_unit=au,
                 )
+            au.save()
 
         sql = "SELECT * from akce_typ"
         cur.execute(sql)
