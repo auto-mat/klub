@@ -2246,7 +2246,7 @@ class Payment(WithAdminUrl, models.Model):
         auto_now=True,
         null=True,
     )
-    custom_fields = JSONField(default=dict, null=True, blank=True)
+    custom_fields = JSONField(default=dict, blank=True)
 
     objects = GatedPaymentManager()
 
