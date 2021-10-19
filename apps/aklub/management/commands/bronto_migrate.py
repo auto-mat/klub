@@ -215,15 +215,10 @@ class Command(BaseCommand):
                 print("No manager for au ", au, zc)
             au.manager_since = zc.get("hospodar_od")
             try:
-                au.president = UserProfile.objects.get(id=zc.get("statutar"))
-            except UserProfile.DoesNotExist:
-                print("No president for au ", au, zc)
-            au.president_since = zc.get("statutar_od")
-            try:
-                au.vice_president = UserProfile.objects.get(id=zc.get("statutar2"))
+                au.vice_president = UserProfile.objects.get(id=zc.get("statutar"))
             except UserProfile.DoesNotExist:
                 print("No vice president for au ", au, zc)
-            au.vice_president_since = zc.get("statutar2_od")
+            au.vice_president_since = zc.get("statutar_od")
             acct_number = zc.get("ucet", "")
             if acct_number:
                 BankAccount.objects.get_or_create(
