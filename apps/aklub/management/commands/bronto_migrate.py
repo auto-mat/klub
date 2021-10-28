@@ -30,8 +30,9 @@ except ImportError:
 
 def reset_sequence(table):
     with connection.cursor() as cursor:
-        cursor.execute(f"SELECT setval('{table}_id_seq', COALESCE((SELECT MAX(id)+1 FROM {table}), 1), false);")
-
+        cursor.execute(
+            f"SELECT setval('{table}_id_seq', COALESCE((SELECT MAX(id)+1 FROM {table}), 1), false);"
+        )
 
 
 class Command(BaseCommand):
@@ -347,7 +348,6 @@ class Command(BaseCommand):
             location_name = akce.get("lokalita_jina")
             if location_name is not None:
                 location, _ = Location.objects.get_or_create(name=location_name)
-
 
             Event.objects.get_or_create(
                 id=akce.get("id"),
