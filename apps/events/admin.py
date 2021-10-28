@@ -277,6 +277,6 @@ class EventAdmin(unit_admin_mixin_generator("administrative_units"), admin.Model
         The ID is used then to filter Users, which are related to the Event.
         """
         url = reverse_lazy("admin:aklub_userprofile_changelist")
-        url_with_querystring = f'{url}?event-of-interaction-id={obj.id}'
+        url_with_querystring = f"{url}?event-of-interaction-id={obj.id}"
 
         return mark_safe(f"<a href='{url_with_querystring}'>Show users</a>")

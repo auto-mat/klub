@@ -1183,6 +1183,7 @@ class EventOfInteractionTextSearchFilter(InputFilter):
 
             return queryset.filter(interaction__event__name__icontains=interaction_name)
 
+
 class EventOfInteractionIDSearchFilter(InputFilter):
     parameter_name = "event-of-interaction-id"
     title = _("Event of interaction ID")
