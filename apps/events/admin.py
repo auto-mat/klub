@@ -9,6 +9,8 @@ from django.contrib import admin
 from django.db.models import Q, Sum
 from django.utils.html import format_html
 from django.utils.translation import ugettext as _
+from django.urls import reverse_lazy
+from django.utils.safestring import mark_safe
 
 from . import filters
 from .forms import EventForm
@@ -82,6 +84,7 @@ class EventAdmin(unit_admin_mixin_generator("administrative_units"), admin.Model
         "date_to",
         "sum_yield_amount",
         "number_of_members",
+        "go_to_users",
         # TODO: must be optimalized
         # 'number_of_recruiters',
         # 'yield_total',
@@ -104,6 +107,7 @@ class EventAdmin(unit_admin_mixin_generator("administrative_units"), admin.Model
         "return_of_investmensts",
         "average_yield",
         "average_expense",
+        "go_to_users",
     )
     search_fields = ("name",)
     actions = (download_darujme_statement,)
@@ -266,3 +270,13 @@ class EventAdmin(unit_admin_mixin_generator("administrative_units"), admin.Model
         return obj.sum_yield_amount
 
     sum_yield_amount.short_description = _("Yield per period")
+
+    def go_to_users(self, obj):
+        """
+        Provides link for each row with the Event ID to UserProfiles.
+        The ID is used then to filter Users, which are related to the Event.
+        """
+        url = reverse_lazy("admin:aklub_userprofile_changelist")
+        url_with_querystring = f'{url}?event-of-interaction-id={obj.id}'
+
+        return mark_safe(f"<a href='{url_with_querystring}'>Show users</a>")
