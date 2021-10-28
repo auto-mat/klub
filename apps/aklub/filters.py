@@ -1182,3 +1182,13 @@ class EventOfInteractionTextSearchFilter(InputFilter):
             interaction_name = self.value()
 
             return queryset.filter(interaction__event__name__icontains=interaction_name)
+
+class EventOfInteractionIDSearchFilter(InputFilter):
+    parameter_name = "event-of-interaction-id"
+    title = _("Event of interaction ID")
+
+    def queryset(self, request, queryset):
+        if self.value() is not None:
+            event_id = self.value()
+
+            return queryset.filter(interaction__event_id=event_id)
