@@ -19,12 +19,19 @@ from interactions.models import InteractionCategory, InteractionType, Interactio
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission
 from django.core.management.base import BaseCommand
+from django.db import connection
 from django.utils import timezone
 
 try:
     import mysql.connector
 except ImportError:
     print("Import error, please run\n pip install mysql-connector-python-rf")
+
+
+def reset_sequence(table):
+    with connection.cursor() as cursor:
+        cursor.execute(f"SELECT setval('{table}_id_seq', COALESCE((SELECT MAX(id)+1 FROM {table}), 1), false);")
+
 
 
 class Command(BaseCommand):
@@ -278,6 +285,7 @@ class Command(BaseCommand):
             location.region = regions[lokalita.get("kraj")]
             location.save()
 
+        reset_sequence("events_location")
         print("------------------ migrace eventu----------------------")
         sql = "SELECT * from akce"
         cur.execute(sql)
@@ -336,6 +344,10 @@ class Command(BaseCommand):
             location = None
             if location_id is not None:
                 location = Location.objects.get(id=location_id)
+            location_name = akce.get("lokalita_jina")
+            if location_name is not None:
+                location, _ = Location.objects.get_or_create(name=location_name)
+
 
             Event.objects.get_or_create(
                 id=akce.get("id"),
@@ -382,6 +394,8 @@ class Command(BaseCommand):
                     "contact_person_name": akce.get("kontakt") or "",
                     "contact_person_telephone": akce.get("kontakt_telefon") or "",
                     "contact_person_email": akce.get("kontakt_email") or "",
+                    "comment_on_work_done": akce.get("prace") or "",
+                    "other_work": akce.get("prace_jine") or "",
                 },
             )
 
