@@ -1180,7 +1180,12 @@ class EventOfInteractionIDSearchFilter(InputFilter):
     title = _("Event of interaction ID")
 
     def queryset(self, request, queryset):
-        if self.value() is not None:
-            event_id = self.value()
-
+        v = self.value()
+        if v is None:
+            return None
+        try:
+            event_id = int(v)
             return queryset.filter(interaction__event_id=event_id)
+        except ValueError:
+            return None
+
