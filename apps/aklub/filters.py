@@ -1188,4 +1188,3 @@ class EventOfInteractionIDSearchFilter(InputFilter):
             return queryset.filter(interaction__event_id=event_id)
         except ValueError:
             return None
-
