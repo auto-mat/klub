@@ -12,4 +12,42 @@
       });
   });
 </script>
+
+<script>
+  let $ = django.jQuery;    {# fix: Uncaught TypeError: $ is not a function #}
+
+  {# Show all form fields #}
+  let showAllFields = function () {
+        $('.form-row').css('display','')
+    }
+
+  django.jQuery(function(){
+      {# Get extra view context from events/admin - what to hide for certain basic purpose #}
+      let hideList = {{ hide_list|safe }}
+      const basicPurposeSelectElement = $('#id_basic_purpose');
+
+      let hideFieldsNotForCurrentBasicPurpose = function () {
+          {# This function hides all elements with classes "form-row" and "field-<name>" #}
+          let currentBasicPurpose = basicPurposeSelectElement.val()
+          let currentHideList = hideList[currentBasicPurpose]
+          if (!!currentHideList) {
+              currentHideList.forEach(function (hideFieldName, i){
+              $('.form-row.field-' + hideFieldName).hide()
+            })
+          }
+      }
+
+      {# On page load #}
+      showAllFields()
+      hideFieldsNotForCurrentBasicPurpose()
+
+      {# On basic purpose element change #}
+      basicPurposeSelectElement.on('change', function(){
+          showAllFields()
+          hideFieldsNotForCurrentBasicPurpose()
+      })
+
+  });
+</script>
+
 {% endblock %}

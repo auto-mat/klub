@@ -1,4 +1,5 @@
 import datetime
+import json
 
 from aklub import darujme
 from aklub.filters import unit_admin_mixin_generator
@@ -250,6 +251,71 @@ class EventAdmin(unit_admin_mixin_generator("administrative_units"), admin.Model
     def _extra_view_context(self):
         return {
             "serialized_fields": EventSerializer.Meta.fields,
+            "hide_list": json.dumps(
+                {
+                    "action": ["working_hours", "total_working_days", "diet"],
+                    "action-with-attendee-list": [
+                        "working_hours",
+                        "total_working_days",
+                    ],
+                    "petition": [],
+                    "camp": [],
+                    "opportunity": [
+                        "grant",
+                        "start_date",
+                        "variable_symbol_prefix",
+                        "description",
+                        "administrative_units",
+                        "age_from",
+                        "age_to",
+                        "event_type",
+                        "program",
+                        "indended_for",
+                        "registration_method",
+                        "participation_fee",
+                        "focus_on_members",
+                        "note",
+                        "number_of_actions",
+                        "promoted_in_magazine",
+                        "total_working_days",
+                        "working_hours",
+                        "accommodation",
+                        "diet",
+                        "comment_on_work_done",
+                        "other_work",
+                        "enable_signing_petitions",
+                        "enable_registration",
+                        "allow_statistics",
+                        "public_on_web",
+                        "email_confirmation_redirect",
+                        "entry_form_url",
+                        "web_url",
+                        "additional_question_1",
+                        "additional_question_2",
+                        "additional_question_3",
+                        "additional_question_4",
+                        "additional_photo_1",
+                        "additional_photo_2",
+                        "additional_photo_3",
+                        "additional_photo_4",
+                        "additional_photo_5",
+                        "additional_photo_6",
+                        "number_of_members",
+                        "number_of_members",
+                        "number_of_recruiters",
+                        "yield_total",
+                        "real_yield",
+                        "total_expenses",
+                        "expected_monthly_income",
+                        "return_of_investmensts",
+                        "average_yield",
+                        "average_expense",
+                        "hours_worked",
+                        "total_participants",
+                        "total_participants_under_26",
+                    ],
+                }
+            ),
         }
 
     def add_view(self, request, extra_context=None, **kwargs):
