@@ -227,6 +227,7 @@ INSTALLED_APPS = (
     "django_nvd3",
     "adminfilters",
     "advanced_filters",
+    "django_filters",
     "aklub",
     "events",
     "interactions",
