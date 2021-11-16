@@ -3,6 +3,11 @@ Auto\*mat klub
 [![Build Status](https://travis-ci.org/auto-mat/klub.svg?branch=master)](https://travis-ci.org/auto-mat/klub)
 [![Coverage Status](https://coveralls.io/repos/github/auto-mat/klub/badge.svg?branch=master)](https://coveralls.io/github/auto-mat/klub?branch=master)
 
+Documentation
+=================
+
+[Docs](./docs/index.md)
+
 Instalace
 ============
 
@@ -46,7 +51,9 @@ Spuštění
 
 Pro testovací účely spustíte projekt pomocí následujícího příkazu:
 
-* venv/bin/python manage.py runserver 0.0.0.0:8000
+`./develop.sh`
+
+`python manage.py runserver 0.0.0.0:8000`
 
 
 K8S
