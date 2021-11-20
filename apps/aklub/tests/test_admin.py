@@ -72,7 +72,6 @@ class AdminSmokeTest(CreateSuperUserMixin, tests.AdminSiteSmokeTest):
         "helpdesk",
         "post_office",
         "advanced_filters",
-        "celery_monitor",
         "import_export_celery",
         "wiki_attachments",
         "pinax_teams",

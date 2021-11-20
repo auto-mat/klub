@@ -1,7 +1,7 @@
 akismet==1.1
 amqp==2.6.1
 appdirs==1.4.4
-asgiref==3.3.1
+asgiref==3.2.10
 attrs==21.2.0
 backcall==0.2.0
 beautifulsoup4==4.9.3
@@ -36,7 +36,7 @@ Deprecated==1.2.12
 diff-match-patch==20200713
 distlib==0.3.2
 dj-database-url==0.5.0
-Django==2.2.24
+Django==3.1
 -e git+https://github.com/PetrKudy/django-admin-charts@e18c606d0d64822420e94b6db1bd3e12deec8c6f#egg=django_admin_charts
 django-admin-large-initial-data==1.0.0
 -e git+https://github.com/PetrKudy/django-admin-numeric-filter@57bfaba371f23fc65d62336d126e83c5ebd4a3e5#egg=django_admin_numeric_filter
@@ -57,7 +57,6 @@ django-braces==1.14.0
 django-bulk-update==2.2.0
 django-celery-beat==2.0.0
 django-celery-email==3.0.0
--e git+https://github.com/peergradeio/django-celery-monitor@54fac92efe6f144bc589b1a8ad9488eb4d1653d2#egg=django_celery_monitor
 django-chart-tools==1.0
 django-classy-tags==2.0.0
 django-colorfield==0.3.2
@@ -90,7 +89,7 @@ django-notifications-hq==1.6.0
 -e git+https://github.com/PetrKudy/django-nvd3@639300acdb014939c9f9562573f4b1425190724a#egg=django_nvd3
 django-nyt==1.2
 django-oauth-toolkit==1.5.0
--e git+https://github.com/tmszi/django-polymorphic@5e7ccd35def01c6849bdbe795830af60d4b28c71#egg=django_polymorphic
+django_polymorphic==3.1
 -e git+https://github.com/Mogost/django-post_office@5297f00d886406de1233de6697262096e9ea81ca#egg=django_post_office
 django-qsstats-magic==1.1.0
 django-redis==5.0.0

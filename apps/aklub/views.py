@@ -22,8 +22,6 @@ import datetime
 import json
 from collections import OrderedDict
 
-from betterforms.multiform import MultiModelForm
-
 from django import forms, http
 from django.conf import settings
 from django.contrib import messages
@@ -35,7 +33,7 @@ from django.core.validators import MinLengthValidator, RegexValidator, Validatio
 from django.db.models import Case, Count, IntegerField, Q, Sum, When
 from django.db.models.functions import TruncMonth
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render, render_to_response
+from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.decorators import method_decorator
@@ -51,6 +49,8 @@ from events.models import Event
 from interactions.models import PetitionSignature
 
 from sesame.backends import ModelBackend
+
+import aklub.view_utils
 
 from . import autocom
 from .models import (
@@ -185,7 +185,7 @@ class RegularUserForm_DonorPaymentChannel(BankAccountMixin, forms.ModelForm):
         )
 
 
-class RegularUserForm(MultiModelForm):
+class RegularUserForm(aklub.view_utils.CombinedFormBase):
     required_css_class = "required"
     base_fields = {}
     form_classes = OrderedDict(
@@ -470,6 +470,7 @@ class RegularView(FormView):
         bank_acc = BankAccount.objects.filter(slug=bank_acc)
         donor_frequency = DonorPaymentChannel.REGULAR_PAYMENT_FREQUENCIES_MAP[frequency]
         response = render_to_response(
+            self.request,
             self.success_template,
             {
                 "amount": amount,
