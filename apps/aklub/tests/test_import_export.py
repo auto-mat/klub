@@ -15,7 +15,7 @@ from model_mommy import mommy
 
 from .recipes import generic_profile_recipe
 from .test_admin import CreateSuperUserMixin
-from ..models import (
+from aklub.models import (
     BankAccount,
     CompanyProfile,
     ContentType,

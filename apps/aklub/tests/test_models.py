@@ -32,7 +32,7 @@ from interactions.models import Interaction
 from model_mommy import mommy
 
 from .utils import ICON_FALSE, ICON_UNKNOWN
-from ..models import DonorPaymentChannel, Payment, UserProfile
+from aklub.models import DonorPaymentChannel, Payment, UserProfile
 
 
 @freeze_time("2016-5-1")

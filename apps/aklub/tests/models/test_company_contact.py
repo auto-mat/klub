@@ -2,7 +2,7 @@ from django.test import TestCase
 
 from model_mommy import mommy
 
-from ...models import CompanyContact
+from aklub.models import CompanyContact
 
 
 class CompanyContactTest(TestCase):

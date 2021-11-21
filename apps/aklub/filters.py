@@ -29,7 +29,7 @@ from django.utils.translation import ugettext as _
 
 from interactions.models import Interaction
 
-from .models import (
+from aklub.models import (
     CompanyContact,
     CompanyProfile,
     DonorPaymentChannel,

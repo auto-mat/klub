@@ -4,7 +4,7 @@ from django.test import TestCase
 
 from model_mommy import mommy
 
-from ...models import ProfileEmail
+from aklub.models import ProfileEmail
 
 
 class ProfileEmailTest(TestCase):

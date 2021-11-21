@@ -53,7 +53,7 @@ from sesame.backends import ModelBackend
 import aklub.view_utils
 
 from . import autocom
-from .models import (
+from aklub.models import (
     AdministrativeUnit,
     BankAccount,
     DonorPaymentChannel,

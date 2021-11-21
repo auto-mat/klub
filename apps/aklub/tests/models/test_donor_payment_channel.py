@@ -27,7 +27,7 @@ from model_mommy import mommy
 from model_mommy.recipe import Recipe
 
 from ..utils import ICON_FALSE
-from ...models import DonorPaymentChannel, Profile
+from aklub.models import DonorPaymentChannel, Profile
 
 
 @freeze_time("2010-5-1")

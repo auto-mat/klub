@@ -118,7 +118,7 @@ from .forms import (
     UserCreateForm,
     UserUpdateForm,
 )
-from .models import (
+from aklub.models import (
     AccountStatements,
     AdministrativeUnit,
     ApiAccount,

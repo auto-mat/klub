@@ -5,7 +5,7 @@ from django.contrib.auth.models import Group
 
 from model_mommy import mommy
 
-from ..models import CompanyContact, CompanyProfile, ProfileEmail, UserProfile
+from aklub.models import CompanyContact, CompanyProfile, ProfileEmail, UserProfile
 
 
 class TestProfilePostMixin:

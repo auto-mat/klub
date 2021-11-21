@@ -41,8 +41,8 @@ from .recipes import donor_payment_channel_recipe, user_profile_recipe
 from .test_admin_helper import TestProfilePostMixin
 from .utils import RunCommitHooksMixin
 from .utils import print_response  # noqa
-from .. import admin
-from ..models import (
+from aklub import admin
+from aklub.models import (
     AccountStatements,
     CompanyContact,
     DonorPaymentChannel,

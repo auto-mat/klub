@@ -26,8 +26,8 @@ from events.models import Event
 
 from model_mommy import mommy
 
-from .. import admin, filters
-from ..models import (
+from aklub import admin, filters
+from aklub.models import (
     CompanyProfile,
     DonorPaymentChannel,
     Payment,

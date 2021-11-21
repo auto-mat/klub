@@ -197,7 +197,7 @@ ICO_ERROR_MESSAGE = _(
 )
 
 
-class AdministrativeUnit(models.Model, ParseAccountStatement):
+class AdministrativeUnit(ParseAccountStatement, models.Model):
     class Meta:
         verbose_name = _("Administrative unit")
         verbose_name_plural = _("Administrative units")

@@ -2,7 +2,7 @@ from django.test import TransactionTestCase
 
 from model_mommy import mommy
 
-from ..models import UserProfile
+from aklub.models import UserProfile
 
 
 class AdministrativeUnitChangeSignalTest(TransactionTestCase):

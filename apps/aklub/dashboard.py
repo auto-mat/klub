@@ -42,7 +42,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from flexible_filter_conditions.models import NamedCondition
 
-from .models import AccountStatements, MassCommunication, UserProfile
+from aklub.models import AccountStatements, MassCommunication, UserProfile
 
 cache = caches["default"]
 
