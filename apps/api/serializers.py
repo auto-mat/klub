@@ -333,6 +333,7 @@ class CreateUserProfileSerializer(
     def create(self, validated_data):
         dpch_data = validated_data.pop("userchannels")[0]
         telephone = validated_data.pop("telephone", None)
+        validated_data["username"] = validated_data["email"]
 
         user = UserProfile.objects.create(
             **validated_data,
