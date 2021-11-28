@@ -29,7 +29,6 @@ coverage==5.3
 coveralls==2.2.0
 crashtest==0.3.1
 cryptography==3.4.7
-dataclasses==0.8
 decorator==4.4.2
 defusedxml==0.7.1
 Deprecated==1.2.12
