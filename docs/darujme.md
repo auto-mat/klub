@@ -7,7 +7,7 @@ Adding an API account
 
 In order to connect with Darujme you need to add an API access point which you can do in the admin at the address: https://test.klub-pratel.cz/aklub/apiaccount/
 
-Once an access point has been configured you can press "Save and Contnue". At the bottom of the page you should now see a field "Daruje API url" which has been filled in with a "Here" button. If you press on the "Here" button you should see a list of Darujme pledges. If this list is empty, either there have been no pledges, or you've filled out your credentials wrong.
+Once an access point has been configured you can press "Save and Contnue". At the bottom of the page you should now see a field `Darujme API url` which has been filled in with a "Here" button. If you press on the "Here" button you should see a list of Darujme pledges. If this list is empty, either there have been no pledges, or you've filled out your credentials wrong.
 
 Adding a Periodic Task
 ---------------------------
