@@ -38,7 +38,7 @@ Instalace (Docker compose)
     $ pip3 install -r requirements.txt
     $ cd apps/aklub && django-admin.py compilemessages -l cs_CZ && cd ../../
     $ django-admin.py migrate
-    $ django-admin.py createsuperuser
+    $ django-admin.py createsuperuser2
     # Set django Site object domain name
     $ python manage.py shell
     # 'localhost' if app will run on localhost
