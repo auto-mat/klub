@@ -19,4 +19,9 @@ You can ten set the interval using the `Crontab Schedule` field. To learn how to
 
 Once you have saved and enabled your task, Klub Přatel will automatically sync your Darujme pledges.
 
+Configuration
+----------------
+
+If you want users that are created by import to have their username set to their email address set the `DARUJME_EMAIL_AS_USERNAME` env var to "True".
+
 Happy fundraising!
