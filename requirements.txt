@@ -68,7 +68,7 @@ django-dynamic-fixture==3.1.1
 django-extensions==3.1.3
 django-extra-views==0.14.0
 django-filter==2.4.0
-django-flexible-filter-conditions==0.5.0
+-e git+https://github.com/auto-mat/django-flexibple-filter-conditions@1d5ff9a587f2d63c0df36f0e5f92e22953a4f8b5#egg=django_flexible_filter_conditions
 django-grapesjs==0.0.7
 -e git+https://github.com/django-helpdesk/django-helpdesk@f53ee1366db1c98cc30140f1f3450751b3b9b4aa#egg=django_helpdesk
 django-heroku==0.3.1
