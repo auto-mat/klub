@@ -2240,7 +2240,7 @@ msgid "Payments statistics"
 msgstr "Statistiky plateb"
 
 #: apps/aklub/views.py:888
-msgid "Signature was confirmed"
+msgid "Signature confirmed"
 msgstr "Podpis potvrzen"
 
 #: apps/api/serializers.py:135

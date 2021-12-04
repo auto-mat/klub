@@ -484,6 +484,9 @@ class TestTaxConfirmation(CreateSuperUserMixin, TestCase):
         # notification created
         self.assertEqual(self.admin_user.notifications.count(), 1)
 
+    @override_settings(
+        CELERY_ALWAYS_EAGER=True,
+    )
     @freeze_time("2017-5-1")
     def test_generate_pdf_companyprofile(self):
         """Test, that test tax_configurate task which create TaxConfiguration and generate pdf"""

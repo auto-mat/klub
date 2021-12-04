@@ -132,8 +132,8 @@ class GetDpchCompanyProfileSerializer(
                     MoneyAccount.objects.get(
                         slug=data["money_account"]
                     ).administrative_unit,
-                    _("Wrong format of crn"),
-                    _(f'User input was: {data["crn"]} and was not create in system'),
+                    _("Wrong CRN (IČO) format"),
+                    _(f'User input was: {data["crn"]} and was not created in system'),
                 )
             raise error
 
