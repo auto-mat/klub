@@ -2604,7 +2604,8 @@ class UserProfileAdmin(
                 self.form = UnitUserProfileAddForm
 
         form = super().get_form(request, obj, **kwargs)
-        form.base_fields["language"].required = False
+        if "language" in form.base_fields:
+            form.base_fields["language"].required = False
         form.request = request
         return form
 
@@ -2992,7 +2993,8 @@ class CompanyProfileAdmin(
         else:
             self.form = CompanyProfileAddForm
         form = super().get_form(request, obj, **kwargs)
-        form.base_fields["language"].required = False
+        if "language" in form.base_fields:
+            form.base_fields["language"].required = False
         form.request = request
 
         return form
