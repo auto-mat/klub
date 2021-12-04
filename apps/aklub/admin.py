@@ -1804,7 +1804,8 @@ class PaymentAdmin(
         """
         initial = super().get_changeform_initial_data(request)
         if initial and "user_donor_payment_channel" in initial.get(
-            "_changelist_filters"
+                "_changelist_filters",
+                [],
         ):
             get_data = initial["_changelist_filters"].split("&")
             dpch = [dpch for dpch in get_data if "user_donor_payment_channel" in dpch][
