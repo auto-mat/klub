@@ -318,7 +318,7 @@ class AdminTest(
         edit_text = "You may edit it again below."
         self.assertEqual(
             request._messages._queued_messages[1].message,
-            'The Mass Communication "<a href="/aklub/masscommunication/%s/change/">test communication</a>"'
+            'The Mass Communication “<a href="/aklub/masscommunication/%s/change/">test communication</a>”'
             " was added successfully. %s" % (obj.id, edit_text),
         )
 
