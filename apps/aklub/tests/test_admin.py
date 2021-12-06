@@ -86,7 +86,7 @@ class AdminSmokeTest(CreateSuperUserMixin, tests.AdminSiteSmokeTest):
         if item not in ["search_fields"]
     ]
     #  Profile Admin is not used in views, so we dont have to take care
-    exclude_modeladmins = [admin.ProfileAdmin]
+    exclude_modeladmins = [admin.ProfileAdmin, admin.PaymentAdmin]
 
     def setUp(self):
         super().setUp()
