@@ -1966,7 +1966,10 @@ class DonorPaymentChannel(ComputedFieldsModel):
     extra_payments.short_description = _("Extra money")
     extra_payments.admin_order_field = "extra_money"
 
-    @computed(models.NullBooleanField(null=True), depends=[["self", ["regular_payments", "last_payment"]], ["payment_set", []]])
+    @computed(
+        models.NullBooleanField(null=True),
+        depends=[["self", ["regular_payments", "last_payment"]], ["payment_set", []]],
+    )
     def no_upgrade(self):
         """Check for users without upgrade to payments
 
