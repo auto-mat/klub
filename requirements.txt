@@ -91,7 +91,7 @@ django-notifications-hq==1.6.0
 django-nyt==1.2
 django-oauth-toolkit==1.5.0
 -e git+https://github.com/tmszi/django-polymorphic@5e7ccd35def01c6849bdbe795830af60d4b28c71#egg=django_polymorphic
--e git+https://github.com/Mogost/django-post_office@f2ceee60926d24dd972ab82afd72c14374133165#egg=django_post_office
+-e git+https://github.com/Mogost/django-post_office@5297f00d886406de1233de6697262096e9ea81ca#egg=django_post_office
 django-qsstats-magic==1.1.0
 django-redis==5.0.0
 django-related-admin==1.0.1
