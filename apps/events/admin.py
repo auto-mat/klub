@@ -272,7 +272,6 @@ class EventAdmin(unit_admin_mixin_generator("administrative_units"), admin.Model
                         "return_of_investmensts",
                         "average_yield",
                         "average_expense",
-
                     ],
                     "action-with-attendee-list": [
                         "opportunity",
@@ -427,7 +426,7 @@ class EventAdmin(unit_admin_mixin_generator("administrative_units"), admin.Model
                         "hours_worked",
                         "total_participants",
                         "total_participants_under_26",
-                    ]
+                    ],
                 }
             ),
         }
