@@ -106,7 +106,7 @@ django-stdimage==5.3.0
 django-stdnumfield==0.2.0
 django-storages==1.11.1
 django-timezone-field==4.2.1
-django-tinymce==3.3.0
+django-tinymce==3.4.0
 django-user-accounts==3.0.4
 django-webtest==1.9.7
 django-wysiwyg==0.8.0
