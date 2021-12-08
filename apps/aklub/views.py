@@ -469,7 +469,7 @@ class RegularView(FormView):
             frequency = payment_channel.regular_frequency
         bank_acc = BankAccount.objects.filter(slug=bank_acc)
         donor_frequency = DonorPaymentChannel.REGULAR_PAYMENT_FREQUENCIES_MAP[frequency]
-        response = render_to_response(
+        response = render(
             self.request,
             self.success_template,
             {
@@ -695,7 +695,8 @@ class DonatorsView(View):
         n_regular = donators.filter(
             user__is_active=True, regular_payments="regular"
         ).count()
-        return render_to_response(
+        return render(
+            request,
             "donators.html",
             {
                 "n_donators": n_donators,
@@ -732,7 +733,8 @@ def stat_members(request):
     for payment in members_by_months:
         run_total += payment["total"]
         payment["run_total"] = run_total
-    return render_to_response(
+    return render(
+        request,
         "stat-members.html",
         {
             "members_by_months": members_by_months,
@@ -757,7 +759,8 @@ def stat_payments(request):
     for payment in payments_by_months:
         run_total += payment["total"]
         payment["run_total"] = run_total
-    return render_to_response(
+    return render(
+        request,
         "stat-payments.html",
         {
             "payments_by_months": payments_by_months,
@@ -886,7 +889,7 @@ class PetitionConfirmEmailView(SesameUserMixin, View):
             if event.email_confirmation_redirect:
                 return redirect(event.email_confirmation_redirect, permanent=False)
             else:
-                return http.HttpResponse(_("Signature was confirmed"), status=201)
+                return http.HttpResponse(_("Signature confirmed"), status=201)
         else:
             raise http.Http404
 
