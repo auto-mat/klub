@@ -397,6 +397,11 @@ class Event(models.Model):
         null=True,
         blank=True,
     )
+    datetime_from = models.DateTimeField(
+        verbose_name=_("Date and time from"),
+        null=True,
+        blank=True,
+    )
     date_to = models.DateField(
         verbose_name=_("Date to"),
         blank=True,
