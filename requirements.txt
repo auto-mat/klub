@@ -48,7 +48,7 @@ django-adminfilters==1.0.0
 django-appconf==1.0.4
 django-author==1.0.2
 django-autoslug==1.9.8
--e git+https://github.com/PetrKudy/django-betterforms@bf1e5de200ae5db978c5d1074f63d65cb7fab4e4#egg=django_betterforms
+-e git+https://github.com/jpic/django-betterforms@e392f496bbea8a3fd1b3f743376393ed7a8dd0b3#egg=django_betterforms
 django-bootstrap-form==3.4
 django-bootstrap4-form==4.0.1
 django-bower==5.2.0

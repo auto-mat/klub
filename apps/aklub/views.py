@@ -50,7 +50,7 @@ from interactions.models import PetitionSignature
 
 from sesame.backends import ModelBackend
 
-import aklub.view_utils
+import betterforms.multiform
 
 from . import autocom
 from aklub.models import (
@@ -185,7 +185,7 @@ class RegularUserForm_DonorPaymentChannel(BankAccountMixin, forms.ModelForm):
         )
 
 
-class RegularUserForm(aklub.view_utils.CombinedFormBase):
+class RegularUserForm(betterforms.multiform.MultiModelForm):
     required_css_class = "required"
     base_fields = {}
     form_classes = OrderedDict(
