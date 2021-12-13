@@ -153,7 +153,7 @@ jwcrypto==1.0
 keyring==21.8.0
 kombu==4.6.11
 lockfile==0.12.2
-lxml==4.6.3
+lxml==4.6.5
 Markdown==3.2.2
 markdown2==2.4.0
 MarkupPy==1.14
