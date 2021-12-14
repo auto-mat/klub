@@ -304,7 +304,7 @@ class CreateDpchCompanyProfileViewTest(TestCase):
         notifications = admin_user.notifications.all()
         self.assertEqual(notifications.count(), 1)
         notif = notifications.first()
-        self.assertEqual(notif.verb, "Špatný formát IČA")
+        self.assertEqual(notif.verb, "Špatný formát IČO")
         self.assertEqual(
             notif.description, "User input was: 1234567 and was not create in system"
         )
