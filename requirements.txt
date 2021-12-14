@@ -35,7 +35,7 @@ Deprecated==1.2.12
 diff-match-patch==20200713
 distlib==0.3.2
 dj-database-url==0.5.0
-Django==3.1
+Django==3.1.14
 -e git+https://github.com/PetrKudy/django-admin-charts@e18c606d0d64822420e94b6db1bd3e12deec8c6f#egg=django_admin_charts
 django-admin-large-initial-data==1.0.0
 -e git+https://github.com/PetrKudy/django-admin-numeric-filter@57bfaba371f23fc65d62336d126e83c5ebd4a3e5#egg=django_admin_numeric_filter
