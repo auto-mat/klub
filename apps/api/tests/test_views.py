@@ -670,8 +670,13 @@ class ResetPasswordTest(TestCase):
         self.assertEqual(received_email.to[0], email.email)
         self.assertEqual(received_email.subject, "Obnovení hesla")
         # get reset link
-        link = [string for string in received_email.body.replace("\n", " ").split(" ") if "?u=" in string][0]
+        link = [
+            string
+            for string in received_email.body.replace("\n", " ").split(" ")
+            if "?u=" in string
+        ][0]
         from urllib.parse import urlparse, parse_qs
+
         parsed_url = urlparse(link)
         params = parse_qs(parsed_url.query)
         user_uid = params["u"][0]
