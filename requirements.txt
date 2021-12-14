@@ -42,7 +42,7 @@ django-admin-large-initial-data==1.0.0
 django-admin-rangefilter==0.8.1
 -e git+https://github.com/PetrDlouhy/django-admin-smoke-tests@dbf44b7e4a860490c6b48c1069a98a3b64bac7fb#egg=django_admin_smoke_tests_2
 django-admin-tools==0.9.1
-django-adminactions==1.13.0
+-e git+https://github.com/auto-mat/django-adminactions@0d744c91c2422a01ed561c2cc2efa331f3a4d827#egg=django_adminactions
 django-adminfilters==1.0.0
 -e git+https://github.com/tmszi/django-advanced-filters@1867d388a4d12ca5ef20657dc6a8d69a10dc8fd7#egg=django_advanced_filters
 django-appconf==1.0.4
