@@ -16,6 +16,7 @@ from model_mommy import mommy
 from oauth2_provider.models import Application
 
 from .utils import app_login_mixin, user_login_mixin
+from aklub.tests.utils import print_response  # noqa
 
 
 class GetAccessTokenTest(TestCase):
@@ -669,7 +670,7 @@ class ResetPasswordTest(TestCase):
         self.assertEqual(received_email.to[0], email.email)
         self.assertEqual(received_email.subject, "Obnovení hesla")
         # get reset link
-        link = [string for string in received_email.body.split(" ") if "?u=" in string][0]
+        link = [string for string in received_email.body.replace("\n", " ").split(" ") if "?u=" in string][0]
         from urllib.parse import urlparse, parse_qs
         parsed_url = urlparse(link)
         params = parse_qs(parsed_url.query)
