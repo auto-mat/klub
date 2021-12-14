@@ -30,27 +30,3 @@ jobs:
               docker login -u $DOCKER_USER -p $DOCKER_PASS
               docker push auto0mat/klub:$TAG
             fi
-      - run:
-         name: Start PostGIS container
-         command: |
-            docker run -d --hostname postgres --name postgres -e POSTGRES_PASSWORD=password mdillon/postgis:9.6
-      - run:
-         name: Start RabbitMQ container
-         command: |
-            docker run -d --hostname redis --name redis redis
-      - run:
-         name: Test Docker container in Django
-         command: |
-            sleep 10
-            docker run \
-               --entrypoint="/home/aplikace/docker-test-entrypoint.sh" \
-               --env DATABASE_HOST=postgres \
-               --env DATABASE_NAME=postgres \
-               --env DATABASE_USER=postgres \
-               --env DATABASE_PASSWORD=password \
-               --env SECRET_KEY=secret \
-               --env REDIS_URL="redis://redis" \
-               --link redis:redis \
-               --link postgres:postgres \
-               --name dpnk-test \
-               built-image
