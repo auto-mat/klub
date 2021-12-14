@@ -306,7 +306,7 @@ class CreateDpchCompanyProfileViewTest(TestCase):
         notif = notifications.first()
         self.assertEqual(notif.verb, "Špatný formát IČO")
         self.assertEqual(
-            notif.description, "User input was: 1234567 and was not create in system"
+            notif.description, "User input was: 1234567 and was not created in system"
         )
 
 
