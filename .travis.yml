@@ -26,9 +26,7 @@ before_script:
   - cd ../..
 script:
   - python manage.py --version
-  - COVERAGE_FILE=.coverage_pytest pytest --cov=apps apps
-  - COVERAGE_FILE=.coverage_django python manage.py test
-  - coverage combine
+  - pytest --cov=apps apps
   - coverage html
 after_script:
   - coveralls
