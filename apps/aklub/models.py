@@ -197,7 +197,7 @@ ICO_ERROR_MESSAGE = _(
 )
 
 
-class AdministrativeUnit(models.Model, ParseAccountStatement):
+class AdministrativeUnit(ParseAccountStatement, models.Model):
     class Meta:
         verbose_name = _("Administrative unit")
         verbose_name_plural = _("Administrative units")
@@ -1786,7 +1786,7 @@ class DonorPaymentChannel(ComputedFieldsModel):
         except MoneyAccount.DoesNotExist:
             pass
 
-    @computed(models.IntegerField(null=True), depends=["payment_set"])
+    @computed(models.IntegerField(null=True), depends=[["payment_set", []]])
     def number_of_payments(self):
         """Return number of payments made by this user"""
         return self.payment_set.aggregate(count=Count("amount"))["count"]
@@ -1806,7 +1806,7 @@ class DonorPaymentChannel(ComputedFieldsModel):
             related_name="user_last_payment",
             on_delete=models.SET_NULL,
         ),
-        depends=["payment_set"],
+        depends=[["payment_set", []]],
     )
     def last_payment(self):
         """Return last payment"""
@@ -1872,7 +1872,7 @@ class DonorPaymentChannel(ComputedFieldsModel):
         except KeyError:
             return None
 
-    @computed(models.DateField(null=True), depends=["payment_set"])
+    @computed(models.DateField(null=True), depends=[["self", ["last_payment"]]])
     def expected_regular_payment_date(self):
         last_payment = self.last_payment_function()
         last_payment_date = last_payment.date if last_payment else None
@@ -1895,7 +1895,7 @@ class DonorPaymentChannel(ComputedFieldsModel):
             expected = self.registered_support.date() + datetime.timedelta(days=31)
         return expected
 
-    @computed(models.FloatField(null=True), depends=["payment_set"])
+    @computed(models.FloatField(null=True), depends=[["payment_set", ["amount"]]])
     def payment_total(self):
         return self.payment_set.aggregate(sum=Sum("amount"))["sum"] or 0
 
@@ -1930,7 +1930,7 @@ class DonorPaymentChannel(ComputedFieldsModel):
             delay = None
         return delay
 
-    @computed(models.IntegerField(null=True), depends=["payment_set#amount"])
+    @computed(models.IntegerField(null=True), depends=[["payment_set", ["amount"]]])
     def extra_money(self):
         """Check if we didn't receive more money than expected in the last payment period"""
         if self.regular_payments == "regular":
@@ -1966,7 +1966,10 @@ class DonorPaymentChannel(ComputedFieldsModel):
     extra_payments.short_description = _("Extra money")
     extra_payments.admin_order_field = "extra_money"
 
-    @computed(models.NullBooleanField(null=True), depends=["payment_set"])
+    @computed(
+        models.NullBooleanField(null=True),
+        depends=[["self", ["regular_payments", "last_payment"]], ["payment_set", []]],
+    )
     def no_upgrade(self):
         """Check for users without upgrade to payments
 

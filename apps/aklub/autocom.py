@@ -100,7 +100,7 @@ def gendrify_text(text, sex=""):
 
 
 def process_template(template_string, user, payment_channel):
-    from .models import DonorPaymentChannel
+    from aklub.models import DonorPaymentChannel
     from sesame import utils as sesame_utils
 
     template = string.Template(template_string)
@@ -141,7 +141,7 @@ def process_template(template_string, user, payment_channel):
 
 
 def check(user_profiles=None, action=None):  # noqa
-    from .models import AutomaticCommunication, DonorPaymentChannel, UserProfile
+    from aklub.models import AutomaticCommunication, DonorPaymentChannel, UserProfile
     from interactions.models import Interaction
 
     if not user_profiles:

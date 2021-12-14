@@ -30,7 +30,7 @@ from model_mommy import mommy
 
 from ..utils import RunCommitHooksMixin
 from ... import darujme
-from ...models import (
+from aklub.models import (
     AccountStatements,
     AdministrativeUnit,
     DonorPaymentChannel,

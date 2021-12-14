@@ -1,4 +1,4 @@
-FROM python:3.6-buster
+FROM python:3.8-buster
 
 RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
 run apt-get update && apt-get install -y \
@@ -29,8 +29,8 @@ RUN npm install -g bower
 RUN mkdir -p /var/log/django/
 
 copy requirements.txt requirements.txt
-RUN su test ; pip3 install -r requirements.txt
+RUN su test ; pip3 install --default-timeout=100 -r requirements.txt
 copy . .
 RUN SECRET_KEY="fake_key" python3 manage.py bower install
-RUN SECRET_KEY="fake_key" python3 manage.py compilemessages
+RUN SECRET_KEY="fake_key" python3 manage.py compilemessages --ignore=third-party/*
 RUN SECRET_KEY="fake_key" python3 manage.py collectstatic --noinput

@@ -14,7 +14,7 @@ import smmapdfs.actions
 from smmapdfs.models import PdfSandwichType
 
 from . import darujme
-from . import models
+from aklub import models
 from .autocom import check
 from .darujme import parse_darujme_json
 from .mailing import create_mass_communication_tasks_sync, send_communication_sync

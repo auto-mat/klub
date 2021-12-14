@@ -5,7 +5,7 @@ from django.apps import apps
 from import_export import fields
 from import_export.resources import ModelResource
 
-from .models import Profile
+from aklub.models import Profile
 from .profile_model_resources_mixin import (
     get_profile_model_resource_mixin_class_body,
 )

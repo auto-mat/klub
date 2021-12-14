@@ -118,7 +118,7 @@ from .forms import (
     UserCreateForm,
     UserUpdateForm,
 )
-from .models import (
+from aklub.models import (
     AccountStatements,
     AdministrativeUnit,
     ApiAccount,
@@ -1804,7 +1804,8 @@ class PaymentAdmin(
         """
         initial = super().get_changeform_initial_data(request)
         if initial and "user_donor_payment_channel" in initial.get(
-            "_changelist_filters"
+            "_changelist_filters",
+            [],
         ):
             get_data = initial["_changelist_filters"].split("&")
             dpch = [dpch for dpch in get_data if "user_donor_payment_channel" in dpch][
@@ -2604,7 +2605,8 @@ class UserProfileAdmin(
                 self.form = UnitUserProfileAddForm
 
         form = super().get_form(request, obj, **kwargs)
-        form.base_fields["language"].required = False
+        if "language" in form.base_fields:
+            form.base_fields["language"].required = False
         form.request = request
         return form
 
@@ -2992,7 +2994,8 @@ class CompanyProfileAdmin(
         else:
             self.form = CompanyProfileAddForm
         form = super().get_form(request, obj, **kwargs)
-        form.base_fields["language"].required = False
+        if "language" in form.base_fields:
+            form.base_fields["language"].required = False
         form.request = request
 
         return form

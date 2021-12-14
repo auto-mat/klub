@@ -15,7 +15,7 @@ from django.utils.safestring import mark_safe
 
 from . import filters
 from .forms import EventForm
-from .models import (
+from events.models import (
     Event,
     EventType,
     Location,

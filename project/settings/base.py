@@ -235,7 +235,6 @@ INSTALLED_APPS = (
     "helpdesk",
     "pdf_storage",
     "django_celery_beat",
-    "django_celery_monitor",
     "djcelery_email",
     "nested_admin",
     "smmapdfs",

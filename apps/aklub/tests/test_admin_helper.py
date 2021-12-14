@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 
 from django.contrib import admin as django_admin
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, Permission
 
 from model_mommy import mommy
 
-from ..models import CompanyContact, CompanyProfile, ProfileEmail, UserProfile
+from .utils import print_response  # noqa
+
+from aklub.models import CompanyContact, CompanyProfile, ProfileEmail, UserProfile
 
 
 class TestProfilePostMixin:
@@ -23,7 +25,7 @@ class TestProfilePostMixin:
         admin_model = self.register_admin_model(admin_model=Group)
         group_post_data = {
             "name": "test",
-            "permissions": 1,
+            "permissions": Permission.objects.get(codename="add_account").pk,
         }
         request = self.post_request(post_data=group_post_data)
         response = admin_model.add_view(request)
@@ -171,7 +173,10 @@ class TestProfilePostMixin:
         return post_data
 
     def compare_profile_personal_info(self, action, post_data, profile):
-        group_id = profile.groups.all().values_list("id", flat=True)[0]
+        if isinstance(profile, UserProfile):
+            group_id = profile.groups.all().values_list("id", flat=True)[0]
+        else:
+            gorup_id = None
         if profile.is_userprofile():
             email = set(
                 ProfileEmail.objects.filter(user=profile).values_list(
@@ -208,9 +213,10 @@ class TestProfilePostMixin:
 
             self.assertEqual(profile.email, None)
 
-        self.assertEqual(profile.is_staff, True)
-        self.assertEqual(group_id, post_data["groups"])
-        self.assertEqual(group_id, post_data["groups"])
+        if isinstance(profile, UserProfile):
+            self.assertEqual(profile.is_staff, True)
+            self.assertEqual(group_id, post_data["groups"])
+            self.assertEqual(group_id, post_data["groups"])
 
     def delete_profile(self, new_profiles):
         for profile in new_profiles:

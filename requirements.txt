@@ -1,7 +1,7 @@
 akismet==1.1
 amqp==2.6.1
 appdirs==1.4.4
-asgiref==3.3.1
+asgiref==3.2.10
 attrs==21.2.0
 backcall==0.2.0
 beautifulsoup4==4.9.3
@@ -29,27 +29,26 @@ coverage==5.3
 coveralls==2.2.0
 crashtest==0.3.1
 cryptography==3.4.7
-dataclasses==0.8
 decorator==4.4.2
 defusedxml==0.7.1
 Deprecated==1.2.12
 diff-match-patch==20200713
 distlib==0.3.2
 dj-database-url==0.5.0
-Django==2.2.24
+Django==3.1
 -e git+https://github.com/PetrKudy/django-admin-charts@e18c606d0d64822420e94b6db1bd3e12deec8c6f#egg=django_admin_charts
 django-admin-large-initial-data==1.0.0
 -e git+https://github.com/PetrKudy/django-admin-numeric-filter@57bfaba371f23fc65d62336d126e83c5ebd4a3e5#egg=django_admin_numeric_filter
 django-admin-rangefilter==0.8.1
 -e git+https://github.com/PetrDlouhy/django-admin-smoke-tests@dbf44b7e4a860490c6b48c1069a98a3b64bac7fb#egg=django_admin_smoke_tests_2
 django-admin-tools==0.9.1
-django-adminactions==1.13.0
+-e git+https://github.com/auto-mat/django-adminactions@0d744c91c2422a01ed561c2cc2efa331f3a4d827#egg=django_adminactions
 django-adminfilters==1.0.0
 -e git+https://github.com/tmszi/django-advanced-filters@1867d388a4d12ca5ef20657dc6a8d69a10dc8fd7#egg=django_advanced_filters
 django-appconf==1.0.4
 django-author==1.0.2
 django-autoslug==1.9.8
--e git+https://github.com/PetrKudy/django-betterforms@bf1e5de200ae5db978c5d1074f63d65cb7fab4e4#egg=django_betterforms
+-e git+https://github.com/jpic/django-betterforms@e392f496bbea8a3fd1b3f743376393ed7a8dd0b3#egg=django_betterforms
 django-bootstrap-form==3.4
 django-bootstrap4-form==4.0.1
 django-bower==5.2.0
@@ -57,7 +56,6 @@ django-braces==1.14.0
 django-bulk-update==2.2.0
 django-celery-beat==2.0.0
 django-celery-email==3.0.0
--e git+https://github.com/peergradeio/django-celery-monitor@54fac92efe6f144bc589b1a8ad9488eb4d1653d2#egg=django_celery_monitor
 django-chart-tools==1.0
 django-classy-tags==2.0.0
 django-colorfield==0.3.2
@@ -70,7 +68,7 @@ django-dynamic-fixture==3.1.1
 django-extensions==3.1.3
 django-extra-views==0.14.0
 django-filter==2.4.0
-django-flexible-filter-conditions==0.5.0
+-e git+https://github.com/auto-mat/django-flexible-filter-conditions@1d5ff9a587f2d63c0df36f0e5f92e22953a4f8b5#egg=django_flexible_filter_conditions
 django-grapesjs==0.0.7
 -e git+https://github.com/django-helpdesk/django-helpdesk@f53ee1366db1c98cc30140f1f3450751b3b9b4aa#egg=django_helpdesk
 django-heroku==0.3.1
@@ -90,7 +88,7 @@ django-notifications-hq==1.6.0
 -e git+https://github.com/PetrKudy/django-nvd3@639300acdb014939c9f9562573f4b1425190724a#egg=django_nvd3
 django-nyt==1.2
 django-oauth-toolkit==1.5.0
--e git+https://github.com/tmszi/django-polymorphic@5e7ccd35def01c6849bdbe795830af60d4b28c71#egg=django_polymorphic
+django_polymorphic==3.1
 -e git+https://github.com/Mogost/django-post_office@5297f00d886406de1233de6697262096e9ea81ca#egg=django_post_office
 django-qsstats-magic==1.1.0
 django-redis==5.0.0

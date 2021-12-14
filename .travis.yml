@@ -27,6 +27,7 @@ before_script:
 script:
   - python manage.py --version
   - pytest --cov=apps apps
+  - coverage run -a --source='.' manage.py test --noinput
   - coverage html
 after_script:
   - coveralls

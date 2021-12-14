@@ -17,7 +17,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from smmapdfs.models import PdfSandwichType
 
-from .models import AdministrativeUnit, CompanyContact, ProfileEmail, Telephone
+from aklub.models import AdministrativeUnit, CompanyContact, ProfileEmail, Telephone
 
 Profile = get_user_model()
 

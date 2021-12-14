@@ -26,7 +26,7 @@ from django.utils.translation import ugettext as _
 from interactions.models import Interaction
 
 from . import autocom
-from .models import (
+from aklub.models import (
     AutomaticCommunication,
     DonorPaymentChannel,
     MassCommunication,

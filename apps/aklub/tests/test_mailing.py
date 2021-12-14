@@ -29,7 +29,7 @@ from freezegun import freeze_time
 
 from model_mommy import mommy
 
-from .. import mailing, models
+from aklub import mailing, models
 
 
 @override_settings(

@@ -16,6 +16,7 @@ from model_mommy import mommy
 from oauth2_provider.models import Application
 
 from .utils import app_login_mixin, user_login_mixin
+from aklub.tests.utils import print_response  # noqa
 
 
 class GetAccessTokenTest(TestCase):
@@ -303,9 +304,9 @@ class CreateDpchCompanyProfileViewTest(TestCase):
         notifications = admin_user.notifications.all()
         self.assertEqual(notifications.count(), 1)
         notif = notifications.first()
-        self.assertEqual(notif.verb, "Špatný formát IČA")
+        self.assertEqual(notif.verb, "Špatný formát IČO")
         self.assertEqual(
-            notif.description, "User input was: 1234567 and was not create in system"
+            notif.description, "User input was: 1234567 and was not created in system"
         )
 
 
@@ -669,10 +670,17 @@ class ResetPasswordTest(TestCase):
         self.assertEqual(received_email.to[0], email.email)
         self.assertEqual(received_email.subject, "Obnovení hesla")
         # get reset link
-        link = [string for string in received_email.body.split(" ") if "?u=" in string]
-        link_splitted = link[0].replace("&", "=").replace("\n", "=").split("=")
-        user_uid = link_splitted[3]
-        token = link_splitted[5]
+        link = [
+            string
+            for string in received_email.body.replace("\n", " ").split(" ")
+            if "?u=" in string
+        ][0]
+        from urllib.parse import urlparse, parse_qs
+
+        parsed_url = urlparse(link)
+        params = parse_qs(parsed_url.query)
+        user_uid = params["u"][0]
+        token = params["t"][0]
         # confirm reset password
         url = reverse(
             "reset_password_email_confirm", kwargs={"uid": user_uid, "token": token}

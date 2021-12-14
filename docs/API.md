@@ -32,6 +32,45 @@ curl --header "Content-Type: application/json" --request POST --data '{"grant_ty
 curl -H "Authorization: Bearer <token>" -H "Content-Type: application/json" -X GET https://test.klub-pratel.cz/api/bronto/event/
  ```
  
+Registering users via API
+------------------------------
+
+The endpoint for registering users is `/api/register-userprofile`. Here are some example contents:
+
+```
+{
+    "username": "test2",
+    "password": "foobarbaz",
+    "first_name": "Test",
+    "last_name": "Test",
+    "telephone": "334534534",
+    "email": "test@example.com",
+    "userchannels": [
+      {
+        "money_account": "obecne_darujme",
+        "event": "obecne",
+        "regular_amount": 250,
+        "regular_frequency": "monthly"
+        
+      }
+    ]
+}
+```
+
+Possible values for `regular_frequency` are
+
+- `monthly`
+- `quaterly`
+- `biannually`
+- `annually`
+
+`money_account` and `event ` should be set to slugs.
+
+You can find event slugs in the admin at `/events/event/` for example `https://test.klub-pratel.cz/events/event/`.
+
+Money account slugs are in the admin at `/aklub/bankaccount/` aka `https://test.klub-pratel.cz/aklub/bankaccount/`
+
+ 
 User based Login Flows
 ---------------------------
  
@@ -60,6 +99,3 @@ Administrative Units
 ------------------------
 
 TODO
-
-
-

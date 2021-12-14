@@ -10,7 +10,7 @@ from events.models import Event
 from import_export import fields
 from import_export.resources import ModelResource
 
-from .models import (
+from aklub.models import (
     BankAccount,
     CompanyContact,
     DonorPaymentChannel,

@@ -36,7 +36,7 @@ from sesame import utils as sesame_utils
 
 from .test_admin import CreateSuperUserMixin
 from .utils import print_response  # noqa
-from ..models import DonorPaymentChannel, ProfileEmail
+from aklub.models import DonorPaymentChannel, ProfileEmail
 
 
 class ClearCacheMixin(object):

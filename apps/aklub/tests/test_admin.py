@@ -41,8 +41,8 @@ from .recipes import donor_payment_channel_recipe, user_profile_recipe
 from .test_admin_helper import TestProfilePostMixin
 from .utils import RunCommitHooksMixin
 from .utils import print_response  # noqa
-from .. import admin
-from ..models import (
+from aklub import admin
+from aklub.models import (
     AccountStatements,
     CompanyContact,
     DonorPaymentChannel,
@@ -72,7 +72,6 @@ class AdminSmokeTest(CreateSuperUserMixin, tests.AdminSiteSmokeTest):
         "helpdesk",
         "post_office",
         "advanced_filters",
-        "celery_monitor",
         "import_export_celery",
         "wiki_attachments",
         "pinax_teams",
@@ -87,7 +86,7 @@ class AdminSmokeTest(CreateSuperUserMixin, tests.AdminSiteSmokeTest):
         if item not in ["search_fields"]
     ]
     #  Profile Admin is not used in views, so we dont have to take care
-    exclude_modeladmins = [admin.ProfileAdmin]
+    exclude_modeladmins = [admin.ProfileAdmin, admin.PaymentAdmin]
 
     def setUp(self):
         super().setUp()
@@ -319,7 +318,7 @@ class AdminTest(
         edit_text = "You may edit it again below."
         self.assertEqual(
             request._messages._queued_messages[1].message,
-            'The Mass Communication "<a href="/aklub/masscommunication/%s/change/">test communication</a>"'
+            'The Mass Communication “<a href="/aklub/masscommunication/%s/change/">test communication</a>”'
             " was added successfully. %s" % (obj.id, edit_text),
         )
 
