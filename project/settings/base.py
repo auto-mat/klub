@@ -264,6 +264,7 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [  # noqa
         "rest_framework.authentication.SessionAuthentication",
         "rest_framework.authentication.BasicAuthentication",
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
         "oauth2_provider.contrib.rest_framework.OAuth2Authentication",
     ],
 }

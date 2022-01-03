@@ -56,6 +56,7 @@ django-braces==1.14.0
 django-bulk-update==2.2.0
 django-celery-beat==2.0.0
 django-celery-email==3.0.0
+-e git+https://github.com/peergradeio/django-celery-monitor@54fac92efe6f144bc589b1a8ad9488eb4d1653d2#egg=django_celery_monitor
 django-chart-tools==1.0
 django-classy-tags==2.0.0
 django-colorfield==0.3.2
@@ -88,7 +89,7 @@ django-notifications-hq==1.6.0
 -e git+https://github.com/PetrKudy/django-nvd3@639300acdb014939c9f9562573f4b1425190724a#egg=django_nvd3
 django-nyt==1.2
 django-oauth-toolkit==1.5.0
-django_polymorphic==3.1
+django-polymorphic==3.1.0
 -e git+https://github.com/Mogost/django-post_office@5297f00d886406de1233de6697262096e9ea81ca#egg=django_post_office
 django-qsstats-magic==1.1.0
 django-redis==5.0.0
@@ -109,6 +110,7 @@ django-user-accounts==3.0.4
 django-webtest==1.9.7
 django-wysiwyg==0.8.0
 djangorestframework==3.12.4
+djangorestframework-simplejwt==5.0.0
 djcacheutils==3.0.0
 docopt==0.6.2
 docutils==0.17.1
@@ -190,6 +192,7 @@ pycodestyle==2.6.0
 pycparser==2.20
 pyflakes==2.2.0
 Pygments==2.7.4
+PyJWT==2.3.0
 pylev==1.4.0
 pyparsing==2.4.7
 PyPDF2==1.26.0

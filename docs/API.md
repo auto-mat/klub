@@ -73,8 +73,13 @@ Money account slugs are in the admin at `/aklub/bankaccount/` aka `https://test.
  
 User based Login Flows
 ---------------------------
- 
-Per user authentification is not supported at this time.
+
+You can log in to the user based rest API using the endpoint `http://localhost:8000/api/token/`. This will give you a JWT token.
+
+You can get your refresh token using the endpoint `http://localhost:8000/api/token/refresh/`
+
+You can then send request using the usage info here: `https://django-rest-framework-simplejwt.readthedocs.io/en/latest/getting_started.html#usage`
+
 
 Events
 -------

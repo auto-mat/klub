@@ -5,6 +5,11 @@ from drf_yasg.views import get_schema_view
 
 from rest_framework import permissions
 
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
+
 from . import views
 
 schema_view = get_schema_view(
@@ -98,4 +103,6 @@ urlpatterns = [
         schema_view.with_ui("swagger", cache_timeout=None),
         name="schema-swagger-ui",
     ),
+    path("token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
 ]
