@@ -259,13 +259,14 @@ INSTALLED_APPS = (
     "inline_static",
     "reversion",
     "multiselectfield",
+    "rest_framework_simplejwt",
 )
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [  # noqa
         "rest_framework.authentication.SessionAuthentication",
         "rest_framework.authentication.BasicAuthentication",
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
         "oauth2_provider.contrib.rest_framework.OAuth2Authentication",
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
     ],
 }
 OAUTH2_PROVIDER_APPLICATION_MODEL = "oauth2_provider.Application"
