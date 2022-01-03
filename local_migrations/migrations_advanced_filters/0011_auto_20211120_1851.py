@@ -23,14 +23,4 @@ class Migration(migrations.Migration):
             name='b64_query',
             field=models.CharField(max_length=2048),
         ),
-        migrations.AlterField(
-            model_name='advancedfilter',
-            name='created_by',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='created_advanced_filters', to=settings.AUTH_USER_MODEL, verbose_name='Created by'),
-        ),
-        migrations.AlterField(
-            model_name='advancedfilter',
-            name='users',
-            field=models.ManyToManyField(blank=True, to=settings.AUTH_USER_MODEL, verbose_name='Users'),
-        ),
     ]
