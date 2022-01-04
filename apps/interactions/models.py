@@ -268,7 +268,7 @@ class Interaction(WithAdminUrl, BaseInteraction2):
         if self.type.send_email:
             user_email = self.user.get_email_str(self.administrative_unit)
             if user_email:
-                # if we dpmt wamt to save email => its fake communicaiton and we sent some user to administrative unit
+                # if we don't want to save email => its fake communication and we sent some user to administrative unit
                 if is_test:
                     to = administrative_unit.from_email_str
                     body = _(
