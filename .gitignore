@@ -7,6 +7,9 @@
 media/
 *~
 lcov.info
+response.html
+user-dups.csv
+user-exceptions
 env/
 .env
 venv/
