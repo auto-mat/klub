@@ -244,9 +244,9 @@ class UnitUserProfileAddForm(forms.ModelForm):
         email = user.email
         user.email = None
         user.save()
-        if self.cleaned_data["email"] is not None:
+        if self.cleaned_data.get("email") is not None:
             ProfileEmail.objects.create(email=email, user=user, is_primary=True)
-        if self.cleaned_data["telephone"]:
+        if self.cleaned_data.get("telephone"):
             Telephone.objects.create(
                 telephone=self.cleaned_data["telephone"], user=user, is_primary=True
             )
