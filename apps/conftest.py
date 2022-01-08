@@ -130,6 +130,21 @@ def app_request(application_api_access):
 
 
 @pytest.fixture(scope="function")
+def anon_api_request():
+    client = APIClient()
+    client.credentials()
+    yield client
+
+
+@pytest.fixture(scope="function")
+def superuser1_api_request(userprofile_superuser_1):
+    client = APIClient()
+    client.force_authenticate(user=userprofile_superuser_1)
+    yield client
+
+
+
+@pytest.fixture(scope="function")
 def location_1(administrative_unit_1):
     location = Location.objects.create(
         name="location_name",

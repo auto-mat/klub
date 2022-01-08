@@ -80,6 +80,28 @@ You can get your refresh token using the endpoint `http://localhost:8000/api/tok
 
 You can then send request using the usage [can be found inthe simplejwt docs](https://django-rest-framework-simplejwt.readthedocs.io/en/latest/getting_started.html#usage).
 
+Finding out about the current user
+-----------------------------------------
+
+There are various levels of permissions that users can have in the front end:
+
+1. Ordinary user:
+ - Can view all events
+ - Can find out which events they signed up
+ - Can update events that they have organized
+ - Can list their own interactions
+ - Can see the structure of the organization: Administrative Units
+2. Event organizers and Staff
+ - Can create update Events in their Administrative Units
+3. Superusers
+ - Can create and update events globally
+
+Once you are logged in you can find out what kind of user you are with the
+
+`api/frontend/whoami`
+
+endpoint. With this endpoint, you can also update your own First and Last name.
+
 
 Events
 -------
