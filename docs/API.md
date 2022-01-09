@@ -144,12 +144,30 @@ The endpoint `https://test.klub-pratel.cz/api/bronto/event/` lists all events.
 
 Creating editing events:
 
-TODO
+- Admin only
+
+- permissions GET, POST, DELETE
+
+- endpoint `https://test.klub-pratel.cz/api/frontend/events/`
+
+Event Types
+-------------
+
+- Admin only
+
+- permissions GET, POST, DELETE
+
+- endpoint `https://test.klub-pratel.cz/api/frontend/event-type/`
+
 
 Locations
 -------
 
-TODO
+- Admin only
+
+- permissions GET, POST, DELETE
+
+- endpoint `https://test.klub-pratel.cz/api/frontend/location/`
 
 Interactions
 ---------------

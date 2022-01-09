@@ -97,6 +97,7 @@ def userprofile_superuser_1(administrative_unit_1):
         username="admin",
         first_name="admin_first",
         last_name="admin_last",
+        nickname="admin_nickname",
         is_staff=True,
         is_superuser=True,
     )

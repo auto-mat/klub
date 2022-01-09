@@ -1,4 +1,5 @@
 from django.urls import include, path
+from django.conf.urls import url
 
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
@@ -9,6 +10,9 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
+
+from apps.api import frontend
+from apps.api.frontend import whoami_unit
 
 from . import views
 
@@ -57,6 +61,8 @@ urlpatterns = [
     path(
         "interaction/", views.CreateInteractionView.as_view(), name="create_interaction"
     ),
+    url("frontend/whoami", whoami_unit.who_am_i, name="frontend_whoami"),
+    url("frontend/", include(frontend.router.urls)),
     path(
         "create_credit_card_payment/",
         views.CreateCreditCardPaymentView.as_view(),

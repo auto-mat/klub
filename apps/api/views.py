@@ -23,7 +23,7 @@ from django_filters import rest_framework as filters
 
 from drf_yasg.utils import swagger_auto_schema
 
-from events.models import Event
+from events.models import Event, Location
 
 from interactions.models import Interaction, InteractionCategory, InteractionType
 
@@ -33,6 +33,7 @@ from rest_framework import filters as rf_filters, generics, status
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 import rest_framework.pagination
+from rest_framework import serializers, viewsets
 
 from .exceptions import (
     DonorPaymentChannelDoesntExist,
@@ -516,6 +517,7 @@ class EventListView(EventViewMixin, generics.ListAPIView):
 
 class EventRetrieveView(EventViewMixin, generics.RetrieveAPIView):
     lookup_field = "id"
+
 
 
 class AdministrativeUnitView(generics.ListAPIView):
