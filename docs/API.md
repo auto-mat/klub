@@ -70,6 +70,24 @@ You can find event slugs in the admin at `/events/event/` for example `https://t
 
 Money account slugs are in the admin at `/aklub/bankaccount/` aka `https://test.klub-pratel.cz/aklub/bankaccount/`
 
+
+Please note this endpoint is likely to be updated in the future to include a CAPTCHA code.
+
+Resetting passwords
+-----------------------
+
+Password reset emails can be triggered with the `reset_password_email/` endpoint. This endpoint takes a json object with a single field `email`:
+
+Example
+
+```
+{
+   "email": "foo@example.com"
+}
+```
+
+Please note this endpoint is likely to be updated in the future to include a CAPTCHA code.
+
  
 User based Login Flows
 ---------------------------
@@ -101,6 +119,11 @@ Once you are logged in you can find out what kind of user you are with the
 `api/frontend/whoami`
 
 endpoint. With this endpoint, you can also update your own First and Last name.
+
+Payments
+----------
+
+Users can check if their payment is up to date according to their subscription using the `check_last_payment/` endpoint which returns 200 if up to date and 404 otherwise.
 
 
 Events
