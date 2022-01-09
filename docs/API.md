@@ -120,6 +120,13 @@ Once you are logged in you can find out what kind of user you are with the
 
 endpoint. With this endpoint, you can also update your own First and Last name.
 
+Administrative Units
+-------------------------
+
+Administrative units can be viewed at the endpoint `/api/bronto/administrative_unit/`
+
+
+
 Payments
 ----------
 

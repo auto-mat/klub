@@ -519,7 +519,7 @@ class AdministrativeUnitView(generics.ListAPIView):
     """
 
     serializer_class = AdministrativeUnitSerializer
-    permission_classes = [TokenHasReadWriteScope]
+    permission_classes = [TokenHasReadWriteScope | IsAuthenticated]
     required_scopes = ["can_view_administrative_units"]
 
     def get_queryset(self):
