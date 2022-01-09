@@ -32,6 +32,7 @@ from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope
 from rest_framework import filters as rf_filters, generics, status
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
+import rest_framework.pagination
 
 from .exceptions import (
     DonorPaymentChannelDoesntExist,
@@ -498,6 +499,12 @@ class EventViewMixin:
         )
 
 
+class ResultsSetPagination(rest_framework.pagination.PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
 class EventListView(EventViewMixin, generics.ListAPIView):
     """
     Reguired info for web
@@ -506,6 +513,7 @@ class EventListView(EventViewMixin, generics.ListAPIView):
 
     filter_backends = [filters.DjangoFilterBackend, rf_filters.OrderingFilter]
     filter_class = EventCustomFilter
+    pagination_class = ResultsSetPagination
 
 
 class EventRetrieveView(EventViewMixin, generics.RetrieveAPIView):
