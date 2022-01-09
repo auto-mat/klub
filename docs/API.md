@@ -9,6 +9,8 @@ You can find swagger docs here:
 
 [![Swagger docs](https://test.klub-pratel.cz/media/drf-yasg/swagger-ui-dist/favicon-32x32.40d4f2c38d1c.png) Swagger docs](https://test.klub-pratel.cz/api/docs/)
 
+Also, if you open endpoints as Admin user in the browser you will be presented with a user friendly interface explaining how to use the endpoint.
+
 Authentification
 -------------------
 

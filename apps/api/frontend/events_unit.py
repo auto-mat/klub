@@ -1,4 +1,4 @@
-from api import serializers
+from api import serializers, views
 from events.models import Event
 from rest_framework import viewsets, permissions
 
@@ -10,6 +10,7 @@ class EventSet(viewsets.ModelViewSet):
         return Event.objects.all()
 
     permission_classes = [permissions.IsAdminUser]
+    pagination_class = views.ResultsSetPagination
 
 
 def test_event_set_anon(anon_api_request):
