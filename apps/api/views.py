@@ -66,7 +66,7 @@ class CheckMoneyAccountView(generics.RetrieveAPIView):
     -- is used to communicate with 3rd aplication
     """
 
-    permission_classes = [TokenHasReadWriteScope]
+    permission_classes = [TokenHasReadWriteScope | IsAdminUser]
     required_scopes = ["can_check_if_exist"]
     queryset = MoneyAccount.objects.all()
     lookup_field = "slug"
@@ -79,7 +79,7 @@ class CheckEventView(generics.RetrieveAPIView):
     -- is used to communicate with 3rd aplication
     """
 
-    permission_classes = [TokenHasReadWriteScope]
+    permission_classes = [TokenHasReadWriteScope | IsAdminUser]
     required_scopes = ["can_check_if_exist"]
     queryset = Event.objects.all()
     lookup_field = "slug"
@@ -92,7 +92,7 @@ class CreateDpchUserProfileView(generics.GenericAPIView):
     -- is used to communicate with 3rd aplication
     """
 
-    permission_classes = [TokenHasReadWriteScope]
+    permission_classes = [TokenHasReadWriteScope | IsAdminUser]
     required_scopes = ["can_create_profiles"]
     serializer_class = GetDpchUserProfileSerializer
 
@@ -142,7 +142,7 @@ class CreateDpchCompanyProfileView(generics.GenericAPIView):
     -- is used to communicate with 3rd aplication
     """
 
-    permission_classes = [TokenHasReadWriteScope]
+    permission_classes = [TokenHasReadWriteScope | IsAdminUser]
     required_scopes = ["can_create_profiles"]
     serializer_class = GetDpchCompanyProfileSerializer
 
@@ -189,7 +189,7 @@ class CheckPaymentView(generics.GenericAPIView):
     -- is used to communicate with 3rd aplication
     """
 
-    permission_classes = [TokenHasReadWriteScope]
+    permission_classes = [TokenHasReadWriteScope | IsAdminUser]
     required_scopes = ["can_check_last_payments"]
     serializer_class = DonorPaymetChannelSerializer
 
@@ -225,7 +225,7 @@ class CreateInteractionView(generics.GenericAPIView):
     -- is used to communicate with 3rd aplication
     """
 
-    permission_classes = [TokenHasReadWriteScope]
+    permission_classes = [TokenHasReadWriteScope | IsAdminUser]
     required_scopes = ["can_create_interactions"]
     serializer_class = InteractionSerizer
 
@@ -265,7 +265,7 @@ class CreateCreditCardPaymentView(generics.CreateAPIView):
     -- is used to communicate with 3rd aplication
     """
 
-    permission_classes = [TokenHasReadWriteScope]
+    permission_classes = [TokenHasReadWriteScope | IsAdminUser]
     required_scopes = ["can_create_credit_card_payment"]
     serializer_class = CreditCardPaymentSerializer
 
