@@ -144,7 +144,6 @@ def superuser1_api_request(userprofile_superuser_1):
     yield client
 
 
-
 @pytest.fixture(scope="function")
 def location_1(administrative_unit_1):
     location = Location.objects.create(

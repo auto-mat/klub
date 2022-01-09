@@ -500,7 +500,7 @@ class EventViewMixin:
 
 class ResultsSetPagination(rest_framework.pagination.PageNumberPagination):
     page_size = 10
-    page_size_query_param = 'page_size'
+    page_size_query_param = "page_size"
     max_page_size = 100
 
 
@@ -517,7 +517,6 @@ class EventListView(EventViewMixin, generics.ListAPIView):
 
 class EventRetrieveView(EventViewMixin, generics.RetrieveAPIView):
     lookup_field = "id"
-
 
 
 class AdministrativeUnitView(generics.ListAPIView):

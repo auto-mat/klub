@@ -26,6 +26,7 @@ class LocationSet(viewsets.ModelViewSet):
 
 def test_location_set(superuser1_api_request):
     from rest_framework.reverse import reverse
+
     url = reverse("frontend_locations-list")
     result = superuser1_api_request.get(url)
     assert result.json() == []
@@ -33,6 +34,7 @@ def test_location_set(superuser1_api_request):
 
 def test_location_set1(superuser1_api_request, location_1):
     from rest_framework.reverse import reverse
+
     url = reverse("frontend_locations-list")
     result = superuser1_api_request.get(url)
     assert result.json() == [
@@ -49,6 +51,7 @@ def test_location_set1(superuser1_api_request, location_1):
 
 def test_location_set_anon(anon_api_request):
     from rest_framework.reverse import reverse
+
     url = reverse("frontend_locations-list")
     result = anon_api_request.get(url)
-    assert result.json() == {'detail': 'Nebyly zadány přihlašovací údaje.'}
+    assert result.json() == {"detail": "Nebyly zadány přihlašovací údaje."}
