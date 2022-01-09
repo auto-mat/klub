@@ -488,8 +488,6 @@ class UserProfileInteractionView(generics.CreateAPIView):
 
 class EventViewMixin:
     serializer_class = EventSerializer
-    permission_classes = [TokenHasReadWriteScope | IsAdminUser]
-    required_scopes = ["can_view_events"]
 
     def get_queryset(self):
         return (
@@ -527,7 +525,6 @@ class AdministrativeUnitView(generics.ListAPIView):
     """
 
     serializer_class = AdministrativeUnitSerializer
-    permission_classes = [TokenHasReadWriteScope | IsAuthenticated]
     required_scopes = ["can_view_administrative_units"]
 
     def get_queryset(self):
