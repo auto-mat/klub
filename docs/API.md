@@ -3,7 +3,7 @@ Using the API
 
 Klub přatel provides a REST api using [django-rest-framework](https://www.django-rest-framework.org/). Django rest framework makes it easy to expose Django models to the outside world. Models are exposed using views that list objects. These lists use pagination.
 
-There are also some views that do not corespond directly to models.
+There are also some views that do not correspond directly to models.
 
 You can find swagger docs here:
 
@@ -113,6 +113,11 @@ There are various levels of permissions that users can have in the front end:
  - Can create update Events in their Administrative Units
 3. Superusers
  - Can create and update events globally
+ - Access all other endpoints: see the [Swagger docs](https://test.klub-pratel.cz/api/docs/)
+ 
+ 
+Who am I?
+-----------
 
 Once you are logged in you can find out what kind of user you are with the
 
@@ -124,7 +129,6 @@ Administrative Units
 -------------------------
 
 Administrative units can be viewed at the endpoint `/api/bronto/administrative_unit/`
-
 
 
 Payments
@@ -149,10 +153,5 @@ TODO
 
 Interactions
 ---------------
-
-TODO
-
-Administrative Units
-------------------------
 
 TODO
