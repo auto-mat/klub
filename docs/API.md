@@ -103,14 +103,18 @@ Finding out about the current user
 
 There are various levels of permissions that users can have in the front end:
 
-1. Ordinary user:
- - Can view all events
- - Can find out which events they signed up
- - Can update events that they have organized
- - Can list their own interactions
+0. Anonymous User
  - Can see the structure of the organization: Administrative Units
-2. Event organizers and Staff
+ - Can view all events
+1. Ordinary user:
+ - Can find out which events they signed up: TODO
+ - Can update events that they have organized: TODO
+ - Can list their own interactions: TODO
+ - Can express interest in an event
+2. Event organizers and Staff: TODO
  - Can create update Events in their Administrative Units
+ - Can update events organizational team: TODO
+ - Can search for users by name/email: TODO
 3. Superusers
  - Can create and update events globally
  - Access all other endpoints: see the [Swagger docs](https://test.klub-pratel.cz/api/docs/)
