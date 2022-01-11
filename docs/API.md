@@ -156,6 +156,15 @@ Creating editing events:
 
 - endpoint `https://test.klub-pratel.cz/api/frontend/events/`
 
+Users can sign up to see the events they have signed up for and sign up for new ones by visiting the endpoint:
+
+`http://localhost:8000/api/frontend/my_events/`
+
+The field `type__slug`, refers to an interaction type which must be manually configured in the admin at the URL:
+
+
+`http://localhost:8000/interactions/interactiontype/`
+
 Event Types
 -------------
 
@@ -174,8 +183,3 @@ Locations
 - permissions GET, POST, DELETE
 
 - endpoint `https://test.klub-pratel.cz/api/frontend/location/`
-
-Interactions
----------------
-
-TODO

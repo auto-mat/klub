@@ -2,9 +2,11 @@ from rest_framework import routers
 from . import events_unit
 from . import locations_unit
 from . import event_type_unit
+from . import my_events_unit
 
 router = routers.DefaultRouter()
 router.register(r"events", events_unit.EventSet, basename="frontend_events")
+router.register(r"my_events", my_events_unit.MyEventsSet, basename="frontend_my_events")
 router.register(
     r"event-type", event_type_unit.EventTypeSet, basename="frontend_event-type"
 )

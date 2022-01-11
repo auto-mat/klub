@@ -13,6 +13,11 @@ from events.models import (
     OrganizationTeam,
 )
 
+from interactions.models import (
+    InteractionType,
+    InteractionCategory,
+)
+
 from oauth2_provider.models import AccessToken, Application
 
 import pytest
@@ -54,6 +59,27 @@ def administrative_unit_2():
     )
     yield au
     au.delete()
+
+
+@pytest.fixture(scope="function")
+def interaction_category_1():
+    ic = InteractionCategory.objects.create(
+        category="category_1",
+        display=True,
+    )
+    yield ic
+    ic.delete()
+
+
+@pytest.fixture(scope="function")
+def interaction_type_1(interaction_category_1):
+    it = InteractionType.objects.create(
+        name="Interaction type",
+        slug="interaction-type-slug",
+        category=interaction_category_1,
+    )
+    yield it
+    it.delete()
 
 
 @pytest.fixture(scope="function")
@@ -107,6 +133,21 @@ def userprofile_superuser_1(administrative_unit_1):
 
 
 @pytest.fixture(scope="function")
+def userprofile_1(administrative_unit_1):
+    user = UserProfile.objects.create(
+        username="user",
+        first_name="user_first",
+        last_name="user_last",
+        nickname="user_nickname",
+        is_staff=False,
+        is_superuser=False,
+    )
+    user.administrated_units.add(administrative_unit_1)
+    yield user
+    user.delete()
+
+
+@pytest.fixture(scope="function")
 def application_api_access():
     app = Application.objects.create(
         name="Test Application",
@@ -141,6 +182,13 @@ def anon_api_request():
 def superuser1_api_request(userprofile_superuser_1):
     client = APIClient()
     client.force_authenticate(user=userprofile_superuser_1)
+    yield client
+
+
+@pytest.fixture(scope="function")
+def user1_api_request(userprofile_1):
+    client = APIClient()
+    client.force_authenticate(user=userprofile_1)
     yield client
 
 
