@@ -2590,6 +2590,13 @@ class TaxConfirmationPdf(PdfSandwichABC):
         on_delete=models.CASCADE,
     )
 
+    def get_email(self):
+        return self.obj.user_profile.email
+
+    def get_language(self):
+        return self.obj.user_profile.language
+
+
 
 def confirmation_upload_to(instance, filename):
     return "DEPRICATED"

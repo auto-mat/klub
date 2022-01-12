@@ -83,6 +83,7 @@ from related_admin import RelatedFieldAdmin
 
 import requests
 
+from smmapdfs.admin_abcs import PdfSandwichAdmin
 from smmapdfs.actions import make_pdfsandwich
 
 
@@ -137,6 +138,7 @@ from aklub.models import (
     Recruiter,
     Source,
     TaxConfirmation,
+    TaxConfirmationPdf,
     Telephone,
     UserBankAccount,
     UserProfile,
@@ -2196,6 +2198,11 @@ class TaxConfirmationAdmin(
                 return "-"
 
     get_name.short_description = _("Name")
+
+
+@admin.register(TaxConfirmationPdf)
+class TaxConfirmationPdfAdmin(PdfSandwichAdmin):
+    pass
 
 
 @admin.register(AdministrativeUnit)
