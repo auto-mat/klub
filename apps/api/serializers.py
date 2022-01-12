@@ -436,6 +436,7 @@ class EventSerializer(serializers.ModelSerializer):
             "contact_person_telephone",
             "public_on_web_date_from",
             "public_on_web_date_to",
+            "public_on_web",
         ]
 
     def get_administrative_unit_name(self, obj):
