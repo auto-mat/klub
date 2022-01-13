@@ -2597,7 +2597,6 @@ class TaxConfirmationPdf(PdfSandwichABC):
         return self.obj.user_profile.language
 
 
-
 def confirmation_upload_to(instance, filename):
     return "DEPRICATED"
 
