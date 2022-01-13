@@ -21,11 +21,12 @@ def who_am_i(request):
             "is_staff": up.is_staff,
             "is_superuser": up.is_superuser,
             "is_event_organizer": up.has_perm("add_event"),
+            "id": up.pk,
         }
     )
 
 
-def test_whoami_admin(superuser1_api_request):
+def test_whoami_admin(superuser1_api_request, userprofile_superuser_1):
     from rest_framework.reverse import reverse
 
     url = reverse("frontend_whoami")
@@ -37,6 +38,7 @@ def test_whoami_admin(superuser1_api_request):
         "is_staff": True,
         "is_superuser": True,
         "is_event_organizer": True,
+        "id": userprofile_superuser_1.pk,
     }
     result = superuser1_api_request.post(
         url,
@@ -56,6 +58,7 @@ def test_whoami_admin(superuser1_api_request):
         "is_staff": True,
         "is_superuser": True,
         "is_event_organizer": True,
+        "id": userprofile_superuser_1.pk,
     }
     # Test partial update as well
     result = superuser1_api_request.post(
@@ -72,6 +75,7 @@ def test_whoami_admin(superuser1_api_request):
         "is_staff": True,
         "is_superuser": True,
         "is_event_organizer": True,
+        "id": userprofile_superuser_1.pk,
     }
 
 
