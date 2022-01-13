@@ -9,11 +9,11 @@ class TestAdministrativeUnitViewFilters:
         url = reverse("event")
         response = app_request.get(url)
         assert response.status_code == 200
-        assert len(response.json()) == 2
+        assert len(response.json()["results"]) == 2
 
         # with administrative_unit_
         url = reverse("event") + f"?administrative_unit={administrative_unit_1.id}"
         response = app_request.get(url)
-        assert len(response.json()) == 1
+        assert len(response.json()["results"]) == 1
         assert response.status_code == 200
-        assert response.json()[0]["id"] == event_1.id
+        assert response.json()["results"][0]["id"] == event_1.id

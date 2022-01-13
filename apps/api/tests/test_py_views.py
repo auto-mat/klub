@@ -119,8 +119,8 @@ class TestEventView:
         url = reverse("event")
         response = app_request.get(url)
         assert response.status_code == 200
-        assert len(response.json()) == 1
-        data = response.json()[0]
+        assert len(response.json()["results"]) == 1
+        data = response.json()["results"][0]
         self._assert_data(
             data,
             event_1,
