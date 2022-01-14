@@ -2,6 +2,7 @@ import os.path
 
 from aklub.models import AdministrativeUnit, Profile
 from aklub.utils import WithAdminUrl
+from events.models import Event
 
 from autoslug import AutoSlugField
 
@@ -232,6 +233,41 @@ class Interaction(WithAdminUrl, BaseInteraction2):
         default=False,
         blank=True,
         null=True,
+    )
+    skills = models.TextField(
+        verbose_name=_('Skills'),
+        default=False,
+        blank=True,
+        null=True,
+    )
+    answer_to_additional_question_1 = models.TextField(
+        verbose_name=_('Answer to additional question 1'),
+        default=False,
+        blank=True,
+        null=True,
+    )
+    answer_to_additional_question_2 = models.TextField(
+        verbose_name=_('Answer to additional question 2'),
+        default=False,
+        blank=True,
+        null=True,
+    )
+    answer_to_additional_question_3 = models.TextField(
+        verbose_name=_('Answer to additional question 3'),
+        default=False,
+        blank=True,
+        null=True,
+    )
+    answer_to_additional_question_4 = models.TextField(
+        verbose_name=_('Answer to additional question 4'),
+        default=False,
+        blank=True,
+        null=True,
+    )
+    program_of_interest = models.ManyToManyField(
+        to=Event,
+        verbose_name=_('Program of interest'),
+        related_name="programs_of_interest"
     )
 
     def __str__(self):
