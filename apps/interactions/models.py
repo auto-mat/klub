@@ -235,39 +235,39 @@ class Interaction(WithAdminUrl, BaseInteraction2):
         null=True,
     )
     skills = models.TextField(
-        verbose_name=_('Skills'),
+        verbose_name=_("Skills"),
         default=False,
         blank=True,
         null=True,
     )
     answer_to_additional_question_1 = models.TextField(
-        verbose_name=_('Answer to additional question 1'),
+        verbose_name=_("Answer to additional question 1"),
         default=False,
         blank=True,
         null=True,
     )
     answer_to_additional_question_2 = models.TextField(
-        verbose_name=_('Answer to additional question 2'),
+        verbose_name=_("Answer to additional question 2"),
         default=False,
         blank=True,
         null=True,
     )
     answer_to_additional_question_3 = models.TextField(
-        verbose_name=_('Answer to additional question 3'),
+        verbose_name=_("Answer to additional question 3"),
         default=False,
         blank=True,
         null=True,
     )
     answer_to_additional_question_4 = models.TextField(
-        verbose_name=_('Answer to additional question 4'),
+        verbose_name=_("Answer to additional question 4"),
         default=False,
         blank=True,
         null=True,
     )
     program_of_interest = models.ManyToManyField(
         to=Event,
-        verbose_name=_('Program of interest'),
-        related_name="programs_of_interest"
+        verbose_name=_("Program of interest"),
+        related_name="programs_of_interest",
     )
 
     def __str__(self):

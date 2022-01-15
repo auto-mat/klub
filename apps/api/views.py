@@ -409,8 +409,12 @@ class UserProfileInteractionView(generics.CreateAPIView):
 
     interaction_types = {
         "participant": ["Event registration"],
-        "volunteer": ["I want to organise an event", "I want to help the site", "I want to cooperate"],
-        "member": ["Membership in main group"]
+        "volunteer": [
+            "I want to organise an event",
+            "I want to help the site",
+            "I want to cooperate",
+        ],
+        "member": ["Membership in main group"],
     }
 
     def post(self, request, *args, **kwargs):
