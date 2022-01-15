@@ -148,7 +148,7 @@ Events
 
 The endpoint `https://test.klub-pratel.cz/api/bronto/event/` lists all events.
 
-Creating editing events:
+**Creating editing events (admins)**:
 
 - Admin only
 
@@ -156,14 +156,22 @@ Creating editing events:
 
 - endpoint `https://test.klub-pratel.cz/api/frontend/events/`
 
+**Editing events (direct organizers)**
+
+You can see and update events you are organizing at the endpoint
+
+`https://test.klub-pratel.cz/api/frontend/organized_events/`
+
+**Signing up for events (normal users)**
+
 Users can sign up to see the events they have signed up for and sign up for new ones by visiting the endpoint:
 
 `http://localhost:8000/api/frontend/my_events/`
 
 The field `type__slug`, refers to an interaction type which must be manually configured in the admin at the URL:
 
-
 `http://localhost:8000/interactions/interactiontype/`
+
 
 Event Types
 -------------

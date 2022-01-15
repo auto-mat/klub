@@ -226,6 +226,17 @@ def organization_team_1(userprofile_superuser_2, organization_position_1, event_
 
 
 @pytest.fixture(scope="function")
+def organization_team_2(userprofile_1, organization_position_1, event_2):
+    organization_team = OrganizationTeam.objects.create(
+        position=organization_position_1,
+        profile=userprofile_1,
+        event=event_2,
+    )
+    yield organization_team
+    organization_team.delete()
+
+
+@pytest.fixture(scope="function")
 def event_type_1(administrative_unit_1):
     event_type = EventType.objects.create(
         name="Event name",
