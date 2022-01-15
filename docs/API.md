@@ -109,10 +109,10 @@ There are various levels of permissions that users can have in the front end:
  - Can see the structure of the organization: Administrative Units
  - Can view all events
 1. Ordinary user:
- - Can find out which events they signed up: TODO
- - Can update events that they have organized: TODO
+ - Can find out which events they signed up: `https://test.klub-pratel.cz/api/frontend/my_events/`
+ - Can update events that they have organized: `https://test.klub-pratel.cz/api/frontend/organized_events/`
  - Can list their own interactions: TODO
- - Can express interest in an event
+ - Can express interest in an event:  `https://test.klub-pratel.cz/api/frontend/my_events/`
 2. Event organizers and Staff: TODO
  - Can create update Events in their Administrative Units
  - Can update events organizational team: TODO
