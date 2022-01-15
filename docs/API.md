@@ -203,3 +203,7 @@ Searching for Users
 - endpoint `https://test.klub-pratel.cz/api/frontend/users/?q=<username>`
 
 The `q` query param is optional.
+
+You can get a user by ID with urls of the form:
+
+`https://test.klub-pratel.cz/api/frontend/users/<id>/`
