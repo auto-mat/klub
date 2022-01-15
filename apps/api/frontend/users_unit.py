@@ -6,9 +6,7 @@ from rest_framework import viewsets, serializers, permissions
 class TelephoneSerializer(serializers.ModelSerializer):
     class Meta:
         model = Telephone
-        fields = (
-            "telephone",
-        )
+        fields = ("telephone",)
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -26,6 +24,7 @@ class UserSerializer(serializers.ModelSerializer):
             "birth_day",
             "email",
             "telephone_set",
+            "city",
         )
 
 
@@ -70,6 +69,7 @@ def test_user_set(
             "last_name": "admin_2",
             "nickname": "",
             "telephone_set": [],
+            "city": "",
         },
         {
             "age_group": None,
@@ -81,6 +81,7 @@ def test_user_set(
             "last_name": "admin_last",
             "nickname": "admin_nickname",
             "telephone_set": [],
+            "city": "",
         },
     ]
 
@@ -96,6 +97,7 @@ def test_user_set(
             "last_name": "admin_last",
             "nickname": "admin_nickname",
             "telephone_set": [],
+            "city": "",
         },
     ]
     result = superuser1_api_request.get(url + "?q=admin_first admin_last")
@@ -110,6 +112,7 @@ def test_user_set(
             "last_name": "admin_last",
             "nickname": "admin_nickname",
             "telephone_set": [],
+            "city": "",
         },
     ]
 
@@ -138,6 +141,7 @@ def test_user_set1(
                 "last_name": "admin_2",
                 "nickname": "",
                 "telephone_set": [{"telephone": "655455564"}],
+                "city": "",
             },
             {
                 "age_group": None,
@@ -149,6 +153,7 @@ def test_user_set1(
                 "last_name": "admin_last",
                 "nickname": "admin_nickname",
                 "telephone_set": [],
+                "city": "",
             },
             {
                 "age_group": None,
@@ -160,6 +165,7 @@ def test_user_set1(
                 "last_name": "user_last",
                 "nickname": "user_nickname",
                 "telephone_set": [],
+                "city": "Prague",
             },
         ],
         key=lambda v: v["id"],
@@ -177,6 +183,7 @@ def test_user_set1(
             "id": userprofile_superuser_2.pk,
             "last_name": "admin_2",
             "nickname": "",
+            "city": "",
             "telephone_set": [{"telephone": "655455564"}],
         }
     ]

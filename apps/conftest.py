@@ -139,6 +139,7 @@ def userprofile_1(administrative_unit_1):
         first_name="user_first",
         last_name="user_last",
         nickname="user_nickname",
+        city="Prague",
         is_staff=False,
         is_superuser=False,
     )
