@@ -1,6 +1,7 @@
 from rest_framework import routers
 from . import events_unit
 from . import locations_unit
+from . import users_unit
 from . import event_type_unit
 from . import my_events_unit
 from . import organized_events_unit
@@ -17,3 +18,4 @@ router.register(
     r"event-type", event_type_unit.EventTypeSet, basename="frontend_event-type"
 )
 router.register(r"locations", locations_unit.LocationSet, basename="frontend_locations")
+router.register(r"users", users_unit.UserSet, basename="frontend_users")

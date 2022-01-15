@@ -191,3 +191,15 @@ Locations
 - permissions GET, POST, DELETE
 
 - endpoint `https://test.klub-pratel.cz/api/frontend/location/`
+
+
+Searching for Users
+-----------------------
+
+- Admin only
+
+- permissions GET
+
+- endpoint `https://test.klub-pratel.cz/api/frontend/users/?q=<username>`
+
+The `q` query param is optional.
