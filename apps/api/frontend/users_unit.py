@@ -34,7 +34,7 @@ class UserSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.IsAdminUser]
 
     def get_queryset(self):
-        search = self.request.query_params.get("q", None)  # .split(" ")
+        search = self.request.query_params.get("q", None)
         q = UserProfile.objects.all()
         if search is not None:
             q = q.filter(
