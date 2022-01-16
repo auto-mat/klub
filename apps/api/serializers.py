@@ -370,7 +370,7 @@ class ResetPasswordbyEmailConfirmSerializer(serializers.Serializer):
             raise PasswordsDoNotMatch()
 
 
-class EventType(serializers.ModelSerializer):
+class EventTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = EventType
         fields = ["name", "slug"]
@@ -384,7 +384,7 @@ class LocationSerializer(serializers.ModelSerializer):
 
 class EventSerializer(serializers.ModelSerializer):
     location = LocationSerializer(read_only=True)
-    event_type = EventType(read_only=True)
+    event_type = EventTypeSerializer(read_only=True)
     administrative_unit_name = serializers.SerializerMethodField()
     administrative_unit_web_url = serializers.SerializerMethodField()
 
