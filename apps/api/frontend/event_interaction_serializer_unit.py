@@ -34,11 +34,9 @@ class EventInteractionSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "event",
-            "note",
-            "updated",
+            "summary" "updated",
             "created",
             "type__slug",
-            "note",
             "user",
         )
 

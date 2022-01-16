@@ -2,27 +2,27 @@ import datetime
 
 from api import views
 from interactions.models import Interaction, InteractionType
-from interactions.interaction_types import event_attendance_interaction_type, event_registration_interaction_type
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import permissions, serializers, viewsets
 
 from api.frontend.event_interaction_serializer_unit import (
     EventTypeDoesNotExist,
-    UserOwnedEventInteractionSerializer,
+    EventInteractionSerializer,
 )
 
 
-class MyEventsSet(viewsets.ModelViewSet):
-    serializer_class = UserOwnedEventInteractionSerializer
+class EventInteractionsSet(viewsets.ModelViewSet):
+    serializer_class = EventInteractionSerializer
 
     def get_queryset(self):
-        return Interaction.objects.filter(
-            user=self.request.user,
-            type__in=[event_attendance_interaction_type, event_registration_interaction_type],
-        )
+        event = self.request.query_params.get("event", None)
+        q = Interaction.objects.all()
+        if event is not None:
+            q = q.filter(event__pk=event)
+        return q
 
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAdminUser]
     pagination_class = views.ResultsSetPagination
 
 

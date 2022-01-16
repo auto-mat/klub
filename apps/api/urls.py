@@ -1,4 +1,4 @@
-from django.urls import include, path
+from django.urls import include, path, re_path
 from django.conf.urls import url
 
 from drf_yasg import openapi
@@ -27,8 +27,8 @@ schema_view = get_schema_view(
 
 
 urlpatterns_bronto = [
-    path(
-        "register_userprofile_interaction/",
+    re_path(
+        r"^register_userprofile_interaction/(?P<user_category>\boffer_help\b|\bevent_attendance\b|\bmembership\b){1}",
         views.UserProfileInteractionView.as_view(),
         name="userprofile_interaction",
     ),

@@ -98,6 +98,7 @@ class EventAdmin(unit_admin_mixin_generator("administrative_units"), admin.Model
     list_filter = [
         ("donorpaymentchannel__payment__date", filters.EventYieldDateRangeFilter),
         "grant",
+        ("diet", filters.MultiSelectFilter),
     ]
     readonly_fields = (
         "number_of_members",
@@ -259,7 +260,6 @@ class EventAdmin(unit_admin_mixin_generator("administrative_units"), admin.Model
                         "variable_symbol_prefix",
                         "total_working_days",
                         "working_hours",
-                        "diet",
                         "enable_signing_petitions",
                         "enable_registration",
                         "allow_statistics",
@@ -267,7 +267,6 @@ class EventAdmin(unit_admin_mixin_generator("administrative_units"), admin.Model
                         "number_of_recruiters",
                         "yield_total",
                         "real_yield",
-                        "total_expenses",
                         "expected_monthly_income",
                         "return_of_investmensts",
                         "average_yield",
@@ -279,7 +278,6 @@ class EventAdmin(unit_admin_mixin_generator("administrative_units"), admin.Model
                         "variable_symbol_prefix",
                         "total_working_days",
                         "working_hours",
-                        "diet",
                         "enable_signing_petitions",
                         "enable_registration",
                         "allow_statistics",
@@ -287,7 +285,6 @@ class EventAdmin(unit_admin_mixin_generator("administrative_units"), admin.Model
                         "number_of_recruiters",
                         "yield_total",
                         "real_yield",
-                        "total_expenses",
                         "expected_monthly_income",
                         "return_of_investmensts",
                         "average_yield",

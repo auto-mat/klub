@@ -20,12 +20,14 @@ from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.translation import ugettext_lazy as _
 
 from django_filters import rest_framework as filters
+from django.utils.text import slugify
 
 from drf_yasg.utils import swagger_auto_schema
 
 from events.models import Event, Location
 
 from interactions.models import Interaction, InteractionCategory, InteractionType
+from interactions.interaction_types import *
 
 from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope
 
@@ -407,6 +409,10 @@ class UserProfileInteractionView(generics.CreateAPIView):
     required_scopes = ["can_create_userprofile_interaction"]
 
     def post(self, request, *args, **kwargs):
+
+        # Get user category (participant, volunteer or member) from slug
+        interaction_category = get_interaction_category(kwargs.get("user_category"))
+
         serializer = self.serializer_class(data=self.request.data)
         serializer.is_valid(raise_exception=True)
         user, created = UserProfile.objects.get_or_create(
@@ -435,20 +441,6 @@ class UserProfileInteractionView(generics.CreateAPIView):
                 email=email, user=user, defaults={"is_primary": True}
             )
 
-        category, created = InteractionCategory.objects.get_or_create(
-            category=_("Event registration")
-        )
-        int_type, created = InteractionType.objects.get_or_create(
-            slug="event-registration",
-            category=category,
-            defaults={
-                "name": _("Event registration"),
-                "created_bool": True,
-                "event_bool": True,
-                "note_bool": True,
-                "summary_bool": True,
-            },
-        )
         # prepare not from fields:
         add_answer_1 = (
             f"{event.additional_question_1}:\n    {serializer.validated_data.get('additional_question_1', '-')}\n"
@@ -472,15 +464,27 @@ class UserProfileInteractionView(generics.CreateAPIView):
         )
         summary = f"{serializer.validated_data['note']}\n{add_answer_1}{add_answer_2}{add_answer_3}{add_answer_4}"
 
+        interaction_type, created = InteractionType.objects.get_or_create(
+            category=category,
+            defaults={
+                "name": _(interaction_type),
+                "created_bool": True,
+                "event_bool": True,
+                "note_bool": True,
+                "summary_bool": True,
+            },
+        )
+
         Interaction.objects.create(
             user=user,
-            type=int_type,
+            type=interaction_type,
             summary=_("note:") + "\n    " + summary,
             event=event,
             administrative_unit=event.administrative_units.first(),
             date_from=timezone.now(),
-            subject=_("Registration to event"),
+            subject=_(interaction_type.name),
         )
+
         return Response(
             self.serializer_class(serializer.validated_data).data,
             status=status.HTTP_200_OK,
