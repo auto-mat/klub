@@ -6,49 +6,14 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import permissions, serializers, viewsets
 
-
-class TypeDoesNotExist(serializers.ValidationError):
-    status_code = 405
-    default_detail = {"type__slug": "Interaction type does not exist"}
-
-
-class EventInteractionSerializer(serializers.ModelSerializer):
-    type__slug = serializers.CharField(source="type.slug")
-
-    def validate(self, data):
-        validated_data = super().validate(data)
-
-        validated_data["user"] = self.context["request"].user
-        try:
-            validated_data["type"] = InteractionType.objects.get(
-                slug=data["type"]["slug"]
-            )
-        except InteractionType.DoesNotExist:
-            raise TypeDoesNotExist
-
-        validated_data["administrative_unit"] = validated_data[
-            "event"
-        ].event_type.administrative_unit
-        validated_data["date_from"] = validated_data["event"].start_date
-        if validated_data["date_from"] is None:
-            validated_data["date_from"] = datetime.date.today()
-        return validated_data
-
-    class Meta:
-        model = Interaction
-        fields = (
-            "id",
-            "event",
-            "note",
-            "updated",
-            "created",
-            "type__slug",
-            "note",
-        )
+from api.frontend.event_interaction_serializer_unit import (
+    EventTypeDoesNotExist,
+    UserOwnedEventInteractionSerializer,
+)
 
 
 class MyEventsSet(viewsets.ModelViewSet):
-    serializer_class = EventInteractionSerializer
+    serializer_class = UserOwnedEventInteractionSerializer
 
     def get_queryset(self):
         return Interaction.objects.filter(user=self.request.user)
