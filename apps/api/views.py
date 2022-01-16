@@ -27,6 +27,7 @@ from drf_yasg.utils import swagger_auto_schema
 from events.models import Event, Location
 
 from interactions.models import Interaction, InteractionCategory, InteractionType
+from interactions.interaction_types import *
 
 from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope
 
@@ -407,23 +408,10 @@ class UserProfileInteractionView(generics.CreateAPIView):
     permission_classes = [TokenHasReadWriteScope | IsAdminUser]
     required_scopes = ["can_create_userprofile_interaction"]
 
-    interaction_types = {
-        "participant": ["Event registration"],
-        "volunteer": [
-            "I want to organise an event",
-            "I want to help the site",
-            "I want to cooperate",
-        ],
-        "member": ["Membership in main group"],
-    }
-
     def post(self, request, *args, **kwargs):
 
         # Get user category (participant, volunteer or member) from slug
-        user_category = kwargs.get("user_category")
-
-        # Get list of Interactions which should be created
-        create_interaction_list = self.interaction_types[user_category]
+        interaction_category = get_interaction_category(kwargs.get("user_category"))
 
         serializer = self.serializer_class(data=self.request.data)
         serializer.is_valid(raise_exception=True)
@@ -476,33 +464,26 @@ class UserProfileInteractionView(generics.CreateAPIView):
         )
         summary = f"{serializer.validated_data['note']}\n{add_answer_1}{add_answer_2}{add_answer_3}{add_answer_4}"
 
-        # Create InteractionCategory, InteractionType and Interaction for every
-        # user_category (participant, volunteer or member)
-        for interaction_type in create_interaction_list:
-            category, created = InteractionCategory.objects.get_or_create(
-                category=_(interaction_type)
-            )
-            int_type, created = InteractionType.objects.get_or_create(
-                slug=slugify(interaction_type),
-                category=category,
-                defaults={
-                    "name": _(interaction_type),
-                    "created_bool": True,
-                    "event_bool": True,
-                    "note_bool": True,
-                    "summary_bool": True,
-                },
-            )
+        interaction_type, created = InteractionType.objects.get_or_create(
+            category=category,
+            defaults={
+                "name": _(interaction_type),
+                "created_bool": True,
+                "event_bool": True,
+                "note_bool": True,
+                "summary_bool": True,
+            },
+        )
 
-            Interaction.objects.create(
-                user=user,
-                type=int_type,
-                summary=_("note:") + "\n    " + summary,
-                event=event,
-                administrative_unit=event.administrative_units.first(),
-                date_from=timezone.now(),
-                subject=_(interaction_type),
-            )
+        Interaction.objects.create(
+            user=user,
+            type=interaction_type,
+            summary=_("note:") + "\n    " + summary,
+            event=event,
+            administrative_unit=event.administrative_units.first(),
+            date_from=timezone.now(),
+            subject=_(interaction_type.name),
+        )
 
         return Response(
             self.serializer_class(serializer.validated_data).data,

@@ -3,6 +3,7 @@ from aklub.models import DonorPaymentChannel, Recruiter
 from autoslug import AutoSlugField
 
 from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
+from django.conf import settings
 from django.db import models
 from django.db.models import Sum
 from django.utils.translation import ugettext_lazy as _
@@ -95,20 +96,6 @@ class Event(models.Model):
         ("parents_and_children", _("Parents and children")),
         ("newcomers", _("Newcomers")),
     )
-    GRANT = (
-        ("no_grant", _("No Grant")),
-        ("MEYS", _("Ministry of Education, Youth and Sports")),
-        ("others", _("Others")),
-    )
-    PROGRAM = (
-        ("", ("---")),
-        ("education", _("Education")),
-        ("PsB", _("PsB")),
-        ("monuments", _("Monuments")),
-        ("nature", _("Nature")),
-        ("eco_consulting", _("Eco consulting")),
-        ("children_section ", _("Children's Section")),
-    )
     BASIC_PURPOSE = (
         ("action", _("Action")),
         ("action-with-attendee-list", _("Action with attendee list")),
@@ -126,7 +113,7 @@ class Event(models.Model):
     )
     DIET_CHOICES = (
         ("vegetarian", _("Vegetarian")),
-        ("non_vegetarian", _("Non-vegetarian")),
+        ("meat", _("Meat")),
         ("vegan", _("Vegan")),
         ("kosher", _("Kosher")),
         ("halal", _("Halal")),
@@ -235,7 +222,7 @@ class Event(models.Model):
     program = models.CharField(
         verbose_name=_("Program"),
         max_length=128,
-        choices=PROGRAM,
+        choices=settings.ORGANIZATION_FINANCE_PROGRAM_TYPES,
         default="",
         blank=True,
     )
@@ -277,7 +264,7 @@ class Event(models.Model):
     grant = models.CharField(
         verbose_name=_("Grant"),
         max_length=128,
-        choices=GRANT,
+        choices=settings.ORGANIZATION_FINANCE_GRANT_TYPES,
         default="no_grant",
     )
     focus_on_members = models.BooleanField(

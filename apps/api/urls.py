@@ -28,7 +28,7 @@ schema_view = get_schema_view(
 
 urlpatterns_bronto = [
     re_path(
-        r"^register_userprofile_interaction/(?P<user_category>\bparticipant\b|\bvolunteer\b|\bmember\b){1}",
+        r"^register_userprofile_interaction/(?P<user_category>\boffer_help\b|\bevent_attendance\b|\bmembership\b){1}",
         views.UserProfileInteractionView.as_view(),
         name="userprofile_interaction",
     ),

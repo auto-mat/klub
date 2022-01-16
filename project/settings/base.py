@@ -575,3 +575,11 @@ SPAGHETTI_SAUCE = {
     "show_fields": False,
     "exclude": {"aklub": ["administrativeunit"]},
 }
+
+ORGANIZATION_FINANCE_GRANT_TYPES = (("No grant", "No grant"), ("other", "Other grant"))
+
+ORGANIZATION_FINANCE_PROGRAM_TYPES = (
+    ("zmj", "Zažít město jinak"),
+    ("dpnk", "Do práce na Kole"),
+    ("lab", "LAB"),
+)

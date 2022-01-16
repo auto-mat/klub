@@ -23,6 +23,8 @@ from .models import (
     Result,
 )
 
+from events.filters import MultiSelectFilter
+
 
 @admin.register(InteractionType)
 class InteractionTypeAdmin(admin.ModelAdmin):
@@ -157,6 +159,7 @@ class InteractionAdmin(ImportExportMixin, RelatedFieldAdmin, admin.ModelAdmin):
         "user__userprofile__last_name",
         "user__companyprofile__name",
         "user__userprofile__profileemail__email",
+        "skills",
     ]
 
     # autocomplete_fields = ('user', 'event',)
@@ -164,6 +167,7 @@ class InteractionAdmin(ImportExportMixin, RelatedFieldAdmin, admin.ModelAdmin):
         "type__name",
         "date_from",
         "administrative_unit",
+        ("program_of_interest", MultiSelectFilter)
     )
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):

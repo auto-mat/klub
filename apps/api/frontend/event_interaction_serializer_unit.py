@@ -38,7 +38,7 @@ class EventInteractionSerializer(serializers.ModelSerializer):
             "updated",
             "created",
             "type__slug",
-            "note",
+            "summary",
             "user",
         )
 

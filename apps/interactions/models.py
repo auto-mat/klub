@@ -7,10 +7,12 @@ from events.models import Event
 from autoslug import AutoSlugField
 
 from django.core.mail import EmailMultiAlternatives
+from django.conf import settings
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 import html2text
+from multiselectfield import MultiSelectField
 
 
 class Result(models.Model):
@@ -53,6 +55,15 @@ class InteractionCategory(models.Model):
         verbose_name=_("Show on timeline"),
         default=True,
         help_text=_("Interactions under this category will show on timeline"),
+    )
+    slug = AutoSlugField(
+        verbose_name=_("Slug"),
+        editable=True,
+        populate_from="category",
+        help_text=_("Identifier of the Interaction Category"),
+        max_length=130,
+        blank=True,
+        null=True,
     )
 
     def __str__(self):
@@ -161,11 +172,9 @@ class Interaction(WithAdminUrl, BaseInteraction2):
         blank=True,
         null=True,
     )
-
     summary = models.TextField(
         verbose_name=("Text"),
         help_text=("Text or summary of this communication"),
-        max_length=50000,
         blank=True,
         default="",
     )
@@ -191,7 +200,6 @@ class Interaction(WithAdminUrl, BaseInteraction2):
         blank=True,
         null=True,
     )
-
     next_step = models.TextField(
         verbose_name=("Next steps"),
         help_text=("What happens next"),
@@ -236,38 +244,13 @@ class Interaction(WithAdminUrl, BaseInteraction2):
     )
     skills = models.TextField(
         verbose_name=_("Skills"),
-        default=False,
         blank=True,
-        null=True,
     )
-    answer_to_additional_question_1 = models.TextField(
-        verbose_name=_("Answer to additional question 1"),
-        default=False,
-        blank=True,
-        null=True,
-    )
-    answer_to_additional_question_2 = models.TextField(
-        verbose_name=_("Answer to additional question 2"),
-        default=False,
-        blank=True,
-        null=True,
-    )
-    answer_to_additional_question_3 = models.TextField(
-        verbose_name=_("Answer to additional question 3"),
-        default=False,
-        blank=True,
-        null=True,
-    )
-    answer_to_additional_question_4 = models.TextField(
-        verbose_name=_("Answer to additional question 4"),
-        default=False,
-        blank=True,
-        null=True,
-    )
-    program_of_interest = models.ManyToManyField(
-        to=Event,
+    program_of_interest = MultiSelectField(
         verbose_name=_("Program of interest"),
-        related_name="programs_of_interest",
+        choices=settings.ORGANIZATION_FINANCE_PROGRAM_TYPES,
+        blank=True,
+        max_length=600,
     )
 
     def __str__(self):

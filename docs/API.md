@@ -168,6 +168,8 @@ Users can sign up to see the events they have signed up for and sign up for new 
 
 `http://localhost:8000/api/frontend/my_events/`
 
+Note: Answers to additional questions should be put into the field `summary`.
+
 The field `type__slug`, refers to an interaction type which must be manually configured in the admin at the URL:
 
 `http://localhost:8000/interactions/interactiontype/`
