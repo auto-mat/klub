@@ -5,6 +5,7 @@ from rest_framework import viewsets, serializers, permissions
 class EventTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = EventType
+        ref_name = "full_event_type_serializer"
         fields = (
             "id",
             "name",

@@ -1,18 +1,6 @@
+from api.serializers import LocationSerializer
 from events.models import Location
 from rest_framework import viewsets, serializers, permissions
-
-
-class LocationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Location
-        fields = (
-            "id",
-            "name",
-            "place",
-            "region",
-            "gps_latitude",
-            "gps_longitude",
-        )
 
 
 class LocationSet(viewsets.ModelViewSet):

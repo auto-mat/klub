@@ -379,7 +379,7 @@ class EventTypeSerializer(serializers.ModelSerializer):
 class LocationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Location
-        fields = ["name", "place", "region", "gps_latitude", "gps_longitude"]
+        fields = ["id", "name", "place", "region", "gps_latitude", "gps_longitude"]
 
 
 class EventSerializer(serializers.ModelSerializer):
