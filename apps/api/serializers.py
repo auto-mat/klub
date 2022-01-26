@@ -414,6 +414,7 @@ class EventSerializer(serializers.ModelSerializer):
             "diet",
             "looking_forward_to_you",
             "registration_method",
+            "administrative_units",
             "administrative_unit_name",
             "administrative_unit_web_url",
             "invitation_text_1",
