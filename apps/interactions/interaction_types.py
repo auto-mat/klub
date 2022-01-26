@@ -1,4 +1,4 @@
-from .modules import InteractionType, InteractionCategory
+from .models import InteractionType, InteractionCategory
 
 
 def offer_help_interaction_category():
