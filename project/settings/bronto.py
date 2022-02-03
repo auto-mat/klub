@@ -13,5 +13,5 @@ ORGANIZATION_FINANCE_PROGRAM_TYPES = (
     ("monuments", _("Monuments")),
     ("nature", _("Nature")),
     ("eco_consulting", _("Eco consulting")),
-    ("children_section ", _("Children's Section")),
+    ("children_section", _("Children's Section")),
 )
