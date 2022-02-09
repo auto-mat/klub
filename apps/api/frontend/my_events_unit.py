@@ -2,13 +2,14 @@ import datetime
 
 from api import views
 from interactions.models import Interaction, InteractionType
-from interactions.interaction_types import event_attendance_interaction_type, event_registration_interaction_type
+from interactions.interaction_types import (
+    event_interaction_category,
+)
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import permissions, serializers, viewsets
 
 from api.frontend.event_interaction_serializer_unit import (
-    EventTypeDoesNotExist,
     UserOwnedEventInteractionSerializer,
 )
 
@@ -19,7 +20,7 @@ class MyEventsSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return Interaction.objects.filter(
             user=self.request.user,
-            type__in=[event_attendance_interaction_type, event_registration_interaction_type],
+            type__category=event_interaction_category(),
         )
 
     permission_classes = [permissions.IsAuthenticated]
@@ -52,14 +53,26 @@ def test_normal_user(user1_api_request, event_1, interaction_type_1):
             "type__slug": interaction_type_1.slug,
         },
     )
-    assert cresult.json() == {
-        "created": cresult.json()["created"],
-        "event": event_1.pk,
-        "id": cresult.json()["id"],
-        "note": "blah blah",
-        "type__slug": "interaction-type-slug",
-        "updated": cresult.json()["updated"],
-    }
+    assert cresult.status_code == 400
+    assert cresult.json() == {"type__slug": ["Not an event interaction type"]}
+    result = user1_api_request.get(url)
+    assert result.json() == {"count": 0, "next": None, "previous": None, "results": []}
+    from interactions.interaction_types import (
+        event_registration_interaction_type,
+    )
+
+    erit = event_registration_interaction_type()
+    cresult = user1_api_request.post(
+        url,
+        {
+            "event": event_1.pk,
+            "note": "blah blah",
+            "type__slug": erit.slug,
+        },
+    )
+    assert cresult.json()["event"] == event_1.pk
+    assert cresult.json()["note"] == "blah blah"
+    assert cresult.json()["type__slug"] == erit.slug
     result = user1_api_request.get(url)
     assert result.json() == {
         "count": 1,
@@ -71,7 +84,7 @@ def test_normal_user(user1_api_request, event_1, interaction_type_1):
                 "event": event_1.pk,
                 "id": cresult.json()["id"],
                 "note": "blah blah",
-                "type__slug": "interaction-type-slug",
+                "type__slug": "event_registration",
                 "updated": cresult.json()["updated"],
             }
         ],
