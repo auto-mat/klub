@@ -9,19 +9,21 @@ def offer_help_interaction_category():
     )
     return cat
 
-def event_attendance_interaction_category():
+
+def event_interaction_category():
     cat, _ = InteractionCategory.objects.get_or_create(
-        slug="event_attendance",
+        slug="event_interaction",
         display=True,
-        defaults = {"category": "Účast na akci"},
+        defaults={"category": "Účast na akci"},
     )
     return cat
+
 
 def event_registration_interaction_type():
     type, _ = InteractionType.objects.get_or_create(
         slug="event_registration",
-        category=event_attendance_interaction_category(),
-        defaults = {"name": "Registrace do akci"},
+        category=event_interaction_category(),
+        defaults={"name": "Registrace do akci"},
     )
     return type
 
@@ -29,16 +31,17 @@ def event_registration_interaction_type():
 def event_attendance_interaction_type():
     type, _ = InteractionType.objects.get_or_create(
         slug="event_attendance",
-        category=event_attendance_interaction_category(),
-        defaults = {"name": "Účast na akci"}
+        category=event_interaction_category(),
+        defaults={"name": "Účast na akci"},
     )
     return type
+
 
 def membership_interaction_category():
     cat, _ = InteractionCategory.objects.get_or_create(
         slug="membership",
         display=True,
-        defaults = {"category": "Členství"},
+        defaults={"category": "Členství"},
     )
     return cat
 
@@ -47,7 +50,7 @@ def get_interaction_category(slug):
     categories = {
         "membership": membership_interaction_category,
         "offer_help": offer_help_interaction_category,
-        "event_attendance": event_attendance_interaction_category,
+        "event_attendance": event_interaction_category,
     }
     if slug in categories:
         return categories[slug]()
