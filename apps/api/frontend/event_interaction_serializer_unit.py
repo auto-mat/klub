@@ -42,10 +42,12 @@ class EventInteractionSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "event",
-            "summary" "updated",
+            "summary",
+            "updated",
             "created",
             "type__slug",
             "user",
+            "note",
         )
 
 
@@ -59,7 +61,6 @@ class UserOwnedEventInteractionSerializer(EventInteractionSerializer):
             "updated",
             "created",
             "type__slug",
-            "note",
         )
 
     def validate(self, data):
