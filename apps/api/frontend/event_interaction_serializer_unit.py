@@ -48,6 +48,7 @@ class EventInteractionSerializer(serializers.ModelSerializer):
             "type__slug",
             "summary",
             "user",
+            "note",
         )
 
 
@@ -61,7 +62,6 @@ class UserOwnedEventInteractionSerializer(EventInteractionSerializer):
             "updated",
             "created",
             "type__slug",
-            "note",
         )
 
     def validate(self, data):
