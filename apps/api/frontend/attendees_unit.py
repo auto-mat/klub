@@ -80,5 +80,5 @@ def test_normal_user(superuser1_api_request, event_1, userprofile_1):
                 "summary": "",
                 "user": userprofile_1.pk,
             }
-        ]
+        ],
     }
