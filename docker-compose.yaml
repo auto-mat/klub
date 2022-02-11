@@ -1,7 +1,8 @@
 version: '2'
 services:
  web:
-  build: .
+  build:
+   context: .
   entrypoint: /bin/bash
   ports:
    - "8000:8000"
@@ -16,7 +17,8 @@ services:
    - ./:/klub-v/
    - ./venv:/home/test
  celery:
-  build: .
+  build:
+   context: .
   entrypoint: /klub-v/venv/bin/celery worker -A project.celery
   links:
    - postgres
@@ -29,7 +31,8 @@ services:
    - ./:/klub-v/
    - ./venv:/home/test
  celery-beat:
-  build: .
+  build:
+   context: .
   entrypoint: /klub-v/venv/bin/celery beat -A project.celery
   links:
    - postgres
@@ -42,7 +45,8 @@ services:
    - ./:/klub-v/
    - ./venv:/home/test
  flower:
-  build: .
+  build:
+   context: .
   entrypoint: ./launch_flower
   ports:
    - "5555:5555"
@@ -56,7 +60,6 @@ services:
   volumes:
    - ./:/klub-v/
    - ./venv:/home/test
-
  redis:
   image: redis
  postgres:

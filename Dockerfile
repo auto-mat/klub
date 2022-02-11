@@ -22,7 +22,8 @@ run apt-get update && apt-get install -y \
 run mkdir /home/aplikace -p
 WORKDIR "/home/aplikace"
 
-RUN useradd test
+ARG UID
+RUN useradd test --uid $UID
 RUN chsh test -s /bin/bash
 RUN mkdir /home/test ; chown test /home/test ; chgrp test /home/test
 RUN npm install -g bower
