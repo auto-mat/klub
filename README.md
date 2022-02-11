@@ -8,29 +8,20 @@ Documentation
 
 [Docs](./docs/index.md)
 
-Instalace
+Instalation
 ============
 
-Ke zprovoznění je zapotřebí následující
-
-* Virtualenv
-* Postgres 8.4 + postgis 1.5
-
-Vzorová lokální konfigurace je v `.env-sample`, stačí přejmenovat na `.env` a doplnit SECRET\_KEY.
-
-Instalace probíhá pomocí následujícíh příkazů:
-
-* sudo apt-get install libgraphviz-dev
-* virtualenv venv --activators bash,fish
-* source venv/bin/activate
-* pip3 install -r requirements.txt
-* python manage.py compilemessages -l "cs_CZ"
+Copy `.env-sample`, to `.env` and change the CHANGE_MEs.
 
 Instalace (Docker compose)
 ==========================
 
     $ docker-compose build
     $ docker-compose up
+
+There will be errors that celery cannot be found, ignore them.
+
+In a new terminal run
 
     $ docker attach klub_web_1
     $ virtualenv venv --activators bash,fish
@@ -39,24 +30,50 @@ Instalace (Docker compose)
     $ cd apps/aklub && django-admin.py compilemessages -l cs_CZ && cd ../../
     $ django-admin.py migrate
     $ django-admin.py createsuperuser2
-    # Set django Site object domain name
+
+Set django Site object domain name
+
     $ python manage.py shell
-    # 'localhost' if app will run on localhost
+
+'localhost' if app will run on localhost
+
     >>> from django.contrib.sites.models import Site
     >>> Site.objects.create(name='localhost', domain='localhost')
     >>> exit()
+    $ exit
 
-Spuštění
-============
 
-Pro testovací účely spustíte projekt pomocí následujícího příkazu:
+Running
+========
 
-`./develop.sh`
+For development use
 
-`python manage.py runserver 0.0.0.0:8000`
+    $ ./develop.sh
+
+To launch the dev environment. To launch the development web server run
+
+    python manage.py runserver 0.0.0.0:8000
+
+Other usefull commands are
+
+Run formatter
+
+    ./runblack.sh
+
+Run test suit
+
+    pytest apps
+
+Run other test suit
+
+    python3 manage.py test
+
+Run a single test
+
+    ./single-pytest.sh path/to/unit/file.py
 
 
 K8S
 ======
 
-[konfigurace najdete zde](https://github.com/auto-mat/k8s#adding-new-klub-p%C5%99atel-instances)
+[Configuration can be found here](https://github.com/auto-mat/k8s#adding-new-klub-p%C5%99atel-instances)
