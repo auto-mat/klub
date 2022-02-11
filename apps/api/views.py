@@ -105,27 +105,7 @@ class CreateDpchUserProfileView(generics.GenericAPIView):
         serializer = self.serializer_class(data=self.request.data)
         if serializer.is_valid(raise_exception=True):
             # check profile data
-            user, created = UserProfile.objects.get_or_create(
-                profileemail__email=serializer.validated_data.get("email"),
-            )
-            user.administrative_units.add(
-                serializer.validated_data.get("money_account").administrative_unit
-            )
-            if not user.first_name:
-                user.first_name = serializer.validated_data.get("first_name", "")
-            if not user.last_name:
-                user.last_name = serializer.validated_data.get("last_name", "")
-            if not user.street and not user.city and not user.zip_code:
-                user.street = serializer.validated_data.get("street", "")
-                user.city = serializer.validated_data.get("city", "")
-                user.zip_code = serializer.validated_data.get("zip_code", "")
-            if not user.age_group and not user.birth_month and not user.birth_day:
-                user.age_group = serializer.validated_data.get("age_group", None)
-                user.birth_month = serializer.validated_data.get("birth_month", None)
-                user.birth_day = serializer.validated_data.get("birth_day", None)
-            if user.sex == "unknown":
-                user.sex = serializer.validated_data.get("sex", "unknown")
-            user.save()
+            user, created = serializer.get_or_create_user_profile()
 
             if created:
                 ProfileEmail.objects.create(

@@ -59,8 +59,129 @@ class VSReturnSerializer(serializers.ModelSerializer):
         ]
 
 
-class GetDpchUserProfileSerializer(
+class CreateUserProfileSerializer(
     serializers.ModelSerializer, ValidateEmailMixin, RelatedFieldsMixin
+):
+    """
+    Creating legal userprofile with dpch (and also with access to IsAuthenticated views)
+    """
+
+    password = serializers.CharField(
+        write_only=True, required=False, validators=[validate_password]
+    )
+    email = serializers.EmailField(
+        validators=[UniqueValidator(queryset=ProfileEmail.objects.all())]
+    )
+    userchannels = DonorPaymentChannelNestedSerializer(many=True)
+
+    class Meta:
+        model = UserProfile
+        fields = [
+            "username",
+            "password",
+            "first_name",
+            "last_name",
+            "telephone",
+            "email",
+            "password",
+            "userchannels",
+        ]
+        extra_kwargs = {
+            "email": {"required": True},
+        }
+
+    def create(self, validated_data):
+        dpch_data = validated_data.pop("userchannels")[0]
+        telephone = validated_data.pop("telephone", None)
+
+        user = UserProfile.objects.create(
+            **validated_data,
+        )
+        user.administrative_units.add(dpch_data["money_account"].administrative_unit),
+        if validated_data.get("password"):
+            user.set_password(validated_data.get("password"))
+        user.save()
+
+        ProfileEmail.objects.create(
+            email=validated_data["email"], user=user, is_primary=True
+        )
+
+        if telephone:
+            Telephone.objects.create(telephone=telephone, user=user, is_primary=True)
+
+        DonorPaymentChannel.objects.create(
+            **dpch_data, user=user, expected_date_of_first_payment=timezone.now()
+        )
+        return user
+
+
+class GetOrCreateUserprofileMixin:
+    def get_or_create_user_profile(self):
+        vd = self.validated_data
+        user, created = UserProfile.objects.get_or_create(
+            profileemail__email=vd.get("email"),
+            defaults={
+                "first_name": vd.get("first_name"),
+                "last_name": vd.get("last_name"),
+                "age_group": vd.get("age_group"),
+                "birth_month": vd.get("birth_month"),
+                "birth_day": vd.get("birth_day"),
+                "street": vd.get("street"),
+                "city": vd.get("city"),
+                "zip_code": vd.get("zip_code"),
+                "sex": vd.get("sex"),
+            },
+        )
+        if user.sex == "unknown":
+            user.sex = vd.get("sex", "unknown")
+            user.save()
+        return user, created
+
+
+class CreateUserProfileInteractionSerializer(
+    GetOrCreateUserprofileMixin,
+    serializers.ModelSerializer,
+    ValidateEmailMixin,
+    RelatedFieldsMixin,
+):
+    additional_question_1 = serializers.CharField(required=False, allow_blank=True)
+    additional_question_2 = serializers.CharField(required=False, allow_blank=True)
+    additional_question_3 = serializers.CharField(required=False, allow_blank=True)
+    additional_question_4 = serializers.CharField(required=False, allow_blank=True)
+    event = serializers.SlugRelatedField(
+        queryset=Event.objects.filter(slug__isnull=False), slug_field="id"
+    )
+
+    class Meta:
+        model = UserProfile
+        fields = (
+            "first_name",
+            "last_name",
+            "telephone",
+            "email",
+            "note",
+            "age_group",
+            "birth_month",
+            "birth_day",
+            "street",
+            "city",
+            "zip_code",
+            "event",
+            "additional_question_1",
+            "additional_question_2",
+            "additional_question_3",
+            "additional_question_4",
+        )
+        extra_kwargs = {
+            "email": {"required": True},
+        }
+
+
+class GetDpchUserProfileSerializer(
+    GetOrCreateUserprofileMixin,
+    serializers.ModelSerializer,
+    ValidateEmailMixin,
+    RelatedFieldsMixin,
 ):
     """
     Creating legal userprofile with dpch without access to IsAuthentication views
@@ -90,6 +211,14 @@ class GetDpchUserProfileSerializer(
             "last_name": {"required": True},
             "email": {"required": True},
         }
+
+    def get_or_create_user_profile(self):
+        user, created = super().get_or_create_user_profile()
+        user.administrative_units.add(
+            self.validated_data.get("money_account").administrative_unit
+        )
+        user.save()
+        return user, created
 
 
 class GetDpchCompanyProfileSerializer(
@@ -261,98 +390,6 @@ class DonorPaymentChannelNestedSerializer(serializers.ModelSerializer):
             "VS": {"read_only": True},
         }
         depth = 1
-
-
-class CreateUserProfileInteractionSerializer(
-    serializers.ModelSerializer, ValidateEmailMixin, RelatedFieldsMixin
-):
-    additional_question_1 = serializers.CharField(required=False, allow_blank=True)
-    additional_question_2 = serializers.CharField(required=False, allow_blank=True)
-    additional_question_3 = serializers.CharField(required=False, allow_blank=True)
-    additional_question_4 = serializers.CharField(required=False, allow_blank=True)
-    event = serializers.SlugRelatedField(
-        queryset=Event.objects.filter(slug__isnull=False), slug_field="id"
-    )
-
-    class Meta:
-        model = UserProfile
-        fields = (
-            "first_name",
-            "last_name",
-            "telephone",
-            "email",
-            "note",
-            "age_group",
-            "birth_month",
-            "birth_day",
-            "street",
-            "city",
-            "zip_code",
-            "event",
-            "additional_question_1",
-            "additional_question_2",
-            "additional_question_3",
-            "additional_question_4",
-        )
-        extra_kwargs = {
-            "email": {"required": True},
-        }
-
-
-class CreateUserProfileSerializer(
-    serializers.ModelSerializer, ValidateEmailMixin, RelatedFieldsMixin
-):
-    """
-    Creating legal userprofile with dpch (and also with access to IsAuthenticated views)
-    """
-
-    password = serializers.CharField(
-        write_only=True, required=False, validators=[validate_password]
-    )
-    email = serializers.EmailField(
-        validators=[UniqueValidator(queryset=ProfileEmail.objects.all())]
-    )
-    userchannels = DonorPaymentChannelNestedSerializer(many=True)
-
-    class Meta:
-        model = UserProfile
-        fields = [
-            "username",
-            "password",
-            "first_name",
-            "last_name",
-            "telephone",
-            "email",
-            "password",
-            "userchannels",
-        ]
-        extra_kwargs = {
-            "email": {"required": True},
-        }
-
-    def create(self, validated_data):
-        dpch_data = validated_data.pop("userchannels")[0]
-        telephone = validated_data.pop("telephone", None)
-
-        user = UserProfile.objects.create(
-            **validated_data,
-        )
-        user.administrative_units.add(dpch_data["money_account"].administrative_unit),
-        if validated_data.get("password"):
-            user.set_password(validated_data.get("password"))
-        user.save()
-
-        ProfileEmail.objects.create(
-            email=validated_data["email"], user=user, is_primary=True
-        )
-
-        if telephone:
-            Telephone.objects.create(telephone=telephone, user=user, is_primary=True)
-
-        DonorPaymentChannel.objects.create(
-            **dpch_data, user=user, expected_date_of_first_payment=timezone.now()
-        )
-        return user
 
 
 class ResetPasswordbyEmailSerializer(serializers.Serializer, ValidateEmailMixin):
