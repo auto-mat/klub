@@ -13,6 +13,9 @@ from rest_framework_simplejwt.views import (
 
 from apps.api import frontend
 from apps.api.frontend import whoami_unit
+from apps.api.frontend.create_userprofile_interaction_unit import (
+    UserProfileInteractionView,
+)
 
 from . import views
 
@@ -29,7 +32,7 @@ schema_view = get_schema_view(
 urlpatterns_bronto = [
     re_path(
         r"^register_userprofile_interaction/(?P<user_category>\boffer_help\b|\bevent_attendance\b|\bmembership\b){1}",
-        views.UserProfileInteractionView.as_view(),
+        UserProfileInteractionView.as_view(),
         name="userprofile_interaction",
     ),
     path("event/", views.EventListView.as_view(), name="event"),
