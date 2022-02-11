@@ -167,7 +167,7 @@ class InteractionAdmin(ImportExportMixin, RelatedFieldAdmin, admin.ModelAdmin):
         "type__name",
         "date_from",
         "administrative_unit",
-        ("program_of_interest", MultiSelectFilter)
+        ("program_of_interest", MultiSelectFilter),
     )
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):

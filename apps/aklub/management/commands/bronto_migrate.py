@@ -16,7 +16,10 @@ from events.models import (
     OrganizationTeam,
 )
 from interactions.models import InteractionType, Interaction
-from interactions.interaction_types import event_attendance_interaction_type, membership_interaction_category
+from interactions.interaction_types import (
+    event_attendance_interaction_type,
+    membership_interaction_category,
+)
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission
 from django.core.management.base import BaseCommand

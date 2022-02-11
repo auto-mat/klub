@@ -19,5 +19,5 @@ class EventYieldDateRangeFilter(DateRangeFilter):
 class MultiSelectFilter(admin.ChoicesFieldListFilter):
     def __init__(self, field, request, params, model, model_admin, field_path):
         super().__init__(field, request, params, model, model_admin, field_path)
-        self.lookup_kwarg = '%s__icontains' % field_path
+        self.lookup_kwarg = "%s__icontains" % field_path
         self.lookup_val = params.get(self.lookup_kwarg)
