@@ -59,6 +59,24 @@ class VSReturnSerializer(serializers.ModelSerializer):
         ]
 
 
+class DonorPaymentChannelNestedSerializer(serializers.ModelSerializer):
+    money_account = serializers.SlugRelatedField(
+        queryset=MoneyAccount.objects.filter(slug__isnull=False), slug_field="slug"
+    )
+    event = serializers.SlugRelatedField(
+        queryset=Event.objects.filter(slug__isnull=False), slug_field="slug"
+    )
+
+    class Meta:
+        model = DonorPaymentChannel
+        fields = ["money_account", "event", "regular_amount", "regular_frequency", "VS"]
+        extra_kwargs = {
+            "regular_amount": {"required": True},
+            "VS": {"read_only": True},
+        }
+        depth = 1
+
+
 class CreateUserProfileSerializer(
     serializers.ModelSerializer, ValidateEmailMixin, RelatedFieldsMixin
 ):
@@ -372,24 +390,6 @@ class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = ["profile_id"]
-
-
-class DonorPaymentChannelNestedSerializer(serializers.ModelSerializer):
-    money_account = serializers.SlugRelatedField(
-        queryset=MoneyAccount.objects.filter(slug__isnull=False), slug_field="slug"
-    )
-    event = serializers.SlugRelatedField(
-        queryset=Event.objects.filter(slug__isnull=False), slug_field="slug"
-    )
-
-    class Meta:
-        model = DonorPaymentChannel
-        fields = ["money_account", "event", "regular_amount", "regular_frequency", "VS"]
-        extra_kwargs = {
-            "regular_amount": {"required": True},
-            "VS": {"read_only": True},
-        }
-        depth = 1
 
 
 class ResetPasswordbyEmailSerializer(serializers.Serializer, ValidateEmailMixin):
