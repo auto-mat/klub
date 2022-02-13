@@ -7,11 +7,7 @@ from interactions.interaction_types import *
 from ..serializers import CreateUserProfileInteractionSerializer
 
 
-class CreateUserProfileView(generics.CreateApiView):
-
-
-
-class UserProfileInteractionView(generics.CreateAPIView):
+class SignUpForEventView(generics.CreateAPIView):
     permission_classes = [TokenHasReadWriteScope | IsAdminUser]
     required_scopes = ["can_create_userprofile_interaction"]
 
@@ -19,7 +15,6 @@ class UserProfileInteractionView(generics.CreateAPIView):
         serializer = self.CreateUserProfileInteractionSerializer(data=self.request.data)
         serializer.is_valid(raise_exception=True)
         user, created = serializer.get_or_create_user_profile()
-
 
         # Get user category (participant, volunteer or member) from slug
         interaction_category = get_interaction_category(kwargs.get("user_category"))

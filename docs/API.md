@@ -216,3 +216,19 @@ The `q` query param is optional.
 You can get a user by ID with urls of the form:
 
 `https://test.klub-pratel.cz/api/frontend/users/<id>/`
+
+
+Signing up "unknown" users for events
+-----------------------------------------------
+
+ - Endpoint `/api/sign_up_for_event`
+
+Signing up "unknown" users as volunteers
+-----------------------------------------------
+
+ - Endpoint `/api/volunteer`
+
+Applying "unknown" users for membership
+-----------------------------------------------
+
+ - Endpoint `/api/apply_for_membership`
