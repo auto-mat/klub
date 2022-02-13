@@ -1,10 +1,42 @@
 from rest_framework import generics
 
+
+from aklub.models import UserProfile
+
 from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope
+from rest_framework import serializers
 from rest_framework.permissions import IsAdminUser
 
+from events.models import Event
+
 from interactions.interaction_types import *
-from ..serializers import CreateUserProfileInteractionSerializer
+from ..serializers import GetOrCreateUserprofile, get_or_create_user_profile_fields
+
+
+class ApplyForMembershipSerializer(
+    GetOrCreateUserprofile,
+):
+    additional_question_1 = serializers.CharField(required=False, allow_blank=True)
+    additional_question_2 = serializers.CharField(required=False, allow_blank=True)
+    additional_question_3 = serializers.CharField(required=False, allow_blank=True)
+    additional_question_4 = serializers.CharField(required=False, allow_blank=True)
+    skills = serializers.CharField(required=False, allow_blank=True)
+    event = serializers.SlugRelatedField(
+        required=True,
+        queryset=Event.objects.filter(slug__isnull=False),
+        slug_field="id",
+    )
+
+    class Meta:
+        model = UserProfile
+        fields = get_or_create_user_profile_fields + [
+            "event",
+            "skills",
+            "additional_question_1",
+            "additional_question_2",
+            "additional_question_3",
+            "additional_question_4",
+        ]
 
 
 class ApplyForMembershipView(generics.CreateAPIView):
@@ -12,63 +44,26 @@ class ApplyForMembershipView(generics.CreateAPIView):
     required_scopes = ["can_create_userprofile_interaction"]
 
     def post(self, request, *args, **kwargs):
-        serializer = self.CreateUserProfileInteractionSerializer(data=self.request.data)
+        serializer = self.ApplyForMembershipSerializer(data=self.request.data)
         serializer.is_valid(raise_exception=True)
         user, created = serializer.get_or_create_user_profile()
 
-        # Get user category (participant, volunteer or member) from slug
-        interaction_category = get_interaction_category(kwargs.get("user_category"))
-
         event = serializer.validated_data.get("event")
         user.administrative_units.add(event.administrative_units.first()),
-        telephone = serializer.validated_data.get("telephone")
-        if telephone:
-            Telephone.objects.get_or_create(
-                telephone=telephone, user=user, defaults={"is_primary": True}
-            )
-        email = serializer.validated_data.get("email")
-        if email:
-            ProfileEmail.objects.get_or_create(
-                email=email, user=user, defaults={"is_primary": True}
-            )
 
-        # prepare not from fields:
-        add_answer_1 = (
-            f"{event.additional_question_1}:\n    {serializer.validated_data.get('additional_question_1', '-')}\n"
-            if event.additional_question_1
-            else "-"
-        )
-        add_answer_2 = (
-            f"{event.additional_question_2}:\n    {serializer.validated_data.get('additional_question_2', '-')}\n"
-            if event.additional_question_2
-            else "-"
-        )
-        add_answer_3 = (
-            f"{event.additional_question_3}:\n    {serializer.validated_data.get('additional_question_3', '-')}\n"
-            if event.additional_question_3
-            else "-"
-        )
-        add_answer_4 = (
-            f"{event.additional_question_4}:\n    {serializer.validated_data.get('additional_question_4', '-')}\n"
-            if event.additional_question_4
-            else "-"
-        )
-        summary = f"{serializer.validated_data['note']}\n{add_answer_1}{add_answer_2}{add_answer_3}{add_answer_4}"
+        summary = f"{serializer.validated_data['note']}\n"
 
-        interaction_type, created = InteractionType.objects.get_or_create(
-            category=category,
-            defaults={
-                "name": _(interaction_type),
-                "created_bool": True,
-                "event_bool": True,
-                "note_bool": True,
-                "summary_bool": True,
-            },
-        )
+        for n in range(1, 5):
+            question = event.__getattribute__("additional_question_%d" % n)
+            if question:
+                answer = serializer.validated_data.get(
+                    "additional_question_%d" % n, "-"
+                )
+                summary += f"{question}:\n    {answer}\n"
 
         Interaction.objects.create(
             user=user,
-            type=interaction_type,
+            type=event_registration_interaction_type(),
             summary=_("note:") + "\n    " + summary,
             event=event,
             administrative_unit=event.administrative_units.first(),
@@ -82,10 +77,10 @@ class ApplyForMembershipView(generics.CreateAPIView):
         )
 
 
-def test_create_userprofile_interaction(event_1, app_request):
+def test_sign_up_for_event(event_1, app_request):
     from rest_framework.reverse import reverse
 
-    url = reverse("userprofile_interaction", "event_attendance")
+    url = reverse("unknown_user_sign_up_for_event")
 
     post_data = {
         "first_name": "John",

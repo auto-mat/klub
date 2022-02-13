@@ -45,7 +45,6 @@ from .exceptions import (
 from .filters import EventCustomFilter
 from .serializers import (
     AdministrativeUnitSerializer,
-    CreateUserProfileInteractionSerializer,
     CreateUserProfileSerializer,
     CreditCardPaymentSerializer,
     DonorPaymetChannelSerializer,

@@ -133,7 +133,26 @@ class CreateUserProfileSerializer(
         return user
 
 
-class GetOrCreateUserprofileMixin:
+get_or_create_user_profile_fields = [
+    "first_name",
+    "last_name",
+    "telephone",
+    "email",
+    "note",
+    "age_group",
+    "birth_month",
+    "birth_day",
+    "street",
+    "city",
+    "zip_code",
+]
+
+
+class GetOrCreateUserprofile(
+    ValidateEmailMixin,
+    RelatedFieldsMixin,
+    serializers.ModelSerializer,
+):
     def get_or_create_user_profile(self):
         vd = self.validated_data
         user, created = UserProfile.objects.get_or_create(
@@ -147,59 +166,32 @@ class GetOrCreateUserprofileMixin:
                 "street": vd.get("street"),
                 "city": vd.get("city"),
                 "zip_code": vd.get("zip_code"),
-                "sex": vd.get("sex"),
+                "sex": vd.get("sex", "unknown"),
             },
         )
         if user.sex == "unknown":
             user.sex = vd.get("sex", "unknown")
             user.save()
+
+        telephone = vd.get("telephone")
+        if telephone:
+            Telephone.objects.get_or_create(
+                telephone=telephone, user=user, defaults={"is_primary": True}
+            )
+        email = vd.get("email")
+        if email:
+            ProfileEmail.objects.get_or_create(
+                email=email, user=user, defaults={"is_primary": True}
+            )
         return user, created
-
-
-class CreateUserProfileInteractionSerializer(
-    GetOrCreateUserprofileMixin,
-    serializers.ModelSerializer,
-    ValidateEmailMixin,
-    RelatedFieldsMixin,
-):
-    additional_question_1 = serializers.CharField(required=False, allow_blank=True)
-    additional_question_2 = serializers.CharField(required=False, allow_blank=True)
-    additional_question_3 = serializers.CharField(required=False, allow_blank=True)
-    additional_question_4 = serializers.CharField(required=False, allow_blank=True)
-    event = serializers.SlugRelatedField(
-        queryset=Event.objects.filter(slug__isnull=False), slug_field="id"
-    )
 
     class Meta:
         model = UserProfile
-        fields = (
-            "first_name",
-            "last_name",
-            "telephone",
-            "email",
-            "note",
-            "age_group",
-            "birth_month",
-            "birth_day",
-            "street",
-            "city",
-            "zip_code",
-            "event",
-            "additional_question_1",
-            "additional_question_2",
-            "additional_question_3",
-            "additional_question_4",
-        )
-        extra_kwargs = {
-            "email": {"required": True},
-        }
+        fields = get_or_create_user_profile_fields
 
 
 class GetDpchUserProfileSerializer(
-    GetOrCreateUserprofileMixin,
-    serializers.ModelSerializer,
-    ValidateEmailMixin,
-    RelatedFieldsMixin,
+    GetOrCreateUserprofile,
 ):
     """
     Creating legal userprofile with dpch without access to IsAuthentication views
