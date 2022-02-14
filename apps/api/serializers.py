@@ -197,9 +197,12 @@ class GetOrCreateUserprofile(
         telephone = vd.get("telephone")
         if telephone:
             Telephone.objects.filter(user=user).update(is_primary=False)
-            Telephone.objects.get_or_create(
-                telephone=telephone, user=user, is_primary=True
+            no, created = Telephone.objects.get_or_create(
+                telephone=telephone, user=user
             )
+            if not no.is_primary:
+                no.is_primary = True
+                no.save()
 
         email = vd.get("email")
         if email:
