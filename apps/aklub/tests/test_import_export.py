@@ -13,6 +13,7 @@ from interactions.models import Interaction
 
 from model_mommy import mommy
 
+from .utils import print_response  # noqa
 from .recipes import generic_profile_recipe
 from .test_admin import CreateSuperUserMixin
 from aklub.models import (
