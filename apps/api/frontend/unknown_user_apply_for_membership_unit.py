@@ -1,13 +1,17 @@
 from rest_framework import generics
 
+from django.utils.translation import ugettext_lazy as _
+from django.utils import timezone
 
-from aklub.models import UserProfile
+from aklub.models import UserProfile, AdministrativeUnit
 
 from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope
 from rest_framework import serializers
 from rest_framework.permissions import IsAdminUser
+from rest_framework.response import Response
+from rest_framework import status
 
-from events.models import Event
+from interactions.models import Interaction
 
 from interactions.interaction_types import *
 from ..serializers import GetOrCreateUserprofile, get_or_create_user_profile_fields
@@ -16,26 +20,18 @@ from ..serializers import GetOrCreateUserprofile, get_or_create_user_profile_fie
 class ApplyForMembershipSerializer(
     GetOrCreateUserprofile,
 ):
-    additional_question_1 = serializers.CharField(required=False, allow_blank=True)
-    additional_question_2 = serializers.CharField(required=False, allow_blank=True)
-    additional_question_3 = serializers.CharField(required=False, allow_blank=True)
-    additional_question_4 = serializers.CharField(required=False, allow_blank=True)
-    skills = serializers.CharField(required=False, allow_blank=True)
-    event = serializers.SlugRelatedField(
+    administrative_unit = serializers.SlugRelatedField(
         required=True,
-        queryset=Event.objects.filter(slug__isnull=False),
+        queryset=AdministrativeUnit.objects.filter(),
         slug_field="id",
     )
+    skills = serializers.CharField(required=False, allow_blank=True)
 
     class Meta:
         model = UserProfile
         fields = get_or_create_user_profile_fields + [
-            "event",
+            "administrative_unit",
             "skills",
-            "additional_question_1",
-            "additional_question_2",
-            "additional_question_3",
-            "additional_question_4",
         ]
 
 
@@ -44,43 +40,33 @@ class ApplyForMembershipView(generics.CreateAPIView):
     required_scopes = ["can_create_userprofile_interaction"]
 
     def post(self, request, *args, **kwargs):
-        serializer = self.ApplyForMembershipSerializer(data=self.request.data)
+        serializer = ApplyForMembershipSerializer(data=self.request.data)
         serializer.is_valid(raise_exception=True)
         user, created = serializer.get_or_create_user_profile()
 
-        event = serializer.validated_data.get("event")
-        user.administrative_units.add(event.administrative_units.first()),
+        administrative_unit = serializer.validated_data.get("administrative_unit")
+        user.administrative_units.add(administrative_unit),
 
-        summary = f"{serializer.validated_data['note']}\n"
-
-        for n in range(1, 5):
-            question = event.__getattribute__("additional_question_%d" % n)
-            if question:
-                answer = serializer.validated_data.get(
-                    "additional_question_%d" % n, "-"
-                )
-                summary += f"{question}:\n    {answer}\n"
-
+        interaction_type = membership_application_interaction_type()
         Interaction.objects.create(
             user=user,
-            type=event_registration_interaction_type(),
-            summary=_("note:") + "\n    " + summary,
-            event=event,
-            administrative_unit=event.administrative_units.first(),
+            type=interaction_type,
+            administrative_unit=administrative_unit,
             date_from=timezone.now(),
-            subject=_(interaction_type.name),
+            subject=interaction_type.name,
         )
 
         return Response(
-            self.serializer_class(serializer.validated_data).data,
+            ApplyForMembershipSerializer(serializer.validated_data).data,
             status=status.HTTP_200_OK,
         )
 
 
-def test_sign_up_for_event(event_1, app_request):
+def test_apply_for_membership(administrative_unit_1, app_request):
     from rest_framework.reverse import reverse
+    from freezegun import freeze_time
 
-    url = reverse("unknown_user_sign_up_for_event")
+    url = reverse("unknown_user_apply_for_membership")
 
     post_data = {
         "first_name": "John",
@@ -94,11 +80,8 @@ def test_sign_up_for_event(event_1, app_request):
         "street": "Belmont Avenue 2414",
         "city": "New York",
         "zip_code": "10458",
-        "additional_question_1": "answer_1",
-        "additional_question_2": "answer_2",
-        "additional_question_3": "answer_3",
-        "additional_question_4": "answer_4",
-        "event": event_1.id,
+        "administrative_unit": administrative_unit_1.pk,
+        "skills": "cooking",
     }
     current_date = timezone.now()
     with freeze_time(current_date):
@@ -115,27 +98,16 @@ def test_sign_up_for_event(event_1, app_request):
     assert new_user.street == post_data["street"]
     assert new_user.city == post_data["city"]
     assert new_user.zip_code == post_data["zip_code"]
-    assert (
-        new_user.administrative_units.first()
-        == event_1.administrative_units.all().first()
-    )
+    assert new_user.administrative_units.first() == administrative_unit_1
 
     assert new_user.interaction_set.count() == 1
     interaction = new_user.interaction_set.first()
-    assert interaction.event == event_1
-    assert interaction.administrative_unit == event_1.administrative_units.first()
-    assert interaction.subject == _("Registration to event")
+    assert interaction.administrative_unit == administrative_unit_1
+    assert interaction.subject == "Žadost o Členství"
     assert interaction.date_from == current_date
-    assert (
-        interaction.summary
-        == "note:\n    iam alergic to bees\nhe_1?:\n    answer_1\nhe_2?:\n    answer_2\nhe_3?:\n    answer_3\nhe_4?:\n    answer_4\n"
-    )
 
     # second registration => user recognized and only new interaction is created!
-    post_data["additional_question_1"] = "new_answer_1"
-    post_data["additional_question_2"] = "new_answer_2"
-    post_data["additional_question_3"] = "new_answer_3"
-    post_data["additional_question_4"] = "new_answer_4"
+    post_data["skills"] = "drawing"
 
     response = app_request.post(url, post_data)
     assert response.status_code == 200

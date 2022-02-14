@@ -74,7 +74,7 @@ class SignUpForEventView(generics.CreateAPIView):
             event=event,
             administrative_unit=event.administrative_units.first(),
             date_from=timezone.now(),
-            subject=_(interaction_type.name),
+            subject=interaction_type.name,
         )
 
         return Response(

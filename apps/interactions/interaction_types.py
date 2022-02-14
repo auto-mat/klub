@@ -50,7 +50,7 @@ def membership_application_interaction_type():
     itype, _ = InteractionType.objects.get_or_create(
         slug="membership-application",
         category=membership_interaction_category(),
-        defaults={"category": "Žadost o Členství"},
+        defaults={"name": "Žadost o Členství"},
     )
     return itype
 
@@ -59,6 +59,6 @@ def membership_approval_interaction_type():
     itype, _ = InteractionType.objects.get_or_create(
         slug="membership-approval",
         category=membership_interaction_category(),
-        defaults={"category": "Přijetí Členství"},
+        defaults={"name": "Přijetí Členství"},
     )
     return itype
