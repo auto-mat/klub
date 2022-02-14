@@ -10,6 +10,15 @@ def volunteer_interaction_category():
     return cat
 
 
+def volunteer_interaction_type():
+    itype, _ = InteractionType.objects.get_or_create(
+        slug="volunteer",
+        category=volunteer_interaction_category(),
+        defaults={"name": "Nabídka o pomoci"},
+    )
+    return itype
+
+
 def event_interaction_category():
     cat, _ = InteractionCategory.objects.get_or_create(
         slug="event_interaction",
