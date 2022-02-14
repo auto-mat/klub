@@ -183,6 +183,12 @@ class GetOrCreateUserprofile(
             ProfileEmail.objects.get_or_create(
                 email=email, user=user, defaults={"is_primary": True}
             )
+
+        if vd.get("notes"):
+            if user.notes:
+                user.notes += "\n\n---\n\n"
+            user.notes += vd.get("notes")
+            user.save()
         return user, created
 
     class Meta:

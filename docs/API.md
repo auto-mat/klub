@@ -218,17 +218,59 @@ You can get a user by ID with urls of the form:
 `https://test.klub-pratel.cz/api/frontend/users/<id>/`
 
 
+"Unknown" user endpoints: Get or create user profile
+-------------------------------------------------------------------
+
+The following endpoints will add an intraction to an existing user profile or or create a new one.
+
+They all share the following fields:
+
+ - `first_name`
+ - `last_name`
+ - `telephone`
+ - `email`: required
+ - `note`
+ - `age_group`
+ - `birth_month`
+ - `birth_day`
+ - `street`
+ - `city`
+ - `zip_code`
+
+These endpoints identify users by email. They will only update fields that aren't already set in the DB. Notes will be appended together.
+
 Signing up "unknown" users for events
 -----------------------------------------------
 
  - Endpoint `/api/sign_up_for_event`
 
+ - Takes typical fields for creating a user profile as well as:
+    
+    - `event`
+    - `skills`: A string, which should be a list of skill hashtags like `"#cooking #html5"`
+    - `additional_question_1`: Answers to the additional questions attached to the event. Will be stored to the interaction summary.
+    - `additional_question_2`
+    - `additional_question_3`
+    - `additional_question_4`
+
+
 Signing up "unknown" users as volunteers
 -----------------------------------------------
 
  - Endpoint `/api/volunteer`
+ - Additional fields
+   - `administrative_unit`: PK of administrative unit the person is applying to volunteer for
+   - `skills`: Hashtag list of skills the person has
+   - `event`: Optional event the user is volunteering for
+   - `summary`: Any text the user might add to their offer
+   - `location`: Optional pk of location the user is interested in helping with
+   - `program_of_interest`: List of `ORGANIZATION_FINANCE_PROGRAM_TYPES` the user is interested in helping with.
+ 
 
 Applying "unknown" users for membership
 -----------------------------------------------
 
  - Endpoint `/api/apply_for_membership`
+ - Additional fields
+  - `administrative_unit`
+  - `skills`
