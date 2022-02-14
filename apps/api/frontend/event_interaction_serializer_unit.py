@@ -3,9 +3,14 @@ from interactions.models import Interaction, InteractionType
 from rest_framework import serializers
 
 
-class EventTypeDoesNotExist(serializers.ValidationError):
+class InteractionTypeDoesNotExist(serializers.ValidationError):
     status_code = 405
     default_detail = {"type__slug": "Interaction type does not exist"}
+
+
+class InteractionTypeNotEventInteraction(serializers.ValidationError):
+    status_code = 405
+    default_detail = {"type__slug": "Not an event interaction type"}
 
 
 class EventInteractionSerializer(serializers.ModelSerializer):
@@ -19,7 +24,10 @@ class EventInteractionSerializer(serializers.ModelSerializer):
                 slug=data["type"]["slug"]
             )
         except InteractionType.DoesNotExist:
-            raise EventTypeDoesNotExist
+            raise InteractionTypeDoesNotExist
+
+        if validated_data["type"].category.slug != "event_interaction":
+            raise InteractionTypeNotEventInteraction
 
         validated_data["administrative_unit"] = validated_data[
             "event"
@@ -38,8 +46,9 @@ class EventInteractionSerializer(serializers.ModelSerializer):
             "updated",
             "created",
             "type__slug",
-            "note",
+            "summary",
             "user",
+            "note",
         )
 
 
@@ -53,7 +62,6 @@ class UserOwnedEventInteractionSerializer(EventInteractionSerializer):
             "updated",
             "created",
             "type__slug",
-            "note",
         )
 
     def validate(self, data):

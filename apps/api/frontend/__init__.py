@@ -5,6 +5,7 @@ from . import users_unit
 from . import event_type_unit
 from . import my_events_unit
 from . import organized_events_unit
+from . import attendees_unit
 
 router = routers.DefaultRouter()
 router.register(r"events", events_unit.EventSet, basename="frontend_events")
@@ -19,3 +20,6 @@ router.register(
 )
 router.register(r"locations", locations_unit.LocationSet, basename="frontend_locations")
 router.register(r"users", users_unit.UserSet, basename="frontend_users")
+router.register(
+    r"attendees", attendees_unit.EventInteractionSet, basename="frontend_attendees"
+)

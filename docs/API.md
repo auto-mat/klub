@@ -116,7 +116,8 @@ There are various levels of permissions that users can have in the front end:
 2. Event organizers and Staff: TODO
  - Can create update Events in their Administrative Units
  - Can update events organizational team: TODO
- - Can search for users by name/email: TODO
+ - Can search for users by name/email: `https://test.klub-pratel.cz/api/frontend/users/?q=<username>`
+ - Can see which users are registered for an event and mark attendance: `https://test.klub-pratel.cz/api/frontend/attendees/`
 3. Superusers
  - Can create and update events globally
  - Access all other endpoints: see the [Swagger docs](https://test.klub-pratel.cz/api/docs/)
@@ -168,9 +169,17 @@ Users can sign up to see the events they have signed up for and sign up for new 
 
 `http://localhost:8000/api/frontend/my_events/`
 
+Note: Answers to additional questions should be put into the field `summary`.
+
 The field `type__slug`, refers to an interaction type which must be manually configured in the admin at the URL:
 
-`http://localhost:8000/interactions/interactiontype/`
+`http://localhost:8000/interactions/interactiontype/**
+
+** Seeing who's registered for an event and taking attendance **
+
+ - Admin/event organizers only
+ - Endpoint `https://test.klub-pratel.cz/api/frontend/attendees/`
+ - `type__slug` options: ["`event_registration`", "`event_attendance`"]
 
 
 Event Types
@@ -207,3 +216,61 @@ The `q` query param is optional.
 You can get a user by ID with urls of the form:
 
 `https://test.klub-pratel.cz/api/frontend/users/<id>/`
+
+
+"Unknown" user endpoints: Get or create user profile
+-------------------------------------------------------------------
+
+The following endpoints will add an intraction to an existing user profile or or create a new one.
+
+They all share the following fields:
+
+ - `first_name`
+ - `last_name`
+ - `telephone`
+ - `email`: required
+ - `note`
+ - `age_group`
+ - `birth_month`
+ - `birth_day`
+ - `street`
+ - `city`
+ - `zip_code`
+
+These endpoints identify users by email. They will only update fields that aren't already set in the DB. Notes will be appended together.
+
+Signing up "unknown" users for events
+-----------------------------------------------
+
+ - Endpoint `/api/sign_up_for_event`
+
+ - Takes typical fields for creating a user profile as well as:
+    
+    - `event`
+    - `skills`: A string, which should be a list of skill hashtags like `"#cooking #html5"`
+    - `additional_question_1`: Answers to the additional questions attached to the event. Will be stored to the interaction summary.
+    - `additional_question_2`
+    - `additional_question_3`
+    - `additional_question_4`
+
+
+Signing up "unknown" users as volunteers
+-----------------------------------------------
+
+ - Endpoint `/api/volunteer`
+ - Additional fields
+   - `administrative_unit`: PK of administrative unit the person is applying to volunteer for
+   - `skills`: Hashtag list of skills the person has
+   - `event`: Optional event the user is volunteering for
+   - `summary`: Any text the user might add to their offer
+   - `location`: Optional pk of location the user is interested in helping with
+   - `program_of_interest`: List of `ORGANIZATION_FINANCE_PROGRAM_TYPES` the user is interested in helping with.
+ 
+
+Applying "unknown" users for membership
+-----------------------------------------------
+
+ - Endpoint `/api/apply_for_membership`
+ - Additional fields
+  - `administrative_unit`
+  - `skills`

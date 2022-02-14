@@ -15,7 +15,11 @@ from events.models import (
     OrganizationPosition,
     OrganizationTeam,
 )
-from interactions.models import InteractionCategory, InteractionType, Interaction
+from interactions.models import InteractionType, Interaction
+from interactions.interaction_types import (
+    event_attendance_interaction_type,
+    membership_interaction_category,
+)
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission
 from django.core.management.base import BaseCommand
@@ -412,9 +416,9 @@ class Command(BaseCommand):
             if event.accommodation is None:
                 event.accommodation = ""
             diets = {
-                0: ["vegetarian", "non_vegetarian"],
+                0: ["vegetarian", "meat"],
                 1: ["vegetarian"],
-                2: ["non_vegetarian"],
+                2: ["meat"],
                 3: [],
                 None: [],
             }
@@ -463,15 +467,8 @@ class Command(BaseCommand):
         sql = "SELECT * from ucastnik"
         cur.execute(sql)
         ucastnik_all = cur.fetchall()
-        cat, _ = InteractionCategory.objects.get_or_create(
-            category="Účast na akci",
-            display=True,
-        )
+        type = event_attendance_interaction_type()
 
-        type, _ = InteractionType.objects.get_or_create(
-            name="Účast na akci",
-            category=cat,
-        )
         org_pos, _ = OrganizationPosition.objects.get_or_create(
             name="Organizátor (nespecifikováno)"
         )
@@ -512,10 +509,7 @@ class Command(BaseCommand):
         cur.execute(sql)
         clen_typ_all = cur.fetchall()
 
-        cat, _ = InteractionCategory.objects.get_or_create(
-            category="Členství v Brontosaurech",
-            display=True,
-        )
+        cat = membership_interaction_category()
         for typ in clen_typ_all:
             inttype, _ = InteractionType.objects.get_or_create(
                 name=typ.get("nazev"),

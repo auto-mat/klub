@@ -16,6 +16,9 @@ Copy `.env-sample`, to `.env` and change the CHANGE_MEs.
 Instalace (Docker compose)
 ==========================
 
+    $ cp .env-sample .env
+    $ vim .env
+
     $ docker-compose build
     $ docker-compose up
 
@@ -23,22 +26,24 @@ There will be errors that celery cannot be found, ignore them.
 
 In a new terminal run
 
-    $ docker attach klub_web_1
+    $ docker exec -it klub_web_1 bash
     $ virtualenv venv --activators bash,fish
     $ source venv/bin/activate
     $ pip3 install -r requirements.txt
     $ cd apps/aklub && django-admin.py compilemessages -l cs_CZ && cd ../../
-    $ django-admin.py migrate
-    $ django-admin.py createsuperuser2
+    $ python manage.py migrate
+    $ python manage.py createsuperuser2
 
 Set django Site object domain name
 
     $ python manage.py shell
 
-'localhost' if app will run on localhost
+'localhost:8000' if app will run on localhost
 
     >>> from django.contrib.sites.models import Site
-    >>> Site.objects.create(name='localhost', domain='localhost')
+    >>> s = Site.objects.first()
+    >>> s.domain = "localhost:8000"
+    >>> s.save()
     >>> exit()
     $ exit
 

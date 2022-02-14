@@ -2,69 +2,60 @@ import datetime
 
 from api import views
 from interactions.models import Interaction, InteractionType
-from interactions.interaction_types import (
-    event_interaction_category,
-)
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import permissions, serializers, viewsets
 
 from api.frontend.event_interaction_serializer_unit import (
-    UserOwnedEventInteractionSerializer,
+    EventInteractionSerializer,
 )
 
 
-class MyEventsSet(viewsets.ModelViewSet):
-    serializer_class = UserOwnedEventInteractionSerializer
+class EventInteractionSet(viewsets.ModelViewSet):
+    serializer_class = EventInteractionSerializer
 
     def get_queryset(self):
-        return Interaction.objects.filter(
-            user=self.request.user,
-            type__category=event_interaction_category(),
+        event = self.request.query_params.get("event", None)
+        q = Interaction.objects.filter(
+            type__category__slug="event_interaction",
         )
+        if event is not None:
+            q = q.filter(event__pk=event)
+        return q
 
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAdminUser]
     pagination_class = views.ResultsSetPagination
 
 
-def test_normal_user(user1_api_request, event_1, interaction_type_1):
+def test_normal_user(superuser1_api_request, event_1, userprofile_1):
     from rest_framework.reverse import reverse
+    from interactions.interaction_types import (
+        event_registration_interaction_type,
+        event_attendance_interaction_type,
+    )
 
-    url = reverse("frontend_my_events-list")
-    result = user1_api_request.get(url)
+    erit = event_registration_interaction_type()
+
+    url = reverse("frontend_attendees-list")
+    result = superuser1_api_request.get(url)
     assert result.json() == {"count": 0, "next": None, "previous": None, "results": []}
 
-    result = user1_api_request.post(
+    result = superuser1_api_request.post(
         url,
         {
+            "user": userprofile_1.pk,
             "event": event_1.pk,
             "note": "blah blah",
             "type__slug": "non-existant",
         },
     )
     assert result.json() == {"type__slug": ["Interaction type does not exist"]}
-    result = user1_api_request.get(url)
+    result = superuser1_api_request.get(url)
     assert result.json() == {"count": 0, "next": None, "previous": None, "results": []}
-    cresult = user1_api_request.post(
+    cresult = superuser1_api_request.post(
         url,
         {
-            "event": event_1.pk,
-            "note": "blah blah",
-            "type__slug": interaction_type_1.slug,
-        },
-    )
-    assert cresult.status_code == 400
-    assert cresult.json() == {"type__slug": ["Not an event interaction type"]}
-    result = user1_api_request.get(url)
-    assert result.json() == {"count": 0, "next": None, "previous": None, "results": []}
-    from interactions.interaction_types import (
-        event_registration_interaction_type,
-    )
-
-    erit = event_registration_interaction_type()
-    cresult = user1_api_request.post(
-        url,
-        {
+            "user": userprofile_1.pk,
             "event": event_1.pk,
             "note": "blah blah",
             "type__slug": erit.slug,
@@ -73,7 +64,7 @@ def test_normal_user(user1_api_request, event_1, interaction_type_1):
     assert cresult.json()["event"] == event_1.pk
     assert cresult.json()["note"] == "blah blah"
     assert cresult.json()["type__slug"] == erit.slug
-    result = user1_api_request.get(url)
+    result = superuser1_api_request.get(url)
     assert result.json() == {
         "count": 1,
         "next": None,
@@ -84,8 +75,10 @@ def test_normal_user(user1_api_request, event_1, interaction_type_1):
                 "event": event_1.pk,
                 "id": cresult.json()["id"],
                 "note": "blah blah",
-                "type__slug": "event_registration",
+                "type__slug": erit.slug,
                 "updated": cresult.json()["updated"],
+                "summary": "",
+                "user": userprofile_1.pk,
             }
         ],
     }

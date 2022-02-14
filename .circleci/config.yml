@@ -20,7 +20,7 @@ jobs:
             mv /tmp/docker/* /usr/bin
       - run:
          name: Build Docker image
-         command: docker build -t built-image .
+         command: docker build -t built-image . --build-arg UID=1000
       - run:
          name: Deploy test Docker image
          command: |

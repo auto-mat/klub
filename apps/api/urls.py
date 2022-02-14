@@ -1,4 +1,4 @@
-from django.urls import include, path
+from django.urls import include, path, re_path
 from django.conf.urls import url
 
 from drf_yasg import openapi
@@ -13,6 +13,15 @@ from rest_framework_simplejwt.views import (
 
 from apps.api import frontend
 from apps.api.frontend import whoami_unit
+from apps.api.frontend.unknown_user_volunteer_unit import (
+    VolunteerView,
+)
+from apps.api.frontend.unknown_user_sign_up_for_event_unit import (
+    SignUpForEventView,
+)
+from apps.api.frontend.unknown_user_apply_for_membership_unit import (
+    ApplyForMembershipView,
+)
 
 from . import views
 
@@ -27,10 +36,20 @@ schema_view = get_schema_view(
 
 
 urlpatterns_bronto = [
-    path(
-        "register_userprofile_interaction/",
-        views.UserProfileInteractionView.as_view(),
-        name="userprofile_interaction",
+    re_path(
+        r"^volunteer/",
+        VolunteerView.as_view(),
+        name="unknown_user_volunteer",
+    ),
+    re_path(
+        r"^sign_up_for_event/",
+        SignUpForEventView.as_view(),
+        name="unknown_user_sign_up_for_event",
+    ),
+    re_path(
+        r"^apply_for_membership/",
+        ApplyForMembershipView.as_view(),
+        name="unknown_user_apply_for_membership",
     ),
     path("event/", views.EventListView.as_view(), name="event"),
     path("event/<int:id>/", views.EventRetrieveView.as_view(), name="event_detail"),
