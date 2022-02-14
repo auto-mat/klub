@@ -1,9 +1,9 @@
 from .models import InteractionType, InteractionCategory
 
 
-def offer_help_interaction_category():
+def volunteer_interaction_category():
     cat, _ = InteractionCategory.objects.get_or_create(
-        slug="offer_help",
+        slug="volunteer",
         display=True,
         defaults={"category": "Nabídka o pomoci"},
     )
@@ -20,21 +20,21 @@ def event_interaction_category():
 
 
 def event_registration_interaction_type():
-    type, _ = InteractionType.objects.get_or_create(
+    itype, _ = InteractionType.objects.get_or_create(
         slug="event_registration",
         category=event_interaction_category(),
         defaults={"name": "Registrace do akci"},
     )
-    return type
+    return itype
 
 
 def event_attendance_interaction_type():
-    type, _ = InteractionType.objects.get_or_create(
+    itype, _ = InteractionType.objects.get_or_create(
         slug="event_attendance",
         category=event_interaction_category(),
         defaults={"name": "Účast na akci"},
     )
-    return type
+    return itype
 
 
 def membership_interaction_category():
@@ -46,13 +46,19 @@ def membership_interaction_category():
     return cat
 
 
-def get_interaction_category(slug):
-    categories = {
-        "membership": membership_interaction_category,
-        "offer_help": offer_help_interaction_category,
-        "event_attendance": event_interaction_category,
-    }
-    if slug in categories:
-        return categories[slug]()
-    else:
-        raise InteractionCategory.DoesNotExist()
+def membership_application_interaction_type():
+    itype, _ = InteractionType.objects.get_or_create(
+        slug="membership-application",
+        category=membership_interaction_category(),
+        defaults={"category": "Žadost o Členství"},
+    )
+    return itype
+
+
+def membership_approval_interaction_type():
+    itype, _ = InteractionType.objects.get_or_create(
+        slug="membership-approval",
+        category=membership_interaction_category(),
+        defaults={"category": "Přijetí Členství"},
+    )
+    return itype
