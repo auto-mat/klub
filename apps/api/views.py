@@ -105,16 +105,6 @@ class CreateDpchUserProfileView(generics.GenericAPIView):
         if serializer.is_valid(raise_exception=True):
             # check profile data
             user, created = serializer.get_or_create_user_profile()
-
-            if created:
-                ProfileEmail.objects.create(
-                    email=serializer.validated_data["email"], user=user
-                )
-
-            Telephone.objects.get_or_create(
-                telephone=serializer.validated_data["telephone"], user=user
-            )
-
             dpch = get_or_create_dpch(serializer, user)
             return Response(VSReturnSerializer(dpch).data, status=status.HTTP_200_OK)
 

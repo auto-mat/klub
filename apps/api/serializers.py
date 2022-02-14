@@ -155,29 +155,52 @@ class GetOrCreateUserprofile(
 ):
     def get_or_create_user_profile(self):
         vd = self.validated_data
+        defaulting_string_fields = [
+            "street",
+            "city",
+            "zip_code",
+            "first_name",
+            "last_name",
+        ]
+        nullable_fields = [
+            "age_group",
+            "birth_month",
+            "birth_day",
+        ]
+        defaults = {
+            "sex": vd.get("sex", "unknown"),
+        }
+        for f in defaulting_string_fields:
+            defaults[f] = vd.get(f, "")
+        for f in nullable_fields:
+            defaults[f] = vd.get(f)
         user, created = UserProfile.objects.get_or_create(
             profileemail__email=vd.get("email"),
-            defaults={
-                "first_name": vd.get("first_name"),
-                "last_name": vd.get("last_name"),
-                "age_group": vd.get("age_group"),
-                "birth_month": vd.get("birth_month"),
-                "birth_day": vd.get("birth_day"),
-                "street": vd.get("street"),
-                "city": vd.get("city"),
-                "zip_code": vd.get("zip_code"),
-                "sex": vd.get("sex", "unknown"),
-            },
+            defaults=defaults,
         )
-        if user.sex == "unknown":
-            user.sex = vd.get("sex", "unknown")
-            user.save()
+        if not created:
+            edited = False
+            if user.sex == "unknown":
+                user.sex = vd.get("sex", "unknown")
+                edited = True
+            for f in defaulting_string_fields:
+                if getattr(user, f) == "" and vd.get(f):
+                    setattr(user, f, vd.get(f))
+                    edited = True
+            for f in nullable_fields:
+                if getattr(user, f) is None and vd.get(f):
+                    setattr(user, f, vd.get(f))
+                    edited = True
+            if edited:
+                user.save()
 
         telephone = vd.get("telephone")
         if telephone:
+            Telephone.objects.filter(user=user).update(is_primary=False)
             Telephone.objects.get_or_create(
-                telephone=telephone, user=user, defaults={"is_primary": True}
+                telephone=telephone, user=user, is_primary=True
             )
+
         email = vd.get("email")
         if email:
             ProfileEmail.objects.get_or_create(
