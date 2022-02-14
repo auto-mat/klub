@@ -173,9 +173,9 @@ Note: Answers to additional questions should be put into the field `summary`.
 
 The field `type__slug`, refers to an interaction type which must be manually configured in the admin at the URL:
 
-`http://localhost:8000/interactions/interactiontype/**
+`http://localhost:8000/interactions/interactiontype/`
 
-** Seeing who's registered for an event and taking attendance **
+**Seeing who's registered for an event and taking attendance**
 
  - Admin/event organizers only
  - Endpoint `https://test.klub-pratel.cz/api/frontend/attendees/`
