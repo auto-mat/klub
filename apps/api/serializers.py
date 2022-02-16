@@ -446,6 +446,7 @@ class LocationSerializer(serializers.ModelSerializer):
 class EventSerializer(serializers.ModelSerializer):
     location = LocationSerializer(read_only=True)
     event_type = EventTypeSerializer(read_only=True)
+    event_type_id = serializers.PrimaryKeyRelatedField(source="event_type", queryset=EventType.objects.all())
     administrative_unit_name = serializers.SerializerMethodField()
     administrative_unit_web_url = serializers.SerializerMethodField()
 
@@ -465,6 +466,7 @@ class EventSerializer(serializers.ModelSerializer):
             "age_to",
             "start_date",
             "event_type",
+            "event_type_id",
             "responsible_person",
             "participation_fee",
             "entry_form_url",
