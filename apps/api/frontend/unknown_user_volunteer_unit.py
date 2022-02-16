@@ -62,9 +62,11 @@ class VolunteerSerializer(
         ]
 
 
+
 class VolunteerView(generics.CreateAPIView):
     permission_classes = [TokenHasReadWriteScope | IsAdminUser]
     required_scopes = ["can_create_userprofile_interaction"]
+    serializer_class = VolunteerSerializer
 
     def post(self, request, *args, **kwargs):
         serializer = VolunteerSerializer(data=self.request.data)

@@ -47,6 +47,7 @@ class SignUpForEventSerializer(
 class SignUpForEventView(generics.CreateAPIView):
     permission_classes = [TokenHasReadWriteScope | IsAdminUser]
     required_scopes = ["can_create_userprofile_interaction"]
+    serializer_class = SignUpForEventSerializer
 
     def post(self, request, *args, **kwargs):
         serializer = SignUpForEventSerializer(data=self.request.data)

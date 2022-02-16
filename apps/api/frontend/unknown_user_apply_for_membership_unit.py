@@ -38,6 +38,7 @@ class ApplyForMembershipSerializer(
 class ApplyForMembershipView(generics.CreateAPIView):
     permission_classes = [TokenHasReadWriteScope | IsAdminUser]
     required_scopes = ["can_create_userprofile_interaction"]
+    serializer_class = ApplyForMembershipSerializer
 
     def post(self, request, *args, **kwargs):
         serializer = ApplyForMembershipSerializer(data=self.request.data)
