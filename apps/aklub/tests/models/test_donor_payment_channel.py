@@ -392,6 +392,7 @@ class TestNameFunctions(TestCase):
         )
 
 
+@freeze_time("2010-5-1")
 class TestDenormalizedFields(TestCase):
     """
     testing if denormalized fields of donor_payment_channel are changed,
