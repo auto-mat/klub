@@ -36,21 +36,6 @@ schema_view = get_schema_view(
 
 
 urlpatterns_bronto = [
-    re_path(
-        r"^volunteer/",
-        VolunteerView.as_view(),
-        name="unknown_user_volunteer",
-    ),
-    re_path(
-        r"^sign_up_for_event/",
-        SignUpForEventView.as_view(),
-        name="unknown_user_sign_up_for_event",
-    ),
-    re_path(
-        r"^apply_for_membership/",
-        ApplyForMembershipView.as_view(),
-        name="unknown_user_apply_for_membership",
-    ),
     path("event/", views.EventListView.as_view(), name="event"),
     path("event/<int:id>/", views.EventRetrieveView.as_view(), name="event_detail"),
     path(
@@ -59,10 +44,17 @@ urlpatterns_bronto = [
         name="administrative_unit",
     ),
 ]
-# TODO: separate others as bronto (if possible)
 urlpatterns = [
     # auth
     path("o/", include("oauth2_provider.urls", namespace="oauth2_provider")),
+    # Events
+    path("event/", views.EventListView.as_view(), name="event"),
+    path("event/<int:id>/", views.EventRetrieveView.as_view(), name="event_detail"),
+    path(
+        "administrative_unit/",
+        views.AdministrativeUnitView.as_view(),
+        name="administrative_unit",
+    ),
     # vizus
     path(
         "check_event/<slug:slug>/", views.CheckEventView.as_view(), name="check_event"
@@ -96,6 +88,22 @@ urlpatterns = [
         "companyprofile/vs/",
         views.CreateDpchCompanyProfileView.as_view(),
         name="companyprofile_vs",
+    ),
+    # Unknown user endpoints
+    re_path(
+        r"^volunteer/",
+        VolunteerView.as_view(),
+        name="unknown_user_volunteer",
+    ),
+    re_path(
+        r"^sign_up_for_event/",
+        SignUpForEventView.as_view(),
+        name="unknown_user_sign_up_for_event",
+    ),
+    re_path(
+        r"^apply_for_membership/",
+        ApplyForMembershipView.as_view(),
+        name="unknown_user_apply_for_membership",
     ),
     # invest
     path("pdf_storage/", include("pdf_storage.urls")),
