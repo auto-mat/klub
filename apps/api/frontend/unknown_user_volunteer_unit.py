@@ -62,7 +62,6 @@ class VolunteerSerializer(
         ]
 
 
-
 class VolunteerView(generics.CreateAPIView):
     permission_classes = [TokenHasReadWriteScope | IsAdminUser]
     required_scopes = ["can_create_userprofile_interaction"]
