@@ -375,7 +375,7 @@
             "date_from": "2015-12-16",
             "slug": "klub",
             "allow_statistics": true,
-            "indended_for": "newcomers",
+            "intended_for": "newcomers",
             "enable_signing_petitions": true,
             "enable_registration": true
         },
@@ -387,7 +387,7 @@
             "name": "Zažít město jinak",
             "date_from": "2015-12-16",
             "slug": "zmj",
-            "indended_for": "newcomers"
+            "intended_for": "newcomers"
         },
         "model": "events.event",
         "pk": 3

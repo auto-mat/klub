@@ -257,7 +257,7 @@ def event_1(administrative_unit_1, event_type_1, location_1):
         date_from="2020-02-02",
         date_to="2021-03-03",
         program="monuments",
-        indended_for="everyone",
+        intended_for="everyone",
         location=location_1,
         event_type=event_type_1,
         age_from=10,

@@ -313,17 +313,17 @@ class Command(BaseCommand):
             else:
                 program = ""
 
-            indended_for = akce.get("prokoho")
-            if indended_for == 1:
-                indended_for = "everyone"
-            elif indended_for == 2:
-                indended_for = "adolescents_and_adults"
-            elif indended_for == 3:
-                indended_for = "children"
-            elif indended_for == 4:
-                indended_for = "parents_and_children"
-            elif indended_for == 5:
-                indended_for = "newcomers"
+            intended_for = akce.get("prokoho")
+            if intended_for == 1:
+                intended_for = "everyone"
+            elif intended_for == 2:
+                intended_for = "adolescents_and_adults"
+            elif intended_for == 3:
+                intended_for = "children"
+            elif intended_for == 4:
+                intended_for = "parents_and_children"
+            elif intended_for == 5:
+                intended_for = "newcomers"
 
             grant = akce.get("dotace")
             if grant == 0:
@@ -365,7 +365,7 @@ class Command(BaseCommand):
                     if akce.get("adresar", False)
                     else "action",
                     "program": program,
-                    "indended_for": indended_for,
+                    "intended_for": intended_for,
                     "age_from": akce.get("vek_od"),
                     "age_to": akce.get("vek_do"),
                     "hours_worked": akce.get("odpracovano"),

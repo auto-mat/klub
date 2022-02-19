@@ -240,7 +240,7 @@ class Event(models.Model):
         null=True,
         blank=True,
     )
-    indended_for = models.CharField(
+    intended_for = models.CharField(
         verbose_name=_("Indended for"),
         max_length=128,
         choices=INTENDED_FOR,
@@ -514,7 +514,7 @@ class Event(models.Model):
     number_of_recruiters.short_description = _("number of recruiters")
 
     def yield_total(self):
-        if self.indended_for == "newcomers":
+        if self.intended_for == "newcomers":
             return DonorPaymentChannel.objects.filter(event=self).aggregate(
                 yield_total=Sum("payment__amount")
             )["yield_total"]

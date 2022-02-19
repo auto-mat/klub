@@ -54,7 +54,7 @@ class TestEventView:
         assert data["date_from"] == event_1.date_from
         assert data["date_to"] == event_1.date_to
         assert data["program"] == event_1.program
-        assert data["indended_for"] == event_1.indended_for
+        assert data["intended_for"] == event_1.intended_for
         assert data["responsible_person"] == event_1.responsible_person
         assert (
             data["administrative_unit_name"]

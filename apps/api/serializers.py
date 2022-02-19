@@ -460,7 +460,7 @@ class EventSerializer(serializers.ModelSerializer):
             "date_from",
             "date_to",
             "program",
-            "indended_for",
+            "intended_for",
             "basic_purpose",
             "opportunity",
             "location",

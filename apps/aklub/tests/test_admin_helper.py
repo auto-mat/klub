@@ -38,7 +38,7 @@ class TestProfilePostMixin:
             name="Klub přátel Auto*Matu",
             date_from="2015-12-16",
             slug="klub",
-            indended_for="newcomers",
+            intended_for="newcomers",
             enable_signing_petitions=True,
             enable_registration=True,
         )

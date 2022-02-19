@@ -7,7 +7,7 @@ class EventCustomFilter(filters.FilterSet):
     administrative_unit = filters.CharFilter(method="get_administrative_unit")
     event_type_array = filters.CharFilter(method="get_event_type_array")
     program_array = filters.CharFilter(method="get_program_array")
-    indended_for_array = filters.CharFilter(method="get_indended_for_array")
+    intended_for_array = filters.CharFilter(method="get_intended_for_array")
     type = filters.CharFilter(method="get_type")  # noqa
 
     class Meta:
@@ -16,7 +16,7 @@ class EventCustomFilter(filters.FilterSet):
             "date_from": ["gte", "lte", "year"],
             "date_to": ["gte", "lte", "year"],
             "start_date": ["gte", "lte", "year"],
-            "indended_for": ["exact"],
+            "intended_for": ["exact"],
             "program": ["exact"],
             "basic_purpose": ["exact"],
             "is_internal": ["exact"],
@@ -58,8 +58,8 @@ class EventCustomFilter(filters.FilterSet):
             queryset = queryset.filter(program__in=program_list)
         return queryset
 
-    def get_indended_for_array(self, queryset, name, value, *args, **kwargs):
-        if name == "indended_for_array":
-            indended_for_list = value.split(",")  # slugs
-            queryset = queryset.filter(indended_for__in=indended_for_list)
+    def get_intended_for_array(self, queryset, name, value, *args, **kwargs):
+        if name == "intended_for_array":
+            intended_for_list = value.split(",")  # slugs
+            queryset = queryset.filter(intended_for__in=intended_for_list)
         return queryset
