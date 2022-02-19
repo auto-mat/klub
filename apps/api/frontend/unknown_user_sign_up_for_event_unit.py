@@ -7,7 +7,7 @@ from aklub.models import UserProfile
 
 from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope
 from rest_framework import serializers
-from rest_framework.permissions import IsAdminUser
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 
@@ -45,7 +45,7 @@ class SignUpForEventSerializer(
 
 
 class SignUpForEventView(generics.CreateAPIView):
-    permission_classes = [TokenHasReadWriteScope | IsAdminUser]
+    permission_classes = [TokenHasReadWriteScope | IsAuthenticated]
     required_scopes = ["can_create_userprofile_interaction"]
     serializer_class = SignUpForEventSerializer
 
