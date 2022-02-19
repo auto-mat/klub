@@ -159,6 +159,7 @@ def test_event_set_organizer(user1_api_request, organization_team_2, event_2):
         event2_url,
         {
             "web_url": "https://example.com",
+            "diet": ["vegan", "kosher"],
         },
     )
 
@@ -185,7 +186,7 @@ def test_event_set_organizer(user1_api_request, organization_team_2, event_2):
         "contact_person_telephone": "",
         "date_from": None,
         "date_to": None,
-        "diet": [],
+        "diet": set(["kosher", "vegan"]),
         "entry_form_url": None,
         "event_type": None,
         "event_type_id": None,
@@ -213,9 +214,14 @@ def test_event_set_organizer(user1_api_request, organization_team_2, event_2):
         "working_hours": None,
     }
 
-    assert result.json() == patched_event_data
+    rj = result.json()
+    rj["diet"] = set(rj["diet"])
+    assert rj == patched_event_data
     result = user1_api_request.get(event2_url)
-    assert result.json() == patched_event_data
+
+    rj = result.json()
+    rj["diet"] = set(rj["diet"])
+    assert rj == patched_event_data
 
     result = user1_api_request.post(
         url,

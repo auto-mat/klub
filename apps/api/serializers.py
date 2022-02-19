@@ -451,6 +451,11 @@ class EventSerializer(serializers.ModelSerializer):
     )
     administrative_unit_name = serializers.SerializerMethodField()
     administrative_unit_web_url = serializers.SerializerMethodField()
+    diet = serializers.MultipleChoiceField(
+        choices=Event.DIET_CHOICES,
+        required=False,
+        allow_blank=True,
+    )
 
     class Meta:
         model = Event
