@@ -97,19 +97,17 @@ def test_super_user(superuser1_api_request, event_1, userprofile_1):
     }
 
 
-def test_attendees_set_organizer(user1_api_request, organization_team_2, event_1, event_2):
+def test_attendees_set_organizer(
+    user1_api_request, organization_team_2, event_1, event_2
+):
     from rest_framework.reverse import reverse
-
 
     url = reverse("frontend_attendees-list")
     result = user1_api_request.get(url)
     assert result.status_code == 403
 
-
     result = user1_api_request.get(url + "?event=%d" % event_1.pk)
     assert result.status_code == 403
 
-
     result = user1_api_request.get(url + "?event=%d" % event_2.pk)
     assert result.status_code == 200
-

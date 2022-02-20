@@ -149,6 +149,33 @@ def userprofile_1(administrative_unit_1):
 
 
 @pytest.fixture(scope="function")
+def event_organizer_1(administrative_unit_1):
+    user = UserProfile.objects.create(
+        username="event organizer",
+        first_name="user_first",
+        last_name="user_last",
+        nickname="user_nickname",
+        city="Prague",
+        is_staff=False,
+        is_superuser=False,
+    )
+    user.administrated_units.add(administrative_unit_1)
+    from events.models import Event
+    from django.contrib.contenttypes.models import ContentType
+    from django.contrib.auth.models import Permission
+
+    content_type = ContentType.objects.get_for_model(Event)
+    permission = Permission.objects.get(
+        codename="add_event",
+        content_type=content_type,
+    )
+    user.user_permissions.add(permission)
+
+    yield user
+    user.delete()
+
+
+@pytest.fixture(scope="function")
 def application_api_access():
     app = Application.objects.create(
         name="Test Application",
@@ -190,6 +217,13 @@ def superuser1_api_request(userprofile_superuser_1):
 def user1_api_request(userprofile_1):
     client = APIClient()
     client.force_authenticate(user=userprofile_1)
+    yield client
+
+
+@pytest.fixture(scope="function")
+def event_organizer_api_request(event_organizer_1):
+    client = APIClient()
+    client.force_authenticate(user=event_organizer_1)
     yield client
 
 
