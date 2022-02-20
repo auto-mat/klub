@@ -5,6 +5,7 @@ from . import users_unit
 from . import event_type_unit
 from . import my_events_unit
 from . import organized_events_unit
+from . import org_team_unit
 from . import attendees_unit
 
 router = routers.DefaultRouter()
@@ -14,6 +15,11 @@ router.register(
     r"organized_events",
     organized_events_unit.OrganizedEventsSet,
     basename="frontend_organized_events",
+)
+router.register(
+    r"orgteam",
+    org_team_unit.OrganizationTeamSet,
+    basename="frontend_orgteam",
 )
 router.register(
     r"event-type", event_type_unit.EventTypeSet, basename="frontend_event-type"
