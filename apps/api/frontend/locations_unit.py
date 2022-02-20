@@ -2,11 +2,13 @@ from api.serializers import LocationSerializer
 from events.models import Location
 from rest_framework import viewsets, serializers, permissions
 
+from api.permissions import IsEventOrganizer
+
 
 class LocationSet(viewsets.ModelViewSet):
     serializer_class = LocationSerializer
 
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAdminUser | IsEventOrganizer]
 
     def get_queryset(self):
         return Location.objects.all()
