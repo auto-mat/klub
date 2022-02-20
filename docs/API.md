@@ -137,6 +137,7 @@ Administrative Units
 
 Administrative units can be viewed at the endpoint `/api/bronto/administrative_unit/`
 
+Open globally
 
 Payments
 ----------

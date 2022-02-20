@@ -411,7 +411,6 @@ class AdministrativeUnitView(generics.ListAPIView):
     """
 
     serializer_class = AdministrativeUnitSerializer
-    required_scopes = ["can_view_administrative_units"]
 
     def get_queryset(self):
         return AdministrativeUnit.objects.all().select_related(
