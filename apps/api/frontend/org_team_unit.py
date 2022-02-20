@@ -79,7 +79,7 @@ def test_org_team_organizer(
 ):
     from rest_framework.reverse import reverse
 
-    url = reverse("frontend_orgteam-list")
+    url = reverse("frontend_event-orgteam-list")
     result = user1_api_request.get(url)
     assert result.status_code == 403
 

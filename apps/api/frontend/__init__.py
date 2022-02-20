@@ -5,6 +5,7 @@ from . import users_unit
 from . import event_type_unit
 from . import my_events_unit
 from . import organized_events_unit
+from . import event_organization_position_unit
 from . import org_team_unit
 from . import attendees_unit
 
@@ -17,10 +18,16 @@ router.register(
     basename="frontend_organized_events",
 )
 router.register(
-    r"orgteam",
+    r"event_orgteam",
     org_team_unit.OrganizationTeamSet,
-    basename="frontend_orgteam",
+    basename="frontend_event-orgteam",
 )
+router.register(
+    r"event_organization_position",
+    event_organization_position_unit.OrganizationPositionSet,
+    basename="frontend_event-organization-position",
+)
+
 router.register(
     r"event-type", event_type_unit.EventTypeSet, basename="frontend_event-type"
 )
