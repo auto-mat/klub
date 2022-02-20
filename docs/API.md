@@ -239,6 +239,8 @@ They all share the following fields:
 
 These endpoints identify users by email. They will only update fields that aren't already set in the DB. Notes will be appended together.
 
+Returns `user_id` of the gotten or created user.
+
 Signing up "unknown" users for events
 -----------------------------------------------
 

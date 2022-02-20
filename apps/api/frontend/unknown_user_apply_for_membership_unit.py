@@ -58,7 +58,7 @@ class ApplyForMembershipView(generics.CreateAPIView):
         )
 
         return Response(
-            ApplyForMembershipSerializer(serializer.validated_data).data,
+            {"user_id": user.pk},
             status=status.HTTP_200_OK,
         )
 
@@ -88,9 +88,9 @@ def test_apply_for_membership(administrative_unit_1, app_request):
     with freeze_time(current_date):
         response = app_request.post(url, post_data)
     assert response.status_code == 200
-    # we do not really care about data response
 
     new_user = UserProfile.objects.get(profileemail__email=post_data["email"])
+    assert new_user.pk == response.json()["user_id"]
     assert new_user.first_name == post_data["first_name"]
     assert new_user.last_name == post_data["last_name"]
     assert new_user.age_group == post_data["age_group"]
