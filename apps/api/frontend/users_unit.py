@@ -2,6 +2,8 @@ from django.db.models import Q
 from aklub.models import UserProfile, Telephone
 from rest_framework import viewsets, serializers, permissions
 
+from api.permissions import IsEventOrganizer
+
 
 class TelephoneSerializer(serializers.ModelSerializer):
     class Meta:
@@ -28,7 +30,7 @@ class UserSerializer(serializers.ModelSerializer):
 class UserSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = UserSerializer
 
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAdminUser | IsEventOrganizer]
 
     def get_queryset(self):
         search = self.request.query_params.get("q", None)
