@@ -1,33 +1,46 @@
 import datetime
 
-from api import views
+from api import views, permissions as our_permissions
+
+from events.models import Event
+
 from interactions.models import Interaction, InteractionType
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
-from rest_framework import permissions, serializers, viewsets
+from rest_framework import mixins, permissions, serializers, viewsets
 
 from api.frontend.event_interaction_serializer_unit import (
     EventInteractionSerializer,
 )
 
 
-class EventInteractionSet(viewsets.ModelViewSet):
+class EventInteractionSet(
+    mixins.RetrieveModelMixin,
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
+):
     serializer_class = EventInteractionSerializer
 
     def get_queryset(self):
         event = self.request.query_params.get("event", None)
+        if event:
+            event = Event.objects.get(pk=event)
+        our_permissions.check_orgteam_membership(self.request.user, event)
+
         q = Interaction.objects.filter(
             type__category__slug="event_interaction",
         )
         if event is not None:
-            q = q.filter(event__pk=event)
+            q = q.filter(event=event)
         return q
 
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAuthenticated]
     pagination_class = views.ResultsSetPagination
 
 
-def test_normal_user(superuser1_api_request, event_1, userprofile_1):
+def test_super_user(superuser1_api_request, event_1, userprofile_1):
     from rest_framework.reverse import reverse
     from interactions.interaction_types import (
         event_registration_interaction_type,
@@ -82,3 +95,21 @@ def test_normal_user(superuser1_api_request, event_1, userprofile_1):
             }
         ],
     }
+
+
+def test_attendees_set_organizer(user1_api_request, organization_team_2, event_1, event_2):
+    from rest_framework.reverse import reverse
+
+
+    url = reverse("frontend_attendees-list")
+    result = user1_api_request.get(url)
+    assert result.status_code == 403
+
+
+    result = user1_api_request.get(url + "?event=%d" % event_1.pk)
+    assert result.status_code == 403
+
+
+    result = user1_api_request.get(url + "?event=%d" % event_2.pk)
+    assert result.status_code == 200
+
