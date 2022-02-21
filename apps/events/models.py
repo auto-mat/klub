@@ -611,13 +611,6 @@ class OrganizationTeam(models.Model):
         on_delete=models.CASCADE,
         verbose_name=_("Position"),
     )
-    qualification = models.ForeignKey(
-        Qualification,
-        on_delete=models.SET_NULL,
-        verbose_name=_("Qualification"),
-        null=True,
-        blank=True,
-    )
 
     def __str__(self):
         return str(self.id)
