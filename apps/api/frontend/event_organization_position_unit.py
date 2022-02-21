@@ -26,5 +26,5 @@ def test_event_type_set_anon(anon_api_request, organization_position_1):
     result = anon_api_request.get(url)
     assert result.status_code == 200
     assert result.json() == [
-        {'description': '', 'id': organization_position_1.pk, 'name': 'position'}
+        {"description": "", "id": organization_position_1.pk, "name": "position"}
     ]

@@ -40,9 +40,9 @@ class OrganizationTeamSerializer(WithEventMixin, serializers.ModelSerializer):
     def create(self, validated_data):
         event = self.get_event()
         return OrganizationTeam.objects.create(
-            event = event,
-            position = validated_data["position"],
-            profile = validated_data["profile"],
+            event=event,
+            position=validated_data["position"],
+            profile=validated_data["profile"],
         )
 
     class Meta:
@@ -65,7 +65,6 @@ class OrganizationTeamSet(
 ):
     serializer_class = OrganizationTeamSerializer
 
-
     def get_queryset(self):
         event = self.get_event()
         return OrganizationTeam.objects.filter(event=event)
@@ -75,7 +74,12 @@ class OrganizationTeamSet(
 
 
 def test_org_team_organizer(
-        user1_api_request, organization_team_2, event_1, event_2, organization_position_1, userprofile_1
+    user1_api_request,
+    organization_team_2,
+    event_1,
+    event_2,
+    organization_position_1,
+    userprofile_1,
 ):
     from rest_framework.reverse import reverse
 
@@ -94,7 +98,7 @@ def test_org_team_organizer(
         {
             "profile_id": userprofile_1.pk,
             "position_id": organization_position_1.pk,
-        }
+        },
     )
     assert result.status_code == 201
     id = result.json()["id"]
