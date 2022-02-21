@@ -150,11 +150,11 @@ Events
 
 The endpoint `https://test.klub-pratel.cz/api/bronto/event/` lists all events.
 
-**Creating editing events (admins)**:
+**Creating editing events**:
 
-- Admin only
+- Event organizers, Admins
 
-- permissions GET, POST, DELETE
+- permissions GET, POST
 
 - endpoint `https://test.klub-pratel.cz/api/frontend/events/`
 
@@ -186,9 +186,9 @@ The field `type__slug`, refers to an interaction type which must be manually con
 Event Types
 -------------
 
-- Admin only
+- Admins, Event organizers
 
-- permissions GET, POST, DELETE
+- permissions GET
 
 - endpoint `https://test.klub-pratel.cz/api/frontend/event-type/`
 
@@ -196,7 +196,7 @@ Event Types
 Locations
 -------
 
-- Admin only
+- Admin, Event organizers only
 
 - permissions GET, POST, DELETE
 
@@ -206,7 +206,7 @@ Locations
 Searching for Users
 -----------------------
 
-- Admin only
+- Admin, event organizers only
 
 - permissions GET
 
