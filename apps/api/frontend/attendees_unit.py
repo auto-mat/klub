@@ -14,6 +14,39 @@ from api.frontend.event_interaction_serializer_unit import (
 )
 
 
+class AttendeeSerializer(EventInteractionSerializer):
+    user__first_name = serializers.CharField(
+        source="user.first_name", required=False, read_only=True
+    )
+    user__last_name = serializers.CharField(
+        source="user.last_name", required=False, read_only=True
+    )
+    user__nickname = serializers.CharField(
+        source="user.nickname", required=False, read_only=True
+    )
+    user__city = serializers.CharField(
+        source="user.city", required=False, read_only=True
+    )
+
+    class Meta:
+        model = Interaction
+        fields = (
+            "id",
+            "event",
+            "note",
+            "updated",
+            "created",
+            "type__slug",
+            "summary",
+            "user",
+            "user__first_name",
+            "user__last_name",
+            "user__nickname",
+            "user__city",
+            "note",
+        )
+
+
 class EventInteractionSet(
     mixins.RetrieveModelMixin,
     mixins.CreateModelMixin,
@@ -21,7 +54,7 @@ class EventInteractionSet(
     mixins.ListModelMixin,
     viewsets.GenericViewSet,
 ):
-    serializer_class = EventInteractionSerializer
+    serializer_class = AttendeeSerializer
 
     def get_queryset(self):
         event = self.request.query_params.get("event", None)
@@ -92,6 +125,10 @@ def test_super_user(superuser1_api_request, event_1, userprofile_1):
                 "updated": cresult.json()["updated"],
                 "summary": "",
                 "user": userprofile_1.pk,
+                "user__city": "Prague",
+                "user__first_name": "user_first",
+                "user__last_name": "user_last",
+                "user__nickname": "user_nickname",
             }
         ],
     }
