@@ -20,7 +20,7 @@ def who_am_i(request):
             "nickname": up.nickname,
             "is_staff": up.is_staff,
             "is_superuser": up.is_superuser,
-            "is_event_organizer": up.has_perm("add_event"),
+            "is_event_organizer": up.has_perm("events.add_event"),
             "id": up.pk,
         }
     )
