@@ -8,7 +8,11 @@ from api.permissions import IsEventOrganizer
 class TelephoneSerializer(serializers.ModelSerializer):
     class Meta:
         model = Telephone
-        fields = ("telephone",)
+        fields = (
+            "telephone",
+            "note",
+            "is_primary",
+        )
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -124,7 +128,9 @@ def test_user_set1(
                 "id": userprofile_superuser_2.pk,
                 "last_name": "admin_2",
                 "nickname": "",
-                "telephone_set": [{"telephone": "655455564"}],
+                "telephone_set": [
+                    {"telephone": "655455564", "is_primary": True, "note": ""}
+                ],
                 "city": "",
             },
             {
@@ -159,7 +165,9 @@ def test_user_set1(
             "last_name": "admin_2",
             "nickname": "",
             "city": "",
-            "telephone_set": [{"telephone": "655455564"}],
+            "telephone_set": [
+                {"telephone": "655455564", "is_primary": True, "note": ""}
+            ],
         }
     ]
 
