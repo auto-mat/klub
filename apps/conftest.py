@@ -149,6 +149,25 @@ def userprofile_1(administrative_unit_1):
 
 
 @pytest.fixture(scope="function")
+def userprofile_2(administrative_unit_1):
+    user = UserProfile.objects.create(
+        username="user2",
+        first_name="user2_first",
+        last_name="user2_last",
+        nickname="user2_nickname",
+        city="Prague",
+        is_staff=False,
+        is_superuser=False,
+        age_group=2003,
+        birth_month=3,
+        birth_day=29,
+    )
+    user.administrated_units.add(administrative_unit_1)
+    yield user
+    user.delete()
+
+
+@pytest.fixture(scope="function")
 def event_organizer_1(administrative_unit_1):
     user = UserProfile.objects.create(
         username="event organizer",

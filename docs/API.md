@@ -218,6 +218,18 @@ You can get a user by ID with urls of the form:
 
 `https://test.klub-pratel.cz/api/frontend/users/<id>/`
 
+Editing userprofiles
+--------------------------
+
+- Admin, event organizers only
+
+- permissions GET, PATCH
+
+- endpoint
+
+- endpoint `https://test.klub-pratel.cz/api/frontend/edit_userprofile/<id>/?dob=<YYYY-MM-DD>`
+
+Allows you to edit user profiles. Note: You must specify the users date of birth by passing the `dob` query arg in the format `YYYY-MM-DD`.
 
 "Unknown" user endpoints: Get or create user profile
 -------------------------------------------------------------------

@@ -2,6 +2,7 @@ from rest_framework import routers
 from . import events_unit
 from . import locations_unit
 from . import users_unit
+from . import edit_userprofile_unit
 from . import event_type_unit
 from . import my_events_unit
 from . import organized_events_unit
@@ -33,6 +34,11 @@ router.register(
 )
 router.register(r"locations", locations_unit.LocationSet, basename="frontend_locations")
 router.register(r"users", users_unit.UserSet, basename="frontend_users")
+router.register(
+    r"edit_userprofile",
+    edit_userprofile_unit.UserSet,
+    basename="frontend_edit_userprofile",
+)
 router.register(
     r"attendees", attendees_unit.EventInteractionSet, basename="frontend_attendees"
 )
