@@ -387,7 +387,6 @@ class EventAdmin(unit_admin_mixin_generator("administrative_units"), admin.Model
                         "contact_person_telephone",
                         "comment_on_work_done",
                         "other_work",
-                        "enable_signing_petitions",
                         "allow_statistics",
                         "public_on_web",
                         "public_on_web_date_from",
