@@ -29,6 +29,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserProfile
+        ref_name = "edit_user_profile_serializer"
         fields = (
             "id",
             "first_name",
