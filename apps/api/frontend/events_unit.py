@@ -22,6 +22,7 @@ class EventSerializer(our_serializers.EventSerializer):
 
     class Meta:
         model = Event
+        ref_name = "fronend_event_serializer"
         fields = [
             "id",
             "name",
