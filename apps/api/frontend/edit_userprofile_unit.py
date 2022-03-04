@@ -17,6 +17,7 @@ class MustSpecifyDateOfBirth(serializers.ValidationError):
 class TelephoneSerializer(serializers.ModelSerializer):
     class Meta:
         model = Telephone
+        ref_name = "edit_user_profile_telephone_serializer"
         fields = (
             "telephone",
             "note",
