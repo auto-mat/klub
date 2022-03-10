@@ -25,7 +25,7 @@ Furthermore, if you want your application to have access to event data you need 
 To test your new application you can request a token using the curl command
  
  ```
-curl --header "Content-Type: application/json" --request POST --data '{"grant_type":"client_credentials","client_id":"<id>","client_secret":"<secret>"}' https://test.klub-pratel.cz/api/o/token
+curl -L --header "Content-Type: application/json" --request POST --data '{"grant_type":"client_credentials","client_id":"<id>","client_secret":"<secret>"}' https://test.klub-pratel.cz/api/o/token/
  ```
  
  You can then use your token like so:
