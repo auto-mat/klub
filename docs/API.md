@@ -257,7 +257,7 @@ Returns `user_id` of the gotten or created user.
 Signing up "unknown" users for events
 -----------------------------------------------
 
- - Endpoint `/api/sign_up_for_event`
+ - Endpoint `/api/sign_up_for_event/`
 
  - Takes typical fields for creating a user profile as well as:
     
@@ -268,11 +268,16 @@ Signing up "unknown" users for events
     - `additional_question_3`
     - `additional_question_4`
 
+ - Full example:
+  ```
+  > curl -L -H "Authorization: Bearer <token>"  --header "Content-Type: application/json" --request POST --data '{"first_name": "Baf", "last_name": "Lek", "email": "contact@example.com", "event": 42, "note": ""}' https://automat.klub-pratel.cz/api/sign_up_for_event/
+{"user_id":57365}⏎ 
+  ```
 
 Signing up "unknown" users as volunteers
 -----------------------------------------------
 
- - Endpoint `/api/volunteer`
+ - Endpoint `/api/volunteer/`
  - Additional fields
    - `administrative_unit`: PK of administrative unit the person is applying to volunteer for
    - `skills`: Hashtag list of skills the person has
@@ -285,7 +290,7 @@ Signing up "unknown" users as volunteers
 Applying "unknown" users for membership
 -----------------------------------------------
 
- - Endpoint `/api/apply_for_membership`
+ - Endpoint `/api/apply_for_membership/`
  - Additional fields
   - `administrative_unit`
   - `skills`
