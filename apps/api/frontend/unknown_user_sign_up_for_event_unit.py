@@ -57,7 +57,9 @@ class SignUpForEventView(generics.CreateAPIView):
         event = serializer.validated_data.get("event")
         user.administrative_units.add(event.administrative_units.first()),
 
-        summary = f"{serializer.validated_data['note']}\n"
+        summary = serializer.validated_data.get("note", "")
+        if summary:
+            summary += "\n"
 
         for n in range(1, 5):
             question = event.__getattribute__("additional_question_%d" % n)
