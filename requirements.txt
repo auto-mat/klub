@@ -196,7 +196,7 @@ Pygments==2.7.4
 PyJWT==2.3.0
 pylev==1.4.0
 pyparsing==2.4.7
-PyPDF2==1.26.0
+PyPDF2==1.27.5
 pytest==6.2.4
 pytest-cov==2.12.1
 pytest-django==4.4.0
