@@ -26,7 +26,10 @@ DATABASES = {
         "PASSWORD": os.environ.get("DATABASE_PASSWORD", ""),
         "HOST": os.environ.get("DATABASE_HOST", ""),
         "PORT": os.environ.get("DATABASE_PORT", ""),
-        "DISABLE_SERVER_SIDE_CURSORS": True,
+        "DISABLE_SERVER_SIDE_CURSORS": os.environ.get(
+            "DISABLE_SERVER_SIDE_CURSORS",
+            False,
+        ),
     },
 }
 
