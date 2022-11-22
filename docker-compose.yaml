@@ -15,7 +15,6 @@ services:
   user: test
   volumes:
    - ./:/klub-v/
-   - ./venv:/home/test
  celery:
   build:
    context: .
@@ -29,7 +28,6 @@ services:
   user: test
   volumes:
    - ./:/klub-v/
-   - ./venv:/home/test
   environment:
    - COLUMNS=80
  celery-beat:
@@ -45,7 +43,6 @@ services:
   user: test
   volumes:
    - ./:/klub-v/
-   - ./venv:/home/test
   environment:
    - COLUMNS=80
  flower:
@@ -63,7 +60,6 @@ services:
   user: test
   volumes:
    - ./:/klub-v/
-   - ./venv:/home/test
  redis:
   image: redis
  postgres:
