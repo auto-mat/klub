@@ -15,11 +15,10 @@ services:
   user: test
   volumes:
    - ./:/klub-v/
-   - ./venv:/home/test
  celery:
   build:
    context: .
-  entrypoint: /klub-v/venv/bin/celery worker -A project.celery
+  entrypoint: /usr/local/bin/celery worker -A project.celery
   links:
    - postgres
    - redis
@@ -29,11 +28,12 @@ services:
   user: test
   volumes:
    - ./:/klub-v/
-   - ./venv:/home/test
+  environment:
+   - COLUMNS=80
  celery-beat:
   build:
    context: .
-  entrypoint: /klub-v/venv/bin/celery beat -A project.celery
+  entrypoint: /usr/local/bin/celery beat -A project.celery
   links:
    - postgres
    - redis
@@ -43,7 +43,8 @@ services:
   user: test
   volumes:
    - ./:/klub-v/
-   - ./venv:/home/test
+  environment:
+   - COLUMNS=80
  flower:
   build:
    context: .
@@ -59,7 +60,6 @@ services:
   user: test
   volumes:
    - ./:/klub-v/
-   - ./venv:/home/test
  redis:
   image: redis
  postgres:
