@@ -9,7 +9,7 @@ env:
     - DJANGO_SETTINGS_MODULE="project.settings.test"
     - SECRET_KEY="sadfjasasdfasdfsadfsadfsadfeq"
 python:
-  - "3.8"
+  - "3.9"
 before_install:
   - sudo apt-get install -y python-gdal
 install:
