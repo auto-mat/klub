@@ -30,6 +30,8 @@ services:
   volumes:
    - ./:/klub-v/
    - ./venv:/home/test
+  environment:
+   - COLUMNS=80
  celery-beat:
   build:
    context: .
@@ -44,6 +46,8 @@ services:
   volumes:
    - ./:/klub-v/
    - ./venv:/home/test
+  environment:
+   - COLUMNS=80
  flower:
   build:
    context: .
