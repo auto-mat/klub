@@ -1,21 +1,27 @@
+dist: jammy
 sudo: false
 language: python
-services:
-  - redis-server
 env:
   global:
     - DATABASE_NAME="travis_ci"
     - DATABASE_USER="postgres"
     - DJANGO_SETTINGS_MODULE="project.settings.test"
     - SECRET_KEY="sadfjasasdfasdfsadfsadfsadfeq"
+    - PGUSER=postgres
 python:
   - "3.9"
 before_install:
-  - sudo apt-get install -y python-gdal
+  - sudo apt-get install -y python3-gdal
+  - python3 -m pip install setuptools==65.5.1
 install:
   - pip3 install -r requirements.txt
   - python --version
 before_script:
+  - psql --version
+  - sudo service postgresql start
+  - psql -c "CREATE EXTENSION postgis"
+  - redis-server --version
+  - sudo service redis-server start
   - npm install -g bower
   - black --check --exclude migrations apps
   - black --check project
@@ -32,4 +38,9 @@ script:
 after_script:
   - coveralls
 addons:
-  postgresql: "9.6"
+  apt:
+     packages:
+       - postgresql-14
+       - postgresql-client-14
+       - postgresql-14-postgis-3
+       - redis-server
