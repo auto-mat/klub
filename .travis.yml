@@ -12,6 +12,7 @@ python:
   - "3.9"
 before_install:
   - sudo apt-get install -y python3-gdal
+  - python3 -m pip install setuptools==65.5.1
 install:
   - pip3 install -r requirements.txt
   - python --version
