@@ -1,3 +1,4 @@
+dist: jammy
 sudo: false
 language: python
 services:
@@ -8,6 +9,7 @@ env:
     - DATABASE_USER="postgres"
     - DJANGO_SETTINGS_MODULE="project.settings.test"
     - SECRET_KEY="sadfjasasdfasdfsadfsadfsadfeq"
+    - PGUSER=postgres
 python:
   - "3.9"
 before_install:
@@ -16,6 +18,9 @@ install:
   - pip3 install -r requirements.txt
   - python --version
 before_script:
+  - psql --version
+  - sudo service postgresql start
+  - psql -c "CREATE EXTENSION postgis"
   - npm install -g bower
   - black --check --exclude migrations apps
   - black --check project
@@ -32,4 +37,8 @@ script:
 after_script:
   - coveralls
 addons:
-  postgresql: "9.6"
+  apt:
+     packages:
+       - postgresql-14
+       - postgresql-client-14
+       - postgresql-14-postgis-3
