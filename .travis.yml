@@ -1,8 +1,6 @@
 dist: jammy
 sudo: false
 language: python
-services:
-  - redis-server
 env:
   global:
     - DATABASE_NAME="travis_ci"
@@ -21,6 +19,8 @@ before_script:
   - psql --version
   - sudo service postgresql start
   - psql -c "CREATE EXTENSION postgis"
+  - redis-server --version
+  - sudo service redis-server start
   - npm install -g bower
   - black --check --exclude migrations apps
   - black --check project
@@ -42,3 +42,4 @@ addons:
        - postgresql-14
        - postgresql-client-14
        - postgresql-14-postgis-3
+       - redis-server
