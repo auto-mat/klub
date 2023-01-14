@@ -721,19 +721,17 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
             profile = self
         if hasattr(profile, "title_before"):
             if profile.first_name or profile.last_name:
-                return (
-                    " ".join(
-                        filter(
-                            None,
-                            [
-                                profile.title_before,
-                                profile.last_name,
-                                profile.first_name,
-                            ],
-                        ),
-                    )
-                    + (", %s" % profile.title_after if profile.title_after else "")
-                )
+                return " ".join(
+                    filter(
+                        None,
+                        [
+                            profile.title_before,
+                            profile.last_name,
+                            profile.first_name,
+                        ],
+                    ),
+                ) + (", %s" % profile.title_after if profile.title_after else "")
+
         elif hasattr(profile, "name") and profile.name:
             return profile.name
         return profile.username
@@ -2686,7 +2684,7 @@ class TaxConfirmation(models.Model):
                     administrative_unit=self.pdf_type.pdfsandwichtypeconnector.administrative_unit,
                 )
                 return "%s %s" % (
-                 main_contact.contact_first_name,
+                    main_contact.contact_first_name,
                     main_contact.contact_last_name,
                 )
             except CompanyContact.DoesNotExist:
