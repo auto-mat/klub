@@ -721,19 +721,17 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
             profile = self
         if hasattr(profile, "title_before"):
             if profile.first_name or profile.last_name:
-                return (
-                    " ".join(
-                        filter(
-                            None,
-                            [
-                                profile.title_before,
-                                profile.last_name,
-                                profile.first_name,
-                            ],
-                        ),
-                    )
-                    + (", %s" % profile.title_after if profile.title_after else "")
-                )
+                return " ".join(
+                    filter(
+                        None,
+                        [
+                            profile.title_before,
+                            profile.last_name,
+                            profile.first_name,
+                        ],
+                    ),
+                ) + (", %s" % profile.title_after if profile.title_after else "")
+
         elif hasattr(profile, "name") and profile.name:
             return profile.name
         return profile.username
@@ -2673,26 +2671,38 @@ class TaxConfirmation(models.Model):
         )
 
     def get_company_name(self):
-        return "%s" % (self.user_profile.name or "")
+        if not self.user_profile.is_userprofile():
+            return "%s" % (self.user_profile.name or "")
+        else:
+            return ""
 
     def get_company_contact_name(self):
-        try:
-            main_contact = self.user_profile.companycontact_set.get(
-                is_primary=True,
-                administrative_unit=self.pdf_type.pdfsandwichtypeconnector.administrative_unit,
-            )
-            return "%s %s" % (
-                main_contact.contact_first_name,
-                main_contact.contact_last_name,
-            )
-        except CompanyContact.DoesNotExist:
+        if not self.user_profile.is_userprofile():
+            try:
+                main_contact = self.user_profile.companycontact_set.get(
+                    is_primary=True,
+                    administrative_unit=self.pdf_type.pdfsandwichtypeconnector.administrative_unit,
+                )
+                return "%s %s" % (
+                    main_contact.contact_first_name,
+                    main_contact.contact_last_name,
+                )
+            except CompanyContact.DoesNotExist:
+                return ""
+        else:
             return ""
 
     def get_company_tin(self):
-        return "%s" % (self.user_profile.tin or "",)
+        if not self.user_profile.is_userprofile():
+            return "%s" % (self.user_profile.tin or "",)
+        else:
+            return ""
 
     def get_company_crn(self):
-        return "%s" % (self.user_profile.crn or "",)
+        if not self.user_profile.is_userprofile():
+            return "%s" % (self.user_profile.crn or "",)
+        else:
+            return ""
 
     class Meta:
         verbose_name = _("Tax confirmation")
