@@ -32,6 +32,7 @@ RUN mkdir -p /var/log/django/
 copy requirements.txt requirements.txt
 RUN su test ; pip3 install --default-timeout=100 -r requirements.txt
 copy . .
-RUN set SECRET_KEY="fake_key" python3 manage.py bower install
-RUN set SECRET_KEY="fake_key" python3 manage.py compilemessages --ignore=third-party/*
-RUN set SECRET_KEY="fake_key" python3 manage.py collectstatic --noinput
+RUN bash -c "export SECRET_KEY='fake_key'; \
+    python3 manage.py bower install \
+    && python3 manage.py compilemessages --ignore=third-party/* \
+    && python3 manage.py collectstatic --noinput"
