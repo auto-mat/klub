@@ -912,6 +912,15 @@ class CompanyProfile(Profile):
         null=True,
     )
 
+    type = models.ForeignKey(
+        "aklub.CompanyType",
+        verbose_name=_("Company type"),
+        related_name="company_type",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+    )
+
     crn = StdNumField(
         "cz.dic",
         default=None,
@@ -2804,3 +2813,17 @@ def get_time_series(
 
 
 DashboardStats.add_to_class("get_time_series", get_time_series)
+
+
+class CompanyType(models.Model):
+    class Meta:
+        verbose_name = _("Company type")
+        verbose_name_plural = _("Types of companies")
+
+    type = models.CharField(
+        verbose_name=_("Type"),
+        max_length=255,
+    )
+
+    def __str__(self):
+        return str(self.type)
