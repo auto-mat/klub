@@ -2791,7 +2791,7 @@ class CompanyProfileAdmin(
     ]
     list_display = (
         "name",
-        "type__type",
+        "type",
         "crn",
         "tin",
         "get_contact_name",
