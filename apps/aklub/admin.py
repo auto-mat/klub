@@ -127,6 +127,7 @@ from aklub.models import (
     BankAccount,
     CompanyContact,
     CompanyProfile,
+    CompanyType,
     DonorPaymentChannel,
     MassCommunication,
     MoneyAccount,
@@ -2217,6 +2218,11 @@ class AdministrativeUnitAdmin(admin.ModelAdmin):
     )
 
 
+@admin.register(CompanyType)
+class CompanyTypeAdmin(admin.ModelAdmin):
+    pass
+
+
 class BaseProfileChildAdmin(
     PolymorphicChildModelAdmin,
 ):
@@ -2785,6 +2791,7 @@ class CompanyProfileAdmin(
     ]
     list_display = (
         "name",
+        "type__type",
         "crn",
         "tin",
         "get_contact_name",
@@ -2812,6 +2819,7 @@ class CompanyProfileAdmin(
         "email",
         "companycontact__telephone",
         "name",
+        "type__type",
         "crn",
         "tin",
         "is_staff",
@@ -2827,6 +2835,7 @@ class CompanyProfileAdmin(
         "companycontact__contact_last_name",
     )
     list_filter = (
+        "type__type",
         filters.PreferenceMailingListAllowed,
         isnull_filter("userchannels__payment", _("Has any payment"), negate=True),
         ("userchannels__extra_money", RangeNumericFilter),
@@ -2862,6 +2871,7 @@ class CompanyProfileAdmin(
                 "fields": (
                     "username",
                     ("name"),
+                    "type",
                     "is_active",
                     (
                         "contact_first_name",
@@ -2886,6 +2896,7 @@ class CompanyProfileAdmin(
                 "fields": (
                     "username",
                     ("name"),
+                    "type",
                     "is_active",
                     "get_company_email",
                     "get_company_telephone",
