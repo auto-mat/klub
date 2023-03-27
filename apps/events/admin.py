@@ -7,7 +7,6 @@ from aklub.filters import unit_admin_mixin_generator
 from api.serializers import EventSerializer
 
 from django.contrib import admin
-from django.db.models import Q, Sum
 from django.utils.html import format_html
 from django.utils.translation import ugettext as _
 from django.urls import reverse_lazy
@@ -200,6 +199,19 @@ class EventAdmin(unit_admin_mixin_generator("administrative_units"), admin.Model
                     "invitation_text_2",
                     "invitation_text_3",
                     "invitation_text_4",
+                    "url_title",
+                    "url",
+                    "url_title1",
+                    "url1",
+                    "url_title2",
+                    "url2",
+                    "print_point_1",
+                    "print_point_2",
+                    "print_point_3",
+                    "print_point_4",
+                    "print_point_5",
+                    "print_point_6",
+                    "event",
                 ),
             },
         ),
@@ -410,6 +422,19 @@ class EventAdmin(unit_admin_mixin_generator("administrative_units"), admin.Model
                         "invitation_text_2",
                         "invitation_text_3",
                         "invitation_text_4",
+                        "url_title",
+                        "url",
+                        "url_title1",
+                        "url1",
+                        "url_title2",
+                        "url2",
+                        "print_point_1",
+                        "print_point_2",
+                        "print_point_3",
+                        "print_point_4",
+                        "print_point_5",
+                        "print_point_6",
+                        "event",
                         "number_of_members",
                         "number_of_recruiters",
                         "yield_total",

@@ -40,6 +40,12 @@ class Location(models.Model):
         blank=True,
         null=True,
     )
+    specific_name = models.CharField(
+        verbose_name=_("Specific name"),
+        max_length=255,
+        blank=True,
+        null=True,
+    )
 
     def __str__(self):
         return self.name
@@ -464,6 +470,86 @@ class Event(models.Model):
     )
     other_work = models.TextField(
         max_length=2000, verbose_name=_("Other work"), blank=True, null=True, default=""
+    )
+    url_title = models.CharField(
+        verbose_name=_("Url tittle"),
+        help_text=_("Url tittle"),
+        max_length=255,
+        blank=True,
+        null=True,
+    )
+    url = models.URLField(
+        verbose_name=_("Url address of website"),
+        help_text=_("Url address of website"),
+        blank=True,
+        null=True,
+    )
+    url_title1 = models.CharField(
+        verbose_name=_("Url tittle 1"),
+        help_text=_("Url tittle 1"),
+        max_length=255,
+        blank=True,
+        null=True,
+    )
+    url1 = models.URLField(
+        verbose_name=_("Url address of website 1"),
+        help_text=_("Url address of website 1"),
+        blank=True,
+        null=True,
+    )
+    url_title2 = models.CharField(
+        verbose_name=_("Url tittle 2"),
+        help_text=_("Url tittle 2"),
+        max_length=255,
+        blank=True,
+        null=True,
+    )
+    url2 = models.URLField(
+        verbose_name=_("Url address of website 2"),
+        help_text=_("Url address of website 2"),
+        blank=True,
+        null=True,
+    )
+    print_point_1 = models.TextField(
+        verbose_name=_("Print point 1"),
+        help_text=_("Print point 1"),
+        blank=True,
+        null=True,
+    )
+    print_point_2 = models.TextField(
+        verbose_name=_("Print point 2"),
+        help_text=_("Print point 2"),
+        blank=True,
+        null=True,
+    )
+    print_point_3 = models.TextField(
+        verbose_name=_("Print point 3"),
+        help_text=_("Print point 3"),
+        blank=True,
+        null=True,
+    )
+    print_point_4 = models.TextField(
+        verbose_name=_("Print point 4"),
+        help_text=_("Print point 4"),
+        blank=True,
+        null=True,
+    )
+    print_point_5 = models.TextField(
+        verbose_name=_("Print point 5"),
+        help_text=_("Print point 5"),
+        blank=True,
+        null=True,
+    )
+    print_point_6 = models.TextField(
+        verbose_name=_("Print point 6"),
+        help_text=_("Print point 6"),
+        blank=True,
+        null=True,
+    )
+    event = models.ManyToManyField(
+        "self",
+        verbose_name=_("Event"),
+        blank=True,
     )
 
     def number_of_members(self):
