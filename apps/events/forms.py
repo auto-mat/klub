@@ -38,3 +38,14 @@ class EventForm(forms.ModelForm):
                 raise ValidationError(
                     {"basic_purpose": _("You must select 'Opportunity' option.")}
                 )
+
+
+class EventChangeListForm(forms.ModelForm):
+    event = forms.ModelMultipleChoiceField(
+        queryset=Event.objects.all(),
+        required=False,
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["event"].initial = kwargs["instance"].event.all()

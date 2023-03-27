@@ -7,13 +7,15 @@ from aklub.filters import unit_admin_mixin_generator
 from api.serializers import EventSerializer
 
 from django.contrib import admin
+from django.db.models import Case, CharField, Q, Sum, Value, When
 from django.utils.html import format_html
 from django.utils.translation import ugettext as _
 from django.urls import reverse_lazy
 from django.utils.safestring import mark_safe
 
 from . import filters
-from .forms import EventForm
+from .admin_views import EventChangeList
+from .forms import EventForm, EventChangeListForm
 from events.models import (
     Event,
     EventType,
@@ -74,13 +76,30 @@ class OrganizationTeamInline(admin.TabularInline):
 
 @admin.register(Event)
 class EventAdmin(unit_admin_mixin_generator("administrative_units"), admin.ModelAdmin):
+    main_coordinator = _("Hlavní organizátor")
+    secondary_coordinator = _("Vedlejší oraganizátor")
+    none_val = "-"
+    yes_icon = '<img src="/media/admin/img/icon-yes.svg" alt="True">'
+    no_icon = '<img src="/media/admin/img/icon-no.svg" alt="False">'
     form = EventForm
     inlines = (OrganizationTeamInline,)
     list_display = (
         "name",
         "id",
         "slug",
+        "specific_location_name",
+        "is_in_location",
         "datetime_from",
+        "local_organizer",
+        "main_coordinator",
+        "main_coordinator_email",
+        "secondary_coordinator_email",
+        "main_coordinator_telephone",
+        "has_any_coordinator_interaction_with_organize_zmj",
+        "has_any_coordinator_interaction_with_organize_uso",
+        "note",
+        "has_any_coordinator_interaction_type_of_contract_with_signed_result",
+        "has_any_coordinator_interaction_type_of_order_signs",
         "date_to",
         "sum_yield_amount",
         "number_of_members",
@@ -94,6 +113,7 @@ class EventAdmin(unit_admin_mixin_generator("administrative_units"), admin.Model
         # 'average_yield',
         # 'average_expense',
     )
+    list_editable = ("note",)
     list_filter = [
         ("donorpaymentchannel__payment__date", filters.EventYieldDateRangeFilter),
         "grant",
@@ -476,3 +496,222 @@ class EventAdmin(unit_admin_mixin_generator("administrative_units"), admin.Model
         url_with_querystring = f"{url}?event-of-interaction-id={obj.id}"
 
         return mark_safe(f"<a href='{url_with_querystring}'>Show users</a>")
+
+    def local_organizer(self, obj):
+        names = []
+        for profile in obj.organization_team.all():
+            if profile.is_userprofile():
+                names.append(
+                    "{first_name} {last_name}".format(
+                        first_name=profile.first_name.strip(),
+                        last_name=profile.last_name.strip(),
+                    )
+                )
+            else:
+                names.append(profile.name)
+
+        return mark_safe("<br>".join(names)) if names else self.none_val
+
+    local_organizer.short_description = _("Local organizer")
+    local_organizer.admin_order_field = "local_organizer"
+
+    def main_coordinator(self, obj):
+        names = []
+        main_organizators = OrganizationTeam.objects.filter(
+            event=obj,
+            position__name="Hlavní organizátor",
+        )
+        for organizator in main_organizators:
+            if organizator.profile.is_userprofile():
+                names.append(
+                    "<b>{first_name} {last_name}</b>".format(
+                        first_name=organizator.profile.first_name.strip(),
+                        last_name=organizator.profile.last_name.strip(),
+                    )
+                )
+            else:
+                names.append(organizator.profile.get_main_contact_name())
+
+        return mark_safe("<br>".join(names)) if names else self.none_val
+
+    main_coordinator.short_description = _("Contact person")
+    main_coordinator.admin_order_field = "main_coordinator"
+
+    def main_coordinator_email(self, obj):
+        emails = []
+        main_organizators = OrganizationTeam.objects.filter(
+            event=obj,
+            position__name=self.main_coordinator,
+        )
+        for organizator in main_organizators:
+            emails.append(organizator.profile.get_email())
+
+        return mark_safe("<br>".join(emails)) if emails else self.none_val
+
+    main_coordinator_email.short_description = _("Contact person main email")
+    main_coordinator_email.admin_order_field = "main_coordinator_email"
+
+    def secondary_coordinator_email(self, obj):
+        emails = []
+        secondary_organizators = OrganizationTeam.objects.filter(
+            event=obj,
+            position__name=self.secondary_coordinator,
+        )
+        for organizator in secondary_organizators:
+            emails.append(organizator.profile.get_email())
+
+        return mark_safe("<br>".join(emails)) if emails else self.none_val
+
+    secondary_coordinator_email.short_description = _("Contact person secondary email")
+    secondary_coordinator_email.admin_order_field = "secondary_coordinator_email"
+
+    def main_coordinator_telephone(self, obj):
+        telephones = []
+        main_organizators = OrganizationTeam.objects.filter(
+            event=obj,
+            position__name=self.main_coordinator,
+        )
+        for organizator in main_organizators:
+            telephones.append(organizator.profile.get_telephone())
+
+        return mark_safe("<br>".join(telephones)) if telephones else self.none_val
+
+    main_coordinator_telephone.short_description = _("Contact person main telephone")
+    main_coordinator_telephone.admin_order_field = "main_coordinator_telephone"
+
+    def has_any_coordinator_interaction_with_organize_zmj(
+        self,
+        obj,
+        interaction_type_name=_("Organizace lokality Zažít město jinak"),
+    ):
+        whens = [
+            When(
+                profile__interaction__event__name=interaction_type_name,
+                then=Value(self.yes_icon),
+            ),
+        ]
+        organizators = (
+            OrganizationTeam.objects.filter(
+                event=obj,
+                position__name__in=(
+                    self.main_coordinator,
+                    self.secondary_coordinator,
+                ),
+            )
+            .annotate(
+                has_any_coordinator=Case(
+                    *whens,
+                    output_field=CharField(),
+                    default=Value(self.no_icon),
+                )
+            )
+            .values_list("has_any_coordinator", flat=True)
+        )
+
+        return mark_safe("<br>".join(organizators)) if organizators else self.none_val
+
+    has_any_coordinator_interaction_with_organize_zmj.short_description = _(
+        "Have any interaction with organize location Zažít město jinak"
+    )
+    has_any_coordinator_interaction_with_organize_zmj.admin_order_field = (
+        "has_any_coordinator_interaction_with_organize_zmj"
+    )
+
+    def is_in_location(self, obj, location="prague"):
+        return location in obj.location.specific_name.lower() if obj.location else None
+
+    is_in_location.short_description = _("Is in the Prague")
+    is_in_location.admin_order_field = "is_in_location"
+    is_in_location.boolean = True
+
+    def specific_location_name(self, obj):
+        return obj.location.name if obj.location else None
+
+    specific_location_name.short_description = _("Specific location name")
+    specific_location_name.admin_order_field = "specific_location_name"
+
+    def has_any_coordinator_interaction_with_organize_uso(
+        self,
+        obj,
+        interaction_type_name=_("Účast na setkání organizátorů"),
+    ):
+        return self.has_any_coordinator_interaction_with_organize_zmj(
+            obj,
+            interaction_type_name,
+        )
+
+    has_any_coordinator_interaction_with_organize_uso.short_description = _(
+        "Have any interaction with Účast na setkání organizátorů"
+    )
+    has_any_coordinator_interaction_with_organize_uso.admin_order_field = (
+        "has_any_coordinator_interaction_with_organize_uso"
+    )
+
+    def has_any_coordinator_interaction_type_of_contract_with_signed_result(
+        self,
+        obj,
+        interaction_type_name=_("Smlouva"),
+        interaction_result_name=_("Podepsáno"),
+    ):
+        whens = [
+            When(
+                profile__interaction__type__name=interaction_type_name,
+                profile__interaction__result__name=interaction_result_name,
+                then=Value(self.yes_icon),
+            ),
+        ]
+        organizators = (
+            OrganizationTeam.objects.filter(
+                event=obj,
+                position__name__in=(
+                    self.main_coordinator,
+                    self.secondary_coordinator,
+                ),
+            )
+            .annotate(
+                has_any_coordinator=Case(
+                    *whens,
+                    output_field=CharField(),
+                    default=Value(self.no_icon),
+                )
+            )
+            .values_list("has_any_coordinator", flat=True)
+        )
+
+        return mark_safe("<br>".join(organizators)) if organizators else self.none_val
+
+    has_any_coordinator_interaction_type_of_contract_with_signed_result.short_description = _(
+        "Has any interaction with type of contract with signed result"
+    )
+    has_any_coordinator_interaction_type_of_contract_with_signed_result.admin_order_field = (
+        "has_any_coordinator_interaction_type_of_contract_with_signed_result"
+    )
+
+    def has_any_coordinator_interaction_type_of_order_signs(
+        self,
+        obj,
+        interaction_type_name=_("Objednal značky"),
+    ):
+        return self.has_any_coordinator_interaction_with_organize_zmj(
+            obj,
+            interaction_type_name,
+        )
+
+    has_any_coordinator_interaction_type_of_order_signs.short_description = _(
+        "Has any interaction with type of order signs"
+    )
+    has_any_coordinator_interaction_type_of_order_signs.admin_order_field = (
+        "has_any_coordinator_interaction_type_of_order_signs"
+    )
+
+    def get_changelist(self, request, **kwargs):
+        return EventChangeList
+
+    def get_changelist_form(self, request, **kwargs):
+        return EventChangeListForm
+
+    def save_model(self, request, obj, form, change):
+        # Save ManyToManyField Event
+        if "event" in form.changed_data:
+            obj.event.set(form.cleaned_data["event"])
+        super().save_model(request, obj, form, change)
