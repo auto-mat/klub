@@ -2,10 +2,19 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext as _
 
+from tinymce.widgets import TinyMCE
+
 from events.models import Event
 
 
 class EventForm(forms.ModelForm):
+    print_point_1 = forms.CharField(widget=TinyMCE())
+    print_point_2 = forms.CharField(widget=TinyMCE())
+    print_point_3 = forms.CharField(widget=TinyMCE())
+    print_point_4 = forms.CharField(widget=TinyMCE())
+    print_point_5 = forms.CharField(widget=TinyMCE())
+    print_point_6 = forms.CharField(widget=TinyMCE())
+
     class Meta:
         model = Event
         fields = "__all__"

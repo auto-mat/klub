@@ -587,3 +587,24 @@ ORGANIZATION_FINANCE_PROGRAM_TYPES = (
     ("dpnk", "Do práce na Kole"),
     ("lab", "LAB"),
 )
+
+TINYMCE_DEFAULT_CONFIG = {
+    "theme": "silver",
+    "height": 500,
+    "menubar": True,
+    "plugins": (
+        "advlist,autolink,lists,link,image,charmap,print,preview,anchor,"
+        "searchreplace,visualblocks,code,fullscreen,insertdatetime,media,"
+        "table,paste,code,help,textpattern,wordcount,hr,pagebreak,nonbreaking,"
+        "autosave"
+    ),
+    "toolbar": (
+        "undo redo | formatselect | bold italic backcolor |"
+        " alignleft aligncenter alignright alignjustify |"
+        " bullist numlist outdent indent | link anchor  |"
+        " insertdatetime hr charmap | nonbreaking pagebreak |"
+        " paste pastetext | searchreplace textpattern |"
+        " code preview visualblocks wordcount | restoredraft |"
+        " removeformat | help"
+    ),
+}
