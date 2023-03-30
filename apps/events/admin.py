@@ -624,7 +624,7 @@ class EventAdmin(unit_admin_mixin_generator("administrative_units"), admin.Model
         "has_any_coordinator_interaction_with_organize_zmj"
     )
 
-    def is_in_location(self, obj, location="prague"):
+    def is_in_location(self, obj, location=_("praha")):
         return location in obj.location.specific_name.lower() if obj.location else None
 
     is_in_location.short_description = _("Is in the Prague")
