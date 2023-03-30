@@ -8,12 +8,12 @@ from events.models import Event
 
 
 class EventForm(forms.ModelForm):
-    print_point_1 = forms.CharField(widget=TinyMCE())
-    print_point_2 = forms.CharField(widget=TinyMCE())
-    print_point_3 = forms.CharField(widget=TinyMCE())
-    print_point_4 = forms.CharField(widget=TinyMCE())
-    print_point_5 = forms.CharField(widget=TinyMCE())
-    print_point_6 = forms.CharField(widget=TinyMCE())
+    print_point_1 = forms.CharField(widget=TinyMCE(), required=False)
+    print_point_2 = forms.CharField(widget=TinyMCE(), required=False)
+    print_point_3 = forms.CharField(widget=TinyMCE(), required=False)
+    print_point_4 = forms.CharField(widget=TinyMCE(), required=False)
+    print_point_5 = forms.CharField(widget=TinyMCE(), required=False)
+    print_point_6 = forms.CharField(widget=TinyMCE(), required=False)
 
     class Meta:
         model = Event
