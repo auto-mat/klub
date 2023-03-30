@@ -83,8 +83,8 @@ class OrganizationTeamInline(admin.TabularInline):
 
 @admin.register(Event)
 class EventAdmin(unit_admin_mixin_generator("administrative_units"), admin.ModelAdmin):
-    main_coordinator = _("Hlavní organizátor")
-    secondary_coordinator = _("Vedlejší oraganizátor")
+    main_coordinator_name = _("Hlavní organizátor")
+    secondary_coordinator_name = _("Vedlejší oraganizátor")
     none_val = "-"
     yes_icon = '<img src="/media/admin/img/icon-yes.svg" alt="True">'
     no_icon = '<img src="/media/admin/img/icon-no.svg" alt="False">'
@@ -526,7 +526,7 @@ class EventAdmin(unit_admin_mixin_generator("administrative_units"), admin.Model
         names = []
         main_organizators = OrganizationTeam.objects.filter(
             event=obj,
-            position__name="Hlavní organizátor",
+            position__name=self.main_coordinator_name,
         )
         for organizator in main_organizators:
             if organizator.profile.is_userprofile():
@@ -548,7 +548,7 @@ class EventAdmin(unit_admin_mixin_generator("administrative_units"), admin.Model
         emails = []
         main_organizators = OrganizationTeam.objects.filter(
             event=obj,
-            position__name=self.main_coordinator,
+            position__name=self.main_coordinator_name,
         )
         for organizator in main_organizators:
             emails.append(organizator.profile.get_email())
@@ -562,7 +562,7 @@ class EventAdmin(unit_admin_mixin_generator("administrative_units"), admin.Model
         emails = []
         secondary_organizators = OrganizationTeam.objects.filter(
             event=obj,
-            position__name=self.secondary_coordinator,
+            position__name=self.secondary_coordinator_name,
         )
         for organizator in secondary_organizators:
             emails.append(organizator.profile.get_email())
@@ -576,7 +576,7 @@ class EventAdmin(unit_admin_mixin_generator("administrative_units"), admin.Model
         telephones = []
         main_organizators = OrganizationTeam.objects.filter(
             event=obj,
-            position__name=self.main_coordinator,
+            position__name=self.main_coordinator_name,
         )
         for organizator in main_organizators:
             telephones.append(organizator.profile.get_telephone())
@@ -601,8 +601,8 @@ class EventAdmin(unit_admin_mixin_generator("administrative_units"), admin.Model
             OrganizationTeam.objects.filter(
                 event=obj,
                 position__name__in=(
-                    self.main_coordinator,
-                    self.secondary_coordinator,
+                    self.main_coordinator_name,
+                    self.secondary_coordinator_name,
                 ),
             )
             .annotate(
@@ -671,8 +671,8 @@ class EventAdmin(unit_admin_mixin_generator("administrative_units"), admin.Model
             OrganizationTeam.objects.filter(
                 event=obj,
                 position__name__in=(
-                    self.main_coordinator,
-                    self.secondary_coordinator,
+                    self.main_coordinator_name,
+                    self.secondary_coordinator_name,
                 ),
             )
             .annotate(
@@ -684,7 +684,6 @@ class EventAdmin(unit_admin_mixin_generator("administrative_units"), admin.Model
             )
             .values_list("has_any_coordinator", flat=True)
         )
-
         return mark_safe("<br>".join(organizators)) if organizators else self.none_val
 
     has_any_coordinator_interaction_type_of_contract_with_signed_result.short_description = _(
