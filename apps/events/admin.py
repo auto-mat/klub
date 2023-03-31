@@ -107,6 +107,7 @@ class EventAdmin(unit_admin_mixin_generator("administrative_units"), admin.Model
         "note",
         "has_any_coordinator_interaction_type_of_contract_with_signed_result",
         "has_any_coordinator_interaction_type_of_order_signs",
+        "has_any_coordinator_interaction_type_of_zabor_zmj",
         "date_to",
         "sum_yield_amount",
         "number_of_members",
@@ -750,6 +751,23 @@ class EventAdmin(unit_admin_mixin_generator("administrative_units"), admin.Model
     )
     has_any_coordinator_interaction_type_of_order_signs.admin_order_field = (
         "has_any_coordinator_interaction_type_of_order_signs"
+    )
+
+    def has_any_coordinator_interaction_type_of_zabor_zmj(
+        self,
+        obj,
+        interaction_type_name=_("Zábor ZMJ"),
+    ):
+        return self.has_any_coordinator_interaction_with_organize_zmj(
+            obj,
+            interaction_type_name,
+        )
+
+    has_any_coordinator_interaction_type_of_zabor_zmj.short_description = _(
+        "Has any interaction with type of Zábor ZMJ"
+    )
+    has_any_coordinator_interaction_type_of_zabor_zmj.admin_order_field = (
+        "has_any_coordinator_interaction_type_of_zabor_zmj"
     )
 
     def get_changelist(self, request, **kwargs):
