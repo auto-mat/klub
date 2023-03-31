@@ -613,7 +613,7 @@ class EventAdmin(unit_admin_mixin_generator("administrative_units"), admin.Model
     ):
         whens = [
             When(
-                profile__interaction__event__name=interaction_type_name,
+                profile__interaction__type__name=interaction_type_name,
                 then=Value(self.yes_icon),
             ),
         ]
