@@ -504,6 +504,25 @@ class EventAdmin(unit_admin_mixin_generator("administrative_units"), admin.Model
 
         return mark_safe(f"<a href='{url_with_querystring}'>Show users</a>")
 
+    def _get_unique_organizator_interaction(self, organizators):
+        organizators_with_interaction = []
+        for organizator in organizators:
+            if organizator["id"] not in [
+                o["id"] for o in organizators_with_interaction
+            ]:
+                organizators_with_interaction.append(
+                    {
+                        "id": organizator["id"],
+                        "has_any_coordinator": organizator["has_any_coordinator"],
+                    }
+                )
+            else:
+                if organizator["has_any_coordinator"] == self.yes_icon:
+                    organizators_with_interaction[-1][
+                        "has_any_coordinator"
+                    ] = organizator["has_any_coordinator"]
+        return organizators_with_interaction
+
     def local_organizer(self, obj):
         names = []
         for profile in obj.organization_team.all():
@@ -612,13 +631,24 @@ class EventAdmin(unit_admin_mixin_generator("administrative_units"), admin.Model
                     default=Value(self.no_icon),
                 )
             )
-            .values_list("has_any_coordinator", flat=True)
+            .values()
         )
 
-        return mark_safe("<br>".join(organizators)) if organizators else self.none_val
+        return (
+            mark_safe(
+                "<br>".join(
+                    [
+                        i["has_any_coordinator"]
+                        for i in self._get_unique_organizator_interaction(organizators)
+                    ]
+                )
+            )
+            if organizators
+            else self.none_val
+        )
 
     has_any_coordinator_interaction_with_organize_zmj.short_description = _(
-        "Have any interaction with organize location Zažít město jinak"
+        "Have any interaction with organize location ZMJ"
     )
     has_any_coordinator_interaction_with_organize_zmj.admin_order_field = (
         "has_any_coordinator_interaction_with_organize_zmj"
@@ -682,9 +712,21 @@ class EventAdmin(unit_admin_mixin_generator("administrative_units"), admin.Model
                     default=Value(self.no_icon),
                 )
             )
-            .values_list("has_any_coordinator", flat=True)
+            .values()
         )
-        return mark_safe("<br>".join(organizators)) if organizators else self.none_val
+
+        return (
+            mark_safe(
+                "<br>".join(
+                    [
+                        i["has_any_coordinator"]
+                        for i in self._get_unique_organizator_interaction(organizators)
+                    ]
+                )
+            )
+            if organizators
+            else self.none_val
+        )
 
     has_any_coordinator_interaction_type_of_contract_with_signed_result.short_description = _(
         "Has any interaction with type of contract with signed result"
