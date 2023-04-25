@@ -253,6 +253,14 @@ class Interaction(WithAdminUrl, BaseInteraction2):
         max_length=600,
     )
 
+    @classmethod
+    def export_resource_classes(cls):
+        from .admin import InteractionResource
+
+        return {
+            "users": ("Interactions resource", InteractionResource),
+        }
+
     def __str__(self):
         return f"{self.user.username} - {self.type}"
 

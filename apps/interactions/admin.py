@@ -12,6 +12,8 @@ from import_export.admin import ImportExportMixin
 from import_export.resources import ModelResource
 from import_export.widgets import ForeignKeyWidget
 
+from import_export_celery.admin_actions import create_export_job_action
+
 from related_admin import RelatedFieldAdmin
 
 from .forms import InteractionInlineForm, InteractionInlineFormset
@@ -126,11 +128,19 @@ class InteractionResource(ModelResource):
         if hasattr(interaction, "user"):
             return interaction.user.get_email_str()
 
+    def dehydrate_profile_type(self, interaction):
+        if hasattr(interaction, "user"):
+            value = "c"
+            if interaction.user.is_userprofile():
+                value = "u"
+            return value
+
 
 @admin.register(Interaction)
 class InteractionAdmin(ImportExportMixin, RelatedFieldAdmin, admin.ModelAdmin):
     resource_class = InteractionResource
     autocomplete_fields = ("user",)
+    import_template_name = "admin/import_export/userprofile_import.html"
 
     list_display = (
         "user",
@@ -169,6 +179,8 @@ class InteractionAdmin(ImportExportMixin, RelatedFieldAdmin, admin.ModelAdmin):
         "administrative_unit",
         ("program_of_interest", MultiSelectFilter),
     )
+
+    actions = (create_export_job_action,)
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "event":
