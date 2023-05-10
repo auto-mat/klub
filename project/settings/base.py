@@ -297,6 +297,7 @@ OAUTH2_PROVIDER = {
 FLEXIBLE_FILTER_CONDITIONS_FIELD_MAP = {
     "User": ("aklub.models", "User"),
     "Profile": ("aklub.models", "Profile"),
+    "User.administrative_units": ("aklub.models", "AdministrativeUnit"),
     "User.userchannels.payment": ("aklub.models", "Payment"),
     "User.userchannels.last_payment": ("aklub.models", "Payment"),
     "User.userchannels": ("aklub.models", "DonorPaymentChannel"),
