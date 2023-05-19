@@ -302,6 +302,7 @@ FLEXIBLE_FILTER_CONDITIONS_FIELD_MAP = {
     "User.userchannels.last_payment": ("aklub.models", "Payment"),
     "User.userchannels": ("aklub.models", "DonorPaymentChannel"),
     "User.petitionsignature": ("interactions.models", "PetitionSignature"),
+    "User.interaction": ("interactions.models", "Interaction"),
 }
 
 
