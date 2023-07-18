@@ -14,7 +14,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "project.settings")
 
 from django.conf import settings  # noqa
 
-app = Celery("apps.aklub")
+app = Celery("apps")
 
 # Using a string here means the worker will not have to
 # pickle the object when using Windows.

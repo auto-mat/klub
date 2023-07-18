@@ -16,6 +16,11 @@ from smmapdfs.models import PdfSandwichType
 from . import darujme
 from aklub import models
 from .autocom import check
+from .sync_with_daktela_app import (
+    delete_contact,
+    get_user_auth_token,
+    sync_contacts,
+)
 from .darujme import parse_darujme_json
 from .mailing import create_mass_communication_tasks_sync, send_communication_sync
 
@@ -124,3 +129,32 @@ def parse_account_statement(statement_id):
             raise
         else:
             statement.save()
+
+
+@task()
+def sync_with_daktela(userprofiles_pks):
+    """Sync UserProfiles models instances with Daktela app
+
+    :param list userprofiles: UserProfiles models instances id
+    """
+    userprofiles = models.UserProfile.objects.filter(
+        pk__in=userprofiles_pks,
+        preference__call_on=True,
+    )
+    sync_contacts(userprofiles)
+
+
+@task()
+def delete_contacts_from_daktela(userprofiles_pks):
+    """Delete UserProfile models instances from Daktela app Contact models
+
+    :param list userprofiles: Interaction models instances id
+    """
+    userprofiles = models.UserProfile.objects.filter(
+        pk__in=userprofiles_pks,
+        preference__call_on=True,
+    )
+    user_auth_token = get_user_auth_token()
+    for userprofile in userprofiles:
+        delete_contact(userprofile, user_auth_token)
+    userprofiles.delete()

@@ -610,3 +610,15 @@ TINYMCE_DEFAULT_CONFIG = {
         " removeformat | help"
     ),
 }
+
+DAKTELA = {
+    "base_rest_api_url": os.getenv(
+        "DAKTELA_BASE_REST_API_URL",
+    ),
+    "username": os.getenv(
+        "DAKTELA_USERNAME",
+    ),
+    "password": os.getenv(
+        "DAKTELA_PASSWORD",
+    ),
+}
