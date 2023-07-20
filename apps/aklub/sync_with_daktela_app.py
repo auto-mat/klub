@@ -1,4 +1,31 @@
-"""Sync with Daktela app"""
+"""
+@package aklub.sync_with_daktela_app
+
+@brief sync UserProfile, Interaction models with Daktela app Contacts,
+       Tickets models
+
+Funcs:
+ - sync_with_daktela_app::create_or_update_contact
+ - sync_with_daktela_app::create_or_update_ticket
+ - sync_with_daktela_app::delete_contact
+ - sync_with_daktela_app::delete_contact_tickets
+ - sync_with_daktela_app::delete_ticket
+ - sync_with_daktela_app::get_contact
+ - sync_with_daktela_app::get_contact_tickets
+ - sync_with_daktela_app::get_hash_hexdigest
+ - sync_with_daktela_app::get_hash_hexdigest_as_int
+ - sync_with_daktela_app::get_ticket
+ - sync_with_daktela_app::get_ticket_by_uniq_title
+ - sync_with_daktela_app::get_ticket
+ - sync_with_daktela_app::get_tickets_max_uniq_id
+ - sync_with_daktela_app::get_uniq_contact_name
+ - sync_with_daktela_app::get_uniq_contact_name
+ - sync_with_daktela_app::get_uniq_ticket_name
+ - sync_with_daktela_app::get_user_auth_token
+ - sync_with_daktela_app::sync_contacts
+ - sync_with_daktela_app::sync_tickets
+"""
+
 
 import hashlib
 import json
