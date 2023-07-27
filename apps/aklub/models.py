@@ -68,6 +68,11 @@ from vokativ import vokativ
 
 from . import autocom
 from .parse_account_statements import ParseAccountStatement
+from .sync_with_daktela_app import (
+    delete_contact,
+    get_user_auth_token,
+    sync_contacts,
+)
 from .utils import WithAdminUrl, create_model
 
 logger = logging.getLogger(__name__)
@@ -721,16 +726,19 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
             profile = self
         if hasattr(profile, "title_before"):
             if profile.first_name or profile.last_name:
-                return " ".join(
-                    filter(
-                        None,
-                        [
-                            profile.title_before,
-                            profile.last_name,
-                            profile.first_name,
-                        ],
-                    ),
-                ) + (", %s" % profile.title_after if profile.title_after else "")
+                return (
+                    " ".join(
+                        filter(
+                            None,
+                            [
+                                profile.title_before,
+                                profile.last_name,
+                                profile.first_name,
+                            ],
+                        ),
+                    )
+                    + (", %s" % profile.title_after if profile.title_after else "")
+                )
 
         elif hasattr(profile, "name") and profile.name:
             return profile.name
@@ -777,6 +785,18 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
 
             self.username = get_unique_username(self.email)
         super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        # Delete Daktela app Contact model
+        if self.is_userprofile():
+            preference = self.preference_set.all()
+            if preference:
+                if preference.values_list("call_on", flat=True)[0]:
+                    delete_contact(
+                        userprofile=self,
+                        user_auth_token=get_user_auth_token(),
+                    )
+        super().delete(*args, **kwargs)
 
     def get_telephone(self):
         if self.is_userprofile():
@@ -1271,6 +1291,12 @@ class Preference(models.Model):
 
     def __str__(self):
         return self.administrative_unit.name if self.administrative_unit else ""
+
+    def save(self, *args, **kwargs):
+        # Sync with Daktela app
+        super().save(*args, **kwargs)
+        if self.user.is_userprofile() and self.call_on:
+            sync_contacts([self.user])
 
 
 class Telephone(models.Model):

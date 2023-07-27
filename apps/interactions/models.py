@@ -14,6 +14,12 @@ from django.utils.translation import ugettext_lazy as _
 import html2text
 from multiselectfield import MultiSelectField
 
+from aklub.sync_with_daktela_app import (
+    get_user_auth_token,
+    delete_ticket,
+    sync_tickets,
+)
+
 
 class Result(models.Model):
     class Meta:
@@ -278,6 +284,30 @@ class Interaction(WithAdminUrl, BaseInteraction2):
                     save=False
                 )  # then try to dispatch this email automatically
         super().save(*args, **kwargs)
+        if (
+            self.user.preference_set.all().values_list("call_on", flat=True)[0]
+            and self.user.is_userprofile()
+            and self.type.name == "telephone"
+        ):
+            # Sync with Daktela app Tickets models
+            sync_tickets([self])
+
+    def delete(self, *args, **kwargs):
+        """Delete model instance"""
+        from aklub.models import UserProfile
+
+        user = UserProfile.objects.get(pk=self.user.pk)
+        if (
+            self.user.preference_set.all().values_list("call_on", flat=True)[0]
+            and user.is_userprofile()
+            and self.type.name == "telephone"
+        ):
+            # Delete from Daktela app Tickets models
+            delete_ticket(
+                interaction=self,
+                user_auth_token=get_user_auth_token(),
+            )
+        super().delete(*args, **kwargs)
 
     def dispatch(self, save=True, is_test=False):
         """Dispatch the communication

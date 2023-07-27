@@ -2271,6 +2271,13 @@ class BaseProfileChildAdmin(
         return inlines
 
 
+def sync_with_daktela(self, request, queryset):
+    tasks.sync_with_daktela.delay(list(queryset.values_list("pk", flat=True)))
+
+
+sync_with_daktela.short_description = _("Sync profiles with Daktela app contacts")
+
+
 @admin.register(UserProfile)
 class UserProfileAdmin(
     child_redirect_mixin("userprofile"),
@@ -2334,7 +2341,7 @@ class UserProfileAdmin(
         "donor_extra_money",
     )
 
-    actions = () + ProfileAdminMixin.actions
+    actions = (sync_with_daktela,) + ProfileAdminMixin.actions
 
     advanced_filter_fields = (
         (
@@ -2706,6 +2713,11 @@ class UserProfileAdmin(
         )
 
         return queryset
+
+    def delete_queryset(self, request, queryset):
+        tasks.delete_contacts_from_daktela.delay(
+            list(queryset.values_list("pk", flat=True)),
+        )
 
 
 class CompanyContactInline(admin.TabularInline):

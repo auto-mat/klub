@@ -24,6 +24,7 @@ from .models import (
     PetitionSignature,
     Result,
 )
+from . import tasks
 
 from events.filters import MultiSelectFilter
 
@@ -136,6 +137,13 @@ class InteractionResource(ModelResource):
             return value
 
 
+def sync_with_daktela(self, request, queryset):
+    tasks.sync_with_daktela.delay(list(queryset.values_list("pk", flat=True)))
+
+
+sync_with_daktela.short_description = _("Sync interactions with Daktela app tickets")
+
+
 @admin.register(Interaction)
 class InteractionAdmin(ImportExportMixin, RelatedFieldAdmin, admin.ModelAdmin):
     resource_class = InteractionResource
@@ -180,7 +188,7 @@ class InteractionAdmin(ImportExportMixin, RelatedFieldAdmin, admin.ModelAdmin):
         ("program_of_interest", MultiSelectFilter),
     )
 
-    actions = (create_export_job_action,)
+    actions = (create_export_job_action, sync_with_daktela)
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "event":
@@ -279,6 +287,11 @@ class InteractionAdmin(ImportExportMixin, RelatedFieldAdmin, admin.ModelAdmin):
             return {
                 "user": user,
             }
+
+    def delete_queryset(self, request, queryset):
+        tasks.delete_tickets_from_daktela.delay(
+            list(queryset.values_list("pk", flat=True)),
+        )
 
 
 @admin.register(InteractionCategory)
