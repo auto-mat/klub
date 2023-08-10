@@ -216,7 +216,7 @@ raven==6.10.0
 redis==3.5.3
 regex==2021.8.28
 reportlab==3.6.0
-requests==2.26.0
+requests==2.31.0
 requests-toolbelt==0.9.1
 ruamel.yaml==0.17.10
 ruamel.yaml.clib==0.2.6
