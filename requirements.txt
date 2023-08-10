@@ -231,7 +231,7 @@ single-beat==0.4.2
 six==1.16.0
 sorl-thumbnail==12.7.0
 soupsieve==2.2.1
-sqlparse==0.4.2
+sqlparse==0.4.4
 swapper==1.1.2.post1
 tablib==0.14.0
 text-unidecode==1.3
