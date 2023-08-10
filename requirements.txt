@@ -192,7 +192,7 @@ py==1.10.0
 pycodestyle==2.6.0
 pycparser==2.20
 pyflakes==2.2.0
-Pygments==2.7.4
+Pygments==2.15.0
 PyJWT==2.4.0
 pylev==1.4.0
 pyparsing==2.4.7
