@@ -785,6 +785,12 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
 
             self.username = get_unique_username(self.email)
         super().save(*args, **kwargs)
+        preferences = Preference.objects.filter(
+            user=self,
+            administrative_unit__in=self.administrative_units.all(),
+        )
+        if preferences and preferences.first().call_on:
+            sync_contacts([self])
 
     def delete(self, *args, **kwargs):
         # Delete Daktela app Contact model
