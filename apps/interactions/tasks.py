@@ -22,7 +22,6 @@ def sync_with_daktela(interactions_pks):
     """
     interactions = models.Interaction.objects.filter(
         pk__in=interactions_pks,
-        user__preference__call_on=True,
     )
     sync_tickets(interactions)
 
@@ -35,7 +34,6 @@ def delete_tickets_from_daktela(interactions_pks):
     """
     interactions = models.Interaction.objects.filter(
         pk__in=interactions_pks,
-        user__preference__call_on=True,
     )
     user_auth_token = get_user_auth_token()
     for interaction in interactions:
