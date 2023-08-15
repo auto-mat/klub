@@ -139,7 +139,6 @@ def sync_with_daktela(userprofiles_pks):
     """
     userprofiles = models.UserProfile.objects.filter(
         pk__in=userprofiles_pks,
-        preference__call_on=True,
     )
     sync_contacts(userprofiles)
 
@@ -152,7 +151,6 @@ def delete_contacts_from_daktela(userprofiles_pks):
     """
     userprofiles = models.UserProfile.objects.filter(
         pk__in=userprofiles_pks,
-        preference__call_on=True,
     )
     user_auth_token = get_user_auth_token()
     for userprofile in userprofiles:
