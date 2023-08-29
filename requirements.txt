@@ -215,7 +215,7 @@ PyYAML==5.4.1
 raven==6.10.0
 redis==3.5.3
 regex==2021.8.28
-reportlab==3.6.0
+reportlab==3.6.13
 requests==2.31.0
 requests-toolbelt==0.9.1
 ruamel.yaml==0.17.10
