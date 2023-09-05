@@ -170,7 +170,7 @@ def create_or_update_contact(userprofile, user_auth_token, create=True):
     :param str user_auth_token: Daktela app user auth token
     :param bool create: create contact if True else update existed contact
     """
-    from aklub.models import Telephone
+    from aklub.models import ProfileEmail, Telephone
 
     error_message = (
         "{operation} Daktela app contact with name '{name}' fails due error:"
@@ -181,6 +181,9 @@ def create_or_update_contact(userprofile, user_auth_token, create=True):
     last_name = userprofile.last_name if userprofile.last_name else userprofile.username
     title = f"{first_name} {last_name}" if last_name else first_name
     telephones = [t.format_number() for t in Telephone.objects.filter(user=userprofile)]
+    emails = list(
+        ProfileEmail.objects.filter(user=userprofile).values_list("email", flat=True)
+    )
     uniq_name = get_uniq_contact_name(userprofile)
     data = {
         "title": title,
@@ -189,12 +192,8 @@ def create_or_update_contact(userprofile, user_auth_token, create=True):
         "database": "Default",
         "customFields": json.dumps(
             {
-                "number": [
-                    *telephones,
-                ],
-                "email": [
-                    userprofile.get_email_str(),
-                ],
+                "number": telephones,
+                "email": emails,
             }
         ),
         "name": uniq_name,
