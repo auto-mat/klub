@@ -785,23 +785,17 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
 
             self.username = get_unique_username(self.email)
         super().save(*args, **kwargs)
-        preferences = Preference.objects.filter(
-            user=self,
-            administrative_unit__in=self.administrative_units.all(),
-        )
-        if preferences and preferences.first().call_on:
+        # Add Daktela app Contact model
+        if self.is_userprofile():
             sync_contacts([self])
 
     def delete(self, *args, **kwargs):
         # Delete Daktela app Contact model
         if self.is_userprofile():
-            preference = self.preference_set.all()
-            if preference:
-                if preference.values_list("call_on", flat=True)[0]:
-                    delete_contact(
-                        userprofile=self,
-                        user_auth_token=get_user_auth_token(),
-                    )
+            delete_contact(
+                userprofile=self,
+                user_auth_token=get_user_auth_token(),
+            )
         super().delete(*args, **kwargs)
 
     def get_telephone(self):
@@ -1299,10 +1293,7 @@ class Preference(models.Model):
         return self.administrative_unit.name if self.administrative_unit else ""
 
     def save(self, *args, **kwargs):
-        # Sync with Daktela app
         super().save(*args, **kwargs)
-        if self.user.is_userprofile() and self.call_on:
-            sync_contacts([self.user])
 
 
 class Telephone(models.Model):
