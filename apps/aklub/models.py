@@ -785,12 +785,12 @@ class Profile(PolymorphicModel, AbstractProfileBaseUser):
 
             self.username = get_unique_username(self.email)
         super().save(*args, **kwargs)
-        # Add Daktela app Contact model
+        # Add Daktela app Contacts model
         if self.is_userprofile():
             sync_contacts([self])
 
     def delete(self, *args, **kwargs):
-        # Delete Daktela app Contact model
+        # Delete Daktela app Contacts model
         if self.is_userprofile():
             delete_contact(
                 userprofile=self,
@@ -1355,6 +1355,16 @@ class Telephone(models.Model):
     def save(self, *args, **kwargs):
         self.clean()
         super().save(*args, **kwargs)
+        # Sync with Daktela app Contacts model
+        if self.user.is_userprofile():
+            if Telephone.objects.filter(user=self.user):
+                sync_contacts([self.user])
+
+    def delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)
+        # Sync with Daktela app Contacts model
+        if self.user.is_userprofile():
+            sync_contacts([self.user])
 
     def __str__(self):
         return "%s" % self.telephone
