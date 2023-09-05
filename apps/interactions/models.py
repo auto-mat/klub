@@ -284,11 +284,7 @@ class Interaction(WithAdminUrl, BaseInteraction2):
                     save=False
                 )  # then try to dispatch this email automatically
         super().save(*args, **kwargs)
-        if (
-            self.user.preference_set.all().values_list("call_on", flat=True)[0]
-            and self.user.is_userprofile()
-            and self.type.name == "telephone"
-        ):
+        if self.user.is_userprofile() and self.type.name == "telephone":
             # Sync with Daktela app Tickets models
             sync_tickets([self])
 
@@ -297,11 +293,7 @@ class Interaction(WithAdminUrl, BaseInteraction2):
         from aklub.models import UserProfile
 
         user = UserProfile.objects.get(pk=self.user.pk)
-        if (
-            self.user.preference_set.all().values_list("call_on", flat=True)[0]
-            and user.is_userprofile()
-            and self.type.name == "telephone"
-        ):
+        if user.is_userprofile() and self.type.name == "telephone":
             # Delete from Daktela app Tickets models
             delete_ticket(
                 interaction=self,
