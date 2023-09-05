@@ -417,14 +417,21 @@ def get_tickets(user_auth_token):
         )
 
 
-def get_tickets_max_uniq_id(tickets):
-    """Get Daktela app tickets max uniq id
+def get_tickets_max_uniq_id(
+    tickets,
+    category_name="categories_649d3e48d108b040473027",
+):
+    """Get Daktela app Hovor category title tickets max uniq id
 
     :param dict tickets: Daktela app Tickets models dict
-
+    :param str category_name: Daktela app Tickets category unique name
+                              with default value categories_649d3e48d108b040473027
+                              which is Hovor (title)
     :retun int: max Daktela app Tickets uniq id
     """
-    return tickets["result"]["data"][0]["name"]
+    for ticket in tickets["result"]["data"]:
+        if ticket["category"]["name"] == category_name:
+            return ticket["name"]
 
 
 def get_ticket_by_uniq_title(title, user_auth_token):
@@ -447,6 +454,7 @@ def create_or_update_ticket(
     create=True,
     uniq_name=None,
     uniq_name_id_increment=1,
+    category_name="categories_649d3e48d108b040473027",
 ):
     """
     Create or update Daktela app ticket
@@ -454,6 +462,9 @@ def create_or_update_ticket(
     :param object interaction: Interaction model instance
     :param str user_auth_token: Daktela app user auth token
     :param bool create: create contact if True else update existed contact
+    :param str category_name: Daktela app Tickets category unique name
+                              with default value categories_649d3e48d108b040473027
+                              which is Hovor (title)
     """
     error_message = (
         "{operation} Daktela app ticket with name '{name}' fails due error:"
@@ -467,7 +478,7 @@ def create_or_update_ticket(
         "contact": get_uniq_contact_name(
             interaction.user
         ),  # "4f7543569c37266307170bfc72852fca",
-        "category": "categories_649d3e48d108b040473027",  # Hovor category
+        "category": category_name,  # Hovor (title) category name
         "stage": "OPEN",
         "priority": "LOW",
         "sla_deadtime": interaction.date_from,
@@ -502,7 +513,7 @@ def create_or_update_ticket(
                 create_or_update_ticket(
                     interaction,
                     user_auth_token,
-                    create=True,
+                    create=create,
                     uniq_name=None,
                     uniq_name_id_increment=uniq_name_id_increment + 1,
                 )
