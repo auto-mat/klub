@@ -160,6 +160,7 @@ class InteractionAdmin(ImportExportMixin, RelatedFieldAdmin, admin.ModelAdmin):
         "handled_by",
         "created",
         "updated",
+        "rating",
     )
     ordering = ("-date_from",)
 
