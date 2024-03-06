@@ -1,23 +1,19 @@
 #!/usr/bin/env python
 
-from datetime import datetime, timedelta
-import pytz
-import shelve
+import sys
+from urllib.parse import urlparse
 
+import redis
+
+from django.conf import settings
 from django.core.management.base import BaseCommand
+
+from aklub.tasks import check_celerybeat_liveness
 
 
 class Command(BaseCommand):
     help = "Check Celery beat liveness"  # noqa
 
     def handle(self, *args, **options):
-        now = datetime.now(tz=pytz.utc)
-        file_data = shelve.open(
-            "/tmp/celerybeat-schedule"
-        )  # Name of the file used by PersistentScheduler to store the last run times of periodic tasks.
-
-        for task_name, task in file_data["entries"].items():
-            try:
-                assert now < task.last_run_at + task.schedule.run_every
-            except AttributeError:
-                assert timedelta() < task.schedule.remaining_estimate(task.last_run_at)
+        if not check_celerybeat_liveness(set_key=False):
+            sys.exit(1)

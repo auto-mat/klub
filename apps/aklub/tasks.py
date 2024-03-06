@@ -1,7 +1,11 @@
 import logging
+from urllib.parse import urlparse
+
+import redis
 
 from celery import task
 
+from django.conf import settings
 from django.core.management import call_command
 from django.utils import dateformat, timezone
 from django.utils.translation import ugettext_lazy as _
@@ -156,3 +160,22 @@ def delete_contacts_from_daktela(userprofiles_pks):
     for userprofile in userprofiles:
         delete_contact(userprofile, user_auth_token)
     userprofiles.delete()
+
+
+@task()
+def check_celerybeat_liveness(set_key=True):
+    """Check Celery Beat liveness with setting Redis key"""
+    parsed_redis_url = urlparse(settings.REDIS_URL)
+    redis_instance = redis.StrictRedis(
+        host=parsed_redis_url.hostname,
+        port=parsed_redis_url.port if parsed_redis_url.port else 6379,
+        db=0,
+    )
+    if set_key:
+        redis_instance.set(
+            settings.CELERYBEAT_LIVENESS_REDIS_UNIQ_KEY,
+            settings.CELERYBEAT_LIVENESS_REDIS_UNIQ_KEY,
+            ex=120,
+        )
+    else:
+        return redis_instance.get(settings.CELERYBEAT_LIVENESS_REDIS_UNIQ_KEY)

@@ -4,6 +4,8 @@ import sys
 
 import raven
 
+from celery.schedules import crontab
+
 
 def normpath(*args):
     return os.path.normpath(os.path.abspath(os.path.join(*args)))
@@ -622,3 +624,12 @@ DAKTELA = {
         "DAKTELA_PASSWORD",
     ),
 }
+
+CELERYBEAT_SCHEDULE = {
+    "check_celerybeat_liveness": {
+        "task": "aklub.tasks.check_celerybeat_liveness",
+        "schedule": crontab(minute="*/1"),
+    },
+}
+
+CELERYBEAT_LIVENESS_REDIS_UNIQ_KEY = "celerybeat-liveness"
