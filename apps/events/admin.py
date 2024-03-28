@@ -13,6 +13,9 @@ from django.utils.translation import ugettext as _
 from django.urls import reverse_lazy
 from django.utils.safestring import mark_safe
 
+from treenode.admin import TreeNodeModelAdmin
+from treenode.forms import TreeNodeForm
+
 from . import filters
 from .admin_views import EventChangeList
 from .forms import EventForm, EventChangeListForm
@@ -82,7 +85,7 @@ class OrganizationTeamInline(admin.TabularInline):
 
 
 @admin.register(Event)
-class EventAdmin(unit_admin_mixin_generator("administrative_units"), admin.ModelAdmin):
+class EventAdmin(unit_admin_mixin_generator("administrative_units"), TreeNodeModelAdmin):
     main_coordinator_name = _("Hlavní organizátor")
     secondary_coordinator_name = _("Vedlejší oraganizátor")
     none_val = "-"
@@ -240,6 +243,10 @@ class EventAdmin(unit_admin_mixin_generator("administrative_units"), admin.Model
                     "print_point_5",
                     "print_point_6",
                     "event",
+                    "tn_parent",
+                    "tn_priority",
+                    "descendants_tree",
+
                 ),
             },
         ),
@@ -479,6 +486,7 @@ class EventAdmin(unit_admin_mixin_generator("administrative_units"), admin.Model
                 }
             ),
         }
+    treenode_display_mode = TreeNodeModelAdmin.TREENODE_DISPLAY_MODE_ACCORDION
 
     def add_view(self, request, extra_context=None, **kwargs):
         extra_context = self._extra_view_context()

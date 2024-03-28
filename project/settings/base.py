@@ -178,6 +178,9 @@ CACHES = {
         "KEY_PREFIX": "aklub_default",
         "TIMEOUT": None,
     },
+    "treenode": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+    },
 }
 
 LOCALE_PATHS = [
@@ -266,6 +269,8 @@ INSTALLED_APPS = (
     "reversion",
     "multiselectfield",
     "rest_framework_simplejwt",
+    "treenode",
+
 )
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [  # noqa

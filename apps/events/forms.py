@@ -5,6 +5,7 @@ from django.utils.translation import ugettext as _
 from tinymce.widgets import TinyMCE
 
 from events.models import Event
+from .widgets import EventChildrensTreeWidget
 
 
 class EventForm(forms.ModelForm):
@@ -14,10 +15,21 @@ class EventForm(forms.ModelForm):
     print_point_4 = forms.CharField(widget=TinyMCE(), required=False)
     print_point_5 = forms.CharField(widget=TinyMCE(), required=False)
     print_point_6 = forms.CharField(widget=TinyMCE(), required=False)
+    descendants_tree = forms.CharField(
+        widget=EventChildrensTreeWidget(attrs={"class": "show-list-style"}),
+        required=False,
+        label=_("Descendants tree"),
+    )
 
     class Meta:
         model = Event
         fields = "__all__"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        instance = kwargs.get("instance")
+        if instance:
+            self.fields["descendants_tree"].initial = instance
 
     def clean(self):
         if self.is_valid():

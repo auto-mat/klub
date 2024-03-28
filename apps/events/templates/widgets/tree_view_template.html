@@ -1,0 +1,11 @@
+<li> {{node.node}}
+    {%if node.node.get_descendants %}
+        <ul>
+         {%for ch in node.node.get_descendants_tree %}
+              {%with node=ch template_name="widgets/tree_view_template.html" %}
+                   {%include template_name%}
+              {%endwith%}
+         {%endfor%}
+         </ul>
+    {%endif%}
+</li>

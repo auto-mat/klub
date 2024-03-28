@@ -9,6 +9,7 @@ from django.db.models import Sum
 from django.utils.translation import ugettext_lazy as _
 
 from multiselectfield import MultiSelectField
+from treenode.models import TreeNodeModel
 
 
 class Location(models.Model):
@@ -86,12 +87,12 @@ class EventType(models.Model):
         return self.name
 
 
-class Event(models.Model):
+class Event(TreeNodeModel):
     """Campaign -- abstract event with description
 
     These events can be associated to a user."""
 
-    class Meta:
+    class Meta(TreeNodeModel.Meta):
         verbose_name = _("Event")
         verbose_name_plural = _("Events")
 
