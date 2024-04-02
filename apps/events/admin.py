@@ -85,7 +85,9 @@ class OrganizationTeamInline(admin.TabularInline):
 
 
 @admin.register(Event)
-class EventAdmin(unit_admin_mixin_generator("administrative_units"), TreeNodeModelAdmin):
+class EventAdmin(
+    unit_admin_mixin_generator("administrative_units"), TreeNodeModelAdmin
+):
     main_coordinator_name = _("Hlavní organizátor")
     secondary_coordinator_name = _("Vedlejší oraganizátor")
     none_val = "-"
@@ -246,7 +248,6 @@ class EventAdmin(unit_admin_mixin_generator("administrative_units"), TreeNodeMod
                     "tn_parent",
                     "tn_priority",
                     "descendants_tree",
-
                 ),
             },
         ),
@@ -483,9 +484,52 @@ class EventAdmin(unit_admin_mixin_generator("administrative_units"), TreeNodeMod
                         "total_participants",
                         "total_participants_under_26",
                     ],
+                    "zmj_location": [
+                        "registration_method",
+                        "additional_question_1",
+                        "additional_question_2",
+                        "additional_question_3",
+                        "additional_question_4",
+                        "invitation_text_short",
+                        "invitation_text_1",
+                        "invitation_text_2",
+                        "invitation_text_3",
+                        "invitation_text_4",
+                        "number_of_actions",
+                        "opportunity",
+                        "is_internal",
+                        "age_from",
+                        "age_to",
+                        "intended_for",
+                        "participation_fee",
+                        "responsible_person",
+                        "meeting",
+                        "grant",
+                        "focus_on_members",
+                        "vip_action",
+                        "promoted_in_magazine",
+                        "hours_worked",
+                        "variable_symbol_prefix",
+                        "description",
+                        "real_yield",
+                        "datetime_from",
+                        "start_date",
+                        "accommodation",
+                        "diet",
+                        "looking_forward_to_you",
+                        "total_working_days",
+                        "total_participants",
+                        "total_participants_under_26",
+                        "contact_person_name",
+                        "contact_person_telephone",
+                        "contact_person_email",
+                        "comment_on_work_done",
+                        "other_work",
+                    ],
                 }
             ),
         }
+
     treenode_display_mode = TreeNodeModelAdmin.TREENODE_DISPLAY_MODE_ACCORDION
 
     def add_view(self, request, extra_context=None, **kwargs):

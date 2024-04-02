@@ -110,6 +110,7 @@ class Event(TreeNodeModel):
         ("camp", _("Camp")),
         ("opportunity", _("Opportunity")),
         ("campaign", _("Campaign")),
+        ("zmj_location", _("ZMJ location")),
     )
     REGISTRATION_METHOD = (
         ("standard", _("Standard")),
