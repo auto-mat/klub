@@ -13,6 +13,7 @@ from django.utils.translation import ugettext as _
 from django.urls import reverse_lazy
 from django.utils.safestring import mark_safe
 
+from rangefilter.filter import DateTimeRangeFilter
 from treenode.admin import TreeNodeModelAdmin
 from treenode.forms import TreeNodeForm
 
@@ -86,7 +87,8 @@ class OrganizationTeamInline(admin.TabularInline):
 
 @admin.register(Event)
 class EventAdmin(
-    unit_admin_mixin_generator("administrative_units"), TreeNodeModelAdmin
+    unit_admin_mixin_generator("administrative_units"),
+    TreeNodeModelAdmin,
 ):
     main_coordinator_name = _("Hlavní organizátor")
     secondary_coordinator_name = _("Vedlejší oraganizátor")
@@ -131,6 +133,15 @@ class EventAdmin(
         ("donorpaymentchannel__payment__date", filters.EventYieldDateRangeFilter),
         "grant",
         ("diet", filters.MultiSelectFilter),
+        ("datetime_from", DateTimeRangeFilter),
+        # ("datetime_to", DateTimeRangeFilter),
+        filters.EventParentFilter,
+        filters.EventChildrenFilter,
+        filters.EventAncestorsFilter,
+        filters.EventDescendantsFilter,
+        filters.EventInteractionFilter,
+        filters.EventInteractionWithStatusFilter,
+        filters.EventUserInteractionFilter,
     ]
     readonly_fields = (
         "number_of_members",

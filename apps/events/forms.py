@@ -69,4 +69,6 @@ class EventChangeListForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["event"].initial = kwargs["instance"].event.all()
+        instance = kwargs.get("instance")
+        if instance:
+            self.fields["event"].initial = instance.event.all()
