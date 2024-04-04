@@ -386,12 +386,6 @@ class Event(TreeNodeModel):
         blank=True,
         null=True,
     )
-
-    date_from = models.DateField(
-        verbose_name=_("Date from"),
-        null=True,
-        blank=True,
-    )
     datetime_from = models.DateTimeField(
         verbose_name=_("Date and time from"),
         null=True,

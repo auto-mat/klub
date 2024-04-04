@@ -462,7 +462,7 @@ class EventSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "name",
-            "date_from",
+            "datetime_from",
             "date_to",
             "program",
             "intended_for",

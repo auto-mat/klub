@@ -26,7 +26,7 @@ class EventSerializer(our_serializers.EventSerializer):
         fields = [
             "id",
             "name",
-            "date_from",
+            "datetime_from",
             "date_to",
             "program",
             "intended_for",
@@ -142,7 +142,7 @@ def test_event_type_set_event_organizer(
                 "contact_person_email": "",
                 "contact_person_name": "",
                 "contact_person_telephone": "",
-                "date_from": None,
+                "datetime_from": None,
                 "date_to": None,
                 "diet": [],
                 "entry_form_url": None,
