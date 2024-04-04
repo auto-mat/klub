@@ -463,7 +463,7 @@ class EventSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "datetime_from",
-            "date_to",
+            "datetime_to",
             "program",
             "intended_for",
             "basic_purpose",

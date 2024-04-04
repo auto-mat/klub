@@ -391,10 +391,11 @@ class Event(TreeNodeModel):
         null=True,
         blank=True,
     )
-    date_to = models.DateField(
-        verbose_name=_("Date to"),
+    datetime_to = models.DateTimeField(
+        verbose_name=_("Date and time to"),
         blank=True,
         null=True,
+        db_column="date_to",
     )
     start_date = models.DateTimeField(
         verbose_name=_("Start date"),

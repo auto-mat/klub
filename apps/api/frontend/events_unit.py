@@ -143,7 +143,7 @@ def test_event_type_set_event_organizer(
                 "contact_person_name": "",
                 "contact_person_telephone": "",
                 "datetime_from": None,
-                "date_to": None,
+                "datetime_to": None,
                 "diet": [],
                 "entry_form_url": None,
                 "event_type": {"name": "Event name", "slug": "event_name"},

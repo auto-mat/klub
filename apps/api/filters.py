@@ -14,7 +14,7 @@ class EventCustomFilter(filters.FilterSet):
         model = Event
         fields = {
             "datetime_from": ["gte", "lte", "year"],
-            "date_to": ["gte", "lte", "year"],
+            "datetime_to": ["gte", "lte", "year"],
             "start_date": ["gte", "lte", "year"],
             "intended_for": ["exact"],
             "program": ["exact"],
