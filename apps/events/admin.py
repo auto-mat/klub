@@ -7,7 +7,8 @@ from aklub.filters import unit_admin_mixin_generator
 from api.serializers import EventSerializer
 
 from django.contrib import admin
-from django.db.models import Case, CharField, Q, Sum, Value, When
+from django.db.models import Case, CharField, Q, Sum, Value, When, F
+from django.db.models.functions import Concat
 from django.utils.html import format_html
 from django.utils.translation import ugettext as _
 from django.urls import reverse_lazy
@@ -93,8 +94,8 @@ class EventAdmin(
     main_coordinator_name = _("Hlavní organizátor")
     secondary_coordinator_name = _("Vedlejší oraganizátor")
     none_val = "-"
-    yes_icon = '<img src="/media/admin/img/icon-yes.svg" alt="True">'
-    no_icon = '<img src="/media/admin/img/icon-no.svg" alt="False">'
+    yes_icon = '<img src="/media/admin/img/icon-yes.svg" alt="True"/>'
+    no_icon = '<img src="/media/admin/img/icon-no.svg" alt="False"/>'
     form = EventForm
     inlines = (OrganizationTeamInline,)
     list_display = (
@@ -673,11 +674,14 @@ class EventAdmin(
         self,
         obj,
         interaction_type_name=_("Organizace lokality Zažít město jinak"),
+        then=None,
     ):
+        if then is None:
+            then = Value(self.yes_icon)
         whens = [
             When(
                 profile__interaction__type__name=interaction_type_name,
-                then=Value(self.yes_icon),
+                then=then,
             ),
         ]
         organizators = (
@@ -807,6 +811,11 @@ class EventAdmin(
         return self.has_any_coordinator_interaction_with_organize_zmj(
             obj,
             interaction_type_name,
+            then=Concat(
+                Value(self.yes_icon),
+                Value(" "),
+                F("profile__interaction__status"),
+            ),
         )
 
     has_any_coordinator_interaction_type_of_order_signs.short_description = _(
@@ -824,6 +833,11 @@ class EventAdmin(
         return self.has_any_coordinator_interaction_with_organize_zmj(
             obj,
             interaction_type_name,
+            then=Concat(
+                Value(self.yes_icon),
+                Value(" "),
+                F("profile__interaction__status"),
+            ),
         )
 
     has_any_coordinator_interaction_type_of_zabor_zmj.short_description = _(
