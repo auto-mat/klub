@@ -134,7 +134,7 @@ class EventAdmin(
         "grant",
         ("diet", filters.MultiSelectFilter),
         ("datetime_from", DateTimeRangeFilter),
-        # ("datetime_to", DateTimeRangeFilter),
+        ("datetime_to", DateTimeRangeFilter),
         filters.EventParentFilter,
         filters.EventChildrenFilter,
         filters.EventAncestorsFilter,
