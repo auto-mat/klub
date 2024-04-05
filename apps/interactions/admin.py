@@ -20,6 +20,7 @@ from .forms import InteractionInlineForm, InteractionInlineFormset
 from .models import (
     Interaction,
     InteractionCategory,
+    InteractionStatus,
     InteractionType,
     PetitionSignature,
     Result,
@@ -161,6 +162,7 @@ class InteractionAdmin(ImportExportMixin, RelatedFieldAdmin, admin.ModelAdmin):
         "created",
         "updated",
         "rating",
+        "status",
     )
     ordering = ("-date_from",)
 
@@ -297,6 +299,11 @@ class InteractionAdmin(ImportExportMixin, RelatedFieldAdmin, admin.ModelAdmin):
 
 @admin.register(InteractionCategory)
 class InteractionCategoryAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(InteractionStatus)
+class InteractionStatusAdmin(admin.ModelAdmin):
     pass
 
 

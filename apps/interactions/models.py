@@ -76,6 +76,21 @@ class InteractionCategory(models.Model):
         return self.category
 
 
+class InteractionStatus(models.Model):
+    class Meta:
+        verbose_name = _("Interaction status")
+        verbose_name_plural = _("Interaction statuses")
+
+    status = models.CharField(
+        verbose_name=_("Status"),
+        help_text=_("Status/progress of this communication"),
+        max_length=180,
+    )
+
+    def __str__(self):
+        return self.status
+
+
 class BaseInteraction2(models.Model):
     class Meta:
         abstract = True
@@ -183,6 +198,14 @@ class Interaction(WithAdminUrl, BaseInteraction2):
         help_text=("Text or summary of this communication"),
         blank=True,
         default="",
+    )
+    status = models.ForeignKey(
+        InteractionStatus,
+        verbose_name=_("Status"),
+        help_text=_("Status/progress of this communication"),
+        null=True,
+        blank=False,
+        on_delete=models.SET_NULL,
     )
     result = models.ForeignKey(
         Result,
