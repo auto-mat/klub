@@ -184,13 +184,6 @@ class Interaction(WithAdminUrl, BaseInteraction2):
         blank=True,
         default="",
     )
-    status = models.CharField(
-        verbose_name=("Status"),
-        help_text=("Status/progress of this communication"),
-        max_length=130,
-        blank=True,
-        default="",
-    )
     result = models.ForeignKey(
         Result,
         verbose_name=_("Result of communication"),
