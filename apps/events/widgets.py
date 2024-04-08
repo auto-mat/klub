@@ -28,8 +28,10 @@ class EventChildrensTreeWidget(forms.widgets.Widget):
         }
 
     def render(self, name, value, attrs=None, renderer=None):
-        value = value.get_descendants_tree()
-        attrs.update(self._attrs)
-        context = self.get_context(name, value, attrs)
-        template = loader.get_template(self.template_name).render(context)
-        return mark_safe(template)
+        if value:
+            value = value.get_descendants_tree()
+            attrs.update(self._attrs)
+            context = self.get_context(name, value, attrs)
+            template = loader.get_template(self.template_name).render(context)
+            return mark_safe(template)
+        return "-"
