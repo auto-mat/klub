@@ -270,7 +270,6 @@ INSTALLED_APPS = (
     "multiselectfield",
     "rest_framework_simplejwt",
     "treenode",
-
 )
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [  # noqa
@@ -513,6 +512,12 @@ def get_payment_channel_resource():
     return PaymentResource
 
 
+def get_event_resource():
+    from events.admin import EventResource
+
+    return EventResource
+
+
 IMPORT_EXPORT_CELERY_MODELS = {
     "User profile": {
         "app_label": "aklub",
@@ -538,6 +543,11 @@ IMPORT_EXPORT_CELERY_MODELS = {
         "app_label": "aklub",
         "model_name": "payment",
         "resource": get_payment_channel_resource,
+    },
+    "Events": {
+        "app_label": "events",
+        "model_name": "Event",
+        "resource": get_event_resource,
     },
 }
 

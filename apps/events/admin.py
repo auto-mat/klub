@@ -14,6 +14,8 @@ from django.utils.translation import ugettext as _
 from django.urls import reverse_lazy
 from django.utils.safestring import mark_safe
 
+from import_export.admin import ImportExportMixin
+from import_export.resources import ModelResource
 from rangefilter.filter import DateTimeRangeFilter
 from treenode.admin import TreeNodeModelAdmin
 from treenode.forms import TreeNodeForm
@@ -86,9 +88,15 @@ class OrganizationTeamInline(admin.TabularInline):
     extra = 0
 
 
+class EventResource(ModelResource):
+    class Meta:
+        model = Event
+
+
 @admin.register(Event)
 class EventAdmin(
     unit_admin_mixin_generator("administrative_units"),
+    ImportExportMixin,
     TreeNodeModelAdmin,
 ):
     main_coordinator_name = _("Hlavní organizátor")
@@ -284,6 +292,7 @@ class EventAdmin(
             },
         ),
     )
+    resource_class = EventResource
 
     def get_queryset(self, request):
         donor_filter = {}
