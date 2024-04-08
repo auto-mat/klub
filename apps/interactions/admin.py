@@ -26,6 +26,7 @@ from .models import (
     Result,
 )
 from . import tasks
+from . import filters
 
 from events.filters import MultiSelectFilter
 
@@ -189,6 +190,8 @@ class InteractionAdmin(ImportExportMixin, RelatedFieldAdmin, admin.ModelAdmin):
         "date_from",
         "administrative_unit",
         ("program_of_interest", MultiSelectFilter),
+        filters.EventOfInteractionById,
+        filters.EventOfInteractionByName,
     )
 
     actions = (create_export_job_action, sync_with_daktela)
