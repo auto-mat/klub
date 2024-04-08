@@ -78,8 +78,8 @@ class InteractionCategory(models.Model):
 
 class InteractionStatus(models.Model):
     class Meta:
-        verbose_name = _("Interaction status")
-        verbose_name_plural = _("Interaction statuses")
+        verbose_name = _("Interaction Status")
+        verbose_name_plural = _("Interaction Statuses")
 
     status = models.CharField(
         verbose_name=_("Status"),
