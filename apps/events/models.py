@@ -549,6 +549,14 @@ class Event(TreeNodeModel):
         blank=True,
     )
 
+    @classmethod
+    def export_resource_classes(cls):
+        from .admin import EventResource
+
+        return {
+            "users": ("Events resource", EventResource),
+        }
+
     def number_of_members(self):
         return self.donorpaymentchannel_set.count()
 

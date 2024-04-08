@@ -15,6 +15,7 @@ from django.urls import reverse_lazy
 from django.utils.safestring import mark_safe
 
 from import_export.admin import ImportExportMixin
+from import_export_celery.admin_actions import create_export_job_action
 from import_export.resources import ModelResource
 from rangefilter.filter import DateTimeRangeFilter
 from treenode.admin import TreeNodeModelAdmin
@@ -164,7 +165,7 @@ class EventAdmin(
         "go_to_users",
     )
     search_fields = ("name",)
-    actions = (download_darujme_statement,)
+    actions = (download_darujme_statement, create_export_job_action)
     save_as = True
 
     fieldsets = (
