@@ -5,6 +5,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from rangefilter.filter import DateRangeFilter
 
+from aklub.filters import InputFilter as InputFilterBase
 from .models import OrganizationTeam
 
 
@@ -27,25 +28,9 @@ class MultiSelectFilter(admin.ChoicesFieldListFilter):
         self.lookup_val = params.get(self.lookup_kwarg)
 
 
-class InputFilter(admin.SimpleListFilter):
-    template = "admin/events/event/input_filter.html"
+class InputFilter(InputFilterBase):
     placeholder = _("event name, event name, ...")
     list_item_separator = ","
-
-    def choices(self, changelist):
-        # Grab only the "all" option.
-        all_choice = next(super().choices(changelist))
-        all_choice["query_parts"] = (
-            (k, v)
-            for k, v in changelist.get_filters_params().items()
-            if k != self.parameter_name
-        )
-        yield all_choice
-
-    def lookups(self, request, model_admin):
-        # Dummy, required to show the filter.
-        return ((),)
-
 
 class EventParentFilter(InputFilter):
     parameter_name = "tn_parent"
