@@ -90,6 +90,13 @@ class InteractionStatus(models.Model):
     def __str__(self):
         return self.status
 
+    @classmethod
+    def get_default_pk(cls):
+        status, created = cls.objects.get_or_create(
+            status="Unknown",
+        )
+        return status.pk
+
 
 class BaseInteraction2(models.Model):
     class Meta:
@@ -206,6 +213,7 @@ class Interaction(WithAdminUrl, BaseInteraction2):
         null=True,
         blank=False,
         on_delete=models.SET_NULL,
+        default=InteractionStatus.get_default_pk,
     )
     result = models.ForeignKey(
         Result,
