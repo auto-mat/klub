@@ -190,8 +190,8 @@ class InteractionAdmin(ImportExportMixin, RelatedFieldAdmin, admin.ModelAdmin):
         "date_from",
         "administrative_unit",
         ("program_of_interest", MultiSelectFilter),
-        filters.EventOfInteractionById,
-        filters.EventOfInteractionByName,
+        filters.EventInteractionNameFilter,
+        filters.EventInteractionId,
     )
 
     actions = (create_export_job_action, sync_with_daktela)

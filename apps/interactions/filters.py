@@ -9,7 +9,7 @@ class InputFilter(InputFilterBase):
     list_item_separator = ","
 
 
-class EventOfInteractionByName(InputFilter):
+class EventInteractionNameFilter(InputFilter):
     parameter_name = "event-of-interaction-name"
     title = _("Event of interaction")
     placeholder = _("event name, event name, ...")
@@ -24,7 +24,7 @@ class EventOfInteractionByName(InputFilter):
             )
 
 
-class EventOfInteractionById(InputFilter):
+class EventInteractionId(InputFilter):
     parameter_name = "event-of-interaction-id"
     title = _("Event of interaction ID")
     placeholder = _("event id, event id, ...")
