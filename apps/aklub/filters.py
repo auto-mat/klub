@@ -1127,6 +1127,16 @@ class InputFilter(SimpleListFilter, ABC):
 
     template = "admin/input_filter.html"
 
+    def _get_input_values(self, value):
+        """Get list of input value(s) (required for query)
+
+        :param str value: value string or values string separate with
+                          list_item_separator
+
+        :return list: list of value(s) (required for query)
+        """
+        return [value.strip() for value in value.split(self.list_item_separator)]
+
     def lookups(self, request, model_admin):
         return ((),)
 
