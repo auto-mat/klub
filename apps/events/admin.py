@@ -152,6 +152,7 @@ class EventAdmin(
         filters.EventInteractionFilter,
         filters.EventInteractionWithStatusFilter,
         filters.EventUserInteractionFilter,
+        filters.EventLocationRegionFilter,
     ]
     readonly_fields = (
         "number_of_members",

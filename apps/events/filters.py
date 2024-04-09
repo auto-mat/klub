@@ -32,6 +32,7 @@ class InputFilter(InputFilterBase):
     placeholder = _("event name, event name, ...")
     list_item_separator = ","
 
+
 class EventParentFilter(InputFilter):
     parameter_name = "tn_parent"
     title = _("Parent name")
@@ -181,3 +182,18 @@ class EventUserInteractionFilter(EventParentFilter):
                 .values_list("event__id", flat=True)
             )
             return queryset.filter(id__in=list(events_ids))
+
+
+class EventLocationRegionFilter(EventParentFilter):
+    parameter_name = "location_region"
+    title = _("Location region")
+    placeholder = _("location region, ...")
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value is not None:
+            return queryset.filter(
+                location__region__in=[
+                    region.strip() for region in value.split(self.list_item_separator)
+                ]
+            )
