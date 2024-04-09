@@ -130,13 +130,13 @@ class EventInteractionWithStatusFilter(EventParentFilter):
         interaction_name, interaction_status = value.split(separator)
         query = Q(
             interaction__type__name=interaction_name,
-            interaction__status=interaction_status,
+            interaction__status__status=interaction_status,
         )
         for value in values:
             interaction_name, interaction_status = value.split(separator)
             query |= Q(
                 interaction__type__name=interaction_name,
-                interaction__status=interaction_status,
+                interaction__status__status=interaction_status,
             )
         return query
 
