@@ -733,7 +733,9 @@ class EventAdmin(
     )
 
     def is_in_location(self, obj, location=_("praha")):
-        return location in obj.location.specific_name.lower() if obj.location else None
+        if obj.location and obj.location.specific_name:
+            return location in obj.location.specific_name.lower()
+        return None
 
     is_in_location.short_description = _("Is in the Prague")
     is_in_location.admin_order_field = "is_in_location"
