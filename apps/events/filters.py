@@ -34,7 +34,7 @@ class InputFilter(InputFilterBase):
 
 
 class EventParentFilter(InputFilter):
-    parameter_name = "tn_parent"
+    parameter_name = "tn-parent"
     title = _("Parent name")
     placeholder = _("event name, ...")
 
@@ -49,7 +49,7 @@ class EventParentFilter(InputFilter):
 
 
 class EventChildrenFilter(EventParentFilter):
-    parameter_name = "tn_children"
+    parameter_name = "tn-children"
     title = _("Children name")
 
     def queryset(self, request, queryset):
@@ -63,7 +63,7 @@ class EventChildrenFilter(EventParentFilter):
 
 
 class EventAncestorsFilter(EventParentFilter):
-    parameter_name = "tn_ancestors_pks"
+    parameter_name = "tn-ancestors-pks"
     title = _("Ancestor name")
 
     def queryset(self, request, queryset):
@@ -78,7 +78,7 @@ class EventAncestorsFilter(EventParentFilter):
 
 
 class EventDescendantsFilter(EventParentFilter):
-    parameter_name = "tn_descendants_pks"
+    parameter_name = "tn-descendants-pks"
     title = _("Descendant name")
 
     def queryset(self, request, queryset):
@@ -93,7 +93,7 @@ class EventDescendantsFilter(EventParentFilter):
 
 
 class EventInteractionFilter(EventParentFilter):
-    parameter_name = "interaction__type__name"
+    parameter_name = "interactio-type-name"
     title = _("Interaction name")
     placeholder = _("interaction name, ...")
 
@@ -108,7 +108,7 @@ class EventInteractionFilter(EventParentFilter):
 
 
 class EventInteractionWithStatusFilter(EventParentFilter):
-    parameter_name = "interaction_name_with_status"
+    parameter_name = "interaction-name-with-status"
     title = _("Interaction name with status")
     placeholder = _("inter. name|inter. status, ...")
     incorrect_filter_input_value_err_message = _(
@@ -155,7 +155,7 @@ class EventInteractionWithStatusFilter(EventParentFilter):
 
 
 class EventUserInteractionFilter(EventParentFilter):
-    parameter_name = "user_interaction_name"
+    parameter_name = "user-interaction-name"
     title = _("User interaction name")
     placeholder = _("user interaction name, ...")
 
@@ -185,7 +185,7 @@ class EventUserInteractionFilter(EventParentFilter):
 
 
 class EventLocationRegionFilter(EventParentFilter):
-    parameter_name = "location_region"
+    parameter_name = "location-region"
     title = _("Location region")
     placeholder = _("location region, ...")
 
