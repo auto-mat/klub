@@ -42,9 +42,7 @@ class EventParentFilter(InputFilter):
         value = self.value()
         if value is not None:
             return queryset.filter(
-                tn_parent__name__in=[
-                    name.strip() for name in value.split(self.list_item_separator)
-                ]
+                tn_parent__name__in=self._get_input_values(value=value)
             )
 
 
@@ -56,9 +54,7 @@ class EventChildrenFilter(EventParentFilter):
         value = self.value()
         if value is not None:
             return queryset.filter(
-                tn_children__name__in=[
-                    name.strip() for name in value.split(self.list_item_separator)
-                ]
+                tn_children__name__in=self._get_input_values(value=value)
             )
 
 
@@ -70,9 +66,7 @@ class EventAncestorsFilter(EventParentFilter):
         value = self.value()
         if value is not None:
             ids = queryset.filter(
-                name__in=[
-                    name.strip() for name in value.split(self.list_item_separator)
-                ]
+                name__in=self._get_input_values(value=value)
             ).values_list("pk", flat=True)
             return queryset.filter(tn_ancestors_pks__in=list(ids))
 
@@ -85,9 +79,7 @@ class EventDescendantsFilter(EventParentFilter):
         value = self.value()
         if value is not None:
             ids = queryset.filter(
-                name__in=[
-                    name.strip() for name in value.split(self.list_item_separator)
-                ]
+                name__in=self._get_input_values(value=value)
             ).values_list("pk", flat=True)
             return queryset.filter(tn_descendants_pks__in=list(ids))
 
@@ -101,9 +93,7 @@ class EventInteractionFilter(EventParentFilter):
         value = self.value()
         if value is not None:
             return queryset.filter(
-                interaction__type__name__in=[
-                    name.strip() for name in value.split(self.list_item_separator)
-                ]
+                interaction__type__name__in=self._get_input_values(value=value)
             )
 
 
@@ -144,7 +134,7 @@ class EventInteractionWithStatusFilter(EventParentFilter):
         value = self.value()
         if value is not None:
             try:
-                names = [name.strip() for name in value.split(self.list_item_separator)]
+                names = self._get_input_values(value=value)
                 return queryset.filter(self._make_query(values=names))
             except ValueError:
                 messages.error(
@@ -174,7 +164,7 @@ class EventUserInteractionFilter(EventParentFilter):
     def queryset(self, request, queryset):
         value = self.value()
         if value is not None:
-            names = [name.strip() for name in value.split(self.list_item_separator)]
+            names = self._get_input_values(value=value)
             query = self._make_query(values=names)
             events_ids = (
                 OrganizationTeam.objects.select_related("event")
@@ -193,7 +183,5 @@ class EventLocationRegionFilter(EventParentFilter):
         value = self.value()
         if value is not None:
             return queryset.filter(
-                location__region__in=[
-                    region.strip() for region in value.split(self.list_item_separator)
-                ]
+                location__region__in=self._get_input_values(value=value)
             )
