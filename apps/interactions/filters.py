@@ -17,11 +17,7 @@ class EventInteractionNameFilter(InputFilter):
     def queryset(self, request, queryset):
         value = self.value()
         if value is not None:
-            return queryset.filter(
-                event__name__in=[
-                    name.strip() for name in value.split(self.list_item_separator)
-                ]
-            )
+            return queryset.filter(event__name__in=self._get_input_values(value=value))
 
 
 class EventInteractionId(InputFilter):
@@ -32,8 +28,4 @@ class EventInteractionId(InputFilter):
     def queryset(self, request, queryset):
         value = self.value()
         if value is not None:
-            return queryset.filter(
-                event__id__in=[
-                    id.strip() for id in value.split(self.list_item_separator)
-                ]
-            )
+            return queryset.filter(event__id__in=self._get_input_values(value=value))
