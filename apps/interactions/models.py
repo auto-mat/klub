@@ -211,7 +211,7 @@ class Interaction(WithAdminUrl, BaseInteraction2):
         verbose_name=_("Status"),
         help_text=_("Status/progress of this communication"),
         null=True,
-        blank=False,
+        blank=True,
         on_delete=models.SET_NULL,
         default=InteractionStatus.get_default_pk,
     )
