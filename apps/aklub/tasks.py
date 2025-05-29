@@ -37,8 +37,8 @@ def clear_expired_tokens():
 
 
 @task()
-def check_autocom_daily():
-    check()
+def check_autocom_daily(user_profiles=None, action=None):
+    check(user_profiles, action)
 
 
 @task()
