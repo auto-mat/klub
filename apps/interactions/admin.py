@@ -204,7 +204,7 @@ class InteractionAdmin(ImportExportMixin, RelatedFieldAdmin, admin.ModelAdmin):
         if request.user.is_staff:
             form.base_fields[
                 "administrative_unit"
-            ].queryset = request.user.administrative_units.all()
+            ].initial = request.user.administrative_units.first()
         return form
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
