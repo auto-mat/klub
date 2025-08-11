@@ -196,6 +196,13 @@ class InteractionAdmin(ImportExportMixin, RelatedFieldAdmin, admin.ModelAdmin):
 
     actions = (create_export_job_action, sync_with_daktela)
 
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        form.base_fields["type"].queryset = form.base_fields["type"].queryset.order_by(
+            "name"
+        )
+        return form
+
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "event":
             if not request.user.has_perm("aklub.can_edit_all_units"):
