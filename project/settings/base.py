@@ -439,6 +439,7 @@ HELPDESK_DEFAULT_SETTINGS = {
     "email_on_ticket_apichange": True,
     "preset_replies": True,
     "tickets_per_page": 25,
+    "helpdesk_activate_api_endpoint": True,
 }
 
 # Should the public web portal be enabled?
@@ -637,6 +638,10 @@ DAKTELA = {
     ),
     "password": os.getenv(
         "DAKTELA_PASSWORD",
+    ),
+    "enable": os.getenv(
+        "DAKTELA_ENABLE",
+        False
     ),
 }
 

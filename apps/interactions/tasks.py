@@ -20,6 +20,8 @@ def sync_with_daktela(interactions_pks):
 
     :param list userprofiles: UserProfiles models instances id
     """
+    if not settings.DAKTELA.enable:
+        return
     interactions = models.Interaction.objects.filter(
         pk__in=interactions_pks,
     )
@@ -32,6 +34,8 @@ def delete_tickets_from_daktela(interactions_pks):
 
     :param list userprofiles: Interaction models instances id
     """
+    if not settings.DAKTELA.enable:
+        return
     interactions = models.Interaction.objects.filter(
         pk__in=interactions_pks,
     )

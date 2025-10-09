@@ -66,6 +66,8 @@ def get_user_auth_token():
 
     :return str|None: Daktela app user token
     """
+    if not settings.DAKTELA.enable:
+        return
     error_message = "Obtain Daktela app user token fails due error: '{error}'"
     get_token_url = urljoin(
         settings.DAKTELA["base_rest_api_url"],
@@ -260,6 +262,8 @@ def delete_contact(userprofile, user_auth_token):
     :param object userprofile: UserProfile model instance
     :param str user_auth_token: Daktela app user auth token
     """
+    if not settings.DAKTELA.enable:
+        return
     if get_contact(userprofile, user_auth_token):
         error_message = (
             "Delete Daktela app contact with name '{name}' fails due error:"
@@ -598,6 +602,8 @@ def sync_contacts(userprofiles):
 
     :param object userprofiles: list of UserProfiles models instance
     """
+    if not settings.DAKTELA.enable:
+        return
     user_auth_token = get_user_auth_token()
     if user_auth_token:
         for userprofile in userprofiles:
