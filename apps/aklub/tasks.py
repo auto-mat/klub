@@ -141,7 +141,7 @@ def sync_with_daktela(userprofiles_pks):
 
     :param list userprofiles: UserProfiles models instances id
     """
-    if not settings.DAKTELA.enable:
+    if not settings.DAKTELA["enable"]:
         return
     userprofiles = models.UserProfile.objects.filter(
         pk__in=userprofiles_pks,
@@ -155,7 +155,7 @@ def delete_contacts_from_daktela(userprofiles_pks):
 
     :param list userprofiles: Interaction models instances id
     """
-    if not settings.DAKTELA.enable:
+    if not settings.DAKTELA["enable"]:
         return
     userprofiles = models.UserProfile.objects.filter(
         pk__in=userprofiles_pks,
