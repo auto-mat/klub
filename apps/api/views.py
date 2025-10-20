@@ -50,6 +50,7 @@ from .serializers import (
     DonorPaymetChannelSerializer,
     EventCheckSerializer,
     EventSerializer,
+    EventIdLookupSerializer,
     GetDpchCompanyProfileSerializer,
     GetDpchUserProfileSerializer,
     InteractionSerizer,
@@ -402,6 +403,7 @@ class EventListView(EventViewMixin, generics.ListAPIView):
 
 class EventRetrieveView(EventViewMixin, generics.RetrieveAPIView):
     lookup_field = "id"
+    serializer_class = EventIdLookupSerializer
 
 
 class AdministrativeUnitView(generics.ListAPIView):

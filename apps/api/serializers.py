@@ -12,6 +12,7 @@ from aklub.models import (
 
 from django.contrib.auth.password_validation import validate_password
 from django.core.validators import MinLengthValidator, RegexValidator
+from django.db.models import Count, Sum
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
@@ -525,6 +526,36 @@ class EventSerializer(serializers.ModelSerializer):
         except IndexError:
             web_url = ""
         return web_url
+
+
+class EventIdLookupSerializer(EventSerializer):
+    users_paid = serializers.SerializerMethodField()
+    total_amount = serializers.SerializerMethodField()
+    registered_users_count_by_interaction_type = serializers.SerializerMethodField()
+
+    class Meta(EventSerializer.Meta):
+        model = Event
+        fields = EventSerializer.Meta.fields + [
+            "users_paid",
+            "total_amount",
+            "registered_users_count_by_interaction_type",
+        ]
+
+    def get_users_paid(self, obj):
+        return obj.donorpaymentchannel_set.aggregate(count=Count("user")).get("count")
+
+    def get_total_amount(self, obj):
+        return obj.donorpaymentchannel_set.aggregate(sum=Sum("payment_total")).get(
+            "sum"
+        )
+
+    def get_registered_users_count_by_interaction_type(self, obj):
+        interaction_id = self.context["request"].GET.get("interaction_id", None)
+        return (
+            obj.interaction_set.filter(id=interaction_id)
+            .aggregate(count=Count("user"))
+            .get("count")
+        )
 
 
 class AdministrativeUnitSerializer(serializers.ModelSerializer):
