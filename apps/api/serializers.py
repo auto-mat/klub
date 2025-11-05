@@ -552,9 +552,7 @@ class EventIdLookupSerializer(EventSerializer):
     def get_registered_users_count_by_interaction_type(self, obj):
         interaction_id = self.context["request"].GET.get("interaction_id", None)
         return (
-            obj.interaction_set.filter(id=interaction_id)
-            .aggregate(count=Count("user"))
-            .get("count")
+            obj.interaction_set.filter(type__id=interaction_id).distinct("user").count()
         )
 
 
