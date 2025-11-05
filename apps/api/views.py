@@ -51,6 +51,7 @@ from .serializers import (
     EventCheckSerializer,
     EventSerializer,
     EventIdLookupSerializer,
+    InteractionTypeSerializer,
     GetDpchCompanyProfileSerializer,
     GetDpchUserProfileSerializer,
     InteractionSerizer,
@@ -419,3 +420,10 @@ class AdministrativeUnitView(generics.ListAPIView):
             "president",
             "manager",
         )
+
+
+class InteractionTypeView(generics.ListAPIView):
+    serializer_class = InteractionTypeSerializer
+
+    def get_queryset(self):
+        return InteractionType.objects.all().select_related("category")

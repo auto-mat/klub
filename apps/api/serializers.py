@@ -17,6 +17,7 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
 from events.models import Event, EventType, Location
+from interactions.models import InteractionCategory, InteractionType
 
 from notifications_edit.utils import send_notification_to_is_staff_members
 
@@ -587,3 +588,23 @@ class AdministrativeUnitSerializer(serializers.ModelSerializer):
 
     def get_manager_name(self, obj):
         return obj.manager.get_full_name() if obj.manager else None
+
+
+class InteractionCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = InteractionCategory
+        fields = ["category", "slug"]
+
+
+class InteractionTypeSerializer(EventSerializer):
+
+    category = InteractionCategorySerializer(read_only=True)
+
+    class Meta:
+        model = InteractionType
+        fields = [
+            "id",
+            "name",
+            "category",
+            "slug",
+        ]

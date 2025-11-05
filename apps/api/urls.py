@@ -72,6 +72,11 @@ urlpatterns = [
     path(
         "interaction/", views.CreateInteractionView.as_view(), name="create_interaction"
     ),
+    path(
+        "interaction-type/",
+        views.InteractionTypeView.as_view(),
+        name="interaction-type",
+    ),
     url("frontend/whoami", whoami_unit.who_am_i, name="frontend_whoami"),
     url("frontend/", include(frontend.router.urls)),
     path(
