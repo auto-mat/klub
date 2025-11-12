@@ -543,7 +543,11 @@ class EventIdLookupSerializer(EventSerializer):
         ]
 
     def get_users_paid(self, obj):
-        return obj.donorpaymentchannel_set.distinct("user").count()
+        return (
+            obj.donorpaymentchannel_set.filter(number_of_payments__gt=0)
+            .distinct("user")
+            .count()
+        )
 
     def get_total_amount(self, obj):
         return obj.donorpaymentchannel_set.aggregate(sum=Sum("payment_total")).get(
