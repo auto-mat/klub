@@ -36,6 +36,8 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 import rest_framework.pagination
 from rest_framework import serializers, viewsets
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 from .exceptions import (
     DonorPaymentChannelDoesntExist,
@@ -46,6 +48,9 @@ from .filters import EventCustomFilter
 from .serializers import (
     AdministrativeUnitSerializer,
     CreateUserProfileSerializer,
+    ActivateUserSerializer,
+    UpdateUserProfileSerializer,
+    SimpleRegisterSerializer,
     CreditCardPaymentSerializer,
     DonorPaymetChannelSerializer,
     EventCheckSerializer,
@@ -277,13 +282,41 @@ class CreateCreditCardPaymentView(generics.CreateAPIView):
             else:
                 raise EmailDoesntExist()
 
-
+# POST
 class CreateUserProfileView(generics.CreateAPIView):
     """
     Create new userprofile with PW to has acces to paid section
     """
 
     serializer_class = CreateUserProfileSerializer
+
+
+class SimpleRegisterView(generics.CreateAPIView):
+    serializer_class = SimpleRegisterSerializer
+
+
+class SimpleActivateView(generics.GenericAPIView):
+    serializer_class = ActivateUserSerializer
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        return Response(
+            {"username": user.username, "is_active": user.is_active},
+            status=status.HTTP_200_OK,
+        )
+
+
+class UpdateUserProfileView(generics.UpdateAPIView):
+    """
+    Update authenticated user's profile information
+    """
+    permission_classes = [IsAuthenticated]
+    serializer_class = UpdateUserProfileSerializer
+
+    def get_object(self):
+        return self.request.user
 
 
 class CheckLastPaymentView(generics.GenericAPIView):
@@ -427,3 +460,34 @@ class InteractionTypeView(generics.ListAPIView):
 
     def get_queryset(self):
         return InteractionType.objects.all().select_related("category")
+
+
+class GetUserInfoView(generics.GenericAPIView):
+    """
+    Get authenticated user info (firstname, lastname, email, telephone, sex, language).
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        
+        try:
+            email = user.profileemail_set.get(is_primary=True).email
+        except ProfileEmail.DoesNotExist:
+            email_obj = user.profileemail_set.first()
+            email = email_obj.email if email_obj else None
+        
+        try:
+            telephone = user.telephone_set.get(is_primary=True).telephone
+        except Telephone.DoesNotExist:
+            telephone_obj = user.telephone_set.first()
+            telephone = telephone_obj.telephone if telephone_obj else None
+        
+        return Response({
+            "firstname": user.first_name,
+            "lastname": user.last_name,
+            "email": email,
+            "telephone": telephone,
+            "sex": user.sex,
+            "language": user.language,
+        }, status=status.HTTP_200_OK)

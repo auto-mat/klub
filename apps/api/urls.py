@@ -50,6 +50,13 @@ urlpatterns_bronto = [
         name="administrative_unit",
     ),
 ]
+
+urlpatterns_zmj = [
+    path("user/", views.GetUserInfoView.as_view(), name="user_info"),
+    path("register/", views.SimpleRegisterView.as_view(), name="zmj_register"),
+    path("activate/", views.SimpleActivateView.as_view(), name="zmj_activate"),
+    path("profile/", views.UpdateUserProfileView.as_view(), name="zmj_update_profile"),
+]
 urlpatterns = [
     # auth
     path("o/", include("oauth2_provider.urls", namespace="oauth2_provider")),
@@ -173,4 +180,6 @@ urlpatterns = [
     ),
     path("token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    # zmj
+    path("zmj/", include(urlpatterns_zmj)),
 ]

@@ -23,6 +23,7 @@ from notifications_edit.utils import send_notification_to_is_staff_members
 
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from .exceptions import PasswordsDoNotMatch
 
@@ -133,6 +134,94 @@ class CreateUserProfileSerializer(
             **dpch_data, user=user, expected_date_of_first_payment=timezone.now()
         )
         return user
+
+
+class SimpleRegisterSerializer(serializers.ModelSerializer):
+    username = serializers.EmailField(
+        validators=[UniqueValidator(queryset=UserProfile.objects.all())]
+    )
+    password = serializers.CharField(
+        write_only=True, validators=[validate_password]
+    )
+
+    class Meta:
+        model = UserProfile
+        fields = [
+            "username",
+            "password",
+        ]
+
+    def create(self, validated_data):
+        username = validated_data["username"].lower()
+        password = validated_data["password"]
+        user = UserProfile.objects.create(
+            username=username,
+            email=username,
+            is_active=False,
+        )
+        user.set_password(password)
+        user.save()
+        ProfileEmail.objects.get_or_create(
+            user=user, defaults={"email": username, "is_primary": True}
+        )
+        return user
+
+
+class ActivateUserSerializer(serializers.Serializer):
+    username = serializers.EmailField()
+
+    def validate_username(self, value):
+        user = UserProfile.objects.filter(username__iexact=value).first()
+        if not user:
+            raise serializers.ValidationError(_("User with this username does not exist."))
+        self.context["user"] = user
+        return value
+
+    def save(self, **kwargs):
+        user = self.context["user"]
+        if not user.is_active:
+            user.is_active = True
+            user.save(update_fields=["is_active"])
+        return user
+
+
+class UpdateUserProfileSerializer(serializers.ModelSerializer):
+    telephone = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        write_only=True,
+    )
+
+    class Meta:
+        model = UserProfile
+        fields = ["first_name", "last_name", "telephone", "sex", "language"]
+        extra_kwargs = {
+            "first_name": {"required": False, "allow_blank": True},
+            "last_name": {"required": False, "allow_blank": True},
+            "sex": {"required": False, "allow_blank": True},
+            "language": {"required": False, "allow_blank": True},
+        }
+
+    def update(self, instance, validated_data):
+        telephone = validated_data.pop("telephone", None)
+        instance = super().update(instance, validated_data)
+
+        # Telephone update
+        if telephone is not None:
+            if telephone:
+                Telephone.objects.filter(user=instance).update(is_primary=None)
+                tel, created = Telephone.objects.get_or_create(
+                    telephone=telephone, user=instance
+                )
+                if not tel.is_primary:
+                    tel.is_primary = True
+                    tel.save()
+            else:
+                Telephone.objects.filter(user=instance, is_primary=True).update(
+                    is_primary=None
+                )
+
+        return instance
 
 
 get_or_create_user_profile_fields = [
