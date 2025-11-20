@@ -26,7 +26,7 @@ jobs:
          command: |
             if [ "$DOCKER_USER" != "" ] ; then
               TAG="$(date +%Y).${CIRCLE_BUILD_NUM}"
-              docker tag built-image:latest auto0mat/klub-zmj:$TAG
+              docker tag built-image:latest auto0mat/klub-zmj-test:$TAG
               docker login -u $DOCKER_USER -p $DOCKER_PASS
-              docker push auto0mat/klub-zmj:$TAG
+              docker push auto0mat/klub-zmj-test:$TAG
             fi
