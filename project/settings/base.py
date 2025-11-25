@@ -645,7 +645,7 @@ DAKTELA = {
     ),
     "enable": os.getenv(
         "DAKTELA_ENABLE",
-        False
+        False,
     ),
 }
 
