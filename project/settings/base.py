@@ -241,7 +241,7 @@ INSTALLED_APPS = (
     "events",
     "interactions",
     "oauth2_manager",
-    "helpdesk",
+    # "helpdesk",
     "pdf_storage",
     "django_celery_beat",
     "djcelery_email",
@@ -261,10 +261,10 @@ INSTALLED_APPS = (
     "flexible_filter_conditions.apps.FlexibleFilterConditionsConfig",
     "rest_framework",
     "drf_yasg",
+    # "account",
     "oauth2_provider",
-    "account",
-    "pinax.invitations",
-    "pinax.teams",
+    # "pinax.invitations",
+    # "pinax.teams",
     "inline_static",
     "reversion",
     "multiselectfield",
@@ -421,7 +421,7 @@ MIGRATION_MODULES = {
     "advanced_filters": "local_migrations.migrations_advanced_filters",
     "menu": "local_migrations.migrations_admin_tools.menu",
     "dashboard": "local_migrations.migrations_admin_tools.dashboard",
-    "helpdesk": "local_migrations.migrations_helpdesk",
+    # "helpdesk": "local_migrations.migrations_helpdesk",
     "import_export_celery": "local_migrations.migrations_import_export_celery",
 }
 
@@ -431,40 +431,40 @@ AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
 ]
 
-HELPDESK_DEFAULT_SETTINGS = {
-    "use_email_as_submitter": True,
-    "email_on_ticket_assign": True,
-    "email_on_ticket_change": True,
-    "login_view_ticketlist": True,
-    "email_on_ticket_apichange": True,
-    "preset_replies": True,
-    "tickets_per_page": 25,
-    "helpdesk_activate_api_endpoint": True,
-}
+# HELPDESK_DEFAULT_SETTINGS = {
+#     "use_email_as_submitter": True,
+#     "email_on_ticket_assign": True,
+#     "email_on_ticket_change": True,
+#     "login_view_ticketlist": True,
+#     "email_on_ticket_apichange": True,
+#     "preset_replies": True,
+#     "tickets_per_page": 25,
+#     "helpdesk_activate_api_endpoint": True,
+# }
 
 # Should the public web portal be enabled?
-HELPDESK_VIEW_A_TICKET_PUBLIC = False
-HELPDESK_SUBMIT_A_TICKET_PUBLIC = True
-HELPDESK_STAFF_ONLY_TICKET_OWNERS = True
+# HELPDESK_VIEW_A_TICKET_PUBLIC = False
+# HELPDESK_SUBMIT_A_TICKET_PUBLIC = True
+# HELPDESK_STAFF_ONLY_TICKET_OWNERS = True
 
-HELPDESK_PUBLIC_TICKET_PRIORITY = 3
-HELPDESK_PUBLIC_TICKET_DUE_DATE = ""
+# HELPDESK_PUBLIC_TICKET_PRIORITY = 3
+# HELPDESK_PUBLIC_TICKET_DUE_DATE = ""
 
 # Should the Knowledgebase be enabled?
-HELPDESK_KB_ENABLED = True
+# HELPDESK_KB_ENABLED = True
 
 # Instead of showing the public web portal first,
 # we can instead redirect users straight to the login page.
-HELPDESK_REDIRECT_TO_LOGIN_BY_DEFAULT = False
+# HELPDESK_REDIRECT_TO_LOGIN_BY_DEFAULT = False
 
 
-def get_helpdesk_query_class():
-    from aklub.timeline import Query
+# def get_helpdesk_query_class():
+#     from aklub.timeline import Query
 
-    return Query
+#     return Query
 
 
-HELPDESK_QUERY_CLASS = get_helpdesk_query_class
+# HELPDESK_QUERY_CLASS = get_helpdesk_query_class
 
 LOGIN_URL = "/login/"
 LOGIN_REDIRECT_URL = "/login/"

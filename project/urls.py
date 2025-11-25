@@ -31,7 +31,7 @@ def test_errors(request):
 admin.autodiscover()
 
 urlpatterns = [
-    url(r"^desk/", include("helpdesk.urls")),
+    # url(r"^desk/", include("helpdesk.urls")),
     url(
         r"^admin/passreset/$",
         auth_views.PasswordResetView.as_view(),

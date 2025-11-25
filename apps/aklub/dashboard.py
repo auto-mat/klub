@@ -80,7 +80,7 @@ class AklubIndexDashboard(Dashboard):
                         reverse("%s:password_change" % site_name),
                     ],
                     [_("Log out"), reverse("%s:logout" % site_name)],
-                    [_("Helpdesk"), reverse("helpdesk:dashboard")],
+                    # [_("Helpdesk"), reverse("helpdesk:dashboard")],
                 ],
             ),
         )
