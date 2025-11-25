@@ -24,7 +24,7 @@ from apps.api.frontend.unknown_user_apply_for_membership_unit import (
 )
 
 from . import views
-from .rest_registration import CustomRegisterView
+from .rest_registration import ConfirmEmailView, CustomRegisterView
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -55,7 +55,7 @@ urlpatterns = [
     ),
     path(
         "auth/registration/account-confirm-email/<str:key>/",
-        views.ConfirmEmailView.as_view(),
+        ConfirmEmailView.as_view(),
         name="account_confirm_email",
     ),
     # Events
