@@ -262,6 +262,10 @@ INSTALLED_APPS = (
     "rest_framework",
     "drf_yasg",
     # "account",
+    "allauth",
+    "allauth.account",
+    "rest_framework.authtoken",
+    "dj_rest_auth",
     "oauth2_provider",
     # "pinax.invitations",
     # "pinax.teams",
@@ -653,3 +657,5 @@ CELERYBEAT_SCHEDULE = {
 }
 
 CELERYBEAT_LIVENESS_REDIS_UNIQ_KEY = "celerybeat-liveness"
+
+REST_AUTH = {}
