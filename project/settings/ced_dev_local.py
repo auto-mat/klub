@@ -1,0 +1,15 @@
+from .dev import *  # noqa
+
+
+CED_FRONTEND_APP_BASE_URL = os.getenv(
+    "CED_FRONTEND_APP_BASE_URL",
+    "http://localhost:9000/#/",
+)
+
+ACCOUNT_EMAIL_CONFIRMATION_ANONYMOUS_REDIRECT_URL = CED_FRONTEND_APP_BASE_URL
+
+ACCOUNT_EMAIL_CONFIRMATION_URL = f"{CED_FRONTEND_APP_BASE_URL}confirm-email"
+ACCOUNT_RESET_PASSWORD_CONFIRMATION_URL = f"{CED_FRONTEND_APP_BASE_URL}reset-password"
+ACCOUNT_ADAPTER = "api.allauth.AccountAdapter"
+
+REST_AUTH["PASSWORD_RESET_SERIALIZER"] = "api.allauth.UserPasswordResetSerializer"

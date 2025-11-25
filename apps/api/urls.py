@@ -24,6 +24,7 @@ from apps.api.frontend.unknown_user_apply_for_membership_unit import (
 )
 
 from . import views
+from .rest_registration import CustomRegisterView
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -47,6 +48,16 @@ urlpatterns_bronto = [
 urlpatterns = [
     # auth
     path("o/", include("oauth2_provider.urls", namespace="oauth2_provider")),
+    path(
+        "auth/registration/",
+        CustomRegisterView.as_view(),
+        name="custom_register",
+    ),
+    path(
+        "auth/registration/account-confirm-email/<str:key>/",
+        views.ConfirmEmailView.as_view(),
+        name="account_confirm_email",
+    ),
     # Events
     path("event/", views.EventListView.as_view(), name="event"),
     path("event/<int:id>/", views.EventRetrieveView.as_view(), name="event_detail"),
