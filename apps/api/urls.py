@@ -28,6 +28,7 @@ from .rest_registration import (
     ConfirmEmailView,
     CustomRegisterView,
     HasUserVerifiedEmailAddress,
+    SendRegistrationConfirmationEmail,
 )
 
 schema_view = get_schema_view(
@@ -66,6 +67,11 @@ urlpatterns = [
         "auth/registration/has-user-verified-email-address/",
         HasUserVerifiedEmailAddress.as_view(),
         name="has-user-verified-email-address",
+    ),
+    path(
+        "auth/registration/send-confirmation-email/",
+        SendRegistrationConfirmationEmail.as_view(),
+        name="send-registration-confirmation-email",
     ),
     # Events
     path("event/", views.EventListView.as_view(), name="event"),

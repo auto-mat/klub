@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
 
-from allauth.account.utils import has_verified_email
+from allauth.account.utils import has_verified_email, send_email_confirmation
 from allauth.account.views import ConfirmEmailView
 from dj_rest_auth.registration.serializers import RegisterSerializer
 from dj_rest_auth.registration.views import RegisterView
@@ -50,4 +50,22 @@ class HasUserVerifiedEmailAddress(APIView):
     def get(self, request):
         return Response(
             {"has_user_verified_email_address": has_verified_email(request.user)}
+        )
+
+
+class SendRegistrationConfirmationEmail(APIView):
+    """Manually send confirmation email in case it hasn't been received"""
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        send_email = False
+        if not has_verified_email(request.user):
+            send_email_confirmation(request, request.user, request.user.email)
+            send_email = True
+
+        return Response(
+            {
+                "send_registration_confirmation_email": send_email,
+            }
         )
