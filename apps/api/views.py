@@ -308,15 +308,47 @@ class SimpleActivateView(generics.GenericAPIView):
         )
 
 
-class UpdateUserProfileView(generics.UpdateAPIView):
+class UserProfileView(generics.GenericAPIView):
     """
-    Update authenticated user's profile information
+    Get and update authenticated user's profile information.
+    GET: Retrieve user info (firstname, lastname, email, telephone, sex, language).
+    PUT: Update user profile information.
     """
     permission_classes = [IsAuthenticated]
     serializer_class = UpdateUserProfileSerializer
 
-    def get_object(self):
-        return self.request.user
+    def get(self, request):
+        """GET: Retrieve user info"""
+        user = request.user
+        
+        try:
+            email = user.profileemail_set.get(is_primary=True).email
+        except ProfileEmail.DoesNotExist:
+            email_obj = user.profileemail_set.first()
+            email = email_obj.email if email_obj else None
+        
+        try:
+            telephone = user.telephone_set.get(is_primary=True).telephone
+        except Telephone.DoesNotExist:
+            telephone_obj = user.telephone_set.first()
+            telephone = telephone_obj.telephone if telephone_obj else None
+        
+        return Response({
+            "firstname": user.first_name,
+            "lastname": user.last_name,
+            "email": email,
+            "telephone": telephone,
+            "sex": user.sex,
+            "language": user.language,
+        }, status=status.HTTP_200_OK)
+
+    def put(self, request):
+        """PUT: Update user profile"""
+        user = self.request.user
+        serializer = self.get_serializer(user, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(status=status.HTTP_200_OK)
 
 
 class CheckLastPaymentView(generics.GenericAPIView):
@@ -462,32 +494,3 @@ class InteractionTypeView(generics.ListAPIView):
         return InteractionType.objects.all().select_related("category")
 
 
-class GetUserInfoView(generics.GenericAPIView):
-    """
-    Get authenticated user info (firstname, lastname, email, telephone, sex, language).
-    """
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        user = request.user
-        
-        try:
-            email = user.profileemail_set.get(is_primary=True).email
-        except ProfileEmail.DoesNotExist:
-            email_obj = user.profileemail_set.first()
-            email = email_obj.email if email_obj else None
-        
-        try:
-            telephone = user.telephone_set.get(is_primary=True).telephone
-        except Telephone.DoesNotExist:
-            telephone_obj = user.telephone_set.first()
-            telephone = telephone_obj.telephone if telephone_obj else None
-        
-        return Response({
-            "firstname": user.first_name,
-            "lastname": user.last_name,
-            "email": email,
-            "telephone": telephone,
-            "sex": user.sex,
-            "language": user.language,
-        }, status=status.HTTP_200_OK)

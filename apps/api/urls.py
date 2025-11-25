@@ -52,10 +52,9 @@ urlpatterns_bronto = [
 ]
 
 urlpatterns_zmj = [
-    path("user/", views.GetUserInfoView.as_view(), name="user_info"),
+    path("user/", views.UserProfileView.as_view(), name="user_profile"),
     path("register/", views.SimpleRegisterView.as_view(), name="zmj_register"),
     path("activate/", views.SimpleActivateView.as_view(), name="zmj_activate"),
-    path("profile/", views.UpdateUserProfileView.as_view(), name="zmj_update_profile"),
 ]
 urlpatterns = [
     # auth
