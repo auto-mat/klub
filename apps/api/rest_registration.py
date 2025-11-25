@@ -2,11 +2,13 @@ from django.contrib.auth import get_user_model
 from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
 
+from allauth.account.utils import has_verified_email
 from allauth.account.views import ConfirmEmailView
 from dj_rest_auth.registration.serializers import RegisterSerializer
 from dj_rest_auth.registration.views import RegisterView
-from rest_framework import status
+from rest_framework import status, permissions
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from aklub.models import UserProfile
 
@@ -37,4 +39,15 @@ class ConfirmEmailView(ConfirmEmailView):
         return JsonResponse(
             {"status": "success", "message": _("Email was confirmed successfully.")},
             status=status.HTTP_200_OK,
+        )
+
+
+class HasUserVerifiedEmailAddress(APIView):
+    """Has user verified email address"""
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        return Response(
+            {"has_user_verified_email_address": has_verified_email(request.user)}
         )
