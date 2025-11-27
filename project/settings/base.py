@@ -4,6 +4,8 @@ import sys
 
 import raven
 
+from django.utils import timezone
+
 from celery.schedules import crontab
 
 
@@ -433,6 +435,7 @@ AUTH_USER_MODEL = "aklub.Profile"
 
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
 ]
 
 # HELPDESK_DEFAULT_SETTINGS = {
@@ -658,4 +661,13 @@ CELERYBEAT_SCHEDULE = {
 
 CELERYBEAT_LIVENESS_REDIS_UNIQ_KEY = "celerybeat-liveness"
 
-REST_AUTH = {}
+REST_AUTH = {
+    "USE_JWT": True,
+    "JWT_AUTH_COOKIE": "klub-auth",
+    "JWT_AUTH_REFRESH_COOKIE": "klub-refresh-token",
+    "JWT_AUTH_HTTPONLY": False,
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timezone.timedelta(hours=8),
+}

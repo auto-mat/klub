@@ -54,6 +54,10 @@ urlpatterns = [
     # auth
     path("o/", include("oauth2_provider.urls", namespace="oauth2_provider")),
     path(
+        "auth/",
+        include("dj_rest_auth.urls"),
+    ),
+    path(
         "auth/registration/",
         CustomRegisterView.as_view(),
         name="custom_register",
