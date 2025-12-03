@@ -23,7 +23,6 @@ from notifications_edit.utils import send_notification_to_is_staff_members
 
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from .exceptions import PasswordsDoNotMatch
 

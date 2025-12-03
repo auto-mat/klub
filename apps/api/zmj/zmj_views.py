@@ -16,33 +16,37 @@ class UserProfileView(generics.GenericAPIView):
     GET: Retrieve user info (firstname, lastname, email, telephone, sex, language).
     PUT: Update user profile information.
     """
+
     permission_classes = [IsAuthenticated]
     serializer_class = UpdateUserProfileSerializer
 
     def get(self, request):
         """GET: Retrieve user info"""
         user = request.user
-        
+
         try:
             email = user.profileemail_set.get(is_primary=True).email
         except ProfileEmail.DoesNotExist:
             email_obj = user.profileemail_set.first()
             email = email_obj.email if email_obj else None
-        
+
         try:
             telephone = user.telephone_set.get(is_primary=True).telephone
         except Telephone.DoesNotExist:
             telephone_obj = user.telephone_set.first()
             telephone = telephone_obj.telephone if telephone_obj else None
-        
-        return Response({
-            "firstname": user.first_name,
-            "lastname": user.last_name,
-            "email": email,
-            "telephone": telephone,
-            "sex": user.sex,
-            "language": user.language,
-        }, status=status.HTTP_200_OK)
+
+        return Response(
+            {
+                "firstname": user.first_name,
+                "lastname": user.last_name,
+                "email": email,
+                "telephone": telephone,
+                "sex": user.sex,
+                "language": user.language,
+            },
+            status=status.HTTP_200_OK,
+        )
 
     def put(self, request):
         """PUT: Update user profile"""

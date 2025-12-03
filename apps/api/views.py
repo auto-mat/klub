@@ -34,9 +34,6 @@ from rest_framework import filters as rf_filters, generics, status
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 import rest_framework.pagination
-from rest_framework import serializers, viewsets
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from rest_framework_simplejwt.views import TokenObtainPairView
 
 from .exceptions import (
     DonorPaymentChannelDoesntExist,
@@ -278,6 +275,7 @@ class CreateCreditCardPaymentView(generics.CreateAPIView):
             else:
                 raise EmailDoesntExist()
 
+
 # POST
 class CreateUserProfileView(generics.CreateAPIView):
     """
@@ -428,5 +426,3 @@ class InteractionTypeView(generics.ListAPIView):
 
     def get_queryset(self):
         return InteractionType.objects.all().select_related("category")
-
-
