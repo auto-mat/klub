@@ -30,7 +30,7 @@ from .rest_registration import (
     HasUserVerifiedEmailAddress,
     SendRegistrationConfirmationEmail,
 )
-from apps.api.zmj import profile as zmj_profile
+from apps.api.zmj.zmj_views import UserProfileView
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -53,7 +53,7 @@ urlpatterns_bronto = [
 ]
 
 urlpatterns_zmj = [
-    path("user/", zmj_profile.UserProfileView.as_view(), name="user_profile"),
+    path("user/", UserProfileView.as_view(), name="user_profile"),
 ]
 urlpatterns = [
     # auth
