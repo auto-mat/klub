@@ -7,7 +7,6 @@ from aklub.models import (
     DonorPaymentChannel,
     MoneyAccount,
     ProfileEmail,
-    Telephone,
     UserProfile,
 )
 
@@ -48,9 +47,6 @@ from .filters import EventCustomFilter
 from .serializers import (
     AdministrativeUnitSerializer,
     CreateUserProfileSerializer,
-    ActivateUserSerializer,
-    UpdateUserProfileSerializer,
-    SimpleRegisterSerializer,
     CreditCardPaymentSerializer,
     DonorPaymetChannelSerializer,
     EventCheckSerializer,
@@ -289,66 +285,6 @@ class CreateUserProfileView(generics.CreateAPIView):
     """
 
     serializer_class = CreateUserProfileSerializer
-
-
-class SimpleRegisterView(generics.CreateAPIView):
-    serializer_class = SimpleRegisterSerializer
-
-
-class SimpleActivateView(generics.GenericAPIView):
-    serializer_class = ActivateUserSerializer
-
-    def post(self, request):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-        return Response(
-            {"username": user.username, "is_active": user.is_active},
-            status=status.HTTP_200_OK,
-        )
-
-
-class UserProfileView(generics.GenericAPIView):
-    """
-    Get and update authenticated user's profile information.
-    GET: Retrieve user info (firstname, lastname, email, telephone, sex, language).
-    PUT: Update user profile information.
-    """
-    permission_classes = [IsAuthenticated]
-    serializer_class = UpdateUserProfileSerializer
-
-    def get(self, request):
-        """GET: Retrieve user info"""
-        user = request.user
-        
-        try:
-            email = user.profileemail_set.get(is_primary=True).email
-        except ProfileEmail.DoesNotExist:
-            email_obj = user.profileemail_set.first()
-            email = email_obj.email if email_obj else None
-        
-        try:
-            telephone = user.telephone_set.get(is_primary=True).telephone
-        except Telephone.DoesNotExist:
-            telephone_obj = user.telephone_set.first()
-            telephone = telephone_obj.telephone if telephone_obj else None
-        
-        return Response({
-            "firstname": user.first_name,
-            "lastname": user.last_name,
-            "email": email,
-            "telephone": telephone,
-            "sex": user.sex,
-            "language": user.language,
-        }, status=status.HTTP_200_OK)
-
-    def put(self, request):
-        """PUT: Update user profile"""
-        user = self.request.user
-        serializer = self.get_serializer(user, data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(status=status.HTTP_200_OK)
 
 
 class CheckLastPaymentView(generics.GenericAPIView):
