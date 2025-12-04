@@ -7,7 +7,6 @@ from aklub.models import (
     DonorPaymentChannel,
     MoneyAccount,
     ProfileEmail,
-    Telephone,
     UserProfile,
 )
 
@@ -35,7 +34,6 @@ from rest_framework import filters as rf_filters, generics, status
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 import rest_framework.pagination
-from rest_framework import serializers, viewsets
 
 from .exceptions import (
     DonorPaymentChannelDoesntExist,

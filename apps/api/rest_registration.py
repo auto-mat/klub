@@ -10,7 +10,7 @@ from rest_framework import status, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from aklub.models import UserProfile
+from aklub.models import ProfileEmail, UserProfile
 
 
 class CustomRegisterSerializer(RegisterSerializer):
@@ -25,6 +25,9 @@ class CustomRegisterSerializer(RegisterSerializer):
         user.username = f"{username}@{user_number}"
         user.set_password(password)
         user.save()
+        ProfileEmail.objects.get_or_create(
+            email=user.email, user=user, defaults={"is_primary": True}
+        )
         return user
 
 

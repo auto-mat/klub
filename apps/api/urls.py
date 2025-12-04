@@ -30,6 +30,7 @@ from .rest_registration import (
     HasUserVerifiedEmailAddress,
     SendRegistrationConfirmationEmail,
 )
+from .zmj.urls import urlpatterns as urlpatterns_zmj
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -50,6 +51,7 @@ urlpatterns_bronto = [
         name="administrative_unit",
     ),
 ]
+
 urlpatterns = [
     # auth
     path("o/", include("oauth2_provider.urls", namespace="oauth2_provider")),
@@ -173,4 +175,6 @@ urlpatterns = [
     ),
     path("token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    # zmj
+    path("zmj/", include(urlpatterns_zmj)),
 ]
