@@ -30,7 +30,7 @@ from .rest_registration import (
     HasUserVerifiedEmailAddress,
     SendRegistrationConfirmationEmail,
 )
-from .zmj.views import UserProfileView
+from .zmj.urls import urlpatterns as urlpatterns_zmj
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -52,9 +52,6 @@ urlpatterns_bronto = [
     ),
 ]
 
-urlpatterns_zmj = [
-    path("user/", UserProfileView.as_view(), name="user_profile"),
-]
 urlpatterns = [
     # auth
     path("o/", include("oauth2_provider.urls", namespace="oauth2_provider")),
