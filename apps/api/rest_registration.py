@@ -25,7 +25,9 @@ class CustomRegisterSerializer(RegisterSerializer):
         user.username = f"{username}@{user_number}"
         user.set_password(password)
         user.save()
-        ProfileEmail.objects.get_or_create(email=user.email, user=user, defaults={"is_primary": True})
+        ProfileEmail.objects.get_or_create(
+            email=user.email, user=user, defaults={"is_primary": True}
+        )
         return user
 
 
