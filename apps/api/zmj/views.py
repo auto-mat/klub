@@ -7,12 +7,13 @@ from rest_framework import filters as rf_filters, generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from .zmj_serializers import UpdateUserProfileSerializer
+from .serializers import UpdateUserProfileSerializer
 
 
 class UserProfileView(generics.GenericAPIView):
     """
     Get and update authenticated user's profile information.
+
     GET: Retrieve user info (firstname, lastname, email, telephone, sex, language).
     PUT: Update user profile information.
     """

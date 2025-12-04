@@ -30,7 +30,7 @@ from .rest_registration import (
     HasUserVerifiedEmailAddress,
     SendRegistrationConfirmationEmail,
 )
-from apps.api.zmj.zmj_views import UserProfileView
+from .zmj.views import UserProfileView
 
 schema_view = get_schema_view(
     openapi.Info(
