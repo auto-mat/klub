@@ -1,11 +1,11 @@
+from rest_framework import generics, status
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
 from aklub.models import (
     ProfileEmail,
     Telephone,
 )
-
-from rest_framework import filters as rf_filters, generics, status
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
 
 from .serializers import UpdateUserProfileSerializer
 

@@ -1,9 +1,9 @@
+from rest_framework import serializers
+
 from aklub.models import (
     Telephone,
     UserProfile,
 )
-
-from rest_framework import serializers
 
 
 class UpdateUserProfileSerializer(serializers.ModelSerializer):
