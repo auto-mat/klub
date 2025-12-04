@@ -276,7 +276,6 @@ class CreateCreditCardPaymentView(generics.CreateAPIView):
                 raise EmailDoesntExist()
 
 
-# POST
 class CreateUserProfileView(generics.CreateAPIView):
     """
     Create new userprofile with PW to has acces to paid section
