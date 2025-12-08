@@ -7,7 +7,7 @@ from aklub.models import (
     Telephone,
 )
 
-from .serializers import UpdateUserProfileSerializer
+from .serializers import RegistrationSerializer, UpdateUserProfileSerializer
 
 
 class UserProfileView(generics.GenericAPIView):
@@ -56,3 +56,25 @@ class UserProfileView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(status=status.HTTP_200_OK)
+
+
+class RegistrationView(generics.GenericAPIView):
+    """
+    Registration endpoint for authenticated users.
+    
+    POST: Save registration information.
+    """
+
+    permission_classes = [IsAuthenticated]
+    serializer_class = RegistrationSerializer
+
+    def post(self, request):
+        """POST: Save registration information"""
+        user = request.user
+        serializer = self.get_serializer(user, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(
+            {"message": "Registration information saved successfully"},
+            status=status.HTTP_200_OK,
+        )
