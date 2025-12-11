@@ -1,4 +1,4 @@
-from .base import *  # noqa
+from .k8s import *  # noqa
 
 
 CED_FRONTEND_APP_BASE_URL = os.getenv(
