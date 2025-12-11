@@ -41,7 +41,7 @@ if AWS_ACCESS_KEY_ID:
 LOGGING["handlers"]["logfile"]["filename"] = "aklub.log"  # noqa
 
 CORS_ORIGIN_REGEX_WHITELIST = (
-    r".*\.dopracenakole\.cz$",
+    r".*\.dopracenakole\.(cz|net)$",
     r".*\.zazitmestojinak\.cz",
     r".*\.nakrmteautomat\.cz$",
     r".*\.auto-mat\.cz$",
