@@ -66,7 +66,7 @@ class UserProfileView(generics.GenericAPIView):
 class RegistrationView(generics.GenericAPIView):
     """
     Registration endpoint for authenticated users.
-    
+
     POST: Save registration information.
     """
 
@@ -88,7 +88,7 @@ class RegistrationView(generics.GenericAPIView):
 class RegistrationStatusView(generics.GenericAPIView):
     """
     Check if user registration is complete.
-    
+
     GET: Returns registration status checking:
     - first_name is filled
     - last_name is filled
@@ -101,32 +101,36 @@ class RegistrationStatusView(generics.GenericAPIView):
     def get(self, request):
         """GET: Check registration status"""
         user = request.user
-        
+
         # Check first_name
         has_first_name = bool(user.first_name and user.first_name.strip())
-        
+
         # Check last_name
         has_last_name = bool(user.last_name and user.last_name.strip())
-        
+
         # Check telephone
         try:
             telephone = user.telephone_set.get(is_primary=True).telephone
             has_telephone = bool(telephone and telephone.strip())
         except Telephone.DoesNotExist:
             has_telephone = False
-        
+
         # Check if user has an event with a name
-        user_events = OrganizationTeam.objects.filter(profile=user).select_related('event')
+        user_events = OrganizationTeam.objects.filter(profile=user).select_related(
+            "event"
+        )
         has_event_with_name = False
-        
+
         for org_team in user_events:
             if org_team.event and org_team.event.name and org_team.event.name.strip():
                 has_event_with_name = True
                 break
-        
+
         # Registration is complete if all checks pass
-        is_complete = has_first_name and has_last_name and has_telephone and has_event_with_name
-        
+        is_complete = (
+            has_first_name and has_last_name and has_telephone and has_event_with_name
+        )
+
         return Response(
             {"is_complete": is_complete},
             status=status.HTTP_200_OK,
@@ -136,7 +140,7 @@ class RegistrationStatusView(generics.GenericAPIView):
 class CompanyTypesView(generics.GenericAPIView):
     """
     Return all available company types.
-    
+
     GET: Returns list of company types with id and type name.
     """
 
@@ -145,11 +149,8 @@ class CompanyTypesView(generics.GenericAPIView):
     def get(self, request):
         """GET: Return all company types"""
         company_types = CompanyType.objects.all()
-        
+
         return Response(
-            [
-                {"id": ct.id, "type": ct.type}
-                for ct in company_types
-            ],
+            [{"id": ct.id, "type": ct.type} for ct in company_types],
             status=status.HTTP_200_OK,
         )

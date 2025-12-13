@@ -70,18 +70,28 @@ class RegistrationSerializer(serializers.Serializer):
     gps_latitude = serializers.FloatField(required=False, allow_null=True)
     gps_longitude = serializers.FloatField(required=False, allow_null=True)
     place = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-    space_type = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-    space_area = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    space_type = serializers.CharField(
+        required=False, allow_blank=True, allow_null=True
+    )
+    space_area = serializers.CharField(
+        required=False, allow_blank=True, allow_null=True
+    )
     space_rent = serializers.BooleanField(required=False, default=False)
     activities = serializers.CharField(required=False, allow_blank=True, default="")
 
     # Company fields (optional)
-    company_name = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    company_name = serializers.CharField(
+        required=False, allow_blank=True, allow_null=True
+    )
     company_type_id = serializers.PrimaryKeyRelatedField(
         queryset=CompanyType.objects.all(), required=False, allow_null=True
     )
-    company_crn = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-    company_tin = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    company_crn = serializers.CharField(
+        required=False, allow_blank=True, allow_null=True
+    )
+    company_tin = serializers.CharField(
+        required=False, allow_blank=True, allow_null=True
+    )
 
     # Organizers list (optional) - these are NOT users, just contact info
     organizers = serializers.ListField(
@@ -219,22 +229,20 @@ class RegistrationSerializer(serializers.Serializer):
                 # Add email if provided
                 if email:
                     ProfileEmail.objects.create(
-                        email=email,
-                        user=organizer_profile,
-                        is_primary=True
+                        email=email, user=organizer_profile, is_primary=True
                     )
 
                 # Add telephone if provided
                 if telephone:
                     Telephone.objects.create(
-                        telephone=telephone,
-                        user=organizer_profile,
-                        is_primary=True
+                        telephone=telephone, user=organizer_profile, is_primary=True
                     )
 
                 # Link to user's administrative units
                 if user.administrative_units.exists():
-                    organizer_profile.administrative_units.set(user.administrative_units.all())
+                    organizer_profile.administrative_units.set(
+                        user.administrative_units.all()
+                    )
 
                 # Create OrganizationTeam entry
                 OrganizationTeam.objects.create(
