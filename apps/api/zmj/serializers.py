@@ -1,7 +1,10 @@
 from rest_framework import serializers
 
 from aklub.models import (
+    CompanyProfile,
+    CompanyType,
     Preference,
+    ProfileEmail,
     Telephone,
     UserProfile,
 )
@@ -72,6 +75,23 @@ class RegistrationSerializer(serializers.Serializer):
     space_rent = serializers.BooleanField(required=False, default=False)
     activities = serializers.CharField(required=False, allow_blank=True, default="")
 
+    # Company fields (optional)
+    company_name = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    company_type_id = serializers.PrimaryKeyRelatedField(
+        queryset=CompanyType.objects.all(), required=False, allow_null=True
+    )
+    company_crn = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    company_tin = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+
+    # Organizers list (optional) - these are NOT users, just contact info
+    organizers = serializers.ListField(
+        child=serializers.DictField(
+            child=serializers.CharField(allow_blank=True, allow_null=True)
+        ),
+        required=False,
+        allow_empty=True,
+    )
+
     def update(self, instance, validated_data):
         # Update user profile fields
         user = instance
@@ -87,6 +107,11 @@ class RegistrationSerializer(serializers.Serializer):
         space_area = validated_data.pop("space_area", None)
         space_rent = validated_data.pop("space_rent", False)
         activities = validated_data.pop("activities", "")
+        company_name = validated_data.pop("company_name", None)
+        company_type_id = validated_data.pop("company_type_id", None)
+        company_crn = validated_data.pop("company_crn", None)
+        company_tin = validated_data.pop("company_tin", None)
+        organizers = validated_data.pop("organizers", [])
 
         # Update basic profile fields
         for field in ["first_name", "last_name", "sex"]:
@@ -146,7 +171,7 @@ class RegistrationSerializer(serializers.Serializer):
         if user.administrative_units.exists():
             event.administrative_units.set(user.administrative_units.all())
 
-        # Add organizer link
+        # Add organizer link for the user
         organizer_position, _ = OrganizationPosition.objects.get_or_create(
             name="Event creator"
         )
@@ -155,5 +180,67 @@ class RegistrationSerializer(serializers.Serializer):
             event=event,
             position=organizer_position,
         )
+
+        # Create company if company info is provided
+        company = None
+        if company_name or company_crn:
+            company = CompanyProfile.objects.create(
+                name=company_name or "",
+                crn=company_crn or None,
+                type=company_type_id,
+                tin=company_tin or None,
+            )
+
+            # Link company to user's administrative units
+            if user.administrative_units.exists():
+                company.administrative_units.set(user.administrative_units.all())
+
+        # Create organizers (as UserProfile entries without authentication)
+        if organizers:
+            organizer_position_obj, _ = OrganizationPosition.objects.get_or_create(
+                name="Organizer"
+            )
+            for organizer_data in organizers:
+                first_name = organizer_data.get("first_name", "").strip()
+                last_name = organizer_data.get("last_name", "").strip()
+                email = organizer_data.get("email", "").strip()
+                telephone = organizer_data.get("telephone", "").strip()
+
+                # Skip if no name or contact info
+                if not (first_name or last_name) or not (email or telephone):
+                    continue
+
+                # Create new organizer profile
+                organizer_profile = UserProfile.objects.create(
+                    first_name=first_name,
+                    last_name=last_name,
+                )
+
+                # Add email if provided
+                if email:
+                    ProfileEmail.objects.create(
+                        email=email,
+                        user=organizer_profile,
+                        is_primary=True
+                    )
+
+                # Add telephone if provided
+                if telephone:
+                    Telephone.objects.create(
+                        telephone=telephone,
+                        user=organizer_profile,
+                        is_primary=True
+                    )
+
+                # Link to user's administrative units
+                if user.administrative_units.exists():
+                    organizer_profile.administrative_units.set(user.administrative_units.all())
+
+                # Create OrganizationTeam entry
+                OrganizationTeam.objects.create(
+                    profile=organizer_profile,
+                    event=event,
+                    position=organizer_position_obj,
+                )
 
         return user

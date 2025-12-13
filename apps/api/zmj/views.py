@@ -3,6 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from aklub.models import (
+    CompanyType,
     ProfileEmail,
     Telephone,
 )
@@ -128,5 +129,27 @@ class RegistrationStatusView(generics.GenericAPIView):
         
         return Response(
             {"is_complete": is_complete},
+            status=status.HTTP_200_OK,
+        )
+
+
+class CompanyTypesView(generics.GenericAPIView):
+    """
+    Return all available company types.
+    
+    GET: Returns list of company types with id and type name.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        """GET: Return all company types"""
+        company_types = CompanyType.objects.all()
+        
+        return Response(
+            [
+                {"id": ct.id, "type": ct.type}
+                for ct in company_types
+            ],
             status=status.HTTP_200_OK,
         )
