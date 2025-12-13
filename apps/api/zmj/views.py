@@ -6,6 +6,7 @@ from aklub.models import (
     ProfileEmail,
     Telephone,
 )
+from events.models import OrganizationTeam
 
 from .serializers import (
     RegistrationSerializer,
@@ -79,5 +80,53 @@ class RegistrationView(generics.GenericAPIView):
         serializer.save()
         return Response(
             {"message": "Registration information saved successfully"},
+            status=status.HTTP_200_OK,
+        )
+
+
+class RegistrationStatusView(generics.GenericAPIView):
+    """
+    Check if user registration is complete.
+    
+    GET: Returns registration status checking:
+    - first_name is filled
+    - last_name is filled
+    - telephone is filled
+    - user has an event with a name
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        """GET: Check registration status"""
+        user = request.user
+        
+        # Check first_name
+        has_first_name = bool(user.first_name and user.first_name.strip())
+        
+        # Check last_name
+        has_last_name = bool(user.last_name and user.last_name.strip())
+        
+        # Check telephone
+        try:
+            telephone = user.telephone_set.get(is_primary=True).telephone
+            has_telephone = bool(telephone and telephone.strip())
+        except Telephone.DoesNotExist:
+            has_telephone = False
+        
+        # Check if user has an event with a name
+        user_events = OrganizationTeam.objects.filter(profile=user).select_related('event')
+        has_event_with_name = False
+        
+        for org_team in user_events:
+            if org_team.event and org_team.event.name and org_team.event.name.strip():
+                has_event_with_name = True
+                break
+        
+        # Registration is complete if all checks pass
+        is_complete = has_first_name and has_last_name and has_telephone and has_event_with_name
+        
+        return Response(
+            {"is_complete": is_complete},
             status=status.HTTP_200_OK,
         )
