@@ -7,7 +7,10 @@ from aklub.models import (
     Telephone,
 )
 
-from .serializers import RegistrationSerializer, UpdateUserProfileSerializer
+from .serializers import (
+    RegistrationSerializer,
+    UpdateUserProfileSerializer,
+)
 
 
 class UserProfileView(generics.GenericAPIView):

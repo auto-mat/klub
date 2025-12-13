@@ -133,6 +133,21 @@ class Event(TreeNodeModel):
         ("cooperation", _("Cooperation")),
         ("help_the_locality", _("Help the locality")),
     )
+    SPACE_TYPES = (
+        ("none", _("None")),
+        ("park", _("Park")),
+        ("sidewalk", _("Sidewalk")),
+        ("road", _("Road")),
+        ("yard", _("Yard")),
+    )
+    SPACE_AREAS = (
+        ("none", _("None")),
+        ("xs", _("Less than 500 m²")),
+        ("sm", _("500-1000 m²")),
+        ("md", _("1000-2000 m²")),
+        ("lg", _("2000-5000 m²")),
+        ("xl", _("More than 5000 m²")),
+    )
     registration_method = models.CharField(
         verbose_name=_("Registration method"),
         max_length=128,
@@ -213,6 +228,29 @@ class Event(TreeNodeModel):
         related_name="events",
         on_delete=models.SET_NULL,
         null=True,
+        blank=True,
+    )
+    space_type = models.CharField(
+        verbose_name=_("Space type"),
+        max_length=255,
+        choices=SPACE_TYPES,
+        blank=True,
+        null=True,
+    )
+    space_area = models.CharField(
+        verbose_name=_("Space area"),
+        max_length=255,
+        choices=SPACE_AREAS,
+        blank=True,
+        null=True,
+    )
+    space_rent = models.BooleanField(
+        verbose_name=_("Space rent"),
+        default=False,
+    )
+    activities = models.TextField(
+        verbose_name=_("Activities"),
+        help_text=_("Activities description"),
         blank=True,
     )
     basic_purpose = models.CharField(
