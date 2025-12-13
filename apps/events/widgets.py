@@ -9,9 +9,7 @@ class EventChildrensTreeWidget(forms.widgets.Widget):
     template_name = "widgets/event_childrens_tree_widget.html"
 
     class Media:
-        css = {
-            "all": ["css/descendants_tree.css"]
-        }
+        css = {"all": ["css/descendants_tree.css"]}
 
     def __init__(self, *args, **kwargs):
         self._attrs = kwargs.pop("attrs")
@@ -23,7 +21,6 @@ class EventChildrensTreeWidget(forms.widgets.Widget):
                 "name": name,
                 "value": value,
                 "attrs": attrs,
-
             }
         }
 
