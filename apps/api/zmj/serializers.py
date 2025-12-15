@@ -60,7 +60,9 @@ class RegistrationSerializer(serializers.Serializer):
     first_name = serializers.CharField(required=True)
     last_name = serializers.CharField(required=True)
     telephone = serializers.CharField(required=True)
-    sex = serializers.CharField(required=False, allow_blank=True)
+    sex = serializers.ChoiceField(
+        required=False, allow_blank=True, choices=UserProfile.GENDER
+    )
     send_mailing_lists = serializers.BooleanField(required=False)
     newsletter_on = serializers.BooleanField(required=False, allow_null=True)
 
