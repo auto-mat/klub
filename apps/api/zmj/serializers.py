@@ -254,3 +254,56 @@ class RegistrationSerializer(serializers.Serializer):
                 )
 
         return user
+
+
+class UpdateEventSerializer(serializers.Serializer):
+    name = serializers.CharField(required=False, allow_blank=True)
+    date = serializers.DateTimeField(required=False, allow_null=True)
+    place = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    latitude = serializers.FloatField(required=False, allow_null=True)
+    longitude = serializers.FloatField(required=False, allow_null=True)
+
+    def update(self, instance, validated_data):
+        """Update event and location"""
+        event = instance
+        date = validated_data.pop("date", None)
+        place = validated_data.pop("place", None)
+        latitude = validated_data.pop("latitude", None)
+        longitude = validated_data.pop("longitude", None)
+
+        # Update event name
+        if "name" in validated_data:
+            event.name = validated_data["name"]
+            event.save()
+
+        # Update event date
+        if date is not None:
+            event.start_date = date
+            event.datetime_from = date
+            event.save()
+
+        # Update location
+        if place is not None or latitude is not None or longitude is not None:
+            if event.location:
+                location = event.location
+            else:
+                # Create new location if it doesn't exist
+                location = Location.objects.create(
+                    name=place or event.name or "Location",
+                    place=place or "",
+                )
+                event.location = location
+                event.save()
+
+            # Update location fields
+            if place is not None:
+                location.place = place
+                if not location.name:
+                    location.name = place or event.name or "Location"
+            if latitude is not None:
+                location.gps_latitude = latitude
+            if longitude is not None:
+                location.gps_longitude = longitude
+            location.save()
+
+        return event

@@ -2,8 +2,10 @@ from django.urls import path
 
 from .views import (
     CompanyTypesView,
+    EventDetailView,
     RegistrationStatusView,
     RegistrationView,
+    UserEventsView,
     UserProfileView,
 )
 
@@ -17,4 +19,6 @@ urlpatterns = [
         name="registration_status",
     ),
     path("company-types/", CompanyTypesView.as_view(), name="company_types"),
+    path("events/", UserEventsView.as_view(), name="user_events"),
+    path("events/<slug:event_slug>/", EventDetailView.as_view(), name="event_detail"),
 ]

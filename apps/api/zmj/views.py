@@ -11,6 +11,7 @@ from events.models import OrganizationTeam
 
 from .serializers import (
     RegistrationSerializer,
+    UpdateEventSerializer,
     UpdateUserProfileSerializer,
 )
 
@@ -153,4 +154,115 @@ class CompanyTypesView(generics.GenericAPIView):
         return Response(
             [{"id": ct.id, "type": ct.type} for ct in company_types],
             status=status.HTTP_200_OK,
+        )
+
+
+class UserEventsView(generics.GenericAPIView):
+    """
+    Return all events that the authenticated user organizes.
+
+    GET: Returns list of events with basic information.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        """GET: Return all events user organizes"""
+        user = request.user
+
+        # Get all OrganizationTeam entries for this user
+        org_teams = OrganizationTeam.objects.filter(profile=user).select_related(
+            "event"
+        )
+
+        events_data = []
+        for org_team in org_teams:
+            event = org_team.event
+            if not event:
+                continue
+
+            event_data = {
+                "id": event.id,
+                "slug": event.slug,
+                "name": event.name,
+            }
+
+            events_data.append(event_data)
+
+        return Response(events_data, status=status.HTTP_200_OK)
+
+
+class EventDetailView(generics.GenericAPIView):
+    """
+    Get and update event information for events that the user organizes.
+
+    GET: Returns event details (name, date, place, latitude, longitude,
+         space_area, space_type, space_rent, activities) by slug.
+    PUT: Update event details (name, date, place, latitude, longitude) by slug.
+    """
+
+    permission_classes = [IsAuthenticated]
+    serializer_class = UpdateEventSerializer
+
+    def _get_user_event(self, user, event_slug):
+        """Helper method to get event if user organizes it"""
+        try:
+            org_team = OrganizationTeam.objects.select_related(
+                "event", "event__location"
+            ).get(profile=user, event__slug=event_slug)
+        except OrganizationTeam.DoesNotExist:
+            return None, Response(
+                {"error": "Event not found or you are not an organizer"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        event = org_team.event
+        if not event:
+            return None, Response(
+                {"error": "Event not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        return event, None
+
+    def get(self, request, event_slug):
+        """GET: Return event details by slug"""
+        user = request.user
+        event, error_response = self._get_user_event(user, event_slug)
+        if error_response:
+            return error_response
+
+        # Build response data
+        event_data = {
+            "name": event.name,
+            "date": event.start_date.isoformat() if event.start_date else None,
+            "place": None,
+            "latitude": None,
+            "longitude": None,
+            "space_area": event.space_area,
+            "space_type": event.space_type,
+            "space_rent": event.space_rent,
+            "activities": event.activities,
+        }
+
+        # Add location info if available
+        if event.location:
+            event_data["place"] = event.location.place
+            event_data["latitude"] = event.location.gps_latitude
+            event_data["longitude"] = event.location.gps_longitude
+
+        return Response(event_data, status=status.HTTP_200_OK)
+
+    def put(self, request, event_slug):
+        """PUT: Update event information"""
+        user = request.user
+        event, error_response = self._get_user_event(user, event_slug)
+        if error_response:
+            return error_response
+
+        serializer = self.get_serializer(event, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(
+            {"message": "Event updated successfully"}, status=status.HTTP_200_OK
         )
