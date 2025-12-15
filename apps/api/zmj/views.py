@@ -1,3 +1,5 @@
+from django.utils.translation import ugettext_lazy as _
+
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -212,14 +214,14 @@ class EventDetailView(generics.GenericAPIView):
             ).get(profile=user, event__slug=event_slug)
         except OrganizationTeam.DoesNotExist:
             return None, Response(
-                {"error": "Event not found or you are not an organizer"},
+                {"error": _("Event not found or you are not an organizer.")},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
         event = org_team.event
         if not event:
             return None, Response(
-                {"error": "Event not found"}, status=status.HTTP_404_NOT_FOUND
+                {"error": _("Event not found.")}, status=status.HTTP_404_NOT_FOUND
             )
 
         return event, None
@@ -264,5 +266,5 @@ class EventDetailView(generics.GenericAPIView):
         serializer.save()
 
         return Response(
-            {"message": "Event updated successfully"}, status=status.HTTP_200_OK
+            {"message": _("Event updated successfully.")}, status=status.HTTP_200_OK
         )
