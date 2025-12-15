@@ -431,43 +431,43 @@ msgstr ""
 
 #: models.py:137 models.py:144
 msgid "None"
-msgstr ""
+msgstr "Žádný"
 
 #: models.py:138
 msgid "Park"
-msgstr ""
+msgstr "Park"
 
 #: models.py:139
 msgid "Sidewalk"
-msgstr ""
+msgstr "Chodník"
 
 #: models.py:140
 msgid "Road"
-msgstr ""
+msgstr "Silnice"
 
 #: models.py:141
 msgid "Yard"
-msgstr ""
+msgstr "Dvůr"
 
 #: models.py:145
 msgid "Less than 500 m²"
-msgstr ""
+msgstr "Méně než 500 m²"
 
 #: models.py:146
 msgid "500-1000 m²"
-msgstr ""
+msgstr "500-1000 m²"
 
 #: models.py:147
 msgid "1000-2000 m²"
-msgstr ""
+msgstr "1000-2000 m²"
 
 #: models.py:148
 msgid "2000-5000 m²"
-msgstr ""
+msgstr "2000-5000 m²"
 
 #: models.py:149
 msgid "More than 5000 m²"
-msgstr ""
+msgstr "Více než 5000 m²"
 
 #: models.py:152
 msgid "Registration method"
@@ -532,24 +532,20 @@ msgid "Organization team"
 msgstr "Organizační tým"
 
 #: models.py:234
-#, fuzzy
-#| msgid "payment_type"
 msgid "Space type"
-msgstr "Typ platby"
+msgstr "Typ prostoru"
 
 #: models.py:241
 msgid "Space area"
-msgstr ""
+msgstr "Velikost prostoru"
 
 #: models.py:248
 msgid "Space rent"
-msgstr ""
+msgstr "Pronájem prostoru"
 
 #: models.py:252
-#, fuzzy
-#| msgid "Active"
 msgid "Activities"
-msgstr "Aktivní"
+msgstr "Aktivity"
 
 #: models.py:253
 #, fuzzy

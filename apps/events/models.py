@@ -252,6 +252,7 @@ class Event(TreeNodeModel):
         verbose_name=_("Activities"),
         help_text=_("Activities description"),
         blank=True,
+        null=True,
     )
     basic_purpose = models.CharField(
         verbose_name=_("Basic Purpose"),

@@ -79,7 +79,7 @@ class RegistrationSerializer(serializers.Serializer):
         required=False, allow_blank=True, allow_null=True
     )
     space_rent = serializers.BooleanField(required=False, default=False)
-    activities = serializers.CharField(required=False, allow_blank=True, default="")
+    activities = serializers.CharField(required=False, allow_blank=True, allow_null=True)
 
     # Company fields (optional)
     company_name = serializers.CharField(
@@ -118,7 +118,7 @@ class RegistrationSerializer(serializers.Serializer):
         space_type = validated_data.pop("space_type", None)
         space_area = validated_data.pop("space_area", None)
         space_rent = validated_data.pop("space_rent", False)
-        activities = validated_data.pop("activities", "")
+        activities = validated_data.pop("activities", None)
         company_name = validated_data.pop("company_name", None)
         company_type_id = validated_data.pop("company_type_id", None)
         company_crn = validated_data.pop("company_crn", None)
