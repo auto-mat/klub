@@ -197,10 +197,10 @@ class RegistrationSerializer(serializers.Serializer):
         company = None
         if company_name or company_crn:
             company = CompanyProfile.objects.create(
-                name=company_name or "",
-                crn=company_crn or None,
+                name=company_name,
+                crn=company_crn,
                 type=company_type_id,
-                tin=company_tin or None,
+                tin=company_tin,
             )
 
             # Link company to user's administrative units
