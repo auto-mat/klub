@@ -30,10 +30,11 @@ from interactions.interaction_types import *
 
 from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope
 
+import rest_framework.pagination
 from rest_framework import filters as rf_filters, generics, status
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
-import rest_framework.pagination
+from rest_framework.views import APIView
 
 from .exceptions import (
     DonorPaymentChannelDoesntExist,
@@ -284,7 +285,7 @@ class CreateUserProfileView(generics.CreateAPIView):
     serializer_class = CreateUserProfileSerializer
 
 
-class CheckLastPaymentView(generics.GenericAPIView):
+class CheckLastPaymentView(APIView):
     """
     check if payment exist in CRM or on darujme
     """

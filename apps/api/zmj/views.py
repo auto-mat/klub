@@ -3,6 +3,7 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from aklub.models import (
     CompanyType,
@@ -140,7 +141,7 @@ class RegistrationStatusView(generics.GenericAPIView):
         )
 
 
-class CompanyTypesView(generics.GenericAPIView):
+class CompanyTypesView(APIView):
     """
     Return all available company types.
 
@@ -152,14 +153,13 @@ class CompanyTypesView(generics.GenericAPIView):
     def get(self, request):
         """GET: Return all company types"""
         company_types = CompanyType.objects.all()
-
         return Response(
             [{"id": ct.id, "type": ct.type} for ct in company_types],
             status=status.HTTP_200_OK,
         )
 
 
-class UserEventsView(generics.GenericAPIView):
+class UserEventsView(APIView):
     """
     Return all events that the authenticated user organizes.
 
