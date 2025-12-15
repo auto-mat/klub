@@ -548,10 +548,8 @@ msgid "Activities"
 msgstr "Aktivity"
 
 #: models.py:253
-#, fuzzy
-#| msgid "Description"
 msgid "Activities description"
-msgstr "Popis"
+msgstr "Popis aktivit"
 
 #: models.py:257
 msgid "Basic Purpose"
