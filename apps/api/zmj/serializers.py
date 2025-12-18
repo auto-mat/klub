@@ -307,3 +307,66 @@ class UpdateEventSerializer(serializers.Serializer):
             location.save()
 
         return event
+
+
+class CompanySerializer(serializers.Serializer):
+    """Serializer for company fields: name, company_type, crn, tin"""
+
+    name = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    company_type = serializers.PrimaryKeyRelatedField(
+        queryset=CompanyType.objects.all(),
+        required=False,
+        allow_null=True,
+        source="type",
+    )
+    crn = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    tin = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+
+    def to_representation(self, instance):
+        """Custom representation to return company data"""
+        data = {
+            "name": instance.name,
+            "company_type": instance.type.id if instance.type else None,
+            "company_type_name": instance.type.type if instance.type else None,
+            "crn": instance.crn,
+            "tin": instance.tin,
+        }
+        return data
+
+    def update(self, instance, validated_data):
+        """Update company fields"""
+        company = instance
+
+        # Update name if provided
+        if "name" in validated_data:
+            company.name = validated_data["name"]
+
+        # Update type (company_type) if provided
+        if "type" in validated_data:
+            company.type = validated_data["type"]
+
+        # Update crn if provided
+        if "crn" in validated_data:
+            company.crn = validated_data["crn"]
+
+        # Update tin if provided
+        if "tin" in validated_data:
+            company.tin = validated_data["tin"]
+
+        company.save()
+        return company
+
+
+class OrganizerSerializer(serializers.Serializer):
+    """
+    Organizer contact info for an event.
+
+    - `id` is optional on input (if missing => create new organizer profile)
+    - email/telephone are stored in `ProfileEmail`/`Telephone` (primary values)
+    """
+
+    id = serializers.IntegerField(required=False, allow_null=True)
+    first_name = serializers.CharField(required=True, allow_blank=True, allow_null=True)
+    last_name = serializers.CharField(required=True, allow_blank=True, allow_null=True)
+    email = serializers.EmailField(required=False, allow_blank=True, allow_null=True)
+    telephone = serializers.CharField(required=False, allow_blank=True, allow_null=True)
