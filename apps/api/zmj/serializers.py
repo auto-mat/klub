@@ -207,6 +207,13 @@ class RegistrationSerializer(serializers.Serializer):
             if user.administrative_units.exists():
                 company.administrative_units.set(user.administrative_units.all())
 
+            # Link company to event via OrganizationTeam
+            OrganizationTeam.objects.get_or_create(
+                profile=company,
+                event=event,
+                position=organizer_position,
+            )
+
         # Create organizers (as UserProfile entries without authentication)
         if organizers:
             organizer_position_obj, _ = OrganizationPosition.objects.get_or_create(
@@ -355,6 +362,80 @@ class CompanySerializer(serializers.Serializer):
 
         company.save()
         return company
+
+
+class EventContentSerializer(serializers.Serializer):
+    """
+    Serializer for event content fields:
+    - main_photo (file upload)
+    - description
+    - url, url_title
+    - url1, url_title1
+    - url2, url_title2
+    """
+
+    main_photo = serializers.FileField(required=False, allow_null=True)
+    description = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    url = serializers.URLField(required=False, allow_blank=True, allow_null=True)
+    url_title = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    url1 = serializers.URLField(required=False, allow_blank=True, allow_null=True)
+    url_title1 = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    url2 = serializers.URLField(required=False, allow_blank=True, allow_null=True)
+    url_title2 = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+
+    def to_representation(self, instance):
+        """Return event content data, converting main_photo to URL"""
+        main_photo_url = None
+        if instance.main_photo:
+            try:
+                main_photo_url = instance.main_photo.url
+            except (ValueError, AttributeError):
+                main_photo_url = None
+
+        data = {
+            "main_photo": main_photo_url,
+            "description": instance.description,
+            "url": instance.url,
+            "url_title": instance.url_title,
+            "url1": instance.url1,
+            "url_title1": instance.url_title1,
+            "url2": instance.url2,
+            "url_title2": instance.url_title2,
+        }
+        return data
+
+    def update(self, instance, validated_data):
+        """Update event content fields"""
+        event = instance
+
+        # Update main_photo if provided
+        if "main_photo" in validated_data:
+            event.main_photo = validated_data["main_photo"]
+
+        # Update description if provided
+        if "description" in validated_data:
+            event.description = validated_data["description"]
+
+        # Update url and url_title if provided
+        if "url" in validated_data:
+            event.url = validated_data["url"]
+        if "url_title" in validated_data:
+            event.url_title = validated_data["url_title"]
+
+        # Update url1 and url_title1 if provided
+        if "url1" in validated_data:
+            event.url1 = validated_data["url1"]
+        if "url_title1" in validated_data:
+            event.url_title1 = validated_data["url_title1"]
+
+        # Update url2 and url_title2 if provided
+        if "url2" in validated_data:
+            event.url2 = validated_data["url2"]
+        if "url_title2" in validated_data:
+            event.url_title2 = validated_data["url_title2"]
+
+        event.save()
+        return event
 
 
 class OrganizerSerializer(serializers.Serializer):

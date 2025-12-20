@@ -17,11 +17,56 @@ from events.models import OrganizationTeam
 
 from .serializers import (
     CompanySerializer,
+    EventContentSerializer,
     OrganizerSerializer,
     RegistrationSerializer,
     UpdateEventSerializer,
     UpdateUserProfileSerializer,
 )
+
+
+class EventAccessMixin:
+    """Mixin providing helper methods for accessing events that the user organizes."""
+
+    def _get_user_event(self, user, event_slug):
+        """Helper method to get event if user organizes it"""
+        try:
+            org_team = OrganizationTeam.objects.select_related("event").get(
+                profile=user, event__slug=event_slug
+            )
+        except OrganizationTeam.DoesNotExist:
+            return None, Response(
+                {"error": _("Event not found or you are not an organizer.")},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        event = org_team.event
+        if not event:
+            return None, Response(
+                {"error": _("Event not found.")}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        return event, None
+
+    def _get_user_event_org_team(self, user, event_slug):
+        """Return (event, user_org_team, error_response) ensuring user organizes the event."""
+        try:
+            org_team = OrganizationTeam.objects.select_related("event").get(
+                profile=user, event__slug=event_slug
+            )
+        except OrganizationTeam.DoesNotExist:
+            return None, None, Response(
+                {"error": _("Event not found or you are not an organizer.")},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        event = org_team.event
+        if not event:
+            return None, None, Response(
+                {"error": _("Event not found.")}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        return event, org_team, None
 
 
 class UserProfileView(generics.GenericAPIView):
@@ -275,7 +320,7 @@ class EventDetailView(generics.GenericAPIView):
         )
 
 
-class CompanyView(generics.GenericAPIView):
+class CompanyView(EventAccessMixin, generics.GenericAPIView):
     """
     Get and update organizer company information for a specific event.
 
@@ -287,31 +332,14 @@ class CompanyView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = CompanySerializer
 
-    def _get_user_event_org_team(self, user, event_slug):
-        """Return (event, user_org_team, error_response) ensuring user organizes the event."""
-        try:
-            org_team = OrganizationTeam.objects.select_related("event").get(
-                profile=user, event__slug=event_slug
-            )
-        except OrganizationTeam.DoesNotExist:
-            return None, None, Response(
-                {"error": _("Event not found or you are not an organizer.")},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
-        event = org_team.event
-        if not event:
-            return None, None, Response(
-                {"error": _("Event not found.")}, status=status.HTTP_404_NOT_FOUND
-            )
-
-        return event, org_team, None
-
     def _get_event_company(self, event):
         """Return the CompanyProfile linked to the event via OrganizationTeam (or None)."""
         org_team = (
             OrganizationTeam.objects.select_related("profile")
-            .filter(event=event, profile__companyprofile__isnull=False)
+            .filter(
+                event=event,
+                profile__polymorphic_ctype__model=CompanyProfile._meta.model_name,
+            )
             .first()
         )
         if not org_team:
@@ -372,7 +400,7 @@ class CompanyView(generics.GenericAPIView):
         )
 
 
-class EventOrganizersView(generics.GenericAPIView):
+class EventOrganizersView(EventAccessMixin, generics.GenericAPIView):
     """
     List + replace organizers (as a list) for a specific event.
 
@@ -384,26 +412,6 @@ class EventOrganizersView(generics.GenericAPIView):
     """
 
     permission_classes = [IsAuthenticated]
-
-    def _get_user_event_org_team(self, user, event_slug):
-        """Return (event, user_org_team, error_response) ensuring user organizes the event."""
-        try:
-            org_team = OrganizationTeam.objects.select_related("event").get(
-                profile=user, event__slug=event_slug
-            )
-        except OrganizationTeam.DoesNotExist:
-            return None, None, Response(
-                {"error": _("Event not found or you are not an organizer.")},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
-        event = org_team.event
-        if not event:
-            return None, None, Response(
-                {"error": _("Event not found.")}, status=status.HTTP_404_NOT_FOUND
-            )
-
-        return event, org_team, None
 
     def _serialize_userprofile_organizer(self, profile: UserProfile):
         try:
@@ -436,13 +444,24 @@ class EventOrganizersView(generics.GenericAPIView):
 
         org_teams = (
             OrganizationTeam.objects.select_related("profile")
-            .filter(event=event, profile__userprofile__isnull=False)
+            .filter(
+                event=event,
+                profile__polymorphic_ctype__model=UserProfile._meta.model_name,
+            )
+            .exclude(profile_id=user.id)  # Exclude the authenticated user
             .order_by("id")
         )
 
         organizers = []
         for ot in org_teams:
-            organizers.append(self._serialize_userprofile_organizer(ot.profile.userprofile))
+            # ot.profile is already a UserProfile instance due to polymorphic filtering
+            # but we need to ensure it's the correct type for accessing userprofile methods
+            if isinstance(ot.profile, UserProfile):
+                organizers.append(self._serialize_userprofile_organizer(ot.profile))
+            else:
+                # Fallback: get the UserProfile instance explicitly
+                user_profile = UserProfile.objects.get(id=ot.profile.id)
+                organizers.append(self._serialize_userprofile_organizer(user_profile))
 
         return Response(organizers, status=status.HTTP_200_OK)
 
@@ -467,7 +486,8 @@ class EventOrganizersView(generics.GenericAPIView):
 
         # Current organizers (UserProfiles only) linked to this event
         current_org_teams = OrganizationTeam.objects.filter(
-            event=event, profile__userprofile__isnull=False
+            event=event,
+            profile__polymorphic_ctype__model=UserProfile._meta.model_name,
         )
         current_ids = set(
             current_org_teams.values_list("profile_id", flat=True)
@@ -512,9 +532,11 @@ class EventOrganizersView(generics.GenericAPIView):
                     position=user_org_team.position,
                 )
 
-            # Update basic fields
-            organizer.first_name = first_name or ""
-            organizer.last_name = last_name or ""
+            # Update basic fields (only if provided)
+            if first_name is not None:
+                organizer.first_name = first_name or ""
+            if last_name is not None:
+                organizer.last_name = last_name or ""
             organizer.save()
 
             # Update primary email (optional)
@@ -548,18 +570,72 @@ class EventOrganizersView(generics.GenericAPIView):
 
             keep_ids.add(organizer.id)
 
+        # Always keep the authenticated user as an organizer (prevent self-removal)
+        keep_ids.add(user.id)
+
         # Remove organizers that are no longer in the list (ONLY from this event)
+        # Exclude the authenticated user from removal
         remove_ids = current_ids - keep_ids
         if remove_ids:
-            OrganizationTeam.objects.filter(event=event, profile_id__in=remove_ids).delete()
+            OrganizationTeam.objects.filter(
+                event=event, profile_id__in=remove_ids
+            ).exclude(profile_id=user.id).delete()
 
-        # Return the updated list
+        # Return the updated list (excluding the authenticated user)
         org_teams = (
             OrganizationTeam.objects.select_related("profile")
-            .filter(event=event, profile__userprofile__isnull=False)
+            .filter(
+                event=event,
+                profile__polymorphic_ctype__model=UserProfile._meta.model_name,
+            )
+            .exclude(profile_id=user.id)  # Exclude the authenticated user
             .order_by("id")
         )
-        organizers = [
-            self._serialize_userprofile_organizer(ot.profile.userprofile) for ot in org_teams
-        ]
+        organizers = []
+        for ot in org_teams:
+            # ot.profile is already a UserProfile instance due to polymorphic filtering
+            if isinstance(ot.profile, UserProfile):
+                organizers.append(self._serialize_userprofile_organizer(ot.profile))
+            else:
+                # Fallback: get the UserProfile instance explicitly
+                user_profile = UserProfile.objects.get(id=ot.profile.id)
+                organizers.append(self._serialize_userprofile_organizer(user_profile))
         return Response(organizers, status=status.HTTP_200_OK)
+
+
+class EventContentView(EventAccessMixin, generics.GenericAPIView):
+    """
+    Get and update event content for a specific event.
+
+    GET: Returns event content (main_photo URL, description, url + title, url1 + title1, url2 + title2).
+    PUT: Updates event content fields.
+    """
+
+    permission_classes = [IsAuthenticated]
+    serializer_class = EventContentSerializer
+
+    def get(self, request, event_slug):
+        """GET: Return event content"""
+        user = request.user
+        event, error_response = self._get_user_event(user, event_slug)
+        if error_response:
+            return error_response
+
+        serializer = self.get_serializer(event)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request, event_slug):
+        """PUT: Update event content"""
+        user = request.user
+        event, error_response = self._get_user_event(user, event_slug)
+        if error_response:
+            return error_response
+
+        serializer = self.get_serializer(event, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(
+            {"message": _("Event content updated successfully.")},
+            status=status.HTTP_200_OK,
+        )
