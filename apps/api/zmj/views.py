@@ -13,11 +13,12 @@ from aklub.models import (
     Telephone,
     UserProfile,
 )
-from events.models import OrganizationTeam
+from events.models import Category, Event, OrganizationTeam
 
 from .serializers import (
     CompanySerializer,
     EventContentSerializer,
+    EventProgramSerializer,
     OrganizerSerializer,
     RegistrationSerializer,
     UpdateEventSerializer,
@@ -205,6 +206,32 @@ class CompanyTypesView(APIView):
         company_types = CompanyType.objects.all()
         return Response(
             [{"id": ct.id, "type": ct.type} for ct in company_types],
+            status=status.HTTP_200_OK,
+        )
+
+
+class CategoriesView(APIView):
+    """
+    Return all available categories.
+
+    GET: Returns list of categories with id, name, slug, and description.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        """GET: Return all categories"""
+        categories = Category.objects.all()
+        return Response(
+            [
+                {
+                    "id": cat.id,
+                    "name": cat.name,
+                    "slug": cat.slug,
+                    "description": cat.description or "",
+                }
+                for cat in categories
+            ],
             status=status.HTTP_200_OK,
         )
 
@@ -637,5 +664,127 @@ class EventContentView(EventAccessMixin, generics.GenericAPIView):
 
         return Response(
             {"message": _("Event content updated successfully.")},
+            status=status.HTTP_200_OK,
+        )
+
+
+class EventProgramsView(EventAccessMixin, APIView):
+    """
+    Manage programs (child events) for an event.
+
+    GET /events/<slug>/programs/: List all programs for the event
+    POST /events/<slug>/programs/: Create a new program
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, event_slug):
+        """GET: Return all programs (child events) for the event"""
+        user = request.user
+        event, error_response = self._get_user_event(user, event_slug)
+        if error_response:
+            return error_response
+
+        programs = event.tn_children.all()
+        serializer = EventProgramSerializer(programs, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request, event_slug):
+        """POST: Create a new program (child event) for the event"""
+        user = request.user
+        event, error_response = self._get_user_event(user, event_slug)
+        if error_response:
+            return error_response
+
+        serializer = EventProgramSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        program = serializer.create(serializer.validated_data, event)
+
+        return Response(
+            EventProgramSerializer(program).data,
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class EventProgramDetailView(EventAccessMixin, APIView):
+    """
+    Get, update, or delete a specific program (child event).
+
+    GET /events/<slug>/programs/<id>/: Get program details
+    PUT /events/<slug>/programs/<id>/: Update program
+    PATCH /events/<slug>/programs/<id>/: Partially update program
+    DELETE /events/<slug>/programs/<id>/: Delete program
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, event_slug, program_id):
+        """GET: Return program details"""
+        user = request.user
+        event, error_response = self._get_user_event(user, event_slug)
+        if error_response:
+            return error_response
+
+        try:
+            program = event.tn_children.get(id=program_id)
+        except Event.DoesNotExist:
+            return Response(
+                {"error": _("Program not found.")},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        serializer = EventProgramSerializer(program)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request, event_slug, program_id):
+        """PUT: Update program"""
+        return self._update_program(request, event_slug, program_id, partial=False)
+
+    def patch(self, request, event_slug, program_id):
+        """PATCH: Partially update program"""
+        return self._update_program(request, event_slug, program_id, partial=True)
+
+    def delete(self, request, event_slug, program_id):
+        """DELETE: Delete program"""
+        user = request.user
+        event, error_response = self._get_user_event(user, event_slug)
+        if error_response:
+            return error_response
+
+        try:
+            program = event.tn_children.get(id=program_id)
+        except Event.DoesNotExist:
+            return Response(
+                {"error": _("Program not found.")},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        program.delete()
+        return Response(
+            {"message": _("Program deleted successfully.")},
+            status=status.HTTP_200_OK,
+        )
+
+    def _update_program(self, request, event_slug, program_id, partial=False):
+        """Helper method to update program"""
+        user = request.user
+        event, error_response = self._get_user_event(user, event_slug)
+        if error_response:
+            return error_response
+
+        try:
+            program = event.tn_children.get(id=program_id)
+        except Event.DoesNotExist:
+            return Response(
+                {"error": _("Program not found.")},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        serializer = EventProgramSerializer(program, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        updated_program = serializer.update(program, serializer.validated_data)
+
+        return Response(
+            EventProgramSerializer(updated_program).data,
             status=status.HTTP_200_OK,
         )

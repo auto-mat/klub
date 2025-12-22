@@ -87,6 +87,38 @@ class EventType(models.Model):
         return self.name
 
 
+class Category(models.Model):
+    """Category model for event categorization"""
+
+    class Meta:
+        verbose_name = _("Category")
+        verbose_name_plural = _("Categories")
+
+    name = models.CharField(
+        help_text=_("Name of category"),
+        verbose_name=_("Name"),
+        max_length=100,
+    )
+    slug = AutoSlugField(
+        verbose_name=_("Slug"),
+        editable=True,
+        populate_from="name",
+        help_text=_("Identifier of the category"),
+        max_length=100,
+        unique=True,
+        blank=True,
+    )
+    description = models.TextField(
+        verbose_name=_("Description"),
+        help_text=_("Description of this category"),
+        max_length=3000,
+        blank=True,
+    )
+
+    def __str__(self):
+        return self.name
+
+
 class Event(TreeNodeModel):
     """Campaign -- abstract event with description
 
@@ -228,6 +260,12 @@ class Event(TreeNodeModel):
         related_name="events",
         on_delete=models.SET_NULL,
         null=True,
+        blank=True,
+    )
+    categories = models.ManyToManyField(
+        Category,
+        verbose_name=_("Categories"),
+        related_name="events",
         blank=True,
     )
     space_type = models.CharField(

@@ -9,6 +9,7 @@ from aklub.models import (
     UserProfile,
 )
 from events.models import (
+    Category,
     Event,
     Location,
     OrganizationPosition,
@@ -451,3 +452,57 @@ class OrganizerSerializer(serializers.Serializer):
     last_name = serializers.CharField(required=True, allow_blank=True, allow_null=True)
     email = serializers.EmailField(required=False, allow_blank=True, allow_null=True)
     telephone = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+
+
+class EventProgramSerializer(serializers.Serializer):
+    """Serializer for event program (child event) with name, description, time_from, time_to, categories"""
+
+    id = serializers.IntegerField(required=False, read_only=True)
+    name = serializers.CharField(required=True, max_length=100)
+    description = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    time_from = serializers.DateTimeField(required=False, allow_null=True)
+    time_to = serializers.DateTimeField(required=False, allow_null=True)
+    categories = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=Category.objects.all(), required=False, allow_empty=True
+    )
+
+    def to_representation(self, instance):
+        """Convert Event instance to program representation"""
+        return {
+            "id": instance.id,
+            "name": instance.name,
+            "description": instance.description or "",
+            "time_from": instance.datetime_from.isoformat() if instance.datetime_from else None,
+            "time_to": instance.datetime_to.isoformat() if instance.datetime_to else None,
+            "categories": [
+                {"id": cat.id, "name": cat.name, "slug": cat.slug}
+                for cat in instance.categories.all()
+            ],
+        }
+
+    def create(self, validated_data, parent_event):
+        """Create a new program (child event)"""
+        categories = validated_data.pop("categories", [])
+        program = Event.objects.create(
+            name=validated_data["name"],
+            description=validated_data.get("description", ""),
+            datetime_from=validated_data.get("time_from"),
+            datetime_to=validated_data.get("time_to"),
+            tn_parent=parent_event,
+        )
+        if categories:
+            program.categories.set(categories)
+        return program
+
+    def update(self, instance, validated_data):
+        """Update an existing program (child event)"""
+        instance.name = validated_data.get("name", instance.name)
+        instance.description = validated_data.get("description", instance.description)
+        instance.datetime_from = validated_data.get("time_from", instance.datetime_from)
+        instance.datetime_to = validated_data.get("time_to", instance.datetime_to)
+        
+        if "categories" in validated_data:
+            instance.categories.set(validated_data["categories"])
+        
+        instance.save()
+        return instance

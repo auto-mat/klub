@@ -1,0 +1,110 @@
+[
+  {
+    "model": "events.category",
+    "pk": 1,
+    "fields": {
+      "name": "Workshop",
+      "slug": "workshop",
+      "description": "Educational workshop or training session"
+    }
+  },
+  {
+    "model": "events.category",
+    "pk": 2,
+    "fields": {
+      "name": "Theater",
+      "slug": "theater",
+      "description": "Theater performance"
+    }
+  },
+  {
+    "model": "events.category",
+    "pk": 3,
+    "fields": {
+      "name": "Games",
+      "slug": "games",
+      "description": "Game performance"
+    }
+  },
+  {
+    "model": "events.category",
+    "pk": 4,
+    "fields": {
+      "name": "Sale",
+      "slug": "sale",
+      "description": "Sale of products or services"
+    }
+  },
+  {
+    "model": "events.category",
+    "pk": 5,
+    "fields": {
+      "name": "For children",
+      "slug": "for_children",
+      "description": "Events for children"
+    }
+  },
+  {
+    "model": "events.category",
+    "pk": 6,
+    "fields": {
+      "name": "Food",
+      "slug": "food",
+      "description": "Food or drink"
+    }
+  },
+  {
+    "model": "events.category",
+    "pk": 7,
+    "fields": {
+      "name": "Concert",
+      "slug": "concert",
+      "description": "Music or cultural performance"
+    }
+  },
+  {
+    "model": "events.category",
+    "pk": 8,
+    "fields": {
+      "name": "Dance",
+      "slug": "dance",
+      "description": "Dance performance"
+    }
+  },
+  {
+    "model": "events.category",
+    "pk": 9,
+    "fields": {
+      "name": "Movie",
+      "slug": "movie",
+      "description": "Movie projection"
+    }
+  },
+  {
+    "model": "events.category",
+    "pk": 10,
+    "fields": {
+      "name": "Music",
+      "slug": "music",
+      "description": "Music-related events"
+    }
+  },
+  {
+    "model": "events.category",
+    "pk": 11,
+    "fields": {
+      "name": "Sports",
+      "slug": "sport",
+      "description": "Sport event"
+    }
+  },
+  {
+    "model": "events.category",
+    "pk": 12,
+    "fields": {
+      "name": "Other",
+      "slug": "other",
+      "description": "Other event"
+    }
+  }
+]

@@ -1,0 +1,23 @@
+[
+  {
+    "model": "aklub.companytype",
+    "pk": 1,
+    "fields": {
+      "type": "Fyzická osoba"
+    }
+  },
+  {
+    "model": "aklub.companytype",
+    "pk": 2,
+    "fields": {
+      "type": "Právnická osoba"
+    }
+  },
+  {
+    "model": "aklub.companytype",
+    "pk": 3,
+    "fields": {
+      "type": "Nezisková organizace"
+    }
+  }
+]

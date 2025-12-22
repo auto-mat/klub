@@ -241,6 +241,7 @@ INSTALLED_APPS = (
     "django_filters",
     "aklub",
     "events",
+    "zmj",
     "interactions",
     "oauth2_manager",
     # "helpdesk",
