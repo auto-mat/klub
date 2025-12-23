@@ -1,3 +1,6 @@
+from django.conf import settings
+from django.utils.translation import ugettext_lazy as _
+
 from rest_framework import serializers
 
 from aklub.models import (
@@ -9,8 +12,11 @@ from aklub.models import (
     UserProfile,
 )
 from events.models import (
+    Agreement,
     Category,
     Event,
+    EventChecklistItem,
+    Invoice,
     Location,
     OrganizationPosition,
     OrganizationTeam,
@@ -185,7 +191,7 @@ class RegistrationSerializer(serializers.Serializer):
             event.administrative_units.set(user.administrative_units.all())
 
         # Add organizer link for the user
-        organizer_position, _ = OrganizationPosition.objects.get_or_create(
+        organizer_position, _created = OrganizationPosition.objects.get_or_create(
             name="Event creator"
         )
         OrganizationTeam.objects.get_or_create(
@@ -193,6 +199,34 @@ class RegistrationSerializer(serializers.Serializer):
             event=event,
             position=organizer_position,
         )
+
+        # Initialize Agreement and Invoice for the event
+        Agreement.objects.create(
+            event=event,
+            status="draft",
+        )
+        Invoice.objects.create(
+            event=event,
+            status="draft",
+        )
+
+        # Create predefined checklist items
+        predefined_checklist_items = [
+            _("Draw a map of the area"),
+            _("Arrange signs"),
+            _("Print press materials"),
+            _("Arrange a partnership"),
+            _("Invite local institutions"),
+            _("Prepare the program"),
+        ]
+        
+        for item_name in predefined_checklist_items:
+            EventChecklistItem.objects.create(
+                event=event,
+                name=item_name,
+                checked=False,
+                custom=False,
+            )
 
         # Create company if company info is provided
         company = None
@@ -217,7 +251,7 @@ class RegistrationSerializer(serializers.Serializer):
 
         # Create organizers (as UserProfile entries without authentication)
         if organizers:
-            organizer_position_obj, _ = OrganizationPosition.objects.get_or_create(
+            organizer_position_obj, _created = OrganizationPosition.objects.get_or_create(
                 name="Organizer"
             )
             for organizer_data in organizers:
@@ -506,3 +540,68 @@ class EventProgramSerializer(serializers.Serializer):
         
         instance.save()
         return instance
+
+
+class AgreementStatusSerializer(serializers.Serializer):
+    """Serializer for agreement status with conditional PDF file fields"""
+
+    status = serializers.CharField(read_only=True)
+    pdf_file = serializers.SerializerMethodField()
+    pdf_file_completed = serializers.SerializerMethodField()
+
+    def get_pdf_file(self, obj):
+        """Return pdf_file URL if status is 'sent' or 'rejected'"""
+        if obj.status in ["sent", "rejected"] and obj.pdf_file:
+            try:
+                return obj.pdf_file.url
+            except (ValueError, AttributeError):
+                return None
+        return None
+
+    def get_pdf_file_completed(self, obj):
+        """Return pdf_file_completed URL if status is 'completed'"""
+        if obj.status == "completed" and obj.pdf_file_completed:
+            try:
+                return obj.pdf_file_completed.url
+            except (ValueError, AttributeError):
+                return None
+        return None
+
+
+class AgreementSignedUploadSerializer(serializers.Serializer):
+    """Serializer for uploading signed agreement PDF"""
+
+    pdf_file_signed = serializers.FileField(required=True)
+
+    def update(self, instance, validated_data):
+        """Update the agreement with the signed PDF file"""
+        instance.pdf_file_signed = validated_data["pdf_file_signed"]
+        instance.save()
+        return instance
+
+
+class InvoiceStatusSerializer(serializers.Serializer):
+    """Serializer for invoice status with conditional PDF file field"""
+
+    status = serializers.CharField(read_only=True)
+    pdf_file = serializers.SerializerMethodField()
+
+    def get_pdf_file(self, obj):
+        """Return pdf_file URL if status is 'sent', 'reminded', or 'overdue'"""
+        if obj.status in ["sent", "reminded", "overdue"] and obj.pdf_file:
+            try:
+                return obj.pdf_file.url
+            except (ValueError, AttributeError):
+                return None
+        return None
+
+
+class EventChecklistItemSerializer(serializers.ModelSerializer):
+    """Serializer for event checklist items (for both GET and PUT)"""
+
+    id = serializers.IntegerField(required=False, allow_null=True)
+
+    class Meta:
+        model = EventChecklistItem
+        fields = ["id", "name", "checked", "custom"]
+        read_only_fields = []

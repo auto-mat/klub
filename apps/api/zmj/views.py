@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
 from django.db import transaction
@@ -13,12 +14,21 @@ from aklub.models import (
     Telephone,
     UserProfile,
 )
-from events.models import Category, Event, OrganizationTeam
+from events.models import (
+    Category,
+    Event,
+    EventChecklistItem,
+    OrganizationTeam,
+)
 
 from .serializers import (
+    AgreementSignedUploadSerializer,
+    AgreementStatusSerializer,
     CompanySerializer,
+    EventChecklistItemSerializer,
     EventContentSerializer,
     EventProgramSerializer,
+    InvoiceStatusSerializer,
     OrganizerSerializer,
     RegistrationSerializer,
     UpdateEventSerializer,
@@ -668,6 +678,28 @@ class EventContentView(EventAccessMixin, generics.GenericAPIView):
         )
 
 
+class EventPublicOnWebView(EventAccessMixin, APIView):
+    """
+    Check if event content is public on web.
+
+    GET: Returns the public_on_web boolean flag.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, event_slug):
+        """GET: Return public_on_web flag"""
+        user = request.user
+        event, error_response = self._get_user_event(user, event_slug)
+        if error_response:
+            return error_response
+
+        return Response(
+            {"public_on_web": event.public_on_web},
+            status=status.HTTP_200_OK,
+        )
+
+
 class EventProgramsView(EventAccessMixin, APIView):
     """
     Manage programs (child events) for an event.
@@ -685,7 +717,7 @@ class EventProgramsView(EventAccessMixin, APIView):
         if error_response:
             return error_response
 
-        programs = event.tn_children.all()
+        programs = event.tn_children.all().order_by('datetime_from')
         serializer = EventProgramSerializer(programs, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -788,3 +820,271 @@ class EventProgramDetailView(EventAccessMixin, APIView):
             EventProgramSerializer(updated_program).data,
             status=status.HTTP_200_OK,
         )
+
+
+class EventAgreementView(EventAccessMixin, generics.GenericAPIView):
+    """
+    Get and update event agreement status and files.
+
+    GET: Returns agreement status and conditional PDF files:
+        - Always: status
+        - If status = "sent" or "rejected": pdf_file
+        - If status = "completed": pdf_file_completed
+    
+    POST: Upload signed agreement PDF (pdf_file_signed)
+        - Only allowed when status is "sent" or "rejected"
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, event_slug):
+        """GET: Return agreement status and conditional PDF files"""
+        user = request.user
+        event, error_response = self._get_user_event(user, event_slug)
+        if error_response:
+            return error_response
+
+        # Get the most recent agreement for this event, or return None
+        agreement = event.agreements.order_by("-created").first()
+        
+        if not agreement:
+            return Response(
+                {"status": None, "pdf_file": None, "pdf_file_completed": None},
+                status=status.HTTP_200_OK,
+            )
+
+        serializer = AgreementStatusSerializer(agreement)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request, event_slug):
+        """POST: Upload signed agreement PDF"""
+        user = request.user
+        event, error_response = self._get_user_event(user, event_slug)
+        if error_response:
+            return error_response
+
+        # Get the most recent agreement for this event
+        agreement = event.agreements.order_by("-created").first()
+        
+        if not agreement:
+            return Response(
+                {"error": _("No agreement found for this event.")},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # Check if status allows uploading signed file
+        if agreement.status not in ["sent", "rejected"]:
+            return Response(
+                {
+                    "error": _(
+                        "Cannot upload signed agreement. Agreement status must be 'sent' or 'rejected'."
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        serializer = AgreementSignedUploadSerializer(
+            agreement, data=request.data, partial=True
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(
+            {"message": _("Signed agreement uploaded successfully.")},
+            status=status.HTTP_200_OK,
+        )
+
+
+class EventInvoiceView(EventAccessMixin, generics.GenericAPIView):
+    """
+    Get event invoice status and file.
+
+    GET: Returns invoice status and conditional PDF file:
+        - Always: status
+        - If status = "sent", "reminded", or "overdue": pdf_file
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, event_slug):
+        """GET: Return invoice status and conditional PDF file"""
+        user = request.user
+        event, error_response = self._get_user_event(user, event_slug)
+        if error_response:
+            return error_response
+
+        # Get the most recent invoice for this event, or return None
+        invoice = event.invoices.order_by("-created").first()
+        
+        if not invoice:
+            return Response(
+                {"status": None, "pdf_file": None},
+                status=status.HTTP_200_OK,
+            )
+
+        serializer = InvoiceStatusSerializer(invoice)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class EventChecklistView(EventAccessMixin, generics.GenericAPIView):
+    """
+    Get and manage checklist items for an event.
+
+    GET: Returns two arrays:
+        - predefined: checklist items with custom=False (read-only)
+        - custom: checklist items with custom=True (editable)
+    PUT: Replace the list of custom checklist items (list replacement pattern):
+        - Items with 'id' are updated
+        - Items without 'id' are created
+        - Custom items present in the event but not in the payload are deleted
+    """
+
+    permission_classes = [IsAuthenticated]
+    serializer_class = EventChecklistItemSerializer
+
+    def get(self, request, event_slug):
+        """GET: Return predefined and custom checklist items as separate arrays"""
+        user = request.user
+        event, error_response = self._get_user_event(user, event_slug)
+        if error_response:
+            return error_response
+
+        # Get predefined items (custom=False)
+        predefined_items = event.checklist_items.filter(custom=False).order_by("id")
+        predefined_serializer = EventChecklistItemSerializer(predefined_items, many=True)
+
+        # Get custom items (custom=True)
+        custom_items = event.checklist_items.filter(custom=True).order_by("id")
+        custom_serializer = EventChecklistItemSerializer(custom_items, many=True)
+
+        return Response(
+            {
+                "predefined": predefined_serializer.data,
+                "custom": custom_serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    @transaction.atomic
+    def put(self, request, event_slug):
+        """PUT: Replace the list of custom checklist items for the event"""
+        user = request.user
+        event, error_response = self._get_user_event(user, event_slug)
+        if error_response:
+            return error_response
+
+        if not isinstance(request.data, list):
+            return Response(
+                {"error": _("Expected a list of checklist items.")},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        serializer = EventChecklistItemSerializer(data=request.data, many=True)
+        serializer.is_valid(raise_exception=True)
+        items = serializer.validated_data
+
+        # Current custom checklist items linked to this event
+        current_custom_items = EventChecklistItem.objects.filter(
+            event=event, custom=True
+        )
+        current_ids = set(current_custom_items.values_list("id", flat=True))
+
+        keep_ids = set()
+
+        for item in items:
+            item_id = item.get("id")
+            name = item.get("name")
+            checked = item.get("checked", False)
+
+            if item_id:
+                try:
+                    checklist_item = EventChecklistItem.objects.get(
+                        id=item_id, event=event, custom=True
+                    )
+                except EventChecklistItem.DoesNotExist:
+                    return Response(
+                        {
+                            "error": _("Checklist item not found."),
+                            "id": item_id,
+                        },
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+            else:
+                # Create new custom checklist item
+                checklist_item = EventChecklistItem.objects.create(
+                    event=event,
+                    name=name,
+                    checked=checked,
+                    custom=True,
+                )
+
+            # Update fields
+            checklist_item.name = name
+            checklist_item.checked = checked
+            checklist_item.save()
+
+            keep_ids.add(checklist_item.id)
+
+        # Remove custom items that are no longer in the list
+        remove_ids = current_ids - keep_ids
+        if remove_ids:
+            EventChecklistItem.objects.filter(
+                event=event, id__in=remove_ids, custom=True
+            ).delete()
+
+        return Response(
+            { "message": _("Checklist items updated successfully.")},
+            status=status.HTTP_200_OK,
+        )
+
+
+class EventChecklistItemView(EventAccessMixin, generics.GenericAPIView):
+    """
+    Update the checked status of a checklist item by ID.
+
+    PATCH: Update the checked status of a checklist item (works for both predefined and custom items).
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def _get_checklist_item(self, user, event_slug, item_id):
+        """Helper method to get checklist item if user organizes the event"""
+        event, error_response = self._get_user_event(user, event_slug)
+        if error_response:
+            return None, None, error_response
+
+        try:
+            item = EventChecklistItem.objects.get(id=item_id, event=event)
+            return event, item, None
+        except EventChecklistItem.DoesNotExist:
+            return (
+                None,
+                None,
+                Response(
+                    {"error": _("Checklist item not found.")},
+                    status=status.HTTP_404_NOT_FOUND,
+                ),
+            )
+
+    def patch(self, request, event_slug, item_id):
+        """PATCH: Toggle the checked status of a checklist item"""
+        user = request.user
+        event, item, error_response = self._get_checklist_item(
+            user, event_slug, item_id
+        )
+        if error_response:
+            return error_response
+
+        # Get the checked value from request, default to toggling if not provided
+        checked = request.data.get("checked")
+        if checked is None:
+            # If not provided, toggle the current value
+            checked = not item.checked
+
+        # Update the checked status
+        item.checked = checked
+        item.save()
+
+        serializer = EventChecklistItemSerializer(item)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+

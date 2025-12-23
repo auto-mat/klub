@@ -782,3 +782,173 @@ class OrganizationTeam(models.Model):
 
     def __str__(self):
         return str(self.id)
+
+
+class Agreement(models.Model):
+    """Agreement model for events with status and PDF file"""
+
+    class Meta:
+        verbose_name = _("Agreement")
+        verbose_name_plural = _("Agreements")
+
+    STATUS_CHOICES = (
+        ("draft", _("Draft")),
+        ("sent", _("Sent")),
+        ("signed", _("Signed")),
+        ("rejected", _("Rejected")),
+        ("completed", _("Completed")),
+    )
+
+    event = models.ForeignKey(
+        Event,
+        verbose_name=_("Event"),
+        related_name="agreements",
+        on_delete=models.CASCADE,
+    )
+    status = models.CharField(
+        verbose_name=_("Status"),
+        max_length=50,
+        choices=STATUS_CHOICES,
+        default="draft",
+    )
+    pdf_file = models.FileField(
+        verbose_name=_("PDF File"),
+        upload_to="agreements",
+        blank=True,
+        null=True,
+    )
+    pdf_file_signed = models.FileField(
+        verbose_name=_("PDF File Signed"),
+        upload_to="agreements",
+        blank=True,
+        null=True,
+    )
+    pdf_file_completed = models.FileField(
+        verbose_name=_("PDF File Completed"),
+        upload_to="agreements",
+        blank=True,
+        null=True,
+    )
+    created = models.DateTimeField(
+        verbose_name=_("Date of creation"),
+        auto_now_add=True,
+    )
+    updated = models.DateTimeField(
+        verbose_name=_("Date of last change"),
+        auto_now=True,
+    )
+    note = models.TextField(
+        verbose_name=_("Note"),
+        help_text=_("Additional notes about the agreement"),
+        max_length=2000,
+        blank=True,
+    )
+
+    def __str__(self):
+        return f"Agreement for {self.event.name} - {self.get_status_display()}"
+
+
+class Invoice(models.Model):
+    """Invoice model for events with status and PDF file"""
+
+    class Meta:
+        verbose_name = _("Invoice")
+        verbose_name_plural = _("Invoices")
+
+    STATUS_CHOICES = (
+        ("draft", _("Draft")),
+        ("sent", _("Sent")),
+        ("reminded", _("Reminded")),
+        ("overdue", _("Overdue")),
+        ("paid", _("Paid")),
+    )
+
+    event = models.ForeignKey(
+        Event,
+        verbose_name=_("Event"),
+        related_name="invoices",
+        on_delete=models.CASCADE,
+    )
+    status = models.CharField(
+        verbose_name=_("Status"),
+        max_length=50,
+        choices=STATUS_CHOICES,
+        default="draft",
+    )
+    pdf_file = models.FileField(
+        verbose_name=_("PDF File"),
+        upload_to="invoices",
+        blank=True,
+        null=True,
+    )
+    invoice_number = models.CharField(
+        verbose_name=_("Invoice Number"),
+        max_length=100,
+        blank=True,
+        help_text=_("Invoice number or identifier"),
+    )
+    amount = models.DecimalField(
+        verbose_name=_("Amount"),
+        max_digits=10,
+        decimal_places=2,
+        blank=True,
+        null=True,
+        help_text=_("Invoice amount"),
+    )
+    due_date = models.DateField(
+        verbose_name=_("Due Date"),
+        blank=True,
+        null=True,
+        help_text=_("Payment due date"),
+    )
+    created = models.DateTimeField(
+        verbose_name=_("Date of creation"),
+        auto_now_add=True,
+    )
+    updated = models.DateTimeField(
+        verbose_name=_("Date of last change"),
+        auto_now=True,
+    )
+    note = models.TextField(
+        verbose_name=_("Note"),
+        help_text=_("Additional notes about the invoice"),
+        max_length=2000,
+        blank=True,
+    )
+
+    def __str__(self):
+        invoice_num = self.invoice_number or f"#{self.id}"
+        return f"Invoice {invoice_num} for {self.event.name} - {self.get_status_display()}"
+
+
+class EventChecklistItem(models.Model):
+    """Editable checklist items for specific events"""
+
+    class Meta:
+        verbose_name = _("Event Checklist Item")
+        verbose_name_plural = _("Event Checklist Items")
+
+    event = models.ForeignKey(
+        Event,
+        verbose_name=_("Event"),
+        related_name="checklist_items",
+        on_delete=models.CASCADE,
+    )
+    name = models.CharField(
+        verbose_name=_("Name"),
+        max_length=255,
+        help_text=_("Name of the checklist item"),
+    )
+    checked = models.BooleanField(
+        verbose_name=_("Checked"),
+        default=False,
+        help_text=_("Whether this item is completed"),
+    )
+    custom = models.BooleanField(
+        verbose_name=_("Is Custom"),
+        default=False,
+        help_text=_("Whether this item is custom"),
+    )
+
+    def __str__(self):
+        return f"{self.name} - {self.event.name}"
