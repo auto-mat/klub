@@ -4,6 +4,7 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 
 from aklub.models import (
+    AdministrativeUnit,
     CompanyProfile,
     CompanyType,
     Preference,
@@ -29,10 +30,12 @@ class UpdateUserProfileSerializer(serializers.ModelSerializer):
         allow_blank=True,
         write_only=True,
     )
+    send_mailing_lists = serializers.BooleanField(required=False)
+    newsletter_on = serializers.BooleanField(required=False, allow_null=True)
 
     class Meta:
         model = UserProfile
-        fields = ["first_name", "last_name", "telephone", "sex", "language"]
+        fields = ["first_name", "last_name", "telephone", "sex", "language", "send_mailing_lists", "newsletter_on"]
         extra_kwargs = {
             "first_name": {"required": False, "allow_blank": True},
             "last_name": {"required": False, "allow_blank": True},
@@ -42,6 +45,9 @@ class UpdateUserProfileSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         telephone = validated_data.pop("telephone", None)
+        send_mailing_lists = validated_data.pop("send_mailing_lists", None)
+        newsletter_on = validated_data.pop("newsletter_on", None)
+        
         instance = super().update(instance, validated_data)
 
         # Telephone update
@@ -58,6 +64,32 @@ class UpdateUserProfileSerializer(serializers.ModelSerializer):
                 Telephone.objects.filter(user=instance, is_primary=True).update(
                     is_primary=None
                 )
+
+        # Ensure user has ZMJ administrative unit if they don't have any
+        if not instance.administrative_units.exists():
+            zmj_admin_unit, _created = AdministrativeUnit.objects.get_or_create(
+                name="ZMJ",
+                defaults={
+                    'level': 'club',
+                }
+            )
+            instance.administrative_units.add(zmj_admin_unit)
+            instance.save()
+
+        # Update Preference fields
+        # Get or create preference for the first administrative unit
+        if send_mailing_lists is not None or newsletter_on is not None:
+            admin_unit = instance.administrative_units.first()
+            if admin_unit:
+                preference, _created = Preference.objects.get_or_create(
+                    user=instance,
+                    administrative_unit=admin_unit,
+                )
+                if send_mailing_lists is not None:
+                    preference.send_mailing_lists = send_mailing_lists
+                if newsletter_on is not None:
+                    preference.newsletter_on = newsletter_on
+                preference.save()
 
         return instance
 
@@ -138,6 +170,17 @@ class RegistrationSerializer(serializers.Serializer):
                 setattr(user, field, validated_data[field])
         user.save()
 
+        # Assign ZMJ administrative unit to user if they don't have one
+        if not user.administrative_units.exists():
+            zmj_admin_unit, _created = AdministrativeUnit.objects.get_or_create(
+                name="ZMJ",
+                defaults={
+                    'level': 'club',
+                }
+            )
+            user.administrative_units.add(zmj_admin_unit)
+            user.save()
+
         # Update telephone
         if telephone is not None:
             if telephone:
@@ -152,19 +195,6 @@ class RegistrationSerializer(serializers.Serializer):
                 Telephone.objects.filter(user=user, is_primary=True).update(
                     is_primary=None
                 )
-
-        # Update preferences
-        if send_mailing_lists is not None or newsletter_on is not None:
-            for admin_unit in user.administrative_units.all():
-                preference, created = Preference.objects.get_or_create(
-                    user=user,
-                    administrative_unit=admin_unit,
-                )
-                if send_mailing_lists is not None:
-                    preference.send_mailing_lists = send_mailing_lists
-                if newsletter_on is not None:
-                    preference.newsletter_on = newsletter_on
-                preference.save()
 
         # Create location for the event
         location = Location.objects.create(
@@ -189,6 +219,26 @@ class RegistrationSerializer(serializers.Serializer):
         # Attach user's administrative units if any
         if user.administrative_units.exists():
             event.administrative_units.set(user.administrative_units.all())
+
+        # Update preferences - save for all user's administrative units
+        # (which are now also attached to the event)
+        if send_mailing_lists is not None or newsletter_on is not None:
+            admin_units = user.administrative_units.all()
+            
+            if admin_units.exists():
+                # Save preferences for all administrative units
+                for admin_unit in admin_units:
+                    preference, created = Preference.objects.get_or_create(
+                        user=user,
+                        administrative_unit=admin_unit,
+                    )
+                    if send_mailing_lists is not None:
+                        preference.send_mailing_lists = send_mailing_lists
+                    if newsletter_on is not None:
+                        preference.newsletter_on = newsletter_on
+                    preference.save()
+            # Note: If user has no administrative units, preferences cannot be saved
+            # because Preference model requires an administrative_unit
 
         # Add organizer link for the user
         organizer_position, _created = OrganizationPosition.objects.get_or_create(

@@ -10,6 +10,7 @@ from rest_framework.views import APIView
 from aklub.models import (
     CompanyProfile,
     CompanyType,
+    Preference,
     ProfileEmail,
     Telephone,
     UserProfile,
@@ -84,8 +85,10 @@ class UserProfileView(generics.GenericAPIView):
     """
     Get and update authenticated user's profile information.
 
-    GET: Retrieve user info (firstname, lastname, email, telephone, sex, language).
-    PUT: Update user profile information.
+    GET: Retrieve user info (firstname, lastname, email, telephone, sex, language, 
+         send_mailing_lists, newsletter_on).
+    PUT: Update user profile information (all fields).
+    PATCH: Partially update user profile information (only provided fields).
     """
 
     permission_classes = [IsAuthenticated]
@@ -107,6 +110,20 @@ class UserProfileView(generics.GenericAPIView):
             telephone_obj = user.telephone_set.first()
             telephone = telephone_obj.telephone if telephone_obj else None
 
+        # Get preference values (from first administrative unit)
+        send_mailing_lists = None
+        newsletter_on = None
+        admin_unit = user.administrative_units.first()
+        if admin_unit:
+            try:
+                preference = Preference.objects.get(user=user, administrative_unit=admin_unit)
+                send_mailing_lists = preference.send_mailing_lists
+                newsletter_on = preference.newsletter_on
+            except Preference.DoesNotExist:
+                # Use defaults if preference doesn't exist
+                send_mailing_lists = True  # Default from model
+                newsletter_on = False  # Default from model
+
         return Response(
             {
                 "firstname": user.first_name,
@@ -115,6 +132,8 @@ class UserProfileView(generics.GenericAPIView):
                 "telephone": telephone,
                 "sex": user.sex,
                 "language": user.language,
+                "send_mailing_lists": send_mailing_lists,
+                "newsletter_on": newsletter_on,
             },
             status=status.HTTP_200_OK,
         )
@@ -123,6 +142,14 @@ class UserProfileView(generics.GenericAPIView):
         """PUT: Update user profile"""
         user = self.request.user
         serializer = self.get_serializer(user, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(status=status.HTTP_200_OK)
+
+    def patch(self, request):
+        """PATCH: Partially update user profile"""
+        user = self.request.user
+        serializer = self.get_serializer(user, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(status=status.HTTP_200_OK)
