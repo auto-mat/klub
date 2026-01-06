@@ -74,7 +74,7 @@ class EventCompanySet(viewsets.ModelViewSet):
     def get_queryset(self):
         return Event.objects.filter(
             id=self.kwargs["pk"],
-            # organization_team=self.request.user,
+            organization_team=self.request.user,
         ).order_by("id")
 
     permission_classes = [permissions.IsAuthenticated]
