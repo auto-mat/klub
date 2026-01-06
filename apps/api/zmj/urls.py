@@ -1,5 +1,7 @@
 from django.urls import path
+from django.conf.urls import include, url
 
+from .example_serializer import router
 from .views import (
     CompanyView,
     CompanyTypesView,
@@ -39,4 +41,5 @@ urlpatterns = [
         EventOrganizersView.as_view(),
         name="event_organizers",
     ),
+    path("", include(router.urls), name="rest-api"),
 ]
