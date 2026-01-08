@@ -655,3 +655,114 @@ class EventChecklistItemSerializer(serializers.ModelSerializer):
         model = EventChecklistItem
         fields = ["id", "name", "checked", "custom"]
         read_only_fields = []
+
+
+class PublicEventListSerializer(serializers.Serializer):
+    """Serializer for public event list with basic information"""
+
+    name = serializers.CharField(read_only=True)
+    slug = serializers.SlugField(read_only=True)
+    date = serializers.DateTimeField(source="start_date", read_only=True)
+    location_place = serializers.SerializerMethodField()
+
+    def get_location_place(self, obj):
+        """Get location place from event's location"""
+        if obj.location:
+            return obj.location.place
+        return None
+
+
+class PublicEventDetailSerializer(serializers.Serializer):
+    """Serializer for public event detail with full information"""
+
+    name = serializers.CharField(read_only=True)
+    date = serializers.DateTimeField(source="start_date", read_only=True)
+    main_image = serializers.SerializerMethodField()
+    description = serializers.CharField(read_only=True)
+    links = serializers.SerializerMethodField()
+    location = serializers.SerializerMethodField()
+    organizer = serializers.SerializerMethodField()
+    program_items = serializers.SerializerMethodField()
+
+    def get_main_image(self, obj):
+        """Get main photo URL"""
+        if obj.main_photo:
+            try:
+                return obj.main_photo.url
+            except (ValueError, AttributeError):
+                return None
+        return None
+
+    def get_links(self, obj):
+        """Get all links (url + url_title) as a list"""
+        links = []
+        if obj.url and obj.url_title:
+            links.append({"url": obj.url, "url_title": obj.url_title})
+        if obj.url1 and obj.url_title1:
+            links.append({"url": obj.url1, "url_title": obj.url_title1})
+        if obj.url2 and obj.url_title2:
+            links.append({"url": obj.url2, "url_title": obj.url_title2})
+        return links
+
+    def get_location(self, obj):
+        """Get location information with GPS and place"""
+        if obj.location:
+            return {
+                "place": obj.location.place or "",
+                "gps_latitude": obj.location.gps_latitude,
+                "gps_longitude": obj.location.gps_longitude,
+            }
+        return {
+            "place": None,
+            "gps_latitude": None,
+            "gps_longitude": None,
+        }
+
+    def get_organizer(self, obj):
+        """Get organizer name, surname, and email"""
+        # Get the first UserProfile organizer
+        org_team = (
+            OrganizationTeam.objects.select_related("profile")
+            .filter(
+                event=obj,
+                profile__polymorphic_ctype__model=UserProfile._meta.model_name,
+            )
+            .first()
+        )
+
+        if org_team and isinstance(org_team.profile, UserProfile):
+            user_profile = org_team.profile
+            # Get primary email
+            try:
+                email = user_profile.profileemail_set.get(is_primary=True).email
+            except ProfileEmail.DoesNotExist:
+                email_obj = user_profile.profileemail_set.first()
+                email = email_obj.email if email_obj else None
+
+            return {
+                "first_name": user_profile.first_name or "",
+                "last_name": user_profile.last_name or "",
+                "email": email,
+            }
+        return {
+            "first_name": None,
+            "last_name": None,
+            "email": None,
+        }
+
+    def get_program_items(self, obj):
+        """Get list of program items (child events)"""
+        programs = obj.tn_children.all().order_by("datetime_from")
+        return [
+            {
+                "name": program.name,
+                "description": program.description or "",
+                "time_from": program.datetime_from.isoformat() if program.datetime_from else None,
+                "time_to": program.datetime_to.isoformat() if program.datetime_to else None,
+                "categories": [
+                    {"id": cat.id, "name": cat.name, "slug": cat.slug}
+                    for cat in program.categories.all()
+                ],
+            }
+            for program in programs
+        ]

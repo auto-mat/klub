@@ -16,6 +16,8 @@ from .views import (
     EventProgramDetailView,
     EventProgramsView,
     EventPublicOnWebView,
+    PublicEventDetailView,
+    PublicEventListView,
     RegistrationStatusView,
     RegistrationView,
     UserEventsView,
@@ -24,6 +26,10 @@ from .views import (
 
 
 urlpatterns = [
+    # Public endpoints (no authentication required)
+    path("public/events/", PublicEventListView.as_view(), name="public_events_list"),
+    path("public/events/<slug:event_slug>/", PublicEventDetailView.as_view(), name="public_event_detail"),
+    # Authenticated endpoints
     path("user/", UserProfileView.as_view(), name="user_profile"),
     path("registration/", RegistrationView.as_view(), name="registration"),
     path(

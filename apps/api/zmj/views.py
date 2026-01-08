@@ -3,7 +3,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from django.db import transaction
 from rest_framework import generics, status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -31,6 +31,8 @@ from .serializers import (
     EventProgramSerializer,
     InvoiceStatusSerializer,
     OrganizerSerializer,
+    PublicEventDetailSerializer,
+    PublicEventListSerializer,
     RegistrationSerializer,
     UpdateEventSerializer,
     UpdateUserProfileSerializer,
@@ -915,6 +917,10 @@ class EventAgreementView(EventAccessMixin, generics.GenericAPIView):
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        
+        # Update status to 'signed' after successful upload
+        agreement.status = "signed"
+        agreement.save()
 
         return Response(
             {"message": _("Signed agreement uploaded successfully.")},
@@ -1113,5 +1119,55 @@ class EventChecklistItemView(EventAccessMixin, generics.GenericAPIView):
         item.save()
 
         serializer = EventChecklistItemSerializer(item)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class PublicEventListView(APIView):
+    """
+    Public endpoint to list all events that are public on web.
+    
+    GET: Returns list of events with name, location place, slug, and date.
+    No authentication required.
+    """
+
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        """GET: Return all public events"""
+        events = Event.objects.filter(public_on_web=True).select_related("location").order_by("-start_date")
+        
+        serializer = PublicEventListSerializer(events, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class PublicEventDetailView(APIView):
+    """
+    Public endpoint to get detailed information about a specific event.
+    
+    GET: Returns event details with name, date, main-image, description, links,
+         location GPS and place, organizer name/surname/email, and program items.
+    No authentication required.
+    """
+
+    permission_classes = [AllowAny]
+
+    def get(self, request, event_slug):
+        """GET: Return event details"""
+        try:
+            event = (
+                Event.objects.select_related("location")
+                .prefetch_related(
+                    "tn_children__categories",
+                    "organization_team__profile__profileemail_set",
+                )
+                .get(slug=event_slug, public_on_web=True)
+            )
+        except Event.DoesNotExist:
+            return Response(
+                {"error": _("Event not found or not public.")},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        serializer = PublicEventDetailSerializer(event)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
