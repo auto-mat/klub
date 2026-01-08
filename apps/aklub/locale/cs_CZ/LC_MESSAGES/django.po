@@ -2321,123 +2321,103 @@ msgid "Password reset"
 msgstr "Obnovení hesla"
 
 #: apps/api/zmj/serializers.py:265
-#, fuzzy
-#| msgid "Name of the source"
 msgid "Draw a map of the area"
-msgstr "Název zdroje"
+msgstr "Nakreslit mapu záboru"
 
 #: apps/api/zmj/serializers.py:266
 msgid "Arrange signs"
-msgstr ""
+msgstr "Navrhnout značky"
 
 #: apps/api/zmj/serializers.py:267
 msgid "Print press materials"
-msgstr ""
+msgstr "Vytisknout propagační materiály"
 
 #: apps/api/zmj/serializers.py:268
 msgid "Arrange a partnership"
-msgstr ""
+msgstr "Domluvit partnerství"
 
 #: apps/api/zmj/serializers.py:269
 msgid "Invite local institutions"
-msgstr ""
+msgstr "Pozvat místní instituce"
 
 #: apps/api/zmj/serializers.py:270
 msgid "Prepare the program"
-msgstr ""
+msgstr "Připravit program"
 
 #: apps/api/zmj/views.py:53 apps/api/zmj/views.py:73 apps/api/zmj/views.py:333
 msgid "Event not found or you are not an organizer."
-msgstr "Událost nebyla nalezena nebo nejste jejím organizátorem."
+msgstr "Lokalita nebyla nalezena nebo nejste jejím organizátorem."
 
 #: apps/api/zmj/views.py:60 apps/api/zmj/views.py:80 apps/api/zmj/views.py:340
 msgid "Event not found."
-msgstr "Událost nenalezena."
+msgstr "Lokalita nenalezena."
 
 #: apps/api/zmj/views.py:385
 msgid "Event updated successfully."
-msgstr "Událost byla úspěšně aktualizována."
+msgstr "Lokalita byla úspěšně aktualizována."
 
 #: apps/api/zmj/views.py:465
-#, fuzzy
-#| msgid "Event updated successfully."
 msgid "Company updated successfully."
-msgstr "Událost byla úspěšně aktualizována."
+msgstr "Organizace byla úspěšně aktualizována."
 
 #: apps/api/zmj/views.py:545
-#, fuzzy
-#| msgid "Expected date of first payment"
 msgid "Expected a list of organizers."
-msgstr "Očekávané datum první platby"
+msgstr "Očekáván list organizátorů"
 
 #: apps/api/zmj/views.py:576
-#, fuzzy
-#| msgid "Event not found."
 msgid "Organizer not found."
-msgstr "Událost nenalezena."
+msgstr "Organizátor nenalezen."
 
 #: apps/api/zmj/views.py:585
 msgid "Organizer is not linked to this event."
-msgstr ""
+msgstr "Organizátor není přidaný k této lokalitě."
 
 #: apps/api/zmj/views.py:705
-#, fuzzy
-#| msgid "Event updated successfully."
 msgid "Event content updated successfully."
-msgstr "Událost byla úspěšně aktualizována."
+msgstr "Obsah lokality byl úspěšně aktualizován."
 
 #: apps/api/zmj/views.py:793 apps/api/zmj/views.py:819
 #: apps/api/zmj/views.py:840
-#, fuzzy
-#| msgid "Program of action."
 msgid "Program not found."
-msgstr "Program akce"
+msgstr "Program akce nebyl nalezen."
 
 #: apps/api/zmj/views.py:825
 #, fuzzy
 #| msgid "Event updated successfully."
 msgid "Program deleted successfully."
-msgstr "Událost byla úspěšně aktualizována."
+msgstr "Programový bod byl odstraněn."
 
 #: apps/api/zmj/views.py:900
 msgid "No agreement found for this event."
-msgstr ""
+msgstr "Nebyla nalezena žádná smlouva pro danou lokalitu."
 
 #: apps/api/zmj/views.py:909
 msgid ""
 "Cannot upload signed agreement. Agreement status must be 'sent' or "
 "'rejected'."
-msgstr ""
+msgstr "Nelze nahrát smlouva."
 
 #: apps/api/zmj/views.py:926
-#, fuzzy
-#| msgid "Event updated successfully."
 msgid "Signed agreement uploaded successfully."
-msgstr "Událost byla úspěšně aktualizována."
+msgstr "Podepsaná smlouva byla úspěšně nahrána."
 
 #: apps/api/zmj/views.py:1011
 #, fuzzy
 #| msgid "Expected date of first payment"
 msgid "Expected a list of checklist items."
-msgstr "Očekávané datum první platby"
+msgstr "Očekáván list úkolů."
 
 #: apps/api/zmj/views.py:1040 apps/api/zmj/views.py:1097
-#, fuzzy
-#| msgid "Event not found."
 msgid "Checklist item not found."
-msgstr "Událost nenalezena."
+msgstr "Úkol nenalezen."
 
 #: apps/api/zmj/views.py:1069
-#, fuzzy
-#| msgid "Event updated successfully."
 msgid "Checklist items updated successfully."
-msgstr "Událost byla úspěšně aktualizována."
+msgstr "Úkoly byly úspěšně aktualizovány."
 
 #: apps/api/zmj/views.py:1167
-#, fuzzy
-#| msgid "Event not found."
 msgid "Event not found or not public."
-msgstr "Událost nenalezena."
+msgstr "Lokalita nenalezena nebo není veřejně dostupná."
 
 #: apps/events/admin.py:58
 msgid "Download darujme statements"
@@ -2481,19 +2461,15 @@ msgstr "Výnosy za období"
 
 #: apps/events/admin.py:628
 msgid "Local organizer"
-msgstr ""
+msgstr "Lokální organizátor"
 
 #: apps/events/admin.py:651
-#, fuzzy
-#| msgid "Repeated registration"
 msgid "Event creator"
-msgstr "Opakovaná registrace"
+msgstr "Autor lokality"
 
 #: apps/events/admin.py:666
-#, fuzzy
-#| msgid "Repeated registration"
 msgid "Event creator email"
-msgstr "Opakovaná registrace"
+msgstr "E-mail autora lokality"
 
 #: apps/events/admin.py:673
 #, fuzzy
@@ -2511,7 +2487,7 @@ msgstr "Opakovaná registrace"
 #, fuzzy
 #| msgid "Program"
 msgid "Program Items"
-msgstr "Program"
+msgstr "Programové body"
 
 #: apps/events/admin.py:731
 #, fuzzy
@@ -2736,22 +2712,16 @@ msgid "Category"
 msgstr "Kategorie"
 
 #: apps/events/models.py:95 apps/events/models.py:267
-#, fuzzy
-#| msgid "Category"
 msgid "Categories"
 msgstr "Kategorie"
 
 #: apps/events/models.py:98
-#, fuzzy
-#| msgid "Name of the source"
 msgid "Name of category"
-msgstr "Název zdroje"
+msgstr "Název kategorie"
 
 #: apps/events/models.py:106
-#, fuzzy
-#| msgid "Identifier of the Interaction Type"
 msgid "Identifier of the category"
-msgstr "Identifikátor typu interakce"
+msgstr "Identifikátor kategorie"
 
 #: apps/events/models.py:113
 #, fuzzy
@@ -3313,40 +3283,32 @@ msgid "Position"
 msgstr "Pozice"
 
 #: apps/events/models.py:791
-#, fuzzy
-#| msgid "Addressment"
 msgid "Agreement"
-msgstr "Oslovení"
+msgstr "Smlouva"
 
 #: apps/events/models.py:792
-#, fuzzy
-#| msgid "Addressment"
 msgid "Agreements"
-msgstr "Oslovení"
+msgstr "Smlouvy"
 
 #: apps/events/models.py:795 apps/events/models.py:859
 msgid "Draft"
-msgstr ""
+msgstr "Vytvářená"
 
 #: apps/events/models.py:796 apps/events/models.py:860
-#, fuzzy
-#| msgid "Sent sms"
 msgid "Sent"
-msgstr "Poslat sms"
+msgstr "Odeslaná"
 
 #: apps/events/models.py:797
 msgid "Signed"
-msgstr ""
+msgstr "Podepsaná"
 
 #: apps/events/models.py:798
 msgid "Rejected"
-msgstr ""
+msgstr "Odmítnutá"
 
 #: apps/events/models.py:799
-#, fuzzy
-#| msgid "Complete address"
 msgid "Completed"
-msgstr "Kompletní doručovací adresa"
+msgstr "Dokončena"
 
 #: apps/events/models.py:809 apps/events/models.py:873
 #: apps/interactions/models.py:85 apps/interactions/models.py:211
@@ -3356,56 +3318,48 @@ msgid "Status"
 msgstr "Status"
 
 #: apps/events/models.py:815 apps/events/models.py:879
-#, fuzzy
-#| msgid "PDF file"
 msgid "PDF File"
 msgstr "PDF soubor"
 
 #: apps/events/models.py:821
-#, fuzzy
-#| msgid "Profile joined"
 msgid "PDF File Signed"
-msgstr "Profil přihlášen k podpoře"
+msgstr "Podepsaný PDF soubor"
 
 #: apps/events/models.py:827
 msgid "PDF File Completed"
-msgstr ""
+msgstr "Dokončený PDF soubor"
 
 #: apps/events/models.py:842
-#, fuzzy
-#| msgid "Internal notes about this communication"
 msgid "Additional notes about the agreement"
-msgstr "Interní poznámky o této komunikaci"
+msgstr "Interní poznámky o této smlouvě"
 
 #: apps/events/models.py:855
 msgid "Invoice"
-msgstr ""
+msgstr "Faktura"
 
 #: apps/events/models.py:856
 msgid "Invoices"
-msgstr ""
+msgstr "Faktury"
 
 #: apps/events/models.py:861
 msgid "Reminded"
-msgstr ""
+msgstr "Připomenutá"
 
 #: apps/events/models.py:862
 msgid "Overdue"
-msgstr ""
+msgstr "Po splatnosti"
 
 #: apps/events/models.py:863
 msgid "Paid"
-msgstr ""
+msgstr "Zaplacena"
 
 #: apps/events/models.py:885
 msgid "Invoice Number"
-msgstr ""
+msgstr "Číslo faktury"
 
 #: apps/events/models.py:888
-#, fuzzy
-#| msgid "E-mail from identifier"
 msgid "Invoice number or identifier"
-msgstr "email z identifikátoru"
+msgstr "Identifikátor faktury"
 
 #: apps/events/models.py:896
 #, fuzzy
@@ -3433,33 +3387,31 @@ msgstr "Interní poznámky o této komunikaci"
 
 #: apps/events/models.py:928
 msgid "Event Checklist Item"
-msgstr ""
+msgstr "Úkol"
 
 #: apps/events/models.py:929
 msgid "Event Checklist Items"
-msgstr ""
+msgstr "Úkoly"
 
 #: apps/events/models.py:940
-#, fuzzy
-#| msgid "Name of the source"
 msgid "Name of the checklist item"
-msgstr "Název zdroje"
+msgstr "Název úkolu"
 
 #: apps/events/models.py:943
 msgid "Checked"
-msgstr ""
+msgstr "Splněn"
 
 #: apps/events/models.py:945
 msgid "Whether this item is completed"
-msgstr ""
+msgstr "Je úkol splněn"
 
 #: apps/events/models.py:948
 msgid "Is Custom"
-msgstr ""
+msgstr "Je vlastní"
 
 #: apps/events/models.py:950
 msgid "Whether this item is custom"
-msgstr ""
+msgstr "Je tento úkol vlastní"
 
 #: apps/events/templates/admin/events/event/change_form.html:5
 msgid ""
