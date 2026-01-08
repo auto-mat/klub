@@ -1,6 +1,10 @@
+from django.conf import settings
+from django.utils.translation import ugettext_lazy as _
+
 from rest_framework import serializers
 
 from aklub.models import (
+    AdministrativeUnit,
     CompanyProfile,
     CompanyType,
     Preference,
@@ -9,7 +13,11 @@ from aklub.models import (
     UserProfile,
 )
 from events.models import (
+    Agreement,
+    Category,
     Event,
+    EventChecklistItem,
+    Invoice,
     Location,
     OrganizationPosition,
     OrganizationTeam,
@@ -22,10 +30,12 @@ class UpdateUserProfileSerializer(serializers.ModelSerializer):
         allow_blank=True,
         write_only=True,
     )
+    send_mailing_lists = serializers.BooleanField(required=False)
+    newsletter_on = serializers.BooleanField(required=False, allow_null=True)
 
     class Meta:
         model = UserProfile
-        fields = ["first_name", "last_name", "telephone", "sex", "language"]
+        fields = ["first_name", "last_name", "telephone", "sex", "language", "send_mailing_lists", "newsletter_on"]
         extra_kwargs = {
             "first_name": {"required": False, "allow_blank": True},
             "last_name": {"required": False, "allow_blank": True},
@@ -35,6 +45,9 @@ class UpdateUserProfileSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         telephone = validated_data.pop("telephone", None)
+        send_mailing_lists = validated_data.pop("send_mailing_lists", None)
+        newsletter_on = validated_data.pop("newsletter_on", None)
+        
         instance = super().update(instance, validated_data)
 
         # Telephone update
@@ -51,6 +64,32 @@ class UpdateUserProfileSerializer(serializers.ModelSerializer):
                 Telephone.objects.filter(user=instance, is_primary=True).update(
                     is_primary=None
                 )
+
+        # Ensure user has ZMJ administrative unit if they don't have any
+        if not instance.administrative_units.exists():
+            zmj_admin_unit, _created = AdministrativeUnit.objects.get_or_create(
+                name="ZMJ",
+                defaults={
+                    'level': 'club',
+                }
+            )
+            instance.administrative_units.add(zmj_admin_unit)
+            instance.save()
+
+        # Update Preference fields
+        # Get or create preference for the first administrative unit
+        if send_mailing_lists is not None or newsletter_on is not None:
+            admin_unit = instance.administrative_units.first()
+            if admin_unit:
+                preference, _created = Preference.objects.get_or_create(
+                    user=instance,
+                    administrative_unit=admin_unit,
+                )
+                if send_mailing_lists is not None:
+                    preference.send_mailing_lists = send_mailing_lists
+                if newsletter_on is not None:
+                    preference.newsletter_on = newsletter_on
+                preference.save()
 
         return instance
 
@@ -131,6 +170,17 @@ class RegistrationSerializer(serializers.Serializer):
                 setattr(user, field, validated_data[field])
         user.save()
 
+        # Assign ZMJ administrative unit to user if they don't have one
+        if not user.administrative_units.exists():
+            zmj_admin_unit, _created = AdministrativeUnit.objects.get_or_create(
+                name="ZMJ",
+                defaults={
+                    'level': 'club',
+                }
+            )
+            user.administrative_units.add(zmj_admin_unit)
+            user.save()
+
         # Update telephone
         if telephone is not None:
             if telephone:
@@ -145,19 +195,6 @@ class RegistrationSerializer(serializers.Serializer):
                 Telephone.objects.filter(user=user, is_primary=True).update(
                     is_primary=None
                 )
-
-        # Update preferences
-        if send_mailing_lists is not None or newsletter_on is not None:
-            for admin_unit in user.administrative_units.all():
-                preference, created = Preference.objects.get_or_create(
-                    user=user,
-                    administrative_unit=admin_unit,
-                )
-                if send_mailing_lists is not None:
-                    preference.send_mailing_lists = send_mailing_lists
-                if newsletter_on is not None:
-                    preference.newsletter_on = newsletter_on
-                preference.save()
 
         # Create location for the event
         location = Location.objects.create(
@@ -183,8 +220,28 @@ class RegistrationSerializer(serializers.Serializer):
         if user.administrative_units.exists():
             event.administrative_units.set(user.administrative_units.all())
 
+        # Update preferences - save for all user's administrative units
+        # (which are now also attached to the event)
+        if send_mailing_lists is not None or newsletter_on is not None:
+            admin_units = user.administrative_units.all()
+            
+            if admin_units.exists():
+                # Save preferences for all administrative units
+                for admin_unit in admin_units:
+                    preference, created = Preference.objects.get_or_create(
+                        user=user,
+                        administrative_unit=admin_unit,
+                    )
+                    if send_mailing_lists is not None:
+                        preference.send_mailing_lists = send_mailing_lists
+                    if newsletter_on is not None:
+                        preference.newsletter_on = newsletter_on
+                    preference.save()
+            # Note: If user has no administrative units, preferences cannot be saved
+            # because Preference model requires an administrative_unit
+
         # Add organizer link for the user
-        organizer_position, _ = OrganizationPosition.objects.get_or_create(
+        organizer_position, _created = OrganizationPosition.objects.get_or_create(
             name="Event creator"
         )
         OrganizationTeam.objects.get_or_create(
@@ -192,6 +249,34 @@ class RegistrationSerializer(serializers.Serializer):
             event=event,
             position=organizer_position,
         )
+
+        # Initialize Agreement and Invoice for the event
+        Agreement.objects.create(
+            event=event,
+            status="draft",
+        )
+        Invoice.objects.create(
+            event=event,
+            status="draft",
+        )
+
+        # Create predefined checklist items
+        predefined_checklist_items = [
+            _("Draw a map of the area"),
+            _("Arrange signs"),
+            _("Print press materials"),
+            _("Arrange a partnership"),
+            _("Invite local institutions"),
+            _("Prepare the program"),
+        ]
+        
+        for item_name in predefined_checklist_items:
+            EventChecklistItem.objects.create(
+                event=event,
+                name=item_name,
+                checked=False,
+                custom=False,
+            )
 
         # Create company if company info is provided
         company = None
@@ -216,7 +301,7 @@ class RegistrationSerializer(serializers.Serializer):
 
         # Create organizers (as UserProfile entries without authentication)
         if organizers:
-            organizer_position_obj, _ = OrganizationPosition.objects.get_or_create(
+            organizer_position_obj, _created = OrganizationPosition.objects.get_or_create(
                 name="Organizer"
             )
             for organizer_data in organizers:
@@ -451,3 +536,233 @@ class OrganizerSerializer(serializers.Serializer):
     last_name = serializers.CharField(required=True, allow_blank=True, allow_null=True)
     email = serializers.EmailField(required=False, allow_blank=True, allow_null=True)
     telephone = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+
+
+class EventProgramSerializer(serializers.Serializer):
+    """Serializer for event program (child event) with name, description, time_from, time_to, categories"""
+
+    id = serializers.IntegerField(required=False, read_only=True)
+    name = serializers.CharField(required=True, max_length=100)
+    description = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    time_from = serializers.DateTimeField(required=False, allow_null=True)
+    time_to = serializers.DateTimeField(required=False, allow_null=True)
+    categories = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=Category.objects.all(), required=False, allow_empty=True
+    )
+
+    def to_representation(self, instance):
+        """Convert Event instance to program representation"""
+        return {
+            "id": instance.id,
+            "name": instance.name,
+            "description": instance.description or "",
+            "time_from": instance.datetime_from.isoformat() if instance.datetime_from else None,
+            "time_to": instance.datetime_to.isoformat() if instance.datetime_to else None,
+            "categories": [
+                {"id": cat.id, "name": cat.name, "slug": cat.slug}
+                for cat in instance.categories.all()
+            ],
+        }
+
+    def create(self, validated_data, parent_event):
+        """Create a new program (child event)"""
+        categories = validated_data.pop("categories", [])
+        program = Event.objects.create(
+            name=validated_data["name"],
+            description=validated_data.get("description", ""),
+            datetime_from=validated_data.get("time_from"),
+            datetime_to=validated_data.get("time_to"),
+            tn_parent=parent_event,
+        )
+        if categories:
+            program.categories.set(categories)
+        return program
+
+    def update(self, instance, validated_data):
+        """Update an existing program (child event)"""
+        instance.name = validated_data.get("name", instance.name)
+        instance.description = validated_data.get("description", instance.description)
+        instance.datetime_from = validated_data.get("time_from", instance.datetime_from)
+        instance.datetime_to = validated_data.get("time_to", instance.datetime_to)
+        
+        if "categories" in validated_data:
+            instance.categories.set(validated_data["categories"])
+        
+        instance.save()
+        return instance
+
+
+class AgreementStatusSerializer(serializers.Serializer):
+    """Serializer for agreement status with conditional PDF file fields"""
+
+    status = serializers.CharField(read_only=True)
+    pdf_file = serializers.SerializerMethodField()
+    pdf_file_completed = serializers.SerializerMethodField()
+
+    def get_pdf_file(self, obj):
+        """Return pdf_file URL if status is 'sent' or 'rejected'"""
+        if obj.status in ["sent", "rejected"] and obj.pdf_file:
+            try:
+                return obj.pdf_file.url
+            except (ValueError, AttributeError):
+                return None
+        return None
+
+    def get_pdf_file_completed(self, obj):
+        """Return pdf_file_completed URL if status is 'completed'"""
+        if obj.status == "completed" and obj.pdf_file_completed:
+            try:
+                return obj.pdf_file_completed.url
+            except (ValueError, AttributeError):
+                return None
+        return None
+
+
+class AgreementSignedUploadSerializer(serializers.Serializer):
+    """Serializer for uploading signed agreement PDF"""
+
+    pdf_file_signed = serializers.FileField(required=True)
+
+    def update(self, instance, validated_data):
+        """Update the agreement with the signed PDF file"""
+        instance.pdf_file_signed = validated_data["pdf_file_signed"]
+        instance.save()
+        return instance
+
+
+class InvoiceStatusSerializer(serializers.Serializer):
+    """Serializer for invoice status with conditional PDF file field"""
+
+    status = serializers.CharField(read_only=True)
+    pdf_file = serializers.SerializerMethodField()
+
+    def get_pdf_file(self, obj):
+        """Return pdf_file URL if status is 'sent', 'reminded', or 'overdue'"""
+        if obj.status in ["sent", "reminded", "overdue"] and obj.pdf_file:
+            try:
+                return obj.pdf_file.url
+            except (ValueError, AttributeError):
+                return None
+        return None
+
+
+class EventChecklistItemSerializer(serializers.ModelSerializer):
+    """Serializer for event checklist items (for both GET and PUT)"""
+
+    id = serializers.IntegerField(required=False, allow_null=True)
+
+    class Meta:
+        model = EventChecklistItem
+        fields = ["id", "name", "checked", "custom"]
+        read_only_fields = []
+
+
+class PublicEventListSerializer(serializers.Serializer):
+    """Serializer for public event list with basic information"""
+
+    name = serializers.CharField(read_only=True)
+    slug = serializers.SlugField(read_only=True)
+    date = serializers.DateTimeField(source="start_date", read_only=True)
+    location_place = serializers.SerializerMethodField()
+
+    def get_location_place(self, obj):
+        """Get location place from event's location"""
+        if obj.location:
+            return obj.location.place
+        return None
+
+
+class PublicEventDetailSerializer(serializers.Serializer):
+    """Serializer for public event detail with full information"""
+
+    name = serializers.CharField(read_only=True)
+    date = serializers.DateTimeField(source="start_date", read_only=True)
+    main_image = serializers.SerializerMethodField()
+    description = serializers.CharField(read_only=True)
+    links = serializers.SerializerMethodField()
+    location = serializers.SerializerMethodField()
+    organizer = serializers.SerializerMethodField()
+    program_items = serializers.SerializerMethodField()
+
+    def get_main_image(self, obj):
+        """Get main photo URL"""
+        if obj.main_photo:
+            try:
+                return obj.main_photo.url
+            except (ValueError, AttributeError):
+                return None
+        return None
+
+    def get_links(self, obj):
+        """Get all links (url + url_title) as a list"""
+        links = []
+        if obj.url and obj.url_title:
+            links.append({"url": obj.url, "url_title": obj.url_title})
+        if obj.url1 and obj.url_title1:
+            links.append({"url": obj.url1, "url_title": obj.url_title1})
+        if obj.url2 and obj.url_title2:
+            links.append({"url": obj.url2, "url_title": obj.url_title2})
+        return links
+
+    def get_location(self, obj):
+        """Get location information with GPS and place"""
+        if obj.location:
+            return {
+                "place": obj.location.place or "",
+                "gps_latitude": obj.location.gps_latitude,
+                "gps_longitude": obj.location.gps_longitude,
+            }
+        return {
+            "place": None,
+            "gps_latitude": None,
+            "gps_longitude": None,
+        }
+
+    def get_organizer(self, obj):
+        """Get organizer name, surname, and email"""
+        # Get the first UserProfile organizer
+        org_team = (
+            OrganizationTeam.objects.select_related("profile")
+            .filter(
+                event=obj,
+                profile__polymorphic_ctype__model=UserProfile._meta.model_name,
+            )
+            .first()
+        )
+
+        if org_team and isinstance(org_team.profile, UserProfile):
+            user_profile = org_team.profile
+            # Get primary email
+            try:
+                email = user_profile.profileemail_set.get(is_primary=True).email
+            except ProfileEmail.DoesNotExist:
+                email_obj = user_profile.profileemail_set.first()
+                email = email_obj.email if email_obj else None
+
+            return {
+                "first_name": user_profile.first_name or "",
+                "last_name": user_profile.last_name or "",
+                "email": email,
+            }
+        return {
+            "first_name": None,
+            "last_name": None,
+            "email": None,
+        }
+
+    def get_program_items(self, obj):
+        """Get list of program items (child events)"""
+        programs = obj.tn_children.all().order_by("datetime_from")
+        return [
+            {
+                "name": program.name,
+                "description": program.description or "",
+                "time_from": program.datetime_from.isoformat() if program.datetime_from else None,
+                "time_to": program.datetime_to.isoformat() if program.datetime_to else None,
+                "categories": [
+                    {"id": cat.id, "name": cat.name, "slug": cat.slug}
+                    for cat in program.categories.all()
+                ],
+            }
+            for program in programs
+        ]

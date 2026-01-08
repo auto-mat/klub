@@ -46,7 +46,7 @@ from django.urls import resolve
 from django.utils.html import format_html, format_html_join, mark_safe
 from django.utils.translation import ugettext as _
 
-from events.models import Event
+from events.models import Event, OrganizationTeam
 
 try:
     from django.urls import reverse
@@ -787,7 +787,7 @@ class MoneyAccountChildAdmin(
     base_model = MoneyAccount
 
 
-@admin.register(ApiAccount)
+# @admin.register(ApiAccount)
 class ApiAccountAdmin(
     child_redirect_mixin("apiaccount"),
     unit_admin_mixin_generator("administrative_unit"),
@@ -832,7 +832,7 @@ class ApiAccountAdmin(
     darujme_url.short_description = _("Darujme api url")
 
 
-@admin.register(BankAccount)
+# @admin.register(BankAccount)
 class BankAccountAdmin(
     child_redirect_mixin("bankaccount"),
     unit_admin_mixin_generator("administrative_unit"),
@@ -851,7 +851,7 @@ class BankAccountAdmin(
     )
 
 
-@admin.register(MoneyAccount)
+# @admin.register(MoneyAccount)
 class MoneyAccountParentAdmin(PolymorphicParentModelAdmin):
     """The parent model admin"""
 
@@ -992,8 +992,10 @@ class ProfileAdminMixin:
     get_first_payment_date.short_description = _("Date of first payment")
 
     def get_event(self, obj):
+        """Return events that the user organizes"""
+        org_teams = OrganizationTeam.objects.filter(profile=obj).select_related('event')
         return sweet_text(
-            ((f"{d.event.id}) {d.event.name}",) for d in self.get_donor_details(obj))
+            ((org_team.event.name,) for org_team in org_teams if org_team.event)
         )
 
     get_event.admin_order_field = "events"
@@ -2201,7 +2203,7 @@ class TaxConfirmationAdmin(
     get_name.short_description = _("Name")
 
 
-@admin.register(TaxConfirmationPdf)
+# @admin.register(TaxConfirmationPdf)
 class TaxConfirmationPdfAdmin(PdfSandwichAdmin):
     pass
 
@@ -2220,7 +2222,9 @@ class AdministrativeUnitAdmin(admin.ModelAdmin):
 
 @admin.register(CompanyType)
 class CompanyTypeAdmin(admin.ModelAdmin):
-    pass
+    list_display = ("type", "id")
+    search_fields = ("type",)
+    ordering = ("type",)
 
 
 class BaseProfileChildAdmin(
@@ -2331,14 +2335,7 @@ class UserProfileAdmin(
         "get_administrative_units",
         "get_event",
         "date_joined",
-        # 'get_next_communication_date',
-        "get_sum_amount",
-        "get_payment_count",
-        "get_first_payment_date",
-        "get_last_payment_date",
-        "regular_amount",
-        "donor_delay",
-        "donor_extra_money",
+        "is_active",
     )
 
     actions = (sync_with_daktela,) + ProfileAdminMixin.actions
@@ -2473,32 +2470,13 @@ class UserProfileAdmin(
     )
 
     list_filter = (
-        filters.AdminUnitTextSearchFilter,
         filters.PreferenceMailingListAllowed,
-        isnull_filter("userchannels__payment", _("Has any payment"), negate=True),
-        ("userchannels__extra_money", RangeNumericFilter),
-        ("userchannels__regular_amount", RangeNumericFilter),
-        "userchannels__regular_frequency",
-        "userchannels__regular_payments",
-        ("userchannels__registered_support", DateRangeFilter),
-        "is_staff",
-        "is_superuser",
         "is_active",
-        "groups",
         "language",
-        ("userchannels__last_payment__date", DateRangeFilter),
         filters.IsUserInCompanyProfile,
-        filters.DonorsEventTextSearchFilter,
-        filters.RegularPaymentsFilter,
         filters.EmailFilter,
         filters.TelephoneFilter,
         filters.NameFilter,
-        UserConditionFilter,
-        UserConditionFilter1,
-        "interaction__type__name",
-        filters.EventOfInteractionTextSearchFilter,
-        filters.EventOfInteractionIDSearchFilter,
-        isnull_filter("petitionsignature__user", _("Petition signed"), negate=True),
     )
     ordering = ("email",)
     filter_horizontal = (
@@ -3120,15 +3098,15 @@ class CompanyProfileAdmin(
         return queryset
 
 
-admin.site.register(DonorPaymentChannel, DonorPaymetChannelAdmin)
-admin.site.register(NewUser, NewUserAdmin)
-admin.site.register(Payment, PaymentAdmin)
-admin.site.register(AccountStatements, AccountStatementsAdmin)
-admin.site.register(AutomaticCommunication, AutomaticCommunicationAdmin)
-admin.site.register(MassCommunication, MassCommunicationAdmin)
-admin.site.register(Recruiter, RecruiterAdmin)
-admin.site.register(TaxConfirmation, TaxConfirmationAdmin)
-admin.site.register(Source, SourceAdmin)
+# admin.site.register(DonorPaymentChannel, DonorPaymetChannelAdmin)
+# admin.site.register(NewUser, NewUserAdmin)
+# admin.site.register(Payment, PaymentAdmin)
+# admin.site.register(AccountStatements, AccountStatementsAdmin)
+# admin.site.register(AutomaticCommunication, AutomaticCommunicationAdmin)
+# admin.site.register(MassCommunication, MassCommunicationAdmin)
+# admin.site.register(Recruiter, RecruiterAdmin)
+# admin.site.register(TaxConfirmation, TaxConfirmationAdmin)
+# admin.site.register(Source, SourceAdmin)
 admin.site.register(Profile, ProfileAdmin)
 # register all adminactions
 actions.add_to_site(site)
