@@ -25,8 +25,11 @@ from . import filters
 from .admin_views import EventChangeList
 from .forms import EventForm, EventChangeListForm
 from events.models import (
+    Agreement,
+    Category,
     Event,
     EventType,
+    Invoice,
     Location,
     OrganizationPosition,
     OrganizationTeam,
@@ -55,7 +58,7 @@ def download_darujme_statement(self, request, queryset):
 download_darujme_statement.short_description = _("Download darujme statements")
 
 
-@admin.register(OrganizationPosition)
+# @admin.register(OrganizationPosition)
 class OrganizationPositionAdmin(admin.ModelAdmin):
     list_display = ("name",)
 
@@ -72,14 +75,94 @@ class LocationAdmin(admin.ModelAdmin):
     )
 
 
-@admin.register(EventType)
+# @admin.register(EventType)
 class EventTypeAdmin(admin.ModelAdmin):
     list_display = ("name", "slug")
 
 
-@admin.register(Qualification)
+# @admin.register(Qualification)
 class Qualificationdmin(admin.ModelAdmin):
     list_display = ("name", "abbreviated_name")
+
+
+@admin.register(Agreement)
+class AgreementAdmin(admin.ModelAdmin):
+    list_display = ("id", "get_event_name", "get_user_name", "status", "created", "updated")
+    list_filter = ("status", "created", "updated")
+    search_fields = ("event__name", "note", "event__organization_team__profile__first_name", "event__organization_team__profile__last_name")
+    readonly_fields = ("created", "updated")
+    fields = ("event", "status", "pdf_file", "pdf_file_signed", "pdf_file_completed", "note", "created", "updated")
+    
+    def get_event_name(self, obj):
+        """Return the event name"""
+        return obj.event.name if obj.event else "-"
+    
+    get_event_name.short_description = _("Event Name")
+    get_event_name.admin_order_field = "event__name"
+    
+    def get_user_name(self, obj):
+        """Return the organizer/user name(s)"""
+        if not obj.event:
+            return "-"
+        
+        names = []
+        for profile in obj.event.organization_team.all():
+            if profile.is_userprofile():
+                # UserProfile
+                name = f"{profile.first_name or ''} {profile.last_name or ''}".strip()
+                if name:
+                    names.append(name)
+            elif hasattr(profile, 'name') and profile.name:
+                # CompanyProfile or other profile type
+                names.append(profile.name)
+        
+        return ", ".join(names) if names else "-"
+    
+    get_user_name.short_description = _("Organizer")
+
+
+@admin.register(Invoice)
+class InvoiceAdmin(admin.ModelAdmin):
+    list_display = ("id", "get_event_name", "get_user_name", "status", "created", "updated")
+    list_filter = ("status", "created", "updated")
+    search_fields = ("event__name", "invoice_number", "event__organization_team__profile__first_name", "event__organization_team__profile__last_name")
+    readonly_fields = ("created", "updated")
+    fields = ("event", "status", "pdf_file", "invoice_number", "amount", "due_date", "note", "created", "updated")
+    
+    def get_event_name(self, obj):
+        """Return the event name"""
+        return obj.event.name if obj.event else "-"
+    
+    get_event_name.short_description = _("Event Name")
+    get_event_name.admin_order_field = "event__name"
+    
+    def get_user_name(self, obj):
+        """Return the organizer/user name(s)"""
+        if not obj.event:
+            return "-"
+        
+        names = []
+        for profile in obj.event.organization_team.all():
+            if profile.is_userprofile():
+                # UserProfile
+                name = f"{profile.first_name or ''} {profile.last_name or ''}".strip()
+                if name:
+                    names.append(name)
+            elif hasattr(profile, 'name') and profile.name:
+                # CompanyProfile or other profile type
+                names.append(profile.name)
+        
+        return ", ".join(names) if names else "-"
+    
+    get_user_name.short_description = _("Organizer")
+
+
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ("name", "slug", "id")
+    search_fields = ("name", "slug", "description")
+    ordering = ("name",)
+    prepopulated_fields = {"slug": ("name",)}
 
 
 class OrganizationTeamInline(admin.TabularInline):
@@ -109,25 +192,14 @@ class EventAdmin(
     inlines = (OrganizationTeamInline,)
     list_display = (
         "name",
-        "id",
         "slug",
         "specific_location_name",
-        "is_in_location",
         "datetime_from",
         "local_organizer",
         "main_coordinator",
         "main_coordinator_email",
-        "secondary_coordinator_email",
         "main_coordinator_telephone",
-        "has_any_coordinator_interaction_with_organize_zmj",
-        "has_any_coordinator_interaction_with_organize_uso",
         "note",
-        "has_any_coordinator_interaction_type_of_contract_with_signed_result",
-        "has_any_coordinator_interaction_type_of_order_signs",
-        "has_any_coordinator_interaction_type_of_zabor_zmj",
-        "datetime_to",
-        "sum_yield_amount",
-        "number_of_members",
         "go_to_users",
         # TODO: must be optimalized
         # 'number_of_recruiters',
@@ -155,6 +227,9 @@ class EventAdmin(
         filters.EventLocationRegionFilter,
     ]
     readonly_fields = (
+        "get_program_items",
+        "get_organizers",
+        "get_company",
         "number_of_members",
         "number_of_recruiters",
         "yield_total",
@@ -179,10 +254,9 @@ class EventAdmin(
                     "basic_purpose",
                     "opportunity",
                     "grant",
-                    ("datetime_from", "datetime_to"),
+                    ("datetime_from"),
                     "variable_symbol_prefix",
-                    "description",
-                    "administrative_units",
+                    "location"
                 ),
             },
         ),
@@ -191,28 +265,14 @@ class EventAdmin(
             {
                 "classes": ("collapse",),
                 "fields": (
-                    ("age_from", "age_to"),
-                    "event_type",
-                    "program",
-                    "intended_for",
-                    "location",
-                    "registration_method",
-                    "participation_fee",
-                    "meeting",
-                    "focus_on_members",
-                    "note",
-                    "result",
-                    "number_of_actions",
-                    "promoted_in_magazine",
-                    "total_working_days",
-                    "working_hours",
-                    "accommodation",
-                    "diet",
-                    "contact_person_name",
-                    "contact_person_email",
-                    "contact_person_telephone",
-                    "comment_on_work_done",
-                    "other_work",
+                    "main_photo",
+                    "description",
+                    "url_title",
+                    "url",
+                    "url_title1",
+                    "url1",
+                    "url_title2",
+                    "url2",
                 ),
             },
         ),
@@ -234,62 +294,13 @@ class EventAdmin(
             },
         ),
         (
-            _("Additional information"),
+            _("Program"),
             {
                 "classes": ("collapse",),
                 "fields": (
-                    "additional_question_1",
-                    "additional_question_2",
-                    "additional_question_3",
-                    "additional_question_4",
-                    "main_photo",
-                    "additional_photo_1",
-                    "additional_photo_2",
-                    "additional_photo_3",
-                    "additional_photo_4",
-                    "additional_photo_5",
-                    "additional_photo_6",
-                    "invitation_text_short",
-                    "invitation_text_1",
-                    "invitation_text_2",
-                    "invitation_text_3",
-                    "invitation_text_4",
-                    "url_title",
-                    "url",
-                    "url_title1",
-                    "url1",
-                    "url_title2",
-                    "url2",
-                    "print_point_1",
-                    "print_point_2",
-                    "print_point_3",
-                    "print_point_4",
-                    "print_point_5",
-                    "print_point_6",
-                    "event",
-                    "tn_parent",
-                    "tn_priority",
-                    "descendants_tree",
-                ),
-            },
-        ),
-        (
-            _("Statistics"),
-            {
-                "classes": ("collapse",),
-                "fields": (
-                    "number_of_members",
-                    "number_of_recruiters",
-                    "yield_total",
-                    "real_yield",
-                    "total_expenses",
-                    "expected_monthly_income",
-                    "return_of_investmensts",
-                    "average_yield",
-                    "average_expense",
-                    "hours_worked",
-                    "total_participants",
-                    "total_participants_under_26",
+                    "get_program_items",
+                    "get_organizers",
+                    "get_company",
                 ),
             },
         ),
@@ -618,68 +629,142 @@ class EventAdmin(
     local_organizer.admin_order_field = "local_organizer"
 
     def main_coordinator(self, obj):
+        """Return the user who created the event"""
         names = []
-        main_organizators = OrganizationTeam.objects.filter(
+        event_creators = OrganizationTeam.objects.filter(
             event=obj,
-            position__name=self.main_coordinator_name,
+            position__name="Event creator",
         )
-        for organizator in main_organizators:
-            if organizator.profile.is_userprofile():
+        for creator in event_creators:
+            if creator.profile.is_userprofile():
                 names.append(
                     "<b>{first_name} {last_name}</b>".format(
-                        first_name=organizator.profile.first_name.strip(),
-                        last_name=organizator.profile.last_name.strip(),
+                        first_name=creator.profile.first_name.strip(),
+                        last_name=creator.profile.last_name.strip(),
                     )
                 )
             else:
-                names.append(organizator.profile.get_main_contact_name())
+                names.append(creator.profile.get_main_contact_name())
 
         return mark_safe("<br>".join(names)) if names else self.none_val
 
-    main_coordinator.short_description = _("Contact person")
+    main_coordinator.short_description = _("Event creator")
     main_coordinator.admin_order_field = "main_coordinator"
 
     def main_coordinator_email(self, obj):
+        """Return the email of the user who created the event"""
         emails = []
-        main_organizators = OrganizationTeam.objects.filter(
+        event_creators = OrganizationTeam.objects.filter(
             event=obj,
-            position__name=self.main_coordinator_name,
+            position__name="Event creator",
         )
-        for organizator in main_organizators:
-            emails.append(organizator.profile.get_email())
+        for creator in event_creators:
+            emails.append(creator.profile.get_email())
 
         return mark_safe("<br>".join(emails)) if emails else self.none_val
 
-    main_coordinator_email.short_description = _("Contact person main email")
+    main_coordinator_email.short_description = _("Event creator email")
     main_coordinator_email.admin_order_field = "main_coordinator_email"
 
     def secondary_coordinator_email(self, obj):
-        emails = []
-        secondary_organizators = OrganizationTeam.objects.filter(
-            event=obj,
-            position__name=self.secondary_coordinator_name,
-        )
-        for organizator in secondary_organizators:
-            emails.append(organizator.profile.get_email())
-
-        return mark_safe("<br>".join(emails)) if emails else self.none_val
+        """Return empty for secondary coordinator (not used for event creator)"""
+        return self.none_val
 
     secondary_coordinator_email.short_description = _("Contact person secondary email")
     secondary_coordinator_email.admin_order_field = "secondary_coordinator_email"
 
     def main_coordinator_telephone(self, obj):
+        """Return the telephone of the user who created the event"""
         telephones = []
-        main_organizators = OrganizationTeam.objects.filter(
+        event_creators = OrganizationTeam.objects.filter(
             event=obj,
-            position__name=self.main_coordinator_name,
+            position__name="Event creator",
         )
-        for organizator in main_organizators:
-            telephones.append(organizator.profile.get_telephone())
+        for creator in event_creators:
+            telephones.append(creator.profile.get_telephone())
 
         return mark_safe("<br>".join(telephones)) if telephones else self.none_val
 
-    main_coordinator_telephone.short_description = _("Contact person main telephone")
+    main_coordinator_telephone.short_description = _("Event creator telephone")
     main_coordinator_telephone.admin_order_field = "main_coordinator_telephone"
+
+    def get_program_items(self, obj):
+        """Return program items (child events/descendants)"""
+        if not obj:
+            return "-"
+        
+        program_items = obj.tn_children.all().order_by("datetime_from")
+        if not program_items.exists():
+            return "-"
+        
+        items = []
+        for item in program_items:
+            item_info = f"<b>{item.name}</b>"
+            if item.datetime_from:
+                item_info += f": {item.datetime_from.strftime('%H:%M')}"
+            if item.datetime_to:
+                item_info += f" - {item.datetime_to.strftime('%H:%M')}"
+            if item.description:
+                item_info += f"<br/>{item.description[:100]}..."
+            items.append(item_info)
+        
+        return mark_safe("<br/><br/>".join(items))
+    
+    get_program_items.short_description = _("Program Items")
+
+    def get_organizers(self, obj):
+        """Return all organizers"""
+        if not obj:
+            return "-"
+        
+        organizers = []
+        for profile in obj.organization_team.all():
+            if profile.is_userprofile():
+                name = f"{profile.first_name or ''} {profile.last_name or ''}".strip()
+                if name:
+                    organizers.append(name)
+            elif hasattr(profile, 'name') and profile.name:
+                organizers.append(profile.name)
+        
+        return ", ".join(organizers) if organizers else "-"
+    
+    get_organizers.short_description = _("Organizers")
+    get_organizers.readonly = True
+
+    def get_company(self, obj):
+        """Return company information if linked to the event"""
+        if not obj:
+            return "-"
+        
+        from aklub.models import CompanyProfile
+        
+        org_team = (
+            OrganizationTeam.objects.select_related("profile")
+            .filter(
+                event=obj,
+                profile__polymorphic_ctype__model=CompanyProfile._meta.model_name,
+            )
+            .first()
+        )
+        
+        if not org_team:
+            return "-"
+        
+        company = org_team.profile
+        company_info = []
+        if hasattr(company, 'name') and company.name:
+            company_info.append(f"<b>{company.name}</b>")
+        if hasattr(company, 'crn') and company.crn:
+            company_info.append(f"CRN: {company.crn}")
+        if hasattr(company, 'tin') and company.tin:
+            company_info.append(f"TIN: {company.tin}")
+        if hasattr(company, 'type') and company.type:
+            company_info.append(f"Type: {company.type.type}")
+        
+        return mark_safe("<br/>".join(company_info)) if company_info else "-"
+    
+    get_company.short_description = _("Company")
+    get_company.readonly = True
 
     def has_any_coordinator_interaction_with_organize_zmj(
         self,

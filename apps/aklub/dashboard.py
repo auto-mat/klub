@@ -85,11 +85,11 @@ class AklubIndexDashboard(Dashboard):
             ),
         )
 
-        # append an app list module for "Applications"
+        # append an app list module for "Zažít město jinak"
         self.children.append(
             modules.AppList(
-                _("Applications"),
-                exclude=("django.contrib.*",),
+                _("Zažít město jinak"),
+                models=("aklub.*", "events.*"),
             ),
         )
 
@@ -104,23 +104,23 @@ class AklubIndexDashboard(Dashboard):
         # append a recent actions module
         self.children.append(modules.RecentActions(_("Recent Actions"), 5))
 
-        self.children.append(
-            modules.LinkList(
-                _("Statistics"),
-                children=[
-                    {
-                        "title": _("Members"),
-                        "url": "/admin/aklub/stat-members",
-                        "external": False,
-                    },
-                    {
-                        "title": _("Payments"),
-                        "url": "/admin/aklub/stat-payments",
-                        "external": False,
-                    },
-                ],
-            ),
-        )
+        # self.children.append(
+        #     modules.LinkList(
+        #         _("Statistics"),
+        #         children=[
+        #             {
+        #                 "title": _("Members"),
+        #                 "url": "/admin/aklub/stat-members",
+        #                 "external": False,
+        #             },
+        #             {
+        #                 "title": _("Payments"),
+        #                 "url": "/admin/aklub/stat-payments",
+        #                 "external": False,
+        #             },
+        #         ],
+        #     ),
+        # )
 
         # Modules for conditions:
         children = []

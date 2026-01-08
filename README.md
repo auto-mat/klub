@@ -3,6 +3,8 @@ Auto\*mat klub
 [![Build Status](https://travis-ci.org/auto-mat/klub.svg?branch=master)](https://travis-ci.org/auto-mat/klub)
 [![Coverage Status](https://coveralls.io/repos/github/auto-mat/klub/badge.svg?branch=master)](https://coveralls.io/github/auto-mat/klub?branch=master)
 
+For instalation and documentation of Zažít město jinak application read [here](./docs/zmj.md).
+
 Documentation
 =================
 
