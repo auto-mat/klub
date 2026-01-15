@@ -1197,13 +1197,13 @@ class ProfileEmail(models.Model):
         self.email = self.email.strip()
         super().save(*args, **kwargs)
         # Sync with Daktela app Contacts model
-        if self.user.is_userprofile():
+        if self.user and self.user.is_userprofile():
             sync_contacts([self.user])
 
     def delete(self, *args, **kwargs):
         super().delete(*args, **kwargs)
         # Sync with Daktela app Contacts model
-        if self.user.is_userprofile():
+        if self.user and self.user.is_userprofile():
             sync_contacts([self.user])
 
 
@@ -1365,14 +1365,14 @@ class Telephone(models.Model):
         self.clean()
         super().save(*args, **kwargs)
         # Sync with Daktela app Contacts model
-        if self.user.is_userprofile():
+        if self.user and self.user.is_userprofile():
             if Telephone.objects.filter(user=self.user):
                 sync_contacts([self.user])
 
     def delete(self, *args, **kwargs):
         super().delete(*args, **kwargs)
         # Sync with Daktela app Contacts model
-        if self.user.is_userprofile():
+        if self.user and self.user.is_userprofile():
             sync_contacts([self.user])
 
     def __str__(self):
