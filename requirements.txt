@@ -128,7 +128,7 @@ flake8-builtins==1.5.3
 flake8-comprehensions==3.3.0
 flake8-import-order==0.18.1
 flake8-tidy-imports==4.1.0
-flower==0.9.5
+flower==1.2.0
 freezegun==1.1.0
 future==0.18.3
 gunicorn==20.1.0
