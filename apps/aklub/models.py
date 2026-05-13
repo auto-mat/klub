@@ -1764,7 +1764,7 @@ class DonorPaymentChannel(ComputedFieldsModel):
         vs_prefix = self.event.variable_symbol_prefix
         unit = self.money_account.administrative_unit
         if not vs_prefix:
-            vs_prefix = "0"
+            vs_prefix = timezone.datetime.now().year
             dpchs_VS = (
                 DonorPaymentChannel.objects.filter(
                     money_account__administrative_unit=unit,
@@ -1775,10 +1775,10 @@ class DonorPaymentChannel(ComputedFieldsModel):
             )
             if not dpchs_VS:
                 # first number
-                self.VS = "0000000001"
+                self.VS = f"{vs_prefix:<010d}"
                 return
             for VS in dpchs_VS:
-                new_VS = "%0*d" % (10, int(VS) + 1)
+                new_VS = str(int(VS) + 1)
                 exist = DonorPaymentChannel.objects.filter(
                     money_account__administrative_unit=unit,
                     VS=new_VS,

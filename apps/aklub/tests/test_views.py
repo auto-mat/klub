@@ -828,8 +828,9 @@ class VariableSymbolTests(TestCase):
             event=event2,
         )
         # fist dpch without prefix
-        self.assertEqual(dpch.VS, "0000000001")
-        self.assertEqual(dpch2.VS, "0000000002")
+        actual_year = timezone.datetime.now().year
+        self.assertEqual(dpch.VS, str(int(f"{vs_prefix:<010d}") + 1))
+        self.assertEqual(dpch2.VS, str(int(f"{vs_prefix:<010d}") + 2))
 
     def test_vs_generate_witprefix(self):
         event = mommy.make(
