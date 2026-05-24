@@ -78,7 +78,7 @@ class RegularUserForm_UserProfile(forms.ModelForm):
 
     def clean_username(self):
         "This function is required to overwrite an inherited username clean"
-        return self.cleaned_data["username"]
+        return self.cleaned_data["email"]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
