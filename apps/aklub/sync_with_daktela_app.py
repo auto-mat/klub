@@ -552,6 +552,9 @@ def delete_ticket(interaction, user_auth_token):
                                    app Ticket model instance unique name
     :param str user_auth_token: Daktela app user auth token
     """
+    if not settings.DAKTELA["enable"]:
+        return
+
     from interactions.models import Interaction
 
     if isinstance(interaction, Interaction):
