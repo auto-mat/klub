@@ -1,5 +1,9 @@
 FROM python:3.9-bullseye
 
+RUN printf "deb http://archive.debian.org/debian bullseye main contrib non-free \
+deb http://archive.debian.org/debian bullseye-updates main contrib non-free \
+deb http://archive.debian.org/debian-security bullseye-security main contrib non-free" > /etc/apt/sources.list
+
 RUN curl -sL https://deb.nodesource.com/setup_18.x | bash -
 run apt-get update && apt-get install -y \
    binutils \
